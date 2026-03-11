@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,8 @@ import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
 import CustomerCacheSearch from '@/components/admin/CustomerCacheSearch';
 import AdminApiManagement from '@/components/admin/AdminApiManagement';
 import AdminProjectManagement from '@/components/admin/projectManagement/AdminProjectManagement';
+import AdminApplicationsPanel from '@/components/admin/AdminApplicationsPanel';
+import NotificationBell from '@/components/NotificationBell';
 
 // Navigation Item Component
 const NavItem = ({
@@ -201,6 +203,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <NotificationBell recipientType="admin" recipientId="system" variant="admin" />
               <button 
                 onClick={refreshData} 
                 disabled={isLoading}
@@ -260,6 +263,7 @@ const AdminDashboard = () => {
                 <NavItem icon={Database} label="Customer DB" active={activeSection === "customer-cache"} onClick={() => setActiveSection("customer-cache")} />
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
                 <NavItem icon={HardHat} label="Projects" active={activeSection === "projects"} onClick={() => setActiveSection("projects")} />
+                <NavItem icon={ClipboardList} label="Applications" active={activeSection === "applications"} onClick={() => setActiveSection("applications")} />
                 <NavItem icon={FolderOpen} label="Repository" active={false} onClick={() => window.open('/files', '_blank')} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
                 <NavItem icon={Globe} label="API Management" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
@@ -604,6 +608,9 @@ const AdminDashboard = () => {
                 {/* Logistics settings are now managed through DeliveryApiManager above */}
               </div>
             </div>}
+
+          {/* Applications Tab */}
+          {isMainAdmin && activeSection === "applications" && <AdminApplicationsPanel />}
 
           {/* Procurement Tab */}
           {activeSection === "procurement" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">

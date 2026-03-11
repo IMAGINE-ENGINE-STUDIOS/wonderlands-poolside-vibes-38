@@ -1711,6 +1711,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          recipient_id: string
+          recipient_type: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          recipient_id: string
+          recipient_type: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          recipient_id?: string
+          recipient_type?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           commission_amount: number | null

@@ -16,6 +16,7 @@ import {
 import ContractorAgreement from '@/components/ContractorAgreement';
 import ContractorProcurementTab from '@/components/contractor/ContractorProcurementTab';
 import ContractorCurrentProjectsTab from '@/components/contractor/ContractorCurrentProjectsTab';
+import NotificationBell from '@/components/NotificationBell';
 
 interface Service {
   id?: string;
@@ -369,6 +370,7 @@ const ContractorProfile = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell recipientType="contractor" recipientId={id!} />
             {getStatusBadge(contractor.status)}
             {!contractor.agreement_signed && (
               <Button onClick={() => setShowAgreement(true)}>

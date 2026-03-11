@@ -132,6 +132,17 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
         });
       } catch (e) { console.error('Email failed:', e); }
 
+      // Notification for accepted contractor
+      await supabase.from('notifications').insert({
+        recipient_type: 'contractor',
+        recipient_id: proposal.contractor_id,
+        title: 'Application Accepted! 🎉',
+        message: `Your application for "${proposal.procurement_listings?.title || projectName}" has been approved.`,
+        type: 'success',
+        related_entity_type: 'proposal',
+        related_entity_id: proposal.id,
+      } as any);
+
       toast({ title: 'Contractor Accepted', description: 'Task assigned and notification sent.' });
       fetchProposals();
       onListingUpdated?.();
@@ -142,8 +153,22 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
     }
   };
 
-  const handleReject = async (proposalId: string) => {
+  const handleReject = async (proposalId: string, contractorId?: string) => {
     await supabase.from('procurement_proposals').update({ status: 'rejected' } as any).eq('id', proposalId);
+    
+    // Notification for rejected contractor
+    if (contractorId) {
+      await supabase.from('notifications').insert({
+        recipient_type: 'contractor',
+        recipient_id: contractorId,
+        title: 'Application Update',
+        message: `Your application was not selected this time.`,
+        type: 'warning',
+        related_entity_type: 'proposal',
+        related_entity_id: proposalId,
+      } as any);
+    }
+
     toast({ title: 'Proposal rejected' });
     fetchProposals();
   };
@@ -348,7 +373,7 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => handleReject(p.id)}
+                              onClick={() => handleReject(p.id, p.contractor_id)}
                               className="text-red-400 hover:text-red-300 text-[10px] font-mono h-6"
                             >
                               <XCircle className="h-3 w-3 mr-1" /> Reject
