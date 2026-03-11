@@ -11,10 +11,11 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   HardHat, FileText, DollarSign, Upload, CheckCircle, Clock, 
-  AlertCircle, Building2, Shield, Wrench, Save, Briefcase
+  AlertCircle, Building2, Shield, Wrench, Save, Briefcase, ClipboardList
 } from 'lucide-react';
 import ContractorAgreement from '@/components/ContractorAgreement';
 import ContractorProcurementTab from '@/components/contractor/ContractorProcurementTab';
+import ContractorCurrentProjectsTab from '@/components/contractor/ContractorCurrentProjectsTab';
 
 interface Service {
   id?: string;
