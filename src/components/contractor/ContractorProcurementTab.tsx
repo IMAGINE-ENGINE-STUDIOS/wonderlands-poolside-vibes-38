@@ -342,6 +342,51 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
   );
 };
 
+// ─── Project Documents Viewer (read-only for contractors) ───────────────────
+
+const ProjectDocumentsViewer: React.FC<{ projectId: string }> = ({ projectId }) => {
+  const [docs, setDocs] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('procurement_documents')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .then(({ data }: any) => setDocs(data || []));
+  }, [projectId]);
+
+  if (docs.length === 0) return null;
+
+  return (
+    <div className="px-4 py-3 border-b border-border">
+      <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1">
+        <FileText className="h-3 w-3" /> Project Documents
+      </h4>
+      <div className="space-y-1">
+        {docs.map((doc: any) => (
+          <a
+            key={doc.id}
+            href={doc.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 py-1.5 px-2 rounded bg-muted/50 hover:bg-muted transition-colors text-xs text-foreground"
+          >
+            <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <span className="flex-1 truncate">{doc.file_name}</span>
+            {doc.file_size && (
+              <span className="text-muted-foreground text-[10px]">
+                {(doc.file_size / 1024).toFixed(0)}KB
+              </span>
+            )}
+            <Download className="h-3 w-3 text-muted-foreground" />
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ─── Project Card (collapsed by default, expandable) ────────────────────────
 
 interface ProjectCardProps {
