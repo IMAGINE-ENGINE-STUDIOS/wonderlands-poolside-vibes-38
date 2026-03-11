@@ -3,9 +3,10 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronDown, ChevronRight, FileText, GripVertical, Upload, Download } from 'lucide-react';
+import { ChevronDown, ChevronRight, FileText, GripVertical, Upload, Download, HardHat, Clock, CheckCircle, PlayCircle } from 'lucide-react';
 import type { ConstructionProject, ProjectPhase } from '@/components/admin/projectManagement/useProjectManagement';
 
 const SharedProjectView: React.FC = () => {

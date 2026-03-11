@@ -384,6 +384,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         </div>
       </DragDropContext>
 
+      {/* Contractor Progress */}
+      <ContractorTasksPanel projectId={project.id} />
+
       {/* Cost Tracking */}
       <ProjectCostPanel projectId={project.id} phases={project.phases} />
 
