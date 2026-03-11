@@ -238,7 +238,7 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
             </Card>
           ) : (
             <>
-              {pagedGroups.map(group => (
+               {pagedGroups.map(group => (
                 <ProjectCard
                   key={group.project_id}
                   group={group}
@@ -246,6 +246,25 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
                   onToggle={() => toggleProject(group.project_id)}
                   appliedListingIds={appliedListingIds}
                   onApply={(listing) => setApplyingTo(listing)}
+                  onApplyForItem={async (item, g) => {
+                    if (creatingListing) return;
+                    setCreatingListing(true);
+                    try {
+                      const { data, error } = await supabase.from('procurement_listings').insert({
+                        project_id: g.project_id,
+                        phase_item_id: item.id,
+                        title: item.item_name,
+                        status: 'open',
+                      } as any).select().single();
+                      if (error) throw error;
+                      setApplyingTo(data as any);
+                      fetchData();
+                    } catch (e: any) {
+                      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+                    } finally {
+                      setCreatingListing(false);
+                    }
+                  }}
                 />
               ))}
               {totalPages > 1 && (
