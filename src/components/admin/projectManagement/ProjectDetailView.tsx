@@ -417,6 +417,26 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           Add Phase
         </Button>
       )}
+
+      {/* Procurement Dialogs */}
+      <ProcurementDialog
+        open={showProcureDialog}
+        onOpenChange={setShowProcureDialog}
+        projectId={project.id}
+        projectName={project.project_name}
+        phaseItemId={procureItemId}
+        itemName={procureItemName}
+        onCreated={fetchListings}
+      />
+
+      {viewProposalsListing && (
+        <ProcurementProposalsList
+          open={!!viewProposalsListing}
+          onOpenChange={(open) => !open && setViewProposalsListing(null)}
+          listingId={viewProposalsListing.id}
+          listingTitle={viewProposalsListing.title}
+        />
+      )}
     </div>
   );
 };
