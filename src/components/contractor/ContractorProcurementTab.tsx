@@ -83,6 +83,7 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
   const [myProposals, setMyProposals] = useState<MyProposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [applyingTo, setApplyingTo] = useState<Listing | null>(null);
+  const [creatingListing, setCreatingListing] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 10;
