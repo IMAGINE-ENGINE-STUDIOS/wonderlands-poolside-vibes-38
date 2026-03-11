@@ -601,7 +601,7 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
                 {item.item_name}
               </span>
 
-              {/* Only show apply for non-completed items with a listing */}
+              {/* Show apply for non-completed items with a listing */}
               {!item.is_completed && item.listing ? (
                 appliedListingIds.has(item.listing.id) ? (
                   <Badge variant="secondary" className="text-[10px] h-5">
@@ -611,7 +611,7 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
                   <Button
                     size="sm"
                     onClick={(e) => { e.stopPropagation(); onApply(item.listing!); }}
-                    className="h-6 px-2 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-6 px-2 text-[10px]"
                   >
                     <Send className="h-2.5 w-2.5 mr-1" /> Apply
                   </Button>
