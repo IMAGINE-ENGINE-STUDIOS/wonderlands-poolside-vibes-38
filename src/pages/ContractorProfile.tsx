@@ -567,6 +567,7 @@ const ContractorProfile = () => {
           {/* Current Projects Tab */}
           <TabsContent value="projects" className="space-y-6">
             <ContractorCurrentProjectsTab contractorId={id!} />
+          </TabsContent>
 
           {/* Licenses Tab */}
           <TabsContent value="licenses" className="space-y-6">
