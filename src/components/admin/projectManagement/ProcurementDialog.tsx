@@ -28,6 +28,7 @@ const ProcurementDialog: React.FC<ProcurementDialogProps> = ({
     location: '',
     budget_min: '',
     budget_max: '',
+    start_date: '',
     deadline: '',
   });
 
