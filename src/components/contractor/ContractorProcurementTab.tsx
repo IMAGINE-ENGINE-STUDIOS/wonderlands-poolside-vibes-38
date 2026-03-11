@@ -7,8 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import {
   MapPin, DollarSign, Calendar, Briefcase, Send, Clock,
-  ChevronDown, ChevronRight, ImagePlus, CheckCircle, FileText, Download, ExternalLink,
+  ChevronDown, ChevronRight, ImagePlus, CheckCircle, FileText, Download, ExternalLink, Loader2,
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import ProcurementProposalForm from './ProcurementProposalForm';
 
 interface Listing {
@@ -83,6 +84,7 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
   const [myProposals, setMyProposals] = useState<MyProposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [applyingTo, setApplyingTo] = useState<Listing | null>(null);
+  const [creatingListing, setCreatingListing] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 10;
@@ -175,6 +177,8 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
     myProposals.map(p => p.procurement_listings?.id).filter(Boolean)
   );
 
+  const { toast } = useToast();
+
   const toggleProject = (projectId: string) => {
     setExpandedProjects(prev => {
       const next = new Set(prev);
@@ -234,7 +238,7 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
             </Card>
           ) : (
             <>
-              {pagedGroups.map(group => (
+               {pagedGroups.map(group => (
                 <ProjectCard
                   key={group.project_id}
                   group={group}
@@ -242,6 +246,25 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
                   onToggle={() => toggleProject(group.project_id)}
                   appliedListingIds={appliedListingIds}
                   onApply={(listing) => setApplyingTo(listing)}
+                  onApplyForItem={async (item, g) => {
+                    if (creatingListing) return;
+                    setCreatingListing(true);
+                    try {
+                      const { data, error } = await supabase.from('procurement_listings').insert({
+                        project_id: g.project_id,
+                        phase_item_id: item.id,
+                        title: item.item_name,
+                        status: 'open',
+                      } as any).select().single();
+                      if (error) throw error;
+                      setApplyingTo(data as any);
+                      fetchData();
+                    } catch (e: any) {
+                      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+                    } finally {
+                      setCreatingListing(false);
+                    }
+                  }}
                 />
               ))}
               {totalPages > 1 && (
@@ -395,10 +418,11 @@ interface ProjectCardProps {
   onToggle: () => void;
   appliedListingIds: Set<string>;
   onApply: (listing: Listing) => void;
+  onApplyForItem: (item: PhaseItemWithListing, group: ProjectGroup) => void;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({
-  group, expanded, onToggle, appliedListingIds, onApply,
+  group, expanded, onToggle, appliedListingIds, onApply, onApplyForItem,
 }) => {
   const allItems = group.phases.flatMap(p => p.items);
   const completedCount = allItems.filter(i => i.is_completed).length;
@@ -528,6 +552,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   phase={phase}
                   appliedListingIds={appliedListingIds}
                   onApply={onApply}
+                  onApplyForItem={(item) => onApplyForItem(item, group)}
                 />
               ))
             )}
@@ -544,10 +569,11 @@ interface PhaseSectionProps {
   phase: PhaseGroup;
   appliedListingIds: Set<string>;
   onApply: (listing: Listing) => void;
+  onApplyForItem: (item: PhaseItemWithListing) => void;
 }
 
 const PhaseSection: React.FC<PhaseSectionProps> = ({
-  phase, appliedListingIds, onApply,
+  phase, appliedListingIds, onApply, onApplyForItem,
 }) => {
   const [expanded, setExpanded] = useState(true);
   const completedCount = phase.items.filter(i => i.is_completed).length;
@@ -601,8 +627,12 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
                 {item.item_name}
               </span>
 
-              {/* Show apply for non-completed items with a listing */}
-              {!item.is_completed && item.listing ? (
+              {/* Show apply for non-completed items */}
+              {item.is_completed ? (
+                <Badge variant="outline" className="text-[10px] h-5 text-green-600 border-green-500/30">
+                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Done
+                </Badge>
+              ) : item.listing ? (
                 appliedListingIds.has(item.listing.id) ? (
                   <Badge variant="secondary" className="text-[10px] h-5">
                     <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Applied
@@ -616,11 +646,16 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
                     <Send className="h-2.5 w-2.5 mr-1" /> Apply
                   </Button>
                 )
-              ) : item.is_completed ? (
-                <Badge variant="outline" className="text-[10px] h-5 text-green-600 border-green-500/30">
-                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Done
-                </Badge>
-              ) : null}
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); onApplyForItem(item); }}
+                  className="h-6 px-2 text-[10px]"
+                >
+                  <Send className="h-2.5 w-2.5 mr-1" /> Apply
+                </Button>
+              )}
             </div>
           ))}
         </div>
