@@ -428,13 +428,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             </div>
           )}
 
-          {/* Project info */}
+          {/* Project info + Apply for entire project */}
           {group.project_listing && (
             <div className="px-4 py-3 border-b border-border">
               {group.project_listing.description && (
                 <p className="text-sm text-muted-foreground mb-2">{group.project_listing.description}</p>
               )}
-              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                 {(group.project_listing.budget_min || group.project_listing.budget_max) && (
                   <span className="flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
@@ -448,9 +448,27 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     <Calendar className="h-3 w-3" />Deadline: {new Date(group.project_listing.deadline).toLocaleDateString()}
                   </span>
                 )}
+                <div className="ml-auto">
+                  {appliedListingIds.has(group.project_listing.id) ? (
+                    <Badge variant="secondary" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" /> Applied
+                    </Badge>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); onApply(group.project_listing!); }}
+                      className="h-7 text-xs"
+                    >
+                      <Send className="h-3 w-3 mr-1" /> Apply for Entire Project
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
+
+          {/* Procurement Documents */}
+          <ProjectDocumentsViewer projectId={group.project_id} />
 
           {/* Phases & Tasks */}
           <div className="px-4 py-3 space-y-3">
