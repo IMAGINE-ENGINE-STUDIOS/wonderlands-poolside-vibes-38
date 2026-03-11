@@ -395,10 +395,11 @@ interface ProjectCardProps {
   onToggle: () => void;
   appliedListingIds: Set<string>;
   onApply: (listing: Listing) => void;
+  onApplyForItem: (item: PhaseItemWithListing, group: ProjectGroup) => void;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({
-  group, expanded, onToggle, appliedListingIds, onApply,
+  group, expanded, onToggle, appliedListingIds, onApply, onApplyForItem,
 }) => {
   const allItems = group.phases.flatMap(p => p.items);
   const completedCount = allItems.filter(i => i.is_completed).length;
