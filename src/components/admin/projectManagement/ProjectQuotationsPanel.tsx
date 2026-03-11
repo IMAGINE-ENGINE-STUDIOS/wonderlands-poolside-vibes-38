@@ -153,8 +153,22 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
     }
   };
 
-  const handleReject = async (proposalId: string) => {
+  const handleReject = async (proposalId: string, contractorId?: string) => {
     await supabase.from('procurement_proposals').update({ status: 'rejected' } as any).eq('id', proposalId);
+    
+    // Notification for rejected contractor
+    if (contractorId) {
+      await supabase.from('notifications').insert({
+        recipient_type: 'contractor',
+        recipient_id: contractorId,
+        title: 'Application Update',
+        message: `Your application was not selected this time.`,
+        type: 'warning',
+        related_entity_type: 'proposal',
+        related_entity_id: proposalId,
+      } as any);
+    }
+
     toast({ title: 'Proposal rejected' });
     fetchProposals();
   };
