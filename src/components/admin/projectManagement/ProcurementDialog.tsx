@@ -47,6 +47,7 @@ const ProcurementDialog: React.FC<ProcurementDialogProps> = ({
         location: form.location.trim(),
         budget_min: form.budget_min ? parseFloat(form.budget_min) : null,
         budget_max: form.budget_max ? parseFloat(form.budget_max) : null,
+        start_date: form.start_date || null,
         deadline: form.deadline || null,
         status: 'open',
       } as any);
