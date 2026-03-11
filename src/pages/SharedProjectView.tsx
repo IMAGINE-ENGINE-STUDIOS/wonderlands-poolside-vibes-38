@@ -76,6 +76,14 @@ const SharedProjectView: React.FC = () => {
       const result = { ...proj, phases: fullPhases };
       setProject(result);
 
+      // Fetch contractor tasks for this project
+      const { data: taskData } = await supabase
+        .from('contractor_project_tasks')
+        .select('*, contractors(company_name, contact_name)')
+        .eq('project_id', proj.id)
+        .order('start_date', { ascending: true }) as any;
+      setContractorTasks(taskData || []);
+
       if (expandedPhases.size === 0) {
         setExpandedPhases(new Set(fullPhases.map(p => p.id)));
       }
