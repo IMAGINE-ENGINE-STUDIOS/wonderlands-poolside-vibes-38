@@ -555,6 +555,11 @@ const ContractorProfile = () => {
             </Card>
           </TabsContent>
 
+          {/* Procurement Tab */}
+          <TabsContent value="procurement" className="space-y-6">
+            <ContractorProcurementTab contractorId={id!} contractorStatus={contractor.status} />
+          </TabsContent>
+
           {/* Licenses Tab */}
           <TabsContent value="licenses" className="space-y-6">
             <Card>
