@@ -55,7 +55,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const [procureItemId, setProcureItemId] = useState<string | undefined>();
   const [procureItemName, setProcureItemName] = useState<string | undefined>();
   const [procurementListings, setProcurementListings] = useState<any[]>([]);
-  const [viewProposalsListing, setViewProposalsListing] = useState<{ id: string; title: string } | null>(null);
+  const [viewProposalsListing, setViewProposalsListing] = useState<any | null>(null);
 
   const fetchListings = async () => {
     const { data } = await supabase
