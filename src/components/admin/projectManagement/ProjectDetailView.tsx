@@ -12,6 +12,8 @@ import ProjectCostPanel from './ProjectCostPanel';
 import ProcurementDialog from './ProcurementDialog';
 import ProcurementProposalsList from './ProcurementProposalsList';
 import ContractorTasksPanel from './ContractorTasksPanel';
+import ProcurementDocumentsPanel from './ProcurementDocumentsPanel';
+import ProjectQuotationsPanel from './ProjectQuotationsPanel';
 import type { ConstructionProject } from './useProjectManagement';
 
 interface ProjectDetailViewProps {
@@ -383,6 +385,12 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           ))}
         </div>
       </DragDropContext>
+
+      {/* Procurement Documents */}
+      <ProcurementDocumentsPanel projectId={project.id} />
+
+      {/* Quotations & Proposals Review */}
+      <ProjectQuotationsPanel projectId={project.id} projectName={project.project_name} onListingUpdated={fetchListings} />
 
       {/* Contractor Progress */}
       <ContractorTasksPanel projectId={project.id} />

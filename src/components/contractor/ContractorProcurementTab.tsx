@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import {
   MapPin, DollarSign, Calendar, Briefcase, Send, Clock,
-  ChevronDown, ChevronRight, ImagePlus, CheckCircle,
+  ChevronDown, ChevronRight, ImagePlus, CheckCircle, FileText, Download, ExternalLink,
 } from 'lucide-react';
 import ProcurementProposalForm from './ProcurementProposalForm';
 
@@ -342,6 +342,51 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
   );
 };
 
+// ─── Project Documents Viewer (read-only for contractors) ───────────────────
+
+const ProjectDocumentsViewer: React.FC<{ projectId: string }> = ({ projectId }) => {
+  const [docs, setDocs] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('procurement_documents')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .then(({ data }: any) => setDocs(data || []));
+  }, [projectId]);
+
+  if (docs.length === 0) return null;
+
+  return (
+    <div className="px-4 py-3 border-b border-border">
+      <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1">
+        <FileText className="h-3 w-3" /> Project Documents
+      </h4>
+      <div className="space-y-1">
+        {docs.map((doc: any) => (
+          <a
+            key={doc.id}
+            href={doc.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 py-1.5 px-2 rounded bg-muted/50 hover:bg-muted transition-colors text-xs text-foreground"
+          >
+            <FileText className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <span className="flex-1 truncate">{doc.file_name}</span>
+            {doc.file_size && (
+              <span className="text-muted-foreground text-[10px]">
+                {(doc.file_size / 1024).toFixed(0)}KB
+              </span>
+            )}
+            <Download className="h-3 w-3 text-muted-foreground" />
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ─── Project Card (collapsed by default, expandable) ────────────────────────
 
 interface ProjectCardProps {
@@ -428,13 +473,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             </div>
           )}
 
-          {/* Project info */}
+          {/* Project info + Apply for entire project */}
           {group.project_listing && (
             <div className="px-4 py-3 border-b border-border">
               {group.project_listing.description && (
                 <p className="text-sm text-muted-foreground mb-2">{group.project_listing.description}</p>
               )}
-              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                 {(group.project_listing.budget_min || group.project_listing.budget_max) && (
                   <span className="flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
@@ -448,9 +493,27 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     <Calendar className="h-3 w-3" />Deadline: {new Date(group.project_listing.deadline).toLocaleDateString()}
                   </span>
                 )}
+                <div className="ml-auto">
+                  {appliedListingIds.has(group.project_listing.id) ? (
+                    <Badge variant="secondary" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" /> Applied
+                    </Badge>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); onApply(group.project_listing!); }}
+                      className="h-7 text-xs"
+                    >
+                      <Send className="h-3 w-3 mr-1" /> Apply for Entire Project
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
+
+          {/* Procurement Documents */}
+          <ProjectDocumentsViewer projectId={group.project_id} />
 
           {/* Phases & Tasks */}
           <div className="px-4 py-3 space-y-3">
@@ -538,7 +601,7 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
                 {item.item_name}
               </span>
 
-              {/* Only show apply for non-completed items with a listing */}
+              {/* Show apply for non-completed items with a listing */}
               {!item.is_completed && item.listing ? (
                 appliedListingIds.has(item.listing.id) ? (
                   <Badge variant="secondary" className="text-[10px] h-5">
@@ -548,7 +611,7 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
                   <Button
                     size="sm"
                     onClick={(e) => { e.stopPropagation(); onApply(item.listing!); }}
-                    className="h-6 px-2 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-6 px-2 text-[10px]"
                   >
                     <Send className="h-2.5 w-2.5 mr-1" /> Apply
                   </Button>
