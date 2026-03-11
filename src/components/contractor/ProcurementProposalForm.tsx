@@ -103,6 +103,18 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
         status: 'pending',
       } as any);
       if (error) throw error;
+
+      // Notify admin of new application
+      await supabase.from('notifications').insert({
+        recipient_type: 'admin',
+        recipient_id: 'system',
+        title: 'New Application Received',
+        message: `A contractor submitted a proposal for "${listing.title}".`,
+        type: 'info',
+        related_entity_type: 'listing',
+        related_entity_id: listing.id,
+      } as any);
+
       toast({ title: 'Proposal Submitted', description: 'Your bid has been sent.' });
       onSubmitted();
     } catch (e: any) {
