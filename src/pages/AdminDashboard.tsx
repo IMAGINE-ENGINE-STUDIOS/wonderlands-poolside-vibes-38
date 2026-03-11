@@ -38,6 +38,8 @@ import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
 import CustomerCacheSearch from '@/components/admin/CustomerCacheSearch';
 import AdminApiManagement from '@/components/admin/AdminApiManagement';
 import AdminProjectManagement from '@/components/admin/projectManagement/AdminProjectManagement';
+import AdminApplicationsPanel from '@/components/admin/AdminApplicationsPanel';
+import NotificationBell from '@/components/NotificationBell';
 
 // Navigation Item Component
 const NavItem = ({
