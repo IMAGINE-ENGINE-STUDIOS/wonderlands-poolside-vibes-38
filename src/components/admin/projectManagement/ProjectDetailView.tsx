@@ -386,6 +386,12 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         </div>
       </DragDropContext>
 
+      {/* Procurement Documents */}
+      <ProcurementDocumentsPanel projectId={project.id} />
+
+      {/* Quotations & Proposals Review */}
+      <ProjectQuotationsPanel projectId={project.id} projectName={project.project_name} onListingUpdated={fetchListings} />
+
       {/* Contractor Progress */}
       <ContractorTasksPanel projectId={project.id} />
 
