@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   CheckCircle, XCircle, Building2, User, Mail, Phone,
   DollarSign, Clock, Calendar, FileText, ExternalLink, ChevronDown, ChevronRight,
-  Loader2, Search, HardHat, Briefcase, Filter,
+  Loader2, Search, HardHat, Briefcase, ClipboardList,
 } from 'lucide-react';
 
 interface Proposal {
