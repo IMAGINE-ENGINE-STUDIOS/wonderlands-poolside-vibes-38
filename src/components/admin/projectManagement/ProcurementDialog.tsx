@@ -55,7 +55,7 @@ const ProcurementDialog: React.FC<ProcurementDialogProps> = ({
       toast({ title: 'Listing Created', description: 'Procurement listing is now open for contractor bids.' });
       onCreated();
       onOpenChange(false);
-      setForm({ title: '', description: '', location: '', budget_min: '', budget_max: '', deadline: '' });
+      setForm({ title: '', description: '', location: '', budget_min: '', budget_max: '', start_date: '', deadline: '' });
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
     } finally {
