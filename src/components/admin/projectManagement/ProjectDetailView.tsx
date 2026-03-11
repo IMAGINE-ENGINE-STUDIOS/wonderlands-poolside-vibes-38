@@ -375,6 +375,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               onUploadDocument={onUploadDocument}
               onDeleteDocument={onDeleteDocument}
               enableDragDrop
+              onProcureItem={openProcureItem}
+              onViewItemProposals={(listing) => setViewProposalsListing(listing)}
+              getItemProcurementListing={getListingForItem}
             />
           ))}
         </div>
