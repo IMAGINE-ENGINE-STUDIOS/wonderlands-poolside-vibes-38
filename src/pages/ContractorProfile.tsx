@@ -11,10 +11,11 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   HardHat, FileText, DollarSign, Upload, CheckCircle, Clock, 
-  AlertCircle, Building2, Shield, Wrench, Save, Briefcase
+  AlertCircle, Building2, Shield, Wrench, Save, Briefcase, ClipboardList
 } from 'lucide-react';
 import ContractorAgreement from '@/components/ContractorAgreement';
 import ContractorProcurementTab from '@/components/contractor/ContractorProcurementTab';
+import ContractorCurrentProjectsTab from '@/components/contractor/ContractorCurrentProjectsTab';
 
 interface Service {
   id?: string;
@@ -399,12 +400,15 @@ const ContractorProfile = () => {
         )}
 
         <Tabs defaultValue="services" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="services" className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" /> Service Pricing
+              <DollarSign className="w-4 h-4" /> Services
             </TabsTrigger>
             <TabsTrigger value="procurement" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" /> Procurement
+            </TabsTrigger>
+            <TabsTrigger value="projects" className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4" /> Current Projects
             </TabsTrigger>
             <TabsTrigger value="licenses" className="flex items-center gap-2">
               <Shield className="w-4 h-4" /> Licenses
@@ -558,6 +562,11 @@ const ContractorProfile = () => {
           {/* Procurement Tab */}
           <TabsContent value="procurement" className="space-y-6">
             <ContractorProcurementTab contractorId={id!} contractorStatus={contractor.status} />
+          </TabsContent>
+
+          {/* Current Projects Tab */}
+          <TabsContent value="projects" className="space-y-6">
+            <ContractorCurrentProjectsTab contractorId={id!} />
           </TabsContent>
 
           {/* Licenses Tab */}

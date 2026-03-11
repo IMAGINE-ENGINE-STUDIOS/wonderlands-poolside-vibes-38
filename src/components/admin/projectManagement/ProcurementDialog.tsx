@@ -28,6 +28,7 @@ const ProcurementDialog: React.FC<ProcurementDialogProps> = ({
     location: '',
     budget_min: '',
     budget_max: '',
+    start_date: '',
     deadline: '',
   });
 
@@ -46,6 +47,7 @@ const ProcurementDialog: React.FC<ProcurementDialogProps> = ({
         location: form.location.trim(),
         budget_min: form.budget_min ? parseFloat(form.budget_min) : null,
         budget_max: form.budget_max ? parseFloat(form.budget_max) : null,
+        start_date: form.start_date || null,
         deadline: form.deadline || null,
         status: 'open',
       } as any);
@@ -53,7 +55,7 @@ const ProcurementDialog: React.FC<ProcurementDialogProps> = ({
       toast({ title: 'Listing Created', description: 'Procurement listing is now open for contractor bids.' });
       onCreated();
       onOpenChange(false);
-      setForm({ title: '', description: '', location: '', budget_min: '', budget_max: '', deadline: '' });
+      setForm({ title: '', description: '', location: '', budget_min: '', budget_max: '', start_date: '', deadline: '' });
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
     } finally {
@@ -126,16 +128,29 @@ const ProcurementDialog: React.FC<ProcurementDialogProps> = ({
               />
             </div>
           </div>
-          <div>
-            <Label className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider flex items-center gap-1">
-              <Calendar className="h-3 w-3" /> Deadline
-            </Label>
-            <Input
-              type="date"
-              value={form.deadline}
-              onChange={e => setForm({ ...form, deadline: e.target.value })}
-              className="h-8 text-xs bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider flex items-center gap-1">
+                <Calendar className="h-3 w-3" /> Start Date
+              </Label>
+              <Input
+                type="date"
+                value={form.start_date}
+                onChange={e => setForm({ ...form, start_date: e.target.value })}
+                className="h-8 text-xs bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+              />
+            </div>
+            <div>
+              <Label className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider flex items-center gap-1">
+                <Calendar className="h-3 w-3" /> Deadline
+              </Label>
+              <Input
+                type="date"
+                value={form.deadline}
+                onChange={e => setForm({ ...form, deadline: e.target.value })}
+                className="h-8 text-xs bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+              />
+            </div>
           </div>
           <Button
             onClick={handleSubmit}

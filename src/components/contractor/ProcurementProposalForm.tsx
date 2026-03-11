@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DollarSign, Send } from 'lucide-react';
+import { DollarSign, Send, Upload, FileText } from 'lucide-react';
 
 interface Service {
   id: string;
@@ -32,6 +32,7 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
   const [proposalType, setProposalType] = useState<'existing_service' | 'custom'>('custom');
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+  const [quotationFile, setQuotationFile] = useState<File | null>(null);
   const [form, setForm] = useState({
     proposed_price: '',
     proposal_text: '',
@@ -47,6 +48,16 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
 
   const selectedService = services.find(s => s.id === selectedServiceId);
 
+  const uploadQuotation = async (): Promise<{ url: string; name: string } | null> => {
+    if (!quotationFile) return null;
+    const ext = quotationFile.name.split('.').pop();
+    const path = `quotations/${contractorId}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('proposal-attachments').upload(path, quotationFile);
+    if (error) throw new Error(`Upload failed: ${error.message}`);
+    const { data: urlData } = supabase.storage.from('proposal-attachments').getPublicUrl(path);
+    return { url: urlData.publicUrl, name: quotationFile.name };
+  };
+
   const handleSubmit = async () => {
     const price = proposalType === 'existing_service' && selectedService
       ? (selectedService.with_materials_price || selectedService.labor_price)
@@ -59,6 +70,11 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
 
     setSaving(true);
     try {
+      let quotation: { url: string; name: string } | null = null;
+      if (quotationFile) {
+        quotation = await uploadQuotation();
+      }
+
       const { error } = await supabase.from('procurement_proposals').insert({
         listing_id: listing.id,
         contractor_id: contractorId,
@@ -67,6 +83,8 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
         proposed_price: price,
         proposal_text: form.proposal_text.trim() || null,
         estimated_timeline: form.estimated_timeline.trim() || null,
+        quotation_url: quotation?.url || null,
+        quotation_file_name: quotation?.name || null,
         status: 'pending',
       } as any);
       if (error) throw error;
@@ -160,6 +178,39 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
               value={form.proposal_text}
               onChange={e => setForm({ ...form, proposal_text: e.target.value })}
             />
+          </div>
+
+          {/* Quotation File Upload */}
+          <div>
+            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <FileText className="h-3 w-3" /> Attach Quotation (PDF, DOC, etc.)
+            </Label>
+            <div className="mt-1">
+              {quotationFile ? (
+                <div className="flex items-center gap-2 p-2 rounded border border-primary/30 bg-primary/5 text-sm">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span className="flex-1 truncate">{quotationFile.name}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setQuotationFile(null)} className="text-destructive h-6 text-xs">
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 p-3 rounded border border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors">
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Click to upload quotation file</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) setQuotationFile(f);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              )}
+            </div>
           </div>
 
           <Button onClick={handleSubmit} disabled={saving} className="w-full">
