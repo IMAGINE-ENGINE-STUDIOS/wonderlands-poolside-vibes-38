@@ -544,10 +544,11 @@ interface PhaseSectionProps {
   phase: PhaseGroup;
   appliedListingIds: Set<string>;
   onApply: (listing: Listing) => void;
+  onApplyForItem: (item: PhaseItemWithListing) => void;
 }
 
 const PhaseSection: React.FC<PhaseSectionProps> = ({
-  phase, appliedListingIds, onApply,
+  phase, appliedListingIds, onApply, onApplyForItem,
 }) => {
   const [expanded, setExpanded] = useState(true);
   const completedCount = phase.items.filter(i => i.is_completed).length;
