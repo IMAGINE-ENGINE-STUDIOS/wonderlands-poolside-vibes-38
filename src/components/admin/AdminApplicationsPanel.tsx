@@ -685,7 +685,4 @@ const AdminApplicationsPanel: React.FC = () => {
   );
 };
 
-// Need to import this for the header icon
-import { ClipboardList } from 'lucide-react';
-
 export default AdminApplicationsPanel;
