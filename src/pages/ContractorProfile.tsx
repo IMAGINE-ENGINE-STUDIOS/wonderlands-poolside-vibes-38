@@ -370,6 +370,7 @@ const ContractorProfile = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell recipientType="contractor" recipientId={id!} />
             {getStatusBadge(contractor.status)}
             {!contractor.agreement_signed && (
               <Button onClick={() => setShowAgreement(true)}>
