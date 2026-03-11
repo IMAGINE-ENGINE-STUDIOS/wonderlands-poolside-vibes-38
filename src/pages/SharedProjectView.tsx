@@ -394,6 +394,73 @@ const SharedProjectView: React.FC = () => {
           </div>
         </DragDropContext>
 
+        {/* Contractor Work Progress */}
+        {contractorTasks.length > 0 && (() => {
+          const ctCompleted = contractorTasks.filter((t: any) => t.status === 'completed').length;
+          const ctProgress = Math.round((ctCompleted / contractorTasks.length) * 100);
+          return (
+            <div className="mt-6 p-4 rounded-lg border border-cyan-500/20 bg-black/40 backdrop-blur space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <HardHat className="h-4 w-4 text-cyan-400" />
+                  <span className="text-xs font-mono text-cyan-300 uppercase tracking-wider font-bold">
+                    Contractor Progress
+                  </span>
+                </div>
+                <span className="text-xs font-mono text-cyan-400/60">
+                  {ctCompleted}/{contractorTasks.length} tasks • {ctProgress}%
+                </span>
+              </div>
+              <div className="w-full bg-cyan-900/30 rounded-full h-2 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    ctProgress === 100 ? 'bg-green-500' : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
+                  }`}
+                  style={{ width: `${ctProgress}%` }}
+                />
+              </div>
+              <div className="space-y-2">
+                {contractorTasks.map((task: any) => {
+                  const overdue = task.due_date && task.status !== 'completed' && new Date(task.due_date) < new Date();
+                  return (
+                    <div
+                      key={task.id}
+                      className={`rounded border p-2.5 ${
+                        overdue ? 'border-red-500/30 bg-red-500/5'
+                          : task.status === 'completed' ? 'border-green-500/20 bg-green-500/5'
+                          : 'border-cyan-500/10 bg-cyan-500/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {task.status === 'completed' ? <CheckCircle className="h-3 w-3 text-green-400" />
+                            : task.status === 'in_progress' ? <PlayCircle className="h-3 w-3 text-yellow-400" />
+                            : <Clock className="h-3 w-3 text-cyan-400/60" />}
+                          <span className={`text-xs font-mono ${task.status === 'completed' ? 'text-cyan-400/40 line-through' : 'text-cyan-300'}`}>
+                            {task.task_name}
+                          </span>
+                          {overdue && <Badge variant="destructive" className="text-[9px] h-4 px-1">Overdue</Badge>}
+                        </div>
+                        <Badge className={
+                          task.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30 text-[10px] font-mono'
+                            : task.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] font-mono'
+                            : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px] font-mono'
+                        }>
+                          {task.status === 'in_progress' ? 'In Progress' : task.status === 'completed' ? 'Completed' : 'Assigned'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 text-[10px] font-mono text-cyan-400/40">
+                        <span className="flex items-center gap-1"><HardHat className="h-2.5 w-2.5" />{task.contractors?.company_name || 'Contractor'}</span>
+                        {task.due_date && <span className="flex items-center gap-1"><Clock className="h-2.5 w-2.5" />Due: {new Date(task.due_date).toLocaleDateString()}</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="text-center mt-10">
           <p className="text-[10px] font-mono text-cyan-500/30">
             Powered by Wonderlands World Experience
