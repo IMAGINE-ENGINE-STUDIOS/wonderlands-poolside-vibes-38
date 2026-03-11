@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
-import { ChevronDown, ChevronRight, Plus, Trash2, Upload, FileText, X, GripVertical, Download } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Trash2, Upload, FileText, X, GripVertical, Download, Briefcase, Eye } from 'lucide-react';
 import type { ProjectPhase, PhaseItem } from './useProjectManagement';
 
 interface ProjectPhaseCardProps {
@@ -18,6 +19,9 @@ interface ProjectPhaseCardProps {
   onDeleteDocument: (docId: string) => void;
   readOnly?: boolean;
   enableDragDrop?: boolean;
+  onProcureItem?: (itemId: string, itemName: string) => void;
+  onViewItemProposals?: (listing: any) => void;
+  getItemProcurementListing?: (itemId: string) => any | undefined;
 }
 
 const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
@@ -30,6 +34,9 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
   onDeleteDocument,
   readOnly = false,
   enableDragDrop = false,
+  onProcureItem,
+  onViewItemProposals,
+  getItemProcurementListing,
 }) => {
   const [expanded, setExpanded] = useState(true);
   const [newItemName, setNewItemName] = useState('');
@@ -89,6 +96,30 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
           )}
           {!readOnly && (
             <>
+              {onProcureItem && getItemProcurementListing && (() => {
+                const listing = getItemProcurementListing(item.id);
+                return listing ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 opacity-0 group-hover:opacity-100 text-green-400/60 hover:text-green-400"
+                    onClick={() => onViewItemProposals?.(listing)}
+                    title="View Proposals"
+                  >
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 opacity-0 group-hover:opacity-100 text-emerald-400/60 hover:text-emerald-400"
+                    onClick={() => onProcureItem(item.id, item.item_name)}
+                    title="Procure this task"
+                  >
+                    <Briefcase className="h-3 w-3" />
+                  </Button>
+                );
+              })()}
               <Button
                 variant="ghost"
                 size="icon"

@@ -55,7 +55,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const [procureItemId, setProcureItemId] = useState<string | undefined>();
   const [procureItemName, setProcureItemName] = useState<string | undefined>();
   const [procurementListings, setProcurementListings] = useState<any[]>([]);
-  const [viewProposalsListing, setViewProposalsListing] = useState<{ id: string; title: string } | null>(null);
+  const [viewProposalsListing, setViewProposalsListing] = useState<any | null>(null);
 
   const fetchListings = async () => {
     const { data } = await supabase
@@ -219,7 +219,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               size="sm"
               onClick={() => {
                 const l = getProjectListing();
-                if (l) setViewProposalsListing({ id: l.id, title: l.title });
+                if (l) setViewProposalsListing(l);
               }}
               className="border-green-500/30 text-green-400 hover:bg-green-500/10 text-xs font-mono"
             >
@@ -375,6 +375,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               onUploadDocument={onUploadDocument}
               onDeleteDocument={onDeleteDocument}
               enableDragDrop
+              onProcureItem={openProcureItem}
+              onViewItemProposals={(listing) => setViewProposalsListing(listing)}
+              getItemProcurementListing={getListingForItem}
             />
           ))}
         </div>
