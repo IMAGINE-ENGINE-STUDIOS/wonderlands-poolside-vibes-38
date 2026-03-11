@@ -16,6 +16,7 @@ import {
 import ContractorAgreement from '@/components/ContractorAgreement';
 import ContractorProcurementTab from '@/components/contractor/ContractorProcurementTab';
 import ContractorCurrentProjectsTab from '@/components/contractor/ContractorCurrentProjectsTab';
+import NotificationBell from '@/components/NotificationBell';
 
 interface Service {
   id?: string;

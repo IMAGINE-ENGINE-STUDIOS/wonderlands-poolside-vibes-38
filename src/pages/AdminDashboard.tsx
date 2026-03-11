@@ -609,6 +609,9 @@ const AdminDashboard = () => {
               </div>
             </div>}
 
+          {/* Applications Tab */}
+          {isMainAdmin && activeSection === "applications" && <AdminApplicationsPanel />}
+
           {/* Procurement Tab */}
           {activeSection === "procurement" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
             <Card className="holographic-panel border-cyan-500/30">
