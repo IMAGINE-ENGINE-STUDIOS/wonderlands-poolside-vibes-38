@@ -12,6 +12,8 @@ import ProjectCostPanel from './ProjectCostPanel';
 import ProcurementDialog from './ProcurementDialog';
 import ProcurementProposalsList from './ProcurementProposalsList';
 import ContractorTasksPanel from './ContractorTasksPanel';
+import ProcurementDocumentsPanel from './ProcurementDocumentsPanel';
+import ProjectQuotationsPanel from './ProjectQuotationsPanel';
 import type { ConstructionProject } from './useProjectManagement';
 
 interface ProjectDetailViewProps {
