@@ -96,6 +96,30 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
           )}
           {!readOnly && (
             <>
+              {onProcureItem && getItemProcurementListing && (() => {
+                const listing = getItemProcurementListing(item.id);
+                return listing ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 opacity-0 group-hover:opacity-100 text-green-400/60 hover:text-green-400"
+                    onClick={() => onViewItemProposals?.(listing)}
+                    title="View Proposals"
+                  >
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 opacity-0 group-hover:opacity-100 text-emerald-400/60 hover:text-emerald-400"
+                    onClick={() => onProcureItem(item.id, item.item_name)}
+                    title="Procure this task"
+                  >
+                    <Briefcase className="h-3 w-3" />
+                  </Button>
+                );
+              })()}
               <Button
                 variant="ghost"
                 size="icon"
