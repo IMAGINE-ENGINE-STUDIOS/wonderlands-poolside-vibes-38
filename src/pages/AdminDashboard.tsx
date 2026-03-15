@@ -265,6 +265,7 @@ const AdminDashboard = () => {
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
                 <NavItem icon={HardHat} label="Projects" active={activeSection === "projects"} onClick={() => setActiveSection("projects")} />
                 <NavItem icon={ClipboardList} label="Applications" active={activeSection === "applications"} onClick={() => setActiveSection("applications")} />
+                <NavItem icon={Briefcase} label="Job Board" active={activeSection === "job-board"} onClick={() => setActiveSection("job-board")} />
                 <NavItem icon={FolderOpen} label="Repository" active={false} onClick={() => window.open('/files', '_blank')} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
                 <NavItem icon={Globe} label="API Management" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />

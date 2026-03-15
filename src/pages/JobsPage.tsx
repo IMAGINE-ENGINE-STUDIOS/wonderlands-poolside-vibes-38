@@ -45,7 +45,7 @@ const jobCategories = [
   {
     id: 'construction_worker',
     title: 'Construction Worker',
-    description: 'Build amazing outdoor spaces. We're hiring skilled construction workers for pool and patio installations.',
+    description: 'Build amazing outdoor spaces. We are hiring skilled construction workers for pool and patio installations.',
     icon: HardHat,
     gradient: 'from-teal to-primary',
     bgGlow: 'bg-teal/10',

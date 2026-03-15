@@ -129,6 +129,7 @@ const App = () => {
             <Route path="/contractor-profile/:id" element={<ContractorProfile />} />
             <Route path="/contractor-login" element={<ContractorLogin />} />
             <Route path="/design-studio" element={<DesignStudio />} />
+            <Route path="/jobs" element={<JobsPage />} />
             <Route path="/deck" element={<InvestorDeck />} />
             <Route path="/twilio-poc" element={<TwilioPOC />} />
             <Route path="/consent" element={<ConsentPage />} />

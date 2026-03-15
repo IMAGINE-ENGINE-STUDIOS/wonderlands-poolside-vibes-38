@@ -101,6 +101,13 @@ Installed by Licensed GC  Tech Terra Corp #CGC1537275                  
                   Contractor Login
                 </span>
               </Link>
+              {/* Careers */}
+              <Link to="/jobs" className="flex items-center gap-2 group">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-coral rounded-full"></div>
+                <span className="text-sm text-primary hover:text-coral transition-colors font-medium">
+                  Careers — We're Hiring!
+                </span>
+              </Link>
             </div>
           </div>
 
