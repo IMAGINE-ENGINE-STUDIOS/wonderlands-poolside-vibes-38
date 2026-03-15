@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +39,7 @@ import CustomerCacheSearch from '@/components/admin/CustomerCacheSearch';
 import AdminApiManagement from '@/components/admin/AdminApiManagement';
 import AdminProjectManagement from '@/components/admin/projectManagement/AdminProjectManagement';
 import AdminApplicationsPanel from '@/components/admin/AdminApplicationsPanel';
+import AdminJobBoardManager from '@/components/admin/AdminJobBoardManager';
 import NotificationBell from '@/components/NotificationBell';
 
 // Navigation Item Component
@@ -264,6 +265,7 @@ const AdminDashboard = () => {
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
                 <NavItem icon={HardHat} label="Projects" active={activeSection === "projects"} onClick={() => setActiveSection("projects")} />
                 <NavItem icon={ClipboardList} label="Applications" active={activeSection === "applications"} onClick={() => setActiveSection("applications")} />
+                <NavItem icon={Briefcase} label="Job Board" active={activeSection === "job-board"} onClick={() => setActiveSection("job-board")} />
                 <NavItem icon={FolderOpen} label="Repository" active={false} onClick={() => window.open('/files', '_blank')} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
                 <NavItem icon={Globe} label="API Management" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
@@ -747,6 +749,24 @@ const AdminDashboard = () => {
           {isMainAdmin && activeSection === "automation-status" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
               <TwilioTestPanel />
               <AutomationStatusManager />
+            </div>}
+
+          {/* Job Board Tab */}
+          {isMainAdmin && activeSection === "job-board" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+              <Card className="holographic-panel border-cyan-500/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
+                    <Briefcase className="h-5 w-5 text-cyan-400" />
+                    Job Board Management
+                  </CardTitle>
+                  <CardDescription className="text-cyan-400/60 font-mono">
+                    Manage career postings for Construction Workers and Pool Cleaners
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AdminJobBoardManager />
+                </CardContent>
+              </Card>
             </div>}
         </div>
       </div>
