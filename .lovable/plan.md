@@ -1,81 +1,68 @@
 
 
-# Full 2D ↔ 3D Integration Plan
+# Plan: Create `/jobs` Public Careers Page + Admin Job Board Management
 
-## Current State
+## Overview
 
-The system has **one-way** data flow: 2D PoolBuilder → `onPoolDataChange` → DesignStudio state → `productToScene()` → 3D `UnifiedPoolVisualizer`. Changes made in 3D (spline edits, texture changes, feature placement, depth anchors) are **not propagated back** to the 2D designer. Additionally, the terrain grass cutout only accounts for the pool + coping area but **ignores the deck area entirely**, causing grass to render inside the deck.
+Create a branded, colorful public `/jobs` page showcasing four job categories. Two categories (Sales Team, Independent Contractor) link to existing registration pages. Two categories (Construction Worker, Pool Cleaner) display individual job postings managed from the Admin Dashboard.
 
-## Architecture Changes
+## What Gets Built
 
-```text
-┌─────────────┐   onPoolDataChange    ┌──────────────┐   productToScene   ┌───────────────────────┐
-│ PoolBuilder  │ ─────────────────────→│ DesignStudio │ ─────────────────→│ UnifiedPoolVisualizer │
-│   (2D)       │ ←─────────────────────│   (state)    │ ←─────────────────│       (3D)            │
-└─────────────┘   on3DSceneChange      └──────────────┘   onSceneChange   └───────────────────────┘
-      NEW CALLBACK                                           ALREADY EXISTS
+### 1. New `/jobs` Page (`src/pages/JobsPage.tsx`)
+- Branded landing page using Wonderlands teal/coral/orange palette
+- Header + Footer from existing components
+- **Four featured job category cards** with vibrant gradients and icons:
+  - **Sales Team** -- links to `/sales-rep-register`
+  - **Independent Contractor** -- links to `/contractor-registration`
+  - **Construction Worker** -- shows job listings from DB (category = "construction_worker")
+  - **Pool Cleaner** -- shows job listings from DB (category = "pool_cleaner")
+- Clicking Construction Worker or Pool Cleaner expands/navigates to show individual postings fetched from a new `career_postings` table
+- Each posting shows: title, description, location, job type (full-time/part-time), and an "Apply" button (opens email or a simple application form)
+
+### 2. New DB Table: `career_postings`
+Separate from the existing `job_postings` (which is for procurement/B2B). This table stores internal hiring posts.
+
+```sql
+CREATE TABLE public.career_postings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('construction_worker', 'pool_cleaner')),
+  description TEXT,
+  location TEXT DEFAULT 'Orlando, FL',
+  job_type TEXT DEFAULT 'full_time',
+  requirements TEXT,
+  salary_range TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_by UUID,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+-- Public read for active, admin write
+ALTER TABLE public.career_postings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view active career postings" ON public.career_postings FOR SELECT USING (is_active = true);
+CREATE POLICY "Main admins can manage career postings" ON public.career_postings FOR ALL TO authenticated USING (is_main_admin()) WITH CHECK (is_main_admin());
 ```
 
-## Implementation Steps
+### 3. Admin Dashboard: "Job Board" Section
+- New nav item "Job Board" under MANAGEMENT in the admin sidebar
+- Component `AdminJobBoardManager.tsx`:
+  - List all career postings with status toggle
+  - Create new posting form (title, category dropdown, description, location, job type, requirements, salary range)
+  - Edit/delete existing postings
 
-### 1. Wire `onSceneChange` in DesignStudio to update 2D state
+### 4. Route & Navigation Updates
+- Add `/jobs` route in `App.tsx`
+- Add "Careers" link in `Footer.tsx`
 
-Currently the `onSceneChange` callback in `DesignStudio.tsx` line 374 is a no-op (`// Handle scene updates if needed`). Implement it to:
-- Convert 3D scene pool points back to 2D pixel coordinates (multiply by `scale`)
-- Update `poolBuilderData`, `customPoolShape`, and `selectedExtras` from the returned scene
-- Update depth profile, features, and deck points from 3D changes
+## File Changes Summary
 
-### 2. Add `onExternalUpdate` prop to PoolBuilder
-
-Add a new prop to `PoolBuilder` that accepts externally-changed data (pool points, depth points, features, hardscape points) from 3D edits. When this prop changes:
-- Update internal `points`, `depthPoints`, `features`, `hardscapePoints` state
-- Skip triggering `onPoolDataChange` for externally-sourced updates to avoid infinite loops
-- Use a ref flag (`isExternalUpdateRef`) to distinguish internal vs external changes
-
-### 3. Bidirectional feature sync
-
-The `PoolBuilderConverter.ts` already converts 2D features → 3D features. Add the reverse:
-- Create `scene3DToPoolBuilder()` function in `PoolBuilderConverter.ts`
-- Convert Scene3D pool points (feet) back to pixel coordinates (multiply by scale)
-- Convert Scene3D features back to PoolBuilder feature format
-- Convert Scene3D depth anchors back to PoolBuilder depth points
-- Convert Scene3D hardscape/deck points back to pixel coordinates
-
-### 4. Fix terrain cutting to include deck area
-
-The `GrassTerrainFallback` component (Pool3DScene.tsx ~line 706) currently only cuts a hole for pool + coping. Modify it to:
-- Accept `hardscapePoints` (deck boundary) as an additional prop
-- When hardscapePoints exist, use them as the terrain cutout boundary instead of just pool + coping offset
-- When hardscapePoints don't exist, fall back to pool + coping + deckWidth offset
-- Pass `hardscapePoints` from `Pool3DScene` props down to `GrassTerrainFallback`
-
-### 5. Prevent update loops
-
-Since both viewports will now update each other, add guards:
-- Use a `lastUpdateSource` ref in DesignStudio (`'2d' | '3d' | null`)
-- When 2D triggers `onPoolDataChange`, set source to `'2d'` and skip forwarding back to 2D
-- When 3D triggers `onSceneChange`, set source to `'3d'` and skip forwarding back to 3D
-- Clear source after a `requestAnimationFrame` to allow subsequent real edits
-
-### 6. Ensure viewport switch preserves state
-
-When toggling between 2D and 3D views in DesignStudio:
-- On switch to 3D: latest 2D data is already flowing via `productToScene` — no change needed
-- On switch to 2D: apply any 3D changes back to PoolBuilder via the new `onExternalUpdate` prop
-- Store a `lastScene3D` ref that gets applied when switching back to 2D
-
-## Files to Edit
-
-| File | Change |
+| File | Action |
 |------|--------|
-| `src/pages/DesignStudio.tsx` | Wire `onSceneChange`, add loop guards, add `onExternalUpdate` data flow |
-| `src/components/PoolBuilder.tsx` | Add `onExternalUpdate` prop, handle external state injection |
-| `src/components/scene3d/PoolBuilderConverter.ts` | Add `scene3DToPoolBuilder()` reverse converter |
-| `src/components/Pool3DScene.tsx` | Pass `hardscapePoints` to terrain, update `GrassTerrainFallback` to cut deck hole |
-
-## Technical Details
-
-- **Coordinate conversion**: PoolBuilder uses pixels (scale = 10 px/ft). 3D uses feet. Conversion: `feet = pixels / scale`, `pixels = feet * scale`.
-- **Terrain hole calculation**: Use `generateOffsetCurve` on deck outer boundary (or hardscapePoints) instead of just pool + coping for the grass cutout. The deck border geometry already receives `deckWidth` and `copingWidth` — the terrain must match.
-- **Loop prevention**: Debounce with `requestAnimationFrame` + source tracking. Never forward an update back to the viewport that originated it.
+| `src/pages/JobsPage.tsx` | Create -- public careers page |
+| `src/components/admin/AdminJobBoardManager.tsx` | Create -- admin CRUD for postings |
+| `src/App.tsx` | Add `/jobs` route |
+| `src/pages/AdminDashboard.tsx` | Add "Job Board" nav item + section render |
+| `src/components/Footer.tsx` | Add "Careers" link |
+| `src/integrations/supabase/types.ts` | Auto-updated after migration |
+| DB migration | Create `career_postings` table |
 
