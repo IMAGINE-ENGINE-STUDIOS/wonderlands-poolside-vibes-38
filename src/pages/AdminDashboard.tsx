@@ -39,6 +39,7 @@ import CustomerCacheSearch from '@/components/admin/CustomerCacheSearch';
 import AdminApiManagement from '@/components/admin/AdminApiManagement';
 import AdminProjectManagement from '@/components/admin/projectManagement/AdminProjectManagement';
 import AdminApplicationsPanel from '@/components/admin/AdminApplicationsPanel';
+import AdminJobBoardManager from '@/components/admin/AdminJobBoardManager';
 import NotificationBell from '@/components/NotificationBell';
 
 // Navigation Item Component
