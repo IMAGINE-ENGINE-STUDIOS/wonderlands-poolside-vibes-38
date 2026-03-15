@@ -750,6 +750,24 @@ const AdminDashboard = () => {
               <TwilioTestPanel />
               <AutomationStatusManager />
             </div>}
+
+          {/* Job Board Tab */}
+          {isMainAdmin && activeSection === "job-board" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+              <Card className="holographic-panel border-cyan-500/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
+                    <Briefcase className="h-5 w-5 text-cyan-400" />
+                    Job Board Management
+                  </CardTitle>
+                  <CardDescription className="text-cyan-400/60 font-mono">
+                    Manage career postings for Construction Workers and Pool Cleaners
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AdminJobBoardManager />
+                </CardContent>
+              </Card>
+            </div>}
         </div>
       </div>
     </div>
