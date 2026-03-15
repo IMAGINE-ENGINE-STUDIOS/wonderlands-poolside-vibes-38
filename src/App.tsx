@@ -32,6 +32,7 @@ const ContractorRegistration = lazy(() => import("./pages/ContractorRegistration
 const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin"));
 const DesignStudio = lazy(() => import("./pages/DesignStudio"));
+const JobsPage = lazy(() => import("./pages/JobsPage"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
 const ConsentPage = lazy(() => import("./pages/ConsentPage"));
 const ApiDocumentation = lazy(() => import("./pages/ApiDocumentation"));
