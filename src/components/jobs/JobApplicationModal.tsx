@@ -87,7 +87,7 @@ const JobApplicationModal = ({ open, onClose, postingId, postingTitle }: JobAppl
 
       toast({ title: 'Application submitted!', description: 'We will review your application and get back to you soon.' });
       onClose();
-      setForm({ name: '', email: '', phone: '', coverLetter: '' });
+      setForm({ name: '', email: '', phone: '', coverLetter: '', whatsappOptIn: false });
       setResumeFile(null);
     } catch (err: any) {
       toast({ title: 'Failed to submit', description: err.message, variant: 'destructive' });
