@@ -47,7 +47,7 @@ const jobCategories = [
     title: 'Construction Worker',
     description: 'Build amazing outdoor spaces. We are hiring skilled construction workers for pool and patio installations.',
     icon: HardHat,
-    gradient: 'from-teal to-primary',
+    gradient: 'from-[hsl(173,58%,39%)] to-primary',
     bgGlow: 'bg-teal/10',
     type: 'db' as const,
     dbCategory: 'construction_worker',
