@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, ArrowLeft, Phone, MessageCircle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { z } from 'zod';
 
 const signupSchema = z.object({
