@@ -239,6 +239,18 @@ const ContractorRegistration = () => {
                     required
                   />
                 </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg border border-green-200 bg-green-50">
+                  <Checkbox
+                    id="whatsapp_opt_in"
+                    checked={formData.whatsapp_opt_in}
+                    onCheckedChange={(checked) => handleInputChange('whatsapp_opt_in', checked ? 'true' : '')}
+                    className="mt-0.5 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                  />
+                  <Label htmlFor="whatsapp_opt_in" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                    <MessageCircle className="w-3.5 h-3.5 inline mr-1 text-green-600" />
+                    Receive status updates via WhatsApp. Standard messaging rates may apply.
+                  </Label>
+                </div>
                 <div className="flex justify-between">
                   <Button type="button" variant="outline" onClick={() => setStep(1)}>
                     Back

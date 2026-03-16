@@ -129,13 +129,26 @@ const JobApplicationModal = ({ open, onClose, postingId, postingTitle }: JobAppl
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">Phone</label>
+            <label className="text-sm font-medium text-foreground mb-1 block">Phone Number</label>
             <Input
               value={form.phone}
               onChange={e => setForm({ ...form, phone: e.target.value })}
               placeholder="(555) 123-4567"
               maxLength={20}
             />
+          </div>
+
+          <div className="flex items-start gap-3 p-3 rounded-lg border border-green-200 bg-green-50">
+            <Checkbox
+              id="whatsappOptIn"
+              checked={form.whatsappOptIn}
+              onCheckedChange={(checked) => setForm({ ...form, whatsappOptIn: !!checked })}
+              className="mt-0.5 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+            />
+            <label htmlFor="whatsappOptIn" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+              <MessageCircle className="w-3.5 h-3.5 inline mr-1 text-green-600" />
+              Receive application status updates via WhatsApp. Standard messaging rates may apply.
+            </label>
           </div>
 
           {/* Resume Upload */}

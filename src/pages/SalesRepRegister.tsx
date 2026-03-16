@@ -182,6 +182,37 @@ const SalesRepRegister = () => {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="phone" className="text-cyan-300 font-mono">
+                  Phone Number
+                </Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-cyan-400" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="pl-10 holographic-panel border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono"
+                    placeholder="(555) 123-4567"
+                    maxLength={20}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5">
+                <Checkbox
+                  id="whatsappOptIn"
+                  checked={formData.whatsappOptIn}
+                  onCheckedChange={(checked) => setFormData({ ...formData, whatsappOptIn: !!checked })}
+                  className="mt-0.5 border-cyan-500/40 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                />
+                <Label htmlFor="whatsappOptIn" className="text-cyan-300/80 font-mono text-xs leading-relaxed cursor-pointer">
+                  <MessageCircle className="w-3.5 h-3.5 inline mr-1 text-green-400" />
+                  I'd like to receive status updates via WhatsApp. Standard messaging rates may apply.
+                </Label>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="password" className="text-cyan-300 font-mono">
                   Password
                 </Label>
