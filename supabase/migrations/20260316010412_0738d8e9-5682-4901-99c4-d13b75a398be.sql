@@ -1,0 +1,1 @@
+UPDATE public.clients SET phone = '+14077604873', updated_at = now() WHERE id = '904df774-031b-45c0-b9d7-a210691c88b4';
