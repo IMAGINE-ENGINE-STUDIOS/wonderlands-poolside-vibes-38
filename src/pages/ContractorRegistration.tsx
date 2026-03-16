@@ -26,7 +26,8 @@ const ContractorRegistration = () => {
     address_zip: '',
     tax_id: '',
     years_experience: '',
-    notes: ''
+    notes: '',
+    whatsapp_opt_in: false,
   });
 
   const handleInputChange = (field: string, value: string) => {
