@@ -37,7 +37,7 @@ const jobCategories = [
     title: 'Independent Contractor',
     description: 'Partner with Wonderlands as a licensed contractor. Access projects, tools, and a growing client base.',
     icon: Wrench,
-    gradient: 'from-coral to-orange',
+    gradient: 'from-[hsl(12,76%,61%)] to-[hsl(27,87%,67%)]',
     bgGlow: 'bg-coral/10',
     link: '/contractor-registration',
     type: 'link' as const,
