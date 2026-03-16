@@ -24,6 +24,7 @@ const JobApplicationModal = ({ open, onClose, postingId, postingTitle }: JobAppl
     email: '',
     phone: '',
     coverLetter: '',
+    whatsappOptIn: false,
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
