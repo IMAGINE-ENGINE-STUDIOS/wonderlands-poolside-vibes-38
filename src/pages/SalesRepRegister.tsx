@@ -25,6 +25,8 @@ const SalesRepRegister = () => {
     password: '',
     firstName: '',
     lastName: '',
+    phone: '',
+    whatsappOptIn: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
