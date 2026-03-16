@@ -80,6 +80,7 @@ const JobApplicationModal = ({ open, onClose, postingId, postingTitle }: JobAppl
         applicant_phone: form.phone.trim() || null,
         cover_letter: form.coverLetter.trim() || null,
         resume_url: resumeUrl,
+        whatsapp_opt_in: form.whatsappOptIn,
       });
 
       if (error) throw error;
