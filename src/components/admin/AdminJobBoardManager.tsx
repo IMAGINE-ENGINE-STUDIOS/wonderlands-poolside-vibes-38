@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Users, MessageCircle, Send, Phone, Mail, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useCommunications } from '@/hooks/useCommunications';
 
 interface CareerPosting {
   id: string;
@@ -20,6 +21,19 @@ interface CareerPosting {
   created_at: string;
 }
 
+interface CareerApplication {
+  id: string;
+  posting_id: string;
+  applicant_name: string;
+  applicant_email: string;
+  applicant_phone: string | null;
+  cover_letter: string | null;
+  resume_url: string | null;
+  status: string;
+  whatsapp_opt_in: boolean;
+  created_at: string | null;
+}
+
 const emptyForm = {
   title: '',
   category: 'construction_worker',
@@ -30,13 +44,21 @@ const emptyForm = {
   salary_range: '',
 };
 
+const statusOptions = ['pending', 'reviewing', 'interview', 'hired', 'rejected'];
+
 const AdminJobBoardManager = () => {
   const { toast } = useToast();
+  const { sendWhatsApp } = useCommunications();
   const [postings, setPostings] = useState<CareerPosting[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [expandedPosting, setExpandedPosting] = useState<string | null>(null);
+  const [applications, setApplications] = useState<CareerApplication[]>([]);
+  const [appsLoading, setAppsLoading] = useState(false);
+  const [whatsappMessage, setWhatsappMessage] = useState('');
+  const [sendingTo, setSendingTo] = useState<string | null>(null);
 
   useEffect(() => { fetchPostings(); }, []);
 
@@ -47,9 +69,29 @@ const AdminJobBoardManager = () => {
     setLoading(false);
   };
 
+  const fetchApplications = async (postingId: string) => {
+    setAppsLoading(true);
+    const { data } = await supabase
+      .from('career_applications')
+      .select('*')
+      .eq('posting_id', postingId)
+      .order('created_at', { ascending: false });
+    setApplications((data as CareerApplication[]) || []);
+    setAppsLoading(false);
+  };
+
+  const toggleExpand = (postingId: string) => {
+    if (expandedPosting === postingId) {
+      setExpandedPosting(null);
+      setApplications([]);
+    } else {
+      setExpandedPosting(postingId);
+      fetchApplications(postingId);
+    }
+  };
+
   const handleSave = async () => {
     if (!form.title.trim()) { toast({ title: 'Title required', variant: 'destructive' }); return; }
-
     if (editingId) {
       await supabase.from('career_postings').update({ ...form, updated_at: new Date().toISOString() }).eq('id', editingId);
       toast({ title: 'Posting updated' });
@@ -86,6 +128,32 @@ const AdminJobBoardManager = () => {
   const toggleActive = async (p: CareerPosting) => {
     await supabase.from('career_postings').update({ is_active: !p.is_active }).eq('id', p.id);
     fetchPostings();
+  };
+
+  const updateApplicationStatus = async (appId: string, newStatus: string) => {
+    await supabase.from('career_applications').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', appId);
+    if (expandedPosting) fetchApplications(expandedPosting);
+    toast({ title: `Status updated to ${newStatus}` });
+  };
+
+  const handleSendWhatsApp = async (app: CareerApplication) => {
+    if (!app.applicant_phone || !whatsappMessage.trim()) {
+      toast({ title: 'Phone number and message required', variant: 'destructive' });
+      return;
+    }
+    setSendingTo(app.id);
+    try {
+      await sendWhatsApp({
+        to: app.applicant_phone,
+        message: whatsappMessage,
+        recipientType: 'client',
+        recipientName: app.applicant_name,
+      });
+      setWhatsappMessage('');
+      setSendingTo(null);
+    } catch {
+      setSendingTo(null);
+    }
   };
 
   const inputClass = "bg-black/40 border-cyan-500/30 text-cyan-100 placeholder:text-cyan-400/30 focus:border-cyan-400";
@@ -160,33 +228,110 @@ const AdminJobBoardManager = () => {
       ) : (
         <div className="space-y-3">
           {postings.map(p => (
-            <Card key={p.id} className="holographic-panel border-cyan-500/20">
-              <CardContent className="p-4 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-cyan-200 font-mono">{p.title}</span>
-                    <Badge variant={p.is_active ? 'default' : 'secondary'} className={p.is_active ? 'bg-green-600/30 text-green-300 border-green-500/30' : 'bg-red-600/30 text-red-300 border-red-500/30'}>
-                      {p.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                    <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-xs">
-                      {p.category === 'construction_worker' ? 'Construction' : 'Pool Cleaner'}
-                    </Badge>
+            <div key={p.id}>
+              <Card className="holographic-panel border-cyan-500/20">
+                <CardContent className="p-4 flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-cyan-200 font-mono">{p.title}</span>
+                      <Badge variant={p.is_active ? 'default' : 'secondary'} className={p.is_active ? 'bg-green-600/30 text-green-300 border-green-500/30' : 'bg-red-600/30 text-red-300 border-red-500/30'}>
+                        {p.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-xs">
+                        {p.category === 'construction_worker' ? 'Construction' : 'Pool Cleaner'}
+                      </Badge>
+                    </div>
+                    <p className="text-cyan-400/50 text-xs font-mono truncate">{p.location} • {p.job_type === 'full_time' ? 'Full Time' : 'Part Time'}{p.salary_range ? ` • ${p.salary_range}` : ''}</p>
                   </div>
-                  <p className="text-cyan-400/50 text-xs font-mono truncate">{p.location} • {p.job_type === 'full_time' ? 'Full Time' : 'Part Time'}{p.salary_range ? ` • ${p.salary_range}` : ''}</p>
+                  <div className="flex items-center gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => toggleExpand(p.id)} className="text-cyan-400 hover:text-cyan-200" title="View Applications">
+                      <Users className="w-4 h-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => toggleActive(p)} className="text-cyan-400 hover:text-cyan-200">
+                      {p.is_active ? <ToggleRight className="w-5 h-5 text-green-400" /> : <ToggleLeft className="w-5 h-5 text-red-400" />}
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="text-cyan-400 hover:text-cyan-200">
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-300">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Applications Panel */}
+              {expandedPosting === p.id && (
+                <div className="ml-4 mt-2 space-y-2 border-l-2 border-cyan-500/20 pl-4">
+                  <h4 className="text-cyan-300 font-mono text-sm flex items-center gap-2">
+                    <Users className="w-4 h-4" /> Applications ({applications.length})
+                  </h4>
+                  {appsLoading ? (
+                    <p className="text-cyan-400/40 text-xs font-mono">Loading applications...</p>
+                  ) : applications.length === 0 ? (
+                    <p className="text-cyan-400/40 text-xs font-mono">No applications yet.</p>
+                  ) : (
+                    applications.map(app => (
+                      <Card key={app.id} className="bg-black/30 border-cyan-500/10">
+                        <CardContent className="p-3 space-y-2">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-cyan-200 text-sm">{app.applicant_name}</span>
+                                <select
+                                  value={app.status}
+                                  onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
+                                  className="text-xs rounded px-2 py-0.5 bg-black/40 border border-cyan-500/30 text-cyan-300"
+                                >
+                                  {statusOptions.map(s => (
+                                    <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                                  ))}
+                                </select>
+                                {app.whatsapp_opt_in && (
+                                  <Badge className="bg-green-600/20 text-green-400 border-green-500/30 text-xs">
+                                    <MessageCircle className="w-3 h-3 mr-1" /> WhatsApp
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-3 text-xs text-cyan-400/50 mt-1">
+                                <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {app.applicant_email}</span>
+                                {app.applicant_phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {app.applicant_phone}</span>}
+                                {app.resume_url && (
+                                  <a href={app.resume_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-cyan-300 hover:text-cyan-200">
+                                    <FileText className="w-3 h-3" /> Resume
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* WhatsApp send for opted-in applicants with phone */}
+                          {app.whatsapp_opt_in && app.applicant_phone && (
+                            <div className="flex gap-2 items-center">
+                              <Input
+                                value={sendingTo === app.id ? whatsappMessage : ''}
+                                onFocus={() => { setSendingTo(app.id); }}
+                                onChange={(e) => { setSendingTo(app.id); setWhatsappMessage(e.target.value); }}
+                                placeholder="Send WhatsApp update..."
+                                className="text-xs h-8 bg-black/30 border-green-500/30 text-green-200 placeholder:text-green-400/30"
+                              />
+                              <Button
+                                size="sm"
+                                disabled={sendingTo !== app.id || !whatsappMessage.trim()}
+                                onClick={() => handleSendWhatsApp(app)}
+                                className="h-8 bg-green-600 hover:bg-green-500 text-white text-xs px-3"
+                              >
+                                <Send className="w-3 h-3 mr-1" /> Send
+                              </Button>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
-                <div className="flex items-center gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => toggleActive(p)} className="text-cyan-400 hover:text-cyan-200">
-                    {p.is_active ? <ToggleRight className="w-5 h-5 text-green-400" /> : <ToggleLeft className="w-5 h-5 text-red-400" />}
-                  </Button>
-                  <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="text-cyan-400 hover:text-cyan-200">
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-300">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           ))}
         </div>
       )}
