@@ -27,7 +27,7 @@ const jobCategories = [
     title: 'Sales Team',
     description: 'Join our growing sales team and help families transform their backyards into dream oases.',
     icon: Users,
-    gradient: 'from-primary to-teal',
+    gradient: 'from-primary to-[hsl(173,58%,39%)]',
     bgGlow: 'bg-primary/10',
     link: '/sales-rep-register',
     type: 'link' as const,
