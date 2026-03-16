@@ -56,6 +56,8 @@ const SalesRepRegister = () => {
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
+            phone: formData.phone,
+            whatsapp_opt_in: formData.whatsappOptIn,
             role: 'sales_rep',
           },
         },
