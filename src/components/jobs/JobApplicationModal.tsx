@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, FileText, Loader2 } from 'lucide-react';
+import { Upload, X, FileText, Loader2, MessageCircle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,7 @@ const JobApplicationModal = ({ open, onClose, postingId, postingTitle }: JobAppl
     email: '',
     phone: '',
     coverLetter: '',
+    whatsappOptIn: false,
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,13 +80,14 @@ const JobApplicationModal = ({ open, onClose, postingId, postingTitle }: JobAppl
         applicant_phone: form.phone.trim() || null,
         cover_letter: form.coverLetter.trim() || null,
         resume_url: resumeUrl,
+        whatsapp_opt_in: form.whatsappOptIn,
       });
 
       if (error) throw error;
 
       toast({ title: 'Application submitted!', description: 'We will review your application and get back to you soon.' });
       onClose();
-      setForm({ name: '', email: '', phone: '', coverLetter: '' });
+      setForm({ name: '', email: '', phone: '', coverLetter: '', whatsappOptIn: false });
       setResumeFile(null);
     } catch (err: any) {
       toast({ title: 'Failed to submit', description: err.message, variant: 'destructive' });
@@ -126,13 +129,26 @@ const JobApplicationModal = ({ open, onClose, postingId, postingTitle }: JobAppl
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">Phone</label>
+            <label className="text-sm font-medium text-foreground mb-1 block">Phone Number</label>
             <Input
               value={form.phone}
               onChange={e => setForm({ ...form, phone: e.target.value })}
               placeholder="(555) 123-4567"
               maxLength={20}
             />
+          </div>
+
+          <div className="flex items-start gap-3 p-3 rounded-lg border border-green-200 bg-green-50">
+            <Checkbox
+              id="whatsappOptIn"
+              checked={form.whatsappOptIn}
+              onCheckedChange={(checked) => setForm({ ...form, whatsappOptIn: !!checked })}
+              className="mt-0.5 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+            />
+            <label htmlFor="whatsappOptIn" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+              <MessageCircle className="w-3.5 h-3.5 inline mr-1 text-green-600" />
+              Receive application status updates via WhatsApp. Standard messaging rates may apply.
+            </label>
           </div>
 
           {/* Resume Upload */}

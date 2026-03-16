@@ -278,6 +278,7 @@ export type Database = {
           resume_url: string | null
           status: string
           updated_at: string | null
+          whatsapp_opt_in: boolean | null
         }
         Insert: {
           applicant_email: string
@@ -290,6 +291,7 @@ export type Database = {
           resume_url?: string | null
           status?: string
           updated_at?: string | null
+          whatsapp_opt_in?: boolean | null
         }
         Update: {
           applicant_email?: string
@@ -302,6 +304,7 @@ export type Database = {
           resume_url?: string | null
           status?: string
           updated_at?: string | null
+          whatsapp_opt_in?: boolean | null
         }
         Relationships: [
           {

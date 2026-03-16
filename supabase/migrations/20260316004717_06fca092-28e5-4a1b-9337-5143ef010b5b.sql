@@ -1,0 +1,1 @@
+ALTER TABLE public.career_applications ADD COLUMN IF NOT EXISTS whatsapp_opt_in BOOLEAN DEFAULT false;
