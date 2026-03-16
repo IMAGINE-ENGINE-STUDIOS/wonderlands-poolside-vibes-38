@@ -266,6 +266,53 @@ export type Database = {
           },
         ]
       }
+      career_applications: {
+        Row: {
+          applicant_email: string
+          applicant_name: string
+          applicant_phone: string | null
+          cover_letter: string | null
+          created_at: string | null
+          id: string
+          posting_id: string
+          resume_url: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          applicant_email: string
+          applicant_name: string
+          applicant_phone?: string | null
+          cover_letter?: string | null
+          created_at?: string | null
+          id?: string
+          posting_id: string
+          resume_url?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          applicant_email?: string
+          applicant_name?: string
+          applicant_phone?: string | null
+          cover_letter?: string | null
+          created_at?: string | null
+          id?: string
+          posting_id?: string
+          resume_url?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_applications_posting_id_fkey"
+            columns: ["posting_id"]
+            isOneToOne: false
+            referencedRelation: "career_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       career_postings: {
         Row: {
           category: string
