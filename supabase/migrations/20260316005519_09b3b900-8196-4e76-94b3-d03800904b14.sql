@@ -1,0 +1,2 @@
+UPDATE public.automation_steps SET delay_hours = 0 WHERE id = '5b197337-43af-4efd-89c5-7b593dac8766';
+UPDATE public.automation_steps SET delay_hours = 0 WHERE id = '1fbad9e6-8906-467f-b509-302f73ba3eb6';
