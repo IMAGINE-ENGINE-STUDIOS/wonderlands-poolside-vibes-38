@@ -57,7 +57,7 @@ const jobCategories = [
     title: 'Pool Cleaner',
     description: 'Keep pools sparkling. Join our maintenance crew and help homeowners enjoy their pools year-round.',
     icon: Droplets,
-    gradient: 'from-orange to-coral',
+    gradient: 'from-[hsl(27,87%,67%)] to-[hsl(12,76%,61%)]',
     bgGlow: 'bg-orange/10',
     type: 'db' as const,
     dbCategory: 'pool_cleaner',
