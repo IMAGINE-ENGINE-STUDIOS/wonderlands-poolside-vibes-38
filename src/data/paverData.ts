@@ -18,15 +18,6 @@ export interface PaverColor {
 }
 
 export const paverTypes: PaverType[] = [
-  // Concrete Deck - $10/sqft (standard, always available)
-  {
-    id: 'concrete-deck',
-    name: 'Concrete Deck',
-    description: 'Standard concrete deck finish at $10/sqft',
-    basePrice: 10,
-    category: 'paver',
-    image: '/lovable-uploads/concrete-deck-default.png'
-  },
   // Appian Collection - $15/sqft
   {
     id: 'appian-adobe',
