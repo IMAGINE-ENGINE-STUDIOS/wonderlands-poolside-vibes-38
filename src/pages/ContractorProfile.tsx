@@ -365,7 +365,7 @@ const ContractorProfile = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{contractor.company_name}</h1>
-                <p className="text-muted-foreground">{contractor.contact_name}</p>
+                <p className="text-gray-600">{contractor.contact_name}</p>
               </div>
             </div>
           </div>
