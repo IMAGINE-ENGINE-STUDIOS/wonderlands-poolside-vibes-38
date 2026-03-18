@@ -176,7 +176,7 @@ const AuthPage = () => {
   // Show already-logged-in state instead of immediately redirecting
   if (user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-center">Already Signed In</CardTitle>
