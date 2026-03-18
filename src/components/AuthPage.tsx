@@ -177,7 +177,7 @@ const AuthPage = () => {
   if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white px-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md bg-white border-gray-200 shadow-lg">
           <CardHeader>
             <CardTitle className="text-center">Already Signed In</CardTitle>
           </CardHeader>
