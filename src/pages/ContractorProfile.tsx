@@ -364,7 +364,7 @@ const ContractorProfile = () => {
                 <HardHat className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">{contractor.company_name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{contractor.company_name}</h1>
                 <p className="text-muted-foreground">{contractor.contact_name}</p>
               </div>
             </div>
