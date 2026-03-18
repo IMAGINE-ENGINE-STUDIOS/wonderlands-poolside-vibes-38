@@ -621,8 +621,8 @@ const ContractorProfile = () => {
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center gap-2">
                         {license.is_verified ? (
-                          <Badge className="bg-green-500/20 text-green-400">
-                            <CheckCircle className="w-3 h-3 mr-1" /> Verified
+                          <Badge className="bg-green-100 text-green-700">
+                             <CheckCircle className="w-3 h-3 mr-1" /> Verified
                           </Badge>
                         ) : (
                           <Badge variant="outline">
