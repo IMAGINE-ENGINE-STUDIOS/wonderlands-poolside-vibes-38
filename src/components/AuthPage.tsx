@@ -202,8 +202,8 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <Card className="w-full max-w-md bg-white border-gray-200 shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">Welcome to Wonderland</CardTitle>
           <CardDescription className="text-center">
