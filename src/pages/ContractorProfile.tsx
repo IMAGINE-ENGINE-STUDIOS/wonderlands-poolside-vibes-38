@@ -388,7 +388,7 @@ const ContractorProfile = () => {
                 <AlertCircle className="w-6 h-6 text-yellow-600 shrink-0" />
                 <div>
                   <h3 className="font-semibold text-yellow-700 mb-1">Agreement Required</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
+                  <p className="text-sm text-gray-600 mb-3">
                     You must sign the Subcontractor Agreement before you can receive job assignments. 
                     Please review and sign the agreement to complete your registration.
                   </p>
