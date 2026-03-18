@@ -308,11 +308,11 @@ const ContractorProfile = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle className="w-3 h-3 mr-1" /> Approved</Badge>;
+        return <Badge className="bg-green-100 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" /> Approved</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><Clock className="w-3 h-3 mr-1" /> Pending Review</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200"><Clock className="w-3 h-3 mr-1" /> Pending Review</Badge>;
       case 'suspended':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><AlertCircle className="w-3 h-3 mr-1" /> Suspended</Badge>;
+        return <Badge className="bg-red-100 text-red-700 border-red-200"><AlertCircle className="w-3 h-3 mr-1" /> Suspended</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -354,7 +354,7 @@ const ContractorProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -364,8 +364,8 @@ const ContractorProfile = () => {
                 <HardHat className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">{contractor.company_name}</h1>
-                <p className="text-muted-foreground">{contractor.contact_name}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{contractor.company_name}</h1>
+                <p className="text-gray-600">{contractor.contact_name}</p>
               </div>
             </div>
           </div>
@@ -382,13 +382,13 @@ const ContractorProfile = () => {
 
         {/* Agreement Alert */}
         {!contractor.agreement_signed && (
-          <Card className="mb-6 border-yellow-500/30 bg-yellow-500/5">
+          <Card className="mb-6 border-yellow-200 bg-yellow-50">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
-                <AlertCircle className="w-6 h-6 text-yellow-500 shrink-0" />
+                <AlertCircle className="w-6 h-6 text-yellow-600 shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-yellow-500 mb-1">Agreement Required</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
+                  <h3 className="font-semibold text-yellow-700 mb-1">Agreement Required</h3>
+                  <p className="text-sm text-gray-600 mb-3">
                     You must sign the Subcontractor Agreement before you can receive job assignments. 
                     Please review and sign the agreement to complete your registration.
                   </p>
@@ -443,7 +443,7 @@ const ContractorProfile = () => {
                         const isSelected = !!selectedService;
 
                         return (
-                          <div key={service.name} className={`p-4 rounded-lg border ${isSelected ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
+                          <div key={service.name} className={`p-4 rounded-lg border ${isSelected ? 'border-primary/50 bg-blue-50' : 'border-gray-200'}`}>
                             <div className="flex items-start gap-4">
                               <Checkbox 
                                 checked={isSelected}
@@ -503,7 +503,7 @@ const ContractorProfile = () => {
                   </h3>
                   <div className="space-y-4">
                     {customServices.map((service, index) => (
-                      <div key={index} className="p-4 rounded-lg border border-primary/50 bg-primary/5">
+                      <div key={index} className="p-4 rounded-lg border border-primary/50 bg-blue-50">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                           <div className="md:col-span-2">
                             <Label className="text-xs text-muted-foreground">Service Name</Label>
@@ -621,8 +621,8 @@ const ContractorProfile = () => {
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center gap-2">
                         {license.is_verified ? (
-                          <Badge className="bg-green-500/20 text-green-400">
-                            <CheckCircle className="w-3 h-3 mr-1" /> Verified
+                          <Badge className="bg-green-100 text-green-700">
+                             <CheckCircle className="w-3 h-3 mr-1" /> Verified
                           </Badge>
                         ) : (
                           <Badge variant="outline">
