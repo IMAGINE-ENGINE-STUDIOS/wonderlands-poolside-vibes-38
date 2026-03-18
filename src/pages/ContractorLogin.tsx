@@ -20,17 +20,19 @@ const ContractorLogin = () => {
 
     try {
       // Check if contractor exists with this email
-      const { data: contractor, error } = await supabase
+      const { data: contractors, error } = await supabase
         .from('contractors')
         .select('*')
         .eq('email', email.toLowerCase())
-        .single();
+        .limit(1);
 
-      if (error || !contractor) {
+      if (error || !contractors || contractors.length === 0) {
         toast.error("No contractor account found with this email");
         setLoading(false);
         return;
       }
+
+      const contractor = contractors[0];
 
       if (contractor.status === 'pending') {
         toast.info("Your account is pending approval. Please wait for admin review.");
