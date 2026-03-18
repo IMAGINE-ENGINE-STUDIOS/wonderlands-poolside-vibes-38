@@ -503,7 +503,7 @@ const ContractorProfile = () => {
                   </h3>
                   <div className="space-y-4">
                     {customServices.map((service, index) => (
-                      <div key={index} className="p-4 rounded-lg border border-primary/50 bg-primary/5">
+                      <div key={index} className="p-4 rounded-lg border border-primary/50 bg-blue-50">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                           <div className="md:col-span-2">
                             <Label className="text-xs text-muted-foreground">Service Name</Label>
