@@ -382,7 +382,7 @@ const ContractorProfile = () => {
 
         {/* Agreement Alert */}
         {!contractor.agreement_signed && (
-          <Card className="mb-6 border-yellow-500/30 bg-yellow-500/5">
+          <Card className="mb-6 border-yellow-200 bg-yellow-50">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
                 <AlertCircle className="w-6 h-6 text-yellow-500 shrink-0" />
