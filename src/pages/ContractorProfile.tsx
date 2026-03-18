@@ -443,7 +443,7 @@ const ContractorProfile = () => {
                         const isSelected = !!selectedService;
 
                         return (
-                          <div key={service.name} className={`p-4 rounded-lg border ${isSelected ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
+                          <div key={service.name} className={`p-4 rounded-lg border ${isSelected ? 'border-primary/50 bg-blue-50' : 'border-gray-200'}`}>
                             <div className="flex items-start gap-4">
                               <Checkbox 
                                 checked={isSelected}
