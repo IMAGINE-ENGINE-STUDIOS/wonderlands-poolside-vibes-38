@@ -75,6 +75,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState("quotes");
   const { toast } = useToast();
   
   // Real database metrics
@@ -97,6 +98,17 @@ const AdminDashboard = () => {
   const isSupplier = profile?.role === 'supplier';
   const isInstaller = profile?.role === 'installer';
   const isContractorOrSupplier = isSupplier || isInstaller;
+
+  useEffect(() => {
+    if (isContractorOrSupplier) {
+      setActiveSection((current) => current === "quotes" ? "procurement" : current);
+      return;
+    }
+
+    if (isMainAdmin) {
+      setActiveSection((current) => current === "procurement" ? "quotes" : current);
+    }
+  }, [isContractorOrSupplier, isMainAdmin]);
 
   // Fetch real metrics from database
   const fetchDatabaseMetrics = useCallback(async () => {
@@ -160,7 +172,7 @@ const AdminDashboard = () => {
   if (!user || !isMainAdmin && !isContractorOrSupplier) {
     return null;
   }
-  const [activeSection, setActiveSection] = useState(isMainAdmin ? "quotes" : "procurement");
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] admin-dark-theme relative overflow-hidden">
       {/* Spaceship Grid Background */}
