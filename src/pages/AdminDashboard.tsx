@@ -93,7 +93,7 @@ const AdminDashboard = () => {
   }, [user, navigate]);
 
   // Role-based access control
-  const isMainAdmin = profile?.role === 'main_admin' && profile?.email === 'rikicot@hotmail.com';
+  const isMainAdmin = profile?.role === 'main_admin';
   const isSupplier = profile?.role === 'supplier';
   const isInstaller = profile?.role === 'installer';
   const isContractorOrSupplier = isSupplier || isInstaller;
