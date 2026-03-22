@@ -107,20 +107,34 @@ const AdminQuotesManager = () => {
   const handleViewQuote = (quote: UserQuotation) => {
     setSelectedQuote(quote);
     setIsDetailModalOpen(true);
-    fetchCustomerInvoices(quote.email);
+    fetchCustomerInvoices(quote.id, quote.email);
   };
 
-  const fetchCustomerInvoices = async (email: string) => {
+  const fetchCustomerInvoices = async (quoteId: string, email: string) => {
     setInvoicesLoading(true);
     try {
-      const { data, error } = await supabase
+      // Primary: fetch invoices linked by quotation_id (direct relationship)
+      const { data: linkedInvoices, error: linkedError } = await supabase
         .from('invoices')
-        .select('id, invoice_number, total_amount, payment_status, status, invoice_date, due_date')
-        .ilike('customer_email', email)
+        .select('id, invoice_number, total_amount, payment_status, status, invoice_date, due_date, quotation_id')
+        .eq('quotation_id', quoteId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setCustomerInvoices(data || []);
+      if (linkedError) throw linkedError;
+
+      // Fallback: if no direct link, match by email
+      if (linkedInvoices && linkedInvoices.length > 0) {
+        setCustomerInvoices(linkedInvoices);
+      } else {
+        const { data: emailInvoices, error: emailError } = await supabase
+          .from('invoices')
+          .select('id, invoice_number, total_amount, payment_status, status, invoice_date, due_date, quotation_id')
+          .ilike('customer_email', email)
+          .order('created_at', { ascending: false });
+
+        if (emailError) throw emailError;
+        setCustomerInvoices(emailInvoices || []);
+      }
     } catch (error) {
       console.error('Error fetching customer invoices:', error);
       setCustomerInvoices([]);
