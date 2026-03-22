@@ -7,9 +7,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, Eye, Mail, Phone, MapPin, Calendar, DollarSign, ExternalLink } from 'lucide-react';
+import { Search, Eye, Mail, Phone, MapPin, Calendar, DollarSign, ExternalLink, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+interface CustomerInvoice {
+  id: string;
+  invoice_number: string;
+  total_amount: number;
+  payment_status: string;
+  status: string;
+  invoice_date: string;
+  due_date: string;
+}
 
 interface UserQuotation {
   id: string;
@@ -40,6 +50,8 @@ const AdminQuotesManager = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<UserQuotation | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [customerInvoices, setCustomerInvoices] = useState<CustomerInvoice[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
   const { toast } = useToast();
 
   const fetchQuotes = async () => {
@@ -95,6 +107,26 @@ const AdminQuotesManager = () => {
   const handleViewQuote = (quote: UserQuotation) => {
     setSelectedQuote(quote);
     setIsDetailModalOpen(true);
+    fetchCustomerInvoices(quote.email);
+  };
+
+  const fetchCustomerInvoices = async (email: string) => {
+    setInvoicesLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('id, invoice_number, total_amount, payment_status, status, invoice_date, due_date')
+        .ilike('customer_email', email)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCustomerInvoices(data || []);
+    } catch (error) {
+      console.error('Error fetching customer invoices:', error);
+      setCustomerInvoices([]);
+    } finally {
+      setInvoicesLoading(false);
+    }
   };
 
   const totalQuotes = quotes.length;
@@ -441,6 +473,54 @@ const AdminQuotesManager = () => {
                     <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
                     <div className="text-4xl font-bold mb-2">${selectedQuote.total_quote_amount?.toLocaleString() || '0'}</div>
                     <p className="text-orange-100">Complete installation including permits, excavation, and paver deck</p>
+                  </div>
+
+                  {/* Customer Invoices Section */}
+                  <div className="mt-6">
+                    <h4 className="font-bold text-lg mb-3 text-blue-600 flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Customer Invoices
+                    </h4>
+                    {invoicesLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : customerInvoices.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-3">No invoices found for this customer.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {customerInvoices.map((inv) => (
+                          <div
+                            key={inv.id}
+                            className="flex items-center justify-between p-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-colors cursor-pointer"
+                            onClick={() => navigate(`/admin/invoices/${inv.id}`)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-4 w-4 text-blue-500" />
+                              <div>
+                                <p className="font-medium text-sm">{inv.invoice_number}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(inv.invoice_date).toLocaleDateString()} • Due: {new Date(inv.due_date).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Badge className={
+                                inv.payment_status === 'paid'
+                                  ? 'bg-green-100 text-green-700 border-green-300'
+                                  : inv.payment_status === 'partial'
+                                  ? 'bg-amber-100 text-amber-700 border-amber-300'
+                                  : 'bg-red-100 text-red-700 border-red-300'
+                              }>
+                                {inv.payment_status}
+                              </Badge>
+                              <span className="font-bold text-sm">${inv.total_amount?.toLocaleString()}</span>
+                              <ExternalLink className="h-3 w-3 text-blue-400" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
