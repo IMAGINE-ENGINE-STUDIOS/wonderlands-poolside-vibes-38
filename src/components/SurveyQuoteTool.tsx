@@ -1906,6 +1906,15 @@ const SurveyQuoteTool = ({
                         'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
                       };
                       itemImage = paverImages[paverName] || paverImages['Premier Pavers'];
+                    } else if (item.name.includes('Artificial Grass')) {
+                      // Artificial Grass mapping
+                      const grassImages: Record<string, string> = {
+                        'Light Green': '/src/assets/grass-light-green.avif',
+                        'Dark Green': '/src/assets/grass-dark-green.avif'
+                      };
+                      // Extract color from item name
+                      const color = item.name.includes('Dark') ? 'Dark Green' : 'Light Green';
+                      itemImage = grassImages[color] || '/src/assets/grass-light-green.avif';
                     } else {
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     }
