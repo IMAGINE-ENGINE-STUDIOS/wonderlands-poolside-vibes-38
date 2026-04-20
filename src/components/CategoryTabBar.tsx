@@ -28,7 +28,7 @@ const CategoryTabBar = ({ categories, activeId, onChange }: CategoryTabBarProps)
   }, [activeId]);
 
   return (
-    <div className="sticky top-16 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border shadow-sm">
+    <div className="fixed top-0 left-0 right-0 z-[60] w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border shadow-md pl-32 sm:pl-36 md:pl-40 pr-4">
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div
           ref={scrollerRef}
