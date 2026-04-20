@@ -104,7 +104,6 @@ const Index = () => {
       const id = window.location.hash.replace("#", "");
       if (VALID_IDS.has(id)) {
         setActive(id as SectionId);
-        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
     window.addEventListener("hashchange", onHashChange);
@@ -117,7 +116,6 @@ const Index = () => {
     if (window.location.hash !== `#${id}`) {
       history.replaceState(null, "", `#${id}`);
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const renderActive = () => {
