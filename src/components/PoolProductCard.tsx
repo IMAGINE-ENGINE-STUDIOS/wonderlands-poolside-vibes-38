@@ -559,6 +559,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       total += waterfallType?.price || 17500;
     }
 
+    // Add Artificial Grass price if selected ($15/sq ft)
+    if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+      total += parseFloat(extras.artificialGrassArea) * ARTIFICIAL_GRASS_PRICE_PER_SQFT;
+    }
+
     // Apply project type multiplier (3x for commercial)
     return total * priceMultiplier;
   };
@@ -670,6 +675,15 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       cartExtras.push({
         name: `Rocky Waterfalls - ${extras.rockyWaterfallsType}: ${extras.rockyWaterfallsColor}`,
         price: waterfallType?.price || 17500,
+      });
+    }
+
+    // Add Artificial Grass to cart if selected
+    if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+      const grassArea = parseFloat(extras.artificialGrassArea);
+      cartExtras.push({
+        name: `Artificial Grass - ${extras.artificialGrassColor} (${grassArea} sq ft)`,
+        price: grassArea * ARTIFICIAL_GRASS_PRICE_PER_SQFT,
       });
     }
     addToCart({
