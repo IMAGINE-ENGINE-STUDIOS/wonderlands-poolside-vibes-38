@@ -56,6 +56,8 @@ import FinancingOptions from "./FinancingOptions";
 import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
 import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
 import serenityImage from "@/assets/serenitykit.jpg";
+import grassLightGreenImage from "@/assets/grass-light-green.avif";
+import grassDarkGreenImage from "@/assets/grass-dark-green.avif";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
@@ -114,6 +116,9 @@ interface PoolExtras {
   rockyWaterfalls: boolean;
   rockyWaterfallsType: string;
   rockyWaterfallsColor: string;
+  artificialGrass: boolean;
+  artificialGrassColor: string;
+  artificialGrassArea: string;
   deliveryTime?: string;
   extrasBreakdown?: Array<{
     name: string;
@@ -342,7 +347,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     rockyWaterfalls: false,
     rockyWaterfallsType: "Sunset Grove",
     rockyWaterfallsColor: "Castle Rock",
+    artificialGrass: false,
+    artificialGrassColor: "Light Green",
+    artificialGrassArea: "",
   });
+
+  // Artificial Grass options ($15/sq ft)
+  const ARTIFICIAL_GRASS_PRICE_PER_SQFT = 15;
+  const artificialGrassOptions = [
+    { name: 'Light Green', image: grassLightGreenImage },
+    { name: 'Dark Green', image: grassDarkGreenImage },
+  ];
 
   // Rocky Waterfalls types with their prices and color options
   const rockyWaterfallsTypes = [
