@@ -50,6 +50,7 @@ const mainPageSections = [
   { id: 'patio-fencing', label: 'Patio Fencing', image: patioFencingBanner, description: 'Aluminum pool-code fencing' },
   { id: 'lanai', label: 'Lanai', image: lanaiBanner, description: 'Covered outdoor living spaces' },
   { id: 'pavers', label: 'Pavers', image: paversBanner, description: 'Pool deck & patio pavers' },
+  { id: 'artificial-grass', label: 'Artificial Grass', image: paversBanner, description: 'Premium low-maintenance turf' },
   { id: 'covers', label: 'Pool Covers', image: coversBanner, description: 'Automatic safety covers' },
   { id: 'driveway-gates', label: 'Driveway Gates', image: drivewayGateBanner, description: 'Ornamental entry gates' },
   { id: 'finishes', label: 'Pool Finishes', image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png', description: 'Interior pool finishes' },

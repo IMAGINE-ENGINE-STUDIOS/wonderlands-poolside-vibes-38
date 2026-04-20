@@ -17,7 +17,9 @@ import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
 import PatioFencingSection from "@/components/PatioFencingSection";
 import LanaiSection from "@/components/LanaiSection";
 import PaversSection from "@/components/PaversSection";
+import ArtificialGrassSection from "@/components/ArtificialGrassSection";
 import DrivewayGateSection from "@/components/DrivewayGateSection";
+import grassBanner from "@/assets/grass-natural-green.avif";
 import SaunaSection from "@/components/SaunaSection";
 import Footer from "@/components/Footer";
 import LazySection from "@/components/LazySection";
@@ -127,6 +129,12 @@ const Index = () => {
       <SectionBanner id="pavers" image={paversBanner} alt="Pool Pavers" title="Premium Pavers" subtitle="Elevate your outdoor space with stunning paver designs around your pool" />
       <LazySection>
         <PaversSection />
+      </LazySection>
+      
+      {/* ========== ARTIFICIAL GRASS SECTION ========== */}
+      <SectionBanner id="artificial-grass" image={grassBanner} alt="Artificial Grass" title="Artificial Grass" subtitle="Premium low-maintenance turf — get an instant quote at $25/sq ft" />
+      <LazySection>
+        <ArtificialGrassSection />
       </LazySection>
       
       {/* ========== COVERS SECTION ========== */}
