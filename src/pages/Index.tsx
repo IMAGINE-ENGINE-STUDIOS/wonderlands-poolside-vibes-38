@@ -248,7 +248,7 @@ const Index = () => {
 
       <Header />
       <Hero />
-      <CategoryTabBar categories={CATEGORIES} activeId={active} onChange={handleChange} />
+
 
       <main>
         <Suspense fallback={<SectionFallback />}>{renderActive()}</Suspense>
