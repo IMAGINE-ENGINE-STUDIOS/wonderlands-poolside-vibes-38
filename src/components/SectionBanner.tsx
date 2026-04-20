@@ -8,11 +8,11 @@ interface SectionBannerProps {
 
 const SectionBanner = ({ image, alt, title, subtitle, id }: SectionBannerProps) => {
   return (
-    <div id={id} className="relative w-full overflow-hidden">
+    <div id={id} className="relative w-full overflow-hidden max-h-[300px] md:max-h-[400px]">
       <img
         src={image}
         alt={alt}
-        className="w-full h-auto object-cover"
+        className="w-full h-full object-cover"
         loading="lazy"
         decoding="async"
       />
