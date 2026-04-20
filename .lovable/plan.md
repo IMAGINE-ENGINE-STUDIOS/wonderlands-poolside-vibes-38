@@ -1,71 +1,74 @@
 
 
-## Add Custom Extra Items to Quote Tool
+## Add Artificial Grass Section + Instant Quote Tool
 
-Allow the admin (in Edit Mode) to add custom line items to the final quote — each can have an optional uploaded image, an optional editable price (defaults to $0), and a name. Items get included in the grand total and persist through print/PDF/save.
+Create a dedicated **Artificial Grass** section on the homepage (styled like the Spa/Sauna sections) showcasing all 5 grass color options, with an instant quote tool that calculates pricing based on square footage at $25/sq ft.
 
 ### What the user sees
 
-In the Quote Tool, after entering Edit Mode (via the existing `WONDERMAGIC` passcode):
+**On the homepage** (`/`): A new "Artificial Grass" section appears between the Pavers and Covers sections, with:
+- A section banner (matching style of other sections)
+- Grid of 5 grass color cards: Light Green, Dark Green, Natural Green, Emerald, Olive
+- Each card shows the grass texture image, color name, and "$25/sq ft" pricing
+- An **"Instant Quote"** button on each card that opens a modal
 
-1. A new **"+ Add Custom Item"** button appears at the bottom of the *Added Features* section (the same grid that currently shows extras like pavers, heaters, etc.).
-2. Clicking it inserts a new card in the grid with:
-   - **Image area**: shows a dashed "Click to upload image" placeholder. Clicking opens the existing image upload overlay so the admin can attach any image (or leave blank — placeholder hidden on print).
-   - **Name field**: editable text input (default: "Custom Item").
-   - **Price field**: editable number input (default: `$0`). Real-time formatting.
-   - **Remove (×)** button in the corner of the card to delete it.
-3. The **Total Investment** at the bottom automatically updates to include the sum of all custom items.
-4. On save / print / PDF / Stripe checkout / send-quote-email, custom items appear exactly like other extras with their image (if uploaded) and price.
+**Instant Quote modal**:
+- Shows selected grass color with image preview
+- Square footage input (number field)
+- Live price calculation: `sqft × $25`
+- Total displayed prominently
+- "Request Full Quote" button → opens existing `SurveyQuoteTool` with the grass pre-loaded as a custom product (price + image flow through to the final quote, just like the Sauna/Gilmer Spa sections already do)
 
-### Behavior rules
-
-- Custom items only appear/can be added in Edit Mode. Out of Edit Mode, they render as normal read-only cards alongside other extras.
-- Items with no image render as a clean card with just the name and price (no broken image, no placeholder).
-- Items with `$0` price still render (no price line is hidden) — the user explicitly asked for a "no price" option, so price is treated as optional and shown only when > 0.
-- Custom items are added to `editableQuoteAmount` so the existing "Total Investment" override logic continues to work.
-- Items are included in the saved quote payload (`extras.customItems`) and in line items sent to `send-quote-email` / Stripe / invoice generation.
+**Header navigation**: Add "Artificial Grass" link to the search/navigation menu pointing to `#artificial-grass`.
 
 ### Technical implementation
 
-**File:** `src/components/SurveyQuoteTool.tsx`
+**1. New data file** — `src/data/artificialGrassData.ts`
+```ts
+import grassLightGreen from '@/assets/grass-light-green.avif';
+// ...other 4 imports
+export const PRICE_PER_SQFT = 25;
+export const artificialGrassOptions = [
+  { id: 'light-green', name: 'Light Green', image: grassLightGreen },
+  { id: 'dark-green', name: 'Dark Green', image: grassDarkGreen },
+  { id: 'natural-green', name: 'Natural Green', image: grassNaturalGreen },
+  { id: 'emerald', name: 'Emerald', image: grassEmerald },
+  { id: 'olive', name: 'Olive', image: grassOlive },
+];
+```
 
-1. **New state**:
-   ```ts
-   type CustomQuoteItem = { id: string; name: string; price: number; image?: string };
-   const [customItems, setCustomItems] = useState<CustomQuoteItem[]>([]);
-   ```
+**2. New component** — `src/components/ArtificialGrassSection.tsx`
+- Mirrors structure of `SaunaSection.tsx` / `GilmerSpasSection.tsx`
+- Renders 4-column responsive grid of grass cards
+- Each card uses existing card outline pattern (no new styles)
+- Manages `showQuoteModal`, `selectedGrass`, `sqft` state
+- Opens `SurveyQuoteTool` with `customProduct` prop (existing pattern from `GilmerSpasSection`):
+  ```ts
+  customProduct={{
+    name: `Artificial Grass - ${selectedGrass.name} (${sqft} sq ft)`,
+    price: sqft * 25,
+    type: 'grass',
+    image: selectedGrass.image
+  }}
+  ```
 
-2. **Handlers**:
-   - `handleAddCustomItem()` — pushes a new item with `crypto.randomUUID()`, `name: 'Custom Item'`, `price: 0`.
-   - `handleUpdateCustomItem(id, patch)` — partial update for name/price/image.
-   - `handleRemoveCustomItem(id)` — filters from array.
+**3. New banner component reuse** — `src/components/Index.tsx`
+- Add a `SectionBanner` for grass + lazy-loaded `ArtificialGrassSection`
+- Position: between PaversSection and CoversSection
+- Uses existing `paversBanner` style pattern; banner image: reuse one of the grass textures (no new asset needed)
 
-3. **Pricing integration** in `calculateQuote()` (around line 577):
-   ```ts
-   const customItemsTotal = customItems.reduce((s, i) => s + (Number(i.price) || 0), 0);
-   basePrice += customItemsTotal;
-   ```
-   This runs *before* the early-return for `extras.totalPrice` is bypassed for custom items by adding `+ customItemsTotal` to that branch as well.
+**4. Quote integration**
+- The `SurveyQuoteTool` already accepts `customProduct` prop and renders it with the correct image and price (verified — same path used by Sauna/Spa sections).
+- No changes needed to `SurveyQuoteTool.tsx` itself.
 
-4. **UI additions** in the *Added Features* section (around lines 1815–1960):
-   - After the existing `.map()` of `extras.extrasBreakdown`, render `customItems.map(...)` producing the same card style (`border border-coral-200 ... bg-gradient-to-br from-coral-50 ...`) so the existing outline is preserved.
-   - Each card uses the existing `<ImageUploadOverlay>` component (already imported) with `imageKey={`custom-${item.id}`}` for image upload.
-   - In Edit Mode: render `<Input>` for name and `<Input type="number">` for price + a small × button.
-   - Out of Edit Mode: render plain text/price + image (only if present).
-   - At the bottom of the grid in Edit Mode only, show the **+ Add Custom Item** button.
-   - If `extras.extrasBreakdown` is empty *but* `customItems` has entries (or edit mode), still render the section (relax the existing `extras.extrasBreakdown.length > 0` guard to `|| customItems.length > 0 || isEditMode`).
-
-5. **Persistence**:
-   - Include `customItems` in the `saveQuoteToDatabase` payload under `extras.customItems`.
-   - Include in `lineItems` for `send-quote-email` (around line 808 area) so the emailed/PDF quote contains them.
-   - Stripe checkout uses the already-overridden `editableQuoteAmount` total, so no change needed there.
-
-6. **Reset**: Clear `customItems` when dialog opens (`setCustomItems([])` alongside `setEditableQuoteAmount(0)` at line 215).
+**5. Search menu link** — `src/components/Header.tsx` (or wherever the section nav lives)
+- Add "Artificial Grass" entry pointing to `#artificial-grass` so it follows the existing search-menu-section-navigation rule.
 
 ### What stays the same
 
-- No changes to other product cards, Latham/Gilmer logic, paver data, grass options, or quote outline/style.
-- No new dependencies.
-- No DB schema changes (custom items live in the existing `extras` JSON column already saved with quotes).
-- Image upload reuses the existing `ImageUploadOverlay` infrastructure.
+- No changes to product card outlines, quote tool styling, or other product images
+- No new images created — reuses the 5 existing grass `.avif` assets
+- No DB changes
+- No changes to pricing constants in pool product cards (still $25/sq ft, consistent)
+- No randomization — grass colors render in fixed order: Light → Dark → Natural → Emerald → Olive
 
