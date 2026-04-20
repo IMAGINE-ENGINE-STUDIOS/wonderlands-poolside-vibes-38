@@ -235,6 +235,8 @@ const SurveyQuoteTool = ({
       document.body.dataset.quoteOpen = 'true';
       // Reset editable quote amount when dialog opens to ensure fresh calculation
       setEditableQuoteAmount(0);
+      // Reset custom items when dialog opens
+      setCustomItems([]);
     } else {
       delete document.body.dataset.quoteOpen;
     }
