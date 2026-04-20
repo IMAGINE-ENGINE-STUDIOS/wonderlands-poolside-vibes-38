@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Waves,
   DollarSign,
@@ -22,6 +23,7 @@ import {
   ShoppingCart,
   Sun,
   FileText,
+  Sprout,
 } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
@@ -56,6 +58,8 @@ import FinancingOptions from "./FinancingOptions";
 import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
 import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
 import serenityImage from "@/assets/serenitykit.jpg";
+import grassLightGreenImage from "@/assets/grass-light-green.avif";
+import grassDarkGreenImage from "@/assets/grass-dark-green.avif";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
@@ -114,6 +118,9 @@ interface PoolExtras {
   rockyWaterfalls: boolean;
   rockyWaterfallsType: string;
   rockyWaterfallsColor: string;
+  artificialGrass: boolean;
+  artificialGrassColor: string;
+  artificialGrassArea: string;
   deliveryTime?: string;
   extrasBreakdown?: Array<{
     name: string;
@@ -342,7 +349,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     rockyWaterfalls: false,
     rockyWaterfallsType: "Sunset Grove",
     rockyWaterfallsColor: "Castle Rock",
+    artificialGrass: false,
+    artificialGrassColor: "Light Green",
+    artificialGrassArea: "",
   });
+
+  // Artificial Grass options ($15/sq ft)
+  const ARTIFICIAL_GRASS_PRICE_PER_SQFT = 15;
+  const artificialGrassOptions = [
+    { name: 'Light Green', image: grassLightGreenImage },
+    { name: 'Dark Green', image: grassDarkGreenImage },
+  ];
 
   // Rocky Waterfalls types with their prices and color options
   const rockyWaterfallsTypes = [
@@ -468,6 +485,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           ...prev,
           rockyWaterfalls: !prev.rockyWaterfalls,
         };
+      } else if (extra === "artificialGrass") {
+        return {
+          ...prev,
+          artificialGrass: !prev.artificialGrass,
+        };
       }
       return prev;
     });
@@ -542,6 +564,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     if (extras.rockyWaterfalls) {
       const waterfallType = rockyWaterfallsTypes.find(t => t.name === extras.rockyWaterfallsType);
       total += waterfallType?.price || 17500;
+    }
+
+    // Add Artificial Grass price if selected ($15/sq ft)
+    if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+      total += parseFloat(extras.artificialGrassArea) * ARTIFICIAL_GRASS_PRICE_PER_SQFT;
     }
 
     // Apply project type multiplier (3x for commercial)
@@ -655,6 +682,15 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       cartExtras.push({
         name: `Rocky Waterfalls - ${extras.rockyWaterfallsType}: ${extras.rockyWaterfallsColor}`,
         price: waterfallType?.price || 17500,
+      });
+    }
+
+    // Add Artificial Grass to cart if selected
+    if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+      const grassArea = parseFloat(extras.artificialGrassArea);
+      cartExtras.push({
+        name: `Artificial Grass - ${extras.artificialGrassColor} (${grassArea} sq ft)`,
+        price: grassArea * ARTIFICIAL_GRASS_PRICE_PER_SQFT,
       });
     }
     addToCart({
@@ -1403,6 +1439,69 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
 
+                {/* Artificial Grass */}
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Checkbox
+                    checked={extras.artificialGrass}
+                    onCheckedChange={() => toggleExtra("artificialGrass")}
+                    className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Sprout size={16} className="text-green-600" />
+                    <span className="text-sm">
+                      Artificial Grass (+${extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))
+                        ? (parseFloat(extras.artificialGrassArea) * ARTIFICIAL_GRASS_PRICE_PER_SQFT).toLocaleString()
+                        : '0'})
+                    </span>
+                  </div>
+                </label>
+
+                {extras.artificialGrass && (
+                  <div className="ml-6 space-y-3">
+                    <label className="text-xs font-medium text-muted-foreground">Select Color:</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {artificialGrassOptions.map((opt) => (
+                        <button
+                          key={opt.name}
+                          onClick={() => setExtras((prev) => ({ ...prev, artificialGrassColor: opt.name }))}
+                          className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-center ${
+                            extras.artificialGrassColor === opt.name
+                              ? 'border-green-600 bg-green-600/10'
+                              : 'border-border'
+                          }`}
+                        >
+                          <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                            <OptimizedImage
+                              src={opt.image}
+                              alt={opt.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                          <span className="text-xs font-medium">{opt.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label className="text-xs">Surface Area (sq ft):</Label>
+                      <Input
+                        type="number"
+                        value={extras.artificialGrassArea}
+                        onChange={(e) => setExtras((prev) => ({ ...prev, artificialGrassArea: e.target.value }))}
+                        className="w-28 h-8"
+                        min="0"
+                        placeholder="sq ft"
+                      />
+                      <span className="text-xs text-muted-foreground">${ARTIFICIAL_GRASS_PRICE_PER_SQFT}/sq ft</span>
+                    </div>
+                    {extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea)) && parseFloat(extras.artificialGrassArea) > 0 && (
+                      <div className="text-xs text-green-600 font-medium">
+                        Total: ${(parseFloat(extras.artificialGrassArea) * ARTIFICIAL_GRASS_PRICE_PER_SQFT).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Exclusive Sauna Offer - Moved here, after Rocky Waterfalls */}
                 <ExclusiveSaunaOffer poolModel={pool.model} poolPrice={pool.price} />
 
@@ -1800,6 +1899,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         name: `Rocky Waterfalls - ${extras.rockyWaterfallsType}: ${extras.rockyWaterfallsColor}`,
                         price: waterfallType?.price || 17500,
                         image: waterfallType?.image,
+                      });
+                    }
+
+                    // Add Artificial Grass if selected
+                    if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+                      const grassArea = parseFloat(extras.artificialGrassArea);
+                      const grassImg = artificialGrassOptions.find(o => o.name === extras.artificialGrassColor)?.image;
+                      extrasBreakdown.push({
+                        name: `Artificial Grass - ${extras.artificialGrassColor} (${grassArea} sq ft)`,
+                        price: grassArea * ARTIFICIAL_GRASS_PRICE_PER_SQFT,
+                        image: grassImg,
                       });
                     }
                     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
