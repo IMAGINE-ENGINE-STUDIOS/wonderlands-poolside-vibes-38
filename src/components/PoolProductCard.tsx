@@ -22,6 +22,7 @@ import {
   ShoppingCart,
   Sun,
   FileText,
+  Sprout,
 } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
@@ -482,6 +483,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
         return {
           ...prev,
           rockyWaterfalls: !prev.rockyWaterfalls,
+        };
+      } else if (extra === "artificialGrass") {
+        return {
+          ...prev,
+          artificialGrass: !prev.artificialGrass,
         };
       }
       return prev;
@@ -1429,6 +1435,69 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Artificial Grass */}
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Checkbox
+                    checked={extras.artificialGrass}
+                    onCheckedChange={() => toggleExtra("artificialGrass")}
+                    className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Sprout size={16} className="text-green-600" />
+                    <span className="text-sm">
+                      Artificial Grass (+${extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))
+                        ? (parseFloat(extras.artificialGrassArea) * ARTIFICIAL_GRASS_PRICE_PER_SQFT).toLocaleString()
+                        : '0'})
+                    </span>
+                  </div>
+                </label>
+
+                {extras.artificialGrass && (
+                  <div className="ml-6 space-y-3">
+                    <label className="text-xs font-medium text-muted-foreground">Select Color:</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {artificialGrassOptions.map((opt) => (
+                        <button
+                          key={opt.name}
+                          onClick={() => setExtras((prev) => ({ ...prev, artificialGrassColor: opt.name }))}
+                          className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-center ${
+                            extras.artificialGrassColor === opt.name
+                              ? 'border-green-600 bg-green-600/10'
+                              : 'border-border'
+                          }`}
+                        >
+                          <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                            <OptimizedImage
+                              src={opt.image}
+                              alt={opt.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                          <span className="text-xs font-medium">{opt.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label className="text-xs">Surface Area (sq ft):</Label>
+                      <Input
+                        type="number"
+                        value={extras.artificialGrassArea}
+                        onChange={(e) => setExtras((prev) => ({ ...prev, artificialGrassArea: e.target.value }))}
+                        className="w-28 h-8"
+                        min="0"
+                        placeholder="sq ft"
+                      />
+                      <span className="text-xs text-muted-foreground">${ARTIFICIAL_GRASS_PRICE_PER_SQFT}/sq ft</span>
+                    </div>
+                    {extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea)) && parseFloat(extras.artificialGrassArea) > 0 && (
+                      <div className="text-xs text-green-600 font-medium">
+                        Total: ${(parseFloat(extras.artificialGrassArea) * ARTIFICIAL_GRASS_PRICE_PER_SQFT).toLocaleString()}
+                      </div>
+                    )}
                   </div>
                 )}
 
