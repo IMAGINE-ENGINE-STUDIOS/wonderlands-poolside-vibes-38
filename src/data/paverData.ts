@@ -177,6 +177,56 @@ export const paverTypes: PaverType[] = [
     category: 'paver',
     image: '/lovable-uploads/coralina-blanco.jpg'
   },
+
+  // Gloca Mirage Porcelain Deck Collection - $26/sqft
+  {
+    id: 'gloca-mirage-ideal-48x48',
+    name: 'Gloca Mirage Ideal 48x48',
+    description: 'Premium Gloca Mirage porcelain deck — Ideal color in 48x48 large format',
+    basePrice: 26,
+    category: 'paver',
+    image: '/src/assets/pavers/gloca-mirage-ideal.jpg'
+  },
+  {
+    id: 'gloca-mirage-ideal-24x48',
+    name: 'Gloca Mirage Ideal 24x48',
+    description: 'Premium Gloca Mirage porcelain deck — Ideal color in 24x48 plank format',
+    basePrice: 26,
+    category: 'paver',
+    image: '/src/assets/pavers/gloca-mirage-ideal.jpg'
+  },
+  {
+    id: 'gloca-mirage-concrete-48x48',
+    name: 'Gloca Mirage Concrete 48x48',
+    description: 'Premium Gloca Mirage porcelain deck — Concrete color in 48x48 large format',
+    basePrice: 26,
+    category: 'paver',
+    image: '/src/assets/pavers/gloca-mirage-concrete.webp'
+  },
+  {
+    id: 'gloca-mirage-concrete-24x48',
+    name: 'Gloca Mirage Concrete 24x48',
+    description: 'Premium Gloca Mirage porcelain deck — Concrete color in 24x48 plank format',
+    basePrice: 26,
+    category: 'paver',
+    image: '/src/assets/pavers/gloca-mirage-concrete.webp'
+  },
+  {
+    id: 'gloca-mirage-chairmues-48x48',
+    name: 'Gloca Mirage Chairmues 48x48',
+    description: 'Premium Gloca Mirage porcelain deck — Chairmues dark color in 48x48 large format',
+    basePrice: 26,
+    category: 'paver',
+    image: '/src/assets/pavers/gloca-mirage-chairmues.webp'
+  },
+  {
+    id: 'gloca-mirage-chairmues-24x48',
+    name: 'Gloca Mirage Chairmues 24x48',
+    description: 'Premium Gloca Mirage porcelain deck — Chairmues dark color in 24x48 plank format',
+    basePrice: 26,
+    category: 'paver',
+    image: '/src/assets/pavers/gloca-mirage-chairmues.webp'
+  },
   
   // Premium Travertine Collection - $22/sqft
   {
