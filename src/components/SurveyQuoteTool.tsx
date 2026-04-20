@@ -843,6 +843,17 @@ const SurveyQuoteTool = ({
           });
         });
       }
+
+      // Add custom items added in Edit Mode
+      customItems.forEach((ci) => {
+        lineItems.push({
+          description: ci.name || 'Custom Item',
+          quantity: 1,
+          unit_price: Number(ci.price) || 0,
+          total: Number(ci.price) || 0,
+          image: ci.image || null
+        });
+      });
       
       // Add sauna if selected
       if (saunaSelected) {
