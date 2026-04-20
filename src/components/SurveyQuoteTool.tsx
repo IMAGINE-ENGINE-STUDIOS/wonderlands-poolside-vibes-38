@@ -1852,7 +1852,7 @@ const SurveyQuoteTool = ({
                       ) : (editableTexts['added-features-title'] || 'Added Features from Product Card')}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {extras.extrasBreakdown.map((item: any, index: number) => {
+                      {(extras?.extrasBreakdown || []).map((item: any, index: number) => {
                         // Update item name to specify 2 Story for Premium Screen Enclosure
                         let displayName = item.name;
                         if (displayName.toLowerCase().includes('premium screen enclosure') && !displayName.includes('2 Story')) {
@@ -1985,17 +1985,113 @@ const SurveyQuoteTool = ({
                           </div>
                         </div>;
                       })}
+
+                      {/* Custom items added by admin in Edit Mode */}
+                      {customItems.map((ci) => (
+                        <div key={ci.id} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 relative">
+                          {isEditMode && (
+                            <button
+                              onClick={() => handleRemoveCustomItem(ci.id)}
+                              className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                              title="Remove custom item"
+                              type="button"
+                            >
+                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          )}
+
+                          {/* Image: upload area in edit mode; render only if present out of edit mode */}
+                          {isEditMode ? (
+                            <div className="mb-3">
+                              <ImageUploadOverlay
+                                imageKey={`custom-${ci.id}`}
+                                isEditMode={isEditMode}
+                                imageOverrides={{ ...imageOverrides, [`custom-${ci.id}`]: ci.image || imageOverrides[`custom-${ci.id}`] || '' }}
+                                onImageOverride={handleImageOverride}
+                                cropSettings={imageCropSettings}
+                                onCropChange={handleCropChange}
+                              >
+                                {ci.image ? (
+                                  <ImageCard src={ci.image} alt={ci.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                                ) : (
+                                  <div className="w-full h-20 rounded-md border border-dashed border-coral-300 flex items-center justify-center text-xs text-coral-600 bg-white/60 no-print print:hidden">
+                                    Click to upload image (optional)
+                                  </div>
+                                )}
+                              </ImageUploadOverlay>
+                            </div>
+                          ) : (
+                            ci.image && (
+                              <div className="mb-3">
+                                <ImageCard src={ci.image} alt={ci.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                              </div>
+                            )
+                          )}
+
+                          {/* Name */}
+                          <h5 className="font-semibold text-sm">
+                            {isEditMode ? (
+                              <input
+                                type="text"
+                                value={ci.name}
+                                onChange={(e) => handleUpdateCustomItem(ci.id, { name: e.target.value })}
+                                className="w-full px-1 py-0.5 border rounded text-sm font-semibold"
+                                placeholder="Item name"
+                              />
+                            ) : (ci.name || 'Custom Item')}
+                          </h5>
+
+                          {/* Price (always shown in edit mode; only when > 0 in read mode) */}
+                          {isEditMode ? (
+                            <div className="flex justify-between text-sm mt-2">
+                              <span>Price:</span>
+                              <span className="font-semibold text-coral-600">+$
+                                <input
+                                  type="number"
+                                  min={0}
+                                  value={ci.price}
+                                  onChange={(e) => handleUpdateCustomItem(ci.id, { price: Number(e.target.value) || 0 })}
+                                  className="w-24 px-1 py-0.5 border rounded text-right inline-block"
+                                />
+                              </span>
+                            </div>
+                          ) : (
+                            (Number(ci.price) || 0) > 0 && (
+                              <div className="flex justify-between text-sm mt-2">
+                                <span>Price:</span>
+                                <span className="font-semibold text-coral-600">+${Number(ci.price).toLocaleString()}</span>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Add Custom Item button — Edit Mode only */}
+                      {isEditMode && (
+                        <button
+                          type="button"
+                          onClick={handleAddCustomItem}
+                          className="border-2 border-dashed border-coral-300 hover:border-coral-500 hover:bg-coral-50 rounded-lg p-3 flex flex-col items-center justify-center text-coral-600 font-semibold text-sm transition-colors min-h-[120px] no-print print:hidden"
+                        >
+                          <span className="text-2xl leading-none">+</span>
+                          <span className="mt-1">Add Custom Item</span>
+                        </button>
+                      )}
                     </div>
-                    <div className="mt-4 p-3 bg-gradient-to-r from-coral-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-lg">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total Added Features:</span>
-                        {isEditMode ? (
-                          <span className="font-bold text-coral-600 text-lg">+$<input type="number" value={editablePrices['extras-total'] ?? extras.extrasTotal} onChange={(e) => setEditablePrices(prev => ({...prev, 'extras-total': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
-                        ) : (
-                          <span className="font-bold text-coral-600 text-lg">+${(editablePrices['extras-total'] ?? extras.extrasTotal).toLocaleString()}</span>
-                        )}
+                    {((extras?.extrasBreakdown && extras.extrasBreakdown.length > 0) || customItems.some(i => (Number(i.price) || 0) > 0)) && (
+                      <div className="mt-4 p-3 bg-gradient-to-r from-coral-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold">Total Added Features:</span>
+                          {isEditMode ? (
+                            <span className="font-bold text-coral-600 text-lg">+$<input type="number" value={editablePrices['extras-total'] ?? ((Number(extras?.extrasTotal) || 0) + customItems.reduce((s, i) => s + (Number(i.price) || 0), 0))} onChange={(e) => setEditablePrices(prev => ({...prev, 'extras-total': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                          ) : (
+                            <span className="font-bold text-coral-600 text-lg">+${(editablePrices['extras-total'] ?? ((Number(extras?.extrasTotal) || 0) + customItems.reduce((s, i) => s + (Number(i.price) || 0), 0))).toLocaleString()}</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
