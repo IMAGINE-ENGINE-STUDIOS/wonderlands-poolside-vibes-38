@@ -1907,13 +1907,22 @@ const SurveyQuoteTool = ({
                       };
                       itemImage = paverImages[paverName] || paverImages['Premier Pavers'];
                     } else if (item.name.includes('Artificial Grass')) {
-                      // Artificial Grass mapping
+                      // Artificial Grass mapping - supports 5 colors
                       const grassImages: Record<string, string> = {
                         'Light Green': '/src/assets/grass-light-green.avif',
-                        'Dark Green': '/src/assets/grass-dark-green.avif'
+                        'Dark Green': '/src/assets/grass-dark-green.avif',
+                        'Natural Green': '/src/assets/grass-natural-green.avif',
+                        'Emerald': '/src/assets/grass-emerald.avif',
+                        'Olive': '/src/assets/grass-olive.avif'
                       };
-                      // Extract color from item name
-                      const color = item.name.includes('Dark') ? 'Dark Green' : 'Light Green';
+                      // Extract color from item name - check for each color
+                      let color = 'Light Green'; // default
+                      if (item.name.includes('Dark Green')) color = 'Dark Green';
+                      else if (item.name.includes('Natural Green')) color = 'Natural Green';
+                      else if (item.name.includes('Emerald')) color = 'Emerald';
+                      else if (item.name.includes('Olive')) color = 'Olive';
+                      else if (item.name.includes('Light Green')) color = 'Light Green';
+                      
                       itemImage = grassImages[color] || '/src/assets/grass-light-green.avif';
                     } else {
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
