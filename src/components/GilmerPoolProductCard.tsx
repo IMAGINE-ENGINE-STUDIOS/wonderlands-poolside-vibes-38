@@ -262,6 +262,10 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
       const waterfallType = rockyWaterfallsTypes.find(t => t.name === extras.rockyWaterfallsType);
       total += waterfallType?.price || 17500;
     }
+
+    if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+      total += parseFloat(extras.artificialGrassArea) * ARTIFICIAL_GRASS_PRICE_PER_SQFT;
+    }
     
     // Apply project type multiplier (3x for commercial)
     return total * priceMultiplier;
@@ -300,6 +304,10 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     if (extras.rockyWaterfalls) {
       const waterfallType = rockyWaterfallsTypes.find(t => t.name === extras.rockyWaterfallsType);
       extrasArray.push({ name: `Rocky Waterfalls - ${extras.rockyWaterfallsType}: ${extras.rockyWaterfallsColor}`, price: waterfallType?.price || 17500 });
+    }
+    if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+      const grassArea = parseFloat(extras.artificialGrassArea);
+      extrasArray.push({ name: `Artificial Grass - ${extras.artificialGrassColor} (${grassArea} sq ft)`, price: grassArea * ARTIFICIAL_GRASS_PRICE_PER_SQFT });
     }
     
     const productData = {
@@ -712,6 +720,59 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                 </Select>
               )}
             </div>
+
+            {/* Artificial Grass */}
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <Checkbox
+                  checked={extras.artificialGrass}
+                  onCheckedChange={() => toggleExtra('artificialGrass')}
+                />
+                <div className="flex items-center space-x-1">
+                  <Home size={16} className="text-green-600" />
+                  <span className="font-medium">Artificial Grass</span>
+                </div>
+              </label>
+              {extras.artificialGrass && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    {artificialGrassOptions.map((opt) => (
+                      <button
+                        key={opt.name}
+                        type="button"
+                        onClick={() => updateExtra('artificialGrassColor', opt.name)}
+                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-center ${
+                          extras.artificialGrassColor === opt.name
+                            ? 'border-green-600 bg-green-600/10'
+                            : 'border-border'
+                        }`}
+                      >
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                          <img src={opt.image} alt={opt.name} className="w-full h-full object-cover" loading="lazy" />
+                        </div>
+                        <span className="text-xs font-medium">{opt.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Label className="text-xs">Surface Area (sq ft):</Label>
+                    <Input
+                      type="number"
+                      value={extras.artificialGrassArea}
+                      onChange={(e) => updateExtra('artificialGrassArea', e.target.value)}
+                      className="w-24 h-8"
+                      placeholder="sq ft"
+                    />
+                    <span className="text-xs text-muted-foreground">${ARTIFICIAL_GRASS_PRICE_PER_SQFT}/sq ft</span>
+                  </div>
+                  {extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea)) && parseFloat(extras.artificialGrassArea) > 0 && (
+                    <div className="text-xs text-green-600 font-medium">
+                      Total: ${(parseFloat(extras.artificialGrassArea) * ARTIFICIAL_GRASS_PRICE_PER_SQFT).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -805,6 +866,16 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                 name: `Rocky Waterfalls - ${extras.rockyWaterfallsType}: ${extras.rockyWaterfallsColor}`, 
                 price: waterfallType?.price || 17500,
                 image: waterfallType?.image
+              });
+            }
+
+            if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+              const grassArea = parseFloat(extras.artificialGrassArea);
+              const grassImg = artificialGrassOptions.find(o => o.name === extras.artificialGrassColor)?.image;
+              breakdown.push({
+                name: `Artificial Grass - ${extras.artificialGrassColor} (${grassArea} sq ft)`,
+                price: grassArea * ARTIFICIAL_GRASS_PRICE_PER_SQFT,
+                image: grassImg,
               });
             }
             
