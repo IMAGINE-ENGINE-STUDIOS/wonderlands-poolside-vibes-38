@@ -599,8 +599,12 @@ const SurveyQuoteTool = ({
     // Add extras from WonderlandsStudio breakdown (now passed synchronously via ref)
     const extrasTotal = extras?.extrasTotal ? Number(extras.extrasTotal) : 0;
     basePrice += extrasTotal;
-    
-    console.log('💰 calculateQuote FINAL:', { originalBasePrice: pool?.price || customProduct?.price, extrasTotal, optionsPrice, total: basePrice });
+
+    // Add custom items added by admin in Edit Mode
+    const customItemsTotal = customItems.reduce((s, i) => s + (Number(i.price) || 0), 0);
+    basePrice += customItemsTotal;
+
+    console.log('💰 calculateQuote FINAL:', { originalBasePrice: pool?.price || customProduct?.price, extrasTotal, optionsPrice, customItemsTotal, total: basePrice });
 
     // Add sauna if selected (exclusive offer for eligible pools)
     if (saunaSelected) {
