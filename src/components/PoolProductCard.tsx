@@ -1901,6 +1901,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         image: waterfallType?.image,
                       });
                     }
+
+                    // Add Artificial Grass if selected
+                    if (extras.artificialGrass && extras.artificialGrassArea && !isNaN(parseFloat(extras.artificialGrassArea))) {
+                      const grassArea = parseFloat(extras.artificialGrassArea);
+                      const grassImg = artificialGrassOptions.find(o => o.name === extras.artificialGrassColor)?.image;
+                      extrasBreakdown.push({
+                        name: `Artificial Grass - ${extras.artificialGrassColor} (${grassArea} sq ft)`,
+                        price: grassArea * ARTIFICIAL_GRASS_PRICE_PER_SQFT,
+                        image: grassImg,
+                      });
+                    }
                     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
                     onRequestQuote(pool, {
                       ...extras,
