@@ -143,8 +143,30 @@ const SurveyQuoteTool = ({
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
   const [imageCropSettings, setImageCropSettings] = useState<Record<string, ImageCropSettings>>({});
 
+  // Custom extra items added by admin in Edit Mode
+  type CustomQuoteItem = { id: string; name: string; price: number; image?: string };
+  const [customItems, setCustomItems] = useState<CustomQuoteItem[]>([]);
+
+  const handleAddCustomItem = () => {
+    const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+      ? crypto.randomUUID()
+      : `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setCustomItems(prev => [...prev, { id, name: 'Custom Item', price: 0 }]);
+  };
+  const handleUpdateCustomItem = (id: string, patch: Partial<CustomQuoteItem>) => {
+    setCustomItems(prev => prev.map(i => (i.id === id ? { ...i, ...patch } : i)));
+  };
+  const handleRemoveCustomItem = (id: string) => {
+    setCustomItems(prev => prev.filter(i => i.id !== id));
+  };
+
   const handleImageOverride = (key: string, dataUrl: string) => {
     setImageOverrides(prev => ({ ...prev, [key]: dataUrl }));
+    // If this image override is for a custom item, persist it onto the item
+    if (key.startsWith('custom-')) {
+      const id = key.slice('custom-'.length);
+      setCustomItems(prev => prev.map(i => (i.id === id ? { ...i, image: dataUrl } : i)));
+    }
   };
   const handleCropChange = (key: string, settings: ImageCropSettings) => {
     setImageCropSettings(prev => ({ ...prev, [key]: settings }));
