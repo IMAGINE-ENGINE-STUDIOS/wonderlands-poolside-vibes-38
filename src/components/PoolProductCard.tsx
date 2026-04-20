@@ -60,6 +60,9 @@ import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
 import serenityImage from "@/assets/serenitykit.jpg";
 import grassLightGreenImage from "@/assets/grass-light-green.avif";
 import grassDarkGreenImage from "@/assets/grass-dark-green.avif";
+import grassNaturalGreenImage from "@/assets/grass-natural-green.avif";
+import grassEmeraldImage from "@/assets/grass-emerald.avif";
+import grassOliveImage from "@/assets/grass-olive.avif";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
@@ -359,6 +362,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
   const artificialGrassOptions = [
     { name: 'Light Green', image: grassLightGreenImage },
     { name: 'Dark Green', image: grassDarkGreenImage },
+    { name: 'Natural Green', image: grassNaturalGreenImage },
+    { name: 'Emerald', image: grassEmeraldImage },
+    { name: 'Olive', image: grassOliveImage },
   ];
 
   // Rocky Waterfalls types with their prices and color options
@@ -1459,7 +1465,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 {extras.artificialGrass && (
                   <div className="ml-6 space-y-3">
                     <label className="text-xs font-medium text-muted-foreground">Select Color:</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       {artificialGrassOptions.map((opt) => (
                         <button
                           key={opt.name}
