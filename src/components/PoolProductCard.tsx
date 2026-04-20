@@ -357,8 +357,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     artificialGrassArea: "",
   });
 
-  // Artificial Grass options ($15/sq ft)
-  const ARTIFICIAL_GRASS_PRICE_PER_SQFT = 15;
+  // Artificial Grass options ($25/sq ft)
+  const ARTIFICIAL_GRASS_PRICE_PER_SQFT = 25;
   const artificialGrassOptions = [
     { name: 'Light Green', image: grassLightGreenImage },
     { name: 'Dark Green', image: grassDarkGreenImage },

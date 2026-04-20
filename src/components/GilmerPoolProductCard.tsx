@@ -117,7 +117,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     artificialGrassArea: '',
   });
 
-  const ARTIFICIAL_GRASS_PRICE_PER_SQFT = 15;
+  const ARTIFICIAL_GRASS_PRICE_PER_SQFT = 25;
   const artificialGrassOptions = [
     { name: 'Light Green', image: grassLightGreenImage },
     { name: 'Dark Green', image: grassDarkGreenImage },
