@@ -671,7 +671,7 @@ const SurveyQuoteTool = ({
         pool_model: pool?.model || customProduct?.name || null,
         pool_price: pool?.price || customProduct?.price || null,
         pool_category: pool?.category || customProduct?.type || null,
-        selected_options: JSON.parse(JSON.stringify(selectedOptions)),
+        selected_options: JSON.parse(JSON.stringify({ options: selectedOptions, customItems })),
         total_quote_amount: quoteAmount,
         recommendations: recommendations,
         uploaded_image_url: uploadedImage ? URL.createObjectURL(uploadedImage) : null,
@@ -1828,7 +1828,7 @@ const SurveyQuoteTool = ({
                 )}
 
                 {/* Product Card Selected Items */}
-                {!hiddenSections.has('added-features') && extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && (
+                {!hiddenSections.has('added-features') && ((extras?.extrasBreakdown && extras.extrasBreakdown.length > 0) || customItems.length > 0 || isEditMode) && (
                 <div className="mb-6 relative">
                     {isEditMode && (
                       <button
