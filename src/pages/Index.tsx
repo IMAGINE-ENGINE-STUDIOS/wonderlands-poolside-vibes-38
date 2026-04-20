@@ -65,7 +65,7 @@ type SectionId =
   | "finishes"
   | "liners";
 
-const CATEGORIES: CategoryItem[] = [
+const CATEGORIES = [
   { id: "pools", label: "Pools", icon: Waves },
   { id: "saunas", label: "Saunas", icon: Flame },
   { id: "spas", label: "Spas", icon: Droplet },
