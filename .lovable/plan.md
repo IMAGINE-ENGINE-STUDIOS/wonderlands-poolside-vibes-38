@@ -1,74 +1,87 @@
 
 
-## Add Artificial Grass Section + Instant Quote Tool
+## Convert Homepage Long-Scroll into Dynamic Category Switcher
 
-Create a dedicated **Artificial Grass** section on the homepage (styled like the Spa/Sauna sections) showcasing all 5 grass color options, with an instant quote tool that calculates pricing based on square footage at $25/sq ft.
+Replace the current vertical-scroll homepage (where all 16+ product sections stack on top of each other) with a **single-viewport tabbed experience**. The hero stays at top; below it, a sticky horizontal category bar lets users switch between sections instantly — only one section renders at a time, no page growth.
 
 ### What the user sees
 
-**On the homepage** (`/`): A new "Artificial Grass" section appears between the Pavers and Covers sections, with:
-- A section banner (matching style of other sections)
-- Grid of 5 grass color cards: Light Green, Dark Green, Natural Green, Emerald, Olive
-- Each card shows the grass texture image, color name, and "$25/sq ft" pricing
-- An **"Instant Quote"** button on each card that opens a modal
+**Top of page (unchanged):**
+- Header
+- Hero with search
 
-**Instant Quote modal**:
-- Shows selected grass color with image preview
-- Square footage input (number field)
-- Live price calculation: `sqft × $25`
-- Total displayed prominently
-- "Request Full Quote" button → opens existing `SurveyQuoteTool` with the grass pre-loaded as a custom product (price + image flow through to the final quote, just like the Sauna/Gilmer Spa sections already do)
+**New: Sticky Category Bar** (directly below Hero, sticks to top on scroll):
+A horizontal scrollable pill bar with all product categories:
 
-**Header navigation**: Add "Artificial Grass" link to the search/navigation menu pointing to `#artificial-grass`.
+```text
+[ Pools ] [ Saunas ] [ Spas ] [ Tanning Ledges ] [ Screen Enclosures ]
+[ Patio Fencing ] [ Lanai ] [ Pavers ] [ Artificial Grass ] [ Covers ]
+[ Driveway Gates ] [ Finishes ] [ Liners ]
+```
+
+- Active category: filled teal pill (brand primary)
+- Inactive: outlined pill, hover shows teal tint
+- Horizontally scrollable on mobile (no wrap), centered on desktop
+- Each pill has a small icon (reusing lucide icons already in the project)
+
+**Active section area (below the bar):**
+- Only the **selected category** renders — its existing `SectionBanner` + section component (e.g. `SaunaSection`, `PaversSection`) shown in full
+- Smooth fade transition (200ms) when switching categories
+- Section content keeps its current layout, cards, quote tools, everything — nothing inside the sections changes
+
+**Footer:** unchanged, appears at the bottom of the active section.
+
+### Behavior
+
+- Default category on load: **Pools** (first item).
+- Clicking a pill swaps the visible section instantly (client-side only, no route change).
+- URL hash syncs: clicking "Saunas" updates URL to `/#saunas`; loading `/#pavers` directly opens the Pavers tab. This preserves existing deep links from the search menu, footer, and SEO sitemap.
+- Search-menu navigation (existing `AdvancedSearch` dropdown that links to `#section-id`) continues to work — the page intercepts hash changes and switches the active tab instead of scrolling.
+- The previously visible "scroll through everything" experience is gone — page is now ~1 viewport tall plus the active section.
+
+### Performance
+
+- Only the active section's component is mounted at a time (others unmount → no wasted renders, no background image loading, no 3D/heavy-component memory usage).
+- Lazy-load each section component with `React.lazy()` so the initial bundle only ships the Pools section + the lightweight category bar.
+- Banner images for inactive sections are not requested until that tab is opened.
 
 ### Technical implementation
 
-**1. New data file** — `src/data/artificialGrassData.ts`
-```ts
-import grassLightGreen from '@/assets/grass-light-green.avif';
-// ...other 4 imports
-export const PRICE_PER_SQFT = 25;
-export const artificialGrassOptions = [
-  { id: 'light-green', name: 'Light Green', image: grassLightGreen },
-  { id: 'dark-green', name: 'Dark Green', image: grassDarkGreen },
-  { id: 'natural-green', name: 'Natural Green', image: grassNaturalGreen },
-  { id: 'emerald', name: 'Emerald', image: grassEmerald },
-  { id: 'olive', name: 'Olive', image: grassOlive },
-];
-```
+**1. New component** — `src/components/CategoryTabBar.tsx`
+- Receives `categories: { id, label, icon }[]`, `activeId`, `onChange(id)`
+- Sticky positioned (`sticky top-[64px] z-40`) below header
+- Horizontal flex with `overflow-x-auto` on mobile
+- Pills use existing `Button` variants — no new design tokens
 
-**2. New component** — `src/components/ArtificialGrassSection.tsx`
-- Mirrors structure of `SaunaSection.tsx` / `GilmerSpasSection.tsx`
-- Renders 4-column responsive grid of grass cards
-- Each card uses existing card outline pattern (no new styles)
-- Manages `showQuoteModal`, `selectedGrass`, `sqft` state
-- Opens `SurveyQuoteTool` with `customProduct` prop (existing pattern from `GilmerSpasSection`):
-  ```ts
-  customProduct={{
-    name: `Artificial Grass - ${selectedGrass.name} (${sqft} sq ft)`,
-    price: sqft * 25,
-    type: 'grass',
-    image: selectedGrass.image
-  }}
+**2. Refactor** — `src/pages/Index.tsx`
+- Replace the long vertical stack with:
+  ```tsx
+  const SECTIONS = [
+    { id: 'pools', label: 'Pools', icon: Waves, banner: null, Component: lazy(() => import('@/components/PoolCatalog')) },
+    { id: 'saunas', label: 'Saunas', icon: Flame, banner: saunaBanner, Component: lazy(...) },
+    // ...one entry per existing section
+  ];
+  const [active, setActive] = useState(getInitialFromHash());
+  // sync URL hash ↔ active state
   ```
+- Render: `<Header /><Hero /><CategoryTabBar .../><Suspense><ActiveBanner /><ActiveSection /></Suspense><Footer />`
+- Keep all existing imports of section components — just wrapped in `lazy()`.
+- Keep `<Helmet>` SEO block exactly as is.
 
-**3. New banner component reuse** — `src/components/Index.tsx`
-- Add a `SectionBanner` for grass + lazy-loaded `ArtificialGrassSection`
-- Position: between PaversSection and CoversSection
-- Uses existing `paversBanner` style pattern; banner image: reuse one of the grass textures (no new asset needed)
+**3. Hash navigation hook** — small inline `useEffect` in `Index.tsx` listening to `hashchange` to update `active`. No new file needed.
 
-**4. Quote integration**
-- The `SurveyQuoteTool` already accepts `customProduct` prop and renders it with the correct image and price (verified — same path used by Sauna/Spa sections).
-- No changes needed to `SurveyQuoteTool.tsx` itself.
+**4. Special "Pools" tab handling**
+- The current Pools area contains `PoolCatalog` + the Latham/Gilmer banner + `GilmerPoolsSection`. Group these three into a single Pools tab so the existing pool browsing experience stays intact.
 
-**5. Search menu link** — `src/components/Header.tsx` (or wherever the section nav lives)
-- Add "Artificial Grass" entry pointing to `#artificial-grass` so it follows the existing search-menu-section-navigation rule.
+**5. Preserve sub-section anchors**
+- Inside each tab's section, existing `id="..."` anchors on the `<SectionBanner>` remain. Hash like `#pavers` opens the Pavers tab; in-section scroll position resets to top.
 
 ### What stays the same
 
-- No changes to product card outlines, quote tool styling, or other product images
-- No new images created — reuses the 5 existing grass `.avif` assets
-- No DB changes
-- No changes to pricing constants in pool product cards (still $25/sq ft, consistent)
-- No randomization — grass colors render in fixed order: Light → Dark → Natural → Emerald → Olive
+- Header, Hero, Footer — untouched
+- Every individual section component (`PaversSection`, `SaunaSection`, `SpaCatalog`, `ArtificialGrassSection`, etc.) — untouched
+- Product cards, quote tools, banner styling — untouched
+- SEO meta, sitemap, brand colors — untouched
+- Search menu and existing hash links — continue to work, now switch tabs instead of scrolling
+- Order of categories matches current vertical order (no randomization)
 
