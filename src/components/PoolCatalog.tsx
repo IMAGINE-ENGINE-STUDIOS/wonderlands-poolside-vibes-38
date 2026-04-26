@@ -933,7 +933,7 @@ const PoolCatalog = () => {
   const [showTileModal, setShowTileModal] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
+  const poolsPerPage = 3; // Show 3 pools per page (3 columns x 1 row)
 
   const {
     addToCart
@@ -1043,7 +1043,7 @@ const PoolCatalog = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
-                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').map(pool => {
+                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').slice(0, 3).map(pool => {
                   // Override some props for Winderview since it's concrete
                   const poolProps = pool.model === 'Winderview' 
                     ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
