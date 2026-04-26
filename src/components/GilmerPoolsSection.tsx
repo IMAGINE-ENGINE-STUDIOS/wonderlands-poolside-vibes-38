@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Waves, Shield, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 const GilmerPoolsSection = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const poolsPerPage = 9; // 3x3 grid
+  const poolsPerPage = 3; // 3x1 grid (3 columns, 1 row)
 
   // Calculate pagination
   const totalPages = Math.ceil(gilmerPools.length / poolsPerPage);
