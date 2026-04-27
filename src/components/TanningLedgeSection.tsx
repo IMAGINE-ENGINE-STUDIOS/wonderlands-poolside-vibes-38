@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import TanningLedgeProductCard from "./TanningLedgeProductCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import RacebandBanner from "./RacebandBanner";
 import { lathamTanningLedges, glimmerglassTanningLedges, tanningLedges } from "@/data/poolData";
 
 // Import GlimmerGlass images
@@ -91,11 +90,20 @@ const TanningLedgeSection = () => {
     <>
       <section className="py-12 px-4 bg-gradient-to-br from-background to-coral/5" data-tanning-ledge-section>
         <div className="max-w-7xl mx-auto">
-          <RacebandBanner title="Tanning Ledges" subtitle="Shallow lounging area — sun and relaxation" variant="coral" />
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-coral via-orange to-amber-500">
+              Tanning Ledges
+            </h2>
+            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+              Add the perfect relaxation spot to your pool. Our tanning ledges provide the ideal shallow area for lounging and soaking up the sun.
+            </p>
+          </div>
 
           {/* Latham Tanning Ledges Section */}
           <div className="mb-16">
-            <RacebandBanner title="Latham Tanning Ledges" subtitle="Premium fiberglass lounging surfaces" variant="primary" />
+            <h3 className="text-2xl md:text-3xl font-bold mb-8 text-center text-foreground/90">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500">Latham</span> Tanning Ledges
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               {lathamLedgesWithCategory.map((ledge) => (
                 <TanningLedgeProductCard
@@ -110,7 +118,9 @@ const TanningLedgeSection = () => {
 
           {/* GlimmerGlass Tanning Ledges Section */}
           <div>
-            <RacebandBanner title="Glimmerglass Tanning Ledges" subtitle="Luxury fiberglass lounging surfaces" variant="teal" />
+            <h3 className="text-2xl md:text-3xl font-bold mb-8 text-center text-foreground/90">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">GlimmerGlass</span> Tanning Ledges
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {glimmerglassLedgesWithCategory.map((ledge) => (
                 <TanningLedgeProductCard

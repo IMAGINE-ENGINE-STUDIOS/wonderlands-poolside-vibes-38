@@ -10,7 +10,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { DollarSign, ShoppingCart, Calculator, Fence, Palette, Ruler } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import RacebandBanner from "./RacebandBanner";
 import { useShoppingCart } from "./ShoppingCartProvider";
 interface FencingOption {
   name: string;
@@ -89,7 +88,14 @@ const PatioFencingSection = () => {
   return <>
       <section className="py-12 px-4 bg-gradient-to-br from-background to-muted/30">
         <div className="max-w-7xl mx-auto">
-          <RacebandBanner title="Patio Fencing" subtitle="Pool-code aluminum fencing — safety and style" variant="teal" />
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+              Patio Fencing
+            </h2>
+            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+              Premium aluminum fencing with pool code compliant doors for safety and style.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {fencingOptions.map(fencing => <Card key={fencing.height} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleFencingClick(fencing)}>

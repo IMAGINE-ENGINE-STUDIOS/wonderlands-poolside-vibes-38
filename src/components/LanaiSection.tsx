@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import RacebandBanner from "./RacebandBanner";
 import { paverTypes } from "@/data/paverData";
 import { 
   Carousel, 
@@ -199,7 +198,15 @@ const LanaiSection = () => {
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
       <div className="container mx-auto max-w-7xl">
-        <RacebandBanner title="Roof & Lanai Spaces" subtitle="Aluminum frame lanai systems for outdoor living" variant="primary" />
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-coral bg-clip-text text-transparent">
+            Roof & Lanai Spaces
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Create the perfect outdoor living space with our premium aluminum frame lanai systems
+          </p>
+        </div>
 
         {/* Lanai Options Grid */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">

@@ -13,11 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight, Droplets, Cpu } from "lucide-react";
 import BestSellersSection from "./DealsSection";
-import RacebandBanner from "./RacebandBanner";
-import CompactPoolCard from "./CompactPoolCard";
-import PoolDetailDialog from "./PoolDetailDialog";
-import PoolComparisonBar from "./PoolComparisonBar";
-import PoolComparisonDialog from "./PoolComparisonDialog";
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
@@ -938,34 +933,7 @@ const PoolCatalog = () => {
   const [showTileModal, setShowTileModal] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const poolsPerPage = 15; // 5 per row × 3 rows
-
-  // Compact card / compare state
-  const [detailPool, setDetailPool] = useState<Pool | null>(null);
-  const [showDetailDialog, setShowDetailDialog] = useState(false);
-  const [comparePools, setComparePools] = useState<Pool[]>([]);
-  const [showCompareDialog, setShowCompareDialog] = useState(false);
-  const MAX_COMPARE = 4;
-
-  const openPoolDetails = (pool: Pool) => {
-    setDetailPool(pool);
-    setShowDetailDialog(true);
-  };
-
-  const toggleCompare = (pool: Pool, selected: boolean) => {
-    setComparePools((prev) => {
-      if (selected) {
-        if (prev.find((p) => p.model === pool.model)) return prev;
-        if (prev.length >= MAX_COMPARE) return prev;
-        return [...prev, pool];
-      }
-      return prev.filter((p) => p.model !== pool.model);
-    });
-  };
-
-  const removeFromCompare = (model: string) => {
-    setComparePools((prev) => prev.filter((p) => p.model !== model));
-  };
+  const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
 
   const {
     addToCart
@@ -1037,53 +1005,72 @@ const PoolCatalog = () => {
           {/* Best Sellers Section */}
           <BestSellersSection />
 
-          {/* Wonderlands World Collection */}
-          <RacebandBanner
-            title="Wonderlands World Collection"
-            subtitle="Premium Concrete Infinity Pools — The Pinnacle of Luxury"
-            variant="primary"
-          />
+          {/* Wonderlands World Collection - Only Madre Perla and Pacific Ridge */}
+          <div className="relative overflow-hidden py-16 bg-gradient-to-b from-primary/5 via-background to-coral/5">
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {/* Gradient Orbs */}
+              <div className="absolute top-20 left-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute bottom-20 right-10 w-96 h-96 bg-coral/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-teal/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+              
+              {/* Floating Elements */}
+              <div className="absolute top-10 right-20 animate-[float_6s_ease-in-out_infinite]">
+                <Droplets className="w-12 h-12 text-primary/30" />
+              </div>
+              <div className="absolute bottom-20 left-20 animate-[float_8s_ease-in-out_infinite]" style={{ animationDelay: '2s' }}>
+                <Sparkles className="w-10 h-10 text-coral/30" />
+              </div>
+              
+              {/* SVG Wave Pattern */}
+              <svg className="absolute bottom-0 left-0 w-full h-32 opacity-20" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,50 C150,80 350,0 600,50 C850,100 1050,20 1200,50 L1200,120 L0,120 Z" fill="url(#wave-gradient)" />
+                <defs>
+                  <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
+                    <stop offset="50%" stopColor="hsl(var(--coral))" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="hsl(var(--teal))" stopOpacity="0.5" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 mb-16 px-2 sm:px-4">
-            {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').map(pool => {
-              const poolProps = pool.model === 'Winderview'
-                ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
-                : pool;
-              const isSelected = !!comparePools.find(p => p.model === poolProps.model);
-              return (
-                <CompactPoolCard
-                  key={pool.model}
-                  pool={poolProps}
-                  onOpenDetails={openPoolDetails}
-                  onToggleCompare={toggleCompare}
-                  isCompareSelected={isSelected}
-                  isCompareDisabled={comparePools.length >= MAX_COMPARE}
-                />
-              );
-            })}
+            {/* Content */}
+            <div className="relative z-10">
+              <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">Wonderlands World Collection</h2>
+                <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">Premium Concrete Infinity Pools - The Pinnacle of Luxury</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
+                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').map(pool => {
+                  // Override some props for Winderview since it's concrete
+                  const poolProps = pool.model === 'Winderview' 
+                    ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
+                    : pool;
+                  return <PoolProductCard key={pool.model} pool={poolProps} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />;
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Banner between Wonderlands and Latham */}
+          <div className="w-full my-12">
+            <img 
+              src="/lovable-uploads/Astoria_Maxima_029.jpg" 
+              alt="Luxury Pool with Mosaic Tiles" 
+              className="w-full h-auto object-cover rounded-lg"
+            />
           </div>
 
           {/* Latham Pools Collection */}
-          <RacebandBanner
-            title="Latham Pools Collection"
-            subtitle="Fiberglass Pools with Lifetime Warranty"
-            variant="coral"
-          />
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16 mt-20">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">Latham Pools Collection</h2>
+            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">Fiberglass Pools with Lifetime Warranty</p>
+          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 mb-16 px-2 sm:px-4">
-            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => {
-              const isSelected = !!comparePools.find(p => p.model === pool.model);
-              return (
-                <CompactPoolCard
-                  key={pool.model}
-                  pool={pool}
-                  onOpenDetails={openPoolDetails}
-                  onToggleCompare={toggleCompare}
-                  isCompareSelected={isSelected}
-                  isCompareDisabled={comparePools.length >= MAX_COMPARE}
-                />
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
+            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
           </div>
 
           {/* Pagination Controls */}
@@ -1121,32 +1108,6 @@ const PoolCatalog = () => {
     }} extras={selectedExtras} />
 
       <TileDetailModal tile={selectedTile} isOpen={showTileModal} onClose={() => setShowTileModal(false)} />
-
-      <PoolDetailDialog
-        pool={detailPool}
-        isOpen={showDetailDialog}
-        onClose={() => setShowDetailDialog(false)}
-        onRequestQuote={(p, extras) => {
-          setShowDetailDialog(false);
-          handleRequestQuote(p, extras);
-        }}
-      />
-
-      <PoolComparisonBar
-        pools={comparePools}
-        onRemove={removeFromCompare}
-        onCompare={() => setShowCompareDialog(true)}
-        onClear={() => setComparePools([])}
-        maxPools={MAX_COMPARE}
-      />
-
-      <PoolComparisonDialog
-        pools={comparePools}
-        isOpen={showCompareDialog}
-        onClose={() => setShowCompareDialog(false)}
-        onRemove={removeFromCompare}
-        onOpenDetails={openPoolDetails}
-      />
     </>;
 };
 export { spas, pools };

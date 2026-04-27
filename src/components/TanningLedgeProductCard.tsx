@@ -393,28 +393,19 @@ const TanningLedgeProductCard = ({
 
                 {extras.heater && <div className="ml-6 space-y-2">
                     <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
-                    <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
-                      <CarouselContent className="-ml-1">
-                        {ledgeHeaters.map(heater => (
-                          <CarouselItem key={heater.name} className="pl-1 basis-1/2">
-                            <div
-                              onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))}
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10' : 'border-border'}`}
-                            >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 bg-muted/50 flex items-center justify-center">
-                                <img src={heater.image} alt={heater.name} className="w-full h-full object-contain p-1" />
-                              </div>
-                              <div className="flex-1 flex flex-col justify-between min-h-0">
-                                <p className="text-xs font-medium text-center line-clamp-2">{heater.name}</p>
-                                <p className="text-xs text-coral font-semibold text-center mt-1">${heater.price.toLocaleString()}</p>
-                              </div>
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="left-0 animate-pulse" />
-                      <CarouselNext className="right-0 animate-pulse" />
-                    </Carousel>
+                    <div className="grid grid-cols-1 gap-2">
+                      {ledgeHeaters.map(heater => <button key={heater.name} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  heaterModel: heater.name
+                }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'}`}>
+                          <img src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
+                          <div className="flex-1 text-left">
+                            <div>{heater.name}</div>
+                            <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
+                            {heater.description && <div className="text-xs text-muted-foreground">{heater.description}</div>}
+                          </div>
+                        </button>)}
+                    </div>
                   </div>}
                 
                 <div className="flex items-center justify-between p-2 border rounded-lg">

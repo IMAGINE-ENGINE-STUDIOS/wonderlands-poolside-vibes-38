@@ -1288,42 +1288,35 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 {extras.cover && (
                   <div className="ml-6 space-y-2">
                     <label className="text-xs font-medium text-muted-foreground">Select Cover Type:</label>
-                    <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
-                      <CarouselContent className="-ml-1">
-                        {coverOptions.map((cover) => (
-                          <CarouselItem key={cover.name} className="pl-1 basis-1/2">
-                            <div
-                              onClick={() =>
-                                setExtras((prev) => ({
-                                  ...prev,
-                                  coverOption: cover.name,
-                                }))
-                              }
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.coverOption === cover.name ? "border-primary bg-primary/10" : "border-border"}`}
-                            >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 bg-muted/50 flex items-center justify-center">
-                                <img
-                                  src={cover.image}
-                                  alt={cover.name}
-                                  className="w-full h-full object-contain p-1"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                  }}
-                                />
-                              </div>
-                              <div className="flex-1 flex flex-col justify-between min-h-0">
-                                <p className="text-xs font-medium text-center line-clamp-2">{cover.surname}</p>
-                                <p className="text-xs text-primary font-semibold text-center mt-1">
-                                  {cover.price > 0 ? `+$${cover.price.toLocaleString()}` : "No Cost"}
-                                </p>
-                              </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {coverOptions.map((cover) => (
+                        <button
+                          key={cover.name}
+                          onClick={() =>
+                            setExtras((prev) => ({
+                              ...prev,
+                              coverOption: cover.name,
+                            }))
+                          }
+                          className={`p-2 text-xs rounded-md border transition-all flex items-center gap-3 ${extras.coverOption === cover.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
+                        >
+                          <img 
+                            src={cover.image} 
+                            alt={cover.name} 
+                            className="w-12 h-12 rounded object-contain bg-muted/50 p-1" 
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                          <div className="flex-1 text-left">
+                            <div className="font-medium">{cover.surname}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {cover.price > 0 ? `$${cover.price.toLocaleString()}` : "No Cost"}
                             </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="left-0 animate-pulse" />
-                      <CarouselNext className="right-0 animate-pulse" />
-                    </Carousel>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
 
                     {/* Color Selection for Covers */}
                     {extras.coverOption &&

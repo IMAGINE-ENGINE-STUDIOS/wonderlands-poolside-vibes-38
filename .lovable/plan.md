@@ -1,26 +1,87 @@
-# Apply raceband banner style to remaining sub-category headers
 
-## Goal
 
-Convert the last few product sub-category headers that still use the old large gradient `<h2>`/`<h3>` style into the thin glossy `RacebandBanner` already used everywhere else.
+## Convert Homepage Long-Scroll into Dynamic Category Switcher
 
-## What changes for the user
+Replace the current vertical-scroll homepage (where all 16+ product sections stack on top of each other) with a **single-viewport tabbed experience**. The hero stays at top; below it, a sticky horizontal category bar lets users switch between sections instantly — only one section renders at a time, no page growth.
 
-Three remaining headers will be replaced with the thin raceband:
+### What the user sees
 
-- **Best Sellers** (homepage `DealsSection`) — currently a large gradient title flanked by pulsing stars.
-- **Latham Tanning Ledges** sub-header — currently a blue/cyan gradient `<h3>`.
-- **Glimmerglass Tanning Ledges** sub-header — currently a purple/pink gradient `<h3>`.
+**Top of page (unchanged):**
+- Header
+- Hero with search
 
-After the change, these headers will look identical in style to all other product section headers (thin band, gloss highlight, brand colors).
+**New: Sticky Category Bar** (directly below Hero, sticks to top on scroll):
+A horizontal scrollable pill bar with all product categories:
 
-## Files to edit
+```text
+[ Pools ] [ Saunas ] [ Spas ] [ Tanning Ledges ] [ Screen Enclosures ]
+[ Patio Fencing ] [ Lanai ] [ Pavers ] [ Artificial Grass ] [ Covers ]
+[ Driveway Gates ] [ Finishes ] [ Liners ]
+```
 
-1. `src/components/DealsSection.tsx` — replace the `Best Sellers` header block (lines ~119–131) with `<RacebandBanner title="Best Sellers" subtitle="Our most popular products across all categories — trusted by hundreds of happy customers" variant="coral" />`. Add the `RacebandBanner` import.
-2. `src/components/TanningLedgeSection.tsx` — replace the two `<h3>` sub-headers (lines 98–100 and 115–117) with `<RacebandBanner title="Latham Tanning Ledges" ... variant="primary" />` and `<RacebandBanner title="Glimmerglass Tanning Ledges" ... variant="teal" />`. (Import already present.)
+- Active category: filled teal pill (brand primary)
+- Inactive: outlined pill, hover shows teal tint
+- Horizontally scrollable on mobile (no wrap), centered on desktop
+- Each pill has a small icon (reusing lucide icons already in the project)
 
-## Technical details
+**Active section area (below the bar):**
+- Only the **selected category** renders — its existing `SectionBanner` + section component (e.g. `SaunaSection`, `PaversSection`) shown in full
+- Smooth fade transition (200ms) when switching categories
+- Section content keeps its current layout, cards, quote tools, everything — nothing inside the sections changes
 
-- No data, no logic changes — purely presentational header swap.
-- Bottom `SectionBanner` images on the main pool catalog stay untouched per previous instruction.
-- All Wonderlands / Latham / Glimmerglass main banners on `PoolCatalog`, `GilmerPoolsSection`, `GilmerSpasSection` are already on the raceband style — nothing to do there.
+**Footer:** unchanged, appears at the bottom of the active section.
+
+### Behavior
+
+- Default category on load: **Pools** (first item).
+- Clicking a pill swaps the visible section instantly (client-side only, no route change).
+- URL hash syncs: clicking "Saunas" updates URL to `/#saunas`; loading `/#pavers` directly opens the Pavers tab. This preserves existing deep links from the search menu, footer, and SEO sitemap.
+- Search-menu navigation (existing `AdvancedSearch` dropdown that links to `#section-id`) continues to work — the page intercepts hash changes and switches the active tab instead of scrolling.
+- The previously visible "scroll through everything" experience is gone — page is now ~1 viewport tall plus the active section.
+
+### Performance
+
+- Only the active section's component is mounted at a time (others unmount → no wasted renders, no background image loading, no 3D/heavy-component memory usage).
+- Lazy-load each section component with `React.lazy()` so the initial bundle only ships the Pools section + the lightweight category bar.
+- Banner images for inactive sections are not requested until that tab is opened.
+
+### Technical implementation
+
+**1. New component** — `src/components/CategoryTabBar.tsx`
+- Receives `categories: { id, label, icon }[]`, `activeId`, `onChange(id)`
+- Sticky positioned (`sticky top-[64px] z-40`) below header
+- Horizontal flex with `overflow-x-auto` on mobile
+- Pills use existing `Button` variants — no new design tokens
+
+**2. Refactor** — `src/pages/Index.tsx`
+- Replace the long vertical stack with:
+  ```tsx
+  const SECTIONS = [
+    { id: 'pools', label: 'Pools', icon: Waves, banner: null, Component: lazy(() => import('@/components/PoolCatalog')) },
+    { id: 'saunas', label: 'Saunas', icon: Flame, banner: saunaBanner, Component: lazy(...) },
+    // ...one entry per existing section
+  ];
+  const [active, setActive] = useState(getInitialFromHash());
+  // sync URL hash ↔ active state
+  ```
+- Render: `<Header /><Hero /><CategoryTabBar .../><Suspense><ActiveBanner /><ActiveSection /></Suspense><Footer />`
+- Keep all existing imports of section components — just wrapped in `lazy()`.
+- Keep `<Helmet>` SEO block exactly as is.
+
+**3. Hash navigation hook** — small inline `useEffect` in `Index.tsx` listening to `hashchange` to update `active`. No new file needed.
+
+**4. Special "Pools" tab handling**
+- The current Pools area contains `PoolCatalog` + the Latham/Gilmer banner + `GilmerPoolsSection`. Group these three into a single Pools tab so the existing pool browsing experience stays intact.
+
+**5. Preserve sub-section anchors**
+- Inside each tab's section, existing `id="..."` anchors on the `<SectionBanner>` remain. Hash like `#pavers` opens the Pavers tab; in-section scroll position resets to top.
+
+### What stays the same
+
+- Header, Hero, Footer — untouched
+- Every individual section component (`PaversSection`, `SaunaSection`, `SpaCatalog`, `ArtificialGrassSection`, etc.) — untouched
+- Product cards, quote tools, banner styling — untouched
+- SEO meta, sitemap, brand colors — untouched
+- Search menu and existing hash links — continue to work, now switch tabs instead of scrolling
+- Order of categories matches current vertical order (no randomization)
+

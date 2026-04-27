@@ -10,7 +10,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import RacebandBanner from "./RacebandBanner";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "@/components/ui/use-toast";
 import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
@@ -118,7 +117,14 @@ const LinersSection = ({
   return <>
       <section className="py-12 px-4 bg-gradient-to-br from-background to-muted/30">
         <div className="max-w-7xl mx-auto">
-          <RacebandBanner title="Premium Pool Liners" subtitle="Durability, beauty and long-lasting performance" variant="coral" />
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+              Premium Pool Liners
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto px-4">
+              Transform your pool with our premium liner collection. Each liner is designed for durability, beauty, and long-lasting performance.
+            </p>
+          </div>
 
             <div className="flex gap-4 overflow-x-auto pb-4">
               <Carousel className="w-full">

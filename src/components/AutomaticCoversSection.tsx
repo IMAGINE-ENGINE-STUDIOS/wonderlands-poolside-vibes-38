@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Zap, Leaf, Settings, DollarSign, Star, Droplets, Thermometer, Bolt } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import RacebandBanner from "./RacebandBanner";
 interface AutomaticCover {
   name: string;
   price: number;
@@ -121,7 +120,14 @@ const AutomaticCoversSection = () => {
   return <>
       <section className="py-12 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
-          <RacebandBanner title="Automatic Pool Covers" subtitle="Safety, efficiency, and convenience in one smart solution" variant="primary" />
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+              Automatic Pool Covers
+            </h2>
+            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+              Protect your investment with our state-of-the-art automatic pool covers. Safety, efficiency, and convenience in one smart solution.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {covers.map((cover, index) => <Card key={cover.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden">
@@ -213,7 +219,14 @@ const AutomaticCoversSection = () => {
       {/* Energy Savings Section */}
       <section className="py-12 px-4 bg-gradient-to-br from-primary/5 to-teal/5">
         <div className="max-w-7xl mx-auto">
-          <RacebandBanner title="Energy Savings" subtitle="How much energy does an automatic pool cover save?" variant="teal" />
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+              How Much Energy Does an Automatic Pool Cover Save?
+            </h2>
+            <p className="text-xl text-foreground/80 max-w-3xl mx-auto">
+              Consistent use of a pool cover offers these cost- and energy-saving benefits:
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Evaporation Reduction */}
