@@ -8,6 +8,7 @@ import PoolComparisonDialog from "./PoolComparisonDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Waves, Shield, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import RacebandBanner from "./RacebandBanner";
 
 const MAX_COMPARE = 4;
 
@@ -54,40 +55,11 @@ const GilmerPoolsSection = () => {
   return (
     <section id="gilmer-pools" className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-primary/5 to-background">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12 space-y-4">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Waves className="h-8 w-8 text-primary" />
-            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-teal to-primary bg-clip-text text-transparent">
-              Glimerglass Pools Collection
-            </h2>
-            <Waves className="h-8 w-8 text-primary" />
-          </div>
+        <RacebandBanner title="Glimmerglass Pools Collection" subtitle="Premium fiberglass pools — lifetime warranty" variant="teal" />
 
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Premium fiberglass pools built to last. Experience the durability and beauty of Gilmer Glass construction
-            with our lifetime warranty guarantee.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-            <Badge className="bg-gradient-to-r from-primary to-teal text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
-              <Shield className="h-4 w-4 mr-2" />
-              Life Warranty
-            </Badge>
-            <Badge className="bg-gradient-to-r from-teal to-primary text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
-              <Waves className="h-4 w-4 mr-2" />
-              Fiber Construction
-            </Badge>
-            <Badge className="bg-gradient-to-r from-primary to-teal text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
-              <Clock className="h-4 w-4 mr-2" />
-              16+-Week Installation
-            </Badge>
-          </div>
-
-          <p className="text-sm text-muted-foreground mt-4">
-            Showing {startIndex + 1}-{Math.min(endIndex, gilmerPools.length)} of {gilmerPools.length} models
-          </p>
-        </div>
+        <p className="text-center text-sm text-muted-foreground mb-6">
+          Showing {startIndex + 1}-{Math.min(endIndex, gilmerPools.length)} of {gilmerPools.length} models
+        </p>
 
         {/* Compact Pool Grid - 5 per row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-8">
