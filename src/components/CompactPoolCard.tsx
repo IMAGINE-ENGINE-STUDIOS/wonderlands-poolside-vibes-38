@@ -85,7 +85,7 @@ const CompactPoolCard = ({
             src={pool.image}
             alt={pool.model}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            sizeConfig="card"
+            sizeConfig="poolCard"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
