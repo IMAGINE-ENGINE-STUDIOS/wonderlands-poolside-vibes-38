@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import TanningLedgeProductCard from "./TanningLedgeProductCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import RacebandBanner from "./RacebandBanner";
 import { lathamTanningLedges, glimmerglassTanningLedges, tanningLedges } from "@/data/poolData";
 
 // Import GlimmerGlass images
@@ -90,14 +91,7 @@ const TanningLedgeSection = () => {
     <>
       <section className="py-12 px-4 bg-gradient-to-br from-background to-coral/5" data-tanning-ledge-section>
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-coral via-orange to-amber-500">
-              Tanning Ledges
-            </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-              Add the perfect relaxation spot to your pool. Our tanning ledges provide the ideal shallow area for lounging and soaking up the sun.
-            </p>
-          </div>
+          <RacebandBanner title="Tanning Ledges" subtitle="Shallow lounging area — sun and relaxation" variant="coral" />
 
           {/* Latham Tanning Ledges Section */}
           <div className="mb-16">
