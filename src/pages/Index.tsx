@@ -21,6 +21,7 @@ import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import MissionVisionValues from "@/components/MissionVisionValues";
+import HomeCategoriesGrid from "@/components/HomeCategoriesGrid";
 
 import grassBanner from "@/assets/grass-natural-green.avif";
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.jpeg";
