@@ -3,6 +3,7 @@ import { gilmerSpas } from "@/data/gilmerSpas";
 import GilmerSpaCard from "./GilmerSpaCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import type { GilmerSpa } from "@/data/gilmerSpas";
+import RacebandBanner from "./RacebandBanner";
 
 interface SpaExtras {
   selectedColor?: string;
@@ -25,20 +26,7 @@ const GilmerSpasSection = () => {
   return <>
       <section id="gilmer-spas" className="py-12 px-4 bg-gradient-to-br from-background via-muted/20 to-background">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-block mb-4">
-              <span className="text-sm font-semibold text-primary uppercase tracking-wide">
-                Premium Spas & Spillovers
-              </span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Gilmmerglass Spas
-            </h2>
-            <p className="text-xl text-foreground/80 max-w-3xl mx-auto">
-              Experience ultimate relaxation with our fiberglass spas and spillover features. 
-              Lifetime warranty backed by superior craftsmanship and quality materials.
-            </p>
-          </div>
+          <RacebandBanner title="Glimmerglass Spas" subtitle="Fiberglass spas & spillovers — lifetime warranty" variant="teal" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {gilmerSpas.map(spa => <GilmerSpaCard key={spa.model} spa={spa} onRequestQuote={handleRequestQuote} />)}
