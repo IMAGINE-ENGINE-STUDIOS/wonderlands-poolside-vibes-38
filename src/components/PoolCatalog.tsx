@@ -1044,12 +1044,22 @@ const PoolCatalog = () => {
             variant="primary"
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 mb-16 px-2 sm:px-4">
             {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').map(pool => {
               const poolProps = pool.model === 'Winderview'
                 ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
                 : pool;
-              return <PoolProductCard key={pool.model} pool={poolProps} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />;
+              const isSelected = !!comparePools.find(p => p.model === poolProps.model);
+              return (
+                <CompactPoolCard
+                  key={pool.model}
+                  pool={poolProps}
+                  onOpenDetails={openPoolDetails}
+                  onToggleCompare={toggleCompare}
+                  isCompareSelected={isSelected}
+                  isCompareDisabled={comparePools.length >= MAX_COMPARE}
+                />
+              );
             })}
           </div>
 
@@ -1060,8 +1070,20 @@ const PoolCatalog = () => {
             variant="coral"
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
-            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 mb-16 px-2 sm:px-4">
+            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => {
+              const isSelected = !!comparePools.find(p => p.model === pool.model);
+              return (
+                <CompactPoolCard
+                  key={pool.model}
+                  pool={pool}
+                  onOpenDetails={openPoolDetails}
+                  onToggleCompare={toggleCompare}
+                  isCompareSelected={isSelected}
+                  isCompareDisabled={comparePools.length >= MAX_COMPARE}
+                />
+              );
+            })}
           </div>
 
           {/* Pagination Controls */}
