@@ -8,7 +8,7 @@ interface SectionBannerProps {
 
 const SectionBanner = ({ image, alt, title, subtitle, id }: SectionBannerProps) => {
   return (
-    <div id={id} className="relative w-full overflow-hidden max-h-[300px] md:max-h-[400px]">
+    <div id={id} className="relative w-full overflow-hidden h-16 md:h-20">
       <img
         src={image}
         alt={alt}
@@ -17,14 +17,14 @@ const SectionBanner = ({ image, alt, title, subtitle, id }: SectionBannerProps) 
         decoding="async"
       />
       {(title || subtitle) && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col justify-end p-6 md:p-10">
+        <div className="absolute inset-0 bg-black/50 flex items-center px-4 md:px-8 gap-4">
           {title && (
-            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 drop-shadow-lg">
+            <h2 className="text-base md:text-lg font-semibold text-white tracking-wide">
               {title}
             </h2>
           )}
           {subtitle && (
-            <p className="text-sm md:text-lg text-white/90 max-w-2xl drop-shadow-md">
+            <p className="hidden md:block text-xs md:text-sm text-white/80 truncate">
               {subtitle}
             </p>
           )}
