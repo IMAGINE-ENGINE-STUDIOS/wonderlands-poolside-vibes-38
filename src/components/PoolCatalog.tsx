@@ -1121,6 +1121,32 @@ const PoolCatalog = () => {
     }} extras={selectedExtras} />
 
       <TileDetailModal tile={selectedTile} isOpen={showTileModal} onClose={() => setShowTileModal(false)} />
+
+      <PoolDetailDialog
+        pool={detailPool}
+        isOpen={showDetailDialog}
+        onClose={() => setShowDetailDialog(false)}
+        onRequestQuote={(p, extras) => {
+          setShowDetailDialog(false);
+          handleRequestQuote(p, extras);
+        }}
+      />
+
+      <PoolComparisonBar
+        pools={comparePools}
+        onRemove={removeFromCompare}
+        onCompare={() => setShowCompareDialog(true)}
+        onClear={() => setComparePools([])}
+        maxPools={MAX_COMPARE}
+      />
+
+      <PoolComparisonDialog
+        pools={comparePools}
+        isOpen={showCompareDialog}
+        onClose={() => setShowCompareDialog(false)}
+        onRemove={removeFromCompare}
+        onOpenDetails={openPoolDetails}
+      />
     </>;
 };
 export { spas, pools };
