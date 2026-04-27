@@ -174,6 +174,11 @@ const GilmerPoolsSection = () => {
         pools={comparePools as any}
         isOpen={compareOpen}
         onClose={() => setCompareOpen(false)}
+        onRemove={removeCompare}
+        onOpenDetails={(p) => {
+          setCompareOpen(false);
+          openDetails(p);
+        }}
       />
     </section>
   );
