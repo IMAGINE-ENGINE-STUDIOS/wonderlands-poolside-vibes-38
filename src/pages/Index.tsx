@@ -249,6 +249,7 @@ const Index = () => {
       <Header />
       <Hero />
       <MissionVisionValues />
+      <HomeCategoriesGrid />
 
       <main>
         <Suspense fallback={<SectionFallback />}>{renderActive()}</Suspense>
