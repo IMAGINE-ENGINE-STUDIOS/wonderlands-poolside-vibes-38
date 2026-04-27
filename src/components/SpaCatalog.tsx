@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import SpaProductCard from "./SpaProductCard";
 import SpaDetailModal from "./SpaDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import RacebandBanner from "./RacebandBanner";
 interface Spa {
   model: string;
   price: number;
