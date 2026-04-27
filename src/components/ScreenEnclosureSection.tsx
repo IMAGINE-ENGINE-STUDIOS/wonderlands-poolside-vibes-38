@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DollarSign, ShoppingCart, Calculator, Home, Zap, Star } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import RacebandBanner from "./RacebandBanner";
 import { useShoppingCart } from "./ShoppingCartProvider";
 interface ScreenEnclosureOption {
   name: string;
@@ -75,14 +76,7 @@ const ScreenEnclosureSection = () => {
       <section className="py-12 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
 
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Screen Enclosures
-            </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-              Transform your pool area into a comfortable, protected oasis with our premium screen enclosure systems.
-            </p>
-          </div>
+          <RacebandBanner title="Screen Enclosures" subtitle="Premium screen systems for a protected pool oasis" variant="primary" />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {screenEnclosureOptions.map((enclosure) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleEnclosureClick(enclosure)}>

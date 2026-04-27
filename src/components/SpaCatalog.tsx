@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import SpaProductCard from "./SpaProductCard";
 import SpaDetailModal from "./SpaDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import RacebandBanner from "./RacebandBanner";
 interface Spa {
   model: string;
   price: number;
@@ -149,14 +150,7 @@ const SpaCatalog = () => {
           </svg>
         </div>
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Premium Spas
-            </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-              Indulge in the luxury and therapeutic benefits of our premium spas. Designed for relaxation and rejuvenation, our spas offer the ultimate hydrotherapy experience.
-            </p>
-          </div>
+          <RacebandBanner title="Premium Spas" subtitle="Luxury hydrotherapy — relaxation and rejuvenation" variant="primary" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {spas.map(spa => (
