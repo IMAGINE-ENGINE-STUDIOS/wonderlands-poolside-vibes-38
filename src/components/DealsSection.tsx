@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { Star } from "lucide-react";
+import RacebandBanner from "./RacebandBanner";
 import PoolProductCard from "./PoolProductCard";
 import GilmerSpaCard from "./GilmerSpaCard";
 import SaunaProductCard from "./SaunaProductCard";
@@ -117,18 +118,11 @@ const BestSellersSection: React.FC = () => {
 
       <div className="relative z-10">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Star className="h-8 w-8 text-coral animate-pulse" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-coral via-primary to-teal">
-              Best Sellers
-            </h2>
-            <Star className="h-8 w-8 text-coral animate-pulse" />
-          </div>
-          <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
-            Our most popular products across all categories — trusted by hundreds of happy customers
-          </p>
-        </div>
+        <RacebandBanner
+          title="Best Sellers"
+          subtitle="Our most popular products across all categories — trusted by hundreds of happy customers"
+          variant="coral"
+        />
 
         {/* Best Sellers Grid - Using native card components */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4">
