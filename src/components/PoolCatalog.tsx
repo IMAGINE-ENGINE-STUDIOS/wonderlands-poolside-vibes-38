@@ -14,6 +14,10 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight, Droplets, Cpu } from "lucide-react";
 import BestSellersSection from "./DealsSection";
 import RacebandBanner from "./RacebandBanner";
+import CompactPoolCard from "./CompactPoolCard";
+import PoolDetailDialog from "./PoolDetailDialog";
+import PoolComparisonBar from "./PoolComparisonBar";
+import PoolComparisonDialog from "./PoolComparisonDialog";
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
@@ -934,7 +938,34 @@ const PoolCatalog = () => {
   const [showTileModal, setShowTileModal] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
+  const poolsPerPage = 15; // 5 per row × 3 rows
+
+  // Compact card / compare state
+  const [detailPool, setDetailPool] = useState<Pool | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [comparePools, setComparePools] = useState<Pool[]>([]);
+  const [showCompareDialog, setShowCompareDialog] = useState(false);
+  const MAX_COMPARE = 4;
+
+  const openPoolDetails = (pool: Pool) => {
+    setDetailPool(pool);
+    setShowDetailDialog(true);
+  };
+
+  const toggleCompare = (pool: Pool, selected: boolean) => {
+    setComparePools((prev) => {
+      if (selected) {
+        if (prev.find((p) => p.model === pool.model)) return prev;
+        if (prev.length >= MAX_COMPARE) return prev;
+        return [...prev, pool];
+      }
+      return prev.filter((p) => p.model !== pool.model);
+    });
+  };
+
+  const removeFromCompare = (model: string) => {
+    setComparePools((prev) => prev.filter((p) => p.model !== model));
+  };
 
   const {
     addToCart
@@ -1013,12 +1044,22 @@ const PoolCatalog = () => {
             variant="primary"
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 mb-16 px-2 sm:px-4">
             {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').map(pool => {
               const poolProps = pool.model === 'Winderview'
                 ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
                 : pool;
-              return <PoolProductCard key={pool.model} pool={poolProps} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />;
+              const isSelected = !!comparePools.find(p => p.model === poolProps.model);
+              return (
+                <CompactPoolCard
+                  key={pool.model}
+                  pool={poolProps}
+                  onOpenDetails={openPoolDetails}
+                  onToggleCompare={toggleCompare}
+                  isCompareSelected={isSelected}
+                  isCompareDisabled={comparePools.length >= MAX_COMPARE}
+                />
+              );
             })}
           </div>
 
@@ -1029,8 +1070,20 @@ const PoolCatalog = () => {
             variant="coral"
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
-            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 mb-16 px-2 sm:px-4">
+            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => {
+              const isSelected = !!comparePools.find(p => p.model === pool.model);
+              return (
+                <CompactPoolCard
+                  key={pool.model}
+                  pool={pool}
+                  onOpenDetails={openPoolDetails}
+                  onToggleCompare={toggleCompare}
+                  isCompareSelected={isSelected}
+                  isCompareDisabled={comparePools.length >= MAX_COMPARE}
+                />
+              );
+            })}
           </div>
 
           {/* Pagination Controls */}
@@ -1068,6 +1121,32 @@ const PoolCatalog = () => {
     }} extras={selectedExtras} />
 
       <TileDetailModal tile={selectedTile} isOpen={showTileModal} onClose={() => setShowTileModal(false)} />
+
+      <PoolDetailDialog
+        pool={detailPool}
+        isOpen={showDetailDialog}
+        onClose={() => setShowDetailDialog(false)}
+        onRequestQuote={(p, extras) => {
+          setShowDetailDialog(false);
+          handleRequestQuote(p, extras);
+        }}
+      />
+
+      <PoolComparisonBar
+        pools={comparePools}
+        onRemove={removeFromCompare}
+        onCompare={() => setShowCompareDialog(true)}
+        onClear={() => setComparePools([])}
+        maxPools={MAX_COMPARE}
+      />
+
+      <PoolComparisonDialog
+        pools={comparePools}
+        isOpen={showCompareDialog}
+        onClose={() => setShowCompareDialog(false)}
+        onRemove={removeFromCompare}
+        onOpenDetails={openPoolDetails}
+      />
     </>;
 };
 export { spas, pools };
