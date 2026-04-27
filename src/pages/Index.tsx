@@ -141,72 +141,72 @@ const Index = () => {
       case "saunas":
         return (
           <div key="saunas" className="animate-fade-in">
-            <SectionBanner id="saunas" image={saunaBanner} alt="Luxury Saunas" title="Premium Saunas" subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas" />
             <SaunaSection />
+            <SectionBanner id="saunas" image={saunaBanner} alt="Luxury Saunas" title="Premium Saunas" subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas" />
           </div>
         );
       case "spas":
         return (
           <div key="spas" className="animate-fade-in">
-            <SectionBanner id="spas" image={spaBanner} alt="Hot Tubs & Spas" title="Hot Tubs & Spas" subtitle="Transform your backyard into a personal oasis with our premium spa collection" />
             <SpaCatalog />
             <GilmerSpasSection />
+            <SectionBanner id="spas" image={spaBanner} alt="Hot Tubs & Spas" title="Hot Tubs & Spas" subtitle="Transform your backyard into a personal oasis with our premium spa collection" />
           </div>
         );
       case "tanning-ledges":
         return (
           <div key="tanning-ledges" className="animate-fade-in">
-            <SectionBanner id="tanning-ledges" image={tanningLedgeBanner} alt="Tanning Ledges" title="Tanning Ledges" subtitle="Relax in style with our premium in-pool tanning ledges and sun shelves" />
             <TanningLedgeSection />
+            <SectionBanner id="tanning-ledges" image={tanningLedgeBanner} alt="Tanning Ledges" title="Tanning Ledges" subtitle="Relax in style with our premium in-pool tanning ledges and sun shelves" />
           </div>
         );
       case "screen-enclosures":
         return (
           <div key="screen-enclosures" className="animate-fade-in">
-            <SectionBanner id="screen-enclosures" image={screenEnclosureBanner} alt="Screen Enclosures" title="Screen Enclosures" subtitle="Protect your pool area from bugs and debris while enjoying the Florida sunshine" />
             <ScreenEnclosureSection />
+            <SectionBanner id="screen-enclosures" image={screenEnclosureBanner} alt="Screen Enclosures" title="Screen Enclosures" subtitle="Protect your pool area from bugs and debris while enjoying the Florida sunshine" />
           </div>
         );
       case "patio-fencing":
         return (
           <div key="patio-fencing" className="animate-fade-in">
-            <SectionBanner id="patio-fencing" image={patioFencingBanner} alt="Patio Fencing" title="Aluminum Patio Fencing" subtitle="Premium pool-code compliant aluminum fencing for safety and style" />
             <PatioFencingSection />
+            <SectionBanner id="patio-fencing" image={patioFencingBanner} alt="Patio Fencing" title="Aluminum Patio Fencing" subtitle="Premium pool-code compliant aluminum fencing for safety and style" />
           </div>
         );
       case "lanai":
         return (
           <div key="lanai" className="animate-fade-in">
-            <SectionBanner id="lanai" image={lanaiBanner} alt="Lanai Enclosures" title="Lanai Enclosures" subtitle="Transform your outdoor space into a luxurious covered living area" />
             <LanaiSection />
+            <SectionBanner id="lanai" image={lanaiBanner} alt="Lanai Enclosures" title="Lanai Enclosures" subtitle="Transform your outdoor space into a luxurious covered living area" />
           </div>
         );
       case "pavers":
         return (
           <div key="pavers" className="animate-fade-in">
-            <SectionBanner id="pavers" image={paversBanner} alt="Pool Pavers" title="Premium Pavers" subtitle="Elevate your outdoor space with stunning paver designs around your pool" />
             <PaversSection />
+            <SectionBanner id="pavers" image={paversBanner} alt="Pool Pavers" title="Premium Pavers" subtitle="Elevate your outdoor space with stunning paver designs around your pool" />
           </div>
         );
       case "artificial-grass":
         return (
           <div key="artificial-grass" className="animate-fade-in">
-            <SectionBanner id="artificial-grass" image={grassBanner} alt="Artificial Grass" title="Artificial Grass" subtitle="Premium low-maintenance turf — get an instant quote at $25/sq ft" />
             <ArtificialGrassSection />
+            <SectionBanner id="artificial-grass" image={grassBanner} alt="Artificial Grass" title="Artificial Grass" subtitle="Premium low-maintenance turf — get an instant quote at $25/sq ft" />
           </div>
         );
       case "covers":
         return (
           <div key="covers" className="animate-fade-in">
-            <SectionBanner id="covers" image={coversBanner} alt="Automatic Pool Covers" title="Automatic Pool Covers" subtitle="Safety, energy efficiency, and convenience with our automatic cover systems" />
             <AutomaticCoversSection />
+            <SectionBanner id="covers" image={coversBanner} alt="Automatic Pool Covers" title="Automatic Pool Covers" subtitle="Safety, energy efficiency, and convenience with our automatic cover systems" />
           </div>
         );
       case "driveway-gates":
         return (
           <div key="driveway-gates" className="animate-fade-in">
-            <SectionBanner id="driveway-gates" image={drivewayGateBanner} alt="Driveway Gates" title="Driveway Gates" subtitle="Add security and elegance to your property with our custom gate solutions" />
             <DrivewayGateSection />
+            <SectionBanner id="driveway-gates" image={drivewayGateBanner} alt="Driveway Gates" title="Driveway Gates" subtitle="Add security and elegance to your property with our custom gate solutions" />
           </div>
         );
       case "finishes":
