@@ -84,6 +84,11 @@ const LandscapingSection = () => {
   const [custPhone, setCustPhone] = useState("");
   const [custAddress, setCustAddress] = useState("");
   const [custNotes, setCustNotes] = useState("");
+  // Admin override state (passcode WONDERMAGIC)
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [passcode, setPasscode] = useState("");
+  const [overrideTotal, setOverrideTotal] = useState<string>("");
+  const [overrideRate, setOverrideRate] = useState<string>("");
   // key: `${variantId}-${size}` -> { variant, plant, opt, qty }
   const [quoteItems, setQuoteItems] = useState<
     Record<string, { plantName: string; variantLabel: string; sizeLabel: string; price: number; qty: number; image: string }>
@@ -136,12 +141,20 @@ const LandscapingSection = () => {
           {(() => {
             const sqft = Math.max(0, parseFloat(quoteSqft) || 0);
             const tier = TIERS.find((t) => t.id === quoteTier)!;
-            const baseCost = sqft * tier.price;
+            const effectiveRate =
+              isAdmin && overrideRate !== "" && !isNaN(parseFloat(overrideRate))
+                ? parseFloat(overrideRate)
+                : tier.price;
+            const baseCost = sqft * effectiveRate;
             const plantsCost = Object.values(quoteItems).reduce(
               (sum, it) => sum + it.price * it.qty,
               0,
             );
-            const total = baseCost + plantsCost;
+            const computedTotal = baseCost + plantsCost;
+            const total =
+              isAdmin && overrideTotal !== "" && !isNaN(parseFloat(overrideTotal))
+                ? parseFloat(overrideTotal)
+                : computedTotal;
             const fmt = (n: number) =>
               `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -332,6 +345,88 @@ const LandscapingSection = () => {
                     />
                   </div>
 
+                  {/* Admin unlock & overrides */}
+                  <div className="border-t pt-4">
+                    {!isAdmin ? (
+                      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                        <Input
+                          type="password"
+                          placeholder="Admin passcode"
+                          value={passcode}
+                          onChange={(e) => setPasscode(e.target.value)}
+                          className="sm:max-w-xs"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (passcode === "WONDERMAGIC") {
+                              setIsAdmin(true);
+                              setPasscode("");
+                              toast({
+                                title: "Admin Unlocked",
+                                description: "Override controls are now available.",
+                              });
+                            } else {
+                              toast({
+                                title: "Invalid Passcode",
+                                description: "Please enter the correct passcode.",
+                              });
+                            }
+                          }}
+                        >
+                          Unlock Admin
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-md p-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
+                            Admin Overrides Active
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              setIsAdmin(false);
+                              setOverrideRate("");
+                              setOverrideTotal("");
+                            }}
+                          >
+                            Lock
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">
+                              Override $/sq ft (optional)
+                            </label>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder={`Default $${tier.price}`}
+                              value={overrideRate}
+                              onChange={(e) => setOverrideRate(e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">
+                              Override Total (optional)
+                            </label>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder={`Computed ${fmt(computedTotal)}`}
+                              value={overrideTotal}
+                              onChange={(e) => setOverrideTotal(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Total + actions */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t">
                     <div>
@@ -339,6 +434,11 @@ const LandscapingSection = () => {
                         Estimated Total
                       </p>
                       <p className="text-3xl font-bold text-emerald-700">{fmt(total)}</p>
+                      {isAdmin && overrideTotal !== "" && (
+                        <p className="text-[11px] text-amber-700 mt-0.5">
+                          Computed {fmt(computedTotal)} · overridden
+                        </p>
+                      )}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Button
@@ -346,41 +446,105 @@ const LandscapingSection = () => {
                         variant="outline"
                         disabled={total <= 0}
                         onClick={() => {
-                          const lines: string[] = [];
-                          lines.push("WONDERLANDS — LANDSCAPING QUOTE");
-                          lines.push("=".repeat(40));
-                          lines.push("");
-                          if (custName) lines.push(`Customer: ${custName}`);
-                          if (custEmail) lines.push(`Email: ${custEmail}`);
-                          if (custPhone) lines.push(`Phone: ${custPhone}`);
-                          if (custAddress) lines.push(`Address: ${custAddress}`);
-                          lines.push("");
-                          lines.push(`Service Tier: ${tier.title} ($${tier.price}/sq ft)`);
-                          lines.push(`Square Footage: ${sqft}`);
-                          lines.push(`Base Cost: ${fmt(baseCost)}`);
-                          lines.push("");
-                          if (Object.keys(quoteItems).length) {
-                            lines.push("Plants:");
-                            Object.values(quoteItems).forEach((it) => {
+                          const today = new Date().toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          });
+                          const quoteNum = `WL-LS-${Date.now().toString().slice(-6)}`;
+                          const plantRows = Object.values(quoteItems)
+                            .map((it) => {
                               const lbl = it.variantLabel !== "Standard" ? ` — ${it.variantLabel}` : "";
-                              lines.push(
-                                `  • ${it.plantName}${lbl} (${it.sizeLabel}) × ${it.qty} = ${fmt(it.price * it.qty)}`,
-                              );
-                            });
-                            lines.push(`Plants Subtotal: ${fmt(plantsCost)}`);
-                            lines.push("");
-                          }
-                          lines.push(`TOTAL ESTIMATE: ${fmt(total)}`);
-                          if (custNotes) {
-                            lines.push("");
-                            lines.push("Notes:");
-                            lines.push(custNotes);
-                          }
-                          const html = `<!doctype html><html><head><title>Landscaping Quote</title>
-                            <style>body{font-family:system-ui,sans-serif;padding:40px;color:#0f172a;max-width:720px;margin:auto;}
-                            pre{white-space:pre-wrap;font-family:inherit;font-size:14px;line-height:1.6;}</style></head>
-                            <body><pre>${lines.join("\n")}</pre>
-                            <script>window.onload=()=>setTimeout(()=>window.print(),200)</script>
+                              return `<tr>
+                                <td>${it.plantName}${lbl} <span style="color:#64748b">(${it.sizeLabel})</span></td>
+                                <td style="text-align:center">${it.qty}</td>
+                                <td style="text-align:right">${fmt(it.price)}</td>
+                                <td style="text-align:right;font-weight:600">${fmt(it.price * it.qty)}</td>
+                              </tr>`;
+                            })
+                            .join("");
+                          const html = `<!doctype html><html><head><meta charset="utf-8"><title>Landscaping Quote ${quoteNum}</title>
+                            <style>
+                              *{box-sizing:border-box}
+                              body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:40px;color:#0f172a;background:#fff;max-width:850px;margin:auto;}
+                              .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:4px solid #0891b2;padding-bottom:20px;margin-bottom:30px}
+                              .brand h1{margin:0;font-size:28px;background:linear-gradient(90deg,#0891b2,#f97066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800}
+                              .brand p{margin:4px 0 0;color:#64748b;font-size:13px}
+                              .meta{text-align:right;font-size:12px;color:#475569}
+                              .meta strong{display:block;color:#0f172a;font-size:16px}
+                              .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+                              .box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px}
+                              .box h3{margin:0 0 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#0891b2}
+                              .box p{margin:2px 0;font-size:13px}
+                              h2.section{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#0891b2;border-bottom:2px solid #e2e8f0;padding-bottom:6px;margin:24px 0 12px}
+                              table{width:100%;border-collapse:collapse;font-size:13px}
+                              th{text-align:left;padding:8px;background:#f1f5f9;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#475569}
+                              td{padding:10px 8px;border-bottom:1px solid #e2e8f0}
+                              .totals{margin-top:16px;margin-left:auto;width:320px;font-size:14px}
+                              .totals .row{display:flex;justify-content:space-between;padding:6px 0}
+                              .totals .total{border-top:2px solid #0f172a;margin-top:8px;padding-top:10px;font-size:20px;font-weight:800;color:#0891b2}
+                              .footer{margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b;text-align:center;line-height:1.6}
+                              .notes{background:#fffbeb;border-left:3px solid #f59e0b;padding:12px;border-radius:4px;font-size:13px;margin-top:16px}
+                              @media print{body{padding:20px}}
+                            </style></head>
+                            <body>
+                              <div class="header">
+                                <div class="brand">
+                                  <h1>WONDERLANDS</h1>
+                                  <p>Landscaping & Outdoor Living · Florida</p>
+                                </div>
+                                <div class="meta">
+                                  <strong>Quote ${quoteNum}</strong>
+                                  Date: ${today}<br/>
+                                  Valid for 30 days
+                                </div>
+                              </div>
+
+                              <div class="grid">
+                                <div class="box">
+                                  <h3>Bill To</h3>
+                                  <p><strong>${custName || "—"}</strong></p>
+                                  ${custEmail ? `<p>${custEmail}</p>` : ""}
+                                  ${custPhone ? `<p>${custPhone}</p>` : ""}
+                                  ${custAddress ? `<p>${custAddress}</p>` : ""}
+                                </div>
+                                <div class="box">
+                                  <h3>Service</h3>
+                                  <p><strong>${tier.title}</strong></p>
+                                  <p>${tier.description}</p>
+                                  <p>Rate: $${effectiveRate}/sq ft${isAdmin && overrideRate !== "" ? " (adj.)" : ""}</p>
+                                  <p>Area: ${sqft} sq ft</p>
+                                </div>
+                              </div>
+
+                              <h2 class="section">Service Summary</h2>
+                              <table>
+                                <thead><tr><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead>
+                                <tbody>
+                                  <tr>
+                                    <td><strong>${tier.title}</strong> — ${tier.description}</td>
+                                    <td style="text-align:center">${sqft} sq ft</td>
+                                    <td style="text-align:right">${fmt(effectiveRate)}</td>
+                                    <td style="text-align:right;font-weight:600">${fmt(baseCost)}</td>
+                                  </tr>
+                                  ${plantRows}
+                                </tbody>
+                              </table>
+
+                              <div class="totals">
+                                <div class="row"><span>Service Base</span><span>${fmt(baseCost)}</span></div>
+                                <div class="row"><span>Plants & Materials</span><span>${fmt(plantsCost)}</span></div>
+                                <div class="row total"><span>TOTAL</span><span>${fmt(total)}</span></div>
+                              </div>
+
+                              ${custNotes ? `<div class="notes"><strong>Notes:</strong><br/>${custNotes.replace(/</g, "&lt;").replace(/\n/g, "<br/>")}</div>` : ""}
+
+                              <div class="footer">
+                                Wonderlands World · sales@wonderlandsworld.com · (407) 760-4873<br/>
+                                This estimate is valid for 30 days. Final pricing may vary based on site conditions.<br/>
+                                Schedule a consultation: calendly.com/wonderlandsworlds/30min
+                              </div>
+                              <script>window.onload=()=>setTimeout(()=>window.print(),300)</script>
                             </body></html>`;
                           const w = window.open("", "_blank");
                           if (w) {
