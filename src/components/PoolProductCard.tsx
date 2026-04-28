@@ -1082,7 +1082,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
               </div>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Screen Enclosure Options */}
             <AccordionItem value="enclosure" className="border rounded-lg px-3">
