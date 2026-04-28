@@ -1746,7 +1746,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
               </div>
-            </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Carbon Fiber Technology Section */}
             {pool.carbonFiber && (
