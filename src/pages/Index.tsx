@@ -15,6 +15,7 @@ import {
   DoorOpen,
   Palette,
   Layers,
+  Trees,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -33,6 +34,7 @@ import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.jpg";
 import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.jpg";
 import patioFencingBanner from "@/assets/banners/patio-fencing-banner.jpg";
 import lanaiBanner from "@/assets/banners/lanai-banner.jpg";
+import landscapingBanner from "@/assets/banners/landscaping-banner.jpg";
 
 // Lazy-loaded section components
 const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
@@ -50,6 +52,7 @@ const LanaiSection = lazy(() => import("@/components/LanaiSection"));
 const PaversSection = lazy(() => import("@/components/PaversSection"));
 const ArtificialGrassSection = lazy(() => import("@/components/ArtificialGrassSection"));
 const DrivewayGateSection = lazy(() => import("@/components/DrivewayGateSection"));
+const LandscapingSection = lazy(() => import("@/components/LandscapingSection"));
 
 type SectionId =
   | "pools"
@@ -61,6 +64,7 @@ type SectionId =
   | "lanai"
   | "pavers"
   | "artificial-grass"
+  | "landscaping"
   | "covers"
   | "driveway-gates"
   | "finishes"
@@ -76,6 +80,7 @@ const CATEGORIES = [
   { id: "lanai", label: "Lanai", icon: HomeIcon },
   { id: "pavers", label: "Pavers", icon: Grid3x3 },
   { id: "artificial-grass", label: "Artificial Grass", icon: Sprout },
+  { id: "landscaping", label: "Landscaping", icon: Trees },
   { id: "covers", label: "Covers", icon: Umbrella },
   { id: "driveway-gates", label: "Driveway Gates", icon: DoorOpen },
   { id: "finishes", label: "Finishes", icon: Palette },
@@ -194,6 +199,13 @@ const Index = () => {
           <div key="artificial-grass" className="animate-fade-in">
             <ArtificialGrassSection />
             <SectionBanner id="artificial-grass" image={grassBanner} alt="Artificial Grass" title="Artificial Grass" subtitle="Premium low-maintenance turf — get an instant quote at $25/sq ft" />
+          </div>
+        );
+      case "landscaping":
+        return (
+          <div key="landscaping" className="animate-fade-in">
+            <LandscapingSection />
+            <SectionBanner id="landscaping" image={landscapingBanner} alt="Landscaping" title="Landscaping" subtitle="Transform your outdoor space with premium plants, palms, trees, and grasses" />
           </div>
         );
       case "covers":
