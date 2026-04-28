@@ -842,9 +842,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           <div className="space-y-4 animate-fade-in-up">
             <Separator />
 
+            <Accordion type="single" collapsible defaultValue="finishes" className="space-y-2">
             {/* Pool Finishing Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pool Finishes</h4>
+            <AccordionItem value="finishes" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Pool Finishes</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel 
                 className="w-full"
                 opts={{
