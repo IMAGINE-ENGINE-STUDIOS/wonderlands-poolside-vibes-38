@@ -3,6 +3,7 @@ const { useState, useMemo } = React;
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -11,7 +12,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ShoppingCart as CartIcon, Plus, Minus, FileText, Sparkles, Trash2 } from "lucide-react";
+import { ShoppingCart as CartIcon, Plus, Minus, FileText, Sparkles, Trash2, Printer, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   landscapingPlants,
   landscapingCategories,
@@ -60,6 +62,7 @@ const PlantImage = ({
 };
 
 const LandscapingSection = () => {
+  const { toast } = useToast();
   const [activeCat, setActiveCat] = useState<LandscapingCategory | "All">("All");
   const [selected, setSelected] = useState<LandscapingPlant | null>(null);
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
@@ -75,6 +78,12 @@ const LandscapingSection = () => {
   ];
   const [quoteTier, setQuoteTier] = useState<QuoteTier>("basic");
   const [quoteSqft, setQuoteSqft] = useState<string>("");
+  // Customer info (mirrors main /quote tool)
+  const [custName, setCustName] = useState("");
+  const [custEmail, setCustEmail] = useState("");
+  const [custPhone, setCustPhone] = useState("");
+  const [custAddress, setCustAddress] = useState("");
+  const [custNotes, setCustNotes] = useState("");
   // key: `${variantId}-${size}` -> { variant, plant, opt, qty }
   const [quoteItems, setQuoteItems] = useState<
     Record<string, { plantName: string; variantLabel: string; sizeLabel: string; price: number; qty: number; image: string }>
