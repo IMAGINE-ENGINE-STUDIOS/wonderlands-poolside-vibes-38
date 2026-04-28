@@ -571,7 +571,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
               </div>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Additional Features - matching Latham format */}
             <AccordionItem value="addons" className="border rounded-lg px-3">
