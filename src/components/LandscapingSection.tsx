@@ -86,15 +86,6 @@ const LandscapingSection = () => {
       return true;
     });
   }, [activeCat]);
-      if (!q) return true;
-      if (p.name.toLowerCase().includes(q)) return true;
-      // also match against variant labels / full names
-      return p.variants.some(
-        (v) =>
-          v.label.toLowerCase().includes(q) || v.fullName.toLowerCase().includes(q),
-      );
-    });
-  }, [search, activeCat]);
 
   const openPlant = (plant: LandscapingPlant) => {
     setSelected(plant);
