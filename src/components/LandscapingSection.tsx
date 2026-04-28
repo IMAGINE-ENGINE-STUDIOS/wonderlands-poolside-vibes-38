@@ -19,6 +19,7 @@ import {
   type LandscapingPlant,
   type LandscapingCategory,
   type PlantSizeOption,
+  type PlantVariant,
 } from "@/data/landscapingData";
 import { useShoppingCart } from "./ShoppingCartProvider";
 
