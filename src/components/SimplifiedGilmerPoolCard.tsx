@@ -574,8 +574,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             </div>
 
             {/* Additional Features - matching Latham format */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Additional Features</h4>
+            <AccordionItem value="addons" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Additional Features</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
 
               <div className="grid grid-cols-1 gap-3">
                 {/* Pool Tiles */}
