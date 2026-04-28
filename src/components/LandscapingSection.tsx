@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Search, ShoppingCart as CartIcon, Plus, Minus } from "lucide-react";
+import { ShoppingCart as CartIcon, Plus, Minus, FileText, Sparkles, Trash2 } from "lucide-react";
 import {
   landscapingPlants,
   landscapingCategories,
