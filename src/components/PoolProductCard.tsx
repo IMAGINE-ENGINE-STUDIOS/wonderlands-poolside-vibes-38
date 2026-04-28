@@ -909,8 +909,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             </div>
 
             {/* Pool Liner Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pool Liner</h4>
+            <AccordionItem value="liner" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Pool Liner</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel 
                 className="w-full"
                 opts={{
