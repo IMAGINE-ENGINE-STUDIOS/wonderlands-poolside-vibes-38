@@ -828,7 +828,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </>
                 )}
               </div>
-            </div>
+              </AccordionContent>
+            </AccordionItem>
+            </Accordion>
 
             <Separator />
 
