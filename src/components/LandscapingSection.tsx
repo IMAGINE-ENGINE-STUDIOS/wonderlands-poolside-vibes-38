@@ -506,14 +506,42 @@ const LandscapingSection = () => {
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => handleAdd(selected, activeVariant, opt)}
-                          className="bg-emerald-700 hover:bg-emerald-800"
-                        >
-                          <CartIcon className="h-4 w-4 mr-1" />
-                          Add
-                        </Button>
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              const quantity = Math.max(1, qty[key] || 1);
+                              const qKey = `${activeVariant.id}-${opt.size}`;
+                              setQuoteItems((prev) => {
+                                const existing = prev[qKey];
+                                return {
+                                  ...prev,
+                                  [qKey]: {
+                                    plantName: selected.name,
+                                    variantLabel: activeVariant.label,
+                                    sizeLabel: opt.size,
+                                    price: opt.finalPrice,
+                                    image: activeVariant.image,
+                                    qty: (existing?.qty ?? 0) + quantity,
+                                  },
+                                };
+                              });
+                            }}
+                            className="bg-emerald-700 hover:bg-emerald-800 h-8"
+                          >
+                            <FileText className="h-3.5 w-3.5 mr-1" />
+                            Quote
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAdd(selected, activeVariant, opt)}
+                            className="h-7 text-xs"
+                          >
+                            <CartIcon className="h-3 w-3 mr-1" />
+                            Cart
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
