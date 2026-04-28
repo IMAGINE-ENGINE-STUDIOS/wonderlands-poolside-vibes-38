@@ -26,23 +26,35 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 const formatPrice = (n: number) =>
   `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const PlantImage = ({ plant, className }: { plant: LandscapingPlant; className: string }) => {
-  const [src, setSrc] = useState(plant.image);
+const PlantImage = ({
+  src: initialSrc,
+  alt,
+  fallback,
+  className,
+}: {
+  src: string;
+  alt: string;
+  fallback: string;
+  className: string;
+}) => {
+  const [src, setSrc] = useState(initialSrc);
 
   React.useEffect(() => {
-    setSrc(plant.image);
-  }, [plant.image]);
+    setSrc(initialSrc);
+  }, [initialSrc]);
 
   return (
     <img
       src={src}
-      alt={plant.name}
+      alt={alt}
       className={className}
       loading="lazy"
       width={400}
       height={400}
       referrerPolicy="no-referrer"
-      onError={() => setSrc(landscapingCategoryImages[plant.category])}
+      onError={() => {
+        if (src !== fallback) setSrc(fallback);
+      }}
     />
   );
 };
@@ -51,6 +63,7 @@ const LandscapingSection = () => {
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<LandscapingCategory | "All">("All");
   const [selected, setSelected] = useState<LandscapingPlant | null>(null);
+  const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
   const [qty, setQty] = useState<Record<string, number>>({});
   const { addToCart } = useShoppingCart();
 
@@ -58,20 +71,30 @@ const LandscapingSection = () => {
     const q = search.trim().toLowerCase();
     return landscapingPlants.filter((p) => {
       if (activeCat !== "All" && p.category !== activeCat) return false;
-      if (q && !p.name.toLowerCase().includes(q)) return false;
-      return true;
+      if (!q) return true;
+      if (p.name.toLowerCase().includes(q)) return true;
+      // also match against variant labels / full names
+      return p.variants.some(
+        (v) =>
+          v.label.toLowerCase().includes(q) || v.fullName.toLowerCase().includes(q),
+      );
     });
   }, [search, activeCat]);
 
-  const handleAdd = (plant: LandscapingPlant, opt: PlantSizeOption) => {
-    const key = `${plant.id}-${opt.size}`;
+  const openPlant = (plant: LandscapingPlant) => {
+    setSelected(plant);
+    setActiveVariantId(plant.variants[0]?.id ?? null);
+  };
+
+  const handleAdd = (plant: LandscapingPlant, variant: PlantVariant, opt: PlantSizeOption) => {
+    const key = `${variant.id}-${opt.size}`;
     const quantity = Math.max(1, qty[key] || 1);
     for (let i = 0; i < quantity; i++) {
       addToCart({
-        id: `${plant.id}-${opt.size.replace(/\s+/g, "")}`,
-        name: `${plant.name} (${opt.size})`,
+        id: `${variant.id}-${opt.size.replace(/\s+/g, "")}`,
+        name: `${variant.fullName} (${opt.size})`,
         price: opt.finalPrice,
-        image: plant.image,
+        image: variant.image,
         category: "Landscaping",
       });
     }
