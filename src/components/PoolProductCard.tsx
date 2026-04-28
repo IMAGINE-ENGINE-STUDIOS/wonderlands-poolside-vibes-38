@@ -1164,6 +1164,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
               </div>
+                </div>
               </AccordionContent>
             </AccordionItem>
 
