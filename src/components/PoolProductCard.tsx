@@ -1750,24 +1750,32 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
             {/* Carbon Fiber Technology Section */}
             {pool.carbonFiber && (
-              <div className="space-y-3 p-4 bg-gradient-to-r from-primary/5 to-teal/5 rounded-lg border border-primary/20">
-                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  Carbon Fiber Technology
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  Our advanced carbon fiber construction provides superior strength, durability, and longevity. This
-                  cutting-edge technology ensures your pool maintains its structural integrity for decades while
-                  offering unmatched resistance to cracking and fading.
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• 300% stronger than traditional fiberglass</li>
-                  <li>• Superior thermal retention</li>
-                  <li>• UV-resistant surface coating</li>
-                  <li>• Lifetime structural warranty</li>
-                </ul>
-              </div>
+              <AccordionItem value="carbon" className="border rounded-lg px-3 bg-gradient-to-r from-primary/5 to-teal/5 border-primary/20">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <span className="font-semibold text-foreground flex items-center gap-2 text-sm">
+                    <Shield className="h-4 w-4 text-primary" />
+                    Carbon Fiber Technology
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3">
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Our advanced carbon fiber construction provides superior strength, durability, and longevity. This
+                      cutting-edge technology ensures your pool maintains its structural integrity for decades while
+                      offering unmatched resistance to cracking and fading.
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• 300% stronger than traditional fiberglass</li>
+                      <li>• Superior thermal retention</li>
+                      <li>• UV-resistant surface coating</li>
+                      <li>• Lifetime structural warranty</li>
+                    </ul>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             )}
+            </Accordion>
+
 
             {/* Sauna section moved above - now rendered after Rocky Waterfalls */}
 
