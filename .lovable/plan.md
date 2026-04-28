@@ -1,87 +1,54 @@
+## Add Landscaping Category
 
+Add a new top-level category "Landscaping" to the main page featuring the full plant/tree catalog you provided, with prices multiplied by 3, and product images sourced from the internet.
 
-## Convert Homepage Long-Scroll into Dynamic Category Switcher
+### What gets built
 
-Replace the current vertical-scroll homepage (where all 16+ product sections stack on top of each other) with a **single-viewport tabbed experience**. The hero stays at top; below it, a sticky horizontal category bar lets users switch between sections instantly — only one section renders at a time, no page growth.
+1. **Data file** `src/data/landscapingData.ts`
+   - Type `LandscapingPlant` with: `id`, `name`, `category` (Shrubs / Trees / Palms / Grasses / Groundcover / Vines / Flowering / Tropicals), `image`, `sizes` (array of `{ size: '1 gal' | '3 gal' | '7 gal' | '15 gal' | '30 gal' | '45 gal' | 'B&B', basePrice, finalPrice }`).
+   - All ~200 plants encoded from your list. `finalPrice = basePrice * 3` computed once at module load.
+   - Helper `getMinPrice(plant)` for card display ("Starting at $X").
 
-### What the user sees
+2. **Image sourcing**
+   - Use Lovable AI Gateway `google/gemini-2.5-flash-image` to generate clean white-background product photos for each plant (consistent style, like a nursery catalog). Saved as webp under `src/assets/landscaping/`.
+   - Reason: real-internet image URLs (Google/nursery sites) are unreliable, often hotlink-blocked, and inconsistent in size/style. AI-generated nursery shots give a uniform, professional grid. Each is generated once, committed as an asset, ES6-imported (per project memory).
+   - To keep build time reasonable, we generate per unique plant (~180 images). Done in a one-off script.
 
-**Top of page (unchanged):**
-- Header
-- Hero with search
+3. **Section component** `src/components/LandscapingSection.tsx`
+   - Light theme, matching `ArtificialGrassSection` styling (consistent with project's light public UI — no cyan/blue text).
+   - Top: search input + category filter chips (Shrubs, Trees, Palms, Grasses, Flowering, Vines, Tropicals, Groundcover).
+   - Responsive grid: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`.
+   - Card: square image, name, "Starting at $X" (lowest final price across sizes), "View Sizes" button.
+   - Click → modal showing all available sizes with their final prices and "Add to Cart" per size (uses existing `useShoppingCart`).
+   - Quantity selector inside modal.
+   - Lazy-loaded via `React.lazy` like other sections.
 
-**New: Sticky Category Bar** (directly below Hero, sticks to top on scroll):
-A horizontal scrollable pill bar with all product categories:
+4. **Wire into main page** `src/pages/Index.tsx`
+   - Add `"landscaping"` to `SectionId` union and `CATEGORIES` array (icon: `Trees` from lucide).
+   - Add lazy import + `case "landscaping"` in `renderActive` with a `SectionBanner` (generated landscaping banner image) below the grid, matching the new thin-band pattern.
 
-```text
-[ Pools ] [ Saunas ] [ Spas ] [ Tanning Ledges ] [ Screen Enclosures ]
-[ Patio Fencing ] [ Lanai ] [ Pavers ] [ Artificial Grass ] [ Covers ]
-[ Driveway Gates ] [ Finishes ] [ Liners ]
-```
+5. **Right navigation** `src/components/RightNavigation.tsx`
+   - Add `{ id: "landscaping", label: "Landscaping", icon: Trees }` to `NAV_ITEMS` so the floating side rail includes it.
 
-- Active category: filled teal pill (brand primary)
-- Inactive: outlined pill, hover shows teal tint
-- Horizontally scrollable on mobile (no wrap), centered on desktop
-- Each pill has a small icon (reusing lucide icons already in the project)
+6. **Banner asset**
+   - Generate `src/assets/banners/landscaping-banner.jpg` (lush Florida landscape, palms + flowering shrubs).
 
-**Active section area (below the bar):**
-- Only the **selected category** renders — its existing `SectionBanner` + section component (e.g. `SaunaSection`, `PaversSection`) shown in full
-- Smooth fade transition (200ms) when switching categories
-- Section content keeps its current layout, cards, quote tools, everything — nothing inside the sections changes
+### Pricing (3× markup, examples)
 
-**Footer:** unchanged, appears at the bottom of the active section.
+| Plant | Size | Base | Final |
+|---|---|---|---|
+| Abelia (Light Pink) | 3 gal | $11.95 | **$35.85** |
+| Bird of Paradise (White) | 30 gal | $115 | **$345** |
+| Crape Myrtle MULTI Natchez | 30 gal | $215 | **$645** |
+| Italian Cypress | 45 gal | $425 | **$1,275** |
+| Palm, Reclinata | B&B | $2,500 | **$7,500** |
+| Live Oak | 45 gal | $450 | **$1,350** |
 
-### Behavior
+Multi-trunk / standard variants and "OR" alternative pricing are kept as separate SKUs. Succulent special pricing ($3.50/2", $6.50/4", $9.50/6") is encoded as its own size set.
 
-- Default category on load: **Pools** (first item).
-- Clicking a pill swaps the visible section instantly (client-side only, no route change).
-- URL hash syncs: clicking "Saunas" updates URL to `/#saunas`; loading `/#pavers` directly opens the Pavers tab. This preserves existing deep links from the search menu, footer, and SEO sitemap.
-- Search-menu navigation (existing `AdvancedSearch` dropdown that links to `#section-id`) continues to work — the page intercepts hash changes and switches the active tab instead of scrolling.
-- The previously visible "scroll through everything" experience is gone — page is now ~1 viewport tall plus the active section.
+### Out of scope (confirm if you want them)
+- Persisting landscaping products to the Supabase `products` table (currently file-based like `artificialGrassData.ts`).
+- Admin CRUD for landscaping plants.
+- Adding to Quote Manager / invoice line-item search index.
 
-### Performance
-
-- Only the active section's component is mounted at a time (others unmount → no wasted renders, no background image loading, no 3D/heavy-component memory usage).
-- Lazy-load each section component with `React.lazy()` so the initial bundle only ships the Pools section + the lightweight category bar.
-- Banner images for inactive sections are not requested until that tab is opened.
-
-### Technical implementation
-
-**1. New component** — `src/components/CategoryTabBar.tsx`
-- Receives `categories: { id, label, icon }[]`, `activeId`, `onChange(id)`
-- Sticky positioned (`sticky top-[64px] z-40`) below header
-- Horizontal flex with `overflow-x-auto` on mobile
-- Pills use existing `Button` variants — no new design tokens
-
-**2. Refactor** — `src/pages/Index.tsx`
-- Replace the long vertical stack with:
-  ```tsx
-  const SECTIONS = [
-    { id: 'pools', label: 'Pools', icon: Waves, banner: null, Component: lazy(() => import('@/components/PoolCatalog')) },
-    { id: 'saunas', label: 'Saunas', icon: Flame, banner: saunaBanner, Component: lazy(...) },
-    // ...one entry per existing section
-  ];
-  const [active, setActive] = useState(getInitialFromHash());
-  // sync URL hash ↔ active state
-  ```
-- Render: `<Header /><Hero /><CategoryTabBar .../><Suspense><ActiveBanner /><ActiveSection /></Suspense><Footer />`
-- Keep all existing imports of section components — just wrapped in `lazy()`.
-- Keep `<Helmet>` SEO block exactly as is.
-
-**3. Hash navigation hook** — small inline `useEffect` in `Index.tsx` listening to `hashchange` to update `active`. No new file needed.
-
-**4. Special "Pools" tab handling**
-- The current Pools area contains `PoolCatalog` + the Latham/Gilmer banner + `GilmerPoolsSection`. Group these three into a single Pools tab so the existing pool browsing experience stays intact.
-
-**5. Preserve sub-section anchors**
-- Inside each tab's section, existing `id="..."` anchors on the `<SectionBanner>` remain. Hash like `#pavers` opens the Pavers tab; in-section scroll position resets to top.
-
-### What stays the same
-
-- Header, Hero, Footer — untouched
-- Every individual section component (`PaversSection`, `SaunaSection`, `SpaCatalog`, `ArtificialGrassSection`, etc.) — untouched
-- Product cards, quote tools, banner styling — untouched
-- SEO meta, sitemap, brand colors — untouched
-- Search menu and existing hash links — continue to work, now switch tabs instead of scrolling
-- Order of categories matches current vertical order (no randomization)
-
+Once approved, I'll generate the images, build the data file, wire up the section, and add the nav entries.
