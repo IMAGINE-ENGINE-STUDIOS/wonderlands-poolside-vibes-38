@@ -39,6 +39,7 @@ const ApiDocumentation = lazy(() => import("./pages/ApiDocumentation"));
 const SharedProjectView = lazy(() => import("./pages/SharedProjectView"));
 const InternalProjectView = lazy(() => import("./pages/InternalProjectView"));
 const GalleryFilesPage = lazy(() => import("./pages/GalleryFilesPage"));
+const LandscapingPage = lazy(() => import("./pages/LandscapingPage"));
 const SharedGalleryView = lazy(() => import("./pages/SharedGalleryView"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -145,6 +146,8 @@ const App = () => {
               } 
             />
             <Route path="/gallery/:token" element={<SharedGalleryView />} />
+            <Route path="/landscaping" element={<LandscapingPage />} />
+            <Route path="/Landscaping" element={<LandscapingPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
