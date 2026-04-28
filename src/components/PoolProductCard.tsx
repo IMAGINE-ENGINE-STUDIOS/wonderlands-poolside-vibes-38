@@ -1160,13 +1160,19 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
               </div>
-            </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Cover Options */}
 
             {/* Add-ons */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Additional Features</h4>
+            <AccordionItem value="addons" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Additional Features</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
+
 
               <div className="grid grid-cols-1 gap-3">
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
