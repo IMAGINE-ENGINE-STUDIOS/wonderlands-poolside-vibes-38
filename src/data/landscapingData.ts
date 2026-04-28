@@ -46,12 +46,21 @@ export interface PlantSizeOption {
   finalPrice: number;
 }
 
-export interface LandscapingPlant {
+export interface PlantVariant {
   id: string;
-  name: string;
-  category: LandscapingCategory;
+  label: string; // variant name (e.g. "Orange", "White", "Natchez, Muskogee, Tuscarora")
+  fullName: string; // original full plant name used for image lookup
   image: string;
   sizes: PlantSizeOption[];
+  minPrice: number;
+}
+
+export interface LandscapingPlant {
+  id: string;
+  name: string; // base/group name shown on the card
+  category: LandscapingCategory;
+  image: string; // representative image (first variant)
+  variants: PlantVariant[];
   minPrice: number;
 }
 
