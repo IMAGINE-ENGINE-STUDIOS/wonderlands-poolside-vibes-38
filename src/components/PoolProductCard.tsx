@@ -1001,7 +1001,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Pavers Options */}
             <AccordionItem value="pavers" className="border rounded-lg px-3">
