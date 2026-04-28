@@ -388,9 +388,14 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
           <div className="space-y-4 animate-fade-in">
             <Separator className="my-4" />
 
+            <Accordion type="single" collapsible defaultValue="gelcoat" className="space-y-2">
             {/* Gelcoat Color Selection */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Gelcoat Color (Included)</h4>
+            <AccordionItem value="gelcoat" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Gelcoat Color (Included)</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel 
                 className="w-full"
                 opts={{
