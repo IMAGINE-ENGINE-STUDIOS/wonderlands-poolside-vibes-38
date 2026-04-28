@@ -73,8 +73,8 @@ const LandscapingSection = () => {
   type QuoteTier = "basic" | "full" | "luxury";
   const TIERS: { id: QuoteTier; emoji: string; title: string; price: number; description: string }[] = [
     { id: "basic", emoji: "🌿", title: "Basic Refresh", price: 5, description: "Mulch, plants, cleanup" },
-    { id: "full", emoji: "🌿🌿", title: "Full Yard Makeover", price: 10, description: "Design + planting + irrigation" },
-    { id: "luxury", emoji: "🌿🏡", title: "Luxury Outdoor Space", price: 15, description: "Patios, stonework, premium features" },
+    { id: "full", emoji: "🌿🌿", title: "Full Yard Makeover", price: 15, description: "Design + planting + irrigation" },
+    { id: "luxury", emoji: "🌿🏡", title: "Luxury Outdoor Space", price: 20, description: "Patios, stonework, premium features" },
   ];
   const [quoteTier, setQuoteTier] = useState<QuoteTier>("basic");
   const [quoteSqft, setQuoteSqft] = useState<string>("");
