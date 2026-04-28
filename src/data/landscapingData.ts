@@ -68,6 +68,13 @@ const IMG: Record<LandscapingCategory, string> = {
   Topiary: imgTopiary,
 };
 
+export const landscapingCategoryImages = IMG;
+
+const normalizePlantImageUrl = (url?: string) => {
+  if (!url) return undefined;
+  return url.replace(/\/480px-/g, "/500px-");
+};
+
 // Compact source data: [name, category, [size, basePrice][]]
 type Row = [string, LandscapingCategory, [PlantSize, number][]];
 
@@ -324,7 +331,7 @@ export const landscapingPlants: LandscapingPlant[] = ROWS.map(([name, category, 
     id: `plant-${slugify(name)}`,
     name,
     category,
-    image: PLANT_IMAGES[name] || IMG[category],
+    image: normalizePlantImageUrl(PLANT_IMAGES[name]) || IMG[category],
     sizes: sizeOptions,
     minPrice: Math.min(...sizeOptions.map((s) => s.finalPrice)),
   };
