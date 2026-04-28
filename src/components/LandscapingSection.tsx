@@ -141,12 +141,20 @@ const LandscapingSection = () => {
           {(() => {
             const sqft = Math.max(0, parseFloat(quoteSqft) || 0);
             const tier = TIERS.find((t) => t.id === quoteTier)!;
-            const baseCost = sqft * tier.price;
+            const effectiveRate =
+              isAdmin && overrideRate !== "" && !isNaN(parseFloat(overrideRate))
+                ? parseFloat(overrideRate)
+                : tier.price;
+            const baseCost = sqft * effectiveRate;
             const plantsCost = Object.values(quoteItems).reduce(
               (sum, it) => sum + it.price * it.qty,
               0,
             );
-            const total = baseCost + plantsCost;
+            const computedTotal = baseCost + plantsCost;
+            const total =
+              isAdmin && overrideTotal !== "" && !isNaN(parseFloat(overrideTotal))
+                ? parseFloat(overrideTotal)
+                : computedTotal;
             const fmt = (n: number) =>
               `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
