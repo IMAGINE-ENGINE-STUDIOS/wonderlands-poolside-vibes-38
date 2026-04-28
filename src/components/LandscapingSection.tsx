@@ -60,17 +60,32 @@ const PlantImage = ({
 };
 
 const LandscapingSection = () => {
-  const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<LandscapingCategory | "All">("All");
   const [selected, setSelected] = useState<LandscapingPlant | null>(null);
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
   const [qty, setQty] = useState<Record<string, number>>({});
   const { addToCart } = useShoppingCart();
 
+  // ── Quote tool state ───────────────────────────────────────────────
+  type QuoteTier = "basic" | "full" | "luxury";
+  const TIERS: { id: QuoteTier; emoji: string; title: string; price: number; description: string }[] = [
+    { id: "basic", emoji: "🌿", title: "Basic Refresh", price: 5, description: "Mulch, plants, cleanup" },
+    { id: "full", emoji: "🌿🌿", title: "Full Yard Makeover", price: 10, description: "Design + planting + irrigation" },
+    { id: "luxury", emoji: "🌿🏡", title: "Luxury Outdoor Space", price: 15, description: "Patios, stonework, premium features" },
+  ];
+  const [quoteTier, setQuoteTier] = useState<QuoteTier>("basic");
+  const [quoteSqft, setQuoteSqft] = useState<string>("");
+  // key: `${variantId}-${size}` -> { variant, plant, opt, qty }
+  const [quoteItems, setQuoteItems] = useState<
+    Record<string, { plantName: string; variantLabel: string; sizeLabel: string; price: number; qty: number; image: string }>
+  >({});
+
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return landscapingPlants.filter((p) => {
       if (activeCat !== "All" && p.category !== activeCat) return false;
+      return true;
+    });
+  }, [activeCat]);
       if (!q) return true;
       if (p.name.toLowerCase().includes(q)) return true;
       // also match against variant labels / full names
