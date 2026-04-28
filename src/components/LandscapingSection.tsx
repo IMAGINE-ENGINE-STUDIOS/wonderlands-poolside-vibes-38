@@ -123,17 +123,221 @@ const LandscapingSection = () => {
             </p>
           </div>
 
-          {/* Search + filter */}
-          <div className="max-w-5xl mx-auto mb-8 space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search plants, palms, trees..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-11"
-              />
-            </div>
+          {/* Quote tool */}
+          {(() => {
+            const sqft = Math.max(0, parseFloat(quoteSqft) || 0);
+            const tier = TIERS.find((t) => t.id === quoteTier)!;
+            const baseCost = sqft * tier.price;
+            const plantsCost = Object.values(quoteItems).reduce(
+              (sum, it) => sum + it.price * it.qty,
+              0,
+            );
+            const total = baseCost + plantsCost;
+            const fmt = (n: number) =>
+              `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            return (
+              <Card className="max-w-5xl mx-auto mb-8 border-emerald-200 shadow-sm">
+                <CardContent className="p-5 space-y-5">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-emerald-700" />
+                    <h3 className="text-lg font-bold text-emerald-800">Build Your Landscaping Quote</h3>
+                  </div>
+
+                  {/* Tier picker */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {TIERS.map((t) => {
+                      const isActive = t.id === quoteTier;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setQuoteTier(t.id)}
+                          className={`text-left p-4 rounded-lg border-2 transition-all ${
+                            isActive
+                              ? "border-emerald-600 bg-emerald-50 shadow"
+                              : "border-border hover:border-emerald-300"
+                          }`}
+                        >
+                          <div className="text-xl mb-1">{t.emoji}</div>
+                          <div className="font-semibold text-sm">{t.title}</div>
+                          <div className="text-emerald-700 font-bold text-lg">
+                            ${t.price}
+                            {t.id === "luxury" ? "+" : ""}
+                            <span className="text-xs font-normal text-muted-foreground">/sq ft</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Sqft + summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        Square Footage
+                      </label>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="e.g. 500"
+                        value={quoteSqft}
+                        onChange={(e) => setQuoteSqft(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="text-sm">
+                      <div className="text-muted-foreground">Base ({sqft || 0} sq ft × ${tier.price})</div>
+                      <div className="font-semibold text-emerald-800">{fmt(baseCost)}</div>
+                    </div>
+                    <div className="text-sm">
+                      <div className="text-muted-foreground">Selected Plants</div>
+                      <div className="font-semibold text-emerald-800">{fmt(plantsCost)}</div>
+                    </div>
+                  </div>
+
+                  {/* Selected plants list */}
+                  {Object.keys(quoteItems).length > 0 && (
+                    <div className="border-t pt-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          Plants in Quote ({Object.keys(quoteItems).length})
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                          onClick={() => setQuoteItems({})}
+                        >
+                          Clear all
+                        </Button>
+                      </div>
+                      <div className="space-y-1.5 max-h-48 overflow-auto pr-1">
+                        {Object.entries(quoteItems).map(([key, it]) => (
+                          <div
+                            key={key}
+                            className="flex items-center gap-2 p-2 bg-muted/40 rounded-md text-sm"
+                          >
+                            <img
+                              src={it.image}
+                              alt={it.plantName}
+                              className="w-9 h-9 rounded object-cover bg-background flex-shrink-0"
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate">{it.plantName}</div>
+                              <div className="text-xs text-muted-foreground truncate">
+                                {it.variantLabel !== "Standard" ? `${it.variantLabel} · ` : ""}
+                                {it.sizeLabel} · {fmt(it.price)} ea
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 border rounded-md bg-background">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7"
+                                onClick={() =>
+                                  setQuoteItems((prev) => {
+                                    const next = { ...prev };
+                                    const cur = next[key];
+                                    if (!cur) return prev;
+                                    if (cur.qty <= 1) delete next[key];
+                                    else next[key] = { ...cur, qty: cur.qty - 1 };
+                                    return next;
+                                  })
+                                }
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="w-6 text-center text-xs font-semibold">{it.qty}</span>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7"
+                                onClick={() =>
+                                  setQuoteItems((prev) => ({
+                                    ...prev,
+                                    [key]: { ...prev[key], qty: prev[key].qty + 1 },
+                                  }))
+                                }
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                              onClick={() =>
+                                setQuoteItems((prev) => {
+                                  const next = { ...prev };
+                                  delete next[key];
+                                  return next;
+                                })
+                              }
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Total */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t">
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">
+                        Estimated Total
+                      </p>
+                      <p className="text-3xl font-bold text-emerald-700">{fmt(total)}</p>
+                    </div>
+                    <Button
+                      size="lg"
+                      className="bg-emerald-700 hover:bg-emerald-800"
+                      disabled={total <= 0}
+                      onClick={() => {
+                        // Push everything into the cart so the existing checkout/quote flow takes over.
+                        if (baseCost > 0) {
+                          addToCart({
+                            id: `landscaping-${tier.id}-${Date.now()}`,
+                            name: `Landscaping — ${tier.title} (${sqft} sq ft @ $${tier.price}/sq ft)`,
+                            price: baseCost,
+                            image: "",
+                            category: "Landscaping",
+                          });
+                        }
+                        Object.entries(quoteItems).forEach(([key, it]) => {
+                          for (let i = 0; i < it.qty; i++) {
+                            addToCart({
+                              id: `${key}-${i}-${Date.now()}`,
+                              name: `${it.plantName}${
+                                it.variantLabel !== "Standard" ? ` — ${it.variantLabel}` : ""
+                              } (${it.sizeLabel})`,
+                              price: it.price,
+                              image: it.image,
+                              category: "Landscaping",
+                            });
+                          }
+                        });
+                      }}
+                    >
+                      <Sparkles className="h-4 w-4 mr-1.5" />
+                      Send to Cart
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Category filter */}
+          <div className="max-w-5xl mx-auto mb-8">
+            <p className="text-center text-sm text-muted-foreground mb-3">
+              Browse the catalog and add plants to your quote
+            </p>
             <div className="flex flex-wrap gap-2 justify-center">
               <Badge
                 variant={activeCat === "All" ? "default" : "outline"}
