@@ -15,6 +15,7 @@ import { Search, ShoppingCart as CartIcon, Plus, Minus } from "lucide-react";
 import {
   landscapingPlants,
   landscapingCategories,
+  landscapingCategoryImages,
   type LandscapingPlant,
   type LandscapingCategory,
   type PlantSizeOption,
@@ -23,6 +24,27 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 
 const formatPrice = (n: number) =>
   `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const PlantImage = ({ plant, className }: { plant: LandscapingPlant; className: string }) => {
+  const [src, setSrc] = useState(plant.image);
+
+  React.useEffect(() => {
+    setSrc(plant.image);
+  }, [plant.image]);
+
+  return (
+    <img
+      src={src}
+      alt={plant.name}
+      className={className}
+      loading="lazy"
+      width={400}
+      height={400}
+      referrerPolicy="no-referrer"
+      onError={() => setSrc(landscapingCategoryImages[plant.category])}
+    />
+  );
+};
 
 const LandscapingSection = () => {
   const [search, setSearch] = useState("");
@@ -116,13 +138,9 @@ const LandscapingSection = () => {
                 onClick={() => setSelected(plant)}
               >
                 <div className="aspect-square overflow-hidden bg-muted">
-                  <img
-                    src={plant.image}
-                    alt={plant.name}
+                  <PlantImage
+                    plant={plant}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                    width={400}
-                    height={400}
                   />
                 </div>
                 <CardContent className="p-3 flex-1 flex flex-col">
@@ -166,11 +184,7 @@ const LandscapingSection = () => {
           {selected && (
             <div className="space-y-4">
               <div className="aspect-video overflow-hidden rounded-lg bg-muted">
-                <img
-                  src={selected.image}
-                  alt={selected.name}
-                  className="w-full h-full object-cover"
-                />
+                <PlantImage plant={selected} className="w-full h-full object-cover" />
               </div>
               <div className="space-y-2">
                 {selected.sizes.map((opt) => {
