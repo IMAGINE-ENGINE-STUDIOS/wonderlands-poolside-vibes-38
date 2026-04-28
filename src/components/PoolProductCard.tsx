@@ -906,7 +906,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Pool Liner Options */}
             <AccordionItem value="liner" className="border rounded-lg px-3">
