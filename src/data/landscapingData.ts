@@ -324,7 +324,7 @@ export const landscapingPlants: LandscapingPlant[] = ROWS.map(([name, category, 
     id: `plant-${slugify(name)}`,
     name,
     category,
-    image: IMG[category],
+    image: PLANT_IMAGES[name] || IMG[category],
     sizes: sizeOptions,
     minPrice: Math.min(...sizeOptions.map((s) => s.finalPrice)),
   };
