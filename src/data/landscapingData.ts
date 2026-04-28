@@ -12,6 +12,7 @@ import imgTropical from "@/assets/landscaping/cat-tropical.jpg";
 import imgGroundcover from "@/assets/landscaping/cat-groundcover.jpg";
 import imgFruit from "@/assets/landscaping/cat-fruit.jpg";
 import imgTopiary from "@/assets/landscaping/cat-topiary.jpg";
+import { PLANT_IMAGES } from "./landscapingImages";
 
 export const LANDSCAPING_MARKUP = 3;
 
