@@ -31,6 +31,7 @@ import { OptimizedImage } from "./OptimizedImage";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { ProductImageModal } from "./ProductImageModal";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 import { spas } from "./PoolCatalog";
@@ -841,9 +842,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           <div className="space-y-4 animate-fade-in-up">
             <Separator />
 
+            <Accordion type="single" collapsible defaultValue="finishes" className="space-y-2">
             {/* Pool Finishing Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pool Finishes</h4>
+            <AccordionItem value="finishes" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Pool Finishes</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel 
                 className="w-full"
                 opts={{
@@ -905,11 +911,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Pool Liner Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pool Liner</h4>
+            <AccordionItem value="liner" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Pool Liner</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel 
                 className="w-full"
                 opts={{
@@ -1000,11 +1012,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Pavers Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Deck Pavers</h4>
+            <AccordionItem value="pavers" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Deck Pavers</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel
                 className="w-full"
                 opts={{
@@ -1081,11 +1099,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
               </div>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Screen Enclosure Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Screen Enclosure</h4>
+            <AccordionItem value="enclosure" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Screen Enclosure</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel
                 className="w-full"
                 opts={{
@@ -1159,13 +1183,20 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
               </div>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Cover Options */}
 
             {/* Add-ons */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Additional Features</h4>
+            <AccordionItem value="addons" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Additional Features</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
+
 
               <div className="grid grid-cols-1 gap-3">
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
@@ -1745,28 +1776,38 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
               </div>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Carbon Fiber Technology Section */}
             {pool.carbonFiber && (
-              <div className="space-y-3 p-4 bg-gradient-to-r from-primary/5 to-teal/5 rounded-lg border border-primary/20">
-                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  Carbon Fiber Technology
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  Our advanced carbon fiber construction provides superior strength, durability, and longevity. This
-                  cutting-edge technology ensures your pool maintains its structural integrity for decades while
-                  offering unmatched resistance to cracking and fading.
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• 300% stronger than traditional fiberglass</li>
-                  <li>• Superior thermal retention</li>
-                  <li>• UV-resistant surface coating</li>
-                  <li>• Lifetime structural warranty</li>
-                </ul>
-              </div>
+              <AccordionItem value="carbon" className="border rounded-lg px-3 bg-gradient-to-r from-primary/5 to-teal/5 border-primary/20">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <span className="font-semibold text-foreground flex items-center gap-2 text-sm">
+                    <Shield className="h-4 w-4 text-primary" />
+                    Carbon Fiber Technology
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3">
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Our advanced carbon fiber construction provides superior strength, durability, and longevity. This
+                      cutting-edge technology ensures your pool maintains its structural integrity for decades while
+                      offering unmatched resistance to cracking and fading.
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• 300% stronger than traditional fiberglass</li>
+                      <li>• Superior thermal retention</li>
+                      <li>• UV-resistant surface coating</li>
+                      <li>• Lifetime structural warranty</li>
+                    </ul>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             )}
+            </Accordion>
+
 
             {/* Sauna section moved above - now rendered after Rocky Waterfalls */}
 

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
@@ -387,9 +388,14 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
           <div className="space-y-4 animate-fade-in">
             <Separator className="my-4" />
 
+            <Accordion type="single" collapsible defaultValue="gelcoat" className="space-y-2">
             {/* Gelcoat Color Selection */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Gelcoat Color (Included)</h4>
+            <AccordionItem value="gelcoat" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Gelcoat Color (Included)</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel 
                 className="w-full"
                 opts={{
@@ -423,13 +429,17 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
-            </div>
-
-            <Separator />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Pavers Options - matching Latham format */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Deck Pavers</h4>
+            <AccordionItem value="pavers" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Deck Pavers</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel 
                 className="w-full"
                 opts={{
@@ -492,11 +502,17 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
               </div>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Screen Enclosure Options - matching Latham format */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Screen Enclosure</h4>
+            <AccordionItem value="enclosure" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Screen Enclosure</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
               <Carousel 
                 className="w-full"
                 opts={{
@@ -570,11 +586,17 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
               </div>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Additional Features - matching Latham format */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Additional Features</h4>
+            <AccordionItem value="addons" className="border rounded-lg px-3">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="font-semibold text-foreground text-sm">Additional Features</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-3">
+                <div className="space-y-3">
 
               <div className="grid grid-cols-1 gap-3">
                 {/* Pool Tiles */}
@@ -827,7 +849,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </>
                 )}
               </div>
-            </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            </Accordion>
 
             <Separator />
 
