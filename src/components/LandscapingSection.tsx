@@ -3,6 +3,7 @@ const { useState, useMemo } = React;
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -11,7 +12,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ShoppingCart as CartIcon, Plus, Minus, FileText, Sparkles, Trash2 } from "lucide-react";
+import { ShoppingCart as CartIcon, Plus, Minus, FileText, Sparkles, Trash2, Printer, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   landscapingPlants,
   landscapingCategories,
@@ -60,6 +62,7 @@ const PlantImage = ({
 };
 
 const LandscapingSection = () => {
+  const { toast } = useToast();
   const [activeCat, setActiveCat] = useState<LandscapingCategory | "All">("All");
   const [selected, setSelected] = useState<LandscapingPlant | null>(null);
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
@@ -75,6 +78,12 @@ const LandscapingSection = () => {
   ];
   const [quoteTier, setQuoteTier] = useState<QuoteTier>("basic");
   const [quoteSqft, setQuoteSqft] = useState<string>("");
+  // Customer info (mirrors main /quote tool)
+  const [custName, setCustName] = useState("");
+  const [custEmail, setCustEmail] = useState("");
+  const [custPhone, setCustPhone] = useState("");
+  const [custAddress, setCustAddress] = useState("");
+  const [custNotes, setCustNotes] = useState("");
   // key: `${variantId}-${size}` -> { variant, plant, opt, qty }
   const [quoteItems, setQuoteItems] = useState<
     Record<string, { plantName: string; variantLabel: string; sizeLabel: string; price: number; qty: number; image: string }>
@@ -286,7 +295,44 @@ const LandscapingSection = () => {
                     </div>
                   )}
 
-                  {/* Total */}
+                  {/* Customer info */}
+                  <div className="border-t pt-4 space-y-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Your Information
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Input
+                        placeholder="Full name *"
+                        value={custName}
+                        onChange={(e) => setCustName(e.target.value)}
+                      />
+                      <Input
+                        type="email"
+                        placeholder="Email *"
+                        value={custEmail}
+                        onChange={(e) => setCustEmail(e.target.value)}
+                      />
+                      <Input
+                        type="tel"
+                        placeholder="Phone"
+                        value={custPhone}
+                        onChange={(e) => setCustPhone(e.target.value)}
+                      />
+                      <Input
+                        placeholder="Property address"
+                        value={custAddress}
+                        onChange={(e) => setCustAddress(e.target.value)}
+                      />
+                    </div>
+                    <Textarea
+                      placeholder="Notes or special requests (optional)"
+                      value={custNotes}
+                      onChange={(e) => setCustNotes(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Total + actions */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t">
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">
@@ -294,39 +340,104 @@ const LandscapingSection = () => {
                       </p>
                       <p className="text-3xl font-bold text-emerald-700">{fmt(total)}</p>
                     </div>
-                    <Button
-                      size="lg"
-                      className="bg-emerald-700 hover:bg-emerald-800"
-                      disabled={total <= 0}
-                      onClick={() => {
-                        // Push everything into the cart so the existing checkout/quote flow takes over.
-                        if (baseCost > 0) {
-                          addToCart({
-                            id: `landscaping-${tier.id}-${Date.now()}`,
-                            name: `Landscaping — ${tier.title} (${sqft} sq ft @ $${tier.price}/sq ft)`,
-                            price: baseCost,
-                            image: "",
-                            category: "Landscaping",
-                          });
-                        }
-                        Object.entries(quoteItems).forEach(([key, it]) => {
-                          for (let i = 0; i < it.qty; i++) {
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        disabled={total <= 0}
+                        onClick={() => {
+                          const lines: string[] = [];
+                          lines.push("WONDERLANDS — LANDSCAPING QUOTE");
+                          lines.push("=".repeat(40));
+                          lines.push("");
+                          if (custName) lines.push(`Customer: ${custName}`);
+                          if (custEmail) lines.push(`Email: ${custEmail}`);
+                          if (custPhone) lines.push(`Phone: ${custPhone}`);
+                          if (custAddress) lines.push(`Address: ${custAddress}`);
+                          lines.push("");
+                          lines.push(`Service Tier: ${tier.title} ($${tier.price}/sq ft)`);
+                          lines.push(`Square Footage: ${sqft}`);
+                          lines.push(`Base Cost: ${fmt(baseCost)}`);
+                          lines.push("");
+                          if (Object.keys(quoteItems).length) {
+                            lines.push("Plants:");
+                            Object.values(quoteItems).forEach((it) => {
+                              const lbl = it.variantLabel !== "Standard" ? ` — ${it.variantLabel}` : "";
+                              lines.push(
+                                `  • ${it.plantName}${lbl} (${it.sizeLabel}) × ${it.qty} = ${fmt(it.price * it.qty)}`,
+                              );
+                            });
+                            lines.push(`Plants Subtotal: ${fmt(plantsCost)}`);
+                            lines.push("");
+                          }
+                          lines.push(`TOTAL ESTIMATE: ${fmt(total)}`);
+                          if (custNotes) {
+                            lines.push("");
+                            lines.push("Notes:");
+                            lines.push(custNotes);
+                          }
+                          const html = `<!doctype html><html><head><title>Landscaping Quote</title>
+                            <style>body{font-family:system-ui,sans-serif;padding:40px;color:#0f172a;max-width:720px;margin:auto;}
+                            pre{white-space:pre-wrap;font-family:inherit;font-size:14px;line-height:1.6;}</style></head>
+                            <body><pre>${lines.join("\n")}</pre>
+                            <script>window.onload=()=>setTimeout(()=>window.print(),200)</script>
+                            </body></html>`;
+                          const w = window.open("", "_blank");
+                          if (w) {
+                            w.document.open();
+                            w.document.write(html);
+                            w.document.close();
+                          }
+                        }}
+                      >
+                        <Printer className="h-4 w-4 mr-1.5" />
+                        Print Quote
+                      </Button>
+                      <Button
+                        size="lg"
+                        className="bg-emerald-700 hover:bg-emerald-800"
+                        disabled={total <= 0}
+                        onClick={() => {
+                          if (!custName || !custEmail) {
+                            toast({
+                              title: "Missing Information",
+                              description: "Please add your name and email to submit the quote.",
+                            });
+                            return;
+                          }
+                          // Push everything into the cart so the existing checkout/quote flow takes over.
+                          if (baseCost > 0) {
                             addToCart({
-                              id: `${key}-${i}-${Date.now()}`,
-                              name: `${it.plantName}${
-                                it.variantLabel !== "Standard" ? ` — ${it.variantLabel}` : ""
-                              } (${it.sizeLabel})`,
-                              price: it.price,
-                              image: it.image,
+                              id: `landscaping-${tier.id}-${Date.now()}`,
+                              name: `Landscaping — ${tier.title} (${sqft} sq ft @ $${tier.price}/sq ft)`,
+                              price: baseCost,
+                              image: "",
                               category: "Landscaping",
                             });
                           }
-                        });
-                      }}
-                    >
-                      <Sparkles className="h-4 w-4 mr-1.5" />
-                      Send to Cart
-                    </Button>
+                          Object.entries(quoteItems).forEach(([key, it]) => {
+                            for (let i = 0; i < it.qty; i++) {
+                              addToCart({
+                                id: `${key}-${i}-${Date.now()}`,
+                                name: `${it.plantName}${
+                                  it.variantLabel !== "Standard" ? ` — ${it.variantLabel}` : ""
+                                } (${it.sizeLabel})`,
+                                price: it.price,
+                                image: it.image,
+                                category: "Landscaping",
+                              });
+                            }
+                          });
+                          toast({
+                            title: "Quote Submitted",
+                            description: `Thanks ${custName}! Your landscaping quote totals ${fmt(total)}. We'll reach out at ${custEmail}.`,
+                          });
+                        }}
+                      >
+                        <Send className="h-4 w-4 mr-1.5" />
+                        Submit Quote
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
