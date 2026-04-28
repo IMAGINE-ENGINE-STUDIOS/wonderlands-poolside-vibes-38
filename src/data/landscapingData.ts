@@ -401,6 +401,8 @@ export const landscapingPlants: LandscapingPlant[] = Array.from(groups.values())
     };
   }
 );
+
+export const landscapingCategories: LandscapingCategory[] = [
   "Shrubs",
   "Trees",
   "Palms",
