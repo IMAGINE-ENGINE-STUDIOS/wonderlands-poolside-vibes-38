@@ -424,9 +424,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
-            </div>
-
-            <Separator />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Pavers Options - matching Latham format */}
             <AccordionItem value="pavers" className="border rounded-lg px-3">
