@@ -330,23 +330,77 @@ const slugify = (name: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-export const landscapingPlants: LandscapingPlant[] = ROWS.map(([name, category, sizes]) => {
+// Split a plant name into [baseName, variantLabel].
+// Rules: " - " takes precedence (e.g. "Ligustrum - Green"),
+// then trailing parenthesis (e.g. "Bird of Paradise (Orange)").
+// Otherwise the plant has no variant.
+const splitVariant = (name: string): [string, string | null] => {
+  const dashIdx = name.indexOf(" - ");
+  if (dashIdx > 0) {
+    return [name.slice(0, dashIdx).trim(), name.slice(dashIdx + 3).trim()];
+  }
+  const parenMatch = name.match(/^(.*?)\s*\(([^()]+)\)\s*$/);
+  if (parenMatch) {
+    return [parenMatch[1].trim(), parenMatch[2].trim()];
+  }
+  return [name, null];
+};
+
+interface BuiltVariant {
+  fullName: string;
+  label: string;
+  category: LandscapingCategory;
+  sizes: PlantSizeOption[];
+}
+
+const groups = new Map<string, { base: string; category: LandscapingCategory; variants: BuiltVariant[] }>();
+
+for (const [name, category, sizes] of ROWS) {
+  const [base, variantLabel] = splitVariant(name);
+  // Group key includes category to avoid merging unrelated entries that share a base name.
+  const key = `${base}::${category}`;
   const sizeOptions: PlantSizeOption[] = sizes.map(([size, basePrice]) => ({
     size,
     basePrice,
     finalPrice: Math.round(basePrice * LANDSCAPING_MARKUP * 100) / 100,
   }));
-  return {
-    id: `plant-${slugify(name)}`,
-    name,
+  const variant: BuiltVariant = {
+    fullName: name,
+    label: variantLabel ?? "Standard",
     category,
-    image: normalizePlantImageUrl(PLANT_IMAGES[name]) || IMG[category],
     sizes: sizeOptions,
-    minPrice: Math.min(...sizeOptions.map((s) => s.finalPrice)),
   };
-});
+  const existing = groups.get(key);
+  if (existing) {
+    existing.variants.push(variant);
+  } else {
+    groups.set(key, { base, category, variants: [variant] });
+  }
+}
 
-export const landscapingCategories: LandscapingCategory[] = [
+export const landscapingPlants: LandscapingPlant[] = Array.from(groups.values()).map(
+  ({ base, category, variants }) => {
+    const builtVariants: PlantVariant[] = variants.map((v, idx) => {
+      const image = normalizePlantImageUrl(PLANT_IMAGES[v.fullName]) || IMG[category];
+      return {
+        id: `${slugify(v.fullName)}-${idx}`,
+        label: v.label,
+        fullName: v.fullName,
+        image,
+        sizes: v.sizes,
+        minPrice: Math.min(...v.sizes.map((s) => s.finalPrice)),
+      };
+    });
+    return {
+      id: `plant-${slugify(base)}-${slugify(category)}`,
+      name: base,
+      category,
+      image: builtVariants[0].image,
+      variants: builtVariants,
+      minPrice: Math.min(...builtVariants.map((v) => v.minPrice)),
+    };
+  }
+);
   "Shrubs",
   "Trees",
   "Palms",
