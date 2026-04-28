@@ -84,6 +84,11 @@ const LandscapingSection = () => {
   const [custPhone, setCustPhone] = useState("");
   const [custAddress, setCustAddress] = useState("");
   const [custNotes, setCustNotes] = useState("");
+  // Admin override state (passcode WONDERMAGIC)
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [passcode, setPasscode] = useState("");
+  const [overrideTotal, setOverrideTotal] = useState<string>("");
+  const [overrideRate, setOverrideRate] = useState<string>("");
   // key: `${variantId}-${size}` -> { variant, plant, opt, qty }
   const [quoteItems, setQuoteItems] = useState<
     Record<string, { plantName: string; variantLabel: string; sizeLabel: string; price: number; qty: number; image: string }>
