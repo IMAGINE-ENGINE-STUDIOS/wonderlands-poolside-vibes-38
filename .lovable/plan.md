@@ -1,54 +1,46 @@
-## Add Landscaping Category
+## Add "Browse Categories" Editorial Section to Homepage
 
-Add a new top-level category "Landscaping" to the main page featuring the full plant/tree catalog you provided, with prices multiplied by 3, and product images sourced from the internet.
+A new minimalist, luxury-architecture-magazine inspired section will be added to the main page (`/`) listing all 14 product categories from the right navigation menu. Clicking any tile updates the hash and switches the active section, mirroring the right-nav behavior.
 
-### What gets built
+### Where it goes
 
-1. **Data file** `src/data/landscapingData.ts`
-   - Type `LandscapingPlant` with: `id`, `name`, `category` (Shrubs / Trees / Palms / Grasses / Groundcover / Vines / Flowering / Tropicals), `image`, `sizes` (array of `{ size: '1 gal' | '3 gal' | '7 gal' | '15 gal' | '30 gal' | '45 gal' | 'B&B', basePrice, finalPrice }`).
-   - All ~200 plants encoded from your list. `finalPrice = basePrice * 3` computed once at module load.
-   - Helper `getMinPrice(plant)` for card display ("Starting at $X").
+In `src/pages/Index.tsx`, between `<MissionVisionValues />` and `<main>`. It always renders (regardless of which section is active), serving as a persistent visual index/jump-bar above the catalog.
 
-2. **Image sourcing**
-   - Use Lovable AI Gateway `google/gemini-2.5-flash-image` to generate clean white-background product photos for each plant (consistent style, like a nursery catalog). Saved as webp under `src/assets/landscaping/`.
-   - Reason: real-internet image URLs (Google/nursery sites) are unreliable, often hotlink-blocked, and inconsistent in size/style. AI-generated nursery shots give a uniform, professional grid. Each is generated once, committed as an asset, ES6-imported (per project memory).
-   - To keep build time reasonable, we generate per unique plant (~180 images). Done in a one-off script.
+### Design — editorial, minimalist, rich
 
-3. **Section component** `src/components/LandscapingSection.tsx`
-   - Light theme, matching `ArtificialGrassSection` styling (consistent with project's light public UI — no cyan/blue text).
-   - Top: search input + category filter chips (Shrubs, Trees, Palms, Grasses, Flowering, Vines, Tropicals, Groundcover).
-   - Responsive grid: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`.
-   - Card: square image, name, "Starting at $X" (lowest final price across sizes), "View Sizes" button.
-   - Click → modal showing all available sizes with their final prices and "Add to Cart" per size (uses existing `useShoppingCart`).
-   - Quantity selector inside modal.
-   - Lazy-loaded via `React.lazy` like other sections.
+Inspired by AD/Wallpaper/Dezeen layouts:
 
-4. **Wire into main page** `src/pages/Index.tsx`
-   - Add `"landscaping"` to `SectionId` union and `CATEGORIES` array (icon: `Trees` from lucide).
-   - Add lazy import + `case "landscaping"` in `renderActive` with a `SectionBanner` (generated landscaping banner image) below the grid, matching the new thin-band pattern.
+- **Section header**: thin uppercase eyebrow ("Collections / Index"), large serif/light display heading ("Browse the Wonderlands Atelier"), a single hairline divider beneath. Generous vertical padding (py-20+).
+- **Grid**: responsive editorial grid — 2 cols mobile, 3 cols tablet, 4 cols desktop. Asymmetric rhythm: every 5th tile spans 2 cols on desktop for a magazine feel (optional, kept subtle).
+- **Each tile**:
+  - Tall portrait aspect (aspect-[3/4]), full-bleed category banner image (reuse banners already imported in `Index.tsx`: `lathamGilmerBanner`, `saunaBanner`, `spaBanner`, `tanningLedgeBanner`, `screenEnclosureBanner`, `patioFencingBanner`, `lanaiBanner`, `paversBanner`, `grassBanner`, `landscapingBanner`, `coversBanner`, `drivewayGateBanner`; finishes/liners use existing finishes/liners assets).
+  - Subtle dark gradient overlay bottom-to-top for legibility.
+  - Bottom-left meta block: small numeric index ("01" — "14"), thin uppercase label, hairline rule, category name in light serif/display font.
+  - Hover: image scale 1.03, overlay deepens, label slides up slightly, hairline expands. All transitions ~500ms ease-out.
+  - Cursor pointer; entire tile clickable.
+- **Color/style**: neutral background (uses existing theme bg), white text on tiles, no chip badges or buttons. No emojis. No icons inside tiles (icons stay only in the right-nav). Pure typography + photography.
+- **Footer of section**: small centered caption ("Fourteen categories. One world.") and a hairline link "View full index ↓" that scrolls to the active catalog `<main>`.
 
-5. **Right navigation** `src/components/RightNavigation.tsx`
-   - Add `{ id: "landscaping", label: "Landscaping", icon: Trees }` to `NAV_ITEMS` so the floating side rail includes it.
+### Behavior
 
-6. **Banner asset**
-   - Generate `src/assets/banners/landscaping-banner.jpg` (lush Florida landscape, palms + flowering shrubs).
+- Reuses the same 14 categories defined in `Index.tsx` `CATEGORIES`.
+- Click handler: `handleChange(id)` (already exists in `Index.tsx`) — passed into the new component as a prop. Updates hash + active state, scrolling smoothly to the catalog area.
+- No new routes, no new data, no changes to existing cards/quotes/product images.
 
-### Pricing (3× markup, examples)
+### Technical details
 
-| Plant | Size | Base | Final |
-|---|---|---|---|
-| Abelia (Light Pink) | 3 gal | $11.95 | **$35.85** |
-| Bird of Paradise (White) | 30 gal | $115 | **$345** |
-| Crape Myrtle MULTI Natchez | 30 gal | $215 | **$645** |
-| Italian Cypress | 45 gal | $425 | **$1,275** |
-| Palm, Reclinata | B&B | $2,500 | **$7,500** |
-| Live Oak | 45 gal | $450 | **$1,350** |
+- New file: `src/components/BrowseCategoriesEditorial.tsx`
+  - Props: `{ activeId: SectionId; onSelect: (id: string) => void }`
+  - Imports the 14 banner assets (same imports as `Index.tsx` — extract to a small shared map if duplication is a concern; otherwise duplicate the imports locally for zero coupling).
+  - Renders the grid as described. Uses Tailwind only (no new deps).
+  - Active tile gets a thin accent ring (`ring-1 ring-foreground/40`) and slightly elevated label.
+- `src/pages/Index.tsx`:
+  - Import and render `<BrowseCategoriesEditorial activeId={active} onSelect={handleChange} />` after `<MissionVisionValues />`.
+  - On select, after calling `handleChange(id)`, scroll `<main>` into view smoothly.
+- No changes to: `RightNavigation.tsx`, product cards, quote tools, pricing, images.
 
-Multi-trunk / standard variants and "OR" alternative pricing are kept as separate SKUs. Succulent special pricing ($3.50/2", $6.50/4", $9.50/6") is encoded as its own size set.
+### Out of scope
 
-### Out of scope (confirm if you want them)
-- Persisting landscaping products to the Supabase `products` table (currently file-based like `artificialGrassData.ts`).
-- Admin CRUD for landscaping plants.
-- Adding to Quote Manager / invoice line-item search index.
-
-Once approved, I'll generate the images, build the data file, wire up the section, and add the nav entries.
+- No edits to existing sections, cards, or quotes.
+- No new images uploaded — only existing banner assets reused.
+- No mobile drawer/menu changes.

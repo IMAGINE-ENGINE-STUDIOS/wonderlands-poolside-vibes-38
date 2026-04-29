@@ -22,6 +22,7 @@ import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import MissionVisionValues from "@/components/MissionVisionValues";
+import BrowseCategoriesEditorial from "@/components/BrowseCategoriesEditorial";
 
 import grassBanner from "@/assets/grass-natural-green.avif";
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.jpeg";
@@ -260,6 +261,7 @@ const Index = () => {
       <Header />
       <Hero />
       <MissionVisionValues />
+      <BrowseCategoriesEditorial activeId={active} onSelect={handleChange} />
 
       <main>
         <Suspense fallback={<SectionFallback />}>{renderActive()}</Suspense>
