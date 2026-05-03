@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, Mail, Phone, MessageCircle, ArrowLeft, Check } from "lucide-react";
+import { Loader2, Mail, Phone, MessageCircle, ArrowLeft, Check, User } from "lucide-react";
 import Footer from "@/components/Footer";
 
 interface Promotion {
