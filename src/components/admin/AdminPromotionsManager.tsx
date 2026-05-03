@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tag, Plus, Edit, Trash2, DollarSign, Package, Zap, Calendar, Loader2, Mail } from 'lucide-react';
+import { Tag, Plus, Edit, Trash2, DollarSign, Package, Zap, Calendar, Loader2, Mail, Users, Search, User, Check } from 'lucide-react';
 
 interface Promotion {
   id: string;
@@ -57,6 +57,13 @@ const defaultFormData: PromotionFormData = {
   terms_conditions: ''
 };
 
+interface ClientRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+}
+
 const AdminPromotionsManager = () => {
   const { toast } = useToast();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -67,6 +74,15 @@ const AdminPromotionsManager = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
   const [formData, setFormData] = useState<PromotionFormData>(defaultFormData);
+
+  // Email send dialog state
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailPromotion, setEmailPromotion] = useState<Promotion | null>(null);
+  const [sendMode, setSendMode] = useState<'all' | 'specific'>('all');
+  const [clients, setClients] = useState<ClientRow[]>([]);
+  const [clientSearch, setClientSearch] = useState('');
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+  const [loadingClients, setLoadingClients] = useState(false);
 
   useEffect(() => {
     fetchPromotions();
@@ -225,30 +241,65 @@ const AdminPromotionsManager = () => {
     }
   };
 
-  const handleSendBulkEmail = async (promotion: Promotion) => {
-    if (!confirm(`Send "${promotion.name}" offer to ALL clients via email?`)) return;
+  const handleOpenEmailDialog = async (promotion: Promotion) => {
+    setEmailPromotion(promotion);
+    setSendMode('all');
+    setSelectedClientIds([]);
+    setClientSearch('');
+    setEmailDialogOpen(true);
+
+    setLoadingClients(true);
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, first_name, last_name, email')
+        .not('email', 'is', null)
+        .order('first_name', { ascending: true });
+      if (error) throw error;
+      setClients((data || []) as ClientRow[]);
+    } catch (err) {
+      console.error('Error loading clients:', err);
+      toast({ title: 'Error', description: 'Failed to load clients', variant: 'destructive' });
+    } finally {
+      setLoadingClients(false);
+    }
+  };
+
+  const toggleClient = (id: string) => {
+    setSelectedClientIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleConfirmSendEmail = async () => {
+    if (!emailPromotion) return;
+    if (sendMode === 'specific' && selectedClientIds.length === 0) {
+      toast({ title: 'Select clients', description: 'Pick at least one client', variant: 'destructive' });
+      return;
+    }
 
     try {
       setIsSendingEmail(true);
-      setSendingPromotionId(promotion.id);
+      setSendingPromotionId(emailPromotion.id);
 
-      const { data, error } = await supabase.functions.invoke('send-bulk-email', {
-        body: { template_name: promotion.name, send_to_all: true }
-      });
+      const body: Record<string, unknown> = { template_name: emailPromotion.name };
+      if (sendMode === 'all') {
+        body.send_to_all = true;
+      } else {
+        body.client_ids = selectedClientIds;
+      }
 
+      const { data, error } = await supabase.functions.invoke('send-bulk-email', { body });
       if (error) throw error;
 
       toast({
-        title: "Email Blast Sent",
-        description: `${data?.sent || 0} emails sent, ${data?.failed || 0} failed`
+        title: 'Email Sent',
+        description: `${data?.successful ?? data?.sent ?? 0} sent, ${data?.failed ?? 0} failed`
       });
+      setEmailDialogOpen(false);
     } catch (error) {
-      console.error('Error sending bulk email:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send bulk email",
-        variant: "destructive"
-      });
+      console.error('Error sending email:', error);
+      toast({ title: 'Error', description: 'Failed to send email', variant: 'destructive' });
     } finally {
       setIsSendingEmail(false);
       setSendingPromotionId(null);
@@ -416,7 +467,7 @@ const AdminPromotionsManager = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleSendBulkEmail(promotion)}
+                              onClick={() => handleOpenEmailDialog(promotion)}
                               disabled={!promotion.is_active || (isSendingEmail && sendingPromotionId === promotion.id)}
                               className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
                               title="Send to All Clients"
@@ -600,6 +651,139 @@ const AdminPromotionsManager = () => {
                   </>
                 ) : (
                   editingPromotion ? 'Update Promotion' : 'Create Promotion'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Email Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent className="bg-slate-900 border-cyan-500/30 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-300 font-mono flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Send "{emailPromotion?.name}"
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSendMode('all')}
+                className={`p-4 rounded-lg border text-left transition-all ${
+                  sendMode === 'all'
+                    ? 'border-cyan-400 bg-cyan-500/10'
+                    : 'border-cyan-500/20 bg-black/20 hover:border-cyan-500/40'
+                }`}
+              >
+                <Users className="h-5 w-5 text-cyan-300 mb-2" />
+                <p className="font-mono text-cyan-300 text-sm font-bold">All Customers</p>
+                <p className="font-mono text-cyan-400/60 text-xs mt-1">
+                  Send to every client with an email
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSendMode('specific')}
+                className={`p-4 rounded-lg border text-left transition-all ${
+                  sendMode === 'specific'
+                    ? 'border-cyan-400 bg-cyan-500/10'
+                    : 'border-cyan-500/20 bg-black/20 hover:border-cyan-500/40'
+                }`}
+              >
+                <User className="h-5 w-5 text-cyan-300 mb-2" />
+                <p className="font-mono text-cyan-300 text-sm font-bold">Specific Customers</p>
+                <p className="font-mono text-cyan-400/60 text-xs mt-1">
+                  Pick clients from the list
+                </p>
+              </button>
+            </div>
+
+            {sendMode === 'specific' && (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400/60" />
+                  <Input
+                    placeholder="Search by name or email..."
+                    value={clientSearch}
+                    onChange={(e) => setClientSearch(e.target.value)}
+                    className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono text-cyan-400/70">
+                  <span>{selectedClientIds.length} selected</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedClientIds([])}
+                    className="hover:text-cyan-300"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="max-h-72 overflow-y-auto border border-cyan-500/20 rounded-lg divide-y divide-cyan-500/10">
+                  {loadingClients ? (
+                    <div className="py-8 text-center">
+                      <Loader2 className="h-5 w-5 animate-spin text-cyan-400 mx-auto" />
+                    </div>
+                  ) : (
+                    clients
+                      .filter(c => {
+                        if (!clientSearch) return true;
+                        const q = clientSearch.toLowerCase();
+                        const name = `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase();
+                        return name.includes(q) || (c.email || '').toLowerCase().includes(q);
+                      })
+                      .slice(0, 200)
+                      .map(c => {
+                        const checked = selectedClientIds.includes(c.id);
+                        return (
+                          <button
+                            type="button"
+                            key={c.id}
+                            onClick={() => toggleClient(c.id)}
+                            className={`w-full px-3 py-2 flex items-center gap-3 text-left hover:bg-cyan-500/5 ${
+                              checked ? 'bg-cyan-500/10' : ''
+                            }`}
+                          >
+                            <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
+                              checked ? 'bg-cyan-500 border-cyan-500' : 'border-cyan-500/40'
+                            }`}>
+                              {checked && <Check className="h-3 w-3 text-black" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-mono text-cyan-300 truncate">
+                                {c.first_name} {c.last_name}
+                              </p>
+                              <p className="text-xs font-mono text-cyan-400/60 truncate">{c.email}</p>
+                            </div>
+                          </button>
+                        );
+                      })
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setEmailDialogOpen(false)}
+                className="border-cyan-500/30 text-cyan-400"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmSendEmail}
+                disabled={isSendingEmail || (sendMode === 'specific' && selectedClientIds.length === 0)}
+                className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+              >
+                {isSendingEmail ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</>
+                ) : (
+                  <><Mail className="h-4 w-4 mr-2" /> Send {sendMode === 'all' ? 'to All' : `to ${selectedClientIds.length}`}</>
                 )}
               </Button>
             </div>
