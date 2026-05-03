@@ -149,6 +149,7 @@ const App = () => {
             <Route path="/gallery/:token" element={<SharedGalleryView />} />
             <Route path="/landscaping" element={<LandscapingPage />} />
             <Route path="/Landscaping" element={<LandscapingPage />} />
+            <Route path="/offer/:id" element={<OfferPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
