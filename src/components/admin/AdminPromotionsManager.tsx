@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tag, Plus, Edit, Trash2, DollarSign, Package, Zap, Calendar, Loader2, Mail } from 'lucide-react';
+import { Tag, Plus, Edit, Trash2, DollarSign, Package, Zap, Calendar, Loader2, Mail, Users, Search, User, Check } from 'lucide-react';
 
 interface Promotion {
   id: string;
