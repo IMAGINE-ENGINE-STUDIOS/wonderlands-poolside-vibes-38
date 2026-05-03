@@ -60,7 +60,8 @@ serve(async (req: Request) => {
 
     if (!template && promotion) {
       const SITE = "https://wonderlandsworld.com";
-      const offerUrl = promotion.id ? `${SITE}/offer/${promotion.id}` : SITE;
+      // Use {{offer_url}} placeholder so each client gets a per-client tracked link
+      const offerUrl = "{{offer_url}}";
 
       // Absolutize image URL — relative paths and blob/data URIs don't render in email
       let imgSrc = promotion.image_url || '';
