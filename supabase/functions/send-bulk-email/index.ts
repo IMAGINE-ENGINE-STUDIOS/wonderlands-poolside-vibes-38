@@ -14,6 +14,7 @@ interface BulkEmailRequest {
   custom_subject?: string;
   custom_html?: string;
   promotion?: {
+    id?: string | null;
     name: string;
     description?: string | null;
     bundle_price?: number | null;
