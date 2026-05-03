@@ -134,15 +134,45 @@ const OfferPage = () => {
             </div>
           )}
 
-          <div className="border-t border-border pt-6 space-y-3">
+          <div className="border-t border-border pt-6 space-y-4">
+            {rep && (
+              <div className="rounded-lg border border-border bg-muted/30 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#0891b2]/10 flex items-center justify-center shrink-0">
+                    <User className="h-5 w-5 text-[#0891b2]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-0.5">
+                      Your Wonderlands Representative
+                    </p>
+                    <p className="font-semibold text-foreground">
+                      {`${rep.first_name} ${rep.last_name}`.trim() || "Wonderlands Sales Team"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{rep.title}</p>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                      <a href={`mailto:${rep.email}?subject=${encodeURIComponent(`Re: ${promotion.name}`)}`} className="text-[#0891b2] hover:underline break-all">
+                        {rep.email}
+                      </a>
+                      <a href={`tel:${rep.phone.replace(/[^0-9+]/g, "")}`} className="text-[#0891b2] hover:underline">
+                        {rep.phone}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <h3 className="font-semibold text-foreground">Claim this offer — contact us:</h3>
             <div className="flex flex-col sm:flex-row gap-3">
-              <a href="tel:+12392570637" className="flex-1">
+              <a href={`tel:${(rep?.phone || "+1 (239) 257-0637").replace(/[^0-9+]/g, "")}`} className="flex-1">
                 <Button className="w-full" variant="outline">
                   <Phone className="h-4 w-4 mr-2" /> Call
                 </Button>
               </a>
-              <a href="mailto:sales@wonderlandsworld.com" className="flex-1">
+              <a
+                href={`mailto:${rep?.email || "sales@wonderlandsworld.com"}?subject=${encodeURIComponent(`Re: ${promotion.name}`)}`}
+                className="flex-1"
+              >
                 <Button className="w-full" variant="outline">
                   <Mail className="h-4 w-4 mr-2" /> Email
                 </Button>
