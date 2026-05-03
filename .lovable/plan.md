@@ -1,44 +1,30 @@
-# Fix Promotion Emails + Add Offer Landing Pages
+## Goal
+On `/offer/:id`, display the contact info of the sales rep assigned to the visiting client (the primary `clients.assigned_sales_rep_id`).
 
-## Issues Identified
+## How to identify the client
+The offer URL in promotional emails currently is `/offer/:id` with no client context. To know which client is viewing, append a client token to the URL sent in the email:
+- Email link becomes `https://wonderlandsworld.com/offer/{promotion.id}?c={client.id}`
+- Done in `supabase/functions/send-bulk-email/index.ts` when building `offerUrl` per-client (move `offerUrl` inside the per-client loop).
 
-1. **Image not rendering in email**: The Spa + Sauna + Fireplace promotion uses `image_url = "/lovable-uploads/spa-sauna-fireplace-bundle.png"` — a relative path. Email clients (Gmail, Outlook) cannot resolve relative URLs; they require absolute `https://` URLs.
-2. **Email link goes to homepage**: The `send-bulk-email` template hardcodes `https://wonderlandsworld.com` with no offer-specific destination. There is no per-promotion landing page where the recipient can view details and contact the team.
+## Fetching rep info safely (no auth)
+Public visitors can't read `clients` or `profiles` directly under RLS. Add a Supabase Edge Function `get-offer-rep`:
+- Input: `{ client_id }`
+- Uses service role to look up `clients.assigned_sales_rep_id` → join `profiles` → return only `{ first_name, last_name, email, sales_category }` (no sensitive fields).
+- If no client_id or no assigned rep, return default Wonderlands contact: `Wonderlands Sales Team`, `sales@wonderlandsworld.com`.
 
-## Changes
+## OfferPage UI changes (`src/pages/OfferPage.tsx`)
+1. Read `?c=` from `useSearchParams`.
+2. On mount, invoke `get-offer-rep` and store rep state.
+3. Add a "Your Wonderlands Representative" card above the contact CTAs:
+   - Rep full name + role label ("Sales Representative")
+   - Email button → `mailto:{rep.email}` (prefilled subject = promotion name)
+   - Phone/WhatsApp keep the company line (+1 239-257-0637) since profile has no phone column
+4. Update the existing Email CTA to use the rep's email when available; keep Call/WhatsApp/Calendly as-is.
 
-### 1. New public route — Offer landing page
-Create `src/pages/OfferPage.tsx` mounted at `/offer/:id`:
-- Fetches the promotion from Supabase by ID
-- Displays: image, name, highlight badge, description, bundle price, original price, savings, included items list, terms
-- Contact CTAs: Call (tel:+1 239 257 0637), Email, WhatsApp (wa.me link), Schedule (Calendly link)
-- "Back to Wonderlands World" link to `/`
-- Themed using existing semantic tokens + brand teal/coral
-- Graceful "Offer not found" fallback
+## Files to change
+- `supabase/functions/send-bulk-email/index.ts` — per-client offerUrl with `?c={client.id}`
+- `supabase/functions/get-offer-rep/index.ts` — new public function (no JWT)
+- `supabase/config.toml` — register new function with `verify_jwt = false`
+- `src/pages/OfferPage.tsx` — fetch + render rep card, route email CTA to rep
 
-Add to `src/App.tsx`:
-```tsx
-const OfferPage = lazy(() => import("./pages/OfferPage"));
-<Route path="/offer/:id" element={<OfferPage />} />
-```
-
-### 2. Edge function — `send-bulk-email`
-Update the inline promotion HTML builder so that:
-- **Image URL is absolutized**: if `promotion.image_url` starts with `/`, prefix it with `https://wonderlandsworld.com`. Skip the `<img>` tag entirely if the URL is empty or a `blob:`/`data:` URI (those don't work in email).
-- **CTA button links to `https://wonderlandsworld.com/offer/{promotion.id}`** instead of the homepage. The promotion ID is already passed from the client; add it to the `promotion` payload from `AdminPromotionsManager.tsx`.
-
-### 3. Client — `AdminPromotionsManager.tsx`
-Include `id` in the `promotion` body sent to `send-bulk-email` so the edge function can build the offer URL.
-
-## Technical Details
-
-**Why absolute URLs are required:**
-Gmail/Outlook strip or fail to render `<img src="/path">` because there's no host to resolve against. The image must be served from a publicly reachable HTTPS URL. The existing `/lovable-uploads/...` path is publicly served at `https://wonderlandsworld.com/lovable-uploads/...`, so prefixing the host is sufficient — no Supabase Storage upload needed.
-
-**Files touched:**
-- New: `src/pages/OfferPage.tsx`
-- Edit: `src/App.tsx` (add lazy import + route)
-- Edit: `supabase/functions/send-bulk-email/index.ts` (absolutize image URL, use offer page link)
-- Edit: `src/components/admin/AdminPromotionsManager.tsx` (include promotion `id` in the request body)
-
-Existing offer pages will work for both promotions in the database (Spa+Sauna+Fireplace and Bermuda+Barrel Sauna) and any future promotion automatically — the page is data-driven from the `promotions` table.
+No DB schema changes.

@@ -60,7 +60,8 @@ serve(async (req: Request) => {
 
     if (!template && promotion) {
       const SITE = "https://wonderlandsworld.com";
-      const offerUrl = promotion.id ? `${SITE}/offer/${promotion.id}` : SITE;
+      // Use {{offer_url}} placeholder so each client gets a per-client tracked link
+      const offerUrl = "{{offer_url}}";
 
       // Absolutize image URL — relative paths and blob/data URIs don't render in email
       let imgSrc = promotion.image_url || '';
@@ -172,6 +173,11 @@ serve(async (req: Request) => {
         let subject = template.subject || "Special Offer from Wonderlands World";
         let htmlContent = template.html_content || template.body;
 
+        const SITE_URL = "https://wonderlandsworld.com";
+        const offerUrlForClient = promotion?.id
+          ? `${SITE_URL}/offer/${promotion.id}?c=${client.id}`
+          : SITE_URL;
+
         const variables: Record<string, string> = {
           first_name: client.first_name || "Valued Customer",
           last_name: client.last_name || "",
@@ -181,6 +187,7 @@ serve(async (req: Request) => {
           address_state: client.address_state || "",
           sales_rep_name: salesRepName,
           sales_rep_email: salesRepEmail,
+          offer_url: offerUrlForClient,
         };
 
         // Replace all {{variable}} patterns

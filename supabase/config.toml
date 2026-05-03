@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.procurement-rejection-email]
 verify_jwt = false
+
+[functions.get-offer-rep]
+verify_jwt = false

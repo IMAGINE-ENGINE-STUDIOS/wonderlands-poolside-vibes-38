@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, Mail, Phone, MessageCircle, ArrowLeft, Check } from "lucide-react";
+import { Loader2, Mail, Phone, MessageCircle, ArrowLeft, Check, User } from "lucide-react";
 import Footer from "@/components/Footer";
 
 interface Promotion {
@@ -19,24 +19,35 @@ interface Promotion {
   is_active: boolean;
 }
 
+interface SalesRep {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  title: string;
+}
+
 const OfferPage = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const clientId = searchParams.get("c");
   const [promotion, setPromotion] = useState<Promotion | null>(null);
+  const [rep, setRep] = useState<SalesRep | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       if (!id) return;
-      const { data } = await supabase
-        .from("promotions")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-      setPromotion(data as unknown as Promotion);
+      const [{ data: promo }, { data: repData }] = await Promise.all([
+        supabase.from("promotions").select("*").eq("id", id).maybeSingle(),
+        supabase.functions.invoke("get-offer-rep", { body: { client_id: clientId } }),
+      ]);
+      setPromotion(promo as unknown as Promotion);
+      if (repData?.rep) setRep(repData.rep as SalesRep);
       setLoading(false);
     };
     load();
-  }, [id]);
+  }, [id, clientId]);
 
   if (loading) {
     return (
@@ -123,15 +134,45 @@ const OfferPage = () => {
             </div>
           )}
 
-          <div className="border-t border-border pt-6 space-y-3">
+          <div className="border-t border-border pt-6 space-y-4">
+            {rep && (
+              <div className="rounded-lg border border-border bg-muted/30 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#0891b2]/10 flex items-center justify-center shrink-0">
+                    <User className="h-5 w-5 text-[#0891b2]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-0.5">
+                      Your Wonderlands Representative
+                    </p>
+                    <p className="font-semibold text-foreground">
+                      {`${rep.first_name} ${rep.last_name}`.trim() || "Wonderlands Sales Team"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{rep.title}</p>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                      <a href={`mailto:${rep.email}?subject=${encodeURIComponent(`Re: ${promotion.name}`)}`} className="text-[#0891b2] hover:underline break-all">
+                        {rep.email}
+                      </a>
+                      <a href={`tel:${rep.phone.replace(/[^0-9+]/g, "")}`} className="text-[#0891b2] hover:underline">
+                        {rep.phone}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <h3 className="font-semibold text-foreground">Claim this offer — contact us:</h3>
             <div className="flex flex-col sm:flex-row gap-3">
-              <a href="tel:+12392570637" className="flex-1">
+              <a href={`tel:${(rep?.phone || "+1 (239) 257-0637").replace(/[^0-9+]/g, "")}`} className="flex-1">
                 <Button className="w-full" variant="outline">
                   <Phone className="h-4 w-4 mr-2" /> Call
                 </Button>
               </a>
-              <a href="mailto:sales@wonderlandsworld.com" className="flex-1">
+              <a
+                href={`mailto:${rep?.email || "sales@wonderlandsworld.com"}?subject=${encodeURIComponent(`Re: ${promotion.name}`)}`}
+                className="flex-1"
+              >
                 <Button className="w-full" variant="outline">
                   <Mail className="h-4 w-4 mr-2" /> Email
                 </Button>
