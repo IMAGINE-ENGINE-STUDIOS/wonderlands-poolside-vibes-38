@@ -57,6 +57,13 @@ const defaultFormData: PromotionFormData = {
   terms_conditions: ''
 };
 
+interface ClientRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+}
+
 const AdminPromotionsManager = () => {
   const { toast } = useToast();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -67,6 +74,15 @@ const AdminPromotionsManager = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
   const [formData, setFormData] = useState<PromotionFormData>(defaultFormData);
+
+  // Email send dialog state
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailPromotion, setEmailPromotion] = useState<Promotion | null>(null);
+  const [sendMode, setSendMode] = useState<'all' | 'specific'>('all');
+  const [clients, setClients] = useState<ClientRow[]>([]);
+  const [clientSearch, setClientSearch] = useState('');
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+  const [loadingClients, setLoadingClients] = useState(false);
 
   useEffect(() => {
     fetchPromotions();
