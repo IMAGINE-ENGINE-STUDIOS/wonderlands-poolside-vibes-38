@@ -8,9 +8,20 @@ const corsHeaders = {
 };
 
 interface BulkEmailRequest {
-  template_name: string;
+  template_name?: string;
   client_ids?: string[];
   send_to_all?: boolean;
+  custom_subject?: string;
+  custom_html?: string;
+  promotion?: {
+    name: string;
+    description?: string | null;
+    bundle_price?: number | null;
+    original_price?: number | null;
+    highlight_text?: string | null;
+    image_url?: string | null;
+    included_items?: Array<{ name: string; value?: string }>;
+  };
 }
 
 serve(async (req: Request) => {
@@ -30,26 +41,68 @@ serve(async (req: Request) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { template_name, client_ids, send_to_all }: BulkEmailRequest = await req.json();
+    const { template_name, client_ids, send_to_all, custom_subject, custom_html, promotion }: BulkEmailRequest = await req.json();
 
-    if (!template_name) {
-      throw new Error("template_name is required");
+    console.log(`Starting bulk email. template=${template_name} promotion=${promotion?.name} clients=${client_ids?.length ?? 'all'}`);
+
+    // Build template (from message_templates, custom payload, or promotion data)
+    let template: { name: string; subject: string | null; html_content: string | null; body: string | null; id: string | null } | null = null;
+
+    if (template_name) {
+      const { data } = await supabase
+        .from("message_templates")
+        .select("*")
+        .eq("name", template_name)
+        .maybeSingle();
+      if (data) template = data as any;
     }
 
-    console.log(`Starting bulk email with template: ${template_name}`);
-
-    // Fetch template
-    const { data: template, error: templateError } = await supabase
-      .from("message_templates")
-      .select("*")
-      .eq("name", template_name)
-      .single();
-
-    if (templateError || !template) {
-      throw new Error(`Template not found: ${template_name}`);
+    if (!template && promotion) {
+      const items = (promotion.included_items || [])
+        .map(i => `<li style="margin:6px 0;color:#374151;">${i.name}${i.value ? ` — <strong>${i.value}</strong>` : ''}</li>`)
+        .join('');
+      const priceBlock = promotion.bundle_price
+        ? `<p style="font-size:28px;font-weight:700;color:#0891b2;margin:18px 0 4px;">$${Number(promotion.bundle_price).toLocaleString()}${
+            promotion.original_price ? ` <span style="font-size:16px;color:#9ca3af;text-decoration:line-through;font-weight:400;">$${Number(promotion.original_price).toLocaleString()}</span>` : ''
+          }</p>`
+        : '';
+      template = {
+        id: null,
+        name: promotion.name,
+        subject: `Exclusive Offer: ${promotion.name}`,
+        html_content: `
+          <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;background:#ffffff;padding:24px;">
+            <h1 style="color:#0891b2;font-size:26px;margin:0 0 8px;">Hi {{first_name}},</h1>
+            ${promotion.highlight_text ? `<p style="display:inline-block;background:#f97066;color:#fff;padding:6px 12px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin:8px 0;">${promotion.highlight_text}</p>` : ''}
+            <h2 style="color:#111827;font-size:22px;margin:12px 0;">${promotion.name}</h2>
+            ${promotion.image_url ? `<img src="${promotion.image_url}" alt="${promotion.name}" style="width:100%;border-radius:8px;margin:12px 0;" />` : ''}
+            ${promotion.description ? `<p style="color:#4b5563;line-height:1.6;font-size:15px;">${promotion.description}</p>` : ''}
+            ${priceBlock}
+            ${items ? `<ul style="padding-left:20px;margin:16px 0;">${items}</ul>` : ''}
+            <a href="https://wonderlandsworld.com" style="display:inline-block;background:#0891b2;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px;">View Offer</a>
+            <p style="color:#6b7280;font-size:13px;margin-top:24px;">Reach out anytime — we're here to help.</p>
+          </div>
+        `,
+        body: promotion.description || promotion.name,
+      };
     }
 
-    console.log(`Template loaded: ${template.name}`);
+    if (!template && custom_html) {
+      template = {
+        id: null,
+        name: template_name || 'Custom',
+        subject: custom_subject || 'A message from Wonderlands World',
+        html_content: custom_html,
+        body: custom_html,
+      };
+    }
+
+    if (!template) {
+      throw new Error(`No template, promotion, or custom_html provided. template_name='${template_name}'`);
+    }
+
+    console.log(`Template ready: ${template.name}`);
+
 
     // Fetch clients with their assigned sales reps
     let clientsQuery = supabase
