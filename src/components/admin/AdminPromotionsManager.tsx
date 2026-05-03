@@ -282,7 +282,18 @@ const AdminPromotionsManager = () => {
       setIsSendingEmail(true);
       setSendingPromotionId(emailPromotion.id);
 
-      const body: Record<string, unknown> = { template_name: emailPromotion.name };
+      const body: Record<string, unknown> = {
+        template_name: emailPromotion.name,
+        promotion: {
+          name: emailPromotion.name,
+          description: emailPromotion.description,
+          bundle_price: emailPromotion.bundle_price,
+          original_price: emailPromotion.original_price,
+          highlight_text: emailPromotion.highlight_text,
+          image_url: emailPromotion.image_url,
+          included_items: emailPromotion.included_items,
+        },
+      };
       if (sendMode === 'all') {
         body.send_to_all = true;
       } else {
