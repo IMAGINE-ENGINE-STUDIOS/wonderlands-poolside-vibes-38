@@ -467,7 +467,7 @@ const AdminPromotionsManager = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleSendBulkEmail(promotion)}
+                              onClick={() => handleOpenEmailDialog(promotion)}
                               disabled={!promotion.is_active || (isSendingEmail && sendingPromotionId === promotion.id)}
                               className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
                               title="Send to All Clients"
