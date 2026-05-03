@@ -14,6 +14,7 @@ interface BulkEmailRequest {
   custom_subject?: string;
   custom_html?: string;
   promotion?: {
+    id?: string | null;
     name: string;
     description?: string | null;
     bundle_price?: number | null;
@@ -58,6 +59,17 @@ serve(async (req: Request) => {
     }
 
     if (!template && promotion) {
+      const SITE = "https://wonderlandsworld.com";
+      const offerUrl = promotion.id ? `${SITE}/offer/${promotion.id}` : SITE;
+
+      // Absolutize image URL — relative paths and blob/data URIs don't render in email
+      let imgSrc = promotion.image_url || '';
+      if (imgSrc.startsWith('blob:') || imgSrc.startsWith('data:')) {
+        imgSrc = '';
+      } else if (imgSrc.startsWith('/')) {
+        imgSrc = SITE + imgSrc;
+      }
+
       const items = (promotion.included_items || [])
         .map(i => `<li style="margin:6px 0;color:#374151;">${i.name}${i.value ? ` — <strong>${i.value}</strong>` : ''}</li>`)
         .join('');
@@ -75,12 +87,12 @@ serve(async (req: Request) => {
             <h1 style="color:#0891b2;font-size:26px;margin:0 0 8px;">Hi {{first_name}},</h1>
             ${promotion.highlight_text ? `<p style="display:inline-block;background:#f97066;color:#fff;padding:6px 12px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin:8px 0;">${promotion.highlight_text}</p>` : ''}
             <h2 style="color:#111827;font-size:22px;margin:12px 0;">${promotion.name}</h2>
-            ${promotion.image_url ? `<img src="${promotion.image_url}" alt="${promotion.name}" style="width:100%;border-radius:8px;margin:12px 0;" />` : ''}
+            ${imgSrc ? `<a href="${offerUrl}" style="display:block;"><img src="${imgSrc}" alt="${promotion.name}" style="width:100%;border-radius:8px;margin:12px 0;display:block;" /></a>` : ''}
             ${promotion.description ? `<p style="color:#4b5563;line-height:1.6;font-size:15px;">${promotion.description}</p>` : ''}
             ${priceBlock}
             ${items ? `<ul style="padding-left:20px;margin:16px 0;">${items}</ul>` : ''}
-            <a href="https://wonderlandsworld.com" style="display:inline-block;background:#0891b2;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px;">View Offer</a>
-            <p style="color:#6b7280;font-size:13px;margin-top:24px;">Reach out anytime — we're here to help.</p>
+            <a href="${offerUrl}" style="display:inline-block;background:#0891b2;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px;">View Full Offer</a>
+            <p style="color:#6b7280;font-size:13px;margin-top:24px;">Reach out anytime — we're here to help. <br/>Or schedule a free consultation: <a href="https://calendly.com/wonderlandsworlds/30min" style="color:#0891b2;">calendly.com/wonderlandsworlds/30min</a></p>
           </div>
         `,
         body: promotion.description || promotion.name,
