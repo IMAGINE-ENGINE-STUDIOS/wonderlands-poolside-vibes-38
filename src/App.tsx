@@ -41,6 +41,7 @@ const InternalProjectView = lazy(() => import("./pages/InternalProjectView"));
 const GalleryFilesPage = lazy(() => import("./pages/GalleryFilesPage"));
 const LandscapingPage = lazy(() => import("./pages/LandscapingPage"));
 const SharedGalleryView = lazy(() => import("./pages/SharedGalleryView"));
+const OfferPage = lazy(() => import("./pages/OfferPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
