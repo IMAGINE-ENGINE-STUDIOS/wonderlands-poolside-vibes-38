@@ -19,24 +19,35 @@ interface Promotion {
   is_active: boolean;
 }
 
+interface SalesRep {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  title: string;
+}
+
 const OfferPage = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const clientId = searchParams.get("c");
   const [promotion, setPromotion] = useState<Promotion | null>(null);
+  const [rep, setRep] = useState<SalesRep | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       if (!id) return;
-      const { data } = await supabase
-        .from("promotions")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-      setPromotion(data as unknown as Promotion);
+      const [{ data: promo }, { data: repData }] = await Promise.all([
+        supabase.from("promotions").select("*").eq("id", id).maybeSingle(),
+        supabase.functions.invoke("get-offer-rep", { body: { client_id: clientId } }),
+      ]);
+      setPromotion(promo as unknown as Promotion);
+      if (repData?.rep) setRep(repData.rep as SalesRep);
       setLoading(false);
     };
     load();
-  }, [id]);
+  }, [id, clientId]);
 
   if (loading) {
     return (
