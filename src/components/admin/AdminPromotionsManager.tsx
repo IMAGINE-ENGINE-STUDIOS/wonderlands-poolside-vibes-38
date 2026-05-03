@@ -285,6 +285,7 @@ const AdminPromotionsManager = () => {
       const body: Record<string, unknown> = {
         template_name: emailPromotion.name,
         promotion: {
+          id: emailPromotion.id,
           name: emailPromotion.name,
           description: emailPromotion.description,
           bundle_price: emailPromotion.bundle_price,
