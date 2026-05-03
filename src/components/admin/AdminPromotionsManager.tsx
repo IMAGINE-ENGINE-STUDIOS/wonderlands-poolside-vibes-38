@@ -241,30 +241,65 @@ const AdminPromotionsManager = () => {
     }
   };
 
-  const handleSendBulkEmail = async (promotion: Promotion) => {
-    if (!confirm(`Send "${promotion.name}" offer to ALL clients via email?`)) return;
+  const handleOpenEmailDialog = async (promotion: Promotion) => {
+    setEmailPromotion(promotion);
+    setSendMode('all');
+    setSelectedClientIds([]);
+    setClientSearch('');
+    setEmailDialogOpen(true);
+
+    setLoadingClients(true);
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, first_name, last_name, email')
+        .not('email', 'is', null)
+        .order('first_name', { ascending: true });
+      if (error) throw error;
+      setClients((data || []) as ClientRow[]);
+    } catch (err) {
+      console.error('Error loading clients:', err);
+      toast({ title: 'Error', description: 'Failed to load clients', variant: 'destructive' });
+    } finally {
+      setLoadingClients(false);
+    }
+  };
+
+  const toggleClient = (id: string) => {
+    setSelectedClientIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleConfirmSendEmail = async () => {
+    if (!emailPromotion) return;
+    if (sendMode === 'specific' && selectedClientIds.length === 0) {
+      toast({ title: 'Select clients', description: 'Pick at least one client', variant: 'destructive' });
+      return;
+    }
 
     try {
       setIsSendingEmail(true);
-      setSendingPromotionId(promotion.id);
+      setSendingPromotionId(emailPromotion.id);
 
-      const { data, error } = await supabase.functions.invoke('send-bulk-email', {
-        body: { template_name: promotion.name, send_to_all: true }
-      });
+      const body: Record<string, unknown> = { template_name: emailPromotion.name };
+      if (sendMode === 'all') {
+        body.send_to_all = true;
+      } else {
+        body.client_ids = selectedClientIds;
+      }
 
+      const { data, error } = await supabase.functions.invoke('send-bulk-email', { body });
       if (error) throw error;
 
       toast({
-        title: "Email Blast Sent",
-        description: `${data?.sent || 0} emails sent, ${data?.failed || 0} failed`
+        title: 'Email Sent',
+        description: `${data?.successful ?? data?.sent ?? 0} sent, ${data?.failed ?? 0} failed`
       });
+      setEmailDialogOpen(false);
     } catch (error) {
-      console.error('Error sending bulk email:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send bulk email",
-        variant: "destructive"
-      });
+      console.error('Error sending email:', error);
+      toast({ title: 'Error', description: 'Failed to send email', variant: 'destructive' });
     } finally {
       setIsSendingEmail(false);
       setSendingPromotionId(null);
