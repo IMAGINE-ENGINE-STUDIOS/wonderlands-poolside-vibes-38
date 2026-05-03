@@ -1,46 +1,44 @@
-## Add "Browse Categories" Editorial Section to Homepage
+# Fix Promotion Emails + Add Offer Landing Pages
 
-A new minimalist, luxury-architecture-magazine inspired section will be added to the main page (`/`) listing all 14 product categories from the right navigation menu. Clicking any tile updates the hash and switches the active section, mirroring the right-nav behavior.
+## Issues Identified
 
-### Where it goes
+1. **Image not rendering in email**: The Spa + Sauna + Fireplace promotion uses `image_url = "/lovable-uploads/spa-sauna-fireplace-bundle.png"` — a relative path. Email clients (Gmail, Outlook) cannot resolve relative URLs; they require absolute `https://` URLs.
+2. **Email link goes to homepage**: The `send-bulk-email` template hardcodes `https://wonderlandsworld.com` with no offer-specific destination. There is no per-promotion landing page where the recipient can view details and contact the team.
 
-In `src/pages/Index.tsx`, between `<MissionVisionValues />` and `<main>`. It always renders (regardless of which section is active), serving as a persistent visual index/jump-bar above the catalog.
+## Changes
 
-### Design — editorial, minimalist, rich
+### 1. New public route — Offer landing page
+Create `src/pages/OfferPage.tsx` mounted at `/offer/:id`:
+- Fetches the promotion from Supabase by ID
+- Displays: image, name, highlight badge, description, bundle price, original price, savings, included items list, terms
+- Contact CTAs: Call (tel:+1 239 257 0637), Email, WhatsApp (wa.me link), Schedule (Calendly link)
+- "Back to Wonderlands World" link to `/`
+- Themed using existing semantic tokens + brand teal/coral
+- Graceful "Offer not found" fallback
 
-Inspired by AD/Wallpaper/Dezeen layouts:
+Add to `src/App.tsx`:
+```tsx
+const OfferPage = lazy(() => import("./pages/OfferPage"));
+<Route path="/offer/:id" element={<OfferPage />} />
+```
 
-- **Section header**: thin uppercase eyebrow ("Collections / Index"), large serif/light display heading ("Browse the Wonderlands Atelier"), a single hairline divider beneath. Generous vertical padding (py-20+).
-- **Grid**: responsive editorial grid — 2 cols mobile, 3 cols tablet, 4 cols desktop. Asymmetric rhythm: every 5th tile spans 2 cols on desktop for a magazine feel (optional, kept subtle).
-- **Each tile**:
-  - Tall portrait aspect (aspect-[3/4]), full-bleed category banner image (reuse banners already imported in `Index.tsx`: `lathamGilmerBanner`, `saunaBanner`, `spaBanner`, `tanningLedgeBanner`, `screenEnclosureBanner`, `patioFencingBanner`, `lanaiBanner`, `paversBanner`, `grassBanner`, `landscapingBanner`, `coversBanner`, `drivewayGateBanner`; finishes/liners use existing finishes/liners assets).
-  - Subtle dark gradient overlay bottom-to-top for legibility.
-  - Bottom-left meta block: small numeric index ("01" — "14"), thin uppercase label, hairline rule, category name in light serif/display font.
-  - Hover: image scale 1.03, overlay deepens, label slides up slightly, hairline expands. All transitions ~500ms ease-out.
-  - Cursor pointer; entire tile clickable.
-- **Color/style**: neutral background (uses existing theme bg), white text on tiles, no chip badges or buttons. No emojis. No icons inside tiles (icons stay only in the right-nav). Pure typography + photography.
-- **Footer of section**: small centered caption ("Fourteen categories. One world.") and a hairline link "View full index ↓" that scrolls to the active catalog `<main>`.
+### 2. Edge function — `send-bulk-email`
+Update the inline promotion HTML builder so that:
+- **Image URL is absolutized**: if `promotion.image_url` starts with `/`, prefix it with `https://wonderlandsworld.com`. Skip the `<img>` tag entirely if the URL is empty or a `blob:`/`data:` URI (those don't work in email).
+- **CTA button links to `https://wonderlandsworld.com/offer/{promotion.id}`** instead of the homepage. The promotion ID is already passed from the client; add it to the `promotion` payload from `AdminPromotionsManager.tsx`.
 
-### Behavior
+### 3. Client — `AdminPromotionsManager.tsx`
+Include `id` in the `promotion` body sent to `send-bulk-email` so the edge function can build the offer URL.
 
-- Reuses the same 14 categories defined in `Index.tsx` `CATEGORIES`.
-- Click handler: `handleChange(id)` (already exists in `Index.tsx`) — passed into the new component as a prop. Updates hash + active state, scrolling smoothly to the catalog area.
-- No new routes, no new data, no changes to existing cards/quotes/product images.
+## Technical Details
 
-### Technical details
+**Why absolute URLs are required:**
+Gmail/Outlook strip or fail to render `<img src="/path">` because there's no host to resolve against. The image must be served from a publicly reachable HTTPS URL. The existing `/lovable-uploads/...` path is publicly served at `https://wonderlandsworld.com/lovable-uploads/...`, so prefixing the host is sufficient — no Supabase Storage upload needed.
 
-- New file: `src/components/BrowseCategoriesEditorial.tsx`
-  - Props: `{ activeId: SectionId; onSelect: (id: string) => void }`
-  - Imports the 14 banner assets (same imports as `Index.tsx` — extract to a small shared map if duplication is a concern; otherwise duplicate the imports locally for zero coupling).
-  - Renders the grid as described. Uses Tailwind only (no new deps).
-  - Active tile gets a thin accent ring (`ring-1 ring-foreground/40`) and slightly elevated label.
-- `src/pages/Index.tsx`:
-  - Import and render `<BrowseCategoriesEditorial activeId={active} onSelect={handleChange} />` after `<MissionVisionValues />`.
-  - On select, after calling `handleChange(id)`, scroll `<main>` into view smoothly.
-- No changes to: `RightNavigation.tsx`, product cards, quote tools, pricing, images.
+**Files touched:**
+- New: `src/pages/OfferPage.tsx`
+- Edit: `src/App.tsx` (add lazy import + route)
+- Edit: `supabase/functions/send-bulk-email/index.ts` (absolutize image URL, use offer page link)
+- Edit: `src/components/admin/AdminPromotionsManager.tsx` (include promotion `id` in the request body)
 
-### Out of scope
-
-- No edits to existing sections, cards, or quotes.
-- No new images uploaded — only existing banner assets reused.
-- No mobile drawer/menu changes.
+Existing offer pages will work for both promotions in the database (Spa+Sauna+Fireplace and Bermuda+Barrel Sauna) and any future promotion automatically — the page is data-driven from the `promotions` table.
