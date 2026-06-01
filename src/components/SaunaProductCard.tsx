@@ -79,6 +79,8 @@ interface SaunaExtras {
   selectedSpaModel: string;
   heater: boolean;
   heaterModel: string;
+  jets: boolean;
+  jetsCount: number;
   waterline: boolean;
   waterlineOption: string;
   deckPavers: boolean;
@@ -88,6 +90,8 @@ interface SaunaExtras {
   screenEnclosureArea: number;
   screenEnclosureQuality: string;
 }
+
+const JET_PRICE = 250;
 
 // Pool heater options
 const poolHeaters = [
@@ -106,6 +110,8 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
     selectedSpaModel: '',
     heater: false,
     heaterModel: '',
+    jets: false,
+    jetsCount: 0,
     waterline: false,
     waterlineOption: '',
     deckPavers: false,
@@ -126,33 +132,37 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
 
   const calculateExtrasTotal = () => {
     let total = 0;
-    
+
     if (extras.spa) {
       const spa = spas.find(s => s.model === extras.selectedSpaModel);
       total += spa?.price || 0;
-      
-      if (extras.heater) {
-        const heater = poolHeaters.find(h => h.name === extras.heaterModel);
-        total += heater?.price || 0;
-      }
-      
-      if (extras.waterline) {
-        const liner = poolLiners.find(l => l.name === extras.waterlineOption);
-        total += liner?.price || 0;
-      }
-      
-      if (extras.deckPavers && extras.deckPaversArea > 0) {
-        const collection = paverCollections.find(c => c.name === extras.paverCollection);
-        total += (collection?.pricePerSqFt || 0) * extras.deckPaversArea;
-      }
-      
-      if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
-        let pricePerSqFt = 15;
-        if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-        total += extras.screenEnclosureArea * pricePerSqFt;
-      }
     }
-    
+
+    if (extras.heater) {
+      const heater = poolHeaters.find(h => h.name === extras.heaterModel);
+      total += heater?.price || 0;
+    }
+
+    if (extras.jets && extras.jetsCount > 0) {
+      total += extras.jetsCount * JET_PRICE;
+    }
+
+    if (extras.waterline) {
+      const liner = poolLiners.find(l => l.name === extras.waterlineOption);
+      total += liner?.price || 0;
+    }
+
+    if (extras.deckPavers && extras.deckPaversArea > 0) {
+      const collection = paverCollections.find(c => c.name === extras.paverCollection);
+      total += (collection?.pricePerSqFt || 0) * extras.deckPaversArea;
+    }
+
+    if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+      let pricePerSqFt = 15;
+      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      total += extras.screenEnclosureArea * pricePerSqFt;
+    }
+
     // Apply project type multiplier (3x for commercial)
     return total * priceMultiplier;
   };
@@ -333,91 +343,115 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
                     <CarouselNext className="right-0" />
                   </Carousel>
 
-                  {/* Spa Sub-options */}
-                  <div className="ml-4 space-y-4 mt-4 p-4 bg-muted/30 rounded-lg border border-border">
-                    {/* Spa Heater */}
-                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Checkbox 
-                        checked={extras.heater} 
-                        onCheckedChange={() => toggleExtra('heater')} 
-                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                      />
-                      <div className="flex items-center space-x-1">
-                        <Zap size={16} className="text-primary" />
-                        <span className="text-sm">Spa Heater (+${extras.heater ? (poolHeaters.find(h => h.name === extras.heaterModel)?.price || 0).toLocaleString() : '0'})</span>
-                      </div>
-                    </label>
-                    {extras.heater && (
-                      <div className="ml-6 space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {poolHeaters.map((heater) => (
-                            <button
-                              key={heater.name}
-                              onClick={() => updateExtra('heaterModel', heater.name)}
-                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
-                                extras.heaterModel === heater.name 
-                                  ? 'border-primary bg-primary/10 text-primary' 
-                                  : 'border-border hover:border-primary/50'
-                              }`}
-                            >
-                              <div className="flex-1 text-left">
-                                <div>{heater.name}</div>
-                                <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                </div>
+              )}
 
-                    {/* Waterline */}
-                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Checkbox 
-                        checked={extras.waterline} 
-                        onCheckedChange={() => toggleExtra('waterline')} 
-                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                      />
-                      <div className="flex items-center space-x-1">
-                        <Droplet size={16} className="text-primary" />
-                        <span className="text-sm">Waterline (+${extras.waterline ? (poolLiners.find(l => l.name === extras.waterlineOption)?.price || 0).toLocaleString() : '0'})</span>
-                      </div>
-                    </label>
-                    {extras.waterline && (
-                      <div className="ml-6 space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">Select Waterline:</label>
-                        <Carousel className="w-full">
-                          <CarouselContent className="-ml-1">
-                            {poolLiners.map((liner) => (
-                              <CarouselItem key={liner.name} className="pl-1 basis-1/3">
-                                <div 
-                                  className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                                    extras.waterlineOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
-                                  }`} 
-                                  onClick={() => updateExtra('waterlineOption', liner.name)}
-                                >
-                                  <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <OptimizedImage 
-                                      src={liner.image} 
-                                      alt={liner.name} 
-                                      className="w-full h-full object-cover" 
-                                      loading="lazy"
-                                    />
-                                  </div>
-                                  <p className="text-xs font-medium text-center">{liner.name}</p>
-                                  <p className="text-xs text-primary font-semibold text-center">+${liner.price.toLocaleString()}</p>
-                                </div>
-                              </CarouselItem>
-                            ))}
-                          </CarouselContent>
-                          <CarouselPrevious className="left-0" />
-                          <CarouselNext className="right-0" />
-                        </Carousel>
-                      </div>
-                    )}
+              {/* Heater - Standalone */}
+              <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <Checkbox
+                  checked={extras.heater}
+                  onCheckedChange={() => toggleExtra('heater')}
+                  className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                />
+                <div className="flex items-center space-x-1">
+                  <Zap size={16} className="text-primary" />
+                  <span className="text-sm">Heater (+${extras.heater ? (poolHeaters.find(h => h.name === extras.heaterModel)?.price || 0).toLocaleString() : '0'})</span>
+                </div>
+              </label>
+              {extras.heater && (
+                <div className="ml-6 space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {poolHeaters.map((heater) => (
+                      <button
+                        key={heater.name}
+                        onClick={() => updateExtra('heaterModel', heater.name)}
+                        className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                          extras.heaterModel === heater.name
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="flex-1 text-left">
+                          <div>{heater.name}</div>
+                          <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
+
+              {/* Jets - Standalone */}
+              <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <Checkbox
+                  checked={extras.jets}
+                  onCheckedChange={() => toggleExtra('jets')}
+                  className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                />
+                <div className="flex items-center space-x-1">
+                  <Zap size={16} className="text-primary" />
+                  <span className="text-sm">Jets (+${extras.jets && extras.jetsCount > 0 ? (extras.jetsCount * JET_PRICE).toLocaleString() : '0'})</span>
+                </div>
+              </label>
+              {extras.jets && (
+                <div className="ml-6 space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Number of Jets (${JET_PRICE}/jet):</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="Enter number of jets"
+                    value={extras.jetsCount || ''}
+                    onChange={(e) => updateExtra('jetsCount', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+              )}
+
+              {/* Waterline - Standalone */}
+              <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <Checkbox
+                  checked={extras.waterline}
+                  onCheckedChange={() => toggleExtra('waterline')}
+                  className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                />
+                <div className="flex items-center space-x-1">
+                  <Droplet size={16} className="text-primary" />
+                  <span className="text-sm">Waterline (+${extras.waterline ? (poolLiners.find(l => l.name === extras.waterlineOption)?.price || 0).toLocaleString() : '0'})</span>
+                </div>
+              </label>
+              {extras.waterline && (
+                <div className="ml-6 space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Select Waterline:</label>
+                  <Carousel className="w-full">
+                    <CarouselContent className="-ml-1">
+                      {poolLiners.map((liner) => (
+                        <CarouselItem key={liner.name} className="pl-1 basis-1/3">
+                          <div
+                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              extras.waterlineOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
+                            }`}
+                            onClick={() => updateExtra('waterlineOption', liner.name)}
+                          >
+                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <OptimizedImage
+                                src={liner.image}
+                                alt={liner.name}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                            <p className="text-xs font-medium text-center">{liner.name}</p>
+                            <p className="text-xs text-primary font-semibold text-center">+${liner.price.toLocaleString()}</p>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-0" />
+                    <CarouselNext className="right-0" />
+                  </Carousel>
+                </div>
+              )}
+
 
               {/* Deck Pavers - Standalone */}
               <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
