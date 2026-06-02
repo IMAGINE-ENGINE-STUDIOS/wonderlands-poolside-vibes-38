@@ -1031,9 +1031,12 @@ const WonderlandsStudio = () => {
     if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '' && selectedExtras.linerOption !== 'Standard Blue') {
       const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
       if (linerOption) {
+        const sqft = calculatePoolLinerArea(selectedProduct.dimensions);
+        const perSqFt = linerOption.price || 20;
+        const linerTotal = sqft * perSqFt;
         extrasBreakdown.push({
-          name: `${linerOption.name} Liner`,
-          price: linerOption.price || 4500,
+          name: `${linerOption.name} Liner (${sqft} sqft @ $${perSqFt}/sqft)`,
+          price: linerTotal,
           image: linerOption.image
         });
       }
