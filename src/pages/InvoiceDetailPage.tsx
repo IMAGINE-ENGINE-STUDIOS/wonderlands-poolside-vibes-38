@@ -762,11 +762,27 @@ const InvoiceDetailPage = () => {
                   </p>
                 </div>
               )}
-              {invoice.sent_at && (
+              {editMode ? (
                 <div className="mt-4">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Sent Date</h3>
-                  <p className="text-sm">{new Date(invoice.sent_at).toLocaleDateString()}</p>
+                  <Input
+                    type="date"
+                    value={editedInvoice?.sent_at ? new Date(editedInvoice.sent_at).toISOString().split("T")[0] : ""}
+                    onChange={(e) =>
+                      setEditedInvoice((prev) =>
+                        prev ? { ...prev, sent_at: e.target.value ? new Date(e.target.value).toISOString() : null } : null
+                      )
+                    }
+                    className="w-48"
+                  />
                 </div>
+              ) : (
+                invoice.sent_at && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Sent Date</h3>
+                    <p className="text-sm">{new Date(invoice.sent_at).toLocaleDateString()}</p>
+                  </div>
+                )
               )}
             </div>
 
