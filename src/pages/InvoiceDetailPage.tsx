@@ -221,6 +221,8 @@ const InvoiceDetailPage = () => {
           total_amount: total,
           payment_terms: editedInvoice.payment_terms,
           notes: editedInvoice.notes,
+          payment_status: editedInvoice.payment_status,
+          sent_at: editedInvoice.sent_at,
         })
         .eq("id", invoiceId);
       if (error) throw error;
@@ -429,9 +431,26 @@ const InvoiceDetailPage = () => {
                 )}
               </div>
               <div className="text-right">
-                <Badge className={getStatusColor(invoice.payment_status) + " text-sm px-3 py-1 mb-2"}>
-                  {invoice.payment_status.toUpperCase()}
-                </Badge>
+                {editMode ? (
+                  <select
+                    value={editedInvoice?.payment_status || "unpaid"}
+                    onChange={(e) =>
+                      setEditedInvoice((prev) =>
+                        prev ? { ...prev, payment_status: e.target.value } : null
+                      )
+                    }
+                    className="text-sm px-3 py-1 mb-2 rounded bg-white/20 text-white border border-white/30"
+                  >
+                    <option value="unpaid" className="text-black">UNPAID</option>
+                    <option value="partial" className="text-black">PARTIAL</option>
+                    <option value="paid" className="text-black">PAID</option>
+                    <option value="overdue" className="text-black">OVERDUE</option>
+                  </select>
+                ) : (
+                  <Badge className={getStatusColor(invoice.payment_status) + " text-sm px-3 py-1 mb-2"}>
+                    {invoice.payment_status.toUpperCase()}
+                  </Badge>
+                )}
                 {editMode ? (
                   <div className="space-y-2 mt-2">
                     <div>
@@ -743,11 +762,27 @@ const InvoiceDetailPage = () => {
                   </p>
                 </div>
               )}
-              {invoice.sent_at && (
+              {editMode ? (
                 <div className="mt-4">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Sent Date</h3>
-                  <p className="text-sm">{new Date(invoice.sent_at).toLocaleDateString()}</p>
+                  <Input
+                    type="date"
+                    value={editedInvoice?.sent_at ? new Date(editedInvoice.sent_at).toISOString().split("T")[0] : ""}
+                    onChange={(e) =>
+                      setEditedInvoice((prev) =>
+                        prev ? { ...prev, sent_at: e.target.value ? new Date(e.target.value).toISOString() : null } : null
+                      )
+                    }
+                    className="w-48"
+                  />
                 </div>
+              ) : (
+                invoice.sent_at && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Sent Date</h3>
+                    <p className="text-sm">{new Date(invoice.sent_at).toLocaleDateString()}</p>
+                  </div>
+                )
               )}
             </div>
 
