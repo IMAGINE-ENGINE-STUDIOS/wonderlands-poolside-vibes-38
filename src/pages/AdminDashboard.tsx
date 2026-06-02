@@ -76,6 +76,7 @@ const AdminDashboard = () => {
   const { user, profile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("quotes");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { toast } = useToast();
   
   // Real database metrics
