@@ -52,7 +52,7 @@ const AdminLogin = ({ isOpen, onClose, onLoginSuccess }: AdminLoginProps) => {
       // For demo purposes, check against demo credentials
       const demoCredentials = [
         { email: "admin@wonderlandspools.com", password: "admin123!", role: "super_admin" },
-        { email: "rikicot@hotmail.com", password: "Crrrmg77", role: "main_admin" }
+        { email: "rikicot@hotmail.com", password: "MainAdmin!2025", role: "main_admin" }
       ];
 
       const matchedCredential = demoCredentials.find(
@@ -167,7 +167,7 @@ const AdminLogin = ({ isOpen, onClose, onLoginSuccess }: AdminLoginProps) => {
               <p className="text-sm font-medium mb-2">Demo Credentials:</p>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Super Admin: admin@wonderlandspools.com / admin123!</p>
-                <p className="text-xs text-muted-foreground">Main Admin: rikicot@hotmail.com / Crrrmg77</p>
+                <p className="text-xs text-muted-foreground">Main Admin: rikicot@hotmail.com / MainAdmin!2025</p>
               </div>
             </div>
           </CardContent>
