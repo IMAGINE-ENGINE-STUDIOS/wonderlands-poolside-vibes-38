@@ -11,8 +11,32 @@ import { AIAssistantChat } from "@/components/ai/AIAssistantChat";
 import Index from "./pages/Index";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+const lazyWithRetry = <T extends React.ComponentType<any>>(
+  importer: () => Promise<{ default: T }>,
+  cacheKey: string
+) => lazy(async () => {
+  try {
+    const component = await importer();
+    sessionStorage.removeItem(cacheKey);
+    return component;
+  } catch (error) {
+    const hasRetried = sessionStorage.getItem(cacheKey) === 'true';
+
+    if (!hasRetried && typeof window !== 'undefined') {
+      sessionStorage.setItem(cacheKey, 'true');
+      if ('caches' in window) {
+        const names = await caches.keys();
+        await Promise.all(names.map((name) => caches.delete(name)));
+      }
+      window.location.reload();
+    }
+
+    throw error;
+  }
+});
+
 // Lazy load non-critical route components
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"), 'admin-dashboard-import-retry');
 const TwilioPOC = lazy(() => import("./pages/TwilioPOC"));
 const EcommerceTemplate = lazy(() => import("./pages/EcommerceTemplate"));
 const AuthPage = lazy(() => import("./components/AuthPage"));
