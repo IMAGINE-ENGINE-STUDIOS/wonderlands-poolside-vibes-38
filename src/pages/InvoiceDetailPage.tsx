@@ -431,9 +431,26 @@ const InvoiceDetailPage = () => {
                 )}
               </div>
               <div className="text-right">
-                <Badge className={getStatusColor(invoice.payment_status) + " text-sm px-3 py-1 mb-2"}>
-                  {invoice.payment_status.toUpperCase()}
-                </Badge>
+                {editMode ? (
+                  <select
+                    value={editedInvoice?.payment_status || "unpaid"}
+                    onChange={(e) =>
+                      setEditedInvoice((prev) =>
+                        prev ? { ...prev, payment_status: e.target.value } : null
+                      )
+                    }
+                    className="text-sm px-3 py-1 mb-2 rounded bg-white/20 text-white border border-white/30"
+                  >
+                    <option value="unpaid" className="text-black">UNPAID</option>
+                    <option value="partial" className="text-black">PARTIAL</option>
+                    <option value="paid" className="text-black">PAID</option>
+                    <option value="overdue" className="text-black">OVERDUE</option>
+                  </select>
+                ) : (
+                  <Badge className={getStatusColor(invoice.payment_status) + " text-sm px-3 py-1 mb-2"}>
+                    {invoice.payment_status.toUpperCase()}
+                  </Badge>
+                )}
                 {editMode ? (
                   <div className="space-y-2 mt-2">
                     <div>
