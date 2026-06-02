@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList, Briefcase } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList, Briefcase, Menu, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +42,7 @@ import AdminApplicationsPanel from '@/components/admin/AdminApplicationsPanel';
 import AdminJobBoardManager from '@/components/admin/AdminJobBoardManager';
 import NotificationBell from '@/components/NotificationBell';
 
-// Navigation Item Component
+// Navigation Item Component — Noir & Gold
 const NavItem = ({
   icon: Icon,
   label,
@@ -54,20 +54,20 @@ const NavItem = ({
   active: boolean;
   onClick: () => void;
 }) => (
-  <button 
-    onClick={onClick} 
+  <button
+    onClick={onClick}
     className={`
-      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
-      transition-all duration-300 group relative overflow-hidden font-mono
-      ${active 
-        ? 'holographic-panel text-cyan-300 shadow-lg neon-border-cyan' 
-        : 'hover:bg-cyan-500/5 text-cyan-400/60 hover:text-cyan-300 border border-transparent hover:border-cyan-500/30'}
+      w-full flex items-center gap-3 px-3 py-2.5 rounded-md
+      transition-all duration-200 group relative overflow-hidden
+      ${active
+        ? 'bg-[#c9a84c]/12 text-[#f0d78c] border-r-2 border-[#c9a84c]'
+        : 'text-[#f5f3ee]/65 hover:text-[#f0d78c] hover:bg-[#c9a84c]/[0.06] hover:translate-x-0.5'}
     `}
+    style={{ fontFamily: "'Manrope', sans-serif" }}
   >
-    {active && <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent animate-pulse" />}
-    <Icon className={`h-4 w-4 relative z-10 transition-transform duration-300 ${active ? 'scale-110 text-cyan-400' : 'group-hover:scale-110'}`} />
-    <span className="text-xs relative z-10 tracking-wide uppercase">{label}</span>
-    {active && <ChevronRight className="h-3 w-3 ml-auto relative z-10 animate-pulse text-cyan-400" />}
+    <Icon className={`h-[18px] w-[18px] shrink-0 transition-all duration-200 ${active ? 'text-[#c9a84c]' : 'text-[#f5f3ee]/40 group-hover:text-[#c9a84c]'}`} />
+    <span className="text-[13px] font-medium tracking-wide truncate">{label}</span>
+    {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#c9a84c] shadow-[0_0_8px_rgba(201,168,76,0.6)]" />}
   </button>
 );
 
@@ -76,6 +76,7 @@ const AdminDashboard = () => {
   const { user, profile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("quotes");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { toast } = useToast();
   
   // Real database metrics
@@ -173,144 +174,240 @@ const AdminDashboard = () => {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-[#0a0a0f] admin-dark-theme relative overflow-hidden">
-      {/* Spaceship Grid Background */}
-      <div className="absolute inset-0 grid-bg opacity-30"></div>
-      
-      {/* Animated Holo Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
-      </div>
-      
-      {/* Scan Lines Effect */}
-      <div className="absolute inset-0 pointer-events-none opacity-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/20 to-transparent animate-scan" style={{height: '200px'}}></div>
+  const sectionLabel = (() => {
+    const map: Record<string, string> = {
+      'unified-products': 'Products', quotes: 'Quotes', 'quote-tool': 'Quote Tool', invoices: 'Invoices',
+      'invoice-tool': 'Invoice Tool', orders: 'Orders', users: 'Users', promotions: 'Promotions',
+      'sales-reps': 'Sales Reps', 'sales-categories': 'Sales Categories', 'head-of-sales': 'Head of Sales',
+      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects',
+      applications: 'Applications', 'job-board': 'Job Board', referrals: 'Referrals',
+      'api-manager': 'API Management', 'delivery-logistics': 'Delivery', 'content-editor': 'Content Editor',
+      procurement: 'Procurement', analytics: 'Analytics', setup: 'Setup', calculator: 'Pool Calculator',
+      performance: 'Performance', 'automation-templates': 'Message Templates',
+      'automation-sequences': 'Sequences', 'automation-status': 'Status Monitor', 'api-keys': 'API Keys',
+    };
+    return map[activeSection] ?? 'Dashboard';
+  })();
+
+  const SidebarContent = () => (
+    <>
+      {/* Brand */}
+      <div className="p-6 lg:p-7 flex flex-col gap-1 border-b border-[#c9a84c]/10">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="relative h-10 w-10 bg-gradient-to-br from-[#c9a84c] to-[#8a6f2a] rounded-md flex items-center justify-center shadow-[0_0_24px_rgba(201,168,76,0.25)]">
+            <Zap className="h-5 w-5 text-[#0d0d0d]" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-[#f5f3ee] font-bold text-lg tracking-tight leading-none" style={{ fontFamily: "'Sora', sans-serif" }}>
+              {isMainAdmin ? 'Command' : profile?.role === 'supplier' ? 'Supplier' : 'Contractor'}
+            </h1>
+            <span className="text-[10px] text-[#c9a84c]/70 tracking-[0.18em] uppercase font-semibold">Wonderlands · Admin</span>
+          </div>
+        </div>
+        {profile && (
+          <div className="flex items-center gap-2 mt-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] shadow-[0_0_6px_rgba(201,168,76,0.7)]" />
+            <span className="text-[11px] text-[#f0d78c]/80 tracking-wide truncate" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              {profile.first_name} {profile.last_name}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Command Center Header */}
-      <div className="relative border-b border-cyan-500/20 bg-black/80 backdrop-blur-xl sticky top-0 z-50 neon-border-cyan">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-blue-500/5" />
-        <div className="container mx-auto px-4 sm:px-6 py-3 relative">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="flex items-center gap-3">
-                <div className="relative hexagon-clip">
-                  <div className="absolute inset-0 bg-cyan-500/20 blur-xl" />
-                  <div className="relative h-14 w-14 bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg pulse-glow">
-                    <Zap className="h-7 w-7 text-white animate-pulse" />
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold neon-glow-cyan text-cyan-300 tracking-wider font-mono">
-                    {isMainAdmin ? '⬡ COMMAND CENTER ⬡' : `⬡ ${profile?.role === 'supplier' ? 'SUPPLIER' : 'CONTRACTOR'} HUB ⬡`}
-                  </h1>
-                  <p className="text-xs text-cyan-400/60 font-mono tracking-wide">
-                    {profile && <span className="text-cyan-400">
-                        [{profile.first_name} {profile.last_name}] • {profile.company_name}
-                      </span>}
-                  </p>
-                </div>
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+        {isContractorOrSupplier && (
+          <div>
+            <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#c9a84c] mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              Workspace
+            </h3>
+            <div className="space-y-0.5">
+              <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => { setActiveSection("procurement"); setMobileNavOpen(false); }} />
+              <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => { setActiveSection("orders"); setMobileNavOpen(false); }} />
+              <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => { setActiveSection("analytics"); setMobileNavOpen(false); }} />
+              <NavItem icon={Key} label="API Keys" active={activeSection === "api-keys"} onClick={() => { setActiveSection("api-keys"); setMobileNavOpen(false); }} />
+            </div>
+          </div>
+        )}
+
+        {isMainAdmin && (
+          <>
+            <div>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#c9a84c] mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                Core Systems
+              </h3>
+              <div className="space-y-0.5">
+                <NavItem icon={Database} label="Products" active={activeSection === "unified-products"} onClick={() => { setActiveSection("unified-products"); setMobileNavOpen(false); }} />
+                <NavItem icon={Star} label="Quotes" active={activeSection === "quotes"} onClick={() => { setActiveSection("quotes"); setMobileNavOpen(false); }} />
+                <NavItem icon={DollarSign} label="Quote Tool" active={activeSection === "quote-tool"} onClick={() => { setActiveSection("quote-tool"); setMobileNavOpen(false); }} />
+                <NavItem icon={FileText} label="Invoices" active={activeSection === "invoices"} onClick={() => { setActiveSection("invoices"); setMobileNavOpen(false); }} />
+                <NavItem icon={FileText} label="Invoice Tool" active={activeSection === "invoice-tool"} onClick={() => { setActiveSection("invoice-tool"); setMobileNavOpen(false); }} />
+                <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => { setActiveSection("orders"); setMobileNavOpen(false); }} />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <NotificationBell recipientType="admin" recipientId="system" variant="admin" />
-              <button 
-                onClick={refreshData} 
-                disabled={isLoading}
-                className="holographic-panel px-3 py-2 rounded hover:bg-cyan-500/10 transition-all duration-300 hover:scale-105 group"
-              >
-                <RefreshCw className={`h-4 w-4 text-cyan-400 group-hover:text-cyan-300 ${isLoading ? 'animate-spin' : ''}`} />
-              </button>
-              <button 
-                onClick={handleLogout}
-                className="holographic-panel px-3 py-2 rounded hover:bg-red-500/10 transition-all duration-300 hover:scale-105 group"
-              >
-                <LogOut className="h-4 w-4 text-red-400 group-hover:text-red-300" />
-              </button>
-              <Link to="/">
-                <button className="holographic-panel px-3 py-2 rounded hover:bg-blue-500/10 transition-all duration-300 hover:scale-105 group">
-                  <Home className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
-                </button>
-              </Link>
+
+            <div>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f0d78c]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                Management
+              </h3>
+              <div className="space-y-0.5">
+                <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => { setActiveSection("users"); setMobileNavOpen(false); }} />
+                <NavItem icon={Tag} label="Promotions" active={activeSection === "promotions"} onClick={() => { setActiveSection("promotions"); setMobileNavOpen(false); }} />
+                <NavItem icon={Users} label="Sales Reps" active={activeSection === "sales-reps"} onClick={() => { setActiveSection("sales-reps"); setMobileNavOpen(false); }} />
+                <NavItem icon={Crown} label="Sales Categories" active={activeSection === "sales-categories"} onClick={() => { setActiveSection("sales-categories"); setMobileNavOpen(false); }} />
+                <NavItem icon={DollarSign} label="Head of Sales" active={activeSection === "head-of-sales"} onClick={() => { setActiveSection("head-of-sales"); setMobileNavOpen(false); }} />
+                <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => { setActiveSection("clients"); setMobileNavOpen(false); }} />
+                <NavItem icon={Database} label="Customer DB" active={activeSection === "customer-cache"} onClick={() => { setActiveSection("customer-cache"); setMobileNavOpen(false); }} />
+                <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => { setActiveSection("contractors"); setMobileNavOpen(false); }} />
+                <NavItem icon={HardHat} label="Projects" active={activeSection === "projects"} onClick={() => { setActiveSection("projects"); setMobileNavOpen(false); }} />
+                <NavItem icon={ClipboardList} label="Applications" active={activeSection === "applications"} onClick={() => { setActiveSection("applications"); setMobileNavOpen(false); }} />
+                <NavItem icon={Briefcase} label="Job Board" active={activeSection === "job-board"} onClick={() => { setActiveSection("job-board"); setMobileNavOpen(false); }} />
+                <NavItem icon={FolderOpen} label="Repository" active={false} onClick={() => window.open('/files', '_blank')} />
+                <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => { setActiveSection("referrals"); setMobileNavOpen(false); }} />
+                <NavItem icon={Globe} label="API Management" active={activeSection === "api-manager"} onClick={() => { setActiveSection("api-manager"); setMobileNavOpen(false); }} />
+                <NavItem icon={TrendingUp} label="Delivery" active={activeSection === "delivery-logistics"} onClick={() => { setActiveSection("delivery-logistics"); setMobileNavOpen(false); }} />
+              </div>
             </div>
-          </div>
-        </div>
+
+            <div>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f0d78c]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                Operations
+              </h3>
+              <div className="space-y-0.5">
+                <NavItem icon={Edit} label="Content Editor" active={activeSection === "content-editor"} onClick={() => { setActiveSection("content-editor"); setMobileNavOpen(false); }} />
+                <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => { setActiveSection("procurement"); setMobileNavOpen(false); }} />
+                <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => { setActiveSection("analytics"); setMobileNavOpen(false); }} />
+                <NavItem icon={Database} label="Setup" active={activeSection === "setup"} onClick={() => { setActiveSection("setup"); setMobileNavOpen(false); }} />
+                <NavItem icon={BarChart3} label="Pool Calculator" active={activeSection === "calculator"} onClick={() => { setActiveSection("calculator"); setMobileNavOpen(false); }} />
+                <NavItem icon={Activity} label="Performance" active={activeSection === "performance"} onClick={() => { setActiveSection("performance"); setMobileNavOpen(false); }} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f0d78c]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                Automation
+              </h3>
+              <div className="space-y-0.5">
+                <NavItem icon={Mail} label="Message Templates" active={activeSection === "automation-templates"} onClick={() => { setActiveSection("automation-templates"); setMobileNavOpen(false); }} />
+                <NavItem icon={Zap} label="Sequences" active={activeSection === "automation-sequences"} onClick={() => { setActiveSection("automation-sequences"); setMobileNavOpen(false); }} />
+                <NavItem icon={MessageSquare} label="Status Monitor" active={activeSection === "automation-status"} onClick={() => { setActiveSection("automation-status"); setMobileNavOpen(false); }} />
+              </div>
+            </div>
+          </>
+        )}
+      </nav>
+    </>
+  );
+
+  return (
+    <div
+      className="min-h-screen flex bg-[#0d0d0d] text-[#f5f3ee] relative"
+      style={{ fontFamily: "'Manrope', sans-serif" }}
+    >
+      {/* Ambient gold glow accents */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-[480px] h-[480px] bg-[#c9a84c]/[0.05] rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-[520px] h-[520px] bg-[#c9a84c]/[0.04] rounded-full blur-[140px]" />
       </div>
 
-      <div className="flex flex-1 relative">
-        {/* Command Sidebar */}
-        <div className="w-64 border-r border-cyan-500/20 bg-black/60 backdrop-blur-xl p-4 space-y-2 overflow-y-auto sticky top-[70px] h-[calc(100vh-70px)] min-h-0 hidden lg:block neon-border-cyan flex-shrink-0">
-          <div className="space-y-1">
-            {/* For contractors and suppliers: limited navigation */}
-            {isContractorOrSupplier && <>
-                <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => setActiveSection("procurement")} />
-                <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => setActiveSection("orders")} />
-                <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => setActiveSection("analytics")} />
-                <NavItem icon={Key} label="API Keys" active={activeSection === "api-keys"} onClick={() => setActiveSection("api-keys")} />
-              </>}
+      {/* Mobile overlay */}
+      {mobileNavOpen && (
+        <div
+          onClick={() => setMobileNavOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-fade-in"
+        />
+      )}
 
-            {/* For main admin: full navigation */}
-            {isMainAdmin && <>
-                <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest px-3 py-2 font-mono border-l-2 border-cyan-500/50">
-                  ⬢ CORE SYSTEMS
+      {/* SIDEBAR — Floating Gold Frame */}
+      <aside
+        className={`
+          fixed lg:sticky top-0 lg:top-4 left-0 z-50
+          h-screen lg:h-[calc(100vh-2rem)]
+          w-[280px] lg:ml-4 lg:my-4
+          bg-[#141414]/95 lg:bg-[#1a1a1a]
+          border-r lg:border border-[#c9a84c]/25
+          lg:rounded-2xl
+          backdrop-blur-xl
+          flex flex-col
+          shadow-[0_8px_40px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(201,168,76,0.08)]
+          transition-transform duration-300 ease-out
+          ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          shrink-0
+        `}
+      >
+        <SidebarContent />
+      </aside>
+
+      {/* MAIN COLUMN */}
+      <main className="flex-1 min-w-0 flex flex-col relative z-10">
+        {/* Top Header */}
+        <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#0d0d0d]/85 border-b border-[#c9a84c]/10">
+          <div className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-10 py-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => setMobileNavOpen(true)}
+                className="lg:hidden p-2 -ml-2 rounded-md text-[#f0d78c] hover:bg-[#c9a84c]/10 transition-colors"
+                aria-label="Open navigation"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-[#c9a84c]/70 font-semibold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  {isMainAdmin ? 'Command Center' : `${profile?.role === 'supplier' ? 'Supplier' : 'Contractor'} Hub`}
                 </div>
-                <NavItem icon={Database} label="Products" active={activeSection === "unified-products"} onClick={() => setActiveSection("unified-products")} />
-                <NavItem icon={Star} label="Quotes" active={activeSection === "quotes"} onClick={() => setActiveSection("quotes")} />
-                <NavItem icon={DollarSign} label="Quote Tool" active={activeSection === "quote-tool"} onClick={() => setActiveSection("quote-tool")} />
-                <NavItem icon={FileText} label="Invoices" active={activeSection === "invoices"} onClick={() => setActiveSection("invoices")} />
-                <NavItem icon={FileText} label="Invoice Tool" active={activeSection === "invoice-tool"} onClick={() => setActiveSection("invoice-tool")} />
-                <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => setActiveSection("orders")} />
-                
-                <div className="text-xs font-bold text-blue-200 uppercase tracking-widest px-3 py-2 mt-4 font-mono border-l-2 border-blue-400/50">
-                  ⬢ MANAGEMENT
-                </div>
-                <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
-                <NavItem icon={Tag} label="Promotions" active={activeSection === "promotions"} onClick={() => setActiveSection("promotions")} />
-                <NavItem icon={Users} label="Sales Reps" active={activeSection === "sales-reps"} onClick={() => setActiveSection("sales-reps")} />
-                <NavItem icon={Crown} label="Sales Categories" active={activeSection === "sales-categories"} onClick={() => setActiveSection("sales-categories")} />
-                <NavItem icon={DollarSign} label="Head of Sales" active={activeSection === "head-of-sales"} onClick={() => setActiveSection("head-of-sales")} />
-                <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => setActiveSection("clients")} />
-                <NavItem icon={Database} label="Customer DB" active={activeSection === "customer-cache"} onClick={() => setActiveSection("customer-cache")} />
-                <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
-                <NavItem icon={HardHat} label="Projects" active={activeSection === "projects"} onClick={() => setActiveSection("projects")} />
-                <NavItem icon={ClipboardList} label="Applications" active={activeSection === "applications"} onClick={() => setActiveSection("applications")} />
-                <NavItem icon={Briefcase} label="Job Board" active={activeSection === "job-board"} onClick={() => setActiveSection("job-board")} />
-                <NavItem icon={FolderOpen} label="Repository" active={false} onClick={() => window.open('/files', '_blank')} />
-                <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
-                <NavItem icon={Globe} label="API Management" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
-                
-                <NavItem icon={TrendingUp} label="Delivery" active={activeSection === "delivery-logistics"} onClick={() => setActiveSection("delivery-logistics")} />
-                
-                <div className="text-xs font-bold text-purple-400 uppercase tracking-widest px-3 py-2 mt-4 font-mono border-l-2 border-purple-500/50">
-                  ⬢ OPERATIONS
-                </div>
-                <NavItem icon={Edit} label="Content Editor" active={activeSection === "content-editor"} onClick={() => setActiveSection("content-editor")} />
-                <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => setActiveSection("procurement")} />
-                <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => setActiveSection("analytics")} />
-                <NavItem icon={Database} label="Setup" active={activeSection === "setup"} onClick={() => setActiveSection("setup")} />
-                <NavItem icon={BarChart3} label="Pool Calculator" active={activeSection === "calculator"} onClick={() => setActiveSection("calculator")} />
-                <NavItem icon={Activity} label="Performance" active={activeSection === "performance"} onClick={() => setActiveSection("performance")} />
-                
-                <div className="text-xs font-bold text-orange-400 uppercase tracking-widest px-3 py-2 mt-4 font-mono border-l-2 border-orange-500/50">
-                  ⬢ AUTOMATION
-                </div>
-                <NavItem icon={Mail} label="Message Templates" active={activeSection === "automation-templates"} onClick={() => setActiveSection("automation-templates")} />
-                <NavItem icon={Zap} label="Sequences" active={activeSection === "automation-sequences"} onClick={() => setActiveSection("automation-sequences")} />
-                <NavItem icon={MessageSquare} label="Status Monitor" active={activeSection === "automation-status"} onClick={() => setActiveSection("automation-status")} />
-              </>}
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f3ee] truncate" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  {sectionLabel}
+                </h2>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="hidden sm:block">
+                <NotificationBell recipientType="admin" recipientId="system" variant="admin" />
+              </div>
+              <button
+                onClick={refreshData}
+                disabled={isLoading}
+                title="Refresh"
+                className="p-2.5 rounded-lg border border-[#c9a84c]/20 bg-[#1a1a1a] text-[#f0d78c] hover:bg-[#c9a84c]/15 hover:border-[#c9a84c]/50 transition-all duration-200"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+              <Link to="/" title="Home">
+                <button className="p-2.5 rounded-lg border border-[#c9a84c]/20 bg-[#1a1a1a] text-[#f0d78c] hover:bg-[#c9a84c]/15 hover:border-[#c9a84c]/50 transition-all duration-200">
+                  <Home className="h-4 w-4" />
+                </button>
+              </Link>
+              <button
+                onClick={handleLogout}
+                title="Sign out"
+                className="p-2.5 rounded-lg border border-[#c9a84c]/20 bg-[#1a1a1a] text-[#f0d78c] hover:bg-[#c9a84c] hover:text-[#0d0d0d] hover:border-[#c9a84c] transition-all duration-200"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </div>
+          <div className="h-px bg-gradient-to-r from-transparent via-[#c9a84c]/30 to-transparent" />
+        </header>
 
-        {/* Main Content Area */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto relative">
-          {/* Mission Control Metrics */}
-          <div className="mb-8 relative">
-            <div className="absolute -top-2 left-0 text-xs font-mono text-cyan-400/40 tracking-widest">LIVE TELEMETRY</div>
+        {/* Content */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto">
+          {/* Live Telemetry */}
+          <div className="mb-10">
+            <div className="flex items-baseline justify-between mb-4">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-[#c9a84c] font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Live Telemetry
+                </div>
+                <p className="text-xs text-[#f5f3ee]/40 mt-1">Real-time pulse across the operation</p>
+              </div>
+              <div className="hidden md:flex items-center gap-2 text-[10px] text-[#c9a84c]/60 uppercase tracking-widest">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#c9a84c] animate-pulse" />
+                Synced
+              </div>
+            </div>
             <AdminDashboardMetrics />
           </div>
+
           {/* Products Tab - Only for main admins */}
           {isMainAdmin && activeSection === "unified-products" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
               <Card className="holographic-panel border-cyan-500/30">
@@ -781,7 +878,7 @@ const AdminDashboard = () => {
               </Card>
             </div>}
         </div>
-      </div>
+      </main>
     </div>
   );
 };
