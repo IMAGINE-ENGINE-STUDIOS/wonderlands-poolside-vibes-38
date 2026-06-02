@@ -277,6 +277,7 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
         description: sendEmail ? "Invoice created and sent!" : "Invoice created successfully",
       });
 
+      try { localStorage.removeItem(INVOICE_CACHE_KEY); } catch {}
       onClose();
       navigate(`/admin/invoices/${invoice.id}`);
     } catch (error: any) {
