@@ -42,7 +42,7 @@ import AdminApplicationsPanel from '@/components/admin/AdminApplicationsPanel';
 import AdminJobBoardManager from '@/components/admin/AdminJobBoardManager';
 import NotificationBell from '@/components/NotificationBell';
 
-// Navigation Item Component
+// Navigation Item Component — Noir & Gold
 const NavItem = ({
   icon: Icon,
   label,
@@ -54,20 +54,20 @@ const NavItem = ({
   active: boolean;
   onClick: () => void;
 }) => (
-  <button 
-    onClick={onClick} 
+  <button
+    onClick={onClick}
     className={`
-      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
-      transition-all duration-300 group relative overflow-hidden font-mono
-      ${active 
-        ? 'holographic-panel text-cyan-300 shadow-lg neon-border-cyan' 
-        : 'hover:bg-cyan-500/5 text-cyan-400/60 hover:text-cyan-300 border border-transparent hover:border-cyan-500/30'}
+      w-full flex items-center gap-3 px-3 py-2.5 rounded-md
+      transition-all duration-200 group relative overflow-hidden
+      ${active
+        ? 'bg-[#c9a84c]/12 text-[#f0d78c] border-r-2 border-[#c9a84c]'
+        : 'text-[#f5f3ee]/65 hover:text-[#f0d78c] hover:bg-[#c9a84c]/[0.06] hover:translate-x-0.5'}
     `}
+    style={{ fontFamily: "'Manrope', sans-serif" }}
   >
-    {active && <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent animate-pulse" />}
-    <Icon className={`h-4 w-4 relative z-10 transition-transform duration-300 ${active ? 'scale-110 text-cyan-400' : 'group-hover:scale-110'}`} />
-    <span className="text-xs relative z-10 tracking-wide uppercase">{label}</span>
-    {active && <ChevronRight className="h-3 w-3 ml-auto relative z-10 animate-pulse text-cyan-400" />}
+    <Icon className={`h-[18px] w-[18px] shrink-0 transition-all duration-200 ${active ? 'text-[#c9a84c]' : 'text-[#f5f3ee]/40 group-hover:text-[#c9a84c]'}`} />
+    <span className="text-[13px] font-medium tracking-wide truncate">{label}</span>
+    {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#c9a84c] shadow-[0_0_8px_rgba(201,168,76,0.6)]" />}
   </button>
 );
 
