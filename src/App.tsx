@@ -99,7 +99,7 @@ const App = () => {
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute requireAuth={true}>
+                <ProtectedRoute requireAuth={true} requiredRoles={['main_admin', 'supplier', 'installer']}>
                   <AdminDashboard />
                 </ProtectedRoute>
                } 
