@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useRef } from 'react';
 import { DollarSign, Star, ShoppingCart, Database, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,6 +14,97 @@ interface DashboardMetrics {
   convertedReferrals: number;
   totalCommissions: number;
 }
+
+// Animated count-up hook
+const useCountUp = (target: number, duration = 1100) => {
+  const [value, setValue] = useState(0);
+  const fromRef = useRef(0);
+  useEffect(() => {
+    const from = fromRef.current;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(from + (target - from) * eased);
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else fromRef.current = target;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return value;
+};
+
+const StatTile: React.FC<{
+  label: string;
+  value: number;
+  format: 'currency' | 'integer' | 'percent';
+  subline: string;
+  icon: React.ElementType;
+  emphasis?: boolean;
+  delay?: number;
+}> = ({ label, value, format, subline, icon: Icon, emphasis, delay = 0 }) => {
+  const animated = useCountUp(value);
+  const display =
+    format === 'currency'
+      ? `$${Math.round(animated).toLocaleString()}`
+      : format === 'percent'
+      ? `${Math.round(animated)}%`
+      : Math.round(animated).toLocaleString();
+
+  return (
+    <div
+      className={`
+        group relative bg-[#1a1a1a] p-6 rounded-xl
+        border ${emphasis ? 'border-[#c9a84c]' : 'border-[#c9a84c]/20'}
+        overflow-hidden
+        transition-all duration-300
+        hover:border-[#c9a84c]/70 hover:-translate-y-0.5
+        hover:shadow-[0_18px_50px_-20px_rgba(201,168,76,0.5)]
+        animate-fade-in
+      `}
+      style={{ animationDelay: `${delay}ms`, fontFamily: "'Manrope', sans-serif" }}
+    >
+      {emphasis && (
+        <div className="absolute top-0 right-0 w-24 h-24 bg-[#c9a84c]/[0.08] rotate-45 translate-x-10 -translate-y-10 transition-transform duration-500 group-hover:scale-110" />
+      )}
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#c9a84c]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="relative flex items-start justify-between mb-5">
+        <span
+          className="text-[12px] uppercase tracking-[0.18em] text-[#c9a84c] font-bold leading-none"
+          style={{ fontFamily: "'Sora', sans-serif" }}
+        >
+          {label}
+        </span>
+        <Icon className="h-5 w-5 text-[#c9a84c]/70 transition-transform duration-300 group-hover:scale-110" />
+      </div>
+
+      <div className="relative flex items-end justify-between gap-3">
+        <span
+          className="text-4xl lg:text-5xl font-light text-[#f5f3ee] tracking-tight tabular-nums leading-none"
+          style={{ fontFamily: "'Sora', sans-serif" }}
+        >
+          {display}
+        </span>
+        <div className={`w-12 h-1 rounded-full ${emphasis ? 'bg-[#c9a84c]' : 'bg-[#c9a84c]/30'}`} />
+      </div>
+
+      <p className="relative mt-4 text-[12px] text-[#f0d78c]/70 font-medium tracking-wide">
+        {subline}
+      </p>
+    </div>
+  );
+};
+
+const SkeletonTile = () => (
+  <div className="bg-[#1a1a1a] p-6 rounded-xl border border-[#c9a84c]/15 h-[170px] animate-pulse">
+    <div className="h-3 w-24 bg-[#c9a84c]/15 rounded mb-6" />
+    <div className="h-10 w-32 bg-[#c9a84c]/10 rounded mb-3" />
+    <div className="h-3 w-20 bg-[#c9a84c]/10 rounded" />
+  </div>
+);
 
 const AdminDashboardMetrics = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
@@ -34,70 +124,35 @@ const AdminDashboardMetrics = () => {
   const fetchMetrics = async () => {
     try {
       setLoading(true);
+      const [ordersRes, quotesRes, referralsRes] = await Promise.all([
+        supabase.from('product_orders').select('total_amount, payment_status'),
+        supabase.from('user_quotations').select('status'),
+        supabase.from('referrals').select('status, estimated_commission'),
+      ]);
+      const orders = ordersRes.data || [];
+      const quotes = quotesRes.data || [];
+      const referrals = referralsRes.data || [];
 
-      // Fetch orders data
-      const { data: orders, error: ordersError } = await supabase
-        .from('product_orders')
-        .select('total_amount, payment_status');
+      const completed = orders.filter(o => o.payment_status === 'completed');
+      const totalRevenue = completed.reduce((s, o) => s + (o.total_amount || 0), 0);
+      const avg = completed.length ? totalRevenue / completed.length : 0;
 
-      if (ordersError) {
-        console.error('Error fetching orders:', ordersError);
-      }
-
-      // Fetch quotes data
-      const { data: quotes, error: quotesError } = await supabase
-        .from('user_quotations')
-        .select('status');
-
-      if (quotesError) {
-        console.error('Error fetching quotes:', quotesError);
-      }
-
-      // Fetch referrals data
-      const { data: referrals, error: referralsError } = await supabase
-        .from('referrals')
-        .select('status, estimated_commission');
-
-      if (referralsError) {
-        console.error('Error fetching referrals:', referralsError);
-      }
-
-      // Calculate metrics
-      const ordersData = orders || [];
-      const quotesData = quotes || [];
-      const referralsData = referrals || [];
-
-      const completedOrders = ordersData.filter(o => o.payment_status === 'completed');
-      const totalRevenue = completedOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
-
-      const totalOrders = ordersData.length;
-      const completedOrdersCount = completedOrders.length;
-      const pendingOrders = ordersData.filter(o => o.payment_status === 'pending').length;
-
-      const totalQuotes = quotesData.length;
-      const pendingQuotes = quotesData.filter(q => q.status === 'pending').length;
-
-      const totalReferrals = referralsData.length;
-      const convertedReferrals = referralsData.filter(r => r.status === 'converted').length;
-      const totalCommissions = referralsData
-        .filter(r => r.status === 'converted')
-        .reduce((sum, r) => sum + (r.estimated_commission || 0), 0);
+      const convertedRefs = referrals.filter(r => r.status === 'converted');
 
       setMetrics({
         totalRevenue,
-        averageOrderValue,
-        totalOrders,
-        completedOrders: completedOrdersCount,
-        pendingOrders,
-        totalQuotes,
-        pendingQuotes,
-        totalReferrals,
-        convertedReferrals,
-        totalCommissions,
+        averageOrderValue: avg,
+        totalOrders: orders.length,
+        completedOrders: completed.length,
+        pendingOrders: orders.filter(o => o.payment_status === 'pending').length,
+        totalQuotes: quotes.length,
+        pendingQuotes: quotes.filter(q => q.status === 'pending').length,
+        totalReferrals: referrals.length,
+        convertedReferrals: convertedRefs.length,
+        totalCommissions: convertedRefs.reduce((s, r) => s + (r.estimated_commission || 0), 0),
       });
-    } catch (error) {
-      console.error('Error fetching dashboard metrics:', error);
+    } catch (e) {
+      console.error('Error fetching dashboard metrics:', e);
     } finally {
       setLoading(false);
     }
@@ -105,143 +160,61 @@ const AdminDashboardMetrics = () => {
 
   useEffect(() => {
     fetchMetrics();
-    
-    // Refresh metrics every 30 seconds
     const interval = setInterval(fetchMetrics, 30000);
-    
     return () => clearInterval(interval);
   }, []);
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
-              <div className="h-4 w-4 bg-gray-200 animate-pulse rounded"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 bg-gray-200 animate-pulse rounded mb-2"></div>
-              <div className="h-3 w-24 bg-gray-200 animate-pulse rounded"></div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-5">
+        {Array.from({ length: 5 }).map((_, i) => <SkeletonTile key={i} />)}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-      {/* Revenue Panel */}
-      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300">
-        <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full blur-2xl"></div>
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-cyan-400 tracking-wider uppercase">Revenue</span>
-            <DollarSign className="h-5 w-5 text-cyan-400" />
-          </div>
-          <div className="text-3xl font-bold neon-glow-cyan text-cyan-300 mb-1">
-            ${metrics.totalRevenue.toLocaleString()}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-full bg-cyan-900/30 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 data-stream"></div>
-            </div>
-          </div>
-          <p className="text-xs text-cyan-400/60 mt-2 font-mono">
-            AVG ${metrics.averageOrderValue.toFixed(2)}
-          </p>
-        </div>
-      </div>
-
-      {/* Quotes Panel */}
-      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300">
-        <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl"></div>
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-amber-400 tracking-wider uppercase">Quotes</span>
-            <Star className="h-5 w-5 text-amber-400" />
-          </div>
-          <div className="text-3xl font-bold text-amber-300 mb-1" style={{textShadow: '0 0 20px rgba(251, 191, 36, 0.6)'}}>
-            {metrics.totalQuotes}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-full bg-amber-900/30 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-500 data-stream"></div>
-            </div>
-          </div>
-          <p className="text-xs text-amber-400/60 mt-2 font-mono">
-            {metrics.pendingQuotes} PENDING
-          </p>
-        </div>
-      </div>
-
-      {/* Orders Panel */}
-      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300">
-        <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-blue-200 tracking-wider uppercase">Orders</span>
-            <ShoppingCart className="h-5 w-5 text-blue-200" />
-          </div>
-          <div className="text-3xl font-bold neon-glow-blue text-blue-100 mb-1">
-            {metrics.totalOrders}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-full bg-blue-900/30 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
-            </div>
-          </div>
-          <p className="text-xs text-blue-300/80 mt-2 font-mono">
-            {metrics.completedOrders} DONE / {metrics.pendingOrders} QUEUE
-          </p>
-        </div>
-      </div>
-
-      {/* Referrals Panel */}
-      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300">
-        <div className="absolute top-0 right-0 w-20 h-20 bg-pink-500/10 rounded-full blur-2xl"></div>
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-pink-400 tracking-wider uppercase">Referrals</span>
-            <Gift className="h-5 w-5 text-pink-400" />
-          </div>
-          <div className="text-3xl font-bold text-pink-300 mb-1" style={{textShadow: '0 0 20px rgba(236, 72, 153, 0.6)'}}>
-            {metrics.totalReferrals}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-full bg-pink-900/30 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-pink-500 to-rose-500 data-stream"></div>
-            </div>
-          </div>
-          <p className="text-xs text-pink-400/60 mt-2 font-mono">
-            {metrics.convertedReferrals} CONVERTED
-          </p>
-        </div>
-      </div>
-
-      {/* System Health Panel */}
-      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300 pulse-glow">
-        <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl"></div>
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-green-400 tracking-wider uppercase">System</span>
-            <Database className="h-5 w-5 text-green-400 animate-pulse" />
-          </div>
-          <div className="text-3xl font-bold text-green-300 mb-1" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>
-            100%
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-full bg-green-900/30 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse"></div>
-            </div>
-          </div>
-          <p className="text-xs text-green-400/60 mt-2 font-mono">
-            ALL SYSTEMS NOMINAL
-          </p>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-5">
+      <StatTile
+        label="Revenue"
+        value={metrics.totalRevenue}
+        format="currency"
+        subline={`Avg order $${metrics.averageOrderValue.toFixed(0)}`}
+        icon={DollarSign}
+        emphasis
+        delay={0}
+      />
+      <StatTile
+        label="Quotes"
+        value={metrics.totalQuotes}
+        format="integer"
+        subline={`${metrics.pendingQuotes} pending`}
+        icon={Star}
+        delay={70}
+      />
+      <StatTile
+        label="Orders"
+        value={metrics.totalOrders}
+        format="integer"
+        subline={`${metrics.completedOrders} done · ${metrics.pendingOrders} queue`}
+        icon={ShoppingCart}
+        delay={140}
+      />
+      <StatTile
+        label="Referrals"
+        value={metrics.totalReferrals}
+        format="integer"
+        subline={`${metrics.convertedReferrals} converted`}
+        icon={Gift}
+        delay={210}
+      />
+      <StatTile
+        label="System"
+        value={100}
+        format="percent"
+        subline="All systems nominal"
+        icon={Database}
+        delay={280}
+      />
     </div>
   );
 };
