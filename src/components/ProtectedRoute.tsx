@@ -58,18 +58,6 @@ const ProtectedRoute = ({
     );
   }
 
-  // Wait for role/profile data before deciding access for an authenticated route.
-  if (requireAuth && user && !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Check role-based access
   if (requiredRoles.length > 0 && (!profile || !requiredRoles.includes(profile.role as any))) {
     // Redirect sales reps to their dashboard if they try to access admin pages
