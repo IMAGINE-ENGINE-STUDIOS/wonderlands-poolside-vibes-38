@@ -52,6 +52,40 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
     { id: "1", description: "", quantity: 1, rate: 0, amount: 0 }
   ]);
 
+  const INVOICE_CACHE_KEY = "wonderlands_invoice_draft_v1";
+
+  // Restore cached draft on open (skip when loading a specific quotation)
+  useEffect(() => {
+    if (!isOpen || quotationId) return;
+    try {
+      const raw = localStorage.getItem(INVOICE_CACHE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.formData) setFormData((prev) => ({ ...prev, ...s.formData }));
+        if (Array.isArray(s.lineItems) && s.lineItems.length) setLineItems(s.lineItems);
+      }
+    } catch (e) {
+      console.warn("Invoice cache restore failed", e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, quotationId]);
+
+  // Debounced auto-save of invoice draft to localStorage
+  useEffect(() => {
+    if (!isOpen) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          INVOICE_CACHE_KEY,
+          JSON.stringify({ formData, lineItems, savedAt: new Date().toISOString() })
+        );
+      } catch (e) {
+        console.warn("Invoice cache save failed", e);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [isOpen, formData, lineItems]);
+
   useEffect(() => {
     if (quotationId && isOpen) {
       loadQuotationData();
@@ -243,6 +277,7 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
         description: sendEmail ? "Invoice created and sent!" : "Invoice created successfully",
       });
 
+      try { localStorage.removeItem(INVOICE_CACHE_KEY); } catch {}
       onClose();
       navigate(`/admin/invoices/${invoice.id}`);
     } catch (error: any) {
