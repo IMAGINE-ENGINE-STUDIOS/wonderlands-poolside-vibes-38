@@ -427,8 +427,57 @@ const WonderlandsStudio = () => {
     extrasTotal: 0
   });
 
+  // ─── Real-time auto-save of studio state to localStorage ───
+  const STUDIO_CACHE_KEY = 'wonderlands_studio_state_v1';
+  const hydratedRef = useRef(false);
+
+  // Load cached state on mount (only if no URL params override it)
+  useEffect(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('fromBuilder') === 'true' || urlParams.get('model')) return;
+      const raw = localStorage.getItem(STUDIO_CACHE_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (s.activeTab) setActiveTab(s.activeTab);
+      if (s.selectedProduct) setSelectedProduct(s.selectedProduct);
+      if (s.selectedExtras) setSelectedExtras((prev: any) => ({ ...prev, ...s.selectedExtras }));
+      if (typeof s.paverSurfaceArea === 'string') setPaverSurfaceArea(s.paverSurfaceArea);
+      if (s.paverCategory) setPaverCategory(s.paverCategory);
+      if (s.viewMode) setViewMode(s.viewMode);
+      if (s.customPoolShape) setCustomPoolShape(s.customPoolShape);
+    } catch (e) {
+      console.warn('Studio autosave restore failed:', e);
+    }
+  }, []);
+
+  // Debounced auto-save on any tracked state change
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(STUDIO_CACHE_KEY, JSON.stringify({
+          activeTab,
+          selectedProduct,
+          selectedExtras,
+          paverSurfaceArea,
+          paverCategory,
+          viewMode,
+          customPoolShape,
+          savedAt: new Date().toISOString(),
+        }));
+      } catch (e) {
+        console.warn('Studio autosave failed:', e);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [activeTab, selectedProduct, selectedExtras, paverSurfaceArea, paverCategory, viewMode, customPoolShape]);
+
   // Handle URL parameters for product search integration
   useEffect(() => {
+
     // Scroll to top when component mounts to show product image
     window.scrollTo({ top: 0, behavior: 'instant' });
     
