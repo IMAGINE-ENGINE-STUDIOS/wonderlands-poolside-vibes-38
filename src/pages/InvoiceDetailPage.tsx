@@ -221,6 +221,8 @@ const InvoiceDetailPage = () => {
           total_amount: total,
           payment_terms: editedInvoice.payment_terms,
           notes: editedInvoice.notes,
+          payment_status: editedInvoice.payment_status,
+          sent_at: editedInvoice.sent_at,
         })
         .eq("id", invoiceId);
       if (error) throw error;
