@@ -345,6 +345,14 @@ const calculateTileCost = (dimensions: string | undefined): number => {
   const tileArea = perimeter * 1; // 1ft waterline height
   return Math.round(tileArea * 45); // $45 per sqft
 };
+
+// Pool interior surface area (floor + walls) for liner pricing per sqft
+const calculatePoolLinerArea = (dimensions: string | undefined): number => {
+  const { length, width } = parsePoolDimensions(dimensions);
+  const floor = length * width;
+  const walls = 2 * (length + width) * 5; // avg 5ft depth
+  return Math.round(floor + walls);
+};
 const WonderlandsStudio = () => {
   const {
     addToCart
