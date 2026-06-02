@@ -345,6 +345,14 @@ const calculateTileCost = (dimensions: string | undefined): number => {
   const tileArea = perimeter * 1; // 1ft waterline height
   return Math.round(tileArea * 45); // $45 per sqft
 };
+
+// Pool interior surface area (floor + walls) for liner pricing per sqft
+const calculatePoolLinerArea = (dimensions: string | undefined): number => {
+  const { length, width } = parsePoolDimensions(dimensions);
+  const floor = length * width;
+  const walls = 2 * (length + width) * 5; // avg 5ft depth
+  return Math.round(floor + walls);
+};
 const WonderlandsStudio = () => {
   const {
     addToCart
@@ -1023,9 +1031,12 @@ const WonderlandsStudio = () => {
     if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '' && selectedExtras.linerOption !== 'Standard Blue') {
       const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
       if (linerOption) {
+        const sqft = calculatePoolLinerArea(selectedProduct.dimensions);
+        const perSqFt = linerOption.price || 20;
+        const linerTotal = sqft * perSqFt;
         extrasBreakdown.push({
-          name: `${linerOption.name} Liner`,
-          price: linerOption.price || 4500,
+          name: `${linerOption.name} Liner (${sqft} sqft @ $${perSqFt}/sqft)`,
+          price: linerTotal,
           image: linerOption.image
         });
       }
@@ -1190,9 +1201,11 @@ const WonderlandsStudio = () => {
     if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '' && selectedExtras.linerOption !== 'Standard Blue') {
       const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
       if (linerOption) {
+        const sqft = calculatePoolLinerArea(selectedProduct.dimensions);
+        const perSqFt = linerOption.price || 20;
         extrasArray.push({
-          name: `${selectedExtras.linerOption} Liner`,
-          price: linerOption?.price || 4500
+          name: `${selectedExtras.linerOption} Liner (${sqft} sqft @ $${perSqFt}/sqft)`,
+          price: sqft * perSqFt
         });
       }
     }
