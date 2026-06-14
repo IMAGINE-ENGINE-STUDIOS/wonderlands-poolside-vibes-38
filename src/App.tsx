@@ -66,6 +66,7 @@ const GalleryFilesPage = lazy(() => import("./pages/GalleryFilesPage"));
 const LandscapingPage = lazy(() => import("./pages/LandscapingPage"));
 const SharedGalleryView = lazy(() => import("./pages/SharedGalleryView"));
 const OfferPage = lazy(() => import("./pages/OfferPage"));
+const DesignProposals = lazy(() => import("./pages/DesignProposals"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -174,6 +175,7 @@ const App = () => {
             <Route path="/landscaping" element={<LandscapingPage />} />
             <Route path="/Landscaping" element={<LandscapingPage />} />
             <Route path="/offer/:id" element={<OfferPage />} />
+            <Route path="/design" element={<DesignProposals />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
