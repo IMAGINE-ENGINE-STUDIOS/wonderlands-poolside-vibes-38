@@ -1215,7 +1215,7 @@ const DesignProposals = () => {
             <section key={p.id} id={p.id} className="scroll-mt-24 animate-fade-in">
               <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
                 <div>
-                  <div className="text-xs text-neutral-500 mb-2">Proposal 0{i + 1}</div>
+                  <div className="text-xs text-neutral-500 mb-2">Proposal {String(i + 1).padStart(2, "0")}</div>
                   <h3 className="text-3xl font-semibold tracking-tight">{p.name}</h3>
                   <p className="text-neutral-600 mt-1">{p.tagline}</p>
                 </div>
