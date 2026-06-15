@@ -1199,9 +1199,9 @@ const DesignProposals = () => {
 
       <main className="max-w-7xl mx-auto px-6 py-10 space-y-20">
         <section className="max-w-3xl">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">5 New Directions · interactive UX</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">10 Directions · real Wonderlands product · interactive UX</p>
           <h2 className="text-5xl font-semibold tracking-tight mb-4">
-            Five looks you can actually use.
+            Ten ways to sell Wonderlands.
           </h2>
           <p className="text-neutral-600 text-lg">
             Each proposal includes working interactions — scroll, drag, configure,
