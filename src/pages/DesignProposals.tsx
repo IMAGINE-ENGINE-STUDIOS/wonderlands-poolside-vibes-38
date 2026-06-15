@@ -638,6 +638,433 @@ const ZenSpa = () => {
   );
 };
 
+/* ============================================================
+ * 6. CONCIERGE BOOKING — 3-step booking flow with live concierge card
+ * ============================================================ */
+const ConciergeBooking = () => {
+  const [step, setStep] = useState(0);
+  const [propertyType, setPropertyType] = useState("Estate");
+  const [budget, setBudget] = useState(120);
+  const [day, setDay] = useState(2);
+  const [slot, setSlot] = useState("10:30 AM");
+  const [wa, setWa] = useState(true);
+
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i + 1);
+    return { i, label: d.toLocaleDateString("en-US", { weekday: "short" }), num: d.getDate() };
+  });
+  const slots = ["9:00 AM", "10:30 AM", "1:00 PM", "3:30 PM", "5:00 PM"];
+
+  return (
+    <div className="rounded-3xl overflow-hidden border border-neutral-200 bg-gradient-to-br from-[#0a1620] to-[#04111a] text-white grid lg:grid-cols-[1.4fr_1fr]" style={{ fontFamily: "Manrope, sans-serif" }}>
+      <div className="p-10 lg:p-14">
+        <div className="text-xs uppercase tracking-[0.3em] text-[#5eead4] mb-3">Private design concierge</div>
+        <h4 className="text-4xl lg:text-5xl font-light tracking-tight mb-6" style={{ fontFamily: "Cormorant Garamond, serif" }}>
+          Book a 30-minute call with a Wonderlands designer.
+        </h4>
+        <div className="flex gap-2 mb-8">
+          {["Property", "Budget", "Schedule"].map((s, i) => (
+            <button key={s} onClick={() => setStep(i)} className={`text-xs px-3 py-1.5 rounded-full transition ${step === i ? "bg-[#f97066] text-white" : "bg-white/10 text-white/70 hover:bg-white/20"}`}>
+              {i + 1}. {s}
+            </button>
+          ))}
+        </div>
+
+        {step === 0 && (
+          <div className="space-y-4">
+            <div className="text-sm text-white/70 mb-2">What are we building for?</div>
+            <div className="flex flex-wrap gap-2">
+              {["Estate", "Modern Home", "Villa", "New Build", "Renovation"].map((t) => (
+                <button key={t} onClick={() => setPropertyType(t)} className={`px-5 py-3 rounded-2xl border transition ${propertyType === t ? "bg-white text-[#04111a] border-white" : "border-white/20 hover:border-white/50"}`}>
+                  {t}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setStep(1)} className="mt-6 bg-[#f97066] hover:bg-[#ff8278] hover:scale-[1.02] transition text-white px-6 py-3 rounded-full font-medium">Next → Budget</button>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div>
+            <div className="text-sm text-white/70 mb-2">Project budget (you can change later)</div>
+            <div className="text-5xl font-light mb-4" style={{ fontFamily: "Cormorant Garamond, serif" }}>{formatUSD(budget * 1000)}</div>
+            <input type="range" min={50} max={300} step={10} value={budget} onChange={(e) => setBudget(+e.target.value)} className="w-full accent-[#f97066]" />
+            <div className="flex justify-between text-xs text-white/50 mt-1"><span>$50k</span><span>$300k+</span></div>
+            <button onClick={() => setStep(2)} className="mt-6 bg-[#f97066] hover:bg-[#ff8278] hover:scale-[1.02] transition text-white px-6 py-3 rounded-full font-medium">Next → Pick a time</button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div>
+            <div className="text-sm text-white/70 mb-3">Choose a day</div>
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {days.map((d) => (
+                <button key={d.i} onClick={() => setDay(d.i)} className={`w-16 h-20 rounded-2xl flex flex-col items-center justify-center transition ${day === d.i ? "bg-[#5eead4] text-[#04111a]" : "bg-white/5 hover:bg-white/10"}`}>
+                  <div className="text-[10px] uppercase tracking-wider">{d.label}</div>
+                  <div className="text-2xl font-light">{d.num}</div>
+                </button>
+              ))}
+            </div>
+            <div className="text-sm text-white/70 mb-3">Pick a time</div>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {slots.map((s) => (
+                <button key={s} onClick={() => setSlot(s)} className={`px-4 py-2 rounded-full text-sm transition ${slot === s ? "bg-white text-[#04111a]" : "bg-white/10 hover:bg-white/20"}`}>{s}</button>
+              ))}
+            </div>
+            <label className="flex items-center gap-2 text-sm text-white/70 mb-4 cursor-pointer">
+              <input type="checkbox" checked={wa} onChange={(e) => setWa(e.target.checked)} className="accent-[#5eead4]" />
+              Send updates via WhatsApp
+            </label>
+            <div className="flex flex-wrap gap-3">
+              <a href="https://calendly.com/wonderlandsworlds/30min" target="_blank" rel="noreferrer" className="bg-[#f97066] hover:bg-[#ff8278] hover:scale-[1.02] transition text-white px-6 py-3 rounded-full font-medium">
+                Reserve my call →
+              </a>
+              <button className="border border-white/30 hover:bg-white/10 transition px-6 py-3 rounded-full text-sm">Just send the brochure</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <aside className="bg-gradient-to-br from-white/[0.04] to-transparent p-10 lg:p-14 border-t lg:border-t-0 lg:border-l border-white/10">
+        <div className="text-xs uppercase tracking-[0.3em] text-white/40 mb-4">Your concierge</div>
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#5eead4] to-[#0891b2] flex items-center justify-center text-2xl text-[#04111a] font-semibold mb-4">JG</div>
+        <div className="text-2xl font-light mb-1" style={{ fontFamily: "Cormorant Garamond, serif" }}>Jessica Grey</div>
+        <div className="text-sm text-white/60 mb-6">Lead Designer · Wonderlands</div>
+        <div className="space-y-3 text-sm text-white/80 border-t border-white/10 pt-6">
+          <div className="flex justify-between"><span className="text-white/50">Property</span><span>{propertyType}</span></div>
+          <div className="flex justify-between"><span className="text-white/50">Budget</span><span>{formatUSD(budget * 1000)}</span></div>
+          <div className="flex justify-between"><span className="text-white/50">Day</span><span>{days[day].label} {days[day].num}</span></div>
+          <div className="flex justify-between"><span className="text-white/50">Time</span><span>{slot}</span></div>
+          <div className="flex justify-between"><span className="text-white/50">WhatsApp</span><span>{wa ? "Yes" : "Email only"}</span></div>
+        </div>
+      </aside>
+    </div>
+  );
+};
+
+/* ============================================================
+ * 7. LINER CATALOG — real Wonderlands liner browser with cart
+ * ============================================================ */
+const LINERS = [
+  { name: "Paradise", type: "Glass", img: "/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png" },
+  { name: "Water Lilies", type: "Glass", img: "/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.png" },
+  { name: "Sail Boat", type: "Glass", img: "/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.png" },
+  { name: "Stormy", type: "Mosaic", img: "/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.png" },
+  { name: "Ballad", type: "Mosaic", img: "/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png" },
+  { name: "Galant", type: "Iridescent", img: "/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.png" },
+  { name: "Melody", type: "Iridescent", img: "/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.png" },
+  { name: "Soul", type: "Mosaic", img: "/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png" },
+];
+
+const LinerCatalog = () => {
+  const [filter, setFilter] = useState("All");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [sqft, setSqft] = useState(480);
+  const filters = ["All", "Glass", "Mosaic", "Iridescent"];
+  const list = filter === "All" ? LINERS : LINERS.filter((l) => l.type === filter);
+  const toggle = (n: string) => setSelected((s) => (s.includes(n) ? s.filter((x) => x !== n) : [...s, n]));
+  const subtotal = selected.length * sqft * 20;
+
+  return (
+    <div className="rounded-3xl overflow-hidden border border-neutral-200 bg-white" style={{ fontFamily: "Inter, sans-serif" }}>
+      <div className="p-8 lg:p-12 border-b border-neutral-100 flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <div className="text-xs uppercase tracking-[0.3em] text-[#0891b2] mb-2">Wonderlands Liner Collection</div>
+          <h4 className="text-4xl font-semibold tracking-tight text-neutral-900">Pick the surface of your pool.</h4>
+          <p className="text-neutral-500 mt-2 text-sm max-w-md">Every liner is glass-grade, installed at <b className="text-neutral-900">$20 / sqft</b>. Toggle the ones you like — build a quote with one tap.</p>
+        </div>
+        <div className="flex gap-2">
+          {filters.map((f) => (
+            <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-full text-sm transition ${filter === f ? "bg-neutral-900 text-white" : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"}`}>
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-neutral-100">
+        {list.map((l) => {
+          const on = selected.includes(l.name);
+          return (
+            <button key={l.name} onClick={() => toggle(l.name)} className="group bg-white relative aspect-square overflow-hidden text-left">
+              <img src={l.img} alt={l.name} className="w-full h-full object-cover transition group-hover:scale-110 duration-500" />
+              <div className={`absolute inset-0 transition ${on ? "bg-[#0891b2]/40" : "bg-gradient-to-t from-black/70 via-transparent to-transparent group-hover:from-black/85"}`} />
+              <div className="absolute top-3 right-3">
+                <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm transition ${on ? "bg-white text-[#0891b2] border-white" : "border-white/60 text-transparent group-hover:bg-white/20"}`}>✓</div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                <div className="text-[10px] uppercase tracking-wider opacity-70">{l.type}</div>
+                <div className="text-lg font-semibold">{l.name}</div>
+                <div className="text-xs opacity-80 mt-0.5">$20/sqft installed</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="p-6 lg:p-8 bg-neutral-50 flex flex-wrap items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <label className="text-xs text-neutral-500 uppercase tracking-wider">Pool surface</label>
+          <input type="range" min={200} max={1200} step={20} value={sqft} onChange={(e) => setSqft(+e.target.value)} className="w-48 accent-[#0891b2]" />
+          <span className="text-sm font-semibold text-neutral-900">{sqft} sqft</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <div className="text-xs text-neutral-500">{selected.length} liner{selected.length === 1 ? "" : "s"} selected</div>
+            <div className="text-2xl font-semibold text-neutral-900">{formatUSD(subtotal)}</div>
+          </div>
+          <button disabled={!selected.length} className={`px-6 py-3 rounded-full font-medium transition ${selected.length ? "bg-[#f97066] hover:bg-[#ff8278] hover:scale-[1.02] text-white" : "bg-neutral-200 text-neutral-400 cursor-not-allowed"}`}>
+            Build my quote →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
+ * 8. POOL COMPARE — pick 2 models, see them head to head
+ * ============================================================ */
+const COMPARE_POOLS = [
+  { name: "Maxima 16×35", line: "Wonderlands Fiberglass", size: "16 × 35 ft", sqft: 560, depth: "3.5 – 8 ft", price: 84500, weeks: 4, warranty: "25 yr", img: maximaPool },
+  { name: "Apollo 14", line: "Wonderlands Fiberglass", size: "14 × 28 ft", sqft: 392, depth: "3.5 – 6 ft", price: 58000, weeks: 3, warranty: "25 yr", img: luxuryPool },
+  { name: "Sunset Grove", line: "Signature Kit", size: "12 × 24 ft", sqft: 288, depth: "3.5 – 5.5 ft", price: 62000, weeks: 2, warranty: "20 yr", img: sunsetGrove },
+  { name: "Sapphire Lagoon", line: "Custom Wonderlands", size: "18 × 38 ft", sqft: 684, depth: "3.5 – 7 ft", price: 128000, weeks: 6, warranty: "Lifetime", img: heroPool },
+];
+
+const PoolCompare = () => {
+  const [a, setA] = useState(0);
+  const [b, setB] = useState(1);
+  const max = Math.max(...COMPARE_POOLS.map((p) => p.price));
+  const maxS = Math.max(...COMPARE_POOLS.map((p) => p.sqft));
+
+  const Card = ({ idx, setIdx, side }: { idx: number; setIdx: (i: number) => void; side: "left" | "right" }) => {
+    const p = COMPARE_POOLS[idx];
+    return (
+      <div className="bg-white rounded-2xl overflow-hidden border border-neutral-200 flex flex-col">
+        <div className="relative h-56 overflow-hidden">
+          <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4 text-white">
+            <div className="text-[10px] uppercase tracking-wider opacity-70">{p.line}</div>
+            <div className="text-2xl font-semibold">{p.name}</div>
+          </div>
+        </div>
+        <div className="p-5 space-y-3 flex-1">
+          <select value={idx} onChange={(e) => setIdx(+e.target.value)} className="w-full bg-neutral-100 px-3 py-2 rounded-lg text-sm border border-neutral-200">
+            {COMPARE_POOLS.map((c, i) => <option key={c.name} value={i}>{c.name}</option>)}
+          </select>
+          <Row k="Size" v={p.size} />
+          <Row k="Surface" v={`${p.sqft} sqft`} />
+          <Row k="Depth" v={p.depth} />
+          <Row k="Install" v={`${p.weeks} weeks`} />
+          <Row k="Warranty" v={p.warranty} />
+          <div>
+            <div className="flex justify-between text-xs text-neutral-500 mb-1"><span>Investment</span><span>{formatUSD(p.price)}</span></div>
+            <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-[#0891b2] to-[#f97066] transition-all duration-700" style={{ width: `${(p.price / max) * 100}%` }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-xs text-neutral-500 mb-1"><span>Footprint</span><span>{p.sqft} sqft</span></div>
+            <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="h-full bg-[#0891b2] transition-all duration-700" style={{ width: `${(p.sqft / maxS) * 100}%` }} />
+            </div>
+          </div>
+        </div>
+        <div className="p-5 border-t border-neutral-100 flex gap-2">
+          <Link to="/wonderlands-studio" className="flex-1 bg-neutral-900 hover:bg-[#0891b2] transition text-white text-sm px-4 py-2.5 rounded-full text-center font-medium">Configure in Studio →</Link>
+          <button className="border border-neutral-200 hover:border-neutral-900 transition text-sm px-4 py-2.5 rounded-full">Quote</button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="rounded-3xl overflow-hidden border border-neutral-200 bg-gradient-to-br from-neutral-50 to-white p-8 lg:p-12" style={{ fontFamily: "Inter, sans-serif" }}>
+      <div className="mb-8">
+        <div className="text-xs uppercase tracking-[0.3em] text-[#0891b2] mb-2">Head to head</div>
+        <h4 className="text-4xl font-semibold tracking-tight text-neutral-900">Compare two Wonderlands pools.</h4>
+        <p className="text-neutral-500 mt-2 text-sm max-w-xl">Specs, footprint, install time and warranty — side by side. Configure either one in the Studio with a single click.</p>
+      </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card idx={a} setIdx={setA} side="left" />
+        <Card idx={b} setIdx={setB} side="right" />
+      </div>
+      <div className="mt-8 bg-gradient-to-r from-[#0891b2] to-[#f97066] rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4 text-white">
+        <div>
+          <div className="text-xs uppercase tracking-wider opacity-80">Difference</div>
+          <div className="text-2xl font-semibold">{formatUSD(Math.abs(COMPARE_POOLS[a].price - COMPARE_POOLS[b].price))} · {Math.abs(COMPARE_POOLS[a].sqft - COMPARE_POOLS[b].sqft)} sqft</div>
+        </div>
+        <a href="https://calendly.com/wonderlandsworlds/30min" target="_blank" rel="noreferrer" className="bg-white hover:scale-[1.02] transition text-neutral-900 px-6 py-3 rounded-full font-medium">Talk it through with a designer →</a>
+      </div>
+    </div>
+  );
+};
+
+const Row = ({ k, v }: { k: string; v: string }) => (
+  <div className="flex justify-between text-sm border-b border-neutral-100 pb-2">
+    <span className="text-neutral-500">{k}</span>
+    <span className="text-neutral-900 font-medium">{v}</span>
+  </div>
+);
+
+/* ============================================================
+ * 9. FINISH PICKER — Crystite Crystal real finishes, live preview
+ * ============================================================ */
+const FINISHES = [
+  { name: "Sapphire Blue", price: 3500, color: "#1e4a7a", warranty: "25 yr", img: "/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png" },
+  { name: "Ocean Blue", price: 3500, color: "#2a6f8f", warranty: "25 yr", img: poolTexture },
+  { name: "Caribbean", price: 3800, color: "#3aa6c4", warranty: "25 yr", img: poolTexture },
+  { name: "Aqua Crystal", price: 3600, color: "#6cc5d1", warranty: "25 yr", img: poolTexture },
+  { name: "Midnight", price: 4200, color: "#0e1a2b", warranty: "25 yr", img: poolTexture },
+  { name: "Silver Mist", price: 3900, color: "#9fb5b9", warranty: "25 yr", img: poolTexture },
+];
+
+const FinishPicker = () => {
+  const [idx, setIdx] = useState(0);
+  const [sqft, setSqft] = useState(480);
+  const f = FINISHES[idx];
+  const total = Math.round((sqft / 480) * f.price * 3.5);
+
+  return (
+    <div className="rounded-3xl overflow-hidden border border-neutral-200 bg-[#0a1620] text-white grid lg:grid-cols-[1.4fr_1fr]" style={{ fontFamily: "Manrope, sans-serif" }}>
+      <div className="relative h-[420px] lg:h-auto overflow-hidden">
+        <img src={heroPool} alt="Pool" className="absolute inset-0 w-full h-full object-cover transition-all duration-700" />
+        <div className="absolute inset-0 mix-blend-multiply transition-all duration-700" style={{ background: f.color, opacity: 0.55 }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute top-6 left-6 bg-white/10 backdrop-blur-xl rounded-full px-4 py-2 text-xs uppercase tracking-[0.2em]">Crystite Crystal Collection</div>
+        <div className="absolute bottom-8 left-8 right-8">
+          <div className="text-5xl font-light tracking-tight mb-2" style={{ fontFamily: "Cormorant Garamond, serif" }}>{f.name}</div>
+          <div className="flex gap-2">
+            <span className="text-xs bg-white/15 backdrop-blur px-3 py-1 rounded-full">{f.warranty} warranty</span>
+            <span className="text-xs bg-white/15 backdrop-blur px-3 py-1 rounded-full">UV resistant</span>
+            <span className="text-xs bg-white/15 backdrop-blur px-3 py-1 rounded-full">Crystal sparkle</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-8 lg:p-12">
+        <div className="text-xs uppercase tracking-[0.3em] text-[#5eead4] mb-3">Pick your finish</div>
+        <h4 className="text-3xl font-light mb-6" style={{ fontFamily: "Cormorant Garamond, serif" }}>Watch your pool change in real time.</h4>
+
+        <div className="grid grid-cols-3 gap-3 mb-8">
+          {FINISHES.map((c, i) => (
+            <button key={c.name} onClick={() => setIdx(i)} className={`group rounded-2xl overflow-hidden border-2 transition ${idx === i ? "border-[#f97066] scale-[1.02]" : "border-white/10 hover:border-white/40"}`}>
+              <div className="h-16" style={{ background: c.color }} />
+              <div className="p-2 bg-white/5 text-left">
+                <div className="text-xs font-medium truncate">{c.name}</div>
+                <div className="text-[10px] text-white/50">{formatUSD(c.price)}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-6">
+          <div className="flex justify-between text-xs text-white/60 mb-2"><span>Pool surface</span><span>{sqft} sqft</span></div>
+          <input type="range" min={200} max={1000} step={20} value={sqft} onChange={(e) => setSqft(+e.target.value)} className="w-full accent-[#f97066]" />
+        </div>
+
+        <div className="border border-white/10 rounded-2xl p-5 mb-6">
+          <div className="flex justify-between text-sm mb-2"><span className="text-white/60">Finish</span><span>{f.name}</span></div>
+          <div className="flex justify-between text-sm mb-2"><span className="text-white/60">Coverage</span><span>{sqft} sqft</span></div>
+          <div className="flex justify-between items-baseline mt-3 pt-3 border-t border-white/10">
+            <span className="text-white/60 text-sm">Installed</span>
+            <span className="text-3xl font-light" style={{ fontFamily: "Cormorant Garamond, serif" }}>{formatUSD(total)}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button className="bg-[#f97066] hover:bg-[#ff8278] hover:scale-[1.02] transition text-white px-6 py-3 rounded-full font-medium">Lock this finish ✓</button>
+          <Link to="/wonderlands-studio" className="border border-white/30 hover:bg-white/10 transition px-6 py-3 rounded-full text-sm">See it in Studio</Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
+ * 10. BACKYARD BUILDER — click-to-add features, live package total
+ * ============================================================ */
+const ADDONS = [
+  { name: "Hydrotherapy Spa", price: 12000, img: spa },
+  { name: "Tanning Ledge", price: 8000, img: hotTub },
+  { name: "Fire Pit Lounge", price: 4500, img: firePit },
+  { name: "Ambient Lighting", price: 3200, img: lighting },
+  { name: "Shade Pergola", price: 9000, img: pergola },
+  { name: "Outdoor Kitchen", price: 18000, img: outdoorKitchen },
+];
+
+const BackyardBuilder = () => {
+  const [base] = useState(84500);
+  const [picked, setPicked] = useState<string[]>(["Ambient Lighting"]);
+  const toggle = (n: string) => setPicked((s) => (s.includes(n) ? s.filter((x) => x !== n) : [...s, n]));
+  const addOnTotal = ADDONS.filter((a) => picked.includes(a.name)).reduce((s, a) => s + a.price, 0);
+  const total = base + addOnTotal;
+  const schedule = [
+    { label: "Deposit (20%)", pct: 0.2 },
+    { label: "Excavation (35%)", pct: 0.35 },
+    { label: "Install (40%)", pct: 0.4 },
+    { label: "Final (10%)", pct: 0.1 },
+  ];
+
+  return (
+    <div className="rounded-3xl overflow-hidden border border-neutral-200 bg-white grid lg:grid-cols-[1.4fr_1fr]" style={{ fontFamily: "Inter, sans-serif" }}>
+      <div className="p-8 lg:p-12">
+        <div className="text-xs uppercase tracking-[0.3em] text-[#0891b2] mb-2">Build your backyard</div>
+        <h4 className="text-4xl font-semibold tracking-tight text-neutral-900 mb-2">Start with Maxima 16×35. Add what you love.</h4>
+        <p className="text-neutral-500 text-sm mb-8">Tap to add — your package updates instantly with a payment schedule you can share with your partner.</p>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {ADDONS.map((a) => {
+            const on = picked.includes(a.name);
+            return (
+              <button key={a.name} onClick={() => toggle(a.name)} className={`group relative aspect-square rounded-2xl overflow-hidden border-2 transition ${on ? "border-[#f97066] scale-[1.02]" : "border-transparent hover:border-neutral-300"}`}>
+                <img src={a.img} alt={a.name} className="absolute inset-0 w-full h-full object-cover transition group-hover:scale-110 duration-500" />
+                <div className={`absolute inset-0 transition ${on ? "bg-[#f97066]/30" : "bg-gradient-to-t from-black/80 via-black/20 to-transparent"}`} />
+                <div className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-sm bg-white/95 text-[#0891b2] font-bold opacity-0 group-hover:opacity-100 transition" style={on ? { opacity: 1, background: "#f97066", color: "white" } : {}}>
+                  {on ? "✓" : "+"}
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-3 text-white text-left">
+                  <div className="text-sm font-semibold">{a.name}</div>
+                  <div className="text-xs opacity-80">+{formatUSD(a.price)}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <aside className="bg-neutral-50 p-8 lg:p-12 border-t lg:border-t-0 lg:border-l border-neutral-200 flex flex-col">
+        <div className="text-xs uppercase tracking-[0.3em] text-neutral-400 mb-4">Your Wonderlands package</div>
+        <div className="space-y-2 mb-5">
+          <div className="flex justify-between text-sm py-2 border-b border-neutral-200"><span className="text-neutral-700">Maxima 16×35 (base)</span><span className="font-medium">{formatUSD(base)}</span></div>
+          {ADDONS.filter((a) => picked.includes(a.name)).map((a) => (
+            <div key={a.name} className="flex justify-between text-sm py-2 border-b border-neutral-100 animate-fade-in">
+              <span className="text-neutral-700">{a.name}</span>
+              <span className="font-medium text-[#0891b2]">+{formatUSD(a.price)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="bg-gradient-to-br from-[#0a1620] to-[#04111a] text-white rounded-2xl p-5 mb-5">
+          <div className="text-xs uppercase tracking-wider opacity-60 mb-1">Total investment</div>
+          <div className="text-4xl font-light mb-4" style={{ fontFamily: "Cormorant Garamond, serif" }}>{formatUSD(total)}</div>
+          <div className="space-y-1.5 text-xs">
+            {schedule.map((s) => (
+              <div key={s.label} className="flex justify-between"><span className="opacity-70">{s.label}</span><span>{formatUSD(total * s.pct)}</span></div>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-2 mt-auto">
+          <button className="w-full bg-gradient-to-r from-[#0891b2] to-[#f97066] hover:scale-[1.01] transition text-white py-3.5 rounded-full font-medium">Build my backyard →</button>
+          <a href="https://calendly.com/wonderlandsworlds/30min" target="_blank" rel="noreferrer" className="block text-center w-full border border-neutral-300 hover:border-neutral-900 transition py-3 rounded-full text-sm">Schedule a call instead</a>
+        </div>
+      </aside>
+    </div>
+  );
+};
+
 /* ============================================================ */
 const PROPOSALS: Proposal[] = [
   {
@@ -685,6 +1112,51 @@ const PROPOSALS: Proposal[] = [
     fonts: { heading: "Cormorant Garamond", body: "Manrope" },
     render: ZenSpa,
   },
+  {
+    id: "concierge-booking",
+    name: "Concierge Booking",
+    tagline: "3-step booking flow · live concierge card · WhatsApp opt-in",
+    vibe: "Personal, premium, sales-ready",
+    palette: ["#04111a", "#5eead4", "#f97066", "#e8f4f8"],
+    fonts: { heading: "Cormorant Garamond", body: "Manrope" },
+    render: ConciergeBooking,
+  },
+  {
+    id: "liner-catalog",
+    name: "Liner Catalog",
+    tagline: "Real liner browser · filters · live quote builder",
+    vibe: "Product-forward, conversion-focused",
+    palette: ["#ffffff", "#0891b2", "#f97066", "#1a1a1a"],
+    fonts: { heading: "Inter", body: "Inter" },
+    render: LinerCatalog,
+  },
+  {
+    id: "pool-compare",
+    name: "Pool Compare",
+    tagline: "Two pools head-to-head · spec bars · Studio launch",
+    vibe: "Decisive, transparent, retail-grade",
+    palette: ["#fafafa", "#0891b2", "#f97066", "#1a1a1a"],
+    fonts: { heading: "Inter", body: "Inter" },
+    render: PoolCompare,
+  },
+  {
+    id: "finish-picker",
+    name: "Finish Picker",
+    tagline: "Crystite Crystal swatches · live pool preview · price math",
+    vibe: "Cinematic, dark, configurator-luxe",
+    palette: ["#0a1620", "#1e4a7a", "#5eead4", "#f97066"],
+    fonts: { heading: "Cormorant Garamond", body: "Manrope" },
+    render: FinishPicker,
+  },
+  {
+    id: "backyard-builder",
+    name: "Backyard Builder",
+    tagline: "Click-to-add features · live total · 20/35/40/10 schedule",
+    vibe: "Playful, hands-on, closes the sale",
+    palette: ["#ffffff", "#0891b2", "#f97066", "#04111a"],
+    fonts: { heading: "Inter", body: "Inter" },
+    render: BackyardBuilder,
+  },
 ];
 
 const DesignProposals = () => {
@@ -727,9 +1199,9 @@ const DesignProposals = () => {
 
       <main className="max-w-7xl mx-auto px-6 py-10 space-y-20">
         <section className="max-w-3xl">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">5 New Directions · interactive UX</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">10 Directions · real Wonderlands product · interactive UX</p>
           <h2 className="text-5xl font-semibold tracking-tight mb-4">
-            Five looks you can actually use.
+            Ten ways to sell Wonderlands.
           </h2>
           <p className="text-neutral-600 text-lg">
             Each proposal includes working interactions — scroll, drag, configure,
@@ -743,7 +1215,7 @@ const DesignProposals = () => {
             <section key={p.id} id={p.id} className="scroll-mt-24 animate-fade-in">
               <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
                 <div>
-                  <div className="text-xs text-neutral-500 mb-2">Proposal 0{i + 1}</div>
+                  <div className="text-xs text-neutral-500 mb-2">Proposal {String(i + 1).padStart(2, "0")}</div>
                   <h3 className="text-3xl font-semibold tracking-tight">{p.name}</h3>
                   <p className="text-neutral-600 mt-1">{p.tagline}</p>
                 </div>
