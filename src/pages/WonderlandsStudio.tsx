@@ -418,6 +418,9 @@ const WonderlandsStudio = () => {
     rockyWaterfall: false,
     rockyWaterfallTier: '',
     rockyWaterfallColor: '',
+    artificialGrass: false,
+    artificialGrassColor: 'Light Green',
+    artificialGrassArea: '',
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [paverCategory, setPaverCategory] = useState('all');
@@ -896,18 +899,20 @@ const WonderlandsStudio = () => {
     const productType = selectedProduct.type || 'pool';
     const features = getProductFeatures(productType);
 
-    // Calculate price for each feature (pavers + screen enclosure are handled separately for pools)
+    const usesCustomExtras = productType === 'pool' || productType === 'spa' || productType === 'tanning-ledge';
+
+    // Calculate price for each feature (pavers + screen enclosure are handled separately)
     features.forEach((feature) => {
-      if (productType === 'pool' && (feature.id === 'pavers' || feature.id === 'screenEnclosure')) {
+      if (usesCustomExtras && (feature.id === 'pavers' || feature.id === 'screenEnclosure')) {
         return;
       }
       const featurePrice = calculateFeaturePrice(feature, selectedExtras[feature.id], selectedExtras);
       total += featurePrice;
     });
 
-    // Wonderlands Studio uses custom state shape for pool pavers + screen enclosure.
+    // Wonderlands Studio uses custom state shape for pavers + screen enclosure.
     // Add them explicitly so totals update correctly.
-    if (productType === 'pool') {
+    if (usesCustomExtras) {
       const areaStr = selectedExtras.paverSurfaceArea || paverSurfaceArea;
       if (
         selectedExtras.pavers &&
@@ -2143,7 +2148,7 @@ const WonderlandsStudio = () => {
                           )}
                         </div>
 
-                        {/* Pool Tiles - HIDDEN FOR NOW
+                        {/* Pool Tiles */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-foreground">Pool Tiles</h4>
@@ -2207,7 +2212,7 @@ const WonderlandsStudio = () => {
                           </Carousel>
                           )}
                         </div>
-                        END POOL TILES HIDDEN */}
+                        
 
                         {/* Automatic Cover */}
                         <div className="space-y-3">
@@ -2526,7 +2531,7 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Rocky Waterfalls */}
-                        {(selectedProduct?.type === 'pool') && (
+                        {(selectedProduct?.type === 'pool' || selectedProduct?.type === 'spa' || selectedProduct?.type === 'tanning-ledge') && (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-foreground">Rocky Waterfalls</h4>
