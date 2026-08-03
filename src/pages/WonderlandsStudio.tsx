@@ -959,6 +959,11 @@ const WonderlandsStudio = () => {
           total += tier.price;
         }
       }
+
+      // Add artificial grass if selected
+      if (selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea))) {
+        total += parseFloat(selectedExtras.artificialGrassArea) * GRASS_PRICE_PER_SQFT;
+      }
     }
 
     // Apply project type multiplier (3x for commercial)
@@ -994,6 +999,8 @@ const WonderlandsStudio = () => {
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureQuality && selectedExtras.screenEnclosureArea > 0) count++;
     // Concrete Construction: simple boolean
     if (selectedExtras.concreteConstruction) count++;
+    // Artificial Grass: must be checked AND have area > 0
+    if (selectedExtras.artificialGrass && parseFloat(selectedExtras.artificialGrassArea) > 0) count++;
     return count;
   };
   const removeExtra = (extraType: string) => {
@@ -1056,6 +1063,10 @@ const WonderlandsStudio = () => {
         newExtras.rockyWaterfall = false;
         newExtras.rockyWaterfallTier = '';
         newExtras.rockyWaterfallColor = '';
+        break;
+      case 'artificialGrass':
+        newExtras.artificialGrass = false;
+        newExtras.artificialGrassArea = '';
         break;
     }
     setSelectedExtras(newExtras);
@@ -1224,6 +1235,17 @@ const WonderlandsStudio = () => {
         });
       }
     }
+
+    // Add artificial grass if selected
+    if (selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea)) && parseFloat(selectedExtras.artificialGrassArea) > 0) {
+      const grassArea = parseFloat(selectedExtras.artificialGrassArea);
+      const grassOption = artificialGrassOptions.find(g => g.name === selectedExtras.artificialGrassColor);
+      extrasBreakdown.push({
+        name: `Artificial Grass - ${selectedExtras.artificialGrassColor} (${grassArea} sq ft)`,
+        price: grassArea * GRASS_PRICE_PER_SQFT,
+        image: grassOption?.image || ''
+      });
+    }
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
 
     console.log('✅ EXTRAS BREAKDOWN COMPLETE:', extrasBreakdown);
@@ -1384,6 +1406,15 @@ const WonderlandsStudio = () => {
           price: tier.price
         });
       }
+    }
+
+    // Add artificial grass if selected
+    if (selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea)) && parseFloat(selectedExtras.artificialGrassArea) > 0) {
+      const grassArea = parseFloat(selectedExtras.artificialGrassArea);
+      extrasArray.push({
+        name: `Artificial Grass - ${selectedExtras.artificialGrassColor} (${grassArea} sq ft)`,
+        price: grassArea * GRASS_PRICE_PER_SQFT
+      });
     }
     const cartItem = {
       id: `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`,
