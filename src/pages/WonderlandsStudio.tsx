@@ -1445,8 +1445,8 @@ const WonderlandsStudio = () => {
                 <CardContent>
                   <Tabs value={activeTab} onValueChange={value => {
                     setActiveTab(value as any);
-                    // Auto-collapse sidebar when selecting any category
-                    setLeftSidebarCollapsed(true);
+                    // Keep sidebar open so the category's products stay browsable
+                    setLeftSidebarCollapsed(false);
                   }} className="w-full">
                     <TabsList className="grid w-full grid-cols-1 gap-2 h-auto bg-transparent p-0">
                       <TabsTrigger value="pools" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
