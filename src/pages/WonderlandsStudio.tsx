@@ -158,30 +158,30 @@ const finishOptions = poolFinishesData.map(finish => ({
   description: finish.description
 }));
 
-// Pool heaters with models - Pentair only (prices increased 20%)
+// Pool heaters with models - Pentair only (prices match main page catalog)
 const poolHeaters = [{
   name: 'Pentair MasterTemp 125 (125K BTU)',
-  price: 2760, // was 2300, +20%
+  price: 2300,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair MasterTemp 250 (250K BTU)',
-  price: 4416, // was 3680, +20%
+  price: 3680,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair MasterTemp 400 (400K BTU)',
-  price: 5796, // was 4830, +20%
+  price: 4830,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 90 Heat Pump',
-  price: 6210, // was 5175, +20%
+  price: 5175,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 110 Heat Pump',
-  price: 7590, // was 6325, +20%
+  price: 6325,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 140 Heat Pump',
-  price: 8970, // was 7475, +20%
+  price: 7475,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }];
 
@@ -232,7 +232,7 @@ const meshColorOptions = [
 const tileOptions = poolTilesData.map(tile => ({
   name: tile.name,
   color: '#4682B4',
-  pricePerSqFt: 45, // $45 per sqft
+  price: tile.price, // catalog price shown on main page Tiles section
   image: tile.image
 }));
 
@@ -338,13 +338,9 @@ const calculatePoolArea = (dimensions: string | undefined): number => {
   return length * width;
 };
 
-// Helper function to calculate tile cost based on pool perimeter ($45/sqft for waterline tiles)
-const calculateTileCost = (dimensions: string | undefined): number => {
-  const perimeter = calculatePoolPerimeter(dimensions);
-  // Tiles cover waterline area: perimeter × 1ft height
-  const tileArea = perimeter * 1; // 1ft waterline height
-  return Math.round(tileArea * 45); // $45 per sqft
-};
+// Tile cost uses the catalog price shown on the main page Tiles section
+const getTileCost = (tileName: string | undefined): number =>
+  poolTilesData.find(tile => tile.name === tileName)?.price ?? 0;
 
 // Pool interior surface area (floor + walls) for liner pricing per sqft
 const calculatePoolLinerArea = (dimensions: string | undefined): number => {
@@ -1016,12 +1012,12 @@ const WonderlandsStudio = () => {
       });
     }
 
-    // Add tiles if selected (price based on pool dimensions at $45/sqft)
+    // Add tiles if selected (catalog price from main page Tiles section)
     const tileOption = tileOptions.find(option => option.name === selectedExtras.tileOption);
     if (tileOption && selectedExtras.tiles) {
-      const tilePrice = calculateTileCost(selectedProduct.dimensions);
+      const tilePrice = getTileCost(tileOption.name);
       extrasBreakdown.push({
-        name: `${tileOption.name} (${Math.round(calculatePoolPerimeter(selectedProduct.dimensions))} sqft)`,
+        name: tileOption.name,
         price: tilePrice,
         image: tileOption.image
       });
@@ -1187,12 +1183,12 @@ const WonderlandsStudio = () => {
       });
     }
 
-    // Add tiles if selected (price based on pool dimensions at $45/sqft)
+    // Add tiles if selected (catalog price from main page Tiles section)
     const tileOption = tileOptions.find(option => option.name === selectedExtras.tileOption);
     if (tileOption && selectedExtras.tiles && selectedExtras.tileOption && selectedExtras.tileOption !== 'None' && selectedExtras.tileOption !== '') {
-      const tilePrice = calculateTileCost(selectedProduct.dimensions);
+      const tilePrice = getTileCost(tileOption.name);
       extrasArray.push({
-        name: `${tileOption.name} (${Math.round(calculatePoolPerimeter(selectedProduct.dimensions))} sqft)`,
+        name: tileOption.name,
         price: tilePrice
       });
     }
@@ -2063,9 +2059,8 @@ const WonderlandsStudio = () => {
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{tile.name}</p>
                                       <p className="text-xs text-primary font-semibold text-center">
-                                        +${calculateTileCost(selectedProduct?.dimensions).toLocaleString()}
+                                        +${tile.price.toLocaleString()}
                                       </p>
-                                      <p className="text-[10px] text-muted-foreground text-center">$45/sqft</p>
                                     </div>
                                   </div>
                                 </CarouselItem>
@@ -2892,10 +2887,10 @@ const WonderlandsStudio = () => {
                             )}
                             {selectedExtras.tiles && selectedExtras.tileOption && selectedExtras.tileOption !== 'None' && selectedExtras.tileOption !== '' && (
                               <div className="flex items-center justify-between text-xs">
-                                <span>Premium Tiles ({Math.round(calculatePoolPerimeter(selectedProduct?.dimensions))} sqft)</span>
+                                <span>Premium Tiles ({selectedExtras.tileOption})</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${calculateTileCost(selectedProduct?.dimensions).toLocaleString()}
+                                    +${getTileCost(selectedExtras.tileOption).toLocaleString()}
                                   </span>
                                   <Button variant="ghost" size="sm" onClick={() => removeExtra('tiles')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />
