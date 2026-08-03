@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight, Droplets, Cpu } from "lucide-react";
-import BestSellersSection from "./DealsSection";
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
@@ -1002,9 +1001,6 @@ const PoolCatalog = () => {
             
           </div>
 
-          {/* Best Sellers Section */}
-          <BestSellersSection />
-
           {/* Wonderlands World Collection - Only Madre Perla and Pacific Ridge */}
           <div className="relative overflow-hidden py-16 bg-gradient-to-b from-primary/5 via-background to-coral/5">
             {/* Animated Background Elements */}
@@ -1043,7 +1039,7 @@ const PoolCatalog = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
-                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').map(pool => {
+                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').sort((a, b) => a.price - b.price).map(pool => {
                   // Override some props for Winderview since it's concrete
                   const poolProps = pool.model === 'Winderview' 
                     ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
