@@ -290,6 +290,39 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       icon: 'Grid3x3',
       pricePerUnit: 20,
       options: paverOptions
+    },
+    {
+      id: 'cover',
+      label: 'Automatic Cover',
+      type: 'selection',
+      icon: 'ShieldCheck',
+      options: coverOptions
+    },
+    {
+      id: 'tanningLedge',
+      label: 'Tanning Ledge',
+      type: 'selection',
+      icon: 'Sun',
+      options: tanningLedgeOptions
+    },
+    {
+      id: 'screenEnclosure',
+      label: 'Screen Enclosure',
+      type: 'area',
+      icon: 'Home',
+      pricePerUnit: 22,
+      options: [
+        { name: 'standard', price: 22 },
+        { name: 'deluxe', price: 24 },
+        { name: 'premium', price: 26 }
+      ]
+    },
+    {
+      id: 'concreteConstruction',
+      label: 'Concrete Construction',
+      type: 'boolean',
+      icon: 'Building',
+      basePrice: 15000
     }
   ],
   'sauna': [
@@ -366,6 +399,53 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       icon: 'Grid3x3',
       pricePerUnit: 20,
       options: paverOptions
+    },
+    {
+      id: 'liner',
+      label: 'Waterline',
+      type: 'selection',
+      icon: 'Droplets',
+      options: linerOptions.map(l => ({ ...l, price: l.price / 2 }))
+    },
+    {
+      id: 'tiles',
+      label: 'Tiles',
+      type: 'selection',
+      icon: 'Grid3x3',
+      options: tileOptions.map(t => ({ ...t, price: t.price / 2 }))
+    },
+    {
+      id: 'cover',
+      label: 'Automatic Cover',
+      type: 'selection',
+      icon: 'ShieldCheck',
+      options: coverOptions
+    },
+    {
+      id: 'spa',
+      label: 'Add a Spa',
+      type: 'selection',
+      icon: 'Droplet',
+      options: spas
+    },
+    {
+      id: 'screenEnclosure',
+      label: 'Screen Enclosure',
+      type: 'area',
+      icon: 'Home',
+      pricePerUnit: 22,
+      options: [
+        { name: 'standard', price: 22 },
+        { name: 'deluxe', price: 24 },
+        { name: 'premium', price: 26 }
+      ]
+    },
+    {
+      id: 'concreteConstruction',
+      label: 'Concrete Construction',
+      type: 'boolean',
+      icon: 'Building',
+      basePrice: 15000
     }
   ],
   'cover': [
