@@ -418,6 +418,9 @@ const WonderlandsStudio = () => {
     rockyWaterfall: false,
     rockyWaterfallTier: '',
     rockyWaterfallColor: '',
+    artificialGrass: false,
+    artificialGrassColor: 'Light Green',
+    artificialGrassArea: '',
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [paverCategory, setPaverCategory] = useState('all');
@@ -896,18 +899,20 @@ const WonderlandsStudio = () => {
     const productType = selectedProduct.type || 'pool';
     const features = getProductFeatures(productType);
 
-    // Calculate price for each feature (pavers + screen enclosure are handled separately for pools)
+    const usesCustomExtras = productType === 'pool' || productType === 'spa' || productType === 'tanning-ledge';
+
+    // Calculate price for each feature (pavers + screen enclosure are handled separately)
     features.forEach((feature) => {
-      if (productType === 'pool' && (feature.id === 'pavers' || feature.id === 'screenEnclosure')) {
+      if (usesCustomExtras && (feature.id === 'pavers' || feature.id === 'screenEnclosure')) {
         return;
       }
       const featurePrice = calculateFeaturePrice(feature, selectedExtras[feature.id], selectedExtras);
       total += featurePrice;
     });
 
-    // Wonderlands Studio uses custom state shape for pool pavers + screen enclosure.
+    // Wonderlands Studio uses custom state shape for pavers + screen enclosure.
     // Add them explicitly so totals update correctly.
-    if (productType === 'pool') {
+    if (usesCustomExtras) {
       const areaStr = selectedExtras.paverSurfaceArea || paverSurfaceArea;
       if (
         selectedExtras.pavers &&
@@ -954,6 +959,11 @@ const WonderlandsStudio = () => {
           total += tier.price;
         }
       }
+
+      // Add artificial grass if selected
+      if (selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea))) {
+        total += parseFloat(selectedExtras.artificialGrassArea) * GRASS_PRICE_PER_SQFT;
+      }
     }
 
     // Apply project type multiplier (3x for commercial)
@@ -989,6 +999,8 @@ const WonderlandsStudio = () => {
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureQuality && selectedExtras.screenEnclosureArea > 0) count++;
     // Concrete Construction: simple boolean
     if (selectedExtras.concreteConstruction) count++;
+    // Artificial Grass: must be checked AND have area > 0
+    if (selectedExtras.artificialGrass && parseFloat(selectedExtras.artificialGrassArea) > 0) count++;
     return count;
   };
   const removeExtra = (extraType: string) => {
@@ -1051,6 +1063,10 @@ const WonderlandsStudio = () => {
         newExtras.rockyWaterfall = false;
         newExtras.rockyWaterfallTier = '';
         newExtras.rockyWaterfallColor = '';
+        break;
+      case 'artificialGrass':
+        newExtras.artificialGrass = false;
+        newExtras.artificialGrassArea = '';
         break;
     }
     setSelectedExtras(newExtras);
@@ -1219,6 +1235,17 @@ const WonderlandsStudio = () => {
         });
       }
     }
+
+    // Add artificial grass if selected
+    if (selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea)) && parseFloat(selectedExtras.artificialGrassArea) > 0) {
+      const grassArea = parseFloat(selectedExtras.artificialGrassArea);
+      const grassOption = artificialGrassOptions.find(g => g.name === selectedExtras.artificialGrassColor);
+      extrasBreakdown.push({
+        name: `Artificial Grass - ${selectedExtras.artificialGrassColor} (${grassArea} sq ft)`,
+        price: grassArea * GRASS_PRICE_PER_SQFT,
+        image: grassOption?.image || ''
+      });
+    }
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
 
     console.log('✅ EXTRAS BREAKDOWN COMPLETE:', extrasBreakdown);
@@ -1379,6 +1406,15 @@ const WonderlandsStudio = () => {
           price: tier.price
         });
       }
+    }
+
+    // Add artificial grass if selected
+    if (selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea)) && parseFloat(selectedExtras.artificialGrassArea) > 0) {
+      const grassArea = parseFloat(selectedExtras.artificialGrassArea);
+      extrasArray.push({
+        name: `Artificial Grass - ${selectedExtras.artificialGrassColor} (${grassArea} sq ft)`,
+        price: grassArea * GRASS_PRICE_PER_SQFT
+      });
     }
     const cartItem = {
       id: `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`,
@@ -2143,7 +2179,7 @@ const WonderlandsStudio = () => {
                           )}
                         </div>
 
-                        {/* Pool Tiles - HIDDEN FOR NOW
+                        {/* Pool Tiles */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-foreground">Pool Tiles</h4>
@@ -2207,7 +2243,7 @@ const WonderlandsStudio = () => {
                           </Carousel>
                           )}
                         </div>
-                        END POOL TILES HIDDEN */}
+                        
 
                         {/* Automatic Cover */}
                         <div className="space-y-3">
@@ -2526,7 +2562,7 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Rocky Waterfalls */}
-                        {(selectedProduct?.type === 'pool') && (
+                        {(selectedProduct?.type === 'pool' || selectedProduct?.type === 'spa' || selectedProduct?.type === 'tanning-ledge') && (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-foreground">Rocky Waterfalls</h4>
@@ -2584,6 +2620,78 @@ const WonderlandsStudio = () => {
                           )}
                         </div>
                         )}
+
+                        {/* Artificial Grass */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-2 border rounded-lg">
+                            <label className="flex items-center space-x-2 cursor-pointer flex-1">
+                              <Checkbox
+                                checked={selectedExtras.artificialGrass}
+                                onCheckedChange={() =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    artificialGrass: !prev.artificialGrass,
+                                    artificialGrassColor: !prev.artificialGrass ? (prev.artificialGrassColor || 'Light Green') : prev.artificialGrassColor,
+                                  }))
+                                }
+                              />
+                              <span className="text-sm font-semibold">
+                                Artificial Grass (+${(
+                                  selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea))
+                                    ? parseFloat(selectedExtras.artificialGrassArea) * GRASS_PRICE_PER_SQFT
+                                    : 0
+                                ).toLocaleString()})
+                              </span>
+                            </label>
+                          </div>
+                          {selectedExtras.artificialGrass && (
+                            <div className="space-y-3">
+                              <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                                <CarouselContent className="-ml-1">
+                                  {artificialGrassOptions.map((grass) => (
+                                    <CarouselItem key={grass.id} className="pl-1 basis-1/2 md:basis-1/4">
+                                      <div
+                                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.artificialGrassColor === grass.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                        onClick={() =>
+                                          setSelectedExtras((prev: any) => ({
+                                            ...prev,
+                                            artificialGrass: true,
+                                            artificialGrassColor: grass.name,
+                                          }))
+                                        }
+                                      >
+                                        <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                          <img src={grass.image} alt={grass.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
+                                        </div>
+                                        <div className="flex flex-col gap-0.5">
+                                          <p className="text-xs font-medium text-center truncate">{grass.name}</p>
+                                          <p className="text-xs text-primary font-semibold text-center">${GRASS_PRICE_PER_SQFT}/sq ft</p>
+                                        </div>
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="left-0 animate-pulse" />
+                                <CarouselNext className="right-0 animate-pulse" />
+                              </Carousel>
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground mb-1 block">Grass Area (sq ft)</label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  placeholder="Enter square footage"
+                                  value={selectedExtras.artificialGrassArea || ''}
+                                  onChange={(e) =>
+                                    setSelectedExtras((prev: any) => ({ ...prev, artificialGrassArea: e.target.value }))
+                                  }
+                                  className="h-9"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+
 
                         {/* Deck Pavers */}
                         <div className="space-y-3">
