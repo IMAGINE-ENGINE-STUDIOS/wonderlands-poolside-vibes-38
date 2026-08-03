@@ -47,6 +47,10 @@ import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
+import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
+import { artificialGrassOptions, PRICE_PER_SQFT as GRASS_PRICE_PER_SQFT } from '@/data/artificialGrassData';
+import { landscapingPlants } from '@/data/landscapingData';
+import { drivewayGates } from '@/data/drivewayGates';
 
 // Rocky Waterfalls data
 import sunsetGroveImage from '@/assets/sunset-grove-kit-pool.jpg';
@@ -357,7 +361,7 @@ const WonderlandsStudio = () => {
     toast
   } = useToast();
   const { priceMultiplier, projectType } = useProjectType();
-  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool'>('pools');
+  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool' | 'screen-enclosures' | 'patio-fencing' | 'lanai' | 'pavers' | 'artificial-grass' | 'landscaping' | 'covers' | 'driveway-gates' | 'finishes' | 'liners'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sceneFromBuilder, setSceneFromBuilder] = useState<any>(null);
@@ -778,6 +782,98 @@ const WonderlandsStudio = () => {
           ...scene,
           type: 'scene' as const,
           model: scene.name
+        }));
+        break;
+      case 'screen-enclosures':
+        products = studioScreenEnclosures.map(item => ({
+          ...item,
+          type: 'screen-enclosure' as const,
+          model: item.name,
+          category: 'per sq ft'
+        }));
+        break;
+      case 'patio-fencing':
+        products = studioFencing.map(item => ({
+          ...item,
+          model: item.name,
+          category: 'per linear ft'
+        }));
+        break;
+      case 'lanai':
+        products = studioLanai.map(item => ({
+          ...item,
+          model: item.name,
+          category: 'per sq ft'
+        }));
+        break;
+      case 'pavers':
+        products = paverTypes.map(paver => ({
+          name: paver.name,
+          model: paver.name,
+          price: paver.basePrice,
+          image: paver.image,
+          description: paver.description,
+          type: 'paver' as const,
+          category: 'per sq ft'
+        }));
+        break;
+      case 'artificial-grass':
+        products = artificialGrassOptions.map(grass => ({
+          name: grass.name,
+          model: grass.name,
+          price: GRASS_PRICE_PER_SQFT,
+          image: grass.image,
+          category: 'per sq ft'
+        }));
+        break;
+      case 'landscaping':
+        products = landscapingPlants.map(plant => ({
+          name: plant.name,
+          model: plant.name,
+          price: plant.minPrice,
+          image: plant.image,
+          category: plant.category
+        }));
+        break;
+      case 'covers':
+        products = studioCovers.map(cover => ({
+          ...cover,
+          type: 'cover' as const,
+          model: cover.name,
+          category: 'automatic cover'
+        }));
+        break;
+      case 'driveway-gates':
+        products = drivewayGates.map(gate => ({
+          name: `${gate.model} ${gate.baseDimensions}`,
+          model: `${gate.model} ${gate.baseDimensions}`,
+          price: gate.basePrice,
+          image: gate.image,
+          description: gate.description,
+          dimensions: gate.baseDimensions,
+          brand: gate.brand,
+          type: 'driveway-gate' as const,
+          category: 'driveway gate'
+        }));
+        break;
+      case 'finishes':
+        products = poolFinishesData.map(finish => ({
+          name: finish.name,
+          model: finish.name,
+          price: finish.price,
+          image: finish.image,
+          description: finish.description,
+          category: finish.collection || 'finish'
+        }));
+        break;
+      case 'liners':
+        products = poolLinersData.map(liner => ({
+          name: liner.name,
+          model: liner.name,
+          price: liner.price,
+          image: liner.image,
+          description: liner.description,
+          category: 'per sq ft'
         }));
         break;
       case 'build-a-pool':
@@ -1368,6 +1464,46 @@ const WonderlandsStudio = () => {
                       <TabsTrigger value="saunas" className="justify-start data-[state=active]:bg-amber-600 data-[state=active]:text-white">
                         <Thermometer className="h-4 w-4 mr-2" />
                         Saunas
+                      </TabsTrigger>
+                      <TabsTrigger value="screen-enclosures" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Screen Enclosures
+                      </TabsTrigger>
+                      <TabsTrigger value="patio-fencing" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Layers className="h-4 w-4 mr-2" />
+                        Patio Fencing
+                      </TabsTrigger>
+                      <TabsTrigger value="lanai" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Sun className="h-4 w-4 mr-2" />
+                        Lanai
+                      </TabsTrigger>
+                      <TabsTrigger value="pavers" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Package className="h-4 w-4 mr-2" />
+                        Pavers
+                      </TabsTrigger>
+                      <TabsTrigger value="artificial-grass" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Layers className="h-4 w-4 mr-2" />
+                        Artificial Grass
+                      </TabsTrigger>
+                      <TabsTrigger value="landscaping" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Palette className="h-4 w-4 mr-2" />
+                        Landscaping
+                      </TabsTrigger>
+                      <TabsTrigger value="covers" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Covers
+                      </TabsTrigger>
+                      <TabsTrigger value="driveway-gates" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Driveway Gates
+                      </TabsTrigger>
+                      <TabsTrigger value="finishes" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Palette className="h-4 w-4 mr-2" />
+                        Finishes
+                      </TabsTrigger>
+                      <TabsTrigger value="liners" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Layers className="h-4 w-4 mr-2" />
+                        Liners
                       </TabsTrigger>
                       <TabsTrigger value="build-a-pool" className="justify-start data-[state=active]:bg-teal data-[state=active]:text-white">
                         <Waves className="h-4 w-4 mr-2" />

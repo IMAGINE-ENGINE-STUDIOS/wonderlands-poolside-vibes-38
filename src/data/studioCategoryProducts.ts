@@ -1,6 +1,7 @@
 // Category data used by Wonderlands Studio so every main-page category is
 // selectable in the Studio. Prices mirror the main-page sections exactly.
-import screenEnclosurePremium from '@/assets/screen-enclosure-premium.jpg';
+import screenEnclosurePremium from '@/assets/screen-enclosure-premium.jpeg';
+import screenEnclosureDeluxe from '@/assets/screen-enclosure-deluxe.jpeg';
 
 export interface StudioCategoryItem {
   name: string;
@@ -23,7 +24,7 @@ export const studioScreenEnclosures: StudioCategoryItem[] = [
     name: 'Deluxe Screen Enclosure',
     price: 24,
     unit: 'sqft',
-    image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png',
+    image: screenEnclosureDeluxe,
     description: 'Enhanced aluminum frame with upgraded mesh and hardware',
   },
   {
