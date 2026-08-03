@@ -2590,6 +2590,78 @@ const WonderlandsStudio = () => {
                         </div>
                         )}
 
+                        {/* Artificial Grass */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between p-2 border rounded-lg">
+                            <label className="flex items-center space-x-2 cursor-pointer flex-1">
+                              <Checkbox
+                                checked={selectedExtras.artificialGrass}
+                                onCheckedChange={() =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    artificialGrass: !prev.artificialGrass,
+                                    artificialGrassColor: !prev.artificialGrass ? (prev.artificialGrassColor || 'Light Green') : prev.artificialGrassColor,
+                                  }))
+                                }
+                              />
+                              <span className="text-sm font-semibold">
+                                Artificial Grass (+${(
+                                  selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea))
+                                    ? parseFloat(selectedExtras.artificialGrassArea) * GRASS_PRICE_PER_SQFT
+                                    : 0
+                                ).toLocaleString()})
+                              </span>
+                            </label>
+                          </div>
+                          {selectedExtras.artificialGrass && (
+                            <div className="space-y-3">
+                              <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                                <CarouselContent className="-ml-1">
+                                  {artificialGrassOptions.map((grass) => (
+                                    <CarouselItem key={grass.id} className="pl-1 basis-1/2 md:basis-1/4">
+                                      <div
+                                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.artificialGrassColor === grass.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                        onClick={() =>
+                                          setSelectedExtras((prev: any) => ({
+                                            ...prev,
+                                            artificialGrass: true,
+                                            artificialGrassColor: grass.name,
+                                          }))
+                                        }
+                                      >
+                                        <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                          <img src={grass.image} alt={grass.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
+                                        </div>
+                                        <div className="flex flex-col gap-0.5">
+                                          <p className="text-xs font-medium text-center truncate">{grass.name}</p>
+                                          <p className="text-xs text-primary font-semibold text-center">${GRASS_PRICE_PER_SQFT}/sq ft</p>
+                                        </div>
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="left-0 animate-pulse" />
+                                <CarouselNext className="right-0 animate-pulse" />
+                              </Carousel>
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground mb-1 block">Grass Area (sq ft)</label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  placeholder="Enter square footage"
+                                  value={selectedExtras.artificialGrassArea || ''}
+                                  onChange={(e) =>
+                                    setSelectedExtras((prev: any) => ({ ...prev, artificialGrassArea: e.target.value }))
+                                  }
+                                  className="h-9"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+
+
                         {/* Deck Pavers */}
                         <div className="space-y-3">
                           <h4 className="font-semibold text-foreground">Deck Pavers</h4>
