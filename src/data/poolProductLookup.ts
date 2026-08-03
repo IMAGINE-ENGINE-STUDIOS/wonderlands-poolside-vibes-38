@@ -167,7 +167,7 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   "coral cove": { name: "Coral Cove", dimensions: "9'6\" × 16'", depth: "3'6\" - 4'", price: 38500, image: gilmerCoralCove, category: "Pool", brand: "Glimmerglass" },
   "retreat": { name: "Retreat", dimensions: "10'3\" × 18'5\"", depth: "3'6\" - 4'4\"", price: 37888, image: gilmerRetreat, category: "Pool", brand: "Glimmerglass" },
   "regal plunge": { name: "Regal Plunge", dimensions: "10' × 16'", depth: "4' - 5'5\"", price: 42438, image: gilmerRegalPlunge, category: "Pool", brand: "Glimmerglass" },
-  "regal": { name: "Regal", dimensions: "10' × 20'", depth: "3'6\" - 5'4\"", price: 49000, image: gilmerRegal, category: "Pool", brand: "Glimmerglass" },
+  "regal spa": { name: "Regal Spa", dimensions: "10' × 20'", depth: "3'6\" - 5'4\"", price: 49000, image: gilmerRegal, category: "Pool", brand: "Glimmerglass" },
   "mini extreme": { name: "Mini Extreme", dimensions: "8'2\" × 20'", depth: "3'6\" - 5'", price: 57750, image: "/lovable-uploads/gilmer-extreme-27.jpeg", category: "Pool", brand: "Glimmerglass" },
 
   // ============================================
@@ -197,7 +197,7 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   "extreme 27 w/ built-in spa & splash deck": { name: "Extreme 27 w/ Spa", dimensions: "12'6\" × 27'", depth: "3'6\" - 5'11\"", price: 66500, image: "/lovable-uploads/gilmer-extreme-27.jpeg", category: "Pool", brand: "Glimmerglass" },
   "tortola": { name: "Tortola", dimensions: "14' × 30'", depth: "3'6\" - 6'", price: 68250, image: gilmerTortola, category: "Pool", brand: "Glimmerglass" },
   "silver shore": { name: "Silver Shore", dimensions: "15' × 28'", depth: "3'6\" - 6'", price: 57313, image: gilmerSilverShore, category: "Pool", brand: "Glimmerglass" },
-  "mystic": { name: "Mystic", dimensions: "15' × 32'", depth: "3'6\" - 6'", price: 77000, image: gilmerMystic, category: "Pool", brand: "Glimmerglass" },
+  "mystic spa": { name: "Mystic Spa", dimensions: "15' × 32'", depth: "3'6\" - 6'", price: 77000, image: gilmerMystic, category: "Pool", brand: "Glimmerglass" },
   "aloha": { name: "Aloha", dimensions: "15' × 34'", depth: "3'6\" - 6'", price: 77000, image: gilmerAloha, category: "Pool", brand: "Glimmerglass" },
   "bellagio": { name: "Bellagio", dimensions: "15' × 34'", depth: "3'6\" - 6'6\"", price: 77000, image: gilmerBallagio, category: "Pool", brand: "Glimmerglass" },
   "extreme 38": { name: "Extreme 38", dimensions: "15'6\" × 38'", depth: "3'6\" - 7'", price: 92750, image: "/lovable-uploads/gilmer-extreme-38.jpeg", category: "Pool", brand: "Glimmerglass" },
@@ -224,12 +224,29 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   "leisure": { name: "Leisure", dimensions: "8' × 12'", depth: "6\" - 10\"", price: 16000, image: glimmerglassLeisure, category: "Tanning Ledge", brand: "GlimmerGlass" },
 
   // ============================================
-  // SPAS (4x multiplier)
+  // GLIMMERGLASS SPAS (4x multiplier)
   // ============================================
-  "moonlight spillover spa": { name: "Moonlight Spillover Spa", dimensions: "8' × 8'", depth: "3'6\"", price: 20000, image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png", category: "Spa" },
-  "tranquility spa": { name: "Tranquility Spa", dimensions: "7' × 7'", depth: "3'", price: 20000, image: "/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png", category: "Spa" },
-  "pacifica spa": { name: "Pacifica Spa", dimensions: "6' × 6'", depth: "3'", price: 18000, image: "/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.png", category: "Spa" },
-  "pearl spillover spa": { name: "Pearl Spillover Spa", dimensions: "7' × 7'", depth: "3'", price: 18000, image: "/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png", category: "Spa" },
+  "moondance spillover": { name: "Moondance Spillover", dimensions: "8' × 8'", depth: "3'6\"", price: 20000, image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png", category: "Spa", brand: "GlimmerGlass" },
+  "moondance spillover spa": { name: "Moondance Spillover", dimensions: "8' × 8'", depth: "3'6\"", price: 20000, image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png", category: "Spa", brand: "GlimmerGlass" },
+  "tranquility": { name: "Tranquility", dimensions: "7' × 7'", depth: "3'", price: 20000, image: "/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png", category: "Spa", brand: "GlimmerGlass" },
+  "tranquility spa": { name: "Tranquility", dimensions: "7' × 7'", depth: "3'", price: 20000, image: "/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png", category: "Spa", brand: "GlimmerGlass" },
+  "pacifica": { name: "Pacifica", dimensions: "6' × 6'", depth: "3'", price: 18000, image: "/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.png", category: "Spa", brand: "GlimmerGlass" },
+  "pacifica spa": { name: "Pacifica", dimensions: "6' × 6'", depth: "3'", price: 18000, image: "/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.png", category: "Spa", brand: "GlimmerGlass" },
+  "pearl spillover": { name: "Pearl Spillover", dimensions: "7' × 7'", depth: "3'", price: 18000, image: "/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png", category: "Spa", brand: "GlimmerGlass" },
+  "pearl spillover spa": { name: "Pearl Spillover", dimensions: "7' × 7'", depth: "3'", price: 18000, image: "/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png", category: "Spa", brand: "GlimmerGlass" },
+
+  // ============================================
+  // LATHAM SPAS (catalog prices)
+  // ============================================
+  "latham mystic": { name: "Mystic (Latham Spa)", dimensions: "8' × 8'", depth: "3'6\"", price: 17045, image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png", category: "Spa", brand: "Latham" },
+  "mystic spillover": { name: "Mystic Spillover", dimensions: "8' × 8'", depth: "3'6\"", price: 18638, image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png", category: "Spa", brand: "Latham" },
+  "latham regal": { name: "Regal (Latham Spa)", dimensions: "7' × 7'", depth: "3'2\"", price: 16363, image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png", category: "Spa", brand: "Latham" },
+  "regal spillover": { name: "Regal Spillover", dimensions: "7' × 7'", depth: "3'2\"", price: 17850, image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png", category: "Spa", brand: "Latham" },
+  "royal": { name: "Royal", dimensions: "6' × 8'", depth: "3'", price: 16363, image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.png", category: "Spa", brand: "Latham" },
+  "royal spillover": { name: "Royal Spillover", dimensions: "6' × 8'", depth: "3'", price: 17850, image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.png", category: "Spa", brand: "Latham" },
+  "shasta": { name: "Shasta", dimensions: "7' diameter", depth: "3'", price: 13213, image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png", category: "Spa", brand: "Latham" },
+  "shasta spillover": { name: "Shasta Spillover", dimensions: "7' diameter", depth: "3'", price: 14788, image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png", category: "Spa", brand: "Latham" },
+
 
   // ============================================
   // SAUNAS

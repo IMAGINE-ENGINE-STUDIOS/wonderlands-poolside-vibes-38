@@ -188,41 +188,41 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     description: finish.description,
   }));
 
-  // Pool heater options - prices +20% to match WonderlandsStudio
+  // Pool heater options - prices match the main page catalog
   const poolHeaters = [
     {
       name: "Pentair MasterTemp 125 (125K BTU)",
-      price: 2760, // was 2300, +20%
+      price: 2300,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "Compact high-efficiency gas heater for pools up to 15,000 gallons",
     },
     {
       name: "Pentair MasterTemp 250 (250K BTU)",
-      price: 4416, // was 3680, +20%
+      price: 3680,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "Mid-size high-performance gas heater for medium pools",
     },
     {
       name: "Pentair MasterTemp 400 (400K BTU)",
-      price: 5796, // was 4830, +20%
+      price: 4830,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "High-capacity gas heater for large pools and quick heating",
     },
     {
       name: "Pentair UltraTemp 90 Heat Pump",
-      price: 6210, // was 5175, +20%
+      price: 5175,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "Energy-efficient heat pump for pools up to 20,000 gallons",
     },
     {
       name: "Pentair UltraTemp 110 Heat Pump",
-      price: 7590, // was 6325, +20%
+      price: 6325,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "High-efficiency heat pump for medium to large pools",
     },
     {
       name: "Pentair UltraTemp 140 Heat Pump",
-      price: 8970, // was 7475, +20%
+      price: 7475,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "Premium heat pump for large pools with maximum efficiency",
     },
