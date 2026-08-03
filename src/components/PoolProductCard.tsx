@@ -55,7 +55,6 @@ import noCoverBlack from "@/assets/no-cover-black.png";
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
-import FinancingOptions from "./FinancingOptions";
 import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
 import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
 import serenityImage from "@/assets/serenitykit.jpg";
@@ -2050,11 +2049,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
               </div>
             </div>
 
-            {/* Bottom Dashboard - Integrated Financing */}
-            <FinancingOptions 
-              totalPrice={calculateTotalPrice()}
-              productName={pool.model}
-            />
           </div>
         )}
 

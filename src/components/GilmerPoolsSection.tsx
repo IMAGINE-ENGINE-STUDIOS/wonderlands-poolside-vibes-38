@@ -5,15 +5,17 @@ import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Waves, Shield, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+const sortedPools = [...gilmerPools].sort((a, b) => a.price - b.price);
+
 const GilmerPoolsSection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const poolsPerPage = 9; // 3x3 grid
 
   // Calculate pagination
-  const totalPages = Math.ceil(gilmerPools.length / poolsPerPage);
+  const totalPages = Math.ceil(sortedPools.length / poolsPerPage);
   const startIndex = (currentPage - 1) * poolsPerPage;
   const endIndex = startIndex + poolsPerPage;
-  const currentPools = gilmerPools.slice(startIndex, endIndex);
+  const currentPools = sortedPools.slice(startIndex, endIndex);
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     // Scroll to top of section
@@ -57,7 +59,7 @@ const GilmerPoolsSection = () => {
 
           {/* Page indicator */}
           <p className="text-sm text-muted-foreground mt-4">
-            Showing {startIndex + 1}-{Math.min(endIndex, gilmerPools.length)} of {gilmerPools.length} models
+            Showing {startIndex + 1}-{Math.min(endIndex, sortedPools.length)} of {sortedPools.length} models
           </p>
         </div>
 

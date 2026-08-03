@@ -22,7 +22,6 @@ import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermomete
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
-import FinancingOptions from "./FinancingOptions";
 
 interface SimplifiedGilmerPoolCardProps {
   pool: {
@@ -913,12 +912,6 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 variant="gradient"
                 className="w-full hover:scale-105 transition-all duration-300"
                 showFinancingOptions={false}
-              />
-              
-              {/* Financing Options */}
-              <FinancingOptions 
-                totalPrice={pool.price + calculateTotal()}
-                productName={`${pool.brand} ${pool.model}`}
               />
             </div>
           </div>
