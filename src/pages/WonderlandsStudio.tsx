@@ -920,7 +920,7 @@ const WonderlandsStudio = () => {
 
     // Get features for this product type
     const productType = selectedProduct.type || 'pool';
-    const features = getProductFeatures(productType);
+    const features = getProductFeatures(productType as ProductType);
 
     // Unit-priced standalone categories: base price is a rate, multiply by quantity
     const unit = getProductUnit(selectedProduct);
