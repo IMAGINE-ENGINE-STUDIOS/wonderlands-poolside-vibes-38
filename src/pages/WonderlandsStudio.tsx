@@ -80,7 +80,8 @@ interface Product {
   warrantyYears?: number | string;
   saltSystem?: boolean;
   carbonFiber?: boolean;
-  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate';
+  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'fencing' | 'lanai' | 'landscaping' | 'finish' | 'liner';
+  unit?: 'sqft' | 'linear-ft';
   id?: string;
   description?: string;
   brand?: string; // Pool brand (Glimmerglass, Latham, etc.)
