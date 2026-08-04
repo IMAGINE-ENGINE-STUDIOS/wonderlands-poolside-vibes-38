@@ -2001,6 +2001,51 @@ const WonderlandsStudio = () => {
                             </div>}
                         </div>
                       </>
+                    ) : !isWaterProduct(selectedProduct.type) ? (
+                      // Standalone categories (screen enclosures, fencing, lanai, pavers,
+                      // grass, landscaping, covers, driveway gates, finishes, liners):
+                      // only their own relevant options — no pool features here.
+                      <>
+                        {(() => {
+                          const unit = getProductUnit(selectedProduct);
+                          if (!unit) return null;
+                          const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
+                          return (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">
+                                {unit === 'sqft' ? 'Surface Area' : 'Length'} ({unitLabel(unit)})
+                              </Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                placeholder={`Enter ${unitLabel(unit)}`}
+                                value={selectedExtras.categoryQuantity}
+                                onChange={(e) => setSelectedExtras((prev: any) => ({ ...prev, categoryQuantity: e.target.value }))}
+                                className="w-40"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                {qty > 0
+                                  ? `${qty.toLocaleString()} ${unitLabel(unit)} × $${getProductPrice(selectedProduct).toLocaleString()}/${unitLabel(unit)} = $${(qty * getProductPrice(selectedProduct)).toLocaleString()}`
+                                  : `$${getProductPrice(selectedProduct).toLocaleString()} per ${unitLabel(unit)}`}
+                              </p>
+                            </div>
+                          );
+                        })()}
+
+                        {getProductFeatures((selectedProduct.type || 'paver') as any).length > 0 && (
+                          <DynamicFeatureRenderer
+                            productType={(selectedProduct.type || 'paver') as any}
+                            selectedExtras={selectedExtras}
+                            onExtrasChange={(extras) => setSelectedExtras(extras)}
+                          />
+                        )}
+
+                        {!getProductUnit(selectedProduct) && getProductFeatures((selectedProduct.type || 'paver') as any).length === 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            This product is quoted as configured — no additional options required.
+                          </p>
+                        )}
+                      </>
                     ) : (
                       // Pool configuration options using same format as PoolProductCard
                       <>
