@@ -353,6 +353,21 @@ const calculatePoolLinerArea = (dimensions: string | undefined): number => {
   const walls = 2 * (length + width) * 5; // avg 5ft depth
   return Math.round(floor + walls);
 };
+// Product types that use the full pool/spa feature set
+const WATER_PRODUCT_TYPES = ['pool', 'spa', 'tanning-ledge', 'sauna'];
+const isWaterProduct = (type?: string): boolean => WATER_PRODUCT_TYPES.includes(type || 'pool');
+
+// Unit-priced categories (screen enclosures, fencing, lanai, pavers, grass, liners...)
+const getProductUnit = (product: any): 'sqft' | 'linear-ft' | null => {
+  if (!product) return null;
+  if (product.unit === 'sqft' || product.unit === 'linear-ft') return product.unit;
+  const cat = String(product.category || '').toLowerCase();
+  if (cat.includes('linear')) return 'linear-ft';
+  if (cat.includes('sq ft') || cat.includes('sqft')) return 'sqft';
+  return null;
+};
+const unitLabel = (unit: 'sqft' | 'linear-ft') => (unit === 'sqft' ? 'sq ft' : 'linear ft');
+
 const WonderlandsStudio = () => {
   const {
     addToCart
@@ -421,6 +436,8 @@ const WonderlandsStudio = () => {
     artificialGrass: false,
     artificialGrassColor: 'Light Green',
     artificialGrassArea: '',
+    // Standalone category configuration (screen enclosures, fencing, lanai, etc.)
+    categoryQuantity: '',
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [paverCategory, setPaverCategory] = useState('all');
@@ -903,6 +920,20 @@ const WonderlandsStudio = () => {
     // Get features for this product type
     const productType = selectedProduct.type || 'pool';
     const features = getProductFeatures(productType);
+
+    // Unit-priced standalone categories: base price is a rate, multiply by quantity
+    const unit = getProductUnit(selectedProduct);
+    if (!isWaterProduct(productType) && productType !== 'scene') {
+      if (unit) {
+        const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
+        total = getProductPrice(selectedProduct) * qty;
+      }
+      // Only the features configured for this exact product type apply
+      features.forEach((feature) => {
+        total += calculateFeaturePrice(feature, selectedExtras[feature.id], selectedExtras);
+      });
+      return total * priceMultiplier;
+    }
 
     const usesCustomExtras = productType === 'pool' || productType === 'spa' || productType === 'tanning-ledge';
 
