@@ -798,6 +798,7 @@ const WonderlandsStudio = () => {
       case 'patio-fencing':
         products = studioFencing.map(item => ({
           ...item,
+          type: 'fencing' as const,
           model: item.name,
           category: 'per linear ft'
         }));
@@ -805,6 +806,7 @@ const WonderlandsStudio = () => {
       case 'lanai':
         products = studioLanai.map(item => ({
           ...item,
+          type: 'lanai' as const,
           model: item.name,
           category: 'per sq ft'
         }));
@@ -835,6 +837,7 @@ const WonderlandsStudio = () => {
           model: plant.name,
           price: plant.minPrice,
           image: plant.image,
+          type: 'landscaping' as const,
           category: plant.category
         }));
         break;
@@ -866,6 +869,7 @@ const WonderlandsStudio = () => {
           price: finish.price,
           image: finish.image,
           description: finish.description,
+          type: 'finish' as const,
           category: finish.collection || 'finish'
         }));
         break;
@@ -876,6 +880,7 @@ const WonderlandsStudio = () => {
           price: liner.price,
           image: liner.image,
           description: liner.description,
+          type: 'liner' as const,
           category: 'per sq ft'
         }));
         break;
