@@ -1724,8 +1724,8 @@ const WonderlandsStudio = () => {
                             </div>}
                         </div>
 
-                         {/* Included Features */}
-                        <div className="bg-green-50 dark:bg-green-950/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800">
+                         {/* Included Features (pools, spas, tanning ledges, saunas only) */}
+                        {isWaterProduct(selectedProduct.type) && <div className="bg-green-50 dark:bg-green-950/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800">
                           <h3 className="text-xs sm:text-sm font-semibold text-green-800 dark:text-green-300 mb-2 sm:mb-3">
                             ✓ Included at No Extra Cost
                           </h3>
@@ -1746,7 +1746,7 @@ const WonderlandsStudio = () => {
                               <span>• Premium coping pavers</span>
                             </div>
                           </div>
-                        </div>
+                        </div>}
                       </div>
                     </CardContent>
                 </Card>
