@@ -80,7 +80,8 @@ interface Product {
   warrantyYears?: number | string;
   saltSystem?: boolean;
   carbonFiber?: boolean;
-  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate';
+  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'fencing' | 'lanai' | 'landscaping' | 'finish' | 'liner';
+  unit?: 'sqft' | 'linear-ft';
   id?: string;
   description?: string;
   brand?: string; // Pool brand (Glimmerglass, Latham, etc.)
@@ -353,6 +354,21 @@ const calculatePoolLinerArea = (dimensions: string | undefined): number => {
   const walls = 2 * (length + width) * 5; // avg 5ft depth
   return Math.round(floor + walls);
 };
+// Product types that use the full pool/spa feature set
+const WATER_PRODUCT_TYPES = ['pool', 'spa', 'tanning-ledge', 'sauna'];
+const isWaterProduct = (type?: string): boolean => WATER_PRODUCT_TYPES.includes(type || 'pool');
+
+// Unit-priced categories (screen enclosures, fencing, lanai, pavers, grass, liners...)
+const getProductUnit = (product: any): 'sqft' | 'linear-ft' | null => {
+  if (!product) return null;
+  if (product.unit === 'sqft' || product.unit === 'linear-ft') return product.unit;
+  const cat = String(product.category || '').toLowerCase();
+  if (cat.includes('linear')) return 'linear-ft';
+  if (cat.includes('sq ft') || cat.includes('sqft')) return 'sqft';
+  return null;
+};
+const unitLabel = (unit: 'sqft' | 'linear-ft') => (unit === 'sqft' ? 'sq ft' : 'linear ft');
+
 const WonderlandsStudio = () => {
   const {
     addToCart
@@ -421,6 +437,8 @@ const WonderlandsStudio = () => {
     artificialGrass: false,
     artificialGrassColor: 'Light Green',
     artificialGrassArea: '',
+    // Standalone category configuration (screen enclosures, fencing, lanai, etc.)
+    categoryQuantity: '',
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [paverCategory, setPaverCategory] = useState('all');
@@ -798,6 +816,7 @@ const WonderlandsStudio = () => {
       case 'patio-fencing':
         products = studioFencing.map(item => ({
           ...item,
+          type: 'fencing' as const,
           model: item.name,
           category: 'per linear ft'
         }));
@@ -805,6 +824,7 @@ const WonderlandsStudio = () => {
       case 'lanai':
         products = studioLanai.map(item => ({
           ...item,
+          type: 'lanai' as const,
           model: item.name,
           category: 'per sq ft'
         }));
@@ -835,6 +855,7 @@ const WonderlandsStudio = () => {
           model: plant.name,
           price: plant.minPrice,
           image: plant.image,
+          type: 'landscaping' as const,
           category: plant.category
         }));
         break;
@@ -866,6 +887,7 @@ const WonderlandsStudio = () => {
           price: finish.price,
           image: finish.image,
           description: finish.description,
+          type: 'finish' as const,
           category: finish.collection || 'finish'
         }));
         break;
@@ -876,6 +898,7 @@ const WonderlandsStudio = () => {
           price: liner.price,
           image: liner.image,
           description: liner.description,
+          type: 'liner' as const,
           category: 'per sq ft'
         }));
         break;
@@ -897,7 +920,21 @@ const WonderlandsStudio = () => {
 
     // Get features for this product type
     const productType = selectedProduct.type || 'pool';
-    const features = getProductFeatures(productType);
+    const features = getProductFeatures(productType as ProductType);
+
+    // Unit-priced standalone categories: base price is a rate, multiply by quantity
+    const unit = getProductUnit(selectedProduct);
+    if (!isWaterProduct(productType) && productType !== 'scene') {
+      if (unit) {
+        const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
+        total = getProductPrice(selectedProduct) * qty;
+      }
+      // Only the features configured for this exact product type apply
+      features.forEach((feature) => {
+        total += calculateFeaturePrice(feature, selectedExtras[feature.id], selectedExtras);
+      });
+      return total * priceMultiplier;
+    }
 
     const usesCustomExtras = productType === 'pool' || productType === 'spa' || productType === 'tanning-ledge';
 
@@ -1688,8 +1725,8 @@ const WonderlandsStudio = () => {
                             </div>}
                         </div>
 
-                         {/* Included Features */}
-                        <div className="bg-green-50 dark:bg-green-950/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800">
+                         {/* Included Features (pools, spas, tanning ledges, saunas only) */}
+                        {isWaterProduct(selectedProduct.type) && <div className="bg-green-50 dark:bg-green-950/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800">
                           <h3 className="text-xs sm:text-sm font-semibold text-green-800 dark:text-green-300 mb-2 sm:mb-3">
                             ✓ Included at No Extra Cost
                           </h3>
@@ -1710,7 +1747,7 @@ const WonderlandsStudio = () => {
                               <span>• Premium coping pavers</span>
                             </div>
                           </div>
-                        </div>
+                        </div>}
                       </div>
                     </CardContent>
                 </Card>
@@ -1964,6 +2001,51 @@ const WonderlandsStudio = () => {
                               </Carousel>
                             </div>}
                         </div>
+                      </>
+                    ) : !isWaterProduct(selectedProduct.type) ? (
+                      // Standalone categories (screen enclosures, fencing, lanai, pavers,
+                      // grass, landscaping, covers, driveway gates, finishes, liners):
+                      // only their own relevant options — no pool features here.
+                      <>
+                        {(() => {
+                          const unit = getProductUnit(selectedProduct);
+                          if (!unit) return null;
+                          const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
+                          return (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">
+                                {unit === 'sqft' ? 'Surface Area' : 'Length'} ({unitLabel(unit)})
+                              </Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                placeholder={`Enter ${unitLabel(unit)}`}
+                                value={selectedExtras.categoryQuantity}
+                                onChange={(e) => setSelectedExtras((prev: any) => ({ ...prev, categoryQuantity: e.target.value }))}
+                                className="w-40"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                {qty > 0
+                                  ? `${qty.toLocaleString()} ${unitLabel(unit)} × $${getProductPrice(selectedProduct).toLocaleString()}/${unitLabel(unit)} = $${(qty * getProductPrice(selectedProduct)).toLocaleString()}`
+                                  : `$${getProductPrice(selectedProduct).toLocaleString()} per ${unitLabel(unit)}`}
+                              </p>
+                            </div>
+                          );
+                        })()}
+
+                        {getProductFeatures((selectedProduct.type || 'paver') as any).length > 0 && (
+                          <DynamicFeatureRenderer
+                            productType={(selectedProduct.type || 'paver') as any}
+                            selectedExtras={selectedExtras}
+                            onExtrasChange={(extras) => setSelectedExtras(extras)}
+                          />
+                        )}
+
+                        {!getProductUnit(selectedProduct) && getProductFeatures((selectedProduct.type || 'paver') as any).length === 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            This product is quoted as configured — no additional options required.
+                          </p>
+                        )}
                       </>
                     ) : (
                       // Pool configuration options using same format as PoolProductCard
