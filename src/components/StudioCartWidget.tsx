@@ -14,11 +14,13 @@ interface StudioCartWidgetProps {
   /** Category of the configuration currently open */
   currentCategory?: string;
   /** Features/extras of the configuration currently open */
-  currentExtras?: Array<{ name: string; price: number; key?: string; quantity?: number }>;
+  currentExtras?: Array<{ name: string; price: number; key?: string; quantity?: number; options?: { name: string; price: number }[] }>;
   /** Removes one feature from the currently open configuration */
   onRemoveCurrentExtra?: (key?: string) => void;
   /** Updates the quantity of a feature in the currently open configuration */
   onCurrentExtraQuantity?: (key: string | undefined, quantity: number) => void;
+  /** Switches the selected option of a feature in the currently open configuration */
+  onCurrentExtraOption?: (key: string | undefined, optionName: string) => void;
   /** Adds the currently open configuration to the cart */
   onAddCurrent?: () => void;
   /** Opens the quote widget */
@@ -39,6 +41,7 @@ const StudioCartWidget = ({
   currentExtras = [],
   onRemoveCurrentExtra,
   onCurrentExtraQuantity,
+  onCurrentExtraOption,
   onAddCurrent,
   onQuote,
   onListOpenChange,
