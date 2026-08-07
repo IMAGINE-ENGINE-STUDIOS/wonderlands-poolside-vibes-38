@@ -10,11 +10,21 @@ export interface EnclosurePoint {
 
 export type EnclosureSegmentKind = 'wall' | 'door' | 'house';
 
+export interface EnclosureFeature {
+  kind: Extract<EnclosureSegmentKind, 'door' | 'house'>;
+  /** Normalized start position along the segment (0 = start point, 1 = end point) */
+  start: number;
+  /** Normalized end position along the segment */
+  end: number;
+}
+
 export interface EnclosureLayout {
   points: EnclosurePoint[];
   closed: boolean;
-  /** Segment index -> kind. Unlisted segments default to 'wall'. */
-  segmentKinds: Record<number, EnclosureSegmentKind>;
+  /** Segment index -> list of door/house bays placed along that segment. */
+  features: Record<number, EnclosureFeature[]>;
+  /** @deprecated Kept for cache migration only. */
+  segmentKinds?: Record<number, EnclosureSegmentKind>;
 }
 
 export interface EnclosureTakeoff {
