@@ -85,7 +85,27 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     return segs;
   }, [layout]);
 
-  const kindOf = (index: number): EnclosureSegmentKind => layout.segmentKinds[index] || 'wall';
+  const featuresOf = (index: number): EnclosureFeature[] => layout.features[index] || [];
+
+  /** Split a segment into wall/door/house intervals based on its features. */
+  const segmentIntervals = (seg: { a: EnclosurePoint; b: EnclosurePoint; index: number }) => {
+    const len = dist(seg.a, seg.b);
+    const ft = len / PX_PER_FT;
+    const feats = featuresOf(seg.index)
+      .filter(f => f.end > f.start)
+      .sort((a, b) => a.start - b.start);
+    const intervals: Array<{ kind: EnclosureSegmentKind; t0: number; t1: number; ft: number }> = [];
+    let cursor = 0;
+    feats.forEach(f => {
+      if (f.start > cursor) {
+        intervals.push({ kind: 'wall', t0: cursor, t1: f.start, ft: (f.start - cursor) * ft });
+      }
+      intervals.push({ kind: f.kind, t0: f.start, t1: f.end, ft: (f.end - f.start) * ft });
+      cursor = f.end;
+    });
+    if (cursor < 1) intervals.push({ kind: 'wall', t0: cursor, t1: 1, ft: (1 - cursor) * ft });
+    return intervals;
+  };
 
   const takeoff = React.useMemo<EnclosureTakeoff>(() => {
     const pts = layout.points;
@@ -98,12 +118,14 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
       const ft = dist(seg.a, seg.b) / PX_PER_FT;
       perimeter += ft;
       longest = Math.max(longest, ft);
-      const kind = kindOf(seg.index);
-      if (kind === 'house') houseWall += ft;
-      else {
-        screenWall += ft;
-        if (kind === 'door') doorFt += ft;
-      }
+      const intervals = segmentIntervals(seg);
+      intervals.forEach(iv => {
+        if (iv.kind === 'house') houseWall += iv.ft;
+        else {
+          screenWall += iv.ft;
+          if (iv.kind === 'door') doorFt += iv.ft;
+        }
+      });
     });
     // Shoelace area (only meaningful for a closed footprint)
     let area = 0;
