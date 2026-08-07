@@ -512,8 +512,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
 
       <TabsContent value="pro" className="space-y-5 mt-0">
       {/* Compliance */}
-      <Card>
-        <CardContent className="pt-5 space-y-3">
+      <section className="glass-panel rounded-2xl p-5 space-y-3">
           <h4 className="text-sm font-semibold flex items-center gap-2">
             <Stamp className="h-4 w-4 text-primary" /> Florida Code Review
           </h4>
@@ -524,7 +523,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
           ) : (
             <div className="space-y-2">
               {[...errors, ...warnings, ...notes].map((issue, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-md border border-border p-2.5">
+                <div key={i} className="flex items-start gap-2 rounded-xl glass-tile p-2.5">
                   {issue.level === 'error' ? (
                     <AlertTriangle className="h-4 w-4 mt-0.5 text-destructive shrink-0" />
                   ) : issue.level === 'warning' ? (
@@ -544,13 +543,10 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
             Design pressure {pressure} psf • {config.windSpeedMph} mph • Exposure {config.exposure}
             {config.hvhz ? ' • HVHZ' : ''}
           </p>
-        </CardContent>
-      </Card>
+      </section>
 
       {/* Contractor cost model */}
-
-      <Card>
-        <CardContent className="pt-5 space-y-4">
+      <section className="glass-panel rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-semibold">Contractor Cost Model (internal)</h4>
             {estimate.total > 0 && (
