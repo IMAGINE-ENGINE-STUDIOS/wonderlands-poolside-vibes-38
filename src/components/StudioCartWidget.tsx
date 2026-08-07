@@ -174,25 +174,47 @@ const StudioCartWidget = ({
                       </p>
                       {item.extras.map((extra, idx) => (
                         <div
-                          key={`${item.id}-${extra.name}-${idx}`}
-                          className="flex items-center justify-between gap-2"
+                          key={`${item.id}-${extra.key || extra.name}-${idx}`}
+                          className="space-y-1"
                         >
-                          <span className="text-[11px] truncate">{extra.name}</span>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="text-[11px] font-medium">
-                              ${extra.price.toLocaleString()}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => removeExtra(item.id, idx)}
-                              className="text-muted-foreground hover:text-destructive"
-                              aria-label={`Remove ${extra.name}`}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] truncate">{extra.name}</span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-[11px] font-medium">
+                                ${extra.price.toLocaleString()}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => removeExtra(item.id, idx)}
+                                className="text-muted-foreground hover:text-destructive"
+                                aria-label={`Remove ${extra.name}`}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
                           </div>
+                          {extra.options && extra.options.length > 1 && (
+                            <select
+                              value={extra.name}
+                              onChange={event => {
+                                const next = extra.options?.find(
+                                  option => option.name === event.target.value
+                                );
+                                if (next) updateExtra(item.id, idx, next);
+                              }}
+                              className="w-full h-6 rounded border bg-background text-foreground text-[10px] px-1"
+                              aria-label={`Change ${extra.name}`}
+                            >
+                              {extra.options.map(option => (
+                                <option key={option.name} value={option.name}>
+                                  {option.name} — ${option.price.toLocaleString()}
+                                </option>
+                              ))}
+                            </select>
+                          )}
                         </div>
                       ))}
+
                     </div>
                   )}
                   <div className="flex items-center justify-between">
