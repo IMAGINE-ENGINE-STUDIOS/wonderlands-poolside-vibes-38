@@ -384,7 +384,20 @@ export function buildEnclosureSpec(config: EnclosureConfigState): {
       { label: 'Slab edge', value: 'Min. 4" clear from slab edge; epoxy anchors where edge distance is short' },
       { label: 'Beam splices', value: `Internal sleeves at splices, #10 x 3/4" ${config.hvhz ? '304 stainless' : 'painted'} screws, 3 per connection` },
       { label: 'Screen install', value: 'Spline roll into extrusion channel, 0.175" spline, no more than 2% sag' },
-      { label: 'Doors', value: doorCount > 0 ? `${doorCount} — hinges set plumb, latch @ 54" AFF, outward swing` : 'None configured' },
+      {
+        label: 'Doors',
+        value:
+          doorCount > 0
+            ? Object.entries(config.doors)
+                .filter(([, q]) => q > 0)
+                .map(([id, q]) => {
+                  const d = ENCLOSURE_DOORS.find(x => x.id === id);
+                  return `${q} x ${d?.label || id}${d?.selfLatching ? ' (self-closing / self-latching, latch @ 54" AFF, outward swing)' : ''}`;
+                })
+                .join('; ')
+            : 'None configured',
+      },
+
       { label: 'Gutter', value: config.addOns.includes('super-gutter') ? '6" Super Gutter with downspouts to grade, 1/8" per ft slope' : 'None — verify deck drainage' },
       { label: 'Finish protection', value: `${config.hvhz ? 'AAMA 2604' : 'AAMA 2603'} powder coat, touch-up all field cuts` },
     ],
