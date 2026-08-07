@@ -143,10 +143,21 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
     }));
 
   return (
-    <div className="space-y-5">
+    <Tabs defaultValue="customer" className="w-full space-y-5">
+      <TabsList className="grid grid-cols-2 w-full">
+        <TabsTrigger value="customer" className="text-xs">
+          <Ruler className="h-3.5 w-3.5 mr-1" /> Customer Tools
+        </TabsTrigger>
+        <TabsTrigger value="pro" className="text-xs">
+          <HardHat className="h-3.5 w-3.5 mr-1" /> Contractor &amp; Project Tools
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="customer" className="space-y-5 mt-0">
       {/* Take-off board */}
       <Card>
         <CardContent className="pt-5 space-y-4">
+
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h4 className="text-sm font-semibold flex items-center gap-2">
