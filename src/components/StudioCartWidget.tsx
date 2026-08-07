@@ -18,6 +18,12 @@ interface StudioCartWidgetProps {
   currentName?: string;
   /** Category of the configuration currently open */
   currentCategory?: string;
+  /** Features/extras of the configuration currently open */
+  currentExtras?: Array<{ name: string; price: number; key?: string; quantity?: number }>;
+  /** Removes one feature from the currently open configuration */
+  onRemoveCurrentExtra?: (key?: string) => void;
+  /** Updates the quantity of a feature in the currently open configuration */
+  onCurrentExtraQuantity?: (key: string | undefined, quantity: number) => void;
   /** Adds the currently open configuration to the cart */
   onAddCurrent?: () => void;
   /** Opens the quote widget */
@@ -33,6 +39,9 @@ const StudioCartWidget = ({
   currentPrice,
   currentName,
   currentCategory,
+  currentExtras = [],
+  onRemoveCurrentExtra,
+  onCurrentExtraQuantity,
   onAddCurrent,
   onQuote,
 }: StudioCartWidgetProps) => {
@@ -208,6 +217,59 @@ const StudioCartWidget = ({
                     ${pendingPrice.toLocaleString()}
                   </span>
                 </div>
+                {currentExtras.length > 0 && (
+                  <div className="rounded-md bg-background border p-1.5 space-y-1">
+                    <p className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                      Features
+                    </p>
+                    {currentExtras.map((extra, idx) => (
+                      <div
+                        key={`${extra.key || extra.name}-${idx}`}
+                        className="flex items-center justify-between gap-2"
+                      >
+                        <span className="text-[11px] truncate">{extra.name}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {typeof extra.quantity === 'number' && onCurrentExtraQuantity && (
+                            <div className="flex items-center gap-0.5">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-5 w-5 p-0"
+                                onClick={() => onCurrentExtraQuantity(extra.key, (extra.quantity || 0) - 1)}
+                              >
+                                <Minus className="h-2.5 w-2.5" />
+                              </Button>
+                              <span className="w-4 text-center text-[10px] font-medium">
+                                {extra.quantity}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-5 w-5 p-0"
+                                onClick={() => onCurrentExtraQuantity(extra.key, (extra.quantity || 0) + 1)}
+                              >
+                                <Plus className="h-2.5 w-2.5" />
+                              </Button>
+                            </div>
+                          )}
+                          <span className="text-[11px] font-medium">
+                            ${extra.price.toLocaleString()}
+                          </span>
+                          {onRemoveCurrentExtra && (
+                            <button
+                              type="button"
+                              onClick={() => onRemoveCurrentExtra(extra.key)}
+                              className="text-muted-foreground hover:text-destructive"
+                              aria-label={`Remove ${extra.name}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {onAddCurrent && (
                   <Button variant="outline" size="sm" className="h-7 w-full text-[11px]" onClick={onAddCurrent}>
                     <PlusIcon className="h-3 w-3 mr-1" /> Add to shopping list

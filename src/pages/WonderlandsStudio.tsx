@@ -1329,10 +1329,8 @@ const WonderlandsStudio = () => {
     }));
     setShowQuoteModal(true);
   };
-  const handleAddToCart = () => {
-    if (!selectedProduct) return;
-
-
+  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string }> => {
+    if (!selectedProduct) return [];
     // Convert selectedExtras to the format expected by CartItem
     const extrasArray = [];
 
@@ -1341,6 +1339,7 @@ const WonderlandsStudio = () => {
     if (selectedFinish && selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '' && selectedFinish.price > 0) {
       extrasArray.push({
         name: `${selectedFinish.name} Finish`,
+        key: 'finish',
         price: selectedFinish.price
       });
     }
@@ -1351,6 +1350,7 @@ const WonderlandsStudio = () => {
       if (selectedHeater) {
         extrasArray.push({
           name: selectedHeater.name,
+          key: 'heater',
           price: selectedHeater.price
         });
       }
@@ -1361,6 +1361,7 @@ const WonderlandsStudio = () => {
     if (coverOption && selectedExtras.cover && selectedExtras.coverOption && coverOption.name !== 'NO COVER' && selectedExtras.coverOption !== 'None' && selectedExtras.coverOption !== '') {
       extrasArray.push({
         name: coverOption.name,
+        key: 'cover',
         price: coverOption.price
       });
     }
@@ -1369,6 +1370,7 @@ const WonderlandsStudio = () => {
     if (selectedExtras.jets && selectedExtras.jetQuantity > 0) {
       extrasArray.push({
         name: `Spa Jets (${selectedExtras.jetQuantity})`,
+        key: 'jets',
         price: getExtraPrice('jets') * selectedExtras.jetQuantity
       });
     }
@@ -1379,6 +1381,7 @@ const WonderlandsStudio = () => {
       const tilePrice = getTileCost(tileOption.name);
       extrasArray.push({
         name: tileOption.name,
+        key: 'tiles',
         price: tilePrice
       });
     }
@@ -1391,6 +1394,7 @@ const WonderlandsStudio = () => {
         const perSqFt = linerOption.price || 20;
         extrasArray.push({
           name: `${selectedExtras.linerOption} Liner (${sqft} sqft @ $${perSqFt}/sqft)`,
+          key: 'liner',
           price: sqft * perSqFt
         });
       }
@@ -1409,6 +1413,7 @@ const WonderlandsStudio = () => {
     ) {
       extrasArray.push({
         name: `${selectedExtras.paverOption} (${paverAreaStr} sq ft)`,
+        key: 'pavers',
         price: calculatePaverCost(paverAreaStr, selectedExtras.paverOption),
       });
     }
@@ -1420,6 +1425,7 @@ const WonderlandsStudio = () => {
       const enclosurePrice = selectedExtras.screenEnclosureArea * pricePerSqFt;
       extrasArray.push({
         name: `Screen Enclosure - ${quality === 'standard' ? 'Wonder Cage' : quality === 'deluxe' ? 'Deluxe' : 'Premium'} (${selectedExtras.screenEnclosureArea} sq ft)`,
+        key: 'screenEnclosure',
         price: enclosurePrice
       });
     }
@@ -1429,6 +1435,7 @@ const WonderlandsStudio = () => {
       const concreteMarkup = Math.round(getProductPrice(selectedProduct) * 0.2);
       extrasArray.push({
         name: 'Concrete Construction',
+        key: 'concreteConstruction',
         price: concreteMarkup
       });
     }
@@ -1440,6 +1447,7 @@ const WonderlandsStudio = () => {
       if (selectedSpa) {
         extrasArray.push({
           name: `${selectedSpa.model} Spa`,
+          key: 'spa',
           price: selectedSpa.price
         });
       }
@@ -1449,6 +1457,7 @@ const WonderlandsStudio = () => {
     if (selectedExtras.spaFinish && selectedExtras.spaFinishPrice) {
       extrasArray.push({
         name: `${selectedExtras.spaFinish} Spa Finish`,
+        key: 'spaFinish',
         price: selectedExtras.spaFinishPrice
       });
     }
@@ -1459,6 +1468,7 @@ const WonderlandsStudio = () => {
       if (selectedLedge) {
         extrasArray.push({
           name: `${selectedLedge.name} Tanning Ledge`,
+          key: 'tanningLedge',
           price: selectedLedge.price
         });
       }
@@ -1470,6 +1480,7 @@ const WonderlandsStudio = () => {
       if (tier) {
         extrasArray.push({
           name: `Rocky Waterfalls: ${tier.name}${selectedExtras.rockyWaterfallColor ? ` (${selectedExtras.rockyWaterfallColor})` : ''}`,
+          key: 'rockyWaterfall',
           price: tier.price
         });
       }
@@ -1480,9 +1491,47 @@ const WonderlandsStudio = () => {
       const grassArea = parseFloat(selectedExtras.artificialGrassArea);
       extrasArray.push({
         name: `Artificial Grass - ${selectedExtras.artificialGrassColor} (${grassArea} sq ft)`,
+        key: 'artificialGrass',
         price: calculateGrassCost(grassArea, selectedExtras.artificialGrassColor)
       });
     }
+    return extrasArray;
+  };
+
+  const FEATURE_RESETS: Record<string, any> = {
+    finish: { finish: 'None' },
+    heater: { heater: false, heaterModel: '' },
+    cover: { cover: false, coverOption: '' },
+    jets: { jets: false, jetQuantity: 0 },
+    tiles: { tiles: false, tileOption: '' },
+    liner: { liner: false, linerOption: '' },
+    pavers: { pavers: false, paverOption: '' },
+    screenEnclosure: { screenEnclosure: false, screenEnclosureArea: 0 },
+    concreteConstruction: { concreteConstruction: false },
+    spa: { spa: false, spaModel: '' },
+    spaFinish: { spaFinish: '', spaFinishPrice: 0 },
+    tanningLedge: { tanningLedge: false, tanningLedgeModel: '' },
+    rockyWaterfall: { rockyWaterfall: false, rockyWaterfallTier: '' },
+    artificialGrass: { artificialGrass: false, artificialGrassArea: '' },
+  };
+
+  const handleRemoveCurrentFeature = (key?: string) => {
+    if (!key || !FEATURE_RESETS[key]) return;
+    setSelectedExtras((prev: any) => ({ ...prev, ...FEATURE_RESETS[key] }));
+  };
+
+  const handleCurrentFeatureQuantity = (key: string | undefined, quantity: number) => {
+    if (key !== 'jets') return;
+    if (quantity <= 0) {
+      handleRemoveCurrentFeature('jets');
+      return;
+    }
+    setSelectedExtras((prev: any) => ({ ...prev, jets: true, jetQuantity: quantity }));
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedProduct) return;
+    const extrasArray = buildCurrentExtras();
     const cartItem = {
       id: `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`,
       name: selectedProduct.model || selectedProduct.name || 'Product',
@@ -1545,6 +1594,12 @@ const WonderlandsStudio = () => {
                   currentPrice={selectedProduct ? (activeTab === 'build-a-pool' && poolBuilderData ? (poolBuilderData.breakdown?.total || 0) : calculateTotalPrice()) : 0}
                   currentName={selectedProduct ? (selectedProduct.model || selectedProduct.name || 'Product') : undefined}
                   currentCategory={selectedProduct?.category}
+                  currentExtras={selectedProduct ? buildCurrentExtras().map(e => ({
+                    ...e,
+                    quantity: e.key === 'jets' ? selectedExtras.jetQuantity : undefined,
+                  })) : []}
+                  onRemoveCurrentExtra={handleRemoveCurrentFeature}
+                  onCurrentExtraQuantity={handleCurrentFeatureQuantity}
                   onAddCurrent={selectedProduct ? handleAddToCart : undefined}
                   onQuote={handleQuoteRequest}
                 />
