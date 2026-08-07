@@ -70,27 +70,46 @@ const StudioCartWidget = ({
     (price + (extras || []).reduce((sum, e) => sum + e.price, 0)) * quantity;
 
   return (
-    <div className="border-b bg-gradient-to-r from-primary/10 to-teal/10">
+    <div className="border-b bg-gradient-to-r from-primary/10 to-teal/10 p-3 space-y-2">
+      <div className="text-center">
+        <div className="text-xl font-bold">
+          <span className="text-primary">{total.whole}</span>
+          <span className="text-foreground">{total.cents}</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center justify-center gap-1">
+          Total Configuration Price
+          <span className="text-muted-foreground/70">
+            ({getCartCount() + (pendingPrice > 0 ? 1 : 0)} items)
+          </span>
+          {duplicates.length > 0 && (
+            <AlertTriangle className="h-3 w-3 text-coral" />
+          )}
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" className="flex-1 text-[11px]" onClick={onQuote}>
+          <FileText className="h-3 w-3 mr-1" /> Quote
+        </Button>
+        <StripeCheckoutButton
+          productId="studio_cart_checkout"
+          productName={`Wonderlands order (${getCartCount() || 1} items)`}
+          price={storeTotal}
+          quantity={1}
+          variant="default"
+          className="flex-1 text-[11px] h-8"
+          cartItems={cartItems}
+        />
+      </div>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="w-full text-center p-3 transition-colors hover:bg-primary/5"
+            className="w-full flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
           >
-            <div className="text-xl font-bold">
-              <span className="text-primary">{total.whole}</span>
-              <span className="text-foreground">{total.cents}</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center justify-center gap-1">
-              Total Configuration Price
-              <span className="text-muted-foreground/70">
-                ({getCartCount() + (pendingPrice > 0 ? 1 : 0)} items)
-              </span>
-              {duplicates.length > 0 && (
-                <AlertTriangle className="h-3 w-3 text-coral" />
-              )}
-              <ChevronDown className="h-3 w-3" />
-            </p>
+            View Shopping List
+            <ChevronDown className="h-3 w-3" />
           </button>
         </DropdownMenuTrigger>
 
@@ -294,20 +313,6 @@ const StudioCartWidget = ({
                 <span className="text-primary">{total.whole}</span>
                 <span className="text-foreground">{total.cents}</span>
               </span>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1 text-[11px]" onClick={onQuote}>
-                <FileText className="h-3 w-3 mr-1" /> Quote
-              </Button>
-              <StripeCheckoutButton
-                productId="studio_cart_checkout"
-                productName={`Wonderlands order (${getCartCount() || 1} items)`}
-                price={storeTotal}
-                quantity={1}
-                variant="default"
-                className="flex-1 text-[11px] h-8"
-                cartItems={cartItems}
-              />
             </div>
           </div>
         </DropdownMenuContent>
