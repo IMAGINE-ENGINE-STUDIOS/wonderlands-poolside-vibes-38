@@ -20,11 +20,12 @@ const ProductMediaGallery = ({ media, productName, className = "" }: ProductMedi
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Handle backwards compatibility - convert single image string to media array
-  const mediaItems: MediaItem[] = typeof media === 'string' 
+  const mediaItems: MediaItem[] = typeof media === 'string'
     ? [{ type: 'image', url: media, alt: productName }]
-    : media;
+    : Array.isArray(media) ? media.filter(Boolean) : [];
 
-  const currentMedia = mediaItems[currentIndex];
+  const safeIndex = mediaItems.length > 0 ? Math.min(currentIndex, mediaItems.length - 1) : 0;
+  const currentMedia = mediaItems[safeIndex];
   const hasMultipleItems = mediaItems.length > 1;
 
   const goToPrevious = () => {
@@ -34,6 +35,8 @@ const ProductMediaGallery = ({ media, productName, className = "" }: ProductMedi
   const goToNext = () => {
     setCurrentIndex((prev) => (prev === mediaItems.length - 1 ? 0 : prev + 1));
   };
+
+  if (!currentMedia) return null;
 
   return (
     <div className={`relative group ${className}`}>
