@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Calculator, DollarSign, FileText } from 'lucide-react';
+import { CreditCard, Calculator } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SurveyQuoteTool from './SurveyQuoteTool';
@@ -12,7 +12,6 @@ interface StripeCheckoutButtonProps {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "gradient";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
-  showFinancingOptions?: boolean;
   cartItems?: any[]; // Optional cart items for cart checkout
 }
 const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
@@ -23,11 +22,9 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   variant = "default",
   size = "default",
   className = "",
-  showFinancingOptions = true,
   cartItems
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isFinancingLoading, setIsFinancingLoading] = useState(false);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   const {
     toast
@@ -63,44 +60,7 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
       setIsLoading(false);
     }
   };
-  const handleFinancing = async () => {
-    try {
-      setIsFinancingLoading(true);
-
-      // Create comprehensive financing application with Lyon Financial
-      const financingData = {
-        productName,
-        price,
-        quantity,
-        productId
-      };
-
-      // Enhanced Lyon Financial URL with comprehensive product data
-      const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + `amount=${price * quantity}&` + `product=${encodeURIComponent(productName)}&` + `description=${encodeURIComponent(`Complete pool configuration including ${productName}`)}&` + `monthly_payment=${Math.round(price * quantity * 0.008)}&` + `loan_term=60&` + `project_type=Pool%20Installation`;
-      window.open(lyonFinancialUrl, '_blank');
-      toast({
-        title: "Financing Application",
-        description: "Opening Lyon Financial application in a new tab.",
-        variant: "default"
-      });
-    } catch (error) {
-      console.error('Financing error:', error);
-      toast({
-        title: "Financing Error",
-        description: "Failed to open financing application. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsFinancingLoading(false);
-    }
-  };
-  const calculateMonthlyPayment = (amount: number, months: number = 60, rate: number = 0.0799) => {
-    const monthlyRate = rate / 12;
-    const payment = amount * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1);
-    return payment;
-  };
   const totalAmount = price * quantity;
-  const monthlyPayment = calculateMonthlyPayment(totalAmount);
 
   // Prepare cart items data for quote
   const quoteCartItems = cartItems || [{
@@ -109,7 +69,6 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
     quantity: quantity
   }];
 
-  // Show both Stripe checkout and Lyon Financial options
   return <>
       <div className="flex flex-col gap-2 w-full">
         <Button onClick={handleCheckout} disabled={isLoading} variant={variant} size={size} className={`${className} gap-2`}>
@@ -121,21 +80,6 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
               Checkout ${totalAmount.toLocaleString()}
             </>}
         </Button>
-
-        {showFinancingOptions && <div className="space-y-2">
-            <Button onClick={handleFinancing} disabled={isFinancingLoading} variant="outline" size={size} className={`${className} gap-2 w-full`}>
-              {isFinancingLoading ? <>
-                  <Calculator className="h-4 w-4 animate-spin" />
-                  Opening...
-                </> : <>
-                  <DollarSign className="h-4 w-4" />
-                  Finance from ${Math.round(monthlyPayment)}/mo
-                </>}
-            </Button>
-            
-          </div>}
-
-        
       </div>
 
       <SurveyQuoteTool pool={null} isOpen={showQuoteTool} onClose={() => setShowQuoteTool(false)} customProduct={{

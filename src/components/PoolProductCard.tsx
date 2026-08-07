@@ -1989,7 +1989,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   variant="gradient"
                   className="flex-1 hover:scale-105 transition-all duration-300"
                   size="sm"
-                  showFinancingOptions={false}
+                 
                 />
               </div>
             </div>
