@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, Square } from 'lucide-react';
 
 export interface EnclosurePoint {
