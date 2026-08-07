@@ -2681,9 +2681,10 @@ const SurveyQuoteTool = ({
           </div>
         )}
 
-        {/* Quote File Gallery */}
-        {showGallery && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 no-print print:hidden">
+        {/* Quote File Gallery — portaled to body so it always centers in the viewport */}
+        {showGallery && createPortal(
+          <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 no-print print:hidden">
+
             <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <div>
