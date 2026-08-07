@@ -55,6 +55,9 @@ const StudioCartWidget = ({
     removeExtra,
     clearCart,
   } = useShoppingCart();
+  const navigate = useNavigate();
+
+
 
   const cartTotal = getCartTotal();
   const isCurrentInCart = React.useMemo(
