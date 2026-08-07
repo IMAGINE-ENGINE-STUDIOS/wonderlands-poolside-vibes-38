@@ -368,14 +368,18 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
             {ENCLOSURE_DOORS.map(door => (
               <div key={door.id} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium flex items-center gap-2">
+                  <p className="text-sm font-medium flex flex-wrap items-center gap-2">
                     {door.label}
+                    {door.selfLatching && (
+                      <Badge className="text-[10px]">Self-closing / self-latching</Badge>
+                    )}
                     {door.barrierEligible ? (
                       <Badge variant="secondary" className="text-[10px]">Barrier eligible</Badge>
                     ) : (
                       <Badge variant="outline" className="text-[10px]">Not a barrier door</Badge>
                     )}
                   </p>
+
                   <p className="text-[11px] text-muted-foreground">{door.description}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
