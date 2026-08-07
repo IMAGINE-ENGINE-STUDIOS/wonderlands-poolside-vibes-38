@@ -444,7 +444,9 @@ const getProductCategoryLabel = (product: any, activeTab?: string): string => {
 
 const WonderlandsStudio = () => {
   const {
-    addToCart
+    addToCart,
+    cartItems,
+    syncItemConfig
   } = useShoppingCart();
   const {
     toast
