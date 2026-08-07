@@ -7,7 +7,13 @@ import ShoppingCart, { CartItem } from './ShoppingCart';
 interface ShoppingCartContextType {
   cartItems: CartItem[];
   addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  removeFromCart: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
+  clearCart: () => void;
   getCartCount: () => number;
+  getCartTotal: () => number;
+  /** Categories that appear more than once in the cart (duplicate selection flag) */
+  getDuplicateCategories: () => string[];
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
 }
