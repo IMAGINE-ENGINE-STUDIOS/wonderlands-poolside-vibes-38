@@ -350,11 +350,34 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     return best;
   };
 
-  const tagSegment = (index: number, kind: EnclosureSegmentKind) => {
-    const next = { ...layout.segmentKinds };
-    if (next[index] === kind) delete next[index];
-    else next[index] = kind;
-    onChange({ ...layout, segmentKinds: next });
+  const tagFeature = (segIndex: number, kind: Extract<EnclosureSegmentKind, 'door' | 'house'>, t: number) => {
+    const seg = segments.find(s => s.index === segIndex);
+    if (!seg) return;
+    const segFt = dist(seg.a, seg.b) / PX_PER_FT;
+    const halfFt = kind === 'door' ? Math.min(DEFAULT_DOOR_FT / 2, segFt / 2) : segFt / 2;
+    const halfT = halfFt / Math.max(segFt, 0.001);
+    let start = Math.max(0, t - halfT);
+    let end = Math.min(1, t + halfT);
+    // if a door is too close to an end, nudge it inside so it stays a door-sized bay
+    if (kind === 'door') {
+      const doorFt = (end - start) * segFt;
+      if (doorFt < DEFAULT_DOOR_FT && segFt >= DEFAULT_DOOR_FT) {
+        const missing = (DEFAULT_DOOR_FT - doorFt) / segFt / 2;
+        if (start === 0) end = Math.min(1, end + missing * 2);
+        else if (end === 1) start = Math.max(0, start - missing * 2);
+      }
+    }
+    const next: Record<number, EnclosureFeature[]> = { ...layout.features };
+    const list = [...(next[segIndex] || [])];
+    const existing = list.findIndex(f => f.kind === kind && Math.abs((f.start + f.end) / 2 - t) < 0.15);
+    if (existing >= 0) {
+      list.splice(existing, 1);
+    } else {
+      list.push({ kind, start, end });
+    }
+    if (list.length === 0) delete next[segIndex];
+    else next[segIndex] = list;
+    onChange({ ...layout, features: next });
   };
 
   const handleDown = (e: React.MouseEvent) => {
@@ -365,8 +388,12 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
       return;
     }
     if (mode === 'door' || mode === 'house') {
-      const seg = hitSegment(p);
-      if (seg >= 0) tagSegment(seg, mode === 'door' ? 'door' : 'house');
+      const segIndex = hitSegment(p);
+      if (segIndex < 0) return;
+      const seg = segments.find(s => s.index === segIndex)!;
+      const len = dist(seg.a, seg.b) || 1;
+      const t = Math.max(0, Math.min(1, ((p.x - seg.a.x) * (seg.b.x - seg.a.x) + (p.y - seg.a.y) * (seg.b.y - seg.a.y)) / (len * len)));
+      tagFeature(segIndex, mode === 'door' ? 'door' : 'house', t);
       return;
     }
     if (layout.points.length > 2 && dist(layout.points[0], p) < 10) {
@@ -387,14 +414,14 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
   const undo = () => {
     if (layout.closed) return onChange({ ...layout, closed: false });
     const nextLen = Math.max(0, layout.points.length - 1);
-    const kinds: Record<number, EnclosureSegmentKind> = {};
-    Object.entries(layout.segmentKinds).forEach(([k, v]) => {
-      if (Number(k) < nextLen - 1) kinds[Number(k)] = v;
+    const features: Record<number, EnclosureFeature[]> = {};
+    Object.entries(layout.features).forEach(([k, list]) => {
+      if (Number(k) < nextLen - 1) features[Number(k)] = list;
     });
-    onChange({ points: layout.points.slice(0, -1), closed: false, segmentKinds: kinds });
+    onChange({ points: layout.points.slice(0, -1), closed: false, features });
   };
 
-  const clear = () => onChange({ points: [], closed: false, segmentKinds: {} });
+  const clear = () => onChange({ points: [], closed: false, features: {} });
 
   const preset = (w: number, d: number) => {
     const ox = 60;
@@ -407,7 +434,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
         { x: ox, y: oy + d * PX_PER_FT },
       ],
       closed: true,
-      segmentKinds: { 0: 'house' },
+      features: { 0: [{ kind: 'house', start: 0, end: 1 }] },
     });
   };
 
