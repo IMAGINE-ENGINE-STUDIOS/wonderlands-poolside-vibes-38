@@ -508,8 +508,47 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
           )}
         </CardContent>
       </Card>
+      </TabsContent>
+
+      <TabsContent value="pro" className="space-y-5 mt-0">
+      {/* Compliance */}
+      <Card>
+        <CardContent className="pt-5 space-y-3">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <Stamp className="h-4 w-4 text-primary" /> Florida Code Review
+          </h4>
+          {issues.length === 0 ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <CheckCircle2 className="h-4 w-4 text-primary" /> Configuration passes the automated FBC checks.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {[...errors, ...warnings, ...notes].map((issue, i) => (
+                <div key={i} className="flex items-start gap-2 rounded-md border border-border p-2.5">
+                  {issue.level === 'error' ? (
+                    <AlertTriangle className="h-4 w-4 mt-0.5 text-destructive shrink-0" />
+                  ) : issue.level === 'warning' ? (
+                    <AlertTriangle className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                  ) : (
+                    <Info className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                  )}
+                  <div>
+                    <p className="text-xs font-semibold">{issue.code}</p>
+                    <p className="text-xs text-muted-foreground">{issue.message}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            Design pressure {pressure} psf • {config.windSpeedMph} mph • Exposure {config.exposure}
+            {config.hvhz ? ' • HVHZ' : ''}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Contractor cost model */}
+
       <Card>
         <CardContent className="pt-5 space-y-4">
           <div className="flex items-center justify-between">
