@@ -300,11 +300,12 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     }
     if (screen.pricePerSqFt > 0) {
       lines.push({
-        label: `Screen — ${screen.label}`,
+        label: `Screen fabric — ${screen.brand} ${screen.label}`,
         detail: `${area.toLocaleString()} sq ft x $${screen.pricePerSqFt}/sq ft`,
         amount: Math.round(area * screen.pricePerSqFt),
       });
     }
+
     if (roof.pricePerSqFt > 0) {
       lines.push({
         label: `Roof — ${roof.label}`,
