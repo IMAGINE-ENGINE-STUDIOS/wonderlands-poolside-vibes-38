@@ -410,7 +410,7 @@ export function buildEnclosureSpec(config: EnclosureConfigState): {
       { label: 'Zone', value: config.hvhz ? 'HVHZ — Miami-Dade / Broward' : 'Standard Florida wind zone' },
       { label: 'Members', value: `${extrusion.size} @ ${extrusion.wallIn}" wall, 6005-T5 extruded aluminum` },
       { label: 'Roof assembly', value: `${roof.label}${roof.pricePerSqFt > 0 ? ' — engineered panel' : ''}` },
-      { label: 'Infill', value: `${screen.label} (${screen.mesh})` },
+      { label: 'Infill', value: `${screen.brand} ${screen.label} (${screen.mesh})${screen.warrantyYears ? ` — ${screen.warrantyYears}-yr fabric warranty` : ''}` },
       { label: 'Load path', value: 'Uplift and lateral load through uprights to base plate anchors into existing slab / new footer' },
       { label: 'Deflection limit', value: 'L/60 for screen framing members under design wind' },
       { label: 'Barrier function', value: config.isPoolBarrier ? 'Enclosure serves as the required pool safety barrier' : 'Separate pool barrier provided' },
