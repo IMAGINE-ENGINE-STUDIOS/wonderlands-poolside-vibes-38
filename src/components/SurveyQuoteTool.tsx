@@ -1133,7 +1133,7 @@ const SurveyQuoteTool = ({
                   Property Information
                 </CardTitle>
                 <CardDescription>
-                  Tell us about your property for an accurate Florida installation quote
+                  Optional — anything you fill in here is added automatically to your quote document
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
