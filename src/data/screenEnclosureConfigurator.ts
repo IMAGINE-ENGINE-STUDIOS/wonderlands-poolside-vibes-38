@@ -38,8 +38,12 @@ export interface EnclosureExtrusionOption {
 export interface EnclosureScreenOption {
   id: string;
   label: string;
+  /** Manufacturer / market brand */
+  brand: string;
   mesh: string;
   pricePerSqFt: number;
+  /** Manufacturer warranty in years, when published */
+  warrantyYears?: number;
   description: string;
 }
 
@@ -50,8 +54,11 @@ export interface EnclosureDoorOption {
   price: number;
   /** Can be used as the code-compliant barrier access point */
   barrierEligible: boolean;
+  /** Ships with self-closing hinges + self-latching hardware (no add-on kit needed) */
+  selfLatching?: boolean;
   description: string;
 }
+
 
 export interface EnclosureAddOnOption {
   id: string;
