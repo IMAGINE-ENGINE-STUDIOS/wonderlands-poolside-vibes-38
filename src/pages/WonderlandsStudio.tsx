@@ -1343,10 +1343,11 @@ const WonderlandsStudio = () => {
     }));
     setShowQuoteModal(true);
   };
-  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string }> => {
+  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string; options?: { name: string; price: number }[] }> => {
     if (!selectedProduct) return [];
     // Convert selectedExtras to the format expected by CartItem
-    const extrasArray = [];
+    const extrasArray: Array<{ name: string; price: number; key?: string }> = [];
+
 
     // Add finish if selected
     const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
