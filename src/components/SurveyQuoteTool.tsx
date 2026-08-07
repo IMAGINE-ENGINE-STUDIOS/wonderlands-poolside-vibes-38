@@ -755,7 +755,7 @@ const SurveyQuoteTool = ({
         name: surveyData.name,
         email: surveyData.email,
         phone: surveyData.phone || null,
-        address: surveyData.address,
+        address: surveyData.address || null,
         yard_size: surveyData.yardSize || null,
         soil_type: surveyData.soilType || null,
         access_width: surveyData.accessWidth || null,
