@@ -403,6 +403,45 @@ const getProductUnit = (product: any): 'sqft' | 'linear-ft' | null => {
 };
 const unitLabel = (unit: 'sqft' | 'linear-ft') => (unit === 'sqft' ? 'sq ft' : 'linear ft');
 
+// Real product categories (Pools, Spas, Saunas, ...) — never pricing tiers like "premium"
+const CATEGORY_LABELS: Record<string, string> = {
+  pools: 'Pool',
+  pool: 'Pool',
+  spas: 'Spa',
+  spa: 'Spa',
+  'tanning-ledges': 'Tanning Ledge',
+  'tanning-ledge': 'Tanning Ledge',
+  saunas: 'Sauna',
+  sauna: 'Sauna',
+  'screen-enclosures': 'Screen Enclosure',
+  'screen-enclosure': 'Screen Enclosure',
+  'patio-fencing': 'Patio Fencing',
+  fencing: 'Patio Fencing',
+  lanai: 'Lanai',
+  pavers: 'Pavers',
+  paver: 'Pavers',
+  'artificial-grass': 'Artificial Grass',
+  grass: 'Artificial Grass',
+  landscaping: 'Landscaping',
+  covers: 'Cover',
+  cover: 'Cover',
+  'driveway-gates': 'Driveway Gate',
+  gate: 'Driveway Gate',
+  finishes: 'Finish',
+  finish: 'Finish',
+  liners: 'Liner',
+  liner: 'Liner',
+  scenes: 'Scene'
+};
+const getProductCategoryLabel = (product: any, activeTab?: string): string => {
+  if (!product) return activeTab ? CATEGORY_LABELS[activeTab] || '' : '';
+  const type = String(product.type || '').toLowerCase();
+  if (CATEGORY_LABELS[type]) return CATEGORY_LABELS[type];
+  const cat = String(product.category || '').toLowerCase();
+  if (CATEGORY_LABELS[cat]) return CATEGORY_LABELS[cat];
+  return (activeTab && CATEGORY_LABELS[activeTab]) || '';
+};
+
 const WonderlandsStudio = () => {
   const {
     addToCart
@@ -1767,9 +1806,9 @@ const WonderlandsStudio = () => {
                               <p className="text-xs text-muted-foreground">
                                 ${getProductPrice(product).toLocaleString()}
                               </p>
-                              <Badge variant="secondary" className="text-xs mt-1">
-                                {product.category}
-                              </Badge>
+                              {getProductCategoryLabel(product, activeTab) && <Badge variant="secondary" className="text-xs mt-1">
+                                {getProductCategoryLabel(product, activeTab)}
+                              </Badge>}
                             </div>
                             <button
                               type="button"
@@ -1876,9 +1915,9 @@ const WonderlandsStudio = () => {
                               ${getProductPrice(selectedProduct).toLocaleString()}
                             </p>
                             <div className="flex flex-wrap gap-2 mt-2">
-                              <Badge className={getCategoryColor(selectedProduct.category)}>
-                                {selectedProduct.category}
-                              </Badge>
+                              {getProductCategoryLabel(selectedProduct, activeTab) && <Badge className="bg-gradient-to-r from-primary to-teal">
+                                {getProductCategoryLabel(selectedProduct, activeTab)}
+                              </Badge>}
                               {selectedProduct.dimensions && <Badge variant="outline">{selectedProduct.dimensions}</Badge>}
                               {selectedProduct.depth && <Badge variant="outline">Depth: {selectedProduct.depth}</Badge>}
                               {selectedProduct.warrantyYears && (
