@@ -873,7 +873,7 @@ const WonderlandsStudio = () => {
         products = artificialGrassOptions.map(grass => ({
           name: grass.name,
           model: grass.name,
-          price: GRASS_PRICE_PER_SQFT,
+          price: getGrassPricePerSqFt(grass.name),
           image: grass.image,
           category: 'per sq ft'
         }));
