@@ -140,6 +140,8 @@ const SurveyQuoteTool = ({
     };
   });
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [surveyDocs, setSurveyDocs] = useState<File[]>([]);
+  const [backyardPhotoNames, setBackyardPhotoNames] = useState<string[]>([]);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
@@ -740,7 +742,7 @@ const SurveyQuoteTool = ({
     return ["LED lights", "Pentair pool equipment", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
   };
   const saveQuotationToDatabase = async () => {
-    if (!surveyData.name || !surveyData.email || !surveyData.address) {
+    if (!surveyData.name || !surveyData.email) {
       return null;
     }
 
@@ -753,7 +755,7 @@ const SurveyQuoteTool = ({
         name: surveyData.name,
         email: surveyData.email,
         phone: surveyData.phone || null,
-        address: surveyData.address,
+        address: surveyData.address || null,
         yard_size: surveyData.yardSize || null,
         soil_type: surveyData.soilType || null,
         access_width: surveyData.accessWidth || null,
@@ -815,10 +817,10 @@ const SurveyQuoteTool = ({
     }
   };
   const handleSubmitSurvey = () => {
-    if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
+    if (!surveyData.name || !surveyData.email) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your contact details, address and yard size.",
+        description: "Please fill in your name and email address.",
         variant: "destructive"
       });
       return;
@@ -844,10 +846,10 @@ const SurveyQuoteTool = ({
     setCurrentStep('quote');
   };
   const handleGetQuote = async () => {
-    if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
+    if (!surveyData.name || !surveyData.email) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your contact details, address and yard size.",
+        description: "Please fill in your name and email address.",
         variant: "destructive"
       });
       return;
@@ -891,10 +893,10 @@ const SurveyQuoteTool = ({
   
   const handleGenerateInvoice = async () => {
     // Validate required fields - no login required
-    if (!surveyData.name || !surveyData.email || !surveyData.address) {
+    if (!surveyData.name || !surveyData.email) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your name, email, and address before generating an invoice.",
+        description: "Please fill in your name and email before generating an invoice.",
         variant: "destructive",
       });
       return;
@@ -1131,7 +1133,7 @@ const SurveyQuoteTool = ({
                   Property Information
                 </CardTitle>
                 <CardDescription>
-                  Tell us about your property for an accurate Florida installation quote
+                  Optional — anything you fill in here is added automatically to your quote document
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1139,7 +1141,7 @@ const SurveyQuoteTool = ({
                   <div>
                     <Label htmlFor="address" className="flex items-center gap-2">
                       <MapPin size={16} className="text-coral" />
-                      Property Address *
+                      Property Address <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                     </Label>
                     <Input id="address" placeholder="123 Main St, Miami, FL 33101" value={surveyData.address} onChange={e => setSurveyData({
                   ...surveyData,
@@ -1148,7 +1150,7 @@ const SurveyQuoteTool = ({
                   </div>
 
                   <div>
-                    <Label htmlFor="yardSize">Backyard Size *</Label>
+                    <Label htmlFor="yardSize">Backyard Size <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
                     <Select onValueChange={value => setSurveyData({
                   ...surveyData,
                   yardSize: value
@@ -1256,11 +1258,27 @@ const SurveyQuoteTool = ({
                       Property Survey Documents
                     </Label>
                     <div className="border-2 border-dashed border-teal/30 rounded-lg p-4 text-center">
-                      <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" className="hidden" id="survey-upload" />
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        multiple
+                        className="hidden"
+                        id="survey-upload"
+                        onChange={e => setSurveyDocs(Array.from(e.target.files || []))}
+                      />
                       <label htmlFor="survey-upload" className="cursor-pointer">
                         <FileText className="h-6 w-6 mx-auto text-teal mb-2" />
-                        <p className="text-sm">Upload survey documents</p>
-                        <p className="text-xs text-muted-foreground">PDF, images, or documents</p>
+                        {surveyDocs.length > 0 ? (
+                          <>
+                            <p className="text-sm text-green-600">✓ {surveyDocs.length} document{surveyDocs.length > 1 ? 's' : ''} attached</p>
+                            <p className="text-xs text-muted-foreground truncate">{surveyDocs.map(f => f.name).join(', ')}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm">Upload survey documents</p>
+                            <p className="text-xs text-muted-foreground">PDF, images, or documents</p>
+                          </>
+                        )}
                       </label>
                     </div>
                   </div>
@@ -1271,7 +1289,7 @@ const SurveyQuoteTool = ({
                       Backyard Photos
                     </Label>
                     <div className="border-2 border-dashed border-teal/30 rounded-lg p-4 text-center">
-                      <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" id="photo-upload" />
+                      <input type="file" accept="image/*" multiple onChange={e => { setBackyardPhotoNames(Array.from(e.target.files || []).map(f => f.name)); handleImageUpload(e); }} className="hidden" id="photo-upload" />
                       <label htmlFor="photo-upload" className="cursor-pointer">
                         {isProcessing ? <div className="flex items-center justify-center gap-2">
                             <Loader2 className="h-6 w-6 animate-spin text-teal" />
@@ -1301,24 +1319,22 @@ const SurveyQuoteTool = ({
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
                 <span>Free consultation • No obligation • Expert guidance</span>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={handleGetQuote} variant="gradient" size="lg" className="flex-1 hover:scale-105 transition-all duration-300">
-                  Get My Personalized Quote
-                </Button>
-                <Button 
-                  onClick={() => {
-                    if (!surveyData.name) setSurveyData(prev => ({ ...prev, name: 'Guest' }));
-                    setCurrentStep('quote');
-                  }}
-                  variant="outline" 
-                  size="lg" 
-                  className="flex-1 border-primary text-primary hover:bg-primary/5"
-                >
-                  Skip to Quote →
-                </Button>
-              </div>
+              <Button onClick={handleGetQuote} variant="gradient" size="lg" className="w-full h-14 text-lg hover:scale-[1.02] transition-all duration-300">
+                Get My Personalized Quote
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!surveyData.name) setSurveyData(prev => ({ ...prev, name: 'Guest' }));
+                  setCurrentStep('quote');
+                }}
+                variant="outline"
+                size="lg"
+                className="w-full h-16 text-xl font-semibold border-2 border-primary text-primary hover:bg-primary/5"
+              >
+                Skip — Take Me Straight to the Quote →
+              </Button>
               <p className="text-xs text-muted-foreground">
-                * By submitting, you agree to receive follow-up communications about your pool project
+                Only name and email are required. Everything else is optional and will be added to your quote if filled.
               </p>
             </div>
           </div>
@@ -1417,22 +1433,42 @@ const SurveyQuoteTool = ({
                             className="ml-2 px-2 py-1 border rounded"
                           />
                         ) : surveyData.email}</p>
-                        <p><span className="font-medium">Phone:</span> {isEditMode ? (
-                          <input
-                            type="text"
-                            value={surveyData.phone}
-                            onChange={(e) => setSurveyData({...surveyData, phone: e.target.value})}
-                            className="ml-2 px-2 py-1 border rounded"
-                          />
-                        ) : surveyData.phone}</p>
-                        <p><span className="font-medium">Property Address:</span> {isEditMode ? (
-                          <input
-                            type="text"
-                            value={surveyData.address}
-                            onChange={(e) => setSurveyData({...surveyData, address: e.target.value})}
-                            className="ml-2 px-2 py-1 border rounded w-full"
-                          />
-                        ) : surveyData.address}</p>
+                        {(isEditMode || surveyData.phone) && (
+                          <p><span className="font-medium">Phone:</span> {isEditMode ? (
+                            <input
+                              type="text"
+                              value={surveyData.phone}
+                              onChange={(e) => setSurveyData({...surveyData, phone: e.target.value})}
+                              className="ml-2 px-2 py-1 border rounded"
+                            />
+                          ) : surveyData.phone}</p>
+                        )}
+                        {(isEditMode || surveyData.address) && (
+                          <p><span className="font-medium">Property Address:</span> {isEditMode ? (
+                            <input
+                              type="text"
+                              value={surveyData.address}
+                              onChange={(e) => setSurveyData({...surveyData, address: e.target.value})}
+                              className="ml-2 px-2 py-1 border rounded w-full"
+                            />
+                          ) : surveyData.address}</p>
+                        )}
+                        {[
+                          { label: 'Backyard Size', value: surveyData.yardSize },
+                          { label: 'Project Timeline', value: surveyData.timeline },
+                          { label: 'Soil Type', value: surveyData.soilType },
+                          { label: 'Budget Range', value: surveyData.budget },
+                          { label: 'Access Width', value: surveyData.accessWidth },
+                          { label: 'Utility Lines', value: surveyData.utilityLines },
+                        ].filter(r => r.value).map(r => (
+                          <p key={r.label}><span className="font-medium">{r.label}:</span> {r.value}</p>
+                        ))}
+                        {surveyData.specialRequests && (
+                          <p><span className="font-medium">Special Requests:</span> {surveyData.specialRequests}</p>
+                        )}
+                        {(surveyDocs.length > 0 || backyardPhotoNames.length > 0) && (
+                          <p><span className="font-medium">Attachments:</span> {[...surveyDocs.map(f => f.name), ...backyardPhotoNames].join(', ')}</p>
+                        )}
                       </div>
                     </div>
                     <div>
