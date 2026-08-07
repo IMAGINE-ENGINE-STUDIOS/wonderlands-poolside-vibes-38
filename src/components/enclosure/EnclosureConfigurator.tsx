@@ -465,7 +465,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
       <Card>
         <CardContent className="pt-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold">Project Estimate</h4>
+            <h4 className="text-sm font-semibold">Customer Price — Turnkey Installed</h4>
             <Button size="sm" variant="outline" onClick={() => window.print()}>
               <Printer className="h-3.5 w-3.5 mr-1" /> Print spec sheet
             </Button>
@@ -485,13 +485,122 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
               ))}
               <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Total</span>
+                <span className="text-sm font-semibold">Contract Total</span>
                 <span className="text-lg font-bold">${estimate.total.toLocaleString()}</span>
               </div>
+              <p className="text-[11px] text-muted-foreground">
+                ${estimate.pricePerSqFt.toFixed(2)}/sq ft installed — includes materials, freight, installation labor,
+                parts, engineered drawings, permit fees and inspections. Florida market range for this scope is $
+                {estimate.marketRange.low}–${estimate.marketRange.high}/sq ft.
+              </p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Contractor cost model */}
+      <Card>
+        <CardContent className="pt-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold">Contractor Cost Model (internal)</h4>
+            {estimate.total > 0 && (
+              <Badge
+                variant={estimate.competitiveness === 'competitive' ? 'secondary' : 'outline'}
+                className="text-[10px]"
+              >
+                {estimate.competitiveness === 'competitive'
+                  ? 'Competitive for Florida'
+                  : estimate.competitiveness === 'below'
+                    ? 'Below market — check margin'
+                    : 'Above market — may lose bids'}
+              </Badge>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Company overhead %</Label>
+              <Input
+                type="number"
+                min={0}
+                max={40}
+                step={0.5}
+                value={config.overheadPct ?? 12}
+                onChange={e => setConfig(prev => ({ ...prev, overheadPct: parseFloat(e.target.value) || 0 }))}
+              />
+              <p className="text-[10px] text-muted-foreground">Office, trucks, admin, marketing, licensing.</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Target gross margin %</Label>
+              <Input
+                type="number"
+                min={0}
+                max={60}
+                step={1}
+                value={config.targetMarginPct ?? 32}
+                onChange={e => setConfig(prev => ({ ...prev, targetMarginPct: parseFloat(e.target.value) || 0 }))}
+              />
+              <p className="text-[10px] text-muted-foreground">Profit kept after cost + overhead.</p>
+            </div>
+          </div>
+
+          {estimate.costLines.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Enter the footprint to build the cost estimate.</p>
+          ) : (
+            <>
+              <div className="space-y-1.5">
+                {estimate.costLines.map((line, i) => (
+                  <div key={i} className="flex items-start justify-between gap-3 text-xs">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
+                        <span className="text-muted-foreground">{line.category}:</span> {line.label}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{line.detail}</p>
+                    </div>
+                    <span className="font-semibold shrink-0">${line.amount.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <Separator />
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {Object.entries(estimate.categoryTotals).map(([cat, amt]) => (
+                  <div key={cat} className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1">
+                    <span className="text-muted-foreground">{cat}</span>
+                    <span className="font-semibold">${amt.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <Separator />
+              <div className="space-y-1 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>Direct job cost</span>
+                  <span className="font-semibold">${estimate.directCost.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Overhead ({estimate.overheadPct}%)</span>
+                  <span className="font-semibold">${estimate.overhead.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Break-even</span>
+                  <span className="font-semibold">
+                    ${estimate.costBasis.toLocaleString()} (${estimate.breakEvenPerSqFt.toFixed(2)}/sq ft)
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-primary">
+                  <span className="font-semibold">Gross profit ({estimate.marginPct}%)</span>
+                  <span className="font-bold">${estimate.profit.toLocaleString()}</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Take-off used: {estimate.framedArea.toLocaleString()} sq ft framed surface,{' '}
+                {estimate.screenedArea.toLocaleString()} sq ft screened, {estimate.roofArea.toLocaleString()} sq ft roof.
+                {estimate.sealedRequired ? ' Sealed P.E. drawings priced in.' : ' Master-sealed drawing package priced in.'}
+              </p>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
 
       {/* Spec sheets */}
       <Tabs defaultValue="installer" className="w-full">

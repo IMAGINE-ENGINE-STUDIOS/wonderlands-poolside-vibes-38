@@ -129,12 +129,65 @@ export const ENCLOSURE_ADDONS: EnclosureAddOnOption[] = [
   { id: 'lighting', label: 'Screen Enclosure Lighting Package', pricing: 'each', price: 1450, description: 'Perimeter LED fixtures, fans-ready beams and GFCI-protected circuits.' },
 ];
 
-/** Fixed project costs applied to every enclosure contract */
-export const ENCLOSURE_PROJECT_FEES = {
-  engineeringAndDrawings: 1250,
-  permitting: 850,
-  mobilization: 650,
+/**
+ * Florida general-contractor cost model.
+ * All values are DIRECT COST to the contractor (not sell price). Sell price is built
+ * up as: direct cost + overhead + target gross margin.
+ */
+export const ENCLOSURE_COST_MODEL = {
+  /** Aluminum extrusion material $/sq ft of framed surface (walls + roof), 2x2 base */
+  frameMaterialPerSqFt: 2.6,
+  /** Added material cost per sq ft for each $1 of extrusion upgrade */
+  frameUpgradeFactor: 0.4,
+  /** Screen fabric + spline base $/sq ft of screened surface (18/14 fiberglass) */
+  screenMaterialPerSqFt: 0.55,
+  screenUpgradeFactor: 0.6,
+  /** Roof pan material factor applied to the roof option rate */
+  roofPanCostFactor: 0.6,
+  /** Fasteners, base plates, sleeves, splices, gutter straps, caulk $/sq ft */
+  partsPerSqFt: 0.55,
+  /** Door: share of catalog price that is material/parts vs. field labor */
+  doorMaterialShare: 0.42,
+  doorLaborShare: 0.18,
+  /** Add-on: cost share of the listed add-on amount */
+  addOnMaterialShare: 0.45,
+  addOnLaborShare: 0.22,
+  /** Installation labor (burdened crew rate) $/sq ft of framed surface */
+  laborPerSqFt: 2.6,
+  /** Extra labor factor per ft of mean roof height above 11 ft */
+  heightLaborFactorPerFt: 0.03,
+  /** Freight / delivery */
+  deliveryPerSqFt: 0.3,
+  deliveryFlat: 350,
+  craneTwoStory: 850,
+  /** Florida sales tax on materials (6% state + typical 1% county surtax) */
+  materialTaxRate: 0.07,
+  /** General conditions */
+  dumpster: 385,
+  equipmentPerSqFt: 0.25,
+  equipmentPerSqFtTwoStory: 0.9,
+  layoutAndCleanup: 325,
+  /** Insurance (GL + workers comp) as % of material + labor */
+  insuranceRate: 0.035,
+  /** Warranty / callback reserve as % of material + labor */
+  warrantyReserveRate: 0.015,
+  /** Soft costs */
+  engineeringStandard: 1250,
+  engineeringSealed: 2200,
+  permitFlat: 425,
+  permitPercentOfValue: 0.016,
+  nocAndInspections: 195,
+  planRunner: 150,
+  /** Contingency on direct cost */
+  contingencyRate: 0.03,
+  /** Company overhead (office, trucks, marketing, admin) as % of direct cost */
+  defaultOverheadPct: 12,
+  /** Target gross margin on the sell price */
+  defaultTargetMarginPct: 32,
+  /** Florida installed market range $/sq ft of footprint, for competitiveness check */
+  marketRangePerSqFt: { low: 24, high: 48 },
 };
+
 
 export interface EnclosureComplianceIssue {
   level: 'error' | 'warning' | 'info';
@@ -164,6 +217,9 @@ export interface EnclosureConfigState {
   hvhz: boolean;
   isPoolBarrier: boolean;
   screenBottomGapIn: number;
+  /** Contractor business inputs */
+  overheadPct?: number;
+  targetMarginPct?: number;
 }
 
 export const DEFAULT_ENCLOSURE_CONFIG: EnclosureConfigState = {
@@ -187,6 +243,8 @@ export const DEFAULT_ENCLOSURE_CONFIG: EnclosureConfigState = {
   hvhz: false,
   isPoolBarrier: true,
   screenBottomGapIn: 0,
+  overheadPct: ENCLOSURE_COST_MODEL.defaultOverheadPct,
+  targetMarginPct: ENCLOSURE_COST_MODEL.defaultTargetMarginPct,
 };
 
 /** Velocity pressure (psf) — simplified ASCE 7 qh for open screen structures */
@@ -261,7 +319,23 @@ export interface EnclosureEstimateLine {
   amount: number;
 }
 
+export type EnclosureCostCategory =
+  | 'Materials'
+  | 'Delivery & Freight'
+  | 'Installation Labor'
+  | 'General Conditions'
+  | 'Drawings & Permits'
+  | 'Contingency';
+
+export interface EnclosureCostLine {
+  category: EnclosureCostCategory;
+  label: string;
+  detail: string;
+  amount: number;
+}
+
 export function estimateEnclosure(config: EnclosureConfigState) {
+  const M = ENCLOSURE_COST_MODEL;
   const type = ENCLOSURE_TYPES.find(t => t.id === config.typeId) || ENCLOSURE_TYPES[0];
   const roof = ENCLOSURE_ROOFS.find(r => r.id === config.roofId) || ENCLOSURE_ROOFS[0];
   const extrusion = ENCLOSURE_EXTRUSIONS.find(e => e.id === config.extrusionId) || ENCLOSURE_EXTRUSIONS[0];
@@ -281,74 +355,211 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     0
   );
 
-  const lines: EnclosureEstimateLine[] = [];
-  const area = config.areaSqFt;
+  const area = Math.max(0, config.areaSqFt);
   const baseRate = Math.round(config.qualityRatePerSqFt * type.rateMultiplier * 100) / 100;
+  const twoStory = config.typeId === 'two-story';
 
-  if (area > 0) {
-    lines.push({
-      label: `${type.label} — base structure`,
-      detail: `${area.toLocaleString()} sq ft x $${baseRate.toFixed(2)}/sq ft`,
-      amount: Math.round(area * baseRate),
-    });
-    if (extrusion.pricePerSqFt > 0) {
-      lines.push({
-        label: `Frame upgrade — ${extrusion.label}`,
-        detail: `${area.toLocaleString()} sq ft x $${extrusion.pricePerSqFt}/sq ft`,
-        amount: Math.round(area * extrusion.pricePerSqFt),
-      });
-    }
-    if (screen.pricePerSqFt > 0) {
-      lines.push({
-        label: `Screen fabric — ${screen.brand} ${screen.label}`,
-        detail: `${area.toLocaleString()} sq ft x $${screen.pricePerSqFt}/sq ft`,
-        amount: Math.round(area * screen.pricePerSqFt),
-      });
-    }
+  // ---------- Take-off surfaces ----------
+  const wallRunFt = config.screenWallFt || config.perimeterFt * 0.8;
+  const wallArea = Math.round(wallRunFt * config.wallHeightFt * (twoStory ? 2 : 1));
+  const roofArea = Math.round(area * (1 + (type.rateMultiplier - 1) * 1.2));
+  const framedArea = wallArea + roofArea;
+  const screenedArea = wallArea + (roof.id === 'full-pan' ? 0 : roofArea);
 
-    if (roof.pricePerSqFt > 0) {
-      lines.push({
-        label: `Roof — ${roof.label}`,
-        detail: `${area.toLocaleString()} sq ft x $${roof.pricePerSqFt}/sq ft`,
-        amount: Math.round(area * roof.pricePerSqFt),
-      });
-    }
-  }
+  const costLines: EnclosureCostLine[] = [];
+  const push = (category: EnclosureCostCategory, label: string, detail: string, amount: number) => {
+    if (amount > 0) costLines.push({ category, label, detail, amount: Math.round(amount) });
+  };
 
+  // ---------- Materials ----------
+  const framePerSqFt = M.frameMaterialPerSqFt + extrusion.pricePerSqFt * M.frameUpgradeFactor;
+  const frameCost = framedArea * framePerSqFt;
+  const screenPerSqFt = M.screenMaterialPerSqFt + screen.pricePerSqFt * M.screenUpgradeFactor;
+  const screenCost = screenedArea * screenPerSqFt;
+  const roofPanCost = roof.pricePerSqFt > 0 ? roofArea * roof.pricePerSqFt * M.roofPanCostFactor : 0;
+  const partsCost = framedArea * M.partsPerSqFt;
+
+  let doorMaterial = 0;
+  let doorLabor = 0;
   ENCLOSURE_DOORS.forEach(door => {
     const qty = config.doors[door.id] || 0;
     if (qty > 0) {
-      lines.push({ label: door.label, detail: `${qty} x $${door.price.toLocaleString()}`, amount: qty * door.price });
+      doorMaterial += qty * door.price * M.doorMaterialShare;
+      doorLabor += qty * door.price * M.doorLaborShare;
     }
   });
 
+  // Add-ons priced at list, then split into material / labor cost
+  const addOnAmounts: { label: string; detail: string; amount: number }[] = [];
   config.addOns.forEach(id => {
     const addon = ENCLOSURE_ADDONS.find(a => a.id === id);
     if (!addon) return;
     if (addon.pricing === 'each') {
       const qty = addon.id === 'self-closing' ? kitDoorCount : addon.id === 'door-alarm' ? Math.max(doorCount, 1) : 1;
       if (qty <= 0) return;
-
-      lines.push({ label: addon.label, detail: `${qty} x $${addon.price.toLocaleString()}`, amount: qty * addon.price });
+      addOnAmounts.push({ label: addon.label, detail: `${qty} x $${addon.price.toLocaleString()}`, amount: qty * addon.price });
     } else if (addon.pricing === 'sqft' && area > 0) {
-      lines.push({ label: addon.label, detail: `${area.toLocaleString()} sq ft x $${addon.price}/sq ft`, amount: Math.round(area * addon.price) });
+      addOnAmounts.push({ label: addon.label, detail: `${area.toLocaleString()} sq ft x $${addon.price}/sq ft`, amount: area * addon.price });
     } else if (addon.pricing === 'linear-ft') {
       const ft = addon.id === 'super-gutter' ? config.perimeterFt : config.screenWallFt || config.perimeterFt;
-      if (ft > 0) {
-        lines.push({ label: addon.label, detail: `${ft.toLocaleString()} ft x $${addon.price}/ft`, amount: Math.round(ft * addon.price) });
-      }
+      if (ft > 0) addOnAmounts.push({ label: addon.label, detail: `${ft.toLocaleString()} ft x $${addon.price}/ft`, amount: ft * addon.price });
     }
   });
+  const addOnTotal = addOnAmounts.reduce((s, a) => s + a.amount, 0);
+  const addOnMaterial = addOnTotal * M.addOnMaterialShare;
+  const addOnLabor = addOnTotal * M.addOnLaborShare;
 
   if (area > 0) {
-    lines.push({ label: 'Engineering & Sealed Drawings', detail: 'Florida P.E. signed plan set and calculations', amount: ENCLOSURE_PROJECT_FEES.engineeringAndDrawings });
-    lines.push({ label: 'Permitting & Plan Review', detail: 'County / municipal submittal and fees', amount: ENCLOSURE_PROJECT_FEES.permitting });
-    lines.push({ label: 'Mobilization & Site Prep', detail: 'Layout, protection, equipment, cleanup', amount: ENCLOSURE_PROJECT_FEES.mobilization });
+    push('Materials', `Aluminum framing — ${extrusion.label}`, `${framedArea.toLocaleString()} sq ft framed surface x $${framePerSqFt.toFixed(2)}/sq ft`, frameCost);
+    push('Materials', `Screen fabric — ${screen.brand} ${screen.mesh}`, `${screenedArea.toLocaleString()} sq ft screened x $${screenPerSqFt.toFixed(2)}/sq ft + spline`, screenCost);
+    push('Materials', `Roof assembly — ${roof.label}`, `${roofArea.toLocaleString()} sq ft roof panel material`, roofPanCost);
+    push('Materials', 'Fasteners, base plates, sleeves & sealants', `${framedArea.toLocaleString()} sq ft x $${M.partsPerSqFt.toFixed(2)}/sq ft`, partsCost);
+    push('Materials', 'Doors & barrier hardware (material)', `${doorCount} door(s) — frames, screens, self-latching hardware`, doorMaterial);
+    push('Materials', 'Add-on materials', addOnAmounts.map(a => a.label).join(', ') || 'None', addOnMaterial);
   }
 
-  const total = lines.reduce((s, l) => s + l.amount, 0);
-  return { lines, total, baseRate, doorCount, barrierDoorCount, kitDoorCount, selfLatchingDoorCount, type, roof, extrusion, screen };
+  const materialSubtotal = frameCost + screenCost + roofPanCost + partsCost + doorMaterial + addOnMaterial;
+  const materialTax = materialSubtotal * M.materialTaxRate;
+  push('Materials', 'Florida sales tax on materials', `${(M.materialTaxRate * 100).toFixed(0)}% of $${Math.round(materialSubtotal).toLocaleString()}`, materialTax);
+
+  // ---------- Delivery & freight ----------
+  if (area > 0) {
+    push('Delivery & Freight', 'Extrusion & panel delivery', `${framedArea.toLocaleString()} sq ft x $${M.deliveryPerSqFt.toFixed(2)}/sq ft`, framedArea * M.deliveryPerSqFt);
+    push('Delivery & Freight', 'Truck & handling (flat)', 'Load-out, long-length aluminum handling, staging', M.deliveryFlat);
+    if (twoStory) push('Delivery & Freight', 'Crane / boom lift set', 'Two-story column and beam set', M.craneTwoStory);
+  }
+
+  // ---------- Installation labor ----------
+  const heightFactor = 1 + Math.max(0, config.meanRoofHeightFt - 11) * M.heightLaborFactorPerFt;
+  const laborRate = M.laborPerSqFt * heightFactor;
+  const structureLabor = framedArea * laborRate;
+  if (area > 0) {
+    push('Installation Labor', 'Frame & screen installation crew', `${framedArea.toLocaleString()} sq ft x $${laborRate.toFixed(2)}/sq ft (burdened)`, structureLabor);
+    push('Installation Labor', 'Door hanging & hardware adjustment', `${doorCount} door(s)`, doorLabor);
+    push('Installation Labor', 'Add-on installation labor', addOnAmounts.map(a => a.label).join(', ') || 'None', addOnLabor);
+  }
+  const laborSubtotal = structureLabor + doorLabor + addOnLabor;
+
+  // ---------- General conditions ----------
+  const insurance = (materialSubtotal + laborSubtotal) * M.insuranceRate;
+  const warrantyReserve = (materialSubtotal + laborSubtotal) * M.warrantyReserveRate;
+  const equipment = area * (twoStory ? M.equipmentPerSqFtTwoStory : M.equipmentPerSqFt);
+  if (area > 0) {
+    push('General Conditions', 'Dumpster & disposal', 'Roll-off, haul-off and tipping fees', M.dumpster);
+    push('General Conditions', 'Lifts, scaffold & small tools', `${area.toLocaleString()} sq ft footprint`, equipment);
+    push('General Conditions', 'Layout, protection & final cleanup', 'Chalk layout, deck/pool protection, punch list', M.layoutAndCleanup);
+    push('General Conditions', 'General liability & workers comp', `${(M.insuranceRate * 100).toFixed(1)}% of material + labor`, insurance);
+    push('General Conditions', 'Warranty & callback reserve', `${(M.warrantyReserveRate * 100).toFixed(1)}% of material + labor`, warrantyReserve);
+  }
+
+  // ---------- Drawings & permits ----------
+  const sealedRequired = config.hvhz || config.windSpeedMph >= 170 || twoStory || roof.id === 'full-pan';
+  const engineering = sealedRequired ? M.engineeringSealed : M.engineeringStandard;
+  const runningCost =
+    materialSubtotal + materialTax + laborSubtotal + insurance + warrantyReserve + equipment + M.dumpster + M.layoutAndCleanup;
+  const permitFees = M.permitFlat + runningCost * M.permitPercentOfValue;
+  if (area > 0) {
+    push('Drawings & Permits', sealedRequired ? 'Signed & sealed P.E. drawings' : 'Engineered drawing package', sealedRequired ? 'Florida P.E. calculations, HVHZ / high-wind or 2-story scope' : 'Master-sealed plan set, elevations and anchor details', engineering);
+    push('Drawings & Permits', 'Permit & plan review fees', `$${M.permitFlat} submittal + ${(M.permitPercentOfValue * 100).toFixed(1)}% of construction value`, permitFees);
+    push('Drawings & Permits', 'NOC, inspections & plan runner', 'Notice of commencement, inspection scheduling, courier', M.nocAndInspections + M.planRunner);
+  }
+
+  // ---------- Contingency ----------
+  const preContingency = costLines.reduce((s, l) => s + l.amount, 0);
+  const contingency = preContingency * M.contingencyRate;
+  push('Contingency', 'Job contingency', `${(M.contingencyRate * 100).toFixed(0)}% of direct cost (weather, slab conditions, rework)`, contingency);
+
+  const directCost = costLines.reduce((s, l) => s + l.amount, 0);
+  const overheadPct = config.overheadPct ?? M.defaultOverheadPct;
+  const marginPct = Math.min(60, Math.max(0, config.targetMarginPct ?? M.defaultTargetMarginPct));
+  const overhead = directCost * (overheadPct / 100);
+  const costBasis = directCost + overhead;
+  const sellPrice = marginPct >= 100 ? costBasis : Math.round(costBasis / (1 - marginPct / 100));
+  const profit = sellPrice - costBasis;
+  const markupFactor = directCost > 0 ? sellPrice / directCost : 0;
+
+  // ---------- Customer-facing itemization (cost x markup) ----------
+  const scope: { label: string; detail: string; cost: number }[] = [];
+  if (area > 0) {
+    scope.push({
+      label: `${type.label} — engineered structure installed`,
+      detail: `${area.toLocaleString()} sq ft footprint / ${framedArea.toLocaleString()} sq ft framed — ${extrusion.label}`,
+      cost: frameCost + partsCost + structureLabor + framedArea * M.deliveryPerSqFt + M.deliveryFlat + (twoStory ? M.craneTwoStory : 0),
+    });
+    scope.push({
+      label: `Screen system — ${screen.brand} ${screen.label}`,
+      detail: `${screenedArea.toLocaleString()} sq ft screened, spline installed${screen.warrantyYears ? `, ${screen.warrantyYears}-yr fabric warranty` : ''}`,
+      cost: screenCost,
+    });
+    if (roofPanCost > 0) scope.push({ label: `Roof — ${roof.label}`, detail: `${roofArea.toLocaleString()} sq ft panel supplied & installed`, cost: roofPanCost });
+    if (doorCount > 0) scope.push({ label: 'Doors & barrier hardware', detail: `${doorCount} door(s), ${selfLatchingDoorCount} factory self-latching`, cost: doorMaterial + doorLabor });
+    if (addOnTotal > 0) scope.push({ label: 'Selected add-ons', detail: addOnAmounts.map(a => a.label).join(', '), cost: addOnMaterial + addOnLabor });
+    scope.push({ label: 'Engineering, drawings & permits', detail: sealedRequired ? 'Sealed P.E. package, permit fees, inspections' : 'Engineered plan set, permit fees, inspections', cost: engineering + permitFees + M.nocAndInspections + M.planRunner });
+    scope.push({ label: 'Mobilization, equipment & site conditions', detail: 'Delivery handling, lifts, protection, disposal, insurance, cleanup', cost: equipment + M.dumpster + M.layoutAndCleanup + insurance + warrantyReserve + materialTax + contingency });
+  }
+
+  const lines: EnclosureEstimateLine[] = scope.map(s => ({
+    label: s.label,
+    detail: s.detail,
+    amount: Math.round(s.cost * markupFactor),
+  }));
+  // Reconcile rounding so the itemization sums exactly to the sell price
+  if (lines.length > 0) {
+    const diff = sellPrice - lines.reduce((s, l) => s + l.amount, 0);
+    lines[lines.length - 1].amount += diff;
+  }
+
+  const categoryTotals = costLines.reduce<Record<string, number>>((acc, l) => {
+    acc[l.category] = (acc[l.category] || 0) + l.amount;
+    return acc;
+  }, {});
+
+  const pricePerSqFt = area > 0 ? Math.round((sellPrice / area) * 100) / 100 : 0;
+  const costPerSqFt = area > 0 ? Math.round((directCost / area) * 100) / 100 : 0;
+  // Fixed soft costs (drawings, permits, mobilization) push small jobs to a higher $/sq ft,
+  // so the Florida market band is scaled by footprint before judging competitiveness.
+  const market = area > 0
+    ? {
+        low: Math.round((M.marketRangePerSqFt.low + 4500 / area) * 10) / 10,
+        high: Math.round((M.marketRangePerSqFt.high + 9000 / area) * 10) / 10,
+      }
+    : M.marketRangePerSqFt;
+  const competitiveness: 'below' | 'competitive' | 'above' =
+    pricePerSqFt === 0 ? 'competitive' : pricePerSqFt < market.low ? 'below' : pricePerSqFt > market.high ? 'above' : 'competitive';
+
+  return {
+    lines,
+    total: sellPrice,
+    costLines,
+    categoryTotals,
+    directCost: Math.round(directCost),
+    overhead: Math.round(overhead),
+    overheadPct,
+    marginPct,
+    profit: Math.round(profit),
+    costBasis: Math.round(costBasis),
+    pricePerSqFt,
+    costPerSqFt,
+    breakEvenPerSqFt: area > 0 ? Math.round((costBasis / area) * 100) / 100 : 0,
+    marketRange: market,
+    competitiveness,
+    framedArea,
+    screenedArea,
+    wallArea,
+    roofArea,
+    sealedRequired,
+    baseRate,
+    doorCount,
+    barrierDoorCount,
+    kitDoorCount,
+    selfLatchingDoorCount,
+    type,
+    roof,
+    extrusion,
+    screen,
+  };
 }
+
 
 export interface EnclosureSpecRow {
   label: string;
