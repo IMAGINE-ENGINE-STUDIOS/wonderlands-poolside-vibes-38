@@ -51,10 +51,10 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed.config) setConfig(prev => ({ ...prev, ...parsed.config }));
-        if (parsed.layout) setLayout(parsed.layout);
-        if (typeof parsed.manualArea === 'string') setManualArea(parsed.manualArea);
+      const parsed = JSON.parse(raw);
+      if (parsed.config) setConfig(prev => ({ ...prev, ...parsed.config }));
+      if (parsed.layout) setLayout(migrateEnclosureLayout(parsed.layout));
+      if (typeof parsed.manualArea === 'string') setManualArea(parsed.manualArea);
       }
     } catch {
       /* ignore corrupt cache */
