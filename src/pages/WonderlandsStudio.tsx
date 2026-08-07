@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import FinancingOptions from "@/components/FinancingOptions";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
+import StudioCartWidget from "@/components/StudioCartWidget";
 import { spas, pools } from "@/components/PoolCatalog";
 import { gilmerPools } from "@/data/gilmerPools";
 import { gilmerSpas } from "@/data/gilmerSpas";
