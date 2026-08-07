@@ -1551,46 +1551,51 @@ const WonderlandsStudio = () => {
                     // Keep sidebar open so the category's products stay browsable
                     setLeftSidebarCollapsed(false);
                   }} className="w-full">
-                    <div className="mb-4">
+                    <div className="mb-4 space-y-2">
                       {(() => {
                         const activeCategory = STUDIO_CATEGORIES.find(c => c.value === activeTab) || STUDIO_CATEGORIES[0];
                         const otherCategories = STUDIO_CATEGORIES.filter(c => c.value !== activeTab);
                         const ActiveIcon = activeCategory.icon;
                         return (
-                          <div className="flex items-center gap-2">
-                            <div className={cn("flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium shrink-0 shadow-sm", activeCategory.activeClass)}>
-                              <ActiveIcon className="h-4 w-4" />
-                              {activeCategory.label}
+                          <>
+                            {/* Active category — full width row */}
+                            <div className={cn("flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-semibold shadow-sm", activeCategory.activeClass)}>
+                              <ActiveIcon className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{activeCategory.label}</span>
                             </div>
-                            <Carousel className="flex-1 w-full" opts={{ align: 'start', dragFree: true }}>
-                              <CarouselContent className="-ml-2">
-                                {otherCategories.map((cat) => {
-                                  const Icon = cat.icon;
-                                  return (
-                                    <CarouselItem key={cat.value} className="pl-2 basis-auto">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          setActiveTab(cat.value as any);
-                                          setLeftSidebarCollapsed(false);
-                                        }}
-                                        className="justify-start px-3 py-2 h-auto whitespace-nowrap border-border hover:bg-accent hover:text-accent-foreground"
-                                      >
-                                        <Icon className="h-4 w-4 mr-1.5" />
-                                        {cat.label}
-                                      </Button>
-                                    </CarouselItem>
-                                  );
-                                })}
-                              </CarouselContent>
-                              <CarouselPrevious className="left-0 h-7 w-7 -translate-x-1/2" />
-                              <CarouselNext className="right-0 h-7 w-7 translate-x-1/2" />
-                            </Carousel>
-                          </div>
+
+                            {/* Other categories — compact carousel that fits the panel */}
+                            <div className="relative px-7">
+                              <Carousel className="w-full" opts={{ align: 'start', dragFree: true, containScroll: 'trimSnaps' }}>
+                                <CarouselContent className="-ml-1.5">
+                                  {otherCategories.map((cat) => {
+                                    const Icon = cat.icon;
+                                    return (
+                                      <CarouselItem key={cat.value} className="pl-1.5 basis-auto">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setActiveTab(cat.value as any);
+                                            setLeftSidebarCollapsed(false);
+                                          }}
+                                          className="flex items-center gap-1.5 h-8 max-w-[8.5rem] px-2.5 rounded-full border border-border bg-background/60 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:border-primary/40 transition-colors"
+                                        >
+                                          <Icon className="h-3.5 w-3.5 shrink-0" />
+                                          <span className="truncate">{cat.label}</span>
+                                        </button>
+                                      </CarouselItem>
+                                    );
+                                  })}
+                                </CarouselContent>
+                                <CarouselPrevious className="left-[-1.75rem] top-1/2 h-6 w-6 translate-y-[-50%]" />
+                                <CarouselNext className="right-[-1.75rem] top-1/2 h-6 w-6 translate-y-[-50%]" />
+                              </Carousel>
+                            </div>
+                          </>
                         );
                       })()}
                     </div>
+
 
                     <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
                       {getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${selectedProduct?.model === product.model || selectedProduct?.name === product.name ? 'border-primary bg-primary/10 shadow-sm' : 'border-border hover:border-primary/50'}`} onClick={() => {
