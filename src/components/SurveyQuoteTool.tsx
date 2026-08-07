@@ -615,6 +615,18 @@ const SurveyQuoteTool = ({
     if (currentQuoteId === id) setCurrentQuoteId(null);
   };
 
+  // Auto-save EVERY generated quote (not just edited ones) to the gallery
+  useEffect(() => {
+    if (!isOpen || currentStep !== 'quote') return;
+    const t = setTimeout(() => {
+      persistCurrentQuote(true);
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, currentStep, editableQuoteAmount, selectedOptions, customItems, editablePrices, editableTexts, hiddenSections]);
+
+
+
 
   const handleToggleSection = (sectionId: string) => {
     setHiddenSections(prev => {
