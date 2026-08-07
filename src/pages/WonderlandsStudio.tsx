@@ -2713,8 +2713,8 @@ const WonderlandsStudio = () => {
                               />
                               <span className="text-sm font-semibold">
                                 Artificial Grass (+${(
-                                  selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea))
-                                    ? parseFloat(selectedExtras.artificialGrassArea) * GRASS_PRICE_PER_SQFT
+                                  selectedExtras.artificialGrass
+                                    ? calculateGrassCost(selectedExtras.artificialGrassArea, selectedExtras.artificialGrassColor)
                                     : 0
                                 ).toLocaleString()})
                               </span>
