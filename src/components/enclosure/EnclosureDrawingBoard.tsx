@@ -49,6 +49,7 @@ interface Props {
 const PX_PER_FT = 10;
 const GRID_FT = 1;
 const MAJOR_FT = 5;
+const DEFAULT_DOOR_FT = 3; // standard 36" swing door width
 
 const dist = (a: EnclosurePoint, b: EnclosurePoint) => Math.hypot(a.x - b.x, a.y - b.y);
 
