@@ -1536,22 +1536,15 @@ const WonderlandsStudio = () => {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
               </div> : <Card className="sticky top-4">
-                {/* Total Configuration Price — on top of categories */}
-                {selectedProduct ? (
-                  <div className="text-center p-3 bg-gradient-to-r from-primary/10 to-teal/10 border-b">
-                    <div className="text-xl font-bold">
-                      <span className="text-primary">
-                        ${Math.floor(activeTab === 'build-a-pool' && poolBuilderData ? (poolBuilderData.breakdown?.total || 0) : calculateTotalPrice()).toLocaleString()}
-                      </span>
-                      <span className="text-black">
-                        {((activeTab === 'build-a-pool' && poolBuilderData ? (poolBuilderData.breakdown?.total || 0) : calculateTotalPrice()) % 1).toFixed(2).substring(1)}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Total Configuration Price
-                    </p>
-                  </div>
-                ) : null}
+                {/* Store shopping list + total — on top of categories */}
+                <StudioCartWidget
+                  currentPrice={selectedProduct ? (activeTab === 'build-a-pool' && poolBuilderData ? (poolBuilderData.breakdown?.total || 0) : calculateTotalPrice()) : 0}
+                  currentName={selectedProduct ? (selectedProduct.model || selectedProduct.name || 'Product') : undefined}
+                  currentCategory={selectedProduct?.category}
+                  onAddCurrent={selectedProduct ? handleAddToCart : undefined}
+                  onQuote={handleQuoteRequest}
+                />
+
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">Product Categories</CardTitle>
