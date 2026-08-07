@@ -2112,7 +2112,19 @@ const WonderlandsStudio = () => {
                               )
                             }
                           />
+                        ) : selectedProduct.type === 'screen-enclosure' ? (
+                          <EnclosureConfigurator
+                            baseRatePerSqFt={getProductPrice(selectedProduct)}
+                            onTotalChange={(total, summary) =>
+                              setSelectedExtras((prev: any) =>
+                                prev.enclosureTotal === total && prev.categoryQuantity === String(summary.areaSqFt)
+                                  ? prev
+                                  : { ...prev, enclosureTotal: total, categoryQuantity: String(summary.areaSqFt) }
+                              )
+                            }
+                          />
                         ) : (() => {
+
                           const unit = getProductUnit(selectedProduct);
                           if (!unit) return null;
                           const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
