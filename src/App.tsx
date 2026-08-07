@@ -69,6 +69,7 @@ const LandscapingPage = lazy(() => import("./pages/LandscapingPage"));
 const SharedGalleryView = lazy(() => import("./pages/SharedGalleryView"));
 const OfferPage = lazy(() => import("./pages/OfferPage"));
 const DesignProposals = lazy(() => import("./pages/DesignProposals"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
