@@ -1815,6 +1815,7 @@ const WonderlandsStudio = () => {
                   })) : []}
                   onRemoveCurrentExtra={handleRemoveCurrentFeature}
                   onCurrentExtraQuantity={handleCurrentFeatureQuantity}
+                  onCurrentExtraOption={handleCurrentFeatureOption}
                   onAddCurrent={selectedProduct ? handleAddToCart : undefined}
                   onQuote={handleQuoteRequest}
                   onListOpenChange={setShoppingListOpen}
