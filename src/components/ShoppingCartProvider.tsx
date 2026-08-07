@@ -13,6 +13,8 @@ interface ShoppingCartContextType {
   removeExtra: (id: string, extraIndex: number) => void;
   /** Replaces a feature/extra selection (name + price) on a cart item */
   updateExtra: (id: string, extraIndex: number, next: { name: string; price: number }) => void;
+  /** Live-syncs base price and features of a cart item while it is being configured */
+  syncItemConfig: (id: string, next: { price?: number; extras?: CartItem['extras'] }) => void;
 
   clearCart: () => void;
   getCartCount: () => number;
@@ -119,6 +121,29 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
     );
   };
 
+  const syncItemConfig = (
+    id: string,
+    next: { price?: number; extras?: CartItem['extras'] }
+  ) => {
+    setCartItems(prev => {
+      const target = prev.find(item => item.id === id);
+      if (!target) return prev;
+      const samePrice = next.price === undefined || next.price === target.price;
+      const sameExtras =
+        next.extras === undefined ||
+        JSON.stringify(next.extras) === JSON.stringify(target.extras || []);
+      if (samePrice && sameExtras) return prev;
+      return prev.map(item =>
+        item.id === id
+          ? {
+              ...item,
+              price: next.price !== undefined ? next.price : item.price,
+              extras: next.extras !== undefined ? next.extras : item.extras,
+            }
+          : item
+      );
+    });
+  };
 
   const clearCart = () => setCartItems([]);
 
@@ -148,6 +173,8 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
         updateQuantity,
         removeExtra,
         updateExtra,
+        syncItemConfig,
+
 
         clearCart,
         getCartCount, 
