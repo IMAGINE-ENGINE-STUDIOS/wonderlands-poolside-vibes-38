@@ -215,50 +215,71 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     }
 
     segments.forEach(seg => {
-      const kind = kindOf(seg.index);
-      const color = kind === 'wall' ? wallColor : KIND_COLOR[kind];
-      ctx.strokeStyle = color;
-      ctx.lineWidth = kind === 'house' ? 6 : kind === 'door' ? 5 : 3.5;
-      ctx.setLineDash(kind === 'door' ? [9, 6] : []);
-      ctx.beginPath();
-      ctx.moveTo(seg.a.x, seg.a.y);
-      ctx.lineTo(seg.b.x, seg.b.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      const intervals = segmentIntervals(seg);
+      const lenPx = dist(seg.a, seg.b);
+      const ux = (seg.b.x - seg.a.x) / (lenPx || 1);
+      const uy = (seg.b.y - seg.a.y) / (lenPx || 1);
 
-      // upright ticks on screened walls
-      if (kind === 'wall') {
-        const len = dist(seg.a, seg.b);
-        const step = 6 * PX_PER_FT; // uprights at 6 ft o.c.
-        const ux = (seg.b.x - seg.a.x) / (len || 1);
-        const uy = (seg.b.y - seg.a.y) / (len || 1);
-        ctx.fillStyle = color;
-        for (let d = step; d < len; d += step) {
-          const px = seg.a.x + ux * d;
-          const py = seg.a.y + uy * d;
-          ctx.beginPath();
-          ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-          ctx.fill();
+      intervals.forEach(iv => {
+        const color = iv.kind === 'wall' ? wallColor : KIND_COLOR[iv.kind];
+        const a = { x: seg.a.x + ux * iv.t0 * lenPx, y: seg.a.y + uy * iv.t0 * lenPx };
+        const b = { x: seg.a.x + ux * iv.t1 * lenPx, y: seg.a.y + uy * iv.t1 * lenPx };
+        ctx.strokeStyle = color;
+        ctx.lineWidth = iv.kind === 'house' ? 6 : iv.kind === 'door' ? 5 : 3.5;
+        ctx.setLineDash(iv.kind === 'door' ? [9, 6] : []);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // upright ticks on screened wall intervals only
+        if (iv.kind === 'wall') {
+          const ivLen = dist(a, b);
+          const step = 6 * PX_PER_FT; // uprights at 6 ft o.c.
+          ctx.fillStyle = color;
+          for (let d = step; d < ivLen; d += step) {
+            const px = a.x + ux * d;
+            const py = a.y + uy * d;
+            ctx.beginPath();
+            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
-      }
 
-      const ft = dist(seg.a, seg.b) / PX_PER_FT;
-      if (ft >= 1) {
-        const mx = (seg.a.x + seg.b.x) / 2;
-        const my = (seg.a.y + seg.b.y) / 2;
-        const suffix = kind === 'door' ? ' • DOOR' : kind === 'house' ? ' • HOUSE' : '';
-        const label = `${ft.toFixed(1)} ft${suffix}`;
-        ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
-        const w = ctx.measureText(label).width + 8;
-        ctx.fillStyle = bg;
-        ctx.fillRect(mx - w / 2, my - 16, w, 15);
-        ctx.strokeStyle = gridMajor;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(mx - w / 2, my - 16, w, 15);
-        ctx.fillStyle = textColor;
-        ctx.textAlign = 'center';
-        ctx.fillText(label, mx, my - 5);
-      }
+        // label each interval
+        if (iv.ft >= 1) {
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+          const suffix = iv.kind === 'door' ? ' • DOOR' : iv.kind === 'house' ? ' • HOUSE' : '';
+          const label = `${iv.ft.toFixed(1)} ft${suffix}`;
+          ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+          const w = ctx.measureText(label).width + 8;
+          ctx.fillStyle = bg;
+          ctx.fillRect(mx - w / 2, my - 16, w, 15);
+          ctx.strokeStyle = gridMajor;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(mx - w / 2, my - 16, w, 15);
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.fillText(label, mx, my - 5);
+        }
+      });
+
+      // small perpendicular hatch marks at feature boundaries so the eye sees the door/house edges
+      featuresOf(seg.index).forEach(f => {
+        const t = f.start;
+        const px = seg.a.x + ux * t * lenPx;
+        const py = seg.a.y + uy * t * lenPx;
+        const nx = -uy * 8;
+        const ny = ux * 8;
+        ctx.strokeStyle = KIND_COLOR[f.kind];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px - nx, py - ny);
+        ctx.lineTo(px + nx, py + ny);
+        ctx.stroke();
+      });
     });
 
     // area callout
