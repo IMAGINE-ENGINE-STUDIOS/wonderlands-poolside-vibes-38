@@ -11,12 +11,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer, Receipt, Clock, CreditCard } from "lucide-react";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer, Receipt, Clock, CreditCard, FolderOpen, Trash2 } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
+import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSnapshot } from "@/components/quote/quoteGallery";
+
 import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
@@ -68,16 +70,28 @@ interface SurveyData {
   deckWidth: string;
 }
 const SurveyQuoteTool = ({
-  pool,
+  pool: poolProp,
   isOpen,
   onClose,
-  customProduct,
-  extras
+  customProduct: customProductProp,
+  extras: extrasProp
 }: SurveyQuoteToolProps) => {
   const {
     user
   } = useAuth();
   const navigate = useNavigate();
+
+  // Restored snapshot (from the quote gallery) overrides incoming props
+  const [restored, setRestored] = useState<SavedQuoteSnapshot | null>(null);
+  const pool = restored ? restored.pool : poolProp;
+  const customProduct = restored ? restored.customProduct : customProductProp;
+  const extras = restored ? restored.extras : extrasProp;
+
+  // Quote gallery state
+  const [showGallery, setShowGallery] = useState(false);
+  const [savedQuotes, setSavedQuotes] = useState<SavedQuoteSnapshot[]>([]);
+  const [currentQuoteId, setCurrentQuoteId] = useState<string | null>(null);
+
   
   // Debug: Log all received props when component opens
   useEffect(() => {
@@ -237,13 +251,18 @@ const SurveyQuoteTool = ({
       setEditableQuoteAmount(0);
       // Reset custom items when dialog opens
       setCustomItems([]);
+      // Fresh session: drop any previously restored snapshot
+      setRestored(null);
+      setCurrentQuoteId(null);
+      setSavedQuotes(listSavedQuotes(user?.id));
+
     } else {
       delete document.body.dataset.quoteOpen;
     }
     return () => {
       delete document.body.dataset.quoteOpen;
     };
-  }, [isOpen]);
+  }, [isOpen, user?.id]);
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -522,19 +541,80 @@ const SurveyQuoteTool = ({
     }
   };
 
+  // Persist the current quote (exactly as edited) into the local quote gallery
+  const persistCurrentQuote = (overwrite = true) => {
+    const total = editableQuoteAmount || calculateQuote();
+    const productName = pool?.model || customProduct?.name || 'Custom Quote';
+    const saved = saveQuoteSnapshot(user?.id, {
+      id: overwrite && currentQuoteId ? currentQuoteId : undefined,
+      label: `${productName}${surveyData.name ? ` — ${surveyData.name}` : ''}`,
+      total,
+      productName,
+      surveyData,
+      selectedOptions,
+      editableTexts,
+      editablePrices,
+      editableQuoteAmount: total,
+      hiddenSections: Array.from(hiddenSections),
+      customItems,
+      imageOverrides,
+      imageCropSettings,
+      pool: pool || null,
+      customProduct: customProduct || null,
+      extras: extras || null,
+    });
+    if (saved) {
+      setCurrentQuoteId(saved.id);
+      setSavedQuotes(listSavedQuotes(user?.id));
+    }
+    return saved;
+  };
+
   const handleSaveEditedQuote = async () => {
     setIsEditMode(false);
+    // Save the quote exactly as it is so it can be reopened and modified later
+    const saved = persistCurrentQuote(true);
     // Wait for state to update so the DOM reflects the changes
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Auto-download the updated PDF
-    await handleDownloadPDF();
-    
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    // Open the browser print dialog with the updated quote (no PDF download)
+    handlePrintQuote();
+
     toast({
-      title: "Quote Updated & Downloaded",
-      description: "Your updated quote has been saved and downloaded as a new PDF file."
+      title: saved ? "Quote Saved" : "Quote Updated",
+      description: saved
+        ? "Saved to your quote gallery and sent to print."
+        : "Opening the print dialog."
     });
   };
+
+  const handleOpenGallery = () => {
+    setSavedQuotes(listSavedQuotes(user?.id));
+    setShowGallery(true);
+  };
+
+  const handleRestoreQuote = (snap: SavedQuoteSnapshot) => {
+    setRestored(snap);
+    setCurrentQuoteId(snap.id);
+    setSurveyData(snap.surveyData || surveyData);
+    setSelectedOptions(snap.selectedOptions || []);
+    setEditableTexts(snap.editableTexts || {});
+    setEditablePrices(snap.editablePrices || {});
+    setEditableQuoteAmount(snap.editableQuoteAmount || 0);
+    setHiddenSections(new Set(snap.hiddenSections || []));
+    setCustomItems(snap.customItems || []);
+    setImageOverrides(snap.imageOverrides || {});
+    setImageCropSettings(snap.imageCropSettings || {});
+    setShowGallery(false);
+    setCurrentStep('quote');
+    toast({ title: "Quote Reopened", description: "You can continue modifying this quote." });
+  };
+
+  const handleDeleteSavedQuote = (id: string) => {
+    setSavedQuotes(deleteSavedQuote(user?.id, id));
+    if (currentQuoteId === id) setCurrentQuoteId(null);
+  };
+
 
   const handleToggleSection = (sectionId: string) => {
     setHiddenSections(prev => {
@@ -2451,17 +2531,52 @@ const SurveyQuoteTool = ({
                         <Settings className="h-4 w-4 mr-1" />
                         Options
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleOpenGallery}
+                        className="text-sm ml-auto"
+                      >
+                        <FolderOpen className="h-4 w-4 mr-1" />
+                        Quote Gallery{savedQuotes.length ? ` (${savedQuotes.length})` : ''}
+                      </Button>
                     </div>
                   ) : (
-                    <Button 
-                      size="sm"
-                      onClick={handleSaveEditedQuote}
-                      className="bg-green-500 hover:bg-green-600 text-white shadow-md"
-                    >
-                      <FileText className="h-4 w-4 mr-1" />
-                      Save Changes
-                    </Button>
+                    <div className="flex items-center gap-2 w-full">
+                      <Button 
+                        size="sm"
+                        onClick={handleSaveEditedQuote}
+                        className="bg-green-500 hover:bg-green-600 text-white shadow-md"
+                      >
+                        <Printer className="h-4 w-4 mr-1" />
+                        Save Changes & Print
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const saved = persistCurrentQuote(false);
+                          toast({
+                            title: saved ? 'Saved to Gallery' : 'Save failed',
+                            description: saved ? 'This quote can be reopened and modified later.' : 'Local storage is full.',
+                            variant: saved ? undefined : 'destructive'
+                          });
+                        }}
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        Save as New
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsEditMode(false)}
+                        className="text-gray-500"
+                      >
+                        Back to Quote
+                      </Button>
+                    </div>
                   )}
+
                 </div>
                 
                 {/* Main Actions Grid */}
@@ -2550,6 +2665,50 @@ const SurveyQuoteTool = ({
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Quote File Gallery */}
+        {showGallery && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 no-print print:hidden">
+            <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+              <CardHeader className="flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <FolderOpen className="h-5 w-5 text-primary" />
+                    Quote Gallery
+                  </CardTitle>
+                  <CardDescription>Reopen a saved quote to keep modifying it</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setShowGallery(false)}>Close</Button>
+              </CardHeader>
+              <CardContent className="overflow-y-auto space-y-2">
+                {savedQuotes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-6 text-center">
+                    No saved quotes yet. Use “Save Changes &amp; Print” or “Save as New” to store one here.
+                  </p>
+                ) : (
+                  savedQuotes.map((q) => (
+                    <div
+                      key={q.id}
+                      className={`flex items-center gap-3 rounded-lg border p-3 ${currentQuoteId === q.id ? 'border-primary' : 'border-border'}`}
+                    >
+                      <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{q.label || q.productName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(q.savedAt).toLocaleString()} • ${Number(q.total || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <Button size="sm" onClick={() => handleRestoreQuote(q)}>Open</Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDeleteSavedQuote(q.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
           </div>
         )}
 
