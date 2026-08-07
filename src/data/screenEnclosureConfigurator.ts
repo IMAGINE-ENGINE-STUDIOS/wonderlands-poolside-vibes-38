@@ -326,7 +326,9 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     const addon = ENCLOSURE_ADDONS.find(a => a.id === id);
     if (!addon) return;
     if (addon.pricing === 'each') {
-      const qty = addon.id === 'self-closing' ? Math.max(barrierDoorCount, 1) : addon.id === 'door-alarm' ? Math.max(doorCount, 1) : 1;
+      const qty = addon.id === 'self-closing' ? kitDoorCount : addon.id === 'door-alarm' ? Math.max(doorCount, 1) : 1;
+      if (qty <= 0) return;
+
       lines.push({ label: addon.label, detail: `${qty} x $${addon.price.toLocaleString()}`, amount: qty * addon.price });
     } else if (addon.pricing === 'sqft' && area > 0) {
       lines.push({ label: addon.label, detail: `${area.toLocaleString()} sq ft x $${addon.price}/sq ft`, amount: Math.round(area * addon.price) });
