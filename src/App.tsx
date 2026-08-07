@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
-import ScrollRestoration from "@/components/ScrollRestoration";
+import ScrollRestoration from "./components/ScrollRestoration";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
