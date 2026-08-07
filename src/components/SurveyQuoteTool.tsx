@@ -1,5 +1,6 @@
 import * as React from "react";
 const { useState, useEffect } = React;
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";  
@@ -614,6 +615,18 @@ const SurveyQuoteTool = ({
     setSavedQuotes(deleteSavedQuote(user?.id, id));
     if (currentQuoteId === id) setCurrentQuoteId(null);
   };
+
+  // Auto-save EVERY generated quote (not just edited ones) to the gallery
+  useEffect(() => {
+    if (!isOpen || currentStep !== 'quote') return;
+    const t = setTimeout(() => {
+      persistCurrentQuote(true);
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, currentStep, editableQuoteAmount, selectedOptions, customItems, editablePrices, editableTexts, hiddenSections]);
+
+
 
 
   const handleToggleSection = (sectionId: string) => {
@@ -2668,9 +2681,10 @@ const SurveyQuoteTool = ({
           </div>
         )}
 
-        {/* Quote File Gallery */}
-        {showGallery && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 no-print print:hidden">
+        {/* Quote File Gallery — portaled to body so it always centers in the viewport */}
+        {showGallery && createPortal(
+          <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 no-print print:hidden">
+
             <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <div>
@@ -2709,7 +2723,8 @@ const SurveyQuoteTool = ({
                 )}
               </CardContent>
             </Card>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Authentication Prompt */}
