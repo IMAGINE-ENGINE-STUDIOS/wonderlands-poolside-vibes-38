@@ -2349,7 +2349,8 @@ const WonderlandsStudio = () => {
                         })()}
 
 
-                        {getProductFeatures((selectedProduct.type || 'paver') as any).length > 0 && (
+                        {getProductFeatures((selectedProduct.type || 'paver') as any).length > 0 &&
+                          selectedProduct.type !== 'screen-enclosure' && (
                           <DynamicFeatureRenderer
                             productType={(selectedProduct.type || 'paver') as any}
                             selectedExtras={selectedExtras}
