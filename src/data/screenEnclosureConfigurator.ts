@@ -38,8 +38,12 @@ export interface EnclosureExtrusionOption {
 export interface EnclosureScreenOption {
   id: string;
   label: string;
+  /** Manufacturer / market brand */
+  brand: string;
   mesh: string;
   pricePerSqFt: number;
+  /** Manufacturer warranty in years, when published */
+  warrantyYears?: number;
   description: string;
 }
 
@@ -50,8 +54,11 @@ export interface EnclosureDoorOption {
   price: number;
   /** Can be used as the code-compliant barrier access point */
   barrierEligible: boolean;
+  /** Ships with self-closing hinges + self-latching hardware (no add-on kit needed) */
+  selfLatching?: boolean;
   description: string;
 }
+
 
 export interface EnclosureAddOnOption {
   id: string;
@@ -86,21 +93,30 @@ export const ENCLOSURE_EXTRUSIONS: EnclosureExtrusionOption[] = [
   { id: '2x6-070', label: '2" x 6" — 0.070" wall', size: '2x6', wallIn: 0.07, pricePerSqFt: 6.5, maxSpanFt: 28, description: 'HVHZ / 2-story columns and long clear-span beams.' },
 ];
 
+/** Top-of-market screen fabrics offered by Florida enclosure builders */
 export const ENCLOSURE_SCREENS: EnclosureScreenOption[] = [
-  { id: 'fiberglass-1814', label: 'Standard Fiberglass 18/14', mesh: '18 x 14', pricePerSqFt: 0, description: 'Standard charcoal mesh — best airflow and visibility.' },
-  { id: 'no-see-um', label: 'No-See-Um 20/20', mesh: '20 x 20', pricePerSqFt: 1.25, description: 'Tight weave blocking sand flies and gnats; slightly reduced airflow.' },
-  { id: 'florida-glass', label: 'Florida Glass (privacy)', mesh: 'Vinyl laminate', pricePerSqFt: 2.75, description: 'Vinyl-coated privacy panel typically used on kick panels and house-side walls.' },
-  { id: 'super-screen', label: 'Super Screen (10-yr)', mesh: '17 x 14 vinyl-coated', pricePerSqFt: 2.25, description: 'Vinyl-coated polyester with 10-year warranty — high tear resistance.' },
-  { id: 'tuff-screen', label: 'TuffScreen / Pet Mesh', mesh: 'Heavy vinyl-coated', pricePerSqFt: 3.25, description: 'Pet and impact resistant mesh for door walls and dog runs.' },
-  { id: 'phifer-90', label: 'Phifer 90% Solar Shade', mesh: 'Solar fabric', pricePerSqFt: 3.75, description: 'Heat and glare reduction on west-facing walls.' },
+  { id: 'phifer-1814', label: 'Phifer 18/14 Pool & Patio', brand: 'Phifer', mesh: '18 x 14 fiberglass', pricePerSqFt: 0, warrantyYears: 5, description: 'Industry-standard charcoal fiberglass — best airflow and visibility, lowest cost.' },
+  { id: 'phifer-2020', label: 'Phifer No-See-Um 20/20', brand: 'Phifer', mesh: '20 x 20 fiberglass', pricePerSqFt: 1.25, warrantyYears: 5, description: 'Tight weave that blocks sand flies and gnats; slightly reduced airflow.' },
+  { id: 'phifer-bettervue', label: 'Phifer BetterVue', brand: 'Phifer', mesh: '18 x 16 micro-fiber', pricePerSqFt: 1.85, warrantyYears: 10, description: 'Finer yarn for noticeably clearer outward view and better airflow than standard mesh.' },
+  { id: 'phifer-ultravue2', label: 'Phifer UltraVue2', brand: 'Phifer', mesh: '20 x 21 micro-fiber', pricePerSqFt: 2.45, warrantyYears: 10, description: 'Premium high-clarity insect screen — the clearest view in the Phifer line.' },
+  { id: 'superscreen-plus', label: 'Super Screen Plus (Chatham)', brand: 'Chatham / Super Screen', mesh: '17 x 14 vinyl-coated polyester', pricePerSqFt: 2.25, warrantyYears: 10, description: 'Vinyl-coated polyester with a 10-year no-hole warranty — excellent tear resistance.' },
+  { id: 'superscreen-deluxe', label: 'Super Screen Deluxe 15-Yr', brand: 'Chatham / Super Screen', mesh: '18 x 14 heavy polyester', pricePerSqFt: 3.1, warrantyYears: 15, description: 'Heaviest Super Screen weave with a 15-year warranty for coastal and high-UV exposures.' },
+  { id: 'phifer-tuffscreen', label: 'Phifer TuffScreen / Pet Mesh', brand: 'Phifer', mesh: 'Heavy vinyl-coated polyester', pricePerSqFt: 3.25, warrantyYears: 10, description: 'Pet and impact resistant mesh for door walls, kick panels and dog runs.' },
+  { id: 'twitchell-textilene90', label: 'Twitchell Textilene 90 Solar', brand: 'Twitchell', mesh: '90% solar shade fabric', pricePerSqFt: 3.75, warrantyYears: 10, description: 'Blocks up to 90% of solar heat and glare — ideal on west and south walls.' },
+  { id: 'phifer-solar-insect', label: 'Phifer SunTex 80 Solar Insect', brand: 'Phifer', mesh: '80% solar / insect fabric', pricePerSqFt: 3.45, warrantyYears: 10, description: 'Dual-purpose solar shade and insect screen with strong wind and tear resistance.' },
+  { id: 'florida-glass', label: 'Florida Glass Privacy Laminate', brand: 'Phifer', mesh: 'Vinyl-laminated fiberglass', pricePerSqFt: 2.75, warrantyYears: 5, description: 'Opaque vinyl laminate used on kick panels and house-side privacy walls.' },
 ];
 
 export const ENCLOSURE_DOORS: EnclosureDoorOption[] = [
-  { id: 'single-36', label: 'Single Swing Door 36"', widthFt: 3, price: 585, barrierEligible: true, description: 'Standard access door — self-closing hinges and self-latching hardware available.' },
-  { id: 'double-72', label: 'Double Swing Door 6 ft', widthFt: 6, price: 1180, barrierEligible: true, description: 'Two leaves with drop rod for furniture and equipment access.' },
+  { id: 'single-36-sl', label: 'Self-Latching Single Swing Door 36"', widthFt: 3, price: 760, barrierEligible: true, selfLatching: true, description: 'Code-ready barrier door: self-closing hinges, self-latching release at 54" AFG, outward swing.' },
+  { id: 'double-72-sl', label: 'Self-Latching Double Swing Door 6 ft', widthFt: 6, price: 1495, barrierEligible: true, selfLatching: true, description: 'Two self-closing leaves with drop rod and self-latching hardware for equipment access.' },
+  { id: 'single-42-sl', label: 'Self-Latching Wide Door 42" (ADA-friendly)', widthFt: 3.5, price: 940, barrierEligible: true, selfLatching: true, description: 'Wider clear opening with self-closing hinges, self-latching lever and key lock.' },
+  { id: 'single-36', label: 'Single Swing Door 36" (standard hinge)', widthFt: 3, price: 585, barrierEligible: true, description: 'Standard swing door — requires the self-closing / self-latching kit to serve as the barrier.' },
+  { id: 'double-72', label: 'Double Swing Door 6 ft (standard hinge)', widthFt: 6, price: 1180, barrierEligible: true, description: 'Two leaves with drop rod; add the self-latching kit for barrier compliance.' },
   { id: 'sliding-72', label: 'Sliding Screen Door 6 ft', widthFt: 6, price: 890, barrierEligible: false, description: 'Sliding panel — cannot be used as the pool-barrier access point.' },
   { id: 'pet-door', label: 'Pet Door Panel', widthFt: 1, price: 320, barrierEligible: false, description: 'Framed pet panel with lockable flap. Not permitted in a barrier wall.' },
 ];
+
 
 export const ENCLOSURE_ADDONS: EnclosureAddOnOption[] = [
   { id: 'self-closing', label: 'Self-Closing / Self-Latching Door Kit (per door)', pricing: 'each', price: 175, description: 'Latch mounted min. 54" above the deck, door swings outward away from the pool.', codeRequired: true },
@@ -154,10 +170,11 @@ export const DEFAULT_ENCLOSURE_CONFIG: EnclosureConfigState = {
   typeId: 'mansard',
   roofId: 'screen-roof',
   extrusionId: '2x3-046',
-  screenId: 'fiberglass-1814',
+  screenId: 'phifer-1814',
   qualityRatePerSqFt: 22,
-  doors: { 'single-36': 1 },
-  addOns: ['self-closing', 'super-gutter'],
+  doors: { 'single-36-sl': 1 },
+  addOns: ['super-gutter'],
+
   areaSqFt: 0,
   perimeterFt: 0,
   screenWallFt: 0,
@@ -189,6 +206,8 @@ export function checkEnclosureCompliance(config: EnclosureConfigState): Enclosur
   const doorEntries = Object.entries(config.doors).filter(([, q]) => q > 0);
   const doorCount = doorEntries.reduce((s, [, q]) => s + q, 0);
   const barrierDoors = doorEntries.filter(([id]) => ENCLOSURE_DOORS.find(d => d.id === id)?.barrierEligible);
+  // Doors that need the retrofit kit: barrier-eligible but not factory self-latching
+  const kitNeededDoors = barrierDoors.filter(([id]) => !ENCLOSURE_DOORS.find(d => d.id === id)?.selfLatching);
 
   if (config.isPoolBarrier) {
     if (config.wallHeightFt * 12 < 48) {
@@ -198,14 +217,15 @@ export function checkEnclosureCompliance(config: EnclosureConfigState): Enclosur
       issues.push({ level: 'error', code: 'R4501.17.1.2', message: 'Clearance under the screen wall may not exceed 4 inches (2 inches over a non-solid surface).' });
     }
     if (doorCount === 0) {
-      issues.push({ level: 'warning', code: 'R4501.17.2', message: 'No door configured. A barrier enclosure requires at least one code-compliant access door.' });
+      issues.push({ level: 'warning', code: 'R4501.17.2', message: 'No door configured. A barrier enclosure requires at least one self-closing, self-latching access door.' });
     }
     if (doorCount > 0 && barrierDoors.length === 0) {
-      issues.push({ level: 'error', code: 'R4501.17.2.1', message: 'Sliding and pet doors cannot serve as the barrier access point — add a swing door with self-closing, self-latching hardware.' });
+      issues.push({ level: 'error', code: 'R4501.17.2.1', message: 'Sliding and pet doors cannot serve as the barrier access point — add a self-latching swing door.' });
     }
-    if (barrierDoors.length > 0 && !config.addOns.includes('self-closing')) {
-      issues.push({ level: 'error', code: 'R4501.17.2.1', message: 'Barrier doors must be self-closing and self-latching, opening outward from the pool, with the release at least 54 inches above the deck.' });
+    if (kitNeededDoors.length > 0 && !config.addOns.includes('self-closing')) {
+      issues.push({ level: 'error', code: 'R4501.17.2.1', message: 'Standard-hinge barrier doors must be upgraded: select a Self-Latching door model or add the self-closing / self-latching kit (release at least 54 inches above the deck, outward swing away from the pool).' });
     }
+
     if (config.screenId === 'florida-glass' || config.roofId === 'full-pan') {
       issues.push({ level: 'warning', code: 'R4501.17.1.3', message: 'Solid panels increase wind load and can be climbable — confirm the engineered assembly and barrier path with the reviewer.' });
     }
@@ -251,6 +271,16 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     (s, [id, q]) => s + (ENCLOSURE_DOORS.find(d => d.id === id)?.barrierEligible ? q : 0),
     0
   );
+  // Kit only applies to barrier doors that are not already factory self-latching
+  const kitDoorCount = Object.entries(config.doors).reduce((s, [id, q]) => {
+    const door = ENCLOSURE_DOORS.find(d => d.id === id);
+    return s + (door?.barrierEligible && !door.selfLatching ? q : 0);
+  }, 0);
+  const selfLatchingDoorCount = Object.entries(config.doors).reduce(
+    (s, [id, q]) => s + (ENCLOSURE_DOORS.find(d => d.id === id)?.selfLatching ? q : 0),
+    0
+  );
+
   const lines: EnclosureEstimateLine[] = [];
   const area = config.areaSqFt;
   const baseRate = Math.round(config.qualityRatePerSqFt * type.rateMultiplier * 100) / 100;
@@ -270,11 +300,12 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     }
     if (screen.pricePerSqFt > 0) {
       lines.push({
-        label: `Screen — ${screen.label}`,
+        label: `Screen fabric — ${screen.brand} ${screen.label}`,
         detail: `${area.toLocaleString()} sq ft x $${screen.pricePerSqFt}/sq ft`,
         amount: Math.round(area * screen.pricePerSqFt),
       });
     }
+
     if (roof.pricePerSqFt > 0) {
       lines.push({
         label: `Roof — ${roof.label}`,
@@ -295,7 +326,9 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     const addon = ENCLOSURE_ADDONS.find(a => a.id === id);
     if (!addon) return;
     if (addon.pricing === 'each') {
-      const qty = addon.id === 'self-closing' ? Math.max(barrierDoorCount, 1) : addon.id === 'door-alarm' ? Math.max(doorCount, 1) : 1;
+      const qty = addon.id === 'self-closing' ? kitDoorCount : addon.id === 'door-alarm' ? Math.max(doorCount, 1) : 1;
+      if (qty <= 0) return;
+
       lines.push({ label: addon.label, detail: `${qty} x $${addon.price.toLocaleString()}`, amount: qty * addon.price });
     } else if (addon.pricing === 'sqft' && area > 0) {
       lines.push({ label: addon.label, detail: `${area.toLocaleString()} sq ft x $${addon.price}/sq ft`, amount: Math.round(area * addon.price) });
@@ -314,7 +347,7 @@ export function estimateEnclosure(config: EnclosureConfigState) {
   }
 
   const total = lines.reduce((s, l) => s + l.amount, 0);
-  return { lines, total, baseRate, doorCount, barrierDoorCount, type, roof, extrusion, screen };
+  return { lines, total, baseRate, doorCount, barrierDoorCount, kitDoorCount, selfLatchingDoorCount, type, roof, extrusion, screen };
 }
 
 export interface EnclosureSpecRow {
@@ -346,12 +379,25 @@ export function buildEnclosureSpec(config: EnclosureConfigState): {
       { label: 'Footprint', value: `${config.areaSqFt.toLocaleString()} sq ft / ${config.perimeterFt.toLocaleString()} ft perimeter` },
       { label: 'Screened wall run', value: `${config.screenWallFt.toLocaleString()} ft (house-attached runs excluded)` },
       { label: 'Uprights', value: `${uprights} @ ${uprightSpacing} ft o.c. — ${extrusion.label}` },
-      { label: 'Screen panels', value: `${panels} wall bays + roof bays; ${screenRolls} roll(s) of ${screen.mesh} @ 700 sq ft` },
+      { label: 'Screen panels', value: `${panels} wall bays + roof bays; ${screenRolls} roll(s) of ${screen.brand} ${screen.mesh} @ 700 sq ft` },
       { label: 'Base / anchors', value: `1/4" x 2-1/4" Tapcon @ ${anchorSpacing}" o.c. into 3,000 psi slab, 1-1/4" min. embed` },
       { label: 'Slab edge', value: 'Min. 4" clear from slab edge; epoxy anchors where edge distance is short' },
       { label: 'Beam splices', value: `Internal sleeves at splices, #10 x 3/4" ${config.hvhz ? '304 stainless' : 'painted'} screws, 3 per connection` },
       { label: 'Screen install', value: 'Spline roll into extrusion channel, 0.175" spline, no more than 2% sag' },
-      { label: 'Doors', value: doorCount > 0 ? `${doorCount} — hinges set plumb, latch @ 54" AFF, outward swing` : 'None configured' },
+      {
+        label: 'Doors',
+        value:
+          doorCount > 0
+            ? Object.entries(config.doors)
+                .filter(([, q]) => q > 0)
+                .map(([id, q]) => {
+                  const d = ENCLOSURE_DOORS.find(x => x.id === id);
+                  return `${q} x ${d?.label || id}${d?.selfLatching ? ' (self-closing / self-latching, latch @ 54" AFF, outward swing)' : ''}`;
+                })
+                .join('; ')
+            : 'None configured',
+      },
+
       { label: 'Gutter', value: config.addOns.includes('super-gutter') ? '6" Super Gutter with downspouts to grade, 1/8" per ft slope' : 'None — verify deck drainage' },
       { label: 'Finish protection', value: `${config.hvhz ? 'AAMA 2604' : 'AAMA 2603'} powder coat, touch-up all field cuts` },
     ],
@@ -364,7 +410,7 @@ export function buildEnclosureSpec(config: EnclosureConfigState): {
       { label: 'Zone', value: config.hvhz ? 'HVHZ — Miami-Dade / Broward' : 'Standard Florida wind zone' },
       { label: 'Members', value: `${extrusion.size} @ ${extrusion.wallIn}" wall, 6005-T5 extruded aluminum` },
       { label: 'Roof assembly', value: `${roof.label}${roof.pricePerSqFt > 0 ? ' — engineered panel' : ''}` },
-      { label: 'Infill', value: `${screen.label} (${screen.mesh})` },
+      { label: 'Infill', value: `${screen.brand} ${screen.label} (${screen.mesh})${screen.warrantyYears ? ` — ${screen.warrantyYears}-yr fabric warranty` : ''}` },
       { label: 'Load path', value: 'Uplift and lateral load through uprights to base plate anchors into existing slab / new footer' },
       { label: 'Deflection limit', value: 'L/60 for screen framing members under design wind' },
       { label: 'Barrier function', value: config.isPoolBarrier ? 'Enclosure serves as the required pool safety barrier' : 'Separate pool barrier provided' },
