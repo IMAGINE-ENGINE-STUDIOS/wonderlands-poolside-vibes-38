@@ -8,8 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
-import StripeCheckoutButton from '@/components/StripeCheckoutButton';
-import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, X, Plus as PlusIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, X, CreditCard, Plus as PlusIcon } from 'lucide-react';
 
 interface StudioCartWidgetProps {
   /** Price of the configuration currently open in the studio (not yet in the cart) */
@@ -55,6 +55,9 @@ const StudioCartWidget = ({
     removeExtra,
     clearCart,
   } = useShoppingCart();
+  const navigate = useNavigate();
+
+
 
   const cartTotal = getCartTotal();
   const isCurrentInCart = React.useMemo(
@@ -91,15 +94,13 @@ const StudioCartWidget = ({
         <Button variant="outline" size="sm" className="flex-1 text-[11px]" onClick={onQuote}>
           <FileText className="h-3 w-3 mr-1" /> Quote
         </Button>
-        <StripeCheckoutButton
-          productId="studio_cart_checkout"
-          productName={`Wonderlands order (${getCartCount() || 1} items)`}
-          price={storeTotal}
-          quantity={1}
-          variant="default"
-          className="flex-1 text-[11px] h-8"
-          cartItems={cartItems}
-        />
+        <Button
+          size="sm"
+          className="flex-1 text-[11px]"
+          onClick={() => navigate('/checkout')}
+        >
+          <CreditCard className="h-3 w-3 mr-1" /> Checkout
+        </Button>
       </div>
 
       <DropdownMenu>
