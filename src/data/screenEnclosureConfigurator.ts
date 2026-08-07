@@ -271,6 +271,16 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     (s, [id, q]) => s + (ENCLOSURE_DOORS.find(d => d.id === id)?.barrierEligible ? q : 0),
     0
   );
+  // Kit only applies to barrier doors that are not already factory self-latching
+  const kitDoorCount = Object.entries(config.doors).reduce((s, [id, q]) => {
+    const door = ENCLOSURE_DOORS.find(d => d.id === id);
+    return s + (door?.barrierEligible && !door.selfLatching ? q : 0);
+  }, 0);
+  const selfLatchingDoorCount = Object.entries(config.doors).reduce(
+    (s, [id, q]) => s + (ENCLOSURE_DOORS.find(d => d.id === id)?.selfLatching ? q : 0),
+    0
+  );
+
   const lines: EnclosureEstimateLine[] = [];
   const area = config.areaSqFt;
   const baseRate = Math.round(config.qualityRatePerSqFt * type.rateMultiplier * 100) / 100;
