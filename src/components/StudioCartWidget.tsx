@@ -2,11 +2,6 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, X, CreditCard, Plus as PlusIcon } from 'lucide-react';
@@ -28,6 +23,8 @@ interface StudioCartWidgetProps {
   onAddCurrent?: () => void;
   /** Opens the quote widget */
   onQuote?: () => void;
+  /** Notifies the parent when the shopping list panel opens/closes */
+  onListOpenChange?: (open: boolean) => void;
 }
 
 const money = (value: number) => ({
@@ -44,6 +41,7 @@ const StudioCartWidget = ({
   onCurrentExtraQuantity,
   onAddCurrent,
   onQuote,
+  onListOpenChange,
 }: StudioCartWidgetProps) => {
   const {
     cartItems,
@@ -56,6 +54,12 @@ const StudioCartWidget = ({
     clearCart,
   } = useShoppingCart();
   const navigate = useNavigate();
+  const [open, setOpenState] = React.useState(false);
+  const setOpen = React.useCallback((next: boolean) => {
+    setOpenState(next);
+    onListOpenChange?.(next);
+  }, [onListOpenChange]);
+
 
 
 
@@ -103,18 +107,18 @@ const StudioCartWidget = ({
         </Button>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="w-full flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
-          >
-            View Shopping List
-            <ChevronDown className="h-3 w-3" />
-          </button>
-        </DropdownMenuTrigger>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
+      >
+        {open ? 'Hide Shopping List' : 'View Shopping List'}
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
 
-        <DropdownMenuContent align="start" className="w-[19rem] p-0 bg-popover text-popover-foreground border shadow-xl z-50 backdrop-blur-none opacity-100">
+      {open && (
+        <div className="rounded-lg border bg-popover text-popover-foreground shadow-sm overflow-hidden">
+
           <div className="flex items-center justify-between px-3 py-2 border-b">
             <span className="text-sm font-semibold">Shopping List</span>
             {cartItems.length > 0 && (
@@ -316,8 +320,9 @@ const StudioCartWidget = ({
               </span>
             </div>
           </div>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </div>
+      )}
+
     </div>
   );
 };

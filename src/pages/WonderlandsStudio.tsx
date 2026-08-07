@@ -475,6 +475,8 @@ const WonderlandsStudio = () => {
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
+  const [shoppingListOpen, setShoppingListOpen] = useState(false);
+
   const [viewMode, setViewMode] = useState<'product-image' | '2d-designer' | '3d-viewer'>('product-image');
   const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
   const [showPricePanel, setShowPricePanel] = useState(false);
@@ -1613,7 +1615,9 @@ const WonderlandsStudio = () => {
                   onCurrentExtraQuantity={handleCurrentFeatureQuantity}
                   onAddCurrent={selectedProduct ? handleAddToCart : undefined}
                   onQuote={handleQuoteRequest}
+                  onListOpenChange={setShoppingListOpen}
                 />
+
 
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -1677,7 +1681,7 @@ const WonderlandsStudio = () => {
                     </div>
 
 
-                    <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
+                    {!shoppingListOpen && <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
                       {getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${(product.model && selectedProduct?.model === product.model) || (product.name && selectedProduct?.name === product.name) ? 'border-primary bg-primary/10 shadow-sm' : 'border-border hover:border-primary/50'}`} onClick={() => {
                     setSelectedProduct(product);
                     // Reset extras to default for this product type
@@ -1714,7 +1718,8 @@ const WonderlandsStudio = () => {
                             </button>
                           </div>
                         </div>)}
-                    </div>
+                    </div>}
+
                   </Tabs>
                 </CardContent>
               </Card>}
