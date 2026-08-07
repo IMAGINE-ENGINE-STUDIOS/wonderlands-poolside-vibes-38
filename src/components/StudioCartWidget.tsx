@@ -23,6 +23,8 @@ interface StudioCartWidgetProps {
   onAddCurrent?: () => void;
   /** Opens the quote widget */
   onQuote?: () => void;
+  /** Notifies the parent when the shopping list panel opens/closes */
+  onListOpenChange?: (open: boolean) => void;
 }
 
 const money = (value: number) => ({
@@ -39,6 +41,7 @@ const StudioCartWidget = ({
   onCurrentExtraQuantity,
   onAddCurrent,
   onQuote,
+  onListOpenChange,
 }: StudioCartWidgetProps) => {
   const {
     cartItems,
@@ -51,6 +54,12 @@ const StudioCartWidget = ({
     clearCart,
   } = useShoppingCart();
   const navigate = useNavigate();
+  const [open, setOpenState] = React.useState(false);
+  const setOpen = React.useCallback((next: boolean) => {
+    setOpenState(next);
+    onListOpenChange?.(next);
+  }, [onListOpenChange]);
+
 
 
 
