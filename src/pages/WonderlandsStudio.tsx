@@ -1733,11 +1733,6 @@ const WonderlandsStudio = () => {
                 </Card>
 
                 <Card>
-                  <CardHeader className="p-3 sm:p-6">
-                    <CardTitle className="text-lg sm:text-xl">
-                      {selectedProduct.type === 'scene' ? 'Belgard Studio Options' : 'Additional Features'}
-                    </CardTitle>
-                  </CardHeader>
                   <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
                     {selectedProduct.type === 'scene' ? (
                       // Belgard Studio Options for Scenes - keep existing hardcoded UI
