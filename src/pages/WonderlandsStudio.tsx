@@ -1551,68 +1551,46 @@ const WonderlandsStudio = () => {
                     // Keep sidebar open so the category's products stay browsable
                     setLeftSidebarCollapsed(false);
                   }} className="w-full">
-                    <TabsList className="grid w-full grid-cols-1 gap-2 h-auto bg-transparent p-0">
-                      <TabsTrigger value="pools" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Waves className="h-4 w-4 mr-2" />
-                        Pools
-                      </TabsTrigger>
-                      <TabsTrigger value="spas" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Droplets className="h-4 w-4 mr-2" />
-                        Spas
-                      </TabsTrigger>
-                      <TabsTrigger value="tanning-ledges" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Sun className="h-4 w-4 mr-2" />
-                        Tanning Ledges
-                      </TabsTrigger>
-                      <TabsTrigger value="saunas" className="justify-start data-[state=active]:bg-amber-600 data-[state=active]:text-white">
-                        <Thermometer className="h-4 w-4 mr-2" />
-                        Saunas
-                      </TabsTrigger>
-                      <TabsTrigger value="screen-enclosures" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Shield className="h-4 w-4 mr-2" />
-                        Screen Enclosures
-                      </TabsTrigger>
-                      <TabsTrigger value="patio-fencing" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Layers className="h-4 w-4 mr-2" />
-                        Patio Fencing
-                      </TabsTrigger>
-                      <TabsTrigger value="lanai" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Sun className="h-4 w-4 mr-2" />
-                        Lanai
-                      </TabsTrigger>
-                      <TabsTrigger value="pavers" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Package className="h-4 w-4 mr-2" />
-                        Pavers
-                      </TabsTrigger>
-                      <TabsTrigger value="artificial-grass" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Layers className="h-4 w-4 mr-2" />
-                        Artificial Grass
-                      </TabsTrigger>
-                      <TabsTrigger value="landscaping" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Palette className="h-4 w-4 mr-2" />
-                        Landscaping
-                      </TabsTrigger>
-                      <TabsTrigger value="covers" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Shield className="h-4 w-4 mr-2" />
-                        Covers
-                      </TabsTrigger>
-                      <TabsTrigger value="driveway-gates" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Driveway Gates
-                      </TabsTrigger>
-                      <TabsTrigger value="finishes" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Palette className="h-4 w-4 mr-2" />
-                        Finishes
-                      </TabsTrigger>
-                      <TabsTrigger value="liners" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Layers className="h-4 w-4 mr-2" />
-                        Liners
-                      </TabsTrigger>
-                      <TabsTrigger value="build-a-pool" className="justify-start data-[state=active]:bg-teal data-[state=active]:text-white">
-                        <Waves className="h-4 w-4 mr-2" />
-                        Build a Pool
-                      </TabsTrigger>
-                    </TabsList>
+                    <div className="mb-4">
+                      {(() => {
+                        const activeCategory = STUDIO_CATEGORIES.find(c => c.value === activeTab) || STUDIO_CATEGORIES[0];
+                        const otherCategories = STUDIO_CATEGORIES.filter(c => c.value !== activeTab);
+                        const ActiveIcon = activeCategory.icon;
+                        return (
+                          <div className="flex items-center gap-2">
+                            <div className={cn("flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium shrink-0 shadow-sm", activeCategory.activeClass)}>
+                              <ActiveIcon className="h-4 w-4" />
+                              {activeCategory.label}
+                            </div>
+                            <Carousel className="flex-1 w-full" opts={{ align: 'start', dragFree: true }}>
+                              <CarouselContent className="-ml-2">
+                                {otherCategories.map((cat) => {
+                                  const Icon = cat.icon;
+                                  return (
+                                    <CarouselItem key={cat.value} className="pl-2 basis-auto">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          setActiveTab(cat.value as any);
+                                          setLeftSidebarCollapsed(false);
+                                        }}
+                                        className="justify-start px-3 py-2 h-auto whitespace-nowrap border-border hover:bg-accent hover:text-accent-foreground"
+                                      >
+                                        <Icon className="h-4 w-4 mr-1.5" />
+                                        {cat.label}
+                                      </Button>
+                                    </CarouselItem>
+                                  );
+                                })}
+                              </CarouselContent>
+                              <CarouselPrevious className="left-0 h-7 w-7 -translate-x-1/2" />
+                              <CarouselNext className="right-0 h-7 w-7 translate-x-1/2" />
+                            </Carousel>
+                          </div>
+                        );
+                      })()}
+                    </div>
 
                     <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
                       {getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${selectedProduct?.model === product.model || selectedProduct?.name === product.name ? 'border-primary bg-primary/10 shadow-sm' : 'border-border hover:border-primary/50'}`} onClick={() => {
