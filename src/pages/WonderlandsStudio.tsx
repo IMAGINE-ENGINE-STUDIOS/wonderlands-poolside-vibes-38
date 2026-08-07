@@ -1499,20 +1499,21 @@ const WonderlandsStudio = () => {
       </div>
 
       <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
-        <div className="flex flex-col lg:flex-row gap-2 sm:gap-4">
-          {/* Left Sidebar - Product Selection (Collapsible) */}
+        <div className="flex flex-col lg:flex-row-reverse gap-2 sm:gap-4">
+          {/* Options Sidebar - Product Selection (Collapsible, right side on desktop) */}
           <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'w-full lg:w-12' : 'w-full lg:w-80'} flex-shrink-0`}>
-            {leftSidebarCollapsed ? <div className="sticky top-4">
+            {leftSidebarCollapsed ? <div className="sticky top-4 flex lg:justify-end">
                 <Button variant="outline" size="sm" onClick={() => setLeftSidebarCollapsed(false)} className="w-10 h-10 p-0">
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
               </div> : <Card className="sticky top-4">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">Product Categories</CardTitle>
                     {selectedProduct && <Button variant="ghost" size="sm" onClick={() => setLeftSidebarCollapsed(true)} className="w-8 h-8 p-0 hidden lg:flex">
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4" />
                       </Button>}
+
                   </div>
                 </CardHeader>
                 <CardContent>
