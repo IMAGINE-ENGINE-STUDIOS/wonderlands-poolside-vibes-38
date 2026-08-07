@@ -1498,6 +1498,37 @@ const WonderlandsStudio = () => {
     return extrasArray;
   };
 
+  const FEATURE_RESETS: Record<string, any> = {
+    finish: { finish: 'None' },
+    heater: { heater: false, heaterModel: '' },
+    cover: { cover: false, coverOption: '' },
+    jets: { jets: false, jetQuantity: 0 },
+    tiles: { tiles: false, tileOption: '' },
+    liner: { liner: false, linerOption: '' },
+    pavers: { pavers: false, paverOption: '' },
+    screenEnclosure: { screenEnclosure: false, screenEnclosureArea: 0 },
+    concreteConstruction: { concreteConstruction: false },
+    spa: { spa: false, spaModel: '' },
+    spaFinish: { spaFinish: '', spaFinishPrice: 0 },
+    tanningLedge: { tanningLedge: false, tanningLedgeModel: '' },
+    rockyWaterfall: { rockyWaterfall: false, rockyWaterfallTier: '' },
+    artificialGrass: { artificialGrass: false, artificialGrassArea: '' },
+  };
+
+  const handleRemoveCurrentFeature = (key?: string) => {
+    if (!key || !FEATURE_RESETS[key]) return;
+    setSelectedExtras((prev: any) => ({ ...prev, ...FEATURE_RESETS[key] }));
+  };
+
+  const handleCurrentFeatureQuantity = (key: string | undefined, quantity: number) => {
+    if (key !== 'jets') return;
+    if (quantity <= 0) {
+      handleRemoveCurrentFeature('jets');
+      return;
+    }
+    setSelectedExtras((prev: any) => ({ ...prev, jets: true, jetQuantity: quantity }));
+  };
+
   const handleAddToCart = () => {
     if (!selectedProduct) return;
     const extrasArray = buildCurrentExtras();
@@ -1563,6 +1594,12 @@ const WonderlandsStudio = () => {
                   currentPrice={selectedProduct ? (activeTab === 'build-a-pool' && poolBuilderData ? (poolBuilderData.breakdown?.total || 0) : calculateTotalPrice()) : 0}
                   currentName={selectedProduct ? (selectedProduct.model || selectedProduct.name || 'Product') : undefined}
                   currentCategory={selectedProduct?.category}
+                  currentExtras={selectedProduct ? buildCurrentExtras().map(e => ({
+                    ...e,
+                    quantity: e.key === 'jets' ? selectedExtras.jetQuantity : undefined,
+                  })) : []}
+                  onRemoveCurrentExtra={handleRemoveCurrentFeature}
+                  onCurrentExtraQuantity={handleCurrentFeatureQuantity}
                   onAddCurrent={selectedProduct ? handleAddToCart : undefined}
                   onQuote={handleQuoteRequest}
                 />
