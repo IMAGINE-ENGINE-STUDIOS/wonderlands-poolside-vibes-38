@@ -245,73 +245,122 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
       ctx.fill();
     }
 
+    // centroid used to push labels / door swings to the outside of the footprint
+    const cxAll = layout.points.length ? layout.points.reduce((s, p) => s + p.x, 0) / layout.points.length : 0;
+    const cyAll = layout.points.length ? layout.points.reduce((s, p) => s + p.y, 0) / layout.points.length : 0;
+
+    type Label = { text: string; x: number; y: number; kind: EnclosureSegmentKind };
+    const labels: Label[] = [];
+
     segments.forEach(seg => {
       const intervals = segmentIntervals(seg);
       const lenPx = dist(seg.a, seg.b);
       const ux = (seg.b.x - seg.a.x) / (lenPx || 1);
       const uy = (seg.b.y - seg.a.y) / (lenPx || 1);
+      // outward normal
+      let nx = -uy;
+      let ny = ux;
+      const midSeg = { x: (seg.a.x + seg.b.x) / 2, y: (seg.a.y + seg.b.y) / 2 };
+      if ((midSeg.x + nx - cxAll) ** 2 + (midSeg.y + ny - cyAll) ** 2 < (midSeg.x - cxAll) ** 2 + (midSeg.y - cyAll) ** 2) {
+        nx = -nx;
+        ny = -ny;
+      }
 
       intervals.forEach(iv => {
-        const color = iv.kind === 'wall' ? wallColor : KIND_COLOR[iv.kind];
         const a = { x: seg.a.x + ux * iv.t0 * lenPx, y: seg.a.y + uy * iv.t0 * lenPx };
         const b = { x: seg.a.x + ux * iv.t1 * lenPx, y: seg.a.y + uy * iv.t1 * lenPx };
-        ctx.strokeStyle = color;
-        ctx.lineWidth = iv.kind === 'house' ? 6 : iv.kind === 'door' ? 5 : 3.5;
-        ctx.setLineDash(iv.kind === 'door' ? [9, 6] : []);
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        const ivLen = dist(a, b);
 
-        // upright ticks on screened wall intervals only
-        if (iv.kind === 'wall') {
-          const ivLen = dist(a, b);
-          const step = 6 * PX_PER_FT; // uprights at 6 ft o.c.
-          ctx.fillStyle = color;
-          for (let d = step; d < ivLen; d += step) {
-            const px = a.x + ux * d;
-            const py = a.y + uy * d;
+        if (iv.kind === 'door') {
+          // architectural door: clean opening in the wall, jambs, and a swing arc
+          ctx.strokeStyle = bg;
+          ctx.lineWidth = 8;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+
+          ctx.strokeStyle = KIND_COLOR.door;
+          ctx.lineWidth = 2.5;
+          [a, b].forEach(j => {
             ctx.beginPath();
-            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(j.x - nx * 5, j.y - ny * 5);
+            ctx.lineTo(j.x + nx * 5, j.y + ny * 5);
+            ctx.stroke();
+          });
+
+          // swing: leaf from jamb a, rotating outward
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(a.x + nx * ivLen, a.y + ny * ivLen);
+          ctx.stroke();
+          ctx.lineWidth = 1.25;
+          ctx.setLineDash([4, 4]);
+          const start = Math.atan2(b.y - a.y, b.x - a.x);
+          const end = Math.atan2(ny, nx);
+          ctx.beginPath();
+          ctx.arc(a.x, a.y, ivLen, Math.min(start, end), Math.max(start, end));
+          ctx.stroke();
+          ctx.setLineDash([]);
+        } else {
+          const color = iv.kind === 'wall' ? wallColor : KIND_COLOR.house;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = iv.kind === 'house' ? 6 : 3.5;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+
+          // upright ticks on screened wall intervals only
+          if (iv.kind === 'wall') {
+            const step = 6 * PX_PER_FT; // uprights at 6 ft o.c.
+            ctx.fillStyle = color;
+            for (let d = step; d < ivLen; d += step) {
+              ctx.beginPath();
+              ctx.arc(a.x + ux * d, a.y + uy * d, 2.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
           }
         }
 
-        // label each interval
-        if (iv.ft >= 1) {
+        // queue one label per interval, offset outward so it never sits on the line
+        const showLabel = iv.kind === 'door' ? true : iv.ft >= 3;
+        if (showLabel) {
           const mx = (a.x + b.x) / 2;
           const my = (a.y + b.y) / 2;
-          const suffix = iv.kind === 'door' ? ' • DOOR' : iv.kind === 'house' ? ' • HOUSE' : '';
-          const label = `${iv.ft.toFixed(1)} ft${suffix}`;
-          ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
-          const w = ctx.measureText(label).width + 8;
-          ctx.fillStyle = bg;
-          ctx.fillRect(mx - w / 2, my - 16, w, 15);
-          ctx.strokeStyle = gridMajor;
-          ctx.lineWidth = 1;
-          ctx.strokeRect(mx - w / 2, my - 16, w, 15);
-          ctx.fillStyle = textColor;
-          ctx.textAlign = 'center';
-          ctx.fillText(label, mx, my - 5);
+          const off = iv.kind === 'door' ? 26 : 15;
+          labels.push({
+            text: iv.kind === 'door' ? `DOOR ${iv.ft.toFixed(1)}'` : iv.kind === 'house' ? `HOUSE ${iv.ft.toFixed(1)}'` : `${iv.ft.toFixed(1)}'`,
+            x: mx + nx * off,
+            y: my + ny * off,
+            kind: iv.kind,
+          });
         }
       });
-
-      // small perpendicular hatch marks at feature boundaries so the eye sees the door/house edges
-      featuresOf(seg.index).forEach(f => {
-        const t = f.start;
-        const px = seg.a.x + ux * t * lenPx;
-        const py = seg.a.y + uy * t * lenPx;
-        const nx = -uy * 8;
-        const ny = ux * 8;
-        ctx.strokeStyle = KIND_COLOR[f.kind];
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(px - nx, py - ny);
-        ctx.lineTo(px + nx, py + ny);
-        ctx.stroke();
-      });
     });
+
+    // draw labels last, skipping any that would overlap an already placed one
+    const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
+    labels.forEach(l => {
+      ctx.font = '600 10px ui-sans-serif, system-ui, sans-serif';
+      const w = ctx.measureText(l.text).width + 8;
+      const h = 14;
+      const box = { x: l.x - w / 2, y: l.y - h / 2, w, h };
+      const clash = placed.some(p => Math.abs(p.x + p.w / 2 - (box.x + w / 2)) < (p.w + w) / 2 && Math.abs(p.y + p.h / 2 - (box.y + h / 2)) < (p.h + h) / 2);
+      if (clash) return;
+      placed.push(box);
+      ctx.fillStyle = bg;
+      ctx.fillRect(box.x, box.y, w, h);
+      ctx.strokeStyle = l.kind === 'wall' ? gridMajor : KIND_COLOR[l.kind];
+      ctx.lineWidth = 1;
+      ctx.strokeRect(box.x, box.y, w, h);
+      ctx.fillStyle = l.kind === 'wall' ? textColor : KIND_COLOR[l.kind];
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(l.text, box.x + w / 2, box.y + h / 2 + 0.5);
+      ctx.textBaseline = 'alphabetic';
+    });
+
 
     // area callout
     if (layout.closed && takeoff.areaSqFt > 0) {
