@@ -549,27 +549,27 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant={mode === 'draw' ? 'default' : 'outline'} onClick={() => setMode('draw')}>
+      <div className="flex flex-wrap items-center gap-2 rounded-xl glass-tile p-2">
+        <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} onClick={() => setMode('draw')}>
           <Ruler className="h-3.5 w-3.5 mr-1" /> Draw footprint
         </Button>
-        <Button size="sm" variant={mode === 'select' ? 'default' : 'outline'} onClick={() => setMode('select')}>
+        <Button size="sm" variant={mode === 'select' ? 'default' : 'ghost'} onClick={() => setMode('select')}>
           <MousePointer2 className="h-3.5 w-3.5 mr-1" /> Move corners
         </Button>
-        <Button size="sm" variant={mode === 'door' ? 'default' : 'outline'} onClick={() => setMode('door')}>
+        <Button size="sm" variant={mode === 'door' ? 'default' : 'ghost'} onClick={() => setMode('door')}>
           <DoorOpen className="h-3.5 w-3.5 mr-1" /> Tag door
         </Button>
-        <Button size="sm" variant={mode === 'house' ? 'default' : 'outline'} onClick={() => setMode('house')}>
+        <Button size="sm" variant={mode === 'house' ? 'default' : 'ghost'} onClick={() => setMode('house')}>
           <Home className="h-3.5 w-3.5 mr-1" /> Tag house wall
         </Button>
-        <div className="mx-1 h-5 w-px bg-border" />
+        <div className="mx-1 h-5 w-px bg-border/60" />
         <Button size="sm" variant="ghost" onClick={undo}>
           <Undo2 className="h-3.5 w-3.5 mr-1" /> Undo
         </Button>
         <Button size="sm" variant="ghost" onClick={clear}>
           <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
         </Button>
-        <div className="mx-1 h-5 w-px bg-border" />
+        <div className="mx-1 h-5 w-px bg-border/60" />
         <Button size="sm" variant="outline" onClick={() => preset(30, 20)}>
           <Square className="h-3.5 w-3.5 mr-1" /> 30 x 20
         </Button>
@@ -578,32 +578,42 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
         </Button>
       </div>
 
-      <div ref={wrapRef} className="rounded-lg border border-border overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          style={{ width: size.w, height: size.h, cursor: mode === 'select' ? 'grab' : 'crosshair', display: 'block' }}
-          onMouseDown={handleDown}
-          onMouseMove={handleMove}
-          onMouseUp={() => setDragIndex(null)}
-          onMouseLeave={() => {
-            setDragIndex(null);
-            setHover(null);
-          }}
-        />
+      <div ref={wrapRef} className="rounded-2xl glass-panel-soft overflow-hidden p-1.5">
+        <div className="rounded-xl overflow-hidden">
+          <canvas
+            ref={canvasRef}
+            style={{ width: size.w, height: size.h, cursor: mode === 'select' ? 'grab' : 'crosshair', display: 'block' }}
+            onMouseDown={handleDown}
+            onMouseMove={handleMove}
+            onMouseUp={() => setDragIndex(null)}
+            onMouseLeave={() => {
+              setDragIndex(null);
+              setHover(null);
+            }}
+          />
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        <Badge variant="secondary">Area {takeoff.areaSqFt.toLocaleString()} sq ft</Badge>
-        <Badge variant="secondary">Perimeter {takeoff.perimeterFt.toLocaleString()} ft</Badge>
-        <Badge variant="secondary">Screened wall {takeoff.screenWallFt.toLocaleString()} ft</Badge>
-        <Badge variant="secondary">House-attached {takeoff.houseWallFt.toLocaleString()} ft</Badge>
-        <Badge variant="secondary">Longest span {takeoff.longestSpanFt.toFixed(1)} ft</Badge>
-        <span className="text-muted-foreground">
-          Scale 10 px = 1 ft • click to place corners, click the first corner to close the footprint
-        </span>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        {[
+          { label: 'Area', value: `${takeoff.areaSqFt.toLocaleString()} sq ft` },
+          { label: 'Perimeter', value: `${takeoff.perimeterFt.toLocaleString()} ft` },
+          { label: 'Screened wall', value: `${takeoff.screenWallFt.toLocaleString()} ft` },
+          { label: 'House-attached', value: `${takeoff.houseWallFt.toLocaleString()} ft` },
+          { label: 'Longest span', value: `${takeoff.longestSpanFt.toFixed(1)} ft` },
+        ].map(item => (
+          <div key={item.label} className="rounded-xl glass-tile px-3 py-2">
+            <p className="quote-eyebrow">{item.label}</p>
+            <p className="text-sm font-semibold tabular-nums mt-0.5">{item.value}</p>
+          </div>
+        ))}
       </div>
+      <p className="text-[11px] text-muted-foreground">
+        Scale 10 px = 1 ft • click to place corners, click the first corner to close the footprint
+      </p>
     </div>
   );
 };
+
 
 export default EnclosureDrawingBoard;
