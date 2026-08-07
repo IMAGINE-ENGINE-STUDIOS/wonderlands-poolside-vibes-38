@@ -2668,6 +2668,50 @@ const SurveyQuoteTool = ({
           </div>
         )}
 
+        {/* Quote File Gallery */}
+        {showGallery && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 no-print print:hidden">
+            <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+              <CardHeader className="flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <FolderOpen className="h-5 w-5 text-primary" />
+                    Quote Gallery
+                  </CardTitle>
+                  <CardDescription>Reopen a saved quote to keep modifying it</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setShowGallery(false)}>Close</Button>
+              </CardHeader>
+              <CardContent className="overflow-y-auto space-y-2">
+                {savedQuotes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-6 text-center">
+                    No saved quotes yet. Use “Save Changes &amp; Print” or “Save as New” to store one here.
+                  </p>
+                ) : (
+                  savedQuotes.map((q) => (
+                    <div
+                      key={q.id}
+                      className={`flex items-center gap-3 rounded-lg border p-3 ${currentQuoteId === q.id ? 'border-primary' : 'border-border'}`}
+                    >
+                      <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{q.label || q.productName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(q.savedAt).toLocaleString()} • ${Number(q.total || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <Button size="sm" onClick={() => handleRestoreQuote(q)}>Open</Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDeleteSavedQuote(q.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Authentication Prompt */}
         {showAuthPrompt && <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
