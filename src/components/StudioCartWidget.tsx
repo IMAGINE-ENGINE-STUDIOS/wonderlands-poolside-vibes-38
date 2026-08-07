@@ -103,18 +103,18 @@ const StudioCartWidget = ({
         </Button>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="w-full flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
-          >
-            View Shopping List
-            <ChevronDown className="h-3 w-3" />
-          </button>
-        </DropdownMenuTrigger>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
+      >
+        {open ? 'Hide Shopping List' : 'View Shopping List'}
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
 
-        <DropdownMenuContent align="start" className="w-[19rem] p-0 bg-popover text-popover-foreground border shadow-xl z-50 backdrop-blur-none opacity-100">
+      {open && (
+        <div className="rounded-lg border bg-popover text-popover-foreground shadow-sm overflow-hidden">
+
           <div className="flex items-center justify-between px-3 py-2 border-b">
             <span className="text-sm font-semibold">Shopping List</span>
             {cartItems.length > 0 && (
