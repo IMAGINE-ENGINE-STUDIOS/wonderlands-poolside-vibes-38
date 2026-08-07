@@ -2,6 +2,7 @@
 import * as React from 'react';
 const { createContext, useContext, useState, useEffect } = React;
 import { useToast } from '@/hooks/use-toast';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import ShoppingCart, { CartItem } from './ShoppingCart';
 
 interface ShoppingCartContextType {
@@ -41,7 +42,7 @@ interface ShoppingCartProviderProps {
 
 export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = usePersistentState('cart_drawerOpen', false);
   const { toast } = useToast();
 
   useEffect(() => {

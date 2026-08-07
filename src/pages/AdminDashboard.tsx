@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList, Briefcase, Menu, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState("quotes");
+  const [activeSection, setActiveSection] = usePersistentState("admin_activeSection", "quotes");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { toast } = useToast();
   

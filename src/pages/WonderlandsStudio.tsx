@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import FinancingOptions from "@/components/FinancingOptions";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
+import { usePersistentState } from "@/hooks/usePersistentState";
 import StudioCartWidget from "@/components/StudioCartWidget";
 import { spas, pools } from "@/components/PoolCatalog";
 import { gilmerPools } from "@/data/gilmerPools";
@@ -454,7 +455,7 @@ const WonderlandsStudio = () => {
   const { priceMultiplier, projectType } = useProjectType();
   const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool' | 'screen-enclosures' | 'patio-fencing' | 'lanai' | 'pavers' | 'artificial-grass' | 'landscaping' | 'covers' | 'driveway-gates' | 'finishes' | 'liners'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = usePersistentState('studio_searchQuery', '');
   const [sceneFromBuilder, setSceneFromBuilder] = useState<any>(null);
   const [textureLibFromBuilder, setTextureLibFromBuilder] = useState<any>(null);
   const [poolBuilderData, setPoolBuilderData] = useState<{
@@ -517,15 +518,15 @@ const WonderlandsStudio = () => {
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [paverCategory, setPaverCategory] = useState('all');
-  const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
-  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
-  const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
-  const [shoppingListOpen, setShoppingListOpen] = useState(false);
+  const [showExtrasDropdown, setShowExtrasDropdown] = usePersistentState('studio_extrasDropdown', false);
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = usePersistentState('studio_sidebarCollapsed', false);
+  const [activeFeatureCarousel, setActiveFeatureCarousel] = usePersistentState<string | null>('studio_featureCarousel', null);
+  const [shoppingListOpen, setShoppingListOpen] = usePersistentState('studio_shoppingListOpen', false);
 
   const [viewMode, setViewMode] = useState<'product-image' | '2d-designer' | '3d-viewer'>('product-image');
   const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
-  const [showPricePanel, setShowPricePanel] = useState(false);
-  const [aiSearchDocked, setAiSearchDocked] = useState(false);
+  const [showPricePanel, setShowPricePanel] = usePersistentState('studio_pricePanel', false);
+  const [aiSearchDocked, setAiSearchDocked] = usePersistentState('studio_aiSearchDocked', false);
   
   // Ref to store extras data synchronously for the quote modal (avoids race condition)
   const extrasDataRef = useRef<{ extrasBreakdown: Array<{ name: string; price: number; image: string }>; extrasTotal: number }>({

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
 import { useNavigate } from 'react-router-dom';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, X, CreditCard, Plus as PlusIcon } from 'lucide-react';
 
 interface StudioCartWidgetProps {
@@ -59,11 +60,18 @@ const StudioCartWidget = ({
     clearCart,
   } = useShoppingCart();
   const navigate = useNavigate();
-  const [open, setOpenState] = React.useState(false);
+  const [open, setOpenState] = usePersistentState('studio_cartWidgetOpen', false);
   const setOpen = React.useCallback((next: boolean) => {
     setOpenState(next);
     onListOpenChange?.(next);
-  }, [onListOpenChange]);
+  }, [onListOpenChange, setOpenState]);
+
+  // Re-sync the parent with the restored (cached) panel state after a reload.
+  React.useEffect(() => {
+    onListOpenChange?.(open);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
 
 
