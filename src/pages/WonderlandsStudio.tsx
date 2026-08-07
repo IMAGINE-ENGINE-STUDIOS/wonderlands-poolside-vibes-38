@@ -1806,9 +1806,9 @@ const WonderlandsStudio = () => {
                               <p className="text-xs text-muted-foreground">
                                 ${getProductPrice(product).toLocaleString()}
                               </p>
-                              <Badge variant="secondary" className="text-xs mt-1">
-                                {product.category}
-                              </Badge>
+                              {getProductCategoryLabel(product, activeTab) && <Badge variant="secondary" className="text-xs mt-1">
+                                {getProductCategoryLabel(product, activeTab)}
+                              </Badge>}
                             </div>
                             <button
                               type="button"
