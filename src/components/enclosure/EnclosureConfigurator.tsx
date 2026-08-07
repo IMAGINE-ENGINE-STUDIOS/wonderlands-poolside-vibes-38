@@ -433,16 +433,16 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
             ))}
           </div>
 
-          <Separator />
-          <h4 className="text-sm font-semibold">Add-Ons & Site Work</h4>
+          <div className="quote-rule" />
+          <h4 className="text-sm font-semibold">Add-Ons &amp; Site Work</h4>
           <div className="grid gap-2 sm:grid-cols-2">
             {ENCLOSURE_ADDONS.map(addon => (
               <button
                 key={addon.id}
                 type="button"
                 onClick={() => toggleAddOn(addon.id)}
-                className={`text-left rounded-md border p-3 transition-colors ${
-                  config.addOns.includes(addon.id) ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
+                className={`text-left rounded-xl p-3 transition-all duration-200 glass-tile hover:-translate-y-0.5 ${
+                  config.addOns.includes(addon.id) ? 'glass-tile-active' : ''
                 }`}
               >
                 <p className="text-sm font-medium flex items-center gap-2">
@@ -459,46 +459,55 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
               </button>
             ))}
           </div>
-        </CardContent>
-      </Card>
-
+      </section>
 
       {/* Estimate */}
-      <Card>
-        <CardContent className="pt-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold">Customer Price — Turnkey Installed</h4>
+      <section className="quote-sheet rounded-2xl p-5 sm:p-7 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="quote-eyebrow">Section 04</p>
+              <h4 className="text-base font-semibold mt-1">Investment Summary — Turnkey Installed</h4>
+            </div>
             <Button size="sm" variant="outline" onClick={() => window.print()}>
-              <Printer className="h-3.5 w-3.5 mr-1" /> Print spec sheet
+              <Printer className="h-3.5 w-3.5 mr-1" /> Print proposal
             </Button>
           </div>
           {estimate.lines.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Draw or enter the enclosure area to generate the estimate.</p>
+            <p className="text-sm text-muted-foreground">Draw or enter the enclosure area to generate your proposal.</p>
           ) : (
-            <div className="space-y-1.5">
-              {estimate.lines.map((line, i) => (
-                <div key={i} className="flex items-start justify-between gap-3 text-sm">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{line.label}</p>
-                    <p className="text-[11px] text-muted-foreground">{line.detail}</p>
+            <div className="space-y-3">
+              <div className="rounded-xl glass-panel-soft overflow-hidden">
+                {estimate.lines.map((line, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start justify-between gap-3 px-4 py-2.5 text-sm border-b border-border/40 last:border-0"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{line.label}</p>
+                      <p className="text-[11px] text-muted-foreground">{line.detail}</p>
+                    </div>
+                    <span className="font-semibold shrink-0 tabular-nums">${line.amount.toLocaleString()}</span>
                   </div>
-                  <span className="font-semibold shrink-0">${line.amount.toLocaleString()}</span>
-                </div>
-              ))}
-              <Separator />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Contract Total</span>
-                <span className="text-lg font-bold">${estimate.total.toLocaleString()}</span>
+                ))}
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                ${estimate.pricePerSqFt.toFixed(2)}/sq ft installed — includes materials, freight, installation labor,
-                parts, engineered drawings, permit fees and inspections. Florida market range for this scope is $
-                {estimate.marketRange.low}–${estimate.marketRange.high}/sq ft.
+              <div className="flex items-end justify-between rounded-xl glass-tile px-4 py-3">
+                <div>
+                  <p className="quote-eyebrow">Contract total</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {config.areaSqFt.toLocaleString()} sq ft • ${estimate.pricePerSqFt.toFixed(2)}/sq ft installed
+                  </p>
+                </div>
+                <span className="text-2xl font-semibold tracking-tight tabular-nums">
+                  ${estimate.total.toLocaleString()}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Includes materials, freight, installation labor, parts, engineered drawings, permit fees and inspections.
+                Florida market range for this scope is ${estimate.marketRange.low}–${estimate.marketRange.high}/sq ft.
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </section>
       </TabsContent>
 
       <TabsContent value="pro" className="space-y-5 mt-0">
