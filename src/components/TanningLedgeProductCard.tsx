@@ -497,7 +497,7 @@ const TanningLedgeProductCard = ({
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Cart
                 </Button>
-                <StripeCheckoutButton productId={`tanning_ledge_${ledge.name.replace(/\s+/g, '_')}`} productName={ledge.name} price={calculateTotalPrice()} variant="gradient" className="flex-1 text-xs px-2" size="sm" showFinancingOptions={false} />
+                <StripeCheckoutButton productId={`tanning_ledge_${ledge.name.replace(/\s+/g, '_')}`} productName={ledge.name} price={calculateTotalPrice()} variant="gradient" className="flex-1 text-xs px-2" size="sm" />
               </div>
             </div>
             

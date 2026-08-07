@@ -2384,7 +2384,7 @@ const PoolDetails = () => {
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Cart
                     </Button>
-                    <StripeCheckoutButton productId={`pool_${pool.model.replace(/\s+/g, '_')}`} productName={pool.model} price={calculateTotalPrice()} variant="gradient" className="flex-1 hover:scale-105 transition-all duration-300" size="sm" showFinancingOptions={false} />
+                    <StripeCheckoutButton productId={`pool_${pool.model.replace(/\s+/g, '_')}`} productName={pool.model} price={calculateTotalPrice()} variant="gradient" className="flex-1 hover:scale-105 transition-all duration-300" size="sm" />
                   </div>
                 </div>
 

@@ -911,7 +911,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 price={pool.price + calculateTotal()}
                 variant="gradient"
                 className="w-full hover:scale-105 transition-all duration-300"
-                showFinancingOptions={false}
+               
               />
             </div>
           </div>

@@ -92,7 +92,7 @@ const CheckoutPage = () => {
               price={total}
               quantity={1}
               className="w-full"
-              showFinancingOptions={false}
+             
               cartItems={cartItems}
             />
 
