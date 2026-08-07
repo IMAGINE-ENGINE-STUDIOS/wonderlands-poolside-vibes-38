@@ -136,35 +136,35 @@ export const ENCLOSURE_ADDONS: EnclosureAddOnOption[] = [
  */
 export const ENCLOSURE_COST_MODEL = {
   /** Aluminum extrusion material $/sq ft of framed surface (walls + roof), 2x2 base */
-  frameMaterialPerSqFt: 3.9,
+  frameMaterialPerSqFt: 2.6,
   /** Added material cost per sq ft for each $1 of extrusion upgrade */
-  frameUpgradeFactor: 0.55,
+  frameUpgradeFactor: 0.4,
   /** Screen fabric + spline base $/sq ft of screened surface (18/14 fiberglass) */
   screenMaterialPerSqFt: 0.55,
   screenUpgradeFactor: 0.6,
   /** Roof pan material factor applied to the roof option rate */
   roofPanCostFactor: 0.6,
   /** Fasteners, base plates, sleeves, splices, gutter straps, caulk $/sq ft */
-  partsPerSqFt: 0.85,
+  partsPerSqFt: 0.55,
   /** Door: share of catalog price that is material/parts vs. field labor */
-  doorMaterialShare: 0.45,
-  doorLaborShare: 0.2,
+  doorMaterialShare: 0.42,
+  doorLaborShare: 0.18,
   /** Add-on: cost share of the listed add-on amount */
-  addOnMaterialShare: 0.55,
-  addOnLaborShare: 0.3,
+  addOnMaterialShare: 0.45,
+  addOnLaborShare: 0.22,
   /** Installation labor (burdened crew rate) $/sq ft of framed surface */
-  laborPerSqFt: 3.35,
+  laborPerSqFt: 2.6,
   /** Extra labor factor per ft of mean roof height above 11 ft */
   heightLaborFactorPerFt: 0.03,
   /** Freight / delivery */
-  deliveryPerSqFt: 0.55,
-  deliveryFlat: 475,
+  deliveryPerSqFt: 0.3,
+  deliveryFlat: 350,
   craneTwoStory: 850,
   /** Florida sales tax on materials (6% state + typical 1% county surtax) */
   materialTaxRate: 0.07,
   /** General conditions */
   dumpster: 385,
-  equipmentPerSqFt: 0.35,
+  equipmentPerSqFt: 0.25,
   equipmentPerSqFtTwoStory: 0.9,
   layoutAndCleanup: 325,
   /** Insurance (GL + workers comp) as % of material + labor */
