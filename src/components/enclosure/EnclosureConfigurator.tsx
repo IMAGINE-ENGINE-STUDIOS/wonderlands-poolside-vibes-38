@@ -142,26 +142,50 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
       addOns: prev.addOns.includes(id) ? prev.addOns.filter(a => a !== id) : [...prev.addOns, id],
     }));
 
-  return (
-    <Tabs defaultValue="customer" className="w-full space-y-5">
-      <TabsList className="grid grid-cols-2 w-full">
-        <TabsTrigger value="customer" className="text-xs">
-          <Ruler className="h-3.5 w-3.5 mr-1" /> Customer Tools
-        </TabsTrigger>
-        <TabsTrigger value="pro" className="text-xs">
-          <HardHat className="h-3.5 w-3.5 mr-1" /> Contractor &amp; Project Tools
-        </TabsTrigger>
-      </TabsList>
+  const typeLabel = ENCLOSURE_TYPES.find(t => t.id === config.typeId)?.label || 'Screen Enclosure';
 
-      <TabsContent value="customer" className="space-y-5 mt-0">
+  return (
+    <Tabs defaultValue="customer" className="w-full space-y-6">
+      {/* Proposal header */}
+      <div className="quote-sheet rounded-2xl px-5 py-5 sm:px-7 sm:py-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="quote-eyebrow">Wonderlands World • Screen Enclosure Proposal</p>
+            <h3 className="mt-1.5 text-xl sm:text-2xl font-semibold tracking-tight truncate">{typeLabel}</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Turnkey design, engineering, permitting and installation — prepared for your property in Florida.
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="quote-eyebrow">Estimated investment</p>
+            <p className="text-2xl sm:text-3xl font-semibold tracking-tight">
+              ${estimate.total.toLocaleString()}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {config.areaSqFt ? `${config.areaSqFt.toLocaleString()} sq ft • $${estimate.pricePerSqFt.toFixed(2)}/sq ft` : 'Draw or enter an area'}
+            </p>
+          </div>
+        </div>
+        <div className="quote-rule my-4" />
+        <TabsList className="grid grid-cols-2 w-full glass-tile p-1 h-auto">
+          <TabsTrigger value="customer" className="text-xs py-2">
+            <Ruler className="h-3.5 w-3.5 mr-1" /> Your Proposal
+          </TabsTrigger>
+          <TabsTrigger value="pro" className="text-xs py-2">
+            <HardHat className="h-3.5 w-3.5 mr-1" /> Contractor &amp; Project Tools
+          </TabsTrigger>
+        </TabsList>
+      </div>
+
+      <TabsContent value="customer" className="space-y-6 mt-0">
       {/* Take-off board */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
+      <section className="glass-panel rounded-2xl p-5 space-y-4">
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h4 className="text-sm font-semibold flex items-center gap-2">
-                <Ruler className="h-4 w-4 text-primary" /> 2D Enclosure Take-Off (Top View)
+              <p className="quote-eyebrow">Section 01</p>
+              <h4 className="text-sm font-semibold flex items-center gap-2 mt-1">
+                <Ruler className="h-4 w-4 text-primary" /> Footprint &amp; Measurements
               </h4>
               <p className="text-xs text-muted-foreground">
                 Draw the enclosure footprint at 10 px = 1 ft, then tag door bays and the house-attached wall.
@@ -175,7 +199,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
                   min={0}
                   value={manualArea}
                   onChange={e => setManualArea(e.target.value)}
-                  className="w-32 h-9"
+                  className="w-32 h-9 glass-tile"
                   placeholder="e.g. 620"
                 />
               </div>
@@ -185,13 +209,14 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
             </div>
           </div>
           <EnclosureDrawingBoard layout={layout} onChange={setLayout} onMeasure={handleMeasure} />
-        </CardContent>
-      </Card>
+      </section>
 
       {/* Structure configuration */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
-          <h4 className="text-sm font-semibold">Structure & Materials</h4>
+      <section className="glass-panel rounded-2xl p-5 space-y-4">
+          <div>
+            <p className="quote-eyebrow">Section 02</p>
+            <h4 className="text-sm font-semibold mt-1">Structure &amp; Materials</h4>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label className="text-xs">Enclosure type</Label>
