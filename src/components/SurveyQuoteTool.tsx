@@ -893,10 +893,10 @@ const SurveyQuoteTool = ({
   
   const handleGenerateInvoice = async () => {
     // Validate required fields - no login required
-    if (!surveyData.name || !surveyData.email || !surveyData.address) {
+    if (!surveyData.name || !surveyData.email) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your name, email, and address before generating an invoice.",
+        description: "Please fill in your name and email before generating an invoice.",
         variant: "destructive",
       });
       return;
