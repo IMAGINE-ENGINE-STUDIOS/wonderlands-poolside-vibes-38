@@ -7,7 +7,13 @@ import ShoppingCart, { CartItem } from './ShoppingCart';
 interface ShoppingCartContextType {
   cartItems: CartItem[];
   addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  removeFromCart: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
+  clearCart: () => void;
   getCartCount: () => number;
+  getCartTotal: () => number;
+  /** Categories that appear more than once in the cart (duplicate selection flag) */
+  getDuplicateCategories: () => string[];
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
 }
@@ -67,12 +73,48 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
+  const removeFromCart = (id: string) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const updateQuantity = (id: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(id);
+      return;
+    }
+    setCartItems(prev => prev.map(item => (item.id === id ? { ...item, quantity } : item)));
+  };
+
+  const clearCart = () => setCartItems([]);
+
+  const getCartTotal = () =>
+    cartItems.reduce((total, item) => {
+      const extras = (item.extras || []).reduce((sum, e) => sum + e.price, 0);
+      return total + (item.price + extras) * item.quantity;
+    }, 0);
+
+  const getDuplicateCategories = () => {
+    const counts = new Map<string, number>();
+    cartItems.forEach(item => {
+      const key = item.category || 'Other';
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .filter(([, count]) => count > 1)
+      .map(([category]) => category);
+  };
+
   return (
     <ShoppingCartContext.Provider 
       value={{ 
         cartItems, 
         addToCart, 
+        removeFromCart,
+        updateQuantity,
+        clearCart,
         getCartCount, 
+        getCartTotal,
+        getDuplicateCategories,
         isCartOpen, 
         setIsCartOpen 
       }}
