@@ -378,14 +378,14 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div className="flex items-center justify-between rounded-xl glass-tile p-3">
               <div>
                 <p className="text-sm font-medium">HVHZ jurisdiction</p>
                 <p className="text-[11px] text-muted-foreground">Miami-Dade / Broward — NOA approved assemblies</p>
               </div>
               <Switch checked={config.hvhz} onCheckedChange={v => setConfig(p => ({ ...p, hvhz: v }))} />
             </div>
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div className="flex items-center justify-between rounded-xl glass-tile p-3">
               <div>
                 <p className="text-sm font-medium">Enclosure is the pool barrier</p>
                 <p className="text-[11px] text-muted-foreground">Applies FBC-R R4501.17 barrier checks</p>
@@ -393,16 +393,17 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
               <Switch checked={config.isPoolBarrier} onCheckedChange={v => setConfig(p => ({ ...p, isPoolBarrier: v }))} />
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </section>
 
       {/* Doors + add-ons */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
-          <h4 className="text-sm font-semibold">Doors & Hardware</h4>
+      <section className="glass-panel rounded-2xl p-5 space-y-4">
+          <div>
+            <p className="quote-eyebrow">Section 03</p>
+            <h4 className="text-sm font-semibold mt-1">Doors &amp; Hardware</h4>
+          </div>
           <div className="space-y-2">
             {ENCLOSURE_DOORS.map(door => (
-              <div key={door.id} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+              <div key={door.id} className="flex items-center justify-between gap-3 rounded-xl glass-tile p-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium flex flex-wrap items-center gap-2">
                     {door.label}
