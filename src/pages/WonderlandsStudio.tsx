@@ -1737,15 +1737,6 @@ const WonderlandsStudio = () => {
                             </p>
                           </div>}
 
-                        {/* Pool Specifications */}
-                        <div className="grid grid-cols-1 gap-4">
-                          {selectedProduct.warrantyYears && <div className="bg-background/50 p-3 rounded-lg border">
-                              <Label className="text-xs font-medium text-muted-foreground">Warranty</Label>
-                              <p className="text-sm font-semibold">
-                                {typeof selectedProduct.warrantyYears === 'string' ? selectedProduct.warrantyYears : `${selectedProduct.warrantyYears} Years`}
-                              </p>
-                            </div>}
-                        </div>
 
                       </div>
                     </CardContent>
