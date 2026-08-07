@@ -75,7 +75,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState("quotes");
+  const [activeSection, setActiveSection] = usePersistentState("admin_activeSection", "quotes");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { toast } = useToast();
   

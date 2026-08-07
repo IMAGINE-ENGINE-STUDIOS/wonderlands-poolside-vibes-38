@@ -931,7 +931,7 @@ const PoolCatalog = () => {
   const [selectedTile, setSelectedTile] = useState<any>(null);
   const [showTileModal, setShowTileModal] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = usePersistentState("catalog_currentPage", 1);
   const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
 
   const {
