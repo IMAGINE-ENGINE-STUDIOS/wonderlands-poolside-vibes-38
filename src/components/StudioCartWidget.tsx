@@ -51,6 +51,8 @@ const StudioCartWidget = ({
     removeFromCart,
     updateQuantity,
     removeExtra,
+    updateExtra,
+
     clearCart,
   } = useShoppingCart();
   const navigate = useNavigate();
