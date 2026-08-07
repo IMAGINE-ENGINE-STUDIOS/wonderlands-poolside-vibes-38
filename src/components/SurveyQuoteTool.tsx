@@ -742,7 +742,7 @@ const SurveyQuoteTool = ({
     return ["LED lights", "Pentair pool equipment", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
   };
   const saveQuotationToDatabase = async () => {
-    if (!surveyData.name || !surveyData.email || !surveyData.address) {
+    if (!surveyData.name || !surveyData.email) {
       return null;
     }
 
