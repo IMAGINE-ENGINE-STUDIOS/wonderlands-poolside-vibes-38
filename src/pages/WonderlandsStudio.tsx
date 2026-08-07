@@ -688,7 +688,7 @@ const WonderlandsStudio = () => {
       }
       
       setSelectedProduct(foundProduct);
-      setLeftSidebarCollapsed(true);
+      setLeftSidebarCollapsed(false);
     }
   }, []);
 
