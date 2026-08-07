@@ -444,7 +444,9 @@ const getProductCategoryLabel = (product: any, activeTab?: string): string => {
 
 const WonderlandsStudio = () => {
   const {
-    addToCart
+    addToCart,
+    cartItems,
+    syncItemConfig
   } = useShoppingCart();
   const {
     toast
@@ -1636,6 +1638,76 @@ const WonderlandsStudio = () => {
     setSelectedExtras((prev: any) => ({ ...prev, jets: true, jetQuantity: quantity }));
   };
 
+  /** Switches the selected option of a feature that is still being configured */
+  const handleCurrentFeatureOption = (key: string | undefined, optionName: string) => {
+    if (!key) return;
+    const startsWith = (prefix: string) => optionName.startsWith(prefix);
+    switch (key) {
+      case 'finish': {
+        const match = finishOptions.find(f => `${f.name} Finish` === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, finish: match.name }));
+        break;
+      }
+      case 'heater': {
+        const match = poolHeaters.find(h => h.name === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, heater: true, heaterModel: match.name }));
+        break;
+      }
+      case 'cover': {
+        const match = coverOptions.find(c => c.name === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, cover: true, coverOption: match.name }));
+        break;
+      }
+      case 'tiles': {
+        const match = tileOptions.find(t => t.name === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, tiles: true, tileOption: match.name }));
+        break;
+      }
+      case 'liner': {
+        const match = linerOptions.find(o => startsWith(`${o.name} Liner`));
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, liner: true, linerOption: match.name }));
+        break;
+      }
+      case 'pavers': {
+        const match = paverOptions.find(p => startsWith(`${p.name} (`));
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, pavers: true, paverOption: match.name }));
+        break;
+      }
+      case 'screenEnclosure': {
+        const quality = optionName.includes('Wonder Cage')
+          ? 'standard'
+          : optionName.includes('Deluxe')
+            ? 'deluxe'
+            : 'premium';
+        setSelectedExtras((prev: any) => ({ ...prev, screenEnclosure: true, screenEnclosureQuality: quality }));
+        break;
+      }
+      case 'spa': {
+        const match = [...spas, ...gilmerSpas].find((s: any) => `${s.model} Spa` === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, spa: true, spaModel: (match as any).model }));
+        break;
+      }
+      case 'tanningLedge': {
+        const match = tanningLedges.find((l: any) => `${l.name} Tanning Ledge` === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, tanningLedge: true, tanningLedgeModel: (match as any).name }));
+        break;
+      }
+      case 'rockyWaterfall': {
+        const match = rockyWaterfallTiers.find(t => optionName.includes(t.name));
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, rockyWaterfall: true, rockyWaterfallTier: match.name }));
+        break;
+      }
+      case 'artificialGrass': {
+        const match = artificialGrassOptions.find((g: any) => optionName.includes(`- ${g.name} (`));
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, artificialGrass: true, artificialGrassColor: (match as any).name }));
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
+
   const handleAddProductToCart = (product: any) => {
     addToCart({
       id: `${product.type}_${product.model || product.name}`,
@@ -1668,6 +1740,31 @@ const WonderlandsStudio = () => {
       description: `${cartItem.name} has been added to your cart.`
     });
   };
+
+  // Real-time sync: if the product being configured is already in the shopping list,
+  // every feature change (added, removed, swapped) updates the cart item instantly.
+  const currentCartId = selectedProduct
+    ? `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`
+    : null;
+  const liveExtras = selectedProduct ? buildCurrentExtras() : [];
+  const liveTotal = selectedProduct
+    ? (activeTab === 'build-a-pool' && poolBuilderData
+        ? (poolBuilderData.breakdown?.total || 0)
+        : calculateTotalPrice())
+    : 0;
+  const liveExtrasKey = JSON.stringify(liveExtras);
+
+  useEffect(() => {
+    if (!currentCartId) return;
+    if (!cartItems.some(item => item.id === currentCartId)) return;
+    const extras = JSON.parse(liveExtrasKey) as typeof liveExtras;
+    const basePrice = Math.max(
+      0,
+      liveTotal - extras.reduce((sum, e) => sum + (e.price || 0), 0)
+    );
+    syncItemConfig(currentCartId, { price: basePrice, extras });
+  }, [currentCartId, liveExtrasKey, liveTotal, cartItems, syncItemConfig]);
+
   return <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* Compact Header */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -1718,6 +1815,7 @@ const WonderlandsStudio = () => {
                   })) : []}
                   onRemoveCurrentExtra={handleRemoveCurrentFeature}
                   onCurrentExtraQuantity={handleCurrentFeatureQuantity}
+                  onCurrentExtraOption={handleCurrentFeatureOption}
                   onAddCurrent={selectedProduct ? handleAddToCart : undefined}
                   onQuote={handleQuoteRequest}
                   onListOpenChange={setShoppingListOpen}
