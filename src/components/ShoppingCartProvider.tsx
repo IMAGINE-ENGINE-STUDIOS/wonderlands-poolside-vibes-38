@@ -147,6 +147,8 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
         removeFromCart,
         updateQuantity,
         removeExtra,
+        updateExtra,
+
         clearCart,
         getCartCount, 
         getCartTotal,
