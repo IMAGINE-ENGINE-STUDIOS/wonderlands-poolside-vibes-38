@@ -1605,7 +1605,8 @@ const WonderlandsStudio = () => {
                       const defaultExtras = getDefaultExtras(product.type as ProductType);
                       setSelectedExtras(defaultExtras);
                     }
-                    setLeftSidebarCollapsed(true);
+                    setLeftSidebarCollapsed(false);
+
                   }}>
                           <div className="flex items-center gap-3">
                             {product.image && <img src={product.image} alt={product.model || product.name || 'Product'} className="w-12 h-12 object-cover rounded" />}
