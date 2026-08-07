@@ -959,10 +959,14 @@ const WonderlandsStudio = () => {
     // Unit-priced standalone categories: base price is a rate, multiply by quantity
     const unit = getProductUnit(selectedProduct);
     if (!isWaterProduct(productType) && productType !== 'scene') {
-      if (unit) {
+      if (productType === 'fencing') {
+        // Fence pricing comes from the advanced Florida-code configurator
+        total = parseFloat(selectedExtras.fenceTotal) || 0;
+      } else if (unit) {
         const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
         total = getProductPrice(selectedProduct) * qty;
       }
+
       // Only the features configured for this exact product type apply
       features.forEach((feature) => {
         total += calculateFeaturePrice(feature, selectedExtras[feature.id], selectedExtras);
