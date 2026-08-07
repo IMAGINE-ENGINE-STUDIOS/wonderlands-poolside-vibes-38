@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle2, HardHat, Stamp, Ruler, Minus, Plus, Info, Printer } from 'lucide-react';
-import EnclosureDrawingBoard, { EnclosureLayout, EnclosureTakeoff } from './EnclosureDrawingBoard';
+import EnclosureDrawingBoard, { EnclosureLayout, EnclosureTakeoff, migrateEnclosureLayout } from './EnclosureDrawingBoard';
 import {
   DEFAULT_ENCLOSURE_CONFIG,
   ENCLOSURE_ADDONS,
@@ -34,7 +34,7 @@ interface Props {
   onTotalChange?: (total: number, summary: { areaSqFt: number; perimeterFt: number; description: string }) => void;
 }
 
-const emptyLayout: EnclosureLayout = { points: [], closed: false, segmentKinds: {} };
+const emptyLayout: EnclosureLayout = { points: [], closed: false, features: {} };
 
 const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
   const [config, setConfig] = React.useState<EnclosureConfigState>({
@@ -51,10 +51,10 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed.config) setConfig(prev => ({ ...prev, ...parsed.config }));
-        if (parsed.layout) setLayout(parsed.layout);
-        if (typeof parsed.manualArea === 'string') setManualArea(parsed.manualArea);
+      const parsed = JSON.parse(raw);
+      if (parsed.config) setConfig(prev => ({ ...prev, ...parsed.config }));
+      if (parsed.layout) setLayout(migrateEnclosureLayout(parsed.layout));
+      if (typeof parsed.manualArea === 'string') setManualArea(parsed.manualArea);
       }
     } catch {
       /* ignore corrupt cache */

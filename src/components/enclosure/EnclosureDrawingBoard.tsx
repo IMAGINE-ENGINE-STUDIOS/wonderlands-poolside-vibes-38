@@ -10,11 +10,21 @@ export interface EnclosurePoint {
 
 export type EnclosureSegmentKind = 'wall' | 'door' | 'house';
 
+export interface EnclosureFeature {
+  kind: Extract<EnclosureSegmentKind, 'door' | 'house'>;
+  /** Normalized start position along the segment (0 = start point, 1 = end point) */
+  start: number;
+  /** Normalized end position along the segment */
+  end: number;
+}
+
 export interface EnclosureLayout {
   points: EnclosurePoint[];
   closed: boolean;
-  /** Segment index -> kind. Unlisted segments default to 'wall'. */
-  segmentKinds: Record<number, EnclosureSegmentKind>;
+  /** Segment index -> list of door/house bays placed along that segment. */
+  features: Record<number, EnclosureFeature[]>;
+  /** @deprecated Kept for cache migration only. */
+  segmentKinds?: Record<number, EnclosureSegmentKind>;
 }
 
 export interface EnclosureTakeoff {
@@ -39,6 +49,7 @@ interface Props {
 const PX_PER_FT = 10;
 const GRID_FT = 1;
 const MAJOR_FT = 5;
+const DEFAULT_DOOR_FT = 3; // standard 36" swing door width
 
 const dist = (a: EnclosurePoint, b: EnclosurePoint) => Math.hypot(a.x - b.x, a.y - b.y);
 
@@ -47,6 +58,32 @@ const KIND_COLOR: Record<EnclosureSegmentKind, string> = {
   door: '#0891b2',
   house: '#f97066',
 };
+
+/** Convert legacy segmentKinds into sized features. Doors become 3 ft bays centered on each segment. */
+export function migrateEnclosureLayout(layout: EnclosureLayout): EnclosureLayout {
+  if (layout.features && Object.keys(layout.features).length > 0) return layout;
+  if (!layout.segmentKinds || Object.keys(layout.segmentKinds).length === 0) {
+    return { points: layout.points, closed: layout.closed, features: {} };
+  }
+  const points = layout.points;
+  const features: Record<number, EnclosureFeature[]> = {};
+  Object.entries(layout.segmentKinds).forEach(([k, kind]) => {
+    const idx = Number(k);
+    if (kind === 'wall') return;
+    const a = points[idx];
+    const b = points[(idx + 1) % points.length];
+    if (!a || !b) return;
+    const segFt = dist(a, b) / PX_PER_FT;
+    if (kind === 'house') {
+      features[idx] = [{ kind: 'house', start: 0, end: 1 }];
+    } else {
+      const doorFt = Math.min(DEFAULT_DOOR_FT, segFt);
+      const margin = Math.max(0, (segFt - doorFt) / 2 / segFt);
+      features[idx] = [{ kind: 'door', start: margin, end: 1 - margin }];
+    }
+  });
+  return { points: layout.points, closed: layout.closed, features };
+}
 
 /** Top-view enclosure footprint board. Same drafting conventions as the 2D pool studio: 10px = 1 ft. */
 const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: Props) => {
@@ -75,7 +112,27 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     return segs;
   }, [layout]);
 
-  const kindOf = (index: number): EnclosureSegmentKind => layout.segmentKinds[index] || 'wall';
+  const featuresOf = (index: number): EnclosureFeature[] => layout.features[index] || [];
+
+  /** Split a segment into wall/door/house intervals based on its features. */
+  const segmentIntervals = (seg: { a: EnclosurePoint; b: EnclosurePoint; index: number }) => {
+    const len = dist(seg.a, seg.b);
+    const ft = len / PX_PER_FT;
+    const feats = featuresOf(seg.index)
+      .filter(f => f.end > f.start)
+      .sort((a, b) => a.start - b.start);
+    const intervals: Array<{ kind: EnclosureSegmentKind; t0: number; t1: number; ft: number }> = [];
+    let cursor = 0;
+    feats.forEach(f => {
+      if (f.start > cursor) {
+        intervals.push({ kind: 'wall', t0: cursor, t1: f.start, ft: (f.start - cursor) * ft });
+      }
+      intervals.push({ kind: f.kind, t0: f.start, t1: f.end, ft: (f.end - f.start) * ft });
+      cursor = f.end;
+    });
+    if (cursor < 1) intervals.push({ kind: 'wall', t0: cursor, t1: 1, ft: (1 - cursor) * ft });
+    return intervals;
+  };
 
   const takeoff = React.useMemo<EnclosureTakeoff>(() => {
     const pts = layout.points;
@@ -88,12 +145,14 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
       const ft = dist(seg.a, seg.b) / PX_PER_FT;
       perimeter += ft;
       longest = Math.max(longest, ft);
-      const kind = kindOf(seg.index);
-      if (kind === 'house') houseWall += ft;
-      else {
-        screenWall += ft;
-        if (kind === 'door') doorFt += ft;
-      }
+      const intervals = segmentIntervals(seg);
+      intervals.forEach(iv => {
+        if (iv.kind === 'house') houseWall += iv.ft;
+        else {
+          screenWall += iv.ft;
+          if (iv.kind === 'door') doorFt += iv.ft;
+        }
+      });
     });
     // Shoelace area (only meaningful for a closed footprint)
     let area = 0;
@@ -183,50 +242,71 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     }
 
     segments.forEach(seg => {
-      const kind = kindOf(seg.index);
-      const color = kind === 'wall' ? wallColor : KIND_COLOR[kind];
-      ctx.strokeStyle = color;
-      ctx.lineWidth = kind === 'house' ? 6 : kind === 'door' ? 5 : 3.5;
-      ctx.setLineDash(kind === 'door' ? [9, 6] : []);
-      ctx.beginPath();
-      ctx.moveTo(seg.a.x, seg.a.y);
-      ctx.lineTo(seg.b.x, seg.b.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      const intervals = segmentIntervals(seg);
+      const lenPx = dist(seg.a, seg.b);
+      const ux = (seg.b.x - seg.a.x) / (lenPx || 1);
+      const uy = (seg.b.y - seg.a.y) / (lenPx || 1);
 
-      // upright ticks on screened walls
-      if (kind === 'wall') {
-        const len = dist(seg.a, seg.b);
-        const step = 6 * PX_PER_FT; // uprights at 6 ft o.c.
-        const ux = (seg.b.x - seg.a.x) / (len || 1);
-        const uy = (seg.b.y - seg.a.y) / (len || 1);
-        ctx.fillStyle = color;
-        for (let d = step; d < len; d += step) {
-          const px = seg.a.x + ux * d;
-          const py = seg.a.y + uy * d;
-          ctx.beginPath();
-          ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-          ctx.fill();
+      intervals.forEach(iv => {
+        const color = iv.kind === 'wall' ? wallColor : KIND_COLOR[iv.kind];
+        const a = { x: seg.a.x + ux * iv.t0 * lenPx, y: seg.a.y + uy * iv.t0 * lenPx };
+        const b = { x: seg.a.x + ux * iv.t1 * lenPx, y: seg.a.y + uy * iv.t1 * lenPx };
+        ctx.strokeStyle = color;
+        ctx.lineWidth = iv.kind === 'house' ? 6 : iv.kind === 'door' ? 5 : 3.5;
+        ctx.setLineDash(iv.kind === 'door' ? [9, 6] : []);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // upright ticks on screened wall intervals only
+        if (iv.kind === 'wall') {
+          const ivLen = dist(a, b);
+          const step = 6 * PX_PER_FT; // uprights at 6 ft o.c.
+          ctx.fillStyle = color;
+          for (let d = step; d < ivLen; d += step) {
+            const px = a.x + ux * d;
+            const py = a.y + uy * d;
+            ctx.beginPath();
+            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
-      }
 
-      const ft = dist(seg.a, seg.b) / PX_PER_FT;
-      if (ft >= 1) {
-        const mx = (seg.a.x + seg.b.x) / 2;
-        const my = (seg.a.y + seg.b.y) / 2;
-        const suffix = kind === 'door' ? ' • DOOR' : kind === 'house' ? ' • HOUSE' : '';
-        const label = `${ft.toFixed(1)} ft${suffix}`;
-        ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
-        const w = ctx.measureText(label).width + 8;
-        ctx.fillStyle = bg;
-        ctx.fillRect(mx - w / 2, my - 16, w, 15);
-        ctx.strokeStyle = gridMajor;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(mx - w / 2, my - 16, w, 15);
-        ctx.fillStyle = textColor;
-        ctx.textAlign = 'center';
-        ctx.fillText(label, mx, my - 5);
-      }
+        // label each interval
+        if (iv.ft >= 1) {
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+          const suffix = iv.kind === 'door' ? ' • DOOR' : iv.kind === 'house' ? ' • HOUSE' : '';
+          const label = `${iv.ft.toFixed(1)} ft${suffix}`;
+          ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+          const w = ctx.measureText(label).width + 8;
+          ctx.fillStyle = bg;
+          ctx.fillRect(mx - w / 2, my - 16, w, 15);
+          ctx.strokeStyle = gridMajor;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(mx - w / 2, my - 16, w, 15);
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.fillText(label, mx, my - 5);
+        }
+      });
+
+      // small perpendicular hatch marks at feature boundaries so the eye sees the door/house edges
+      featuresOf(seg.index).forEach(f => {
+        const t = f.start;
+        const px = seg.a.x + ux * t * lenPx;
+        const py = seg.a.y + uy * t * lenPx;
+        const nx = -uy * 8;
+        const ny = ux * 8;
+        ctx.strokeStyle = KIND_COLOR[f.kind];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px - nx, py - ny);
+        ctx.lineTo(px + nx, py + ny);
+        ctx.stroke();
+      });
     });
 
     // area callout
@@ -296,11 +376,43 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     return best;
   };
 
-  const tagSegment = (index: number, kind: EnclosureSegmentKind) => {
-    const next = { ...layout.segmentKinds };
-    if (next[index] === kind) delete next[index];
-    else next[index] = kind;
-    onChange({ ...layout, segmentKinds: next });
+  const tagFeature = (segIndex: number, kind: Extract<EnclosureSegmentKind, 'door' | 'house'>, t: number) => {
+    const seg = segments.find(s => s.index === segIndex);
+    if (!seg) return;
+    const segFt = dist(seg.a, seg.b) / PX_PER_FT;
+    const next: Record<number, EnclosureFeature[]> = { ...layout.features };
+    const list = [...(next[segIndex] || [])];
+
+    if (kind === 'house') {
+      // House walls always span the whole segment; click again to remove.
+      const existing = list.findIndex(f => f.kind === 'house');
+      if (existing >= 0) {
+        list.splice(existing, 1);
+      } else {
+        list.push({ kind: 'house', start: 0, end: 1 });
+      }
+    } else {
+      // Doors are 3 ft bays centered on the click.
+      const halfFt = Math.min(DEFAULT_DOOR_FT / 2, segFt / 2);
+      const halfT = halfFt / Math.max(segFt, 0.001);
+      let start = Math.max(0, t - halfT);
+      let end = Math.min(1, t + halfT);
+      // Nudge door-sized bays away from segment ends when possible
+      if ((end - start) * segFt < DEFAULT_DOOR_FT && segFt >= DEFAULT_DOOR_FT) {
+        const missing = (DEFAULT_DOOR_FT - (end - start) * segFt) / segFt / 2;
+        if (start === 0) end = Math.min(1, end + missing * 2);
+        else if (end === 1) start = Math.max(0, start - missing * 2);
+      }
+      const existing = list.findIndex(f => f.kind === 'door' && Math.abs((f.start + f.end) / 2 - t) < 0.15);
+      if (existing >= 0) {
+        list.splice(existing, 1);
+      } else {
+        list.push({ kind: 'door', start, end });
+      }
+    }
+    if (list.length === 0) delete next[segIndex];
+    else next[segIndex] = list;
+    onChange({ ...layout, features: next });
   };
 
   const handleDown = (e: React.MouseEvent) => {
@@ -311,8 +423,12 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
       return;
     }
     if (mode === 'door' || mode === 'house') {
-      const seg = hitSegment(p);
-      if (seg >= 0) tagSegment(seg, mode === 'door' ? 'door' : 'house');
+      const segIndex = hitSegment(p);
+      if (segIndex < 0) return;
+      const seg = segments.find(s => s.index === segIndex)!;
+      const len = dist(seg.a, seg.b) || 1;
+      const t = Math.max(0, Math.min(1, ((p.x - seg.a.x) * (seg.b.x - seg.a.x) + (p.y - seg.a.y) * (seg.b.y - seg.a.y)) / (len * len)));
+      tagFeature(segIndex, mode === 'door' ? 'door' : 'house', t);
       return;
     }
     if (layout.points.length > 2 && dist(layout.points[0], p) < 10) {
@@ -333,14 +449,14 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
   const undo = () => {
     if (layout.closed) return onChange({ ...layout, closed: false });
     const nextLen = Math.max(0, layout.points.length - 1);
-    const kinds: Record<number, EnclosureSegmentKind> = {};
-    Object.entries(layout.segmentKinds).forEach(([k, v]) => {
-      if (Number(k) < nextLen - 1) kinds[Number(k)] = v;
+    const features: Record<number, EnclosureFeature[]> = {};
+    Object.entries(layout.features).forEach(([k, list]) => {
+      if (Number(k) < nextLen - 1) features[Number(k)] = list;
     });
-    onChange({ points: layout.points.slice(0, -1), closed: false, segmentKinds: kinds });
+    onChange({ points: layout.points.slice(0, -1), closed: false, features });
   };
 
-  const clear = () => onChange({ points: [], closed: false, segmentKinds: {} });
+  const clear = () => onChange({ points: [], closed: false, features: {} });
 
   const preset = (w: number, d: number) => {
     const ox = 60;
@@ -353,7 +469,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
         { x: ox, y: oy + d * PX_PER_FT },
       ],
       closed: true,
-      segmentKinds: { 0: 'house' },
+      features: { 0: [{ kind: 'house', start: 0, end: 1 }] },
     });
   };
 
