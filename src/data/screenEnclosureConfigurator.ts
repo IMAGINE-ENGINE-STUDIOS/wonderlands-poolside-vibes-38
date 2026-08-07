@@ -347,7 +347,7 @@ export function estimateEnclosure(config: EnclosureConfigState) {
   }
 
   const total = lines.reduce((s, l) => s + l.amount, 0);
-  return { lines, total, baseRate, doorCount, barrierDoorCount, type, roof, extrusion, screen };
+  return { lines, total, baseRate, doorCount, barrierDoorCount, kitDoorCount, selfLatchingDoorCount, type, roof, extrusion, screen };
 }
 
 export interface EnclosureSpecRow {
