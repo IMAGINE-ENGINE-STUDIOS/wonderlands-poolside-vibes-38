@@ -32,22 +32,22 @@ const getCategoryColor = (category: string) => {
 const spaHeaters = [
 {
   name: "Spa Heat Pump - Compact",
-  price: 3500,
+  price: 5250,
   description: "Compact heat pump designed for spas"
 },
 {
   name: "Spa Heat Pump - Premium",
-  price: 4500,
+  price: 6750,
   description: "Premium spa heat pump with digital controls"
 },
 {
   name: "Pentair MasterTemp 125 (125K BTU)",
-  price: 2300,
+  price: 3450,
   description: "Compact high-efficiency gas heater"
 },
 {
   name: "Pentair UltraTemp 90 Heat Pump",
-  price: 5175,
+  price: 7762,
   description: "Energy-efficient heat pump for spas"
 }];
 
