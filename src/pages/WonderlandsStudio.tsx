@@ -475,6 +475,8 @@ const WonderlandsStudio = () => {
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
+  const [shoppingListOpen, setShoppingListOpen] = useState(false);
+
   const [viewMode, setViewMode] = useState<'product-image' | '2d-designer' | '3d-viewer'>('product-image');
   const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
   const [showPricePanel, setShowPricePanel] = useState(false);
