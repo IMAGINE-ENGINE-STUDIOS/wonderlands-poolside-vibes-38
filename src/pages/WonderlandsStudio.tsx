@@ -1718,7 +1718,8 @@ const WonderlandsStudio = () => {
                             </button>
                           </div>
                         </div>)}
-                    </div>
+                    </div>}
+
                   </Tabs>
                 </CardContent>
               </Card>}
