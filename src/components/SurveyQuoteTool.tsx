@@ -1289,7 +1289,7 @@ const SurveyQuoteTool = ({
                       Backyard Photos
                     </Label>
                     <div className="border-2 border-dashed border-teal/30 rounded-lg p-4 text-center">
-                      <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" id="photo-upload" />
+                      <input type="file" accept="image/*" multiple onChange={e => { setBackyardPhotoNames(Array.from(e.target.files || []).map(f => f.name)); handleImageUpload(e); }} className="hidden" id="photo-upload" />
                       <label htmlFor="photo-upload" className="cursor-pointer">
                         {isProcessing ? <div className="flex items-center justify-center gap-2">
                             <Loader2 className="h-6 w-6 animate-spin text-teal" />
