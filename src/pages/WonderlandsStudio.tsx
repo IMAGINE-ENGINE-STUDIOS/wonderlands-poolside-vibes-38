@@ -1706,6 +1706,7 @@ const WonderlandsStudio = () => {
                               </Badge>
                               {selectedProduct.dimensions && <Badge variant="outline">{selectedProduct.dimensions}</Badge>}
                               {selectedProduct.depth && <Badge variant="outline">Depth: {selectedProduct.depth}</Badge>}
+                              {isWaterProduct(selectedProduct.type) && <Badge variant="secondary">Additional Features</Badge>}
                             </div>
                           </div>
                         </div>
@@ -1727,39 +1728,11 @@ const WonderlandsStudio = () => {
                             </div>}
                         </div>
 
-                         {/* Included Features (pools, spas, tanning ledges, saunas only) */}
-                        {isWaterProduct(selectedProduct.type) && <div className="bg-green-50 dark:bg-green-950/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800">
-                          <h3 className="text-xs sm:text-sm font-semibold text-green-800 dark:text-green-300 mb-2 sm:mb-3">
-                            ✓ Included at No Extra Cost
-                          </h3>
-                          <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-green-700 dark:text-green-400">
-                            <div className="flex items-center gap-2">
-                              <span>• Salt water system</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span>• Smart Pentair pool pump & filter</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span>• LED lighting system ({selectedProduct.dimensions && selectedProduct.dimensions.includes('16') || selectedProduct.dimensions && selectedProduct.dimensions.includes('20') ? '4 lights' : '2 lights'})</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span>• Engineering drawings & permits</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span>• Premium coping pavers</span>
-                            </div>
-                          </div>
-                        </div>}
                       </div>
                     </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader className="p-3 sm:p-6">
-                    <CardTitle className="text-lg sm:text-xl">
-                      {selectedProduct.type === 'scene' ? 'Belgard Studio Options' : 'Additional Features'}
-                    </CardTitle>
-                  </CardHeader>
                   <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
                     {selectedProduct.type === 'scene' ? (
                       // Belgard Studio Options for Scenes - keep existing hardcoded UI
@@ -3059,6 +3032,30 @@ const WonderlandsStudio = () => {
                         </div>
                       </>
                     )}
+
+                    {/* Included Features (pools, spas, tanning ledges, saunas only) */}
+                    {isWaterProduct(selectedProduct.type) && <div className="bg-green-50 dark:bg-green-950/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800">
+                      <h3 className="text-xs sm:text-sm font-semibold text-green-800 dark:text-green-300 mb-2 sm:mb-3">
+                        ✓ Included at No Extra Cost
+                      </h3>
+                      <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-green-700 dark:text-green-400">
+                        <div className="flex items-center gap-2">
+                          <span>• Salt water system</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>• Smart Pentair pool pump & filter</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>• LED lighting system ({selectedProduct.dimensions && selectedProduct.dimensions.includes('16') || selectedProduct.dimensions && selectedProduct.dimensions.includes('20') ? '4 lights' : '2 lights'})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>• Engineering drawings & permits</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>• Premium coping pavers</span>
+                        </div>
+                      </div>
+                    </div>}
 
                     <Separator />
 
