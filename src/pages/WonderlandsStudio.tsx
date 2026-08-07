@@ -1706,6 +1706,7 @@ const WonderlandsStudio = () => {
                               </Badge>
                               {selectedProduct.dimensions && <Badge variant="outline">{selectedProduct.dimensions}</Badge>}
                               {selectedProduct.depth && <Badge variant="outline">Depth: {selectedProduct.depth}</Badge>}
+                              {isWaterProduct(selectedProduct.type) && <Badge variant="secondary">Additional Features</Badge>}
                             </div>
                           </div>
                         </div>
