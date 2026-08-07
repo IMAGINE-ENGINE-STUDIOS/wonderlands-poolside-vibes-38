@@ -536,19 +536,80 @@ const SurveyQuoteTool = ({
     }
   };
 
+  // Persist the current quote (exactly as edited) into the local quote gallery
+  const persistCurrentQuote = (overwrite = true) => {
+    const total = editableQuoteAmount || calculateQuote();
+    const productName = pool?.model || customProduct?.name || 'Custom Quote';
+    const saved = saveQuoteSnapshot(user?.id, {
+      id: overwrite && currentQuoteId ? currentQuoteId : undefined,
+      label: `${productName}${surveyData.name ? ` — ${surveyData.name}` : ''}`,
+      total,
+      productName,
+      surveyData,
+      selectedOptions,
+      editableTexts,
+      editablePrices,
+      editableQuoteAmount: total,
+      hiddenSections: Array.from(hiddenSections),
+      customItems,
+      imageOverrides,
+      imageCropSettings,
+      pool: pool || null,
+      customProduct: customProduct || null,
+      extras: extras || null,
+    });
+    if (saved) {
+      setCurrentQuoteId(saved.id);
+      setSavedQuotes(listSavedQuotes(user?.id));
+    }
+    return saved;
+  };
+
   const handleSaveEditedQuote = async () => {
     setIsEditMode(false);
+    // Save the quote exactly as it is so it can be reopened and modified later
+    const saved = persistCurrentQuote(true);
     // Wait for state to update so the DOM reflects the changes
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Auto-download the updated PDF
-    await handleDownloadPDF();
-    
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    // Open the browser print dialog with the updated quote (no PDF download)
+    handlePrintQuote();
+
     toast({
-      title: "Quote Updated & Downloaded",
-      description: "Your updated quote has been saved and downloaded as a new PDF file."
+      title: saved ? "Quote Saved" : "Quote Updated",
+      description: saved
+        ? "Saved to your quote gallery and sent to print."
+        : "Opening the print dialog."
     });
   };
+
+  const handleOpenGallery = () => {
+    setSavedQuotes(listSavedQuotes(user?.id));
+    setShowGallery(true);
+  };
+
+  const handleRestoreQuote = (snap: SavedQuoteSnapshot) => {
+    setRestored(snap);
+    setCurrentQuoteId(snap.id);
+    setSurveyData(snap.surveyData || surveyData);
+    setSelectedOptions(snap.selectedOptions || []);
+    setEditableTexts(snap.editableTexts || {});
+    setEditablePrices(snap.editablePrices || {});
+    setEditableQuoteAmount(snap.editableQuoteAmount || 0);
+    setHiddenSections(new Set(snap.hiddenSections || []));
+    setCustomItems(snap.customItems || []);
+    setImageOverrides(snap.imageOverrides || {});
+    setImageCropSettings(snap.imageCropSettings || {});
+    setShowGallery(false);
+    setCurrentStep('quote');
+    toast({ title: "Quote Reopened", description: "You can continue modifying this quote." });
+  };
+
+  const handleDeleteSavedQuote = (id: string) => {
+    setSavedQuotes(deleteSavedQuote(user?.id, id));
+    if (currentQuoteId === id) setCurrentQuoteId(null);
+  };
+
 
   const handleToggleSection = (sectionId: string) => {
     setHiddenSections(prev => {
