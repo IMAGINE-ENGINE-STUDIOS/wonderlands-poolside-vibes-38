@@ -817,10 +817,10 @@ const SurveyQuoteTool = ({
     }
   };
   const handleSubmitSurvey = () => {
-    if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
+    if (!surveyData.name || !surveyData.email) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your contact details, address and yard size.",
+        description: "Please fill in your name and email address.",
         variant: "destructive"
       });
       return;
