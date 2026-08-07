@@ -91,15 +91,13 @@ const StudioCartWidget = ({
         <Button variant="outline" size="sm" className="flex-1 text-[11px]" onClick={onQuote}>
           <FileText className="h-3 w-3 mr-1" /> Quote
         </Button>
-        <StripeCheckoutButton
-          productId="studio_cart_checkout"
-          productName={`Wonderlands order (${getCartCount() || 1} items)`}
-          price={storeTotal}
-          quantity={1}
-          variant="default"
-          className="flex-1 text-[11px] h-8"
-          cartItems={cartItems}
-        />
+        <Button
+          size="sm"
+          className="flex-1 text-[11px]"
+          onClick={() => navigate('/checkout')}
+        >
+          <CreditCard className="h-3 w-3 mr-1" /> Checkout
+        </Button>
       </div>
 
       <DropdownMenu>
