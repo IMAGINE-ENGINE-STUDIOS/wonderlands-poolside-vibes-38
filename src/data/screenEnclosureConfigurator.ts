@@ -206,6 +206,8 @@ export function checkEnclosureCompliance(config: EnclosureConfigState): Enclosur
   const doorEntries = Object.entries(config.doors).filter(([, q]) => q > 0);
   const doorCount = doorEntries.reduce((s, [, q]) => s + q, 0);
   const barrierDoors = doorEntries.filter(([id]) => ENCLOSURE_DOORS.find(d => d.id === id)?.barrierEligible);
+  // Doors that need the retrofit kit: barrier-eligible but not factory self-latching
+  const kitNeededDoors = barrierDoors.filter(([id]) => !ENCLOSURE_DOORS.find(d => d.id === id)?.selfLatching);
 
   if (config.isPoolBarrier) {
     if (config.wallHeightFt * 12 < 48) {
@@ -215,14 +217,15 @@ export function checkEnclosureCompliance(config: EnclosureConfigState): Enclosur
       issues.push({ level: 'error', code: 'R4501.17.1.2', message: 'Clearance under the screen wall may not exceed 4 inches (2 inches over a non-solid surface).' });
     }
     if (doorCount === 0) {
-      issues.push({ level: 'warning', code: 'R4501.17.2', message: 'No door configured. A barrier enclosure requires at least one code-compliant access door.' });
+      issues.push({ level: 'warning', code: 'R4501.17.2', message: 'No door configured. A barrier enclosure requires at least one self-closing, self-latching access door.' });
     }
     if (doorCount > 0 && barrierDoors.length === 0) {
-      issues.push({ level: 'error', code: 'R4501.17.2.1', message: 'Sliding and pet doors cannot serve as the barrier access point — add a swing door with self-closing, self-latching hardware.' });
+      issues.push({ level: 'error', code: 'R4501.17.2.1', message: 'Sliding and pet doors cannot serve as the barrier access point — add a self-latching swing door.' });
     }
-    if (barrierDoors.length > 0 && !config.addOns.includes('self-closing')) {
-      issues.push({ level: 'error', code: 'R4501.17.2.1', message: 'Barrier doors must be self-closing and self-latching, opening outward from the pool, with the release at least 54 inches above the deck.' });
+    if (kitNeededDoors.length > 0 && !config.addOns.includes('self-closing')) {
+      issues.push({ level: 'error', code: 'R4501.17.2.1', message: 'Standard-hinge barrier doors must be upgraded: select a Self-Latching door model or add the self-closing / self-latching kit (release at least 54 inches above the deck, outward swing away from the pool).' });
     }
+
     if (config.screenId === 'florida-glass' || config.roofId === 'full-pan') {
       issues.push({ level: 'warning', code: 'R4501.17.1.3', message: 'Solid panels increase wind load and can be climbable — confirm the engineered assembly and barrier path with the reviewer.' });
     }
