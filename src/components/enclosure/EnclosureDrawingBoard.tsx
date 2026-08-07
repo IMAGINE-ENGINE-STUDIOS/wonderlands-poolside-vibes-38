@@ -429,20 +429,35 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     return best;
   };
 
+  /** Remove [s,e] from a house run, splitting it if the cut is in the middle. */
+  const subtractHouse = (f: EnclosureFeature, s: number, e: number): EnclosureFeature[] => {
+    if (e <= f.start || s >= f.end) return [f];
+    const out: EnclosureFeature[] = [];
+    if (f.start < s) out.push({ ...f, end: s });
+    if (f.end > e) out.push({ ...f, start: e });
+    return out;
+  };
+
   const tagFeature = (segIndex: number, kind: Extract<EnclosureSegmentKind, 'door' | 'house'>, t: number) => {
     const seg = segments.find(s => s.index === segIndex);
     if (!seg) return;
     const segFt = dist(seg.a, seg.b) / PX_PER_FT;
     const next: Record<number, EnclosureFeature[]> = { ...layout.features };
-    const list = [...(next[segIndex] || [])];
+    let list = [...(next[segIndex] || [])];
 
     if (kind === 'house') {
-      // House walls always span the whole segment; click again to remove.
-      const existing = list.findIndex(f => f.kind === 'house');
-      if (existing >= 0) {
-        list.splice(existing, 1);
+      const hasHouse = list.some(f => f.kind === 'house');
+      if (hasHouse) {
+        list = list.filter(f => f.kind !== 'house');
       } else {
-        list.push({ kind: 'house', start: 0, end: 1 });
+        // House run spans the segment but yields to any door bays already placed.
+        let runs: EnclosureFeature[] = [{ kind: 'house', start: 0, end: 1 }];
+        list
+          .filter(f => f.kind === 'door')
+          .forEach(d => {
+            runs = runs.flatMap(r => subtractHouse(r, d.start, d.end));
+          });
+        list = [...list, ...runs.filter(r => r.end - r.start > 0.001)];
       }
     } else {
       // Doors are 3 ft bays centered on the click.
@@ -456,17 +471,21 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
         if (start === 0) end = Math.min(1, end + missing * 2);
         else if (end === 1) start = Math.max(0, start - missing * 2);
       }
-      const existing = list.findIndex(f => f.kind === 'door' && Math.abs((f.start + f.end) / 2 - t) < 0.15);
+      const existing = list.findIndex(f => f.kind === 'door' && t >= f.start - 0.02 && t <= f.end + 0.02);
       if (existing >= 0) {
         list.splice(existing, 1);
       } else {
+        // Carve the opening out of any house run so the two never overlap.
+        list = list.flatMap(f => (f.kind === 'house' ? subtractHouse(f, start, end) : [f]));
         list.push({ kind: 'door', start, end });
       }
     }
+    list = list.filter(f => f.end - f.start > 0.001).sort((a, b) => a.start - b.start);
     if (list.length === 0) delete next[segIndex];
     else next[segIndex] = list;
     onChange({ ...layout, features: next });
   };
+
 
   const handleDown = (e: React.MouseEvent) => {
     const p = toLocal(e);
