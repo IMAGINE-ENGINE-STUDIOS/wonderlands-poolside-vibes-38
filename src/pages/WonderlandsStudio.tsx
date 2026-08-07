@@ -1666,7 +1666,7 @@ const WonderlandsStudio = () => {
                       </div>
                     )}
                     
-                    <div className="relative rounded-lg sm:rounded-xl bg-background min-h-[400px] sm:min-h-[700px] flex flex-col">
+                    <div className="relative rounded-lg sm:rounded-xl bg-background overflow-hidden w-full h-[38vh] sm:h-[46vh] max-h-[460px] flex items-center justify-center">
                       {(selectedProduct.media || selectedProduct.gallery || selectedProduct.image) ? (
                         <div className="w-full h-full flex items-center justify-center">
                           <ProductMediaGallery 
@@ -1681,6 +1681,7 @@ const WonderlandsStudio = () => {
                             className="w-full h-full"
                           />
                         </div>
+
                       ) : (
                         <div className="flex items-center justify-center h-full">
                           <Package className="h-16 w-16 text-muted-foreground" />
