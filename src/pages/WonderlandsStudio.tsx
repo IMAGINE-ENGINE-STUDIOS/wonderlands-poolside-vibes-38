@@ -3063,89 +3063,6 @@ const WonderlandsStudio = () => {
                           </div>
                         )}
 
-                        {/* Pool Heater - At bottom with auto-filled dimensions */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Pool Heater</h4>
-                            <Checkbox
-                              checked={selectedExtras.heater}
-                              onCheckedChange={() =>
-                                setSelectedExtras((prev: any) => ({
-                                  ...prev,
-                                  heater: !prev.heater,
-                                }))
-                              }
-                            />
-                          </div>
-                          
-                          {selectedExtras.heater && selectedProduct && (
-                            <>
-                              {/* Auto-filled pool info */}
-                              <div className="bg-muted/50 p-3 rounded-lg text-xs space-y-1">
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Pool Dimensions:</span>
-                                  <span className="font-medium">{selectedProduct.dimensions || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Depth:</span>
-                                  <span className="font-medium">{selectedProduct.depth || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Est. Volume:</span>
-                                  <span className="font-medium">
-                                    {(() => {
-                                      const { length, width } = parsePoolDimensions(selectedProduct.dimensions);
-                                      const avgDepth = 5; // Average depth estimate
-                                      return Math.round(length * width * avgDepth * 7.48).toLocaleString();
-                                    })()} gallons
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              {/* Heater Carousel */}
-                              <Carousel 
-                                className="w-full"
-                                opts={{
-                                  align: "start",
-                                  loop: false,
-                                  duration: 25,
-                                }}
-                              >
-                                <CarouselContent className="-ml-1">
-                                  {poolHeaters.map((heater) => (
-                                    <CarouselItem key={heater.name} className="pl-1 basis-1/2 md:basis-1/4">
-                                      <div
-                                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-border"}`}
-                                        onClick={() =>
-                                          setSelectedExtras((prev: any) => ({
-                                            ...prev,
-                                            heaterModel: heater.name,
-                                          }))
-                                        }
-                                      >
-                                        <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                          <img
-                                            src={heater.image}
-                                            alt={heater.name}
-                                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                                          />
-                                        </div>
-                                        <div className="flex flex-col gap-0.5">
-                                          <p className="text-xs font-medium text-center truncate">{heater.name}</p>
-                                          <p className="text-xs text-primary font-semibold text-center">
-                                            +${heater.price.toLocaleString()}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </CarouselItem>
-                                  ))}
-                                </CarouselContent>
-                                <CarouselPrevious className="left-0 animate-pulse" />
-                                <CarouselNext className="right-0 animate-pulse" />
-                              </Carousel>
-                            </>
-                          )}
-                        </div>
                       </>
                     )}
 
@@ -3172,6 +3089,92 @@ const WonderlandsStudio = () => {
                         </div>
                       </div>
                     </div>}
+                    {isWaterProduct(selectedProduct.type) && (
+                          {/* Pool Heater - At bottom with auto-filled dimensions */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-semibold text-foreground">Pool Heater</h4>
+                              <Checkbox
+                                checked={selectedExtras.heater}
+                                onCheckedChange={() =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    heater: !prev.heater,
+                                  }))
+                                }
+                              />
+                            </div>
+                            
+                            {selectedExtras.heater && selectedProduct && (
+                              <>
+                                {/* Auto-filled pool info */}
+                                <div className="bg-muted/50 p-3 rounded-lg text-xs space-y-1">
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Pool Dimensions:</span>
+                                    <span className="font-medium">{selectedProduct.dimensions || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Depth:</span>
+                                    <span className="font-medium">{selectedProduct.depth || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Est. Volume:</span>
+                                    <span className="font-medium">
+                                      {(() => {
+                                        const { length, width } = parsePoolDimensions(selectedProduct.dimensions);
+                                        const avgDepth = 5; // Average depth estimate
+                                        return Math.round(length * width * avgDepth * 7.48).toLocaleString();
+                                      })()} gallons
+                                    </span>
+                                  </div>
+                                </div>
+                                
+                                {/* Heater Carousel */}
+                                <Carousel 
+                                  className="w-full"
+                                  opts={{
+                                    align: "start",
+                                    loop: false,
+                                    duration: 25,
+                                  }}
+                                >
+                                  <CarouselContent className="-ml-1">
+                                    {poolHeaters.map((heater) => (
+                                      <CarouselItem key={heater.name} className="pl-1 basis-1/2 md:basis-1/4">
+                                        <div
+                                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                          onClick={() =>
+                                            setSelectedExtras((prev: any) => ({
+                                              ...prev,
+                                              heaterModel: heater.name,
+                                            }))
+                                          }
+                                        >
+                                          <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                            <img
+                                              src={heater.image}
+                                              alt={heater.name}
+                                              className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                            />
+                                          </div>
+                                          <div className="flex flex-col gap-0.5">
+                                            <p className="text-xs font-medium text-center truncate">{heater.name}</p>
+                                            <p className="text-xs text-primary font-semibold text-center">
+                                              +${heater.price.toLocaleString()}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </CarouselItem>
+                                    ))}
+                                  </CarouselContent>
+                                  <CarouselPrevious className="left-0 animate-pulse" />
+                                  <CarouselNext className="right-0 animate-pulse" />
+                                </Carousel>
+                              </>
+                            )}
+                          </div>
+                    )}
+
 
                     <Separator />
 
