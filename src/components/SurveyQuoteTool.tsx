@@ -1319,24 +1319,22 @@ const SurveyQuoteTool = ({
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
                 <span>Free consultation • No obligation • Expert guidance</span>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={handleGetQuote} variant="gradient" size="lg" className="flex-1 hover:scale-105 transition-all duration-300">
-                  Get My Personalized Quote
-                </Button>
-                <Button 
-                  onClick={() => {
-                    if (!surveyData.name) setSurveyData(prev => ({ ...prev, name: 'Guest' }));
-                    setCurrentStep('quote');
-                  }}
-                  variant="outline" 
-                  size="lg" 
-                  className="flex-1 border-primary text-primary hover:bg-primary/5"
-                >
-                  Skip to Quote →
-                </Button>
-              </div>
+              <Button onClick={handleGetQuote} variant="gradient" size="lg" className="w-full h-14 text-lg hover:scale-[1.02] transition-all duration-300">
+                Get My Personalized Quote
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!surveyData.name) setSurveyData(prev => ({ ...prev, name: 'Guest' }));
+                  setCurrentStep('quote');
+                }}
+                variant="outline"
+                size="lg"
+                className="w-full h-16 text-xl font-semibold border-2 border-primary text-primary hover:bg-primary/5"
+              >
+                Skip — Take Me Straight to the Quote →
+              </Button>
               <p className="text-xs text-muted-foreground">
-                * By submitting, you agree to receive follow-up communications about your pool project
+                Only name and email are required. Everything else is optional and will be added to your quote if filled.
               </p>
             </div>
           </div>
