@@ -3089,7 +3089,7 @@ const WonderlandsStudio = () => {
                         </div>
                       </div>
                     </div>}
-                    {isWaterProduct(selectedProduct.type) && (
+                    {isWaterProduct(selectedProduct.type) && (<>
                           {/* Pool Heater - At bottom with auto-filled dimensions */}
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
