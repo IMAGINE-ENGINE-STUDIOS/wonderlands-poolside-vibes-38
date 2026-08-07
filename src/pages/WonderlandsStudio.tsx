@@ -50,6 +50,8 @@ import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
+import FenceConfigurator from '@/components/fence/FenceConfigurator';
+
 import { artificialGrassOptions, PRICE_PER_SQFT as GRASS_PRICE_PER_SQFT, getGrassPricePerSqFt, calculateGrassCost } from '@/data/artificialGrassData';
 import { landscapingPlants } from '@/data/landscapingData';
 import { drivewayGates } from '@/data/drivewayGates';
@@ -957,10 +959,14 @@ const WonderlandsStudio = () => {
     // Unit-priced standalone categories: base price is a rate, multiply by quantity
     const unit = getProductUnit(selectedProduct);
     if (!isWaterProduct(productType) && productType !== 'scene') {
-      if (unit) {
+      if (productType === 'fencing') {
+        // Fence pricing comes from the advanced Florida-code configurator
+        total = parseFloat(selectedExtras.fenceTotal) || 0;
+      } else if (unit) {
         const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
         total = getProductPrice(selectedProduct) * qty;
       }
+
       // Only the features configured for this exact product type apply
       features.forEach((feature) => {
         total += calculateFeaturePrice(feature, selectedExtras[feature.id], selectedExtras);
@@ -2096,7 +2102,17 @@ const WonderlandsStudio = () => {
                       // grass, landscaping, covers, driveway gates, finishes, liners):
                       // only their own relevant options — no pool features here.
                       <>
-                        {(() => {
+                        {selectedProduct.type === 'fencing' ? (
+                          <FenceConfigurator
+                            onTotalChange={(total, summary) =>
+                              setSelectedExtras((prev: any) =>
+                                prev.fenceTotal === total && prev.categoryQuantity === String(summary.linearFt)
+                                  ? prev
+                                  : { ...prev, fenceTotal: total, categoryQuantity: String(summary.linearFt) }
+                              )
+                            }
+                          />
+                        ) : (() => {
                           const unit = getProductUnit(selectedProduct);
                           if (!unit) return null;
                           const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
@@ -2121,6 +2137,7 @@ const WonderlandsStudio = () => {
                             </div>
                           );
                         })()}
+
 
                         {getProductFeatures((selectedProduct.type || 'paver') as any).length > 0 && (
                           <DynamicFeatureRenderer
