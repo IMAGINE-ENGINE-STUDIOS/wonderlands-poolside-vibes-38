@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle2, HardHat, Stamp, Ruler, Minus, Plus, Info, Printer } from 'lucide-react';
-import EnclosureDrawingBoard, { EnclosureLayout, EnclosureTakeoff } from './EnclosureDrawingBoard';
+import EnclosureDrawingBoard, { EnclosureLayout, EnclosureTakeoff, migrateEnclosureLayout } from './EnclosureDrawingBoard';
 import {
   DEFAULT_ENCLOSURE_CONFIG,
   ENCLOSURE_ADDONS,
