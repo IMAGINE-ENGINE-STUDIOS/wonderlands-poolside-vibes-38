@@ -316,8 +316,9 @@ const StudioCartWidget = ({
               </span>
             </div>
           </div>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </div>
+      )}
+
     </div>
   );
 };
