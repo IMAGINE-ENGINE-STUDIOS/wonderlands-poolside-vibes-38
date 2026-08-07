@@ -114,7 +114,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
 
   const featuresOf = (index: number): EnclosureFeature[] => layout.features[index] || [];
 
-  /** Split a segment into wall/door/house intervals based on its features. */
+  /** Split a segment into wall/door/house intervals based on its features. Overlaps are clipped. */
   const segmentIntervals = (seg: { a: EnclosurePoint; b: EnclosurePoint; index: number }) => {
     const len = dist(seg.a, seg.b);
     const ft = len / PX_PER_FT;
@@ -124,15 +124,19 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     const intervals: Array<{ kind: EnclosureSegmentKind; t0: number; t1: number; ft: number }> = [];
     let cursor = 0;
     feats.forEach(f => {
-      if (f.start > cursor) {
-        intervals.push({ kind: 'wall', t0: cursor, t1: f.start, ft: (f.start - cursor) * ft });
+      const start = Math.max(f.start, cursor);
+      const end = Math.min(1, f.end);
+      if (end <= start) return;
+      if (start > cursor + 1e-6) {
+        intervals.push({ kind: 'wall', t0: cursor, t1: start, ft: (start - cursor) * ft });
       }
-      intervals.push({ kind: f.kind, t0: f.start, t1: f.end, ft: (f.end - f.start) * ft });
-      cursor = f.end;
+      intervals.push({ kind: f.kind, t0: start, t1: end, ft: (end - start) * ft });
+      cursor = end;
     });
-    if (cursor < 1) intervals.push({ kind: 'wall', t0: cursor, t1: 1, ft: (1 - cursor) * ft });
+    if (cursor < 1 - 1e-6) intervals.push({ kind: 'wall', t0: cursor, t1: 1, ft: (1 - cursor) * ft });
     return intervals;
   };
+
 
   const takeoff = React.useMemo<EnclosureTakeoff>(() => {
     const pts = layout.points;
