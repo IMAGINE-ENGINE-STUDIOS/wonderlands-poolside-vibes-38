@@ -11,6 +11,9 @@ interface ShoppingCartContextType {
   updateQuantity: (id: string, quantity: number) => void;
   /** Removes a single feature/extra from a cart item */
   removeExtra: (id: string, extraIndex: number) => void;
+  /** Replaces a feature/extra selection (name + price) on a cart item */
+  updateExtra: (id: string, extraIndex: number, next: { name: string; price: number }) => void;
+
   clearCart: () => void;
   getCartCount: () => number;
   getCartTotal: () => number;
@@ -97,6 +100,26 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
     );
   };
 
+  const updateExtra = (
+    id: string,
+    extraIndex: number,
+    next: { name: string; price: number }
+  ) => {
+    setCartItems(prev =>
+      prev.map(item =>
+        item.id === id
+          ? {
+              ...item,
+              extras: (item.extras || []).map((extra, i) =>
+                i === extraIndex ? { ...extra, name: next.name, price: next.price } : extra
+              ),
+            }
+          : item
+      )
+    );
+  };
+
+
   const clearCart = () => setCartItems([]);
 
   const getCartTotal = () =>
@@ -124,6 +147,8 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
         removeFromCart,
         updateQuantity,
         removeExtra,
+        updateExtra,
+
         clearCart,
         getCartCount, 
         getCartTotal,

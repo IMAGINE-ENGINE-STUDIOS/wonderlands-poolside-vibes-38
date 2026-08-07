@@ -21,7 +21,12 @@ export interface CartItem {
   extras?: {
     name: string;
     price: number;
+    /** Feature key (finish, heater, liner, ...) used to edit the selection later */
+    key?: string;
+    /** Selectable alternatives for this feature, editable from the shopping cart */
+    options?: { name: string; price: number }[];
   }[];
+
 }
 
 interface ShoppingCartProps {

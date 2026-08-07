@@ -1343,10 +1343,11 @@ const WonderlandsStudio = () => {
     }));
     setShowQuoteModal(true);
   };
-  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string }> => {
+  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string; options?: { name: string; price: number }[] }> => {
     if (!selectedProduct) return [];
     // Convert selectedExtras to the format expected by CartItem
-    const extrasArray = [];
+    const extrasArray: Array<{ name: string; price: number; key?: string }> = [];
+
 
     // Add finish if selected
     const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
@@ -1509,8 +1510,61 @@ const WonderlandsStudio = () => {
         price: calculateGrassCost(grassArea, selectedExtras.artificialGrassColor)
       });
     }
-    return extrasArray;
+    // Attach the selectable product list for every feature so the shopping cart
+    // can swap the selection without reopening the studio configuration.
+    const linerSqft = calculatePoolLinerArea(selectedProduct.dimensions);
+    const paverArea = parseFloat(selectedExtras.paverSurfaceArea || paverSurfaceArea || '0') || 0;
+    const grassArea = parseFloat(selectedExtras.artificialGrassArea) || 0;
+    const enclosureArea = selectedExtras.screenEnclosureArea || 0;
+    const allSpaModels = [...spas, ...gilmerSpas];
+
+    const featureOptions: Record<string, { name: string; price: number }[]> = {
+      finish: finishOptions
+        .filter(f => f.price > 0)
+        .map(f => ({ name: `${f.name} Finish`, price: f.price })),
+      heater: poolHeaters.map(h => ({ name: h.name, price: h.price })),
+      cover: coverOptions
+        .filter(c => c.name !== 'NO COVER')
+        .map(c => ({ name: c.name, price: c.price })),
+      tiles: tileOptions.map(t => ({ name: t.name, price: getTileCost(t.name) })),
+      liner: linerOptions.map(o => {
+        const perSqFt = o.price || 20;
+        return {
+          name: `${o.name} Liner (${linerSqft} sqft @ $${perSqFt}/sqft)`,
+          price: linerSqft * perSqFt,
+        };
+      }),
+      pavers: paverOptions
+        .filter(p => p.name !== 'Concrete Deck')
+        .map(p => ({
+          name: `${p.name} (${paverArea} sq ft)`,
+          price: calculatePaverCost(String(paverArea), p.name),
+        })),
+      screenEnclosure: (['standard', 'deluxe', 'premium'] as const).map(quality => ({
+        name: `Screen Enclosure - ${quality === 'standard' ? 'Wonder Cage' : quality === 'deluxe' ? 'Deluxe' : 'Premium'} (${enclosureArea} sq ft)`,
+        price: enclosureArea * (SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard),
+      })),
+      spa: allSpaModels.map((s: any) => ({ name: `${s.model} Spa`, price: s.price })),
+      tanningLedge: tanningLedges.map((l: any) => ({
+        name: `${l.name} Tanning Ledge`,
+        price: l.price,
+      })),
+      rockyWaterfall: rockyWaterfallTiers.map(t => ({
+        name: `Rocky Waterfalls: ${t.name}${selectedExtras.rockyWaterfallColor ? ` (${selectedExtras.rockyWaterfallColor})` : ''}`,
+        price: t.price,
+      })),
+      artificialGrass: artificialGrassOptions.map((g: any) => ({
+        name: `Artificial Grass - ${g.name} (${grassArea} sq ft)`,
+        price: calculateGrassCost(grassArea, g.name),
+      })),
+    };
+
+    return extrasArray.map(extra => {
+      const options = extra.key ? featureOptions[extra.key] : undefined;
+      return options && options.length > 1 ? { ...extra, options } : extra;
+    });
   };
+
 
   const FEATURE_RESETS: Record<string, any> = {
     finish: { finish: 'None' },
