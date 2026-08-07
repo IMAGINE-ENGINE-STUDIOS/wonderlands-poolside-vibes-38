@@ -2723,7 +2723,8 @@ const SurveyQuoteTool = ({
                 )}
               </CardContent>
             </Card>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Authentication Prompt */}
