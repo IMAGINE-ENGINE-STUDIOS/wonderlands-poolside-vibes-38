@@ -59,6 +59,32 @@ const KIND_COLOR: Record<EnclosureSegmentKind, string> = {
   house: '#f97066',
 };
 
+/** Convert legacy segmentKinds into sized features. Doors become 3 ft bays centered on each segment. */
+export function migrateEnclosureLayout(layout: EnclosureLayout): EnclosureLayout {
+  if (layout.features && Object.keys(layout.features).length > 0) return layout;
+  if (!layout.segmentKinds || Object.keys(layout.segmentKinds).length === 0) {
+    return { points: layout.points, closed: layout.closed, features: {} };
+  }
+  const points = layout.points;
+  const features: Record<number, EnclosureFeature[]> = {};
+  Object.entries(layout.segmentKinds).forEach(([k, kind]) => {
+    const idx = Number(k);
+    if (kind === 'wall') return;
+    const a = points[idx];
+    const b = points[(idx + 1) % points.length];
+    if (!a || !b) return;
+    const segFt = dist(a, b) / PX_PER_FT;
+    if (kind === 'house') {
+      features[idx] = [{ kind: 'house', start: 0, end: 1 }];
+    } else {
+      const doorFt = Math.min(DEFAULT_DOOR_FT, segFt);
+      const margin = Math.max(0, (segFt - doorFt) / 2 / segFt);
+      features[idx] = [{ kind: 'door', start: margin, end: 1 - margin }];
+    }
+  });
+  return { points: layout.points, closed: layout.closed, features };
+}
+
 /** Top-view enclosure footprint board. Same drafting conventions as the 2D pool studio: 10px = 1 ft. */
 const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: Props) => {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
