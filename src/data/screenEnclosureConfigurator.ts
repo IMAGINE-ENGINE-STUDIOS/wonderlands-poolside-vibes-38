@@ -379,7 +379,7 @@ export function buildEnclosureSpec(config: EnclosureConfigState): {
       { label: 'Footprint', value: `${config.areaSqFt.toLocaleString()} sq ft / ${config.perimeterFt.toLocaleString()} ft perimeter` },
       { label: 'Screened wall run', value: `${config.screenWallFt.toLocaleString()} ft (house-attached runs excluded)` },
       { label: 'Uprights', value: `${uprights} @ ${uprightSpacing} ft o.c. — ${extrusion.label}` },
-      { label: 'Screen panels', value: `${panels} wall bays + roof bays; ${screenRolls} roll(s) of ${screen.mesh} @ 700 sq ft` },
+      { label: 'Screen panels', value: `${panels} wall bays + roof bays; ${screenRolls} roll(s) of ${screen.brand} ${screen.mesh} @ 700 sq ft` },
       { label: 'Base / anchors', value: `1/4" x 2-1/4" Tapcon @ ${anchorSpacing}" o.c. into 3,000 psi slab, 1-1/4" min. embed` },
       { label: 'Slab edge', value: 'Min. 4" clear from slab edge; epoxy anchors where edge distance is short' },
       { label: 'Beam splices', value: `Internal sleeves at splices, #10 x 3/4" ${config.hvhz ? '304 stainless' : 'painted'} screws, 3 per connection` },
