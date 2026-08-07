@@ -129,12 +129,65 @@ export const ENCLOSURE_ADDONS: EnclosureAddOnOption[] = [
   { id: 'lighting', label: 'Screen Enclosure Lighting Package', pricing: 'each', price: 1450, description: 'Perimeter LED fixtures, fans-ready beams and GFCI-protected circuits.' },
 ];
 
-/** Fixed project costs applied to every enclosure contract */
-export const ENCLOSURE_PROJECT_FEES = {
-  engineeringAndDrawings: 1250,
-  permitting: 850,
-  mobilization: 650,
+/**
+ * Florida general-contractor cost model.
+ * All values are DIRECT COST to the contractor (not sell price). Sell price is built
+ * up as: direct cost + overhead + target gross margin.
+ */
+export const ENCLOSURE_COST_MODEL = {
+  /** Aluminum extrusion material $/sq ft of framed surface (walls + roof), 2x2 base */
+  frameMaterialPerSqFt: 3.9,
+  /** Added material cost per sq ft for each $1 of extrusion upgrade */
+  frameUpgradeFactor: 0.55,
+  /** Screen fabric + spline base $/sq ft of screened surface (18/14 fiberglass) */
+  screenMaterialPerSqFt: 0.55,
+  screenUpgradeFactor: 0.6,
+  /** Roof pan material factor applied to the roof option rate */
+  roofPanCostFactor: 0.6,
+  /** Fasteners, base plates, sleeves, splices, gutter straps, caulk $/sq ft */
+  partsPerSqFt: 0.85,
+  /** Door: share of catalog price that is material/parts vs. field labor */
+  doorMaterialShare: 0.45,
+  doorLaborShare: 0.2,
+  /** Add-on: cost share of the listed add-on amount */
+  addOnMaterialShare: 0.55,
+  addOnLaborShare: 0.3,
+  /** Installation labor (burdened crew rate) $/sq ft of framed surface */
+  laborPerSqFt: 3.35,
+  /** Extra labor factor per ft of mean roof height above 11 ft */
+  heightLaborFactorPerFt: 0.03,
+  /** Freight / delivery */
+  deliveryPerSqFt: 0.55,
+  deliveryFlat: 475,
+  craneTwoStory: 850,
+  /** Florida sales tax on materials (6% state + typical 1% county surtax) */
+  materialTaxRate: 0.07,
+  /** General conditions */
+  dumpster: 385,
+  equipmentPerSqFt: 0.35,
+  equipmentPerSqFtTwoStory: 0.9,
+  layoutAndCleanup: 325,
+  /** Insurance (GL + workers comp) as % of material + labor */
+  insuranceRate: 0.035,
+  /** Warranty / callback reserve as % of material + labor */
+  warrantyReserveRate: 0.015,
+  /** Soft costs */
+  engineeringStandard: 1250,
+  engineeringSealed: 2200,
+  permitFlat: 425,
+  permitPercentOfValue: 0.016,
+  nocAndInspections: 195,
+  planRunner: 150,
+  /** Contingency on direct cost */
+  contingencyRate: 0.03,
+  /** Company overhead (office, trucks, marketing, admin) as % of direct cost */
+  defaultOverheadPct: 12,
+  /** Target gross margin on the sell price */
+  defaultTargetMarginPct: 32,
+  /** Florida installed market range $/sq ft of footprint, for competitiveness check */
+  marketRangePerSqFt: { low: 24, high: 48 },
 };
+
 
 export interface EnclosureComplianceIssue {
   level: 'error' | 'warning' | 'info';
