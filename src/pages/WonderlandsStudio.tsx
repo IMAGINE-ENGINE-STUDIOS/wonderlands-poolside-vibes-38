@@ -64,6 +64,34 @@ const rockyWaterfallTiers = [
   { name: 'Serenity', price: 9500, image: serenityImage },
 ];
 const rockyWaterfallColors = ['Castle Rock', 'Gray', 'Brown'];
+
+type StudioTab = 'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'screen-enclosures' | 'patio-fencing' | 'lanai' | 'pavers' | 'artificial-grass' | 'landscaping' | 'covers' | 'driveway-gates' | 'finishes' | 'liners' | 'build-a-pool';
+
+interface StudioCategory {
+  value: StudioTab;
+  label: string;
+  icon: React.ElementType;
+  activeClass: string;
+}
+
+const STUDIO_CATEGORIES: StudioCategory[] = [
+  { value: 'pools', label: 'Pools', icon: Waves, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'spas', label: 'Spas', icon: Droplets, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'tanning-ledges', label: 'Tanning Ledges', icon: Sun, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'saunas', label: 'Saunas', icon: Thermometer, activeClass: 'bg-amber-600 text-white' },
+  { value: 'screen-enclosures', label: 'Screen Enclosures', icon: Shield, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'patio-fencing', label: 'Patio Fencing', icon: Layers, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'lanai', label: 'Lanai', icon: Sun, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'pavers', label: 'Pavers', icon: Package, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'artificial-grass', label: 'Artificial Grass', icon: Layers, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'landscaping', label: 'Landscaping', icon: Palette, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'covers', label: 'Covers', icon: Shield, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'driveway-gates', label: 'Driveway Gates', icon: Settings, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'finishes', label: 'Finishes', icon: Palette, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'liners', label: 'Liners', icon: Layers, activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'build-a-pool', label: 'Build a Pool', icon: Waves, activeClass: 'bg-teal text-white' },
+];
+
 // Studio search uses the same AdvancedSearch component as the main page
 
 
