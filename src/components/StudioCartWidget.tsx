@@ -8,8 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
-import StripeCheckoutButton from '@/components/StripeCheckoutButton';
-import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, X, Plus as PlusIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, X, CreditCard, Plus as PlusIcon } from 'lucide-react';
 
 interface StudioCartWidgetProps {
   /** Price of the configuration currently open in the studio (not yet in the cart) */
