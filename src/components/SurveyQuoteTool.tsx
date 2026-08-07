@@ -1141,7 +1141,7 @@ const SurveyQuoteTool = ({
                   <div>
                     <Label htmlFor="address" className="flex items-center gap-2">
                       <MapPin size={16} className="text-coral" />
-                      Property Address *
+                      Property Address <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                     </Label>
                     <Input id="address" placeholder="123 Main St, Miami, FL 33101" value={surveyData.address} onChange={e => setSurveyData({
                   ...surveyData,
@@ -1150,7 +1150,7 @@ const SurveyQuoteTool = ({
                   </div>
 
                   <div>
-                    <Label htmlFor="yardSize">Backyard Size *</Label>
+                    <Label htmlFor="yardSize">Backyard Size <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
                     <Select onValueChange={value => setSurveyData({
                   ...surveyData,
                   yardSize: value
