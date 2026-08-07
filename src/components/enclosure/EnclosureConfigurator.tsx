@@ -607,16 +607,16 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
                   </div>
                 ))}
               </div>
-              <Separator />
+              <div className="quote-rule" />
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {Object.entries(estimate.categoryTotals).map(([cat, amt]) => (
-                  <div key={cat} className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1">
+                  <div key={cat} className="flex items-center justify-between rounded-lg glass-tile px-2 py-1">
                     <span className="text-muted-foreground">{cat}</span>
                     <span className="font-semibold">${amt.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
-              <Separator />
+              <div className="quote-rule" />
               <div className="space-y-1 text-sm">
                 <div className="flex items-center justify-between">
                   <span>Direct job cost</span>
@@ -644,35 +644,34 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
               </p>
             </>
           )}
-        </CardContent>
-      </Card>
-
+      </section>
 
       {/* Spec sheets */}
-      <Tabs defaultValue="installer" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="installer" className="text-xs">
+      <Tabs defaultValue="installer" className="w-full space-y-3">
+        <TabsList className="grid grid-cols-3 w-full glass-tile p-1 h-auto">
+          <TabsTrigger value="installer" className="text-xs py-2">
             <HardHat className="h-3.5 w-3.5 mr-1" /> Installer
           </TabsTrigger>
-          <TabsTrigger value="architect" className="text-xs">
+          <TabsTrigger value="architect" className="text-xs py-2">
             <Ruler className="h-3.5 w-3.5 mr-1" /> Architect / Engineer
           </TabsTrigger>
-          <TabsTrigger value="permit" className="text-xs">
+          <TabsTrigger value="permit" className="text-xs py-2">
             <Stamp className="h-3.5 w-3.5 mr-1" /> Permit
           </TabsTrigger>
         </TabsList>
         {(['installer', 'architect', 'permit'] as const).map(key => (
-          <TabsContent key={key} value={key}>
-            <Card>
-              <CardContent className="pt-5 space-y-2">
+          <TabsContent key={key} value={key} className="mt-0">
+            <div className="glass-panel rounded-2xl p-5 space-y-2">
                 {spec[key].map((row, i) => (
-                  <div key={i} className="grid grid-cols-[minmax(0,140px)_1fr] gap-3 text-xs border-b border-border/60 pb-1.5 last:border-0">
+                  <div key={i} className="grid grid-cols-[minmax(0,140px)_1fr] gap-3 text-xs border-b border-border/40 pb-1.5 last:border-0">
                     <span className="font-semibold">{row.label}</span>
                     <span className="text-muted-foreground">{row.value}</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
           </TabsContent>
         ))}
       </Tabs>
