@@ -140,6 +140,8 @@ const SurveyQuoteTool = ({
     };
   });
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [surveyDocs, setSurveyDocs] = useState<File[]>([]);
+  const [backyardPhotoNames, setBackyardPhotoNames] = useState<string[]>([]);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
