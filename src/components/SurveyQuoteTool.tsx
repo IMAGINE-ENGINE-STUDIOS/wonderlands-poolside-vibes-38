@@ -1258,11 +1258,27 @@ const SurveyQuoteTool = ({
                       Property Survey Documents
                     </Label>
                     <div className="border-2 border-dashed border-teal/30 rounded-lg p-4 text-center">
-                      <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" className="hidden" id="survey-upload" />
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        multiple
+                        className="hidden"
+                        id="survey-upload"
+                        onChange={e => setSurveyDocs(Array.from(e.target.files || []))}
+                      />
                       <label htmlFor="survey-upload" className="cursor-pointer">
                         <FileText className="h-6 w-6 mx-auto text-teal mb-2" />
-                        <p className="text-sm">Upload survey documents</p>
-                        <p className="text-xs text-muted-foreground">PDF, images, or documents</p>
+                        {surveyDocs.length > 0 ? (
+                          <>
+                            <p className="text-sm text-green-600">✓ {surveyDocs.length} document{surveyDocs.length > 1 ? 's' : ''} attached</p>
+                            <p className="text-xs text-muted-foreground truncate">{surveyDocs.map(f => f.name).join(', ')}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm">Upload survey documents</p>
+                            <p className="text-xs text-muted-foreground">PDF, images, or documents</p>
+                          </>
+                        )}
                       </label>
                     </div>
                   </div>
