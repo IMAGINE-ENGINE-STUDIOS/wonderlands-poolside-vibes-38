@@ -93,21 +93,30 @@ export const ENCLOSURE_EXTRUSIONS: EnclosureExtrusionOption[] = [
   { id: '2x6-070', label: '2" x 6" — 0.070" wall', size: '2x6', wallIn: 0.07, pricePerSqFt: 6.5, maxSpanFt: 28, description: 'HVHZ / 2-story columns and long clear-span beams.' },
 ];
 
+/** Top-of-market screen fabrics offered by Florida enclosure builders */
 export const ENCLOSURE_SCREENS: EnclosureScreenOption[] = [
-  { id: 'fiberglass-1814', label: 'Standard Fiberglass 18/14', mesh: '18 x 14', pricePerSqFt: 0, description: 'Standard charcoal mesh — best airflow and visibility.' },
-  { id: 'no-see-um', label: 'No-See-Um 20/20', mesh: '20 x 20', pricePerSqFt: 1.25, description: 'Tight weave blocking sand flies and gnats; slightly reduced airflow.' },
-  { id: 'florida-glass', label: 'Florida Glass (privacy)', mesh: 'Vinyl laminate', pricePerSqFt: 2.75, description: 'Vinyl-coated privacy panel typically used on kick panels and house-side walls.' },
-  { id: 'super-screen', label: 'Super Screen (10-yr)', mesh: '17 x 14 vinyl-coated', pricePerSqFt: 2.25, description: 'Vinyl-coated polyester with 10-year warranty — high tear resistance.' },
-  { id: 'tuff-screen', label: 'TuffScreen / Pet Mesh', mesh: 'Heavy vinyl-coated', pricePerSqFt: 3.25, description: 'Pet and impact resistant mesh for door walls and dog runs.' },
-  { id: 'phifer-90', label: 'Phifer 90% Solar Shade', mesh: 'Solar fabric', pricePerSqFt: 3.75, description: 'Heat and glare reduction on west-facing walls.' },
+  { id: 'phifer-1814', label: 'Phifer 18/14 Pool & Patio', brand: 'Phifer', mesh: '18 x 14 fiberglass', pricePerSqFt: 0, warrantyYears: 5, description: 'Industry-standard charcoal fiberglass — best airflow and visibility, lowest cost.' },
+  { id: 'phifer-2020', label: 'Phifer No-See-Um 20/20', brand: 'Phifer', mesh: '20 x 20 fiberglass', pricePerSqFt: 1.25, warrantyYears: 5, description: 'Tight weave that blocks sand flies and gnats; slightly reduced airflow.' },
+  { id: 'phifer-bettervue', label: 'Phifer BetterVue', brand: 'Phifer', mesh: '18 x 16 micro-fiber', pricePerSqFt: 1.85, warrantyYears: 10, description: 'Finer yarn for noticeably clearer outward view and better airflow than standard mesh.' },
+  { id: 'phifer-ultravue2', label: 'Phifer UltraVue2', brand: 'Phifer', mesh: '20 x 21 micro-fiber', pricePerSqFt: 2.45, warrantyYears: 10, description: 'Premium high-clarity insect screen — the clearest view in the Phifer line.' },
+  { id: 'superscreen-plus', label: 'Super Screen Plus (Chatham)', brand: 'Chatham / Super Screen', mesh: '17 x 14 vinyl-coated polyester', pricePerSqFt: 2.25, warrantyYears: 10, description: 'Vinyl-coated polyester with a 10-year no-hole warranty — excellent tear resistance.' },
+  { id: 'superscreen-deluxe', label: 'Super Screen Deluxe 15-Yr', brand: 'Chatham / Super Screen', mesh: '18 x 14 heavy polyester', pricePerSqFt: 3.1, warrantyYears: 15, description: 'Heaviest Super Screen weave with a 15-year warranty for coastal and high-UV exposures.' },
+  { id: 'phifer-tuffscreen', label: 'Phifer TuffScreen / Pet Mesh', brand: 'Phifer', mesh: 'Heavy vinyl-coated polyester', pricePerSqFt: 3.25, warrantyYears: 10, description: 'Pet and impact resistant mesh for door walls, kick panels and dog runs.' },
+  { id: 'twitchell-textilene90', label: 'Twitchell Textilene 90 Solar', brand: 'Twitchell', mesh: '90% solar shade fabric', pricePerSqFt: 3.75, warrantyYears: 10, description: 'Blocks up to 90% of solar heat and glare — ideal on west and south walls.' },
+  { id: 'phifer-solar-insect', label: 'Phifer SunTex 80 Solar Insect', brand: 'Phifer', mesh: '80% solar / insect fabric', pricePerSqFt: 3.45, warrantyYears: 10, description: 'Dual-purpose solar shade and insect screen with strong wind and tear resistance.' },
+  { id: 'florida-glass', label: 'Florida Glass Privacy Laminate', brand: 'Phifer', mesh: 'Vinyl-laminated fiberglass', pricePerSqFt: 2.75, warrantyYears: 5, description: 'Opaque vinyl laminate used on kick panels and house-side privacy walls.' },
 ];
 
 export const ENCLOSURE_DOORS: EnclosureDoorOption[] = [
-  { id: 'single-36', label: 'Single Swing Door 36"', widthFt: 3, price: 585, barrierEligible: true, description: 'Standard access door — self-closing hinges and self-latching hardware available.' },
-  { id: 'double-72', label: 'Double Swing Door 6 ft', widthFt: 6, price: 1180, barrierEligible: true, description: 'Two leaves with drop rod for furniture and equipment access.' },
+  { id: 'single-36-sl', label: 'Self-Latching Single Swing Door 36"', widthFt: 3, price: 760, barrierEligible: true, selfLatching: true, description: 'Code-ready barrier door: self-closing hinges, self-latching release at 54" AFG, outward swing.' },
+  { id: 'double-72-sl', label: 'Self-Latching Double Swing Door 6 ft', widthFt: 6, price: 1495, barrierEligible: true, selfLatching: true, description: 'Two self-closing leaves with drop rod and self-latching hardware for equipment access.' },
+  { id: 'single-42-sl', label: 'Self-Latching Wide Door 42" (ADA-friendly)', widthFt: 3.5, price: 940, barrierEligible: true, selfLatching: true, description: 'Wider clear opening with self-closing hinges, self-latching lever and key lock.' },
+  { id: 'single-36', label: 'Single Swing Door 36" (standard hinge)', widthFt: 3, price: 585, barrierEligible: true, description: 'Standard swing door — requires the self-closing / self-latching kit to serve as the barrier.' },
+  { id: 'double-72', label: 'Double Swing Door 6 ft (standard hinge)', widthFt: 6, price: 1180, barrierEligible: true, description: 'Two leaves with drop rod; add the self-latching kit for barrier compliance.' },
   { id: 'sliding-72', label: 'Sliding Screen Door 6 ft', widthFt: 6, price: 890, barrierEligible: false, description: 'Sliding panel — cannot be used as the pool-barrier access point.' },
   { id: 'pet-door', label: 'Pet Door Panel', widthFt: 1, price: 320, barrierEligible: false, description: 'Framed pet panel with lockable flap. Not permitted in a barrier wall.' },
 ];
+
 
 export const ENCLOSURE_ADDONS: EnclosureAddOnOption[] = [
   { id: 'self-closing', label: 'Self-Closing / Self-Latching Door Kit (per door)', pricing: 'each', price: 175, description: 'Latch mounted min. 54" above the deck, door swings outward away from the pool.', codeRequired: true },
