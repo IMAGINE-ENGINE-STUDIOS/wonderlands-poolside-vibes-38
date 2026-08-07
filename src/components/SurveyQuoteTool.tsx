@@ -262,7 +262,7 @@ const SurveyQuoteTool = ({
     return () => {
       delete document.body.dataset.quoteOpen;
     };
-  }, [isOpen]);
+  }, [isOpen, user?.id]);
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
