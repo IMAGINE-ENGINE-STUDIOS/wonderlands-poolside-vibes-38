@@ -85,8 +85,10 @@ const App = () => {
     <AuthProvider>
       <ProjectTypeProvider>
           <AIAssistantProvider>
+            <ScrollRestoration />
             <RightNavigation />
             <AIAssistantChat />
+
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />
