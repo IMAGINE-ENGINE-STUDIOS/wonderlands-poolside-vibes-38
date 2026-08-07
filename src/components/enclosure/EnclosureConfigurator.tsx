@@ -34,7 +34,7 @@ interface Props {
   onTotalChange?: (total: number, summary: { areaSqFt: number; perimeterFt: number; description: string }) => void;
 }
 
-const emptyLayout: EnclosureLayout = { points: [], closed: false, segmentKinds: {} };
+const emptyLayout: EnclosureLayout = { points: [], closed: false, features: {} };
 
 const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
   const [config, setConfig] = React.useState<EnclosureConfigState>({
