@@ -68,16 +68,28 @@ interface SurveyData {
   deckWidth: string;
 }
 const SurveyQuoteTool = ({
-  pool,
+  pool: poolProp,
   isOpen,
   onClose,
-  customProduct,
-  extras
+  customProduct: customProductProp,
+  extras: extrasProp
 }: SurveyQuoteToolProps) => {
   const {
     user
   } = useAuth();
   const navigate = useNavigate();
+
+  // Restored snapshot (from the quote gallery) overrides incoming props
+  const [restored, setRestored] = useState<SavedQuoteSnapshot | null>(null);
+  const pool = restored ? restored.pool : poolProp;
+  const customProduct = restored ? restored.customProduct : customProductProp;
+  const extras = restored ? restored.extras : extrasProp;
+
+  // Quote gallery state
+  const [showGallery, setShowGallery] = useState(false);
+  const [savedQuotes, setSavedQuotes] = useState<SavedQuoteSnapshot[]>([]);
+  const [currentQuoteId, setCurrentQuoteId] = useState<string | null>(null);
+
   
   // Debug: Log all received props when component opens
   useEffect(() => {
