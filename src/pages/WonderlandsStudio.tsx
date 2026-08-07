@@ -2760,8 +2760,15 @@ const WonderlandsStudio = () => {
                                   onChange={(e) =>
                                     setSelectedExtras((prev: any) => ({ ...prev, artificialGrassArea: e.target.value }))
                                   }
-                                  className="h-9"
+                                  className="h-9 mb-2"
                                 />
+                                {selectedExtras.artificialGrassArea &&
+                                  !isNaN(parseFloat(selectedExtras.artificialGrassArea)) &&
+                                  parseFloat(selectedExtras.artificialGrassArea) > 0 && (
+                                    <div className="text-xs text-green-600 font-medium">
+                                      Calculated Cost: ${calculateGrassCost(selectedExtras.artificialGrassArea, selectedExtras.artificialGrassColor).toLocaleString()} ({selectedExtras.artificialGrassArea} sq ft × ${getGrassPricePerSqFt(selectedExtras.artificialGrassColor)}/sq ft)
+                                    </div>
+                                  )}
                               </div>
                             </div>
                           )}
