@@ -516,7 +516,14 @@ export function estimateEnclosure(config: EnclosureConfigState) {
 
   const pricePerSqFt = area > 0 ? Math.round((sellPrice / area) * 100) / 100 : 0;
   const costPerSqFt = area > 0 ? Math.round((directCost / area) * 100) / 100 : 0;
-  const market = M.marketRangePerSqFt;
+  // Fixed soft costs (drawings, permits, mobilization) push small jobs to a higher $/sq ft,
+  // so the Florida market band is scaled by footprint before judging competitiveness.
+  const market = area > 0
+    ? {
+        low: Math.round((M.marketRangePerSqFt.low + 4500 / area) * 10) / 10,
+        high: Math.round((M.marketRangePerSqFt.high + 9000 / area) * 10) / 10,
+      }
+    : M.marketRangePerSqFt;
   const competitiveness: 'below' | 'competitive' | 'above' =
     pricePerSqFt === 0 ? 'competitive' : pricePerSqFt < market.low ? 'below' : pricePerSqFt > market.high ? 'above' : 'competitive';
 
