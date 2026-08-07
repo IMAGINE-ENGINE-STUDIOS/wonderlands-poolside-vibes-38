@@ -235,7 +235,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Screen mesh</Label>
+              <Label className="text-xs">Screen fabric</Label>
               <Select value={config.screenId} onValueChange={v => setConfig(p => ({ ...p, screenId: v }))}>
                 <SelectTrigger className="h-9">
                   <SelectValue />
@@ -243,14 +243,21 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
                 <SelectContent>
                   {ENCLOSURE_SCREENS.map(s => (
                     <SelectItem key={s.id} value={s.id}>
-                      {s.label}
-                      {s.pricePerSqFt > 0 ? ` (+$${s.pricePerSqFt}/sq ft)` : ''}
+                      {s.brand} — {s.label}
+                      {s.pricePerSqFt > 0 ? ` (+$${s.pricePerSqFt}/sq ft)` : ' (included)'}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <p className="text-[11px] text-muted-foreground">{estimate.screen.description}</p>
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                <Badge variant="secondary" className="text-[10px]">{estimate.screen.mesh}</Badge>
+                {estimate.screen.warrantyYears && (
+                  <Badge variant="outline" className="text-[10px]">{estimate.screen.warrantyYears}-yr warranty</Badge>
+                )}
+              </div>
             </div>
+
           </div>
 
           <Separator />
