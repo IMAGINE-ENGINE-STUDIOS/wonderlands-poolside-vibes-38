@@ -531,14 +531,16 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
   const clear = () => onChange({ points: [], closed: false, features: {} });
 
   const preset = (w: number, d: number) => {
-    const ox = 60;
-    const oy = 60;
+    const widthPx = w * PX_PER_FT;
+    const depthPx = d * PX_PER_FT;
+    const ox = Math.round((size.w - widthPx) / 2 / PX_PER_FT) * PX_PER_FT;
+    const oy = Math.round((size.h - depthPx) / 2 / PX_PER_FT) * PX_PER_FT;
     onChange({
       points: [
         { x: ox, y: oy },
-        { x: ox + w * PX_PER_FT, y: oy },
-        { x: ox + w * PX_PER_FT, y: oy + d * PX_PER_FT },
-        { x: ox, y: oy + d * PX_PER_FT },
+        { x: ox + widthPx, y: oy },
+        { x: ox + widthPx, y: oy + depthPx },
+        { x: ox, y: oy + depthPx },
       ],
       closed: true,
       features: { 0: [{ kind: 'house', start: 0, end: 1 }] },
