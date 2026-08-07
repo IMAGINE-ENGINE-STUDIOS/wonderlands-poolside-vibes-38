@@ -50,6 +50,8 @@ import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
+import FenceConfigurator from '@/components/fence/FenceConfigurator';
+
 import { artificialGrassOptions, PRICE_PER_SQFT as GRASS_PRICE_PER_SQFT, getGrassPricePerSqFt, calculateGrassCost } from '@/data/artificialGrassData';
 import { landscapingPlants } from '@/data/landscapingData';
 import { drivewayGates } from '@/data/drivewayGates';
