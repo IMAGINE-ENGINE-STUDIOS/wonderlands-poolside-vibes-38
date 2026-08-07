@@ -251,6 +251,11 @@ const SurveyQuoteTool = ({
       setEditableQuoteAmount(0);
       // Reset custom items when dialog opens
       setCustomItems([]);
+      // Fresh session: drop any previously restored snapshot
+      setRestored(null);
+      setCurrentQuoteId(null);
+      setSavedQuotes(listSavedQuotes(user?.id));
+
     } else {
       delete document.body.dataset.quoteOpen;
     }
