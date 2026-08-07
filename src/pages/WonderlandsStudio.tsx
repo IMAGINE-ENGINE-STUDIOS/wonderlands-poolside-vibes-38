@@ -49,7 +49,7 @@ import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
-import { artificialGrassOptions, PRICE_PER_SQFT as GRASS_PRICE_PER_SQFT } from '@/data/artificialGrassData';
+import { artificialGrassOptions, PRICE_PER_SQFT as GRASS_PRICE_PER_SQFT, getGrassPricePerSqFt, calculateGrassCost } from '@/data/artificialGrassData';
 import { landscapingPlants } from '@/data/landscapingData';
 import { drivewayGates } from '@/data/drivewayGates';
 
@@ -873,7 +873,7 @@ const WonderlandsStudio = () => {
         products = artificialGrassOptions.map(grass => ({
           name: grass.name,
           model: grass.name,
-          price: GRASS_PRICE_PER_SQFT,
+          price: getGrassPricePerSqFt(grass.name),
           image: grass.image,
           category: 'per sq ft'
         }));
@@ -1028,7 +1028,7 @@ const WonderlandsStudio = () => {
 
       // Add artificial grass if selected
       if (selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea))) {
-        total += parseFloat(selectedExtras.artificialGrassArea) * GRASS_PRICE_PER_SQFT;
+        total += calculateGrassCost(selectedExtras.artificialGrassArea, selectedExtras.artificialGrassColor);
       }
     }
 
@@ -1307,8 +1307,8 @@ const WonderlandsStudio = () => {
       const grassArea = parseFloat(selectedExtras.artificialGrassArea);
       const grassOption = artificialGrassOptions.find(g => g.name === selectedExtras.artificialGrassColor);
       extrasBreakdown.push({
-        name: `Artificial Grass - ${selectedExtras.artificialGrassColor} (${grassArea} sq ft)`,
-        price: grassArea * GRASS_PRICE_PER_SQFT,
+        name: `Artificial Grass - ${selectedExtras.artificialGrassColor} (${grassArea} sq ft @ $${getGrassPricePerSqFt(selectedExtras.artificialGrassColor)}/sqft)`,
+        price: calculateGrassCost(grassArea, selectedExtras.artificialGrassColor),
         image: grassOption?.image || ''
       });
     }
@@ -1479,7 +1479,7 @@ const WonderlandsStudio = () => {
       const grassArea = parseFloat(selectedExtras.artificialGrassArea);
       extrasArray.push({
         name: `Artificial Grass - ${selectedExtras.artificialGrassColor} (${grassArea} sq ft)`,
-        price: grassArea * GRASS_PRICE_PER_SQFT
+        price: calculateGrassCost(grassArea, selectedExtras.artificialGrassColor)
       });
     }
     const cartItem = {
@@ -2713,8 +2713,8 @@ const WonderlandsStudio = () => {
                               />
                               <span className="text-sm font-semibold">
                                 Artificial Grass (+${(
-                                  selectedExtras.artificialGrass && !isNaN(parseFloat(selectedExtras.artificialGrassArea))
-                                    ? parseFloat(selectedExtras.artificialGrassArea) * GRASS_PRICE_PER_SQFT
+                                  selectedExtras.artificialGrass
+                                    ? calculateGrassCost(selectedExtras.artificialGrassArea, selectedExtras.artificialGrassColor)
                                     : 0
                                 ).toLocaleString()})
                               </span>
@@ -2741,7 +2741,7 @@ const WonderlandsStudio = () => {
                                         </div>
                                         <div className="flex flex-col gap-0.5">
                                           <p className="text-xs font-medium text-center truncate">{grass.name}</p>
-                                          <p className="text-xs text-primary font-semibold text-center">${GRASS_PRICE_PER_SQFT}/sq ft</p>
+                                          <p className="text-xs text-primary font-semibold text-center">${getGrassPricePerSqFt(grass.name)}/sq ft</p>
                                         </div>
                                       </div>
                                     </CarouselItem>
@@ -2760,8 +2760,15 @@ const WonderlandsStudio = () => {
                                   onChange={(e) =>
                                     setSelectedExtras((prev: any) => ({ ...prev, artificialGrassArea: e.target.value }))
                                   }
-                                  className="h-9"
+                                  className="h-9 mb-2"
                                 />
+                                {selectedExtras.artificialGrassArea &&
+                                  !isNaN(parseFloat(selectedExtras.artificialGrassArea)) &&
+                                  parseFloat(selectedExtras.artificialGrassArea) > 0 && (
+                                    <div className="text-xs text-green-600 font-medium">
+                                      Calculated Cost: ${calculateGrassCost(selectedExtras.artificialGrassArea, selectedExtras.artificialGrassColor).toLocaleString()} ({selectedExtras.artificialGrassArea} sq ft × ${getGrassPricePerSqFt(selectedExtras.artificialGrassColor)}/sq ft)
+                                    </div>
+                                  )}
                               </div>
                             </div>
                           )}
