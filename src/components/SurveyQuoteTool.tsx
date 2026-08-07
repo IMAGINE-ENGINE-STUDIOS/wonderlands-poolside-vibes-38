@@ -2683,9 +2683,21 @@ const SurveyQuoteTool = ({
 
         {/* Quote File Gallery — portaled to body so it always centers in the viewport */}
         {showGallery && createPortal(
-          <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 no-print print:hidden">
+          <div
+            className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 no-print print:hidden"
+            style={{ pointerEvents: 'auto' }}
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            onMouseDownCapture={(e) => e.stopPropagation()}
+            onFocusCapture={(e) => e.stopPropagation()}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowGallery(false); }}
+          >
 
-            <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <Card
+              className="w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
+              style={{ pointerEvents: 'auto' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <div>
                   <CardTitle className="flex items-center gap-2">
