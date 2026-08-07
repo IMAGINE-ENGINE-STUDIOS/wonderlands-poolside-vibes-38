@@ -1,5 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
+import ScrollRestoration from "@/components/ScrollRestoration";
+
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
 
@@ -85,8 +87,10 @@ const App = () => {
     <AuthProvider>
       <ProjectTypeProvider>
           <AIAssistantProvider>
+            <ScrollRestoration />
             <RightNavigation />
             <AIAssistantChat />
+
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />
