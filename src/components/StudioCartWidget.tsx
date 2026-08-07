@@ -274,49 +274,62 @@ const StudioCartWidget = ({
                       Features
                     </p>
                     {currentExtras.map((extra, idx) => (
-                      <div
-                        key={`${extra.key || extra.name}-${idx}`}
-                        className="flex items-center justify-between gap-2"
-                      >
-                        <span className="text-[11px] truncate">{extra.name}</span>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {typeof extra.quantity === 'number' && onCurrentExtraQuantity && (
-                            <div className="flex items-center gap-0.5">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-5 w-5 p-0"
-                                onClick={() => onCurrentExtraQuantity(extra.key, (extra.quantity || 0) - 1)}
+                      <div key={`${extra.key || extra.name}-${idx}`} className="space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] truncate">{extra.name}</span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {typeof extra.quantity === 'number' && onCurrentExtraQuantity && (
+                              <div className="flex items-center gap-0.5">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-5 w-5 p-0"
+                                  onClick={() => onCurrentExtraQuantity(extra.key, (extra.quantity || 0) - 1)}
+                                >
+                                  <Minus className="h-2.5 w-2.5" />
+                                </Button>
+                                <span className="w-4 text-center text-[10px] font-medium">
+                                  {extra.quantity}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-5 w-5 p-0"
+                                  onClick={() => onCurrentExtraQuantity(extra.key, (extra.quantity || 0) + 1)}
+                                >
+                                  <Plus className="h-2.5 w-2.5" />
+                                </Button>
+                              </div>
+                            )}
+                            <span className="text-[11px] font-medium">
+                              ${extra.price.toLocaleString()}
+                            </span>
+                            {onRemoveCurrentExtra && (
+                              <button
+                                type="button"
+                                onClick={() => onRemoveCurrentExtra(extra.key)}
+                                className="text-muted-foreground hover:text-destructive"
+                                aria-label={`Remove ${extra.name}`}
                               >
-                                <Minus className="h-2.5 w-2.5" />
-                              </Button>
-                              <span className="w-4 text-center text-[10px] font-medium">
-                                {extra.quantity}
-                              </span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-5 w-5 p-0"
-                                onClick={() => onCurrentExtraQuantity(extra.key, (extra.quantity || 0) + 1)}
-                              >
-                                <Plus className="h-2.5 w-2.5" />
-                              </Button>
-                            </div>
-                          )}
-                          <span className="text-[11px] font-medium">
-                            ${extra.price.toLocaleString()}
-                          </span>
-                          {onRemoveCurrentExtra && (
-                            <button
-                              type="button"
-                              onClick={() => onRemoveCurrentExtra(extra.key)}
-                              className="text-muted-foreground hover:text-destructive"
-                              aria-label={`Remove ${extra.name}`}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          )}
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
                         </div>
+                        {extra.options && extra.options.length > 1 && onCurrentExtraOption && (
+                          <select
+                            value={extra.name}
+                            onChange={event => onCurrentExtraOption(extra.key, event.target.value)}
+                            className="w-full h-6 rounded border bg-background text-foreground text-[10px] px-1"
+                            aria-label={`Change ${extra.name}`}
+                          >
+                            {extra.options.map(option => (
+                              <option key={option.name} value={option.name}>
+                                {option.name} — ${option.price.toLocaleString()}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </div>
                     ))}
                   </div>
