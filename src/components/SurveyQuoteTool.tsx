@@ -17,6 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
+import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSnapshot } from "@/components/quote/quoteGallery";
+
 import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
