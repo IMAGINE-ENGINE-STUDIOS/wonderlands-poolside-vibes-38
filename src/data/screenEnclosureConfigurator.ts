@@ -217,6 +217,9 @@ export interface EnclosureConfigState {
   hvhz: boolean;
   isPoolBarrier: boolean;
   screenBottomGapIn: number;
+  /** Contractor business inputs */
+  overheadPct?: number;
+  targetMarginPct?: number;
 }
 
 export const DEFAULT_ENCLOSURE_CONFIG: EnclosureConfigState = {
@@ -240,6 +243,8 @@ export const DEFAULT_ENCLOSURE_CONFIG: EnclosureConfigState = {
   hvhz: false,
   isPoolBarrier: true,
   screenBottomGapIn: 0,
+  overheadPct: ENCLOSURE_COST_MODEL.defaultOverheadPct,
+  targetMarginPct: ENCLOSURE_COST_MODEL.defaultTargetMarginPct,
 };
 
 /** Velocity pressure (psf) — simplified ASCE 7 qh for open screen structures */
@@ -438,7 +443,7 @@ export function estimateEnclosure(config: EnclosureConfigState) {
   // ---------- General conditions ----------
   const insurance = (materialSubtotal + laborSubtotal) * M.insuranceRate;
   const warrantyReserve = (materialSubtotal + laborSubtotal) * M.warrantyReserveRate;
-  const equipment = area * (twoStory ? M.equipmentPerSqFtTwoStory : M.equipmentPerSqFtTwoStory && M.equipmentPerSqFt);
+  const equipment = area * (twoStory ? M.equipmentPerSqFtTwoStory : M.equipmentPerSqFt);
   if (area > 0) {
     push('General Conditions', 'Dumpster & disposal', 'Roll-off, haul-off and tipping fees', M.dumpster);
     push('General Conditions', 'Lifts, scaffold & small tools', `${area.toLocaleString()} sq ft footprint`, equipment);
