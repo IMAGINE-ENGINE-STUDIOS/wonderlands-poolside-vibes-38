@@ -311,10 +311,10 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
 
     // Pool Equipment and Accessories
     const equipmentData = [
-      { id: 'gas-heater', name: 'Natural Gas Pool Heater', category: 'Heater', price: 3500, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'gas', 'heating'] },
-      { id: 'electric-heater', name: 'Electric Pool Heater', category: 'Heater', price: 2800, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'electric', 'heating'] },
-      { id: 'heat-pump', name: 'Heat Pump Pool Heater', category: 'Heater', price: 4200, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'heat pump', 'heating'] },
-      { id: 'solar-heater', name: 'Solar Pool Heater', category: 'Heater', price: 5000, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'solar', 'heating'] }
+      { id: 'gas-heater', name: 'Natural Gas Pool Heater', category: 'Heater', price: 5250, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'gas', 'heating'] },
+      { id: 'electric-heater', name: 'Electric Pool Heater', category: 'Heater', price: 4200, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'electric', 'heating'] },
+      { id: 'heat-pump', name: 'Heat Pump Pool Heater', category: 'Heater', price: 6300, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'heat pump', 'heating'] },
+      { id: 'solar-heater', name: 'Solar Pool Heater', category: 'Heater', price: 7500, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'solar', 'heating'] }
     ];
 
     // Pool Covers

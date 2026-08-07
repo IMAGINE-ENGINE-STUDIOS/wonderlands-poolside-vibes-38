@@ -35,42 +35,42 @@ const HeaterSizeCalculator = ({ onSelectHeater, currentSelection }: HeaterSizeCa
     { 
       model: 'Pentair MasterTemp 125 (125K BTU)', 
       btu: 125000, 
-      price: 2300,
+      price: 3450,
       poolSize: { min: 0, max: 15000 },
       description: 'Compact high-efficiency gas heater for pools up to 15,000 gallons'
     },
     { 
       model: 'Pentair MasterTemp 250 (250K BTU)', 
       btu: 250000, 
-      price: 3680,
+      price: 5520,
       poolSize: { min: 15000, max: 30000 },
       description: 'Mid-size high-performance gas heater for medium pools'
     },
     { 
       model: 'Pentair MasterTemp 400 (400K BTU)', 
       btu: 400000, 
-      price: 4830,
+      price: 7245,
       poolSize: { min: 30000, max: 50000 },
       description: 'High-capacity gas heater for large pools and quick heating'
     },
     { 
       model: 'Pentair UltraTemp 90 Heat Pump', 
       btu: 90000, 
-      price: 5175,
+      price: 7762,
       poolSize: { min: 0, max: 20000 },
       description: 'Energy-efficient heat pump for pools up to 20,000 gallons'
     },
     { 
       model: 'Pentair UltraTemp 110 Heat Pump', 
       btu: 110000, 
-      price: 6325,
+      price: 9488,
       poolSize: { min: 20000, max: 35000 },
       description: 'High-efficiency heat pump for medium to large pools'
     },
     { 
       model: 'Pentair UltraTemp 140 Heat Pump', 
       btu: 140000, 
-      price: 7475,
+      price: 11212,
       poolSize: { min: 35000, max: 50000 },
       description: 'Premium heat pump for large pools with maximum efficiency'
     }

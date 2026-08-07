@@ -65,22 +65,22 @@ const spas: FeatureOption[] = [
 ];
 
 const poolHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2300, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 3680, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 4830, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 5175, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 110 Heat Pump', price: 6325, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 140 Heat Pump', price: 7475, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 5520, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 7245, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 110 Heat Pump', price: 9488, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 140 Heat Pump', price: 11212, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
 ];
 
 const spaHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2300, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 5175, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
 ];
 
 const ledgeHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2300, image: azureBlueFinish },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 5175, image: azureBlueFinish }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: azureBlueFinish },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: azureBlueFinish }
 ];
 
 const finishOptions: FeatureOption[] = getProductsByCategory('finish').map(finish => ({
