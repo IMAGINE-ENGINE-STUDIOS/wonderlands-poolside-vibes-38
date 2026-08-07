@@ -403,6 +403,45 @@ const getProductUnit = (product: any): 'sqft' | 'linear-ft' | null => {
 };
 const unitLabel = (unit: 'sqft' | 'linear-ft') => (unit === 'sqft' ? 'sq ft' : 'linear ft');
 
+// Real product categories (Pools, Spas, Saunas, ...) — never pricing tiers like "premium"
+const CATEGORY_LABELS: Record<string, string> = {
+  pools: 'Pool',
+  pool: 'Pool',
+  spas: 'Spa',
+  spa: 'Spa',
+  'tanning-ledges': 'Tanning Ledge',
+  'tanning-ledge': 'Tanning Ledge',
+  saunas: 'Sauna',
+  sauna: 'Sauna',
+  'screen-enclosures': 'Screen Enclosure',
+  'screen-enclosure': 'Screen Enclosure',
+  'patio-fencing': 'Patio Fencing',
+  fencing: 'Patio Fencing',
+  lanai: 'Lanai',
+  pavers: 'Pavers',
+  paver: 'Pavers',
+  'artificial-grass': 'Artificial Grass',
+  grass: 'Artificial Grass',
+  landscaping: 'Landscaping',
+  covers: 'Cover',
+  cover: 'Cover',
+  'driveway-gates': 'Driveway Gate',
+  gate: 'Driveway Gate',
+  finishes: 'Finish',
+  finish: 'Finish',
+  liners: 'Liner',
+  liner: 'Liner',
+  scenes: 'Scene'
+};
+const getProductCategoryLabel = (product: any, activeTab?: string): string => {
+  if (!product) return activeTab ? CATEGORY_LABELS[activeTab] || '' : '';
+  const type = String(product.type || '').toLowerCase();
+  if (CATEGORY_LABELS[type]) return CATEGORY_LABELS[type];
+  const cat = String(product.category || '').toLowerCase();
+  if (CATEGORY_LABELS[cat]) return CATEGORY_LABELS[cat];
+  return (activeTab && CATEGORY_LABELS[activeTab]) || '';
+};
+
 const WonderlandsStudio = () => {
   const {
     addToCart
