@@ -672,9 +672,6 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
           </TabsContent>
         ))}
       </Tabs>
-          </TabsContent>
-        ))}
-      </Tabs>
       </TabsContent>
     </Tabs>
 
