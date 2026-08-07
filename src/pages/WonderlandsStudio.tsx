@@ -2096,7 +2096,17 @@ const WonderlandsStudio = () => {
                       // grass, landscaping, covers, driveway gates, finishes, liners):
                       // only their own relevant options — no pool features here.
                       <>
-                        {(() => {
+                        {selectedProduct.type === 'fencing' ? (
+                          <FenceConfigurator
+                            onTotalChange={(total, summary) =>
+                              setSelectedExtras((prev: any) =>
+                                prev.fenceTotal === total && prev.categoryQuantity === String(summary.linearFt)
+                                  ? prev
+                                  : { ...prev, fenceTotal: total, categoryQuantity: String(summary.linearFt) }
+                              )
+                            }
+                          />
+                        ) : (() => {
                           const unit = getProductUnit(selectedProduct);
                           if (!unit) return null;
                           const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
@@ -2121,6 +2131,7 @@ const WonderlandsStudio = () => {
                             </div>
                           );
                         })()}
+
 
                         {getProductFeatures((selectedProduct.type || 'paver') as any).length > 0 && (
                           <DynamicFeatureRenderer
