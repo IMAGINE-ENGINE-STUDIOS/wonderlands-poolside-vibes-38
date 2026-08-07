@@ -1740,6 +1740,31 @@ const WonderlandsStudio = () => {
       description: `${cartItem.name} has been added to your cart.`
     });
   };
+
+  // Real-time sync: if the product being configured is already in the shopping list,
+  // every feature change (added, removed, swapped) updates the cart item instantly.
+  const currentCartId = selectedProduct
+    ? `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`
+    : null;
+  const liveExtras = selectedProduct ? buildCurrentExtras() : [];
+  const liveTotal = selectedProduct
+    ? (activeTab === 'build-a-pool' && poolBuilderData
+        ? (poolBuilderData.breakdown?.total || 0)
+        : calculateTotalPrice())
+    : 0;
+  const liveExtrasKey = JSON.stringify(liveExtras);
+
+  useEffect(() => {
+    if (!currentCartId) return;
+    if (!cartItems.some(item => item.id === currentCartId)) return;
+    const extras = JSON.parse(liveExtrasKey) as typeof liveExtras;
+    const basePrice = Math.max(
+      0,
+      liveTotal - extras.reduce((sum, e) => sum + (e.price || 0), 0)
+    );
+    syncItemConfig(currentCartId, { price: basePrice, extras });
+  }, [currentCartId, liveExtrasKey, liveTotal, cartItems, syncItemConfig]);
+
   return <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* Compact Header */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
