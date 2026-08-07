@@ -1529,6 +1529,17 @@ const WonderlandsStudio = () => {
     setSelectedExtras((prev: any) => ({ ...prev, jets: true, jetQuantity: quantity }));
   };
 
+  const handleAddProductToCart = (product: any) => {
+    addToCart({
+      id: `${product.type}_${product.model || product.name}`,
+      name: product.model || product.name || 'Product',
+      price: getProductPrice(product),
+      image: product.image,
+      category: product.category,
+      extras: [],
+    } as any);
+  };
+
   const handleAddToCart = () => {
     if (!selectedProduct) return;
     const extrasArray = buildCurrentExtras();
@@ -1690,6 +1701,17 @@ const WonderlandsStudio = () => {
                                 {product.category}
                               </Badge>
                             </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddProductToCart(product);
+                              }}
+                              aria-label={`Add ${product.model || product.name} to cart`}
+                              className="shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
                           </div>
                         </div>)}
                     </div>
@@ -1797,6 +1819,14 @@ const WonderlandsStudio = () => {
                               )}
                             </div>
                           </div>
+                          <button
+                            type="button"
+                            onClick={handleAddToCart}
+                            aria-label={`Add ${selectedProduct.model || selectedProduct.name} to cart`}
+                            className="shrink-0 h-11 w-11 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-md"
+                          >
+                            <Plus className="h-5 w-5" />
+                          </button>
                         </div>
 
                         {/* Product Description */}
