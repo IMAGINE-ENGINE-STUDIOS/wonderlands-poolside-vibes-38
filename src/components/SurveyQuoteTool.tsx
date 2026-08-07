@@ -1433,22 +1433,42 @@ const SurveyQuoteTool = ({
                             className="ml-2 px-2 py-1 border rounded"
                           />
                         ) : surveyData.email}</p>
-                        <p><span className="font-medium">Phone:</span> {isEditMode ? (
-                          <input
-                            type="text"
-                            value={surveyData.phone}
-                            onChange={(e) => setSurveyData({...surveyData, phone: e.target.value})}
-                            className="ml-2 px-2 py-1 border rounded"
-                          />
-                        ) : surveyData.phone}</p>
-                        <p><span className="font-medium">Property Address:</span> {isEditMode ? (
-                          <input
-                            type="text"
-                            value={surveyData.address}
-                            onChange={(e) => setSurveyData({...surveyData, address: e.target.value})}
-                            className="ml-2 px-2 py-1 border rounded w-full"
-                          />
-                        ) : surveyData.address}</p>
+                        {(isEditMode || surveyData.phone) && (
+                          <p><span className="font-medium">Phone:</span> {isEditMode ? (
+                            <input
+                              type="text"
+                              value={surveyData.phone}
+                              onChange={(e) => setSurveyData({...surveyData, phone: e.target.value})}
+                              className="ml-2 px-2 py-1 border rounded"
+                            />
+                          ) : surveyData.phone}</p>
+                        )}
+                        {(isEditMode || surveyData.address) && (
+                          <p><span className="font-medium">Property Address:</span> {isEditMode ? (
+                            <input
+                              type="text"
+                              value={surveyData.address}
+                              onChange={(e) => setSurveyData({...surveyData, address: e.target.value})}
+                              className="ml-2 px-2 py-1 border rounded w-full"
+                            />
+                          ) : surveyData.address}</p>
+                        )}
+                        {[
+                          { label: 'Backyard Size', value: surveyData.yardSize },
+                          { label: 'Project Timeline', value: surveyData.timeline },
+                          { label: 'Soil Type', value: surveyData.soilType },
+                          { label: 'Budget Range', value: surveyData.budget },
+                          { label: 'Access Width', value: surveyData.accessWidth },
+                          { label: 'Utility Lines', value: surveyData.utilityLines },
+                        ].filter(r => r.value).map(r => (
+                          <p key={r.label}><span className="font-medium">{r.label}:</span> {r.value}</p>
+                        ))}
+                        {surveyData.specialRequests && (
+                          <p><span className="font-medium">Special Requests:</span> {surveyData.specialRequests}</p>
+                        )}
+                        {(surveyDocs.length > 0 || backyardPhotoNames.length > 0) && (
+                          <p><span className="font-medium">Attachments:</span> {[...surveyDocs.map(f => f.name), ...backyardPhotoNames].join(', ')}</p>
+                        )}
                       </div>
                     </div>
                     <div>
