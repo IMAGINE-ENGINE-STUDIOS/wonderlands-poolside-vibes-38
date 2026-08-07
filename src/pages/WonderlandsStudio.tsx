@@ -1747,7 +1747,7 @@ const WonderlandsStudio = () => {
                     </div>
 
 
-                    {!shoppingListOpen && <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
+                    <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
                       {getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${(product.model && selectedProduct?.model === product.model) || (product.name && selectedProduct?.name === product.name) ? 'border-primary bg-primary/10 shadow-sm' : 'border-border hover:border-primary/50'}`} onClick={() => {
                     setSelectedProduct(product);
                     // Reset extras to default for this product type
@@ -1784,7 +1784,7 @@ const WonderlandsStudio = () => {
                             </button>
                           </div>
                         </div>)}
-                    </div>}
+                    </div>
 
                   </Tabs>
                 </CardContent>
