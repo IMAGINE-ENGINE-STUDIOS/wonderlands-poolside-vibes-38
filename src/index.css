@@ -341,3 +341,59 @@
 .dark .quote-force-light [class*="dark:border-gray"] {
   border-color: rgb(229 231 235) !important;
 }
+/* ============ Glassmorphic proposal surfaces ============ */
+.glass-panel {
+  background: linear-gradient(
+    140deg,
+    hsl(var(--card) / 0.62) 0%,
+    hsl(var(--card) / 0.34) 100%
+  );
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid hsl(var(--border) / 0.6);
+  box-shadow:
+    0 1px 0 0 hsl(var(--background) / 0.35) inset,
+    0 18px 45px -22px hsl(var(--primary) / 0.28);
+}
+
+.glass-panel-soft {
+  background: hsl(var(--card) / 0.35);
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+  border: 1px solid hsl(var(--border) / 0.45);
+}
+
+.glass-tile {
+  background: hsl(var(--muted) / 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid hsl(var(--border) / 0.4);
+}
+
+.glass-tile-active {
+  background: hsl(var(--primary) / 0.12);
+  border-color: hsl(var(--primary) / 0.55);
+  box-shadow: 0 8px 24px -14px hsl(var(--primary) / 0.5);
+}
+
+.quote-sheet {
+  background:
+    radial-gradient(120% 80% at 0% 0%, hsl(var(--primary) / 0.07), transparent 60%),
+    radial-gradient(100% 70% at 100% 0%, hsl(var(--accent) / 0.08), transparent 55%),
+    hsl(var(--card) / 0.4);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid hsl(var(--border) / 0.6);
+}
+
+.quote-rule {
+  height: 1px;
+  background: linear-gradient(90deg, hsl(var(--border) / 0.9), hsl(var(--border) / 0.15));
+}
+
+.quote-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}

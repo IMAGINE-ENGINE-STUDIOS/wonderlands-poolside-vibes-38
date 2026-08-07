@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle2, HardHat, Stamp, Ruler, Minus, Plus, Info, Printer } from 'lucide-react';
@@ -142,26 +141,50 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
       addOns: prev.addOns.includes(id) ? prev.addOns.filter(a => a !== id) : [...prev.addOns, id],
     }));
 
-  return (
-    <Tabs defaultValue="customer" className="w-full space-y-5">
-      <TabsList className="grid grid-cols-2 w-full">
-        <TabsTrigger value="customer" className="text-xs">
-          <Ruler className="h-3.5 w-3.5 mr-1" /> Customer Tools
-        </TabsTrigger>
-        <TabsTrigger value="pro" className="text-xs">
-          <HardHat className="h-3.5 w-3.5 mr-1" /> Contractor &amp; Project Tools
-        </TabsTrigger>
-      </TabsList>
+  const typeLabel = ENCLOSURE_TYPES.find(t => t.id === config.typeId)?.label || 'Screen Enclosure';
 
-      <TabsContent value="customer" className="space-y-5 mt-0">
+  return (
+    <Tabs defaultValue="customer" className="w-full space-y-6">
+      {/* Proposal header */}
+      <div className="quote-sheet rounded-2xl px-5 py-5 sm:px-7 sm:py-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="quote-eyebrow">Wonderlands World • Screen Enclosure Proposal</p>
+            <h3 className="mt-1.5 text-xl sm:text-2xl font-semibold tracking-tight truncate">{typeLabel}</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Turnkey design, engineering, permitting and installation — prepared for your property in Florida.
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="quote-eyebrow">Estimated investment</p>
+            <p className="text-2xl sm:text-3xl font-semibold tracking-tight">
+              ${estimate.total.toLocaleString()}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {config.areaSqFt ? `${config.areaSqFt.toLocaleString()} sq ft • $${estimate.pricePerSqFt.toFixed(2)}/sq ft` : 'Draw or enter an area'}
+            </p>
+          </div>
+        </div>
+        <div className="quote-rule my-4" />
+        <TabsList className="grid grid-cols-2 w-full glass-tile p-1 h-auto">
+          <TabsTrigger value="customer" className="text-xs py-2">
+            <Ruler className="h-3.5 w-3.5 mr-1" /> Your Proposal
+          </TabsTrigger>
+          <TabsTrigger value="pro" className="text-xs py-2">
+            <HardHat className="h-3.5 w-3.5 mr-1" /> Contractor &amp; Project Tools
+          </TabsTrigger>
+        </TabsList>
+      </div>
+
+      <TabsContent value="customer" className="space-y-6 mt-0">
       {/* Take-off board */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
+      <section className="glass-panel rounded-2xl p-5 space-y-4">
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h4 className="text-sm font-semibold flex items-center gap-2">
-                <Ruler className="h-4 w-4 text-primary" /> 2D Enclosure Take-Off (Top View)
+              <p className="quote-eyebrow">Section 01</p>
+              <h4 className="text-sm font-semibold flex items-center gap-2 mt-1">
+                <Ruler className="h-4 w-4 text-primary" /> Footprint &amp; Measurements
               </h4>
               <p className="text-xs text-muted-foreground">
                 Draw the enclosure footprint at 10 px = 1 ft, then tag door bays and the house-attached wall.
@@ -175,7 +198,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
                   min={0}
                   value={manualArea}
                   onChange={e => setManualArea(e.target.value)}
-                  className="w-32 h-9"
+                  className="w-32 h-9 glass-tile"
                   placeholder="e.g. 620"
                 />
               </div>
@@ -185,13 +208,14 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
             </div>
           </div>
           <EnclosureDrawingBoard layout={layout} onChange={setLayout} onMeasure={handleMeasure} />
-        </CardContent>
-      </Card>
+      </section>
 
       {/* Structure configuration */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
-          <h4 className="text-sm font-semibold">Structure & Materials</h4>
+      <section className="glass-panel rounded-2xl p-5 space-y-4">
+          <div>
+            <p className="quote-eyebrow">Section 02</p>
+            <h4 className="text-sm font-semibold mt-1">Structure &amp; Materials</h4>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label className="text-xs">Enclosure type</Label>
@@ -353,14 +377,14 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div className="flex items-center justify-between rounded-xl glass-tile p-3">
               <div>
                 <p className="text-sm font-medium">HVHZ jurisdiction</p>
                 <p className="text-[11px] text-muted-foreground">Miami-Dade / Broward — NOA approved assemblies</p>
               </div>
               <Switch checked={config.hvhz} onCheckedChange={v => setConfig(p => ({ ...p, hvhz: v }))} />
             </div>
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div className="flex items-center justify-between rounded-xl glass-tile p-3">
               <div>
                 <p className="text-sm font-medium">Enclosure is the pool barrier</p>
                 <p className="text-[11px] text-muted-foreground">Applies FBC-R R4501.17 barrier checks</p>
@@ -368,16 +392,17 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
               <Switch checked={config.isPoolBarrier} onCheckedChange={v => setConfig(p => ({ ...p, isPoolBarrier: v }))} />
             </div>
           </div>
-        </CardContent>
-      </Card>
+      </section>
 
       {/* Doors + add-ons */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
-          <h4 className="text-sm font-semibold">Doors & Hardware</h4>
+      <section className="glass-panel rounded-2xl p-5 space-y-4">
+          <div>
+            <p className="quote-eyebrow">Section 03</p>
+            <h4 className="text-sm font-semibold mt-1">Doors &amp; Hardware</h4>
+          </div>
           <div className="space-y-2">
             {ENCLOSURE_DOORS.map(door => (
-              <div key={door.id} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+              <div key={door.id} className="flex items-center justify-between gap-3 rounded-xl glass-tile p-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium flex flex-wrap items-center gap-2">
                     {door.label}
@@ -407,16 +432,16 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
             ))}
           </div>
 
-          <Separator />
-          <h4 className="text-sm font-semibold">Add-Ons & Site Work</h4>
+          <div className="quote-rule" />
+          <h4 className="text-sm font-semibold">Add-Ons &amp; Site Work</h4>
           <div className="grid gap-2 sm:grid-cols-2">
             {ENCLOSURE_ADDONS.map(addon => (
               <button
                 key={addon.id}
                 type="button"
                 onClick={() => toggleAddOn(addon.id)}
-                className={`text-left rounded-md border p-3 transition-colors ${
-                  config.addOns.includes(addon.id) ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
+                className={`text-left rounded-xl p-3 transition-all duration-200 glass-tile hover:-translate-y-0.5 ${
+                  config.addOns.includes(addon.id) ? 'glass-tile-active' : ''
                 }`}
               >
                 <p className="text-sm font-medium flex items-center gap-2">
@@ -433,52 +458,60 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
               </button>
             ))}
           </div>
-        </CardContent>
-      </Card>
-
+      </section>
 
       {/* Estimate */}
-      <Card>
-        <CardContent className="pt-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold">Customer Price — Turnkey Installed</h4>
+      <section className="quote-sheet rounded-2xl p-5 sm:p-7 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="quote-eyebrow">Section 04</p>
+              <h4 className="text-base font-semibold mt-1">Investment Summary — Turnkey Installed</h4>
+            </div>
             <Button size="sm" variant="outline" onClick={() => window.print()}>
-              <Printer className="h-3.5 w-3.5 mr-1" /> Print spec sheet
+              <Printer className="h-3.5 w-3.5 mr-1" /> Print proposal
             </Button>
           </div>
           {estimate.lines.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Draw or enter the enclosure area to generate the estimate.</p>
+            <p className="text-sm text-muted-foreground">Draw or enter the enclosure area to generate your proposal.</p>
           ) : (
-            <div className="space-y-1.5">
-              {estimate.lines.map((line, i) => (
-                <div key={i} className="flex items-start justify-between gap-3 text-sm">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{line.label}</p>
-                    <p className="text-[11px] text-muted-foreground">{line.detail}</p>
+            <div className="space-y-3">
+              <div className="rounded-xl glass-panel-soft overflow-hidden">
+                {estimate.lines.map((line, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start justify-between gap-3 px-4 py-2.5 text-sm border-b border-border/40 last:border-0"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{line.label}</p>
+                      <p className="text-[11px] text-muted-foreground">{line.detail}</p>
+                    </div>
+                    <span className="font-semibold shrink-0 tabular-nums">${line.amount.toLocaleString()}</span>
                   </div>
-                  <span className="font-semibold shrink-0">${line.amount.toLocaleString()}</span>
-                </div>
-              ))}
-              <Separator />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Contract Total</span>
-                <span className="text-lg font-bold">${estimate.total.toLocaleString()}</span>
+                ))}
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                ${estimate.pricePerSqFt.toFixed(2)}/sq ft installed — includes materials, freight, installation labor,
-                parts, engineered drawings, permit fees and inspections. Florida market range for this scope is $
-                {estimate.marketRange.low}–${estimate.marketRange.high}/sq ft.
+              <div className="flex items-end justify-between rounded-xl glass-tile px-4 py-3">
+                <div>
+                  <p className="quote-eyebrow">Contract total</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {config.areaSqFt.toLocaleString()} sq ft • ${estimate.pricePerSqFt.toFixed(2)}/sq ft installed
+                  </p>
+                </div>
+                <span className="text-2xl font-semibold tracking-tight tabular-nums">
+                  ${estimate.total.toLocaleString()}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Includes materials, freight, installation labor, parts, engineered drawings, permit fees and inspections.
+                Florida market range for this scope is ${estimate.marketRange.low}–${estimate.marketRange.high}/sq ft.
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </section>
       </TabsContent>
 
       <TabsContent value="pro" className="space-y-5 mt-0">
       {/* Compliance */}
-      <Card>
-        <CardContent className="pt-5 space-y-3">
+      <section className="glass-panel rounded-2xl p-5 space-y-3">
           <h4 className="text-sm font-semibold flex items-center gap-2">
             <Stamp className="h-4 w-4 text-primary" /> Florida Code Review
           </h4>
@@ -489,7 +522,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
           ) : (
             <div className="space-y-2">
               {[...errors, ...warnings, ...notes].map((issue, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-md border border-border p-2.5">
+                <div key={i} className="flex items-start gap-2 rounded-xl glass-tile p-2.5">
                   {issue.level === 'error' ? (
                     <AlertTriangle className="h-4 w-4 mt-0.5 text-destructive shrink-0" />
                   ) : issue.level === 'warning' ? (
@@ -509,13 +542,10 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
             Design pressure {pressure} psf • {config.windSpeedMph} mph • Exposure {config.exposure}
             {config.hvhz ? ' • HVHZ' : ''}
           </p>
-        </CardContent>
-      </Card>
+      </section>
 
       {/* Contractor cost model */}
-
-      <Card>
-        <CardContent className="pt-5 space-y-4">
+      <section className="glass-panel rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-semibold">Contractor Cost Model (internal)</h4>
             {estimate.total > 0 && (
@@ -576,16 +606,16 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
                   </div>
                 ))}
               </div>
-              <Separator />
+              <div className="quote-rule" />
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {Object.entries(estimate.categoryTotals).map(([cat, amt]) => (
-                  <div key={cat} className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1">
+                  <div key={cat} className="flex items-center justify-between rounded-lg glass-tile px-2 py-1">
                     <span className="text-muted-foreground">{cat}</span>
                     <span className="font-semibold">${amt.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
-              <Separator />
+              <div className="quote-rule" />
               <div className="space-y-1 text-sm">
                 <div className="flex items-center justify-between">
                   <span>Direct job cost</span>
@@ -613,35 +643,31 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
               </p>
             </>
           )}
-        </CardContent>
-      </Card>
-
+      </section>
 
       {/* Spec sheets */}
-      <Tabs defaultValue="installer" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="installer" className="text-xs">
+      <Tabs defaultValue="installer" className="w-full space-y-3">
+        <TabsList className="grid grid-cols-3 w-full glass-tile p-1 h-auto">
+          <TabsTrigger value="installer" className="text-xs py-2">
             <HardHat className="h-3.5 w-3.5 mr-1" /> Installer
           </TabsTrigger>
-          <TabsTrigger value="architect" className="text-xs">
+          <TabsTrigger value="architect" className="text-xs py-2">
             <Ruler className="h-3.5 w-3.5 mr-1" /> Architect / Engineer
           </TabsTrigger>
-          <TabsTrigger value="permit" className="text-xs">
+          <TabsTrigger value="permit" className="text-xs py-2">
             <Stamp className="h-3.5 w-3.5 mr-1" /> Permit
           </TabsTrigger>
         </TabsList>
         {(['installer', 'architect', 'permit'] as const).map(key => (
-          <TabsContent key={key} value={key}>
-            <Card>
-              <CardContent className="pt-5 space-y-2">
+          <TabsContent key={key} value={key} className="mt-0">
+            <div className="glass-panel rounded-2xl p-5 space-y-2">
                 {spec[key].map((row, i) => (
-                  <div key={i} className="grid grid-cols-[minmax(0,140px)_1fr] gap-3 text-xs border-b border-border/60 pb-1.5 last:border-0">
+                  <div key={i} className="grid grid-cols-[minmax(0,140px)_1fr] gap-3 text-xs border-b border-border/40 pb-1.5 last:border-0">
                     <span className="font-semibold">{row.label}</span>
                     <span className="text-muted-foreground">{row.value}</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+            </div>
           </TabsContent>
         ))}
       </Tabs>
