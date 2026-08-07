@@ -2531,17 +2531,52 @@ const SurveyQuoteTool = ({
                         <Settings className="h-4 w-4 mr-1" />
                         Options
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleOpenGallery}
+                        className="text-sm ml-auto"
+                      >
+                        <FolderOpen className="h-4 w-4 mr-1" />
+                        Quote Gallery{savedQuotes.length ? ` (${savedQuotes.length})` : ''}
+                      </Button>
                     </div>
                   ) : (
-                    <Button 
-                      size="sm"
-                      onClick={handleSaveEditedQuote}
-                      className="bg-green-500 hover:bg-green-600 text-white shadow-md"
-                    >
-                      <FileText className="h-4 w-4 mr-1" />
-                      Save Changes
-                    </Button>
+                    <div className="flex items-center gap-2 w-full">
+                      <Button 
+                        size="sm"
+                        onClick={handleSaveEditedQuote}
+                        className="bg-green-500 hover:bg-green-600 text-white shadow-md"
+                      >
+                        <Printer className="h-4 w-4 mr-1" />
+                        Save Changes & Print
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const saved = persistCurrentQuote(false);
+                          toast({
+                            title: saved ? 'Saved to Gallery' : 'Save failed',
+                            description: saved ? 'This quote can be reopened and modified later.' : 'Local storage is full.',
+                            variant: saved ? undefined : 'destructive'
+                          });
+                        }}
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        Save as New
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsEditMode(false)}
+                        className="text-gray-500"
+                      >
+                        Back to Quote
+                      </Button>
+                    </div>
                   )}
+
                 </div>
                 
                 {/* Main Actions Grid */}
