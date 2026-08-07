@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
 import StripeCheckoutButton from '@/components/StripeCheckoutButton';
-import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, Plus as PlusIcon } from 'lucide-react';
+import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, X, Plus as PlusIcon } from 'lucide-react';
 
 interface StudioCartWidgetProps {
   /** Price of the configuration currently open in the studio (not yet in the cart) */
@@ -43,6 +43,7 @@ const StudioCartWidget = ({
     getDuplicateCategories,
     removeFromCart,
     updateQuantity,
+    removeExtra,
     clearCart,
   } = useShoppingCart();
 
@@ -84,7 +85,7 @@ const StudioCartWidget = ({
           </button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="start" className="w-[19rem] p-0 bg-popover z-50">
+        <DropdownMenuContent align="start" className="w-[19rem] p-0 bg-popover text-popover-foreground border shadow-xl z-50 backdrop-blur-none opacity-100">
           <div className="flex items-center justify-between px-3 py-2 border-b">
             <span className="text-sm font-semibold">Shopping List</span>
             {cartItems.length > 0 && (
@@ -103,7 +104,7 @@ const StudioCartWidget = ({
             </div>
           )}
 
-          <div className="max-h-64 overflow-y-auto divide-y">
+          <div className="max-h-80 overflow-y-auto divide-y bg-popover">
             {cartItems.map(item => {
               const flagged = duplicates.includes(item.category || 'Other');
               return (
@@ -133,6 +134,34 @@ const StudioCartWidget = ({
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
+                  {item.extras && item.extras.length > 0 && (
+                    <div className="rounded-md bg-muted/60 border p-1.5 space-y-1">
+                      <p className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                        Features
+                      </p>
+                      {item.extras.map((extra, idx) => (
+                        <div
+                          key={`${item.id}-${extra.name}-${idx}`}
+                          className="flex items-center justify-between gap-2"
+                        >
+                          <span className="text-[11px] truncate">{extra.name}</span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[11px] font-medium">
+                              ${extra.price.toLocaleString()}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeExtra(item.id, idx)}
+                              className="text-muted-foreground hover:text-destructive"
+                              aria-label={`Remove ${extra.name}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <Button
@@ -162,7 +191,7 @@ const StudioCartWidget = ({
             })}
 
             {pendingPrice > 0 && (
-              <div className="p-3 space-y-1.5 bg-muted/40">
+              <div className="p-3 space-y-1.5 bg-muted">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs font-semibold truncate">{currentName || 'Current configuration'}</p>

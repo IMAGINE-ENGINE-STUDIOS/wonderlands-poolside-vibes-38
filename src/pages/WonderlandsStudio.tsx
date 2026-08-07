@@ -1486,7 +1486,10 @@ const WonderlandsStudio = () => {
     const cartItem = {
       id: `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`,
       name: selectedProduct.model || selectedProduct.name || 'Product',
-      price: calculateTotalPrice(),
+      price: Math.max(
+        0,
+        calculateTotalPrice() - extrasArray.reduce((sum, e) => sum + (e.price || 0), 0)
+      ),
       quantity: 1,
       image: selectedProduct.image,
       category: selectedProduct.category,
