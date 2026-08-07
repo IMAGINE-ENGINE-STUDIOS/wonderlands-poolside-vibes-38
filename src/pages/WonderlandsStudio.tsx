@@ -1638,6 +1638,76 @@ const WonderlandsStudio = () => {
     setSelectedExtras((prev: any) => ({ ...prev, jets: true, jetQuantity: quantity }));
   };
 
+  /** Switches the selected option of a feature that is still being configured */
+  const handleCurrentFeatureOption = (key: string | undefined, optionName: string) => {
+    if (!key) return;
+    const startsWith = (prefix: string) => optionName.startsWith(prefix);
+    switch (key) {
+      case 'finish': {
+        const match = finishOptions.find(f => `${f.name} Finish` === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, finish: match.name }));
+        break;
+      }
+      case 'heater': {
+        const match = poolHeaters.find(h => h.name === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, heater: true, heaterModel: match.name }));
+        break;
+      }
+      case 'cover': {
+        const match = coverOptions.find(c => c.name === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, cover: true, coverOption: match.name }));
+        break;
+      }
+      case 'tiles': {
+        const match = tileOptions.find(t => t.name === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, tiles: true, tileOption: match.name }));
+        break;
+      }
+      case 'liner': {
+        const match = linerOptions.find(o => startsWith(`${o.name} Liner`));
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, liner: true, linerOption: match.name }));
+        break;
+      }
+      case 'pavers': {
+        const match = paverOptions.find(p => startsWith(`${p.name} (`));
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, pavers: true, paverOption: match.name }));
+        break;
+      }
+      case 'screenEnclosure': {
+        const quality = optionName.includes('Wonder Cage')
+          ? 'standard'
+          : optionName.includes('Deluxe')
+            ? 'deluxe'
+            : 'premium';
+        setSelectedExtras((prev: any) => ({ ...prev, screenEnclosure: true, screenEnclosureQuality: quality }));
+        break;
+      }
+      case 'spa': {
+        const match = [...spas, ...gilmerSpas].find((s: any) => `${s.model} Spa` === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, spa: true, spaModel: (match as any).model }));
+        break;
+      }
+      case 'tanningLedge': {
+        const match = tanningLedges.find((l: any) => `${l.name} Tanning Ledge` === optionName);
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, tanningLedge: true, tanningLedgeModel: (match as any).name }));
+        break;
+      }
+      case 'rockyWaterfall': {
+        const match = rockyWaterfallTiers.find(t => optionName.includes(t.name));
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, rockyWaterfall: true, rockyWaterfallTier: match.name }));
+        break;
+      }
+      case 'artificialGrass': {
+        const match = artificialGrassOptions.find((g: any) => optionName.includes(`- ${g.name} (`));
+        if (match) setSelectedExtras((prev: any) => ({ ...prev, artificialGrass: true, artificialGrassColor: (match as any).name }));
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
+
   const handleAddProductToCart = (product: any) => {
     addToCart({
       id: `${product.type}_${product.model || product.name}`,
