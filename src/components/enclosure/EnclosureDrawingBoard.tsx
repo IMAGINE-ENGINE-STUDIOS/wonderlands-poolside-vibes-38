@@ -380,26 +380,35 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
     const seg = segments.find(s => s.index === segIndex);
     if (!seg) return;
     const segFt = dist(seg.a, seg.b) / PX_PER_FT;
-    const halfFt = kind === 'door' ? Math.min(DEFAULT_DOOR_FT / 2, segFt / 2) : segFt / 2;
-    const halfT = halfFt / Math.max(segFt, 0.001);
-    let start = Math.max(0, t - halfT);
-    let end = Math.min(1, t + halfT);
-    // if a door is too close to an end, nudge it inside so it stays a door-sized bay
-    if (kind === 'door') {
-      const doorFt = (end - start) * segFt;
-      if (doorFt < DEFAULT_DOOR_FT && segFt >= DEFAULT_DOOR_FT) {
-        const missing = (DEFAULT_DOOR_FT - doorFt) / segFt / 2;
+    const next: Record<number, EnclosureFeature[]> = { ...layout.features };
+    const list = [...(next[segIndex] || [])];
+
+    if (kind === 'house') {
+      // House walls always span the whole segment; click again to remove.
+      const existing = list.findIndex(f => f.kind === 'house');
+      if (existing >= 0) {
+        list.splice(existing, 1);
+      } else {
+        list.push({ kind: 'house', start: 0, end: 1 });
+      }
+    } else {
+      // Doors are 3 ft bays centered on the click.
+      const halfFt = Math.min(DEFAULT_DOOR_FT / 2, segFt / 2);
+      const halfT = halfFt / Math.max(segFt, 0.001);
+      let start = Math.max(0, t - halfT);
+      let end = Math.min(1, t + halfT);
+      // Nudge door-sized bays away from segment ends when possible
+      if ((end - start) * segFt < DEFAULT_DOOR_FT && segFt >= DEFAULT_DOOR_FT) {
+        const missing = (DEFAULT_DOOR_FT - (end - start) * segFt) / segFt / 2;
         if (start === 0) end = Math.min(1, end + missing * 2);
         else if (end === 1) start = Math.max(0, start - missing * 2);
       }
-    }
-    const next: Record<number, EnclosureFeature[]> = { ...layout.features };
-    const list = [...(next[segIndex] || [])];
-    const existing = list.findIndex(f => f.kind === kind && Math.abs((f.start + f.end) / 2 - t) < 0.15);
-    if (existing >= 0) {
-      list.splice(existing, 1);
-    } else {
-      list.push({ kind, start, end });
+      const existing = list.findIndex(f => f.kind === 'door' && Math.abs((f.start + f.end) / 2 - t) < 0.15);
+      if (existing >= 0) {
+        list.splice(existing, 1);
+      } else {
+        list.push({ kind: 'door', start, end });
+      }
     }
     if (list.length === 0) delete next[segIndex];
     else next[segIndex] = list;
