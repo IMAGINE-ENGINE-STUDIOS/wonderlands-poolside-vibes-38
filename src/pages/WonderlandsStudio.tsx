@@ -1613,7 +1613,9 @@ const WonderlandsStudio = () => {
                   onCurrentExtraQuantity={handleCurrentFeatureQuantity}
                   onAddCurrent={selectedProduct ? handleAddToCart : undefined}
                   onQuote={handleQuoteRequest}
+                  onListOpenChange={setShoppingListOpen}
                 />
+
 
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
