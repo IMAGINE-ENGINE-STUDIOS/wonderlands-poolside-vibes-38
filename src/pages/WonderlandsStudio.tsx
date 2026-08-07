@@ -51,6 +51,8 @@ import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
 import FenceConfigurator from '@/components/fence/FenceConfigurator';
+import EnclosureConfigurator from '@/components/enclosure/EnclosureConfigurator';
+
 
 import { artificialGrassOptions, PRICE_PER_SQFT as GRASS_PRICE_PER_SQFT, getGrassPricePerSqFt, calculateGrassCost } from '@/data/artificialGrassData';
 import { landscapingPlants } from '@/data/landscapingData';
@@ -962,7 +964,11 @@ const WonderlandsStudio = () => {
       if (productType === 'fencing') {
         // Fence pricing comes from the advanced Florida-code configurator
         total = parseFloat(selectedExtras.fenceTotal) || 0;
+      } else if (productType === 'screen-enclosure') {
+        // Screen enclosure pricing comes from the professional enclosure configurator
+        total = parseFloat(selectedExtras.enclosureTotal) || 0;
       } else if (unit) {
+
         const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
         total = getProductPrice(selectedProduct) * qty;
       }
@@ -2112,7 +2118,19 @@ const WonderlandsStudio = () => {
                               )
                             }
                           />
+                        ) : selectedProduct.type === 'screen-enclosure' ? (
+                          <EnclosureConfigurator
+                            baseRatePerSqFt={getProductPrice(selectedProduct)}
+                            onTotalChange={(total, summary) =>
+                              setSelectedExtras((prev: any) =>
+                                prev.enclosureTotal === total && prev.categoryQuantity === String(summary.areaSqFt)
+                                  ? prev
+                                  : { ...prev, enclosureTotal: total, categoryQuantity: String(summary.areaSqFt) }
+                              )
+                            }
+                          />
                         ) : (() => {
+
                           const unit = getProductUnit(selectedProduct);
                           if (!unit) return null;
                           const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
