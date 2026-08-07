@@ -964,7 +964,11 @@ const WonderlandsStudio = () => {
       if (productType === 'fencing') {
         // Fence pricing comes from the advanced Florida-code configurator
         total = parseFloat(selectedExtras.fenceTotal) || 0;
+      } else if (productType === 'screen-enclosure') {
+        // Screen enclosure pricing comes from the professional enclosure configurator
+        total = parseFloat(selectedExtras.enclosureTotal) || 0;
       } else if (unit) {
+
         const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
         total = getProductPrice(selectedProduct) * qty;
       }
