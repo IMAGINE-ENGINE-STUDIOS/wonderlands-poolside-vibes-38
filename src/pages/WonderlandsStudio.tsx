@@ -1915,9 +1915,9 @@ const WonderlandsStudio = () => {
                               ${getProductPrice(selectedProduct).toLocaleString()}
                             </p>
                             <div className="flex flex-wrap gap-2 mt-2">
-                              <Badge className={getCategoryColor(selectedProduct.category)}>
-                                {selectedProduct.category}
-                              </Badge>
+                              {getProductCategoryLabel(selectedProduct, activeTab) && <Badge className="bg-gradient-to-r from-primary to-teal">
+                                {getProductCategoryLabel(selectedProduct, activeTab)}
+                              </Badge>}
                               {selectedProduct.dimensions && <Badge variant="outline">{selectedProduct.dimensions}</Badge>}
                               {selectedProduct.depth && <Badge variant="outline">Depth: {selectedProduct.depth}</Badge>}
                               {selectedProduct.warrantyYears && (
