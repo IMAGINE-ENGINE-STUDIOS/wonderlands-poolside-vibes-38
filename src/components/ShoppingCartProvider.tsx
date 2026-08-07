@@ -11,6 +11,9 @@ interface ShoppingCartContextType {
   updateQuantity: (id: string, quantity: number) => void;
   /** Removes a single feature/extra from a cart item */
   removeExtra: (id: string, extraIndex: number) => void;
+  /** Replaces a feature/extra selection (name + price) on a cart item */
+  updateExtra: (id: string, extraIndex: number, next: { name: string; price: number }) => void;
+
   clearCart: () => void;
   getCartCount: () => number;
   getCartTotal: () => number;
