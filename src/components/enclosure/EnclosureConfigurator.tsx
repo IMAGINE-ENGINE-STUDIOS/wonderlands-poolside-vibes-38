@@ -140,25 +140,10 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
 
   /** Remove the last drawn door of a model (shopping list -> drawing) */
   const removeOneDrawnDoor = (doorTypeId: string) => {
-    const current = layoutRef.current;
-    const segKeys = Object.keys(current.features)
-      .map(Number)
-      .sort((a, b) => b - a);
-    for (const seg of segKeys) {
-      const list = current.features[seg] || [];
-      for (let i = list.length - 1; i >= 0; i--) {
-        const f = list[i];
-        if (f.kind !== 'door') continue;
-        if ((f.doorTypeId || 'single-36-sl') !== doorTypeId) continue;
-        const kept = list.filter((_, idx) => idx !== i);
-        const features = { ...current.features };
-        if (kept.length) features[seg] = kept;
-        else delete features[seg];
-        setLayout({ ...current, features });
-        return true;
-      }
-    }
-    return false;
+    const next = removeLastDrawnDoor(layoutRef.current, doorTypeId);
+    if (!next) return false;
+    setLayout(next);
+    return true;
   };
 
   const applyManual = () => {
