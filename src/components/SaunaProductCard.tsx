@@ -214,6 +214,21 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
           type: 'Sauna',
           image: sauna.image,
         }}
+        extras={{
+          productType: 'sauna',
+          extrasTotal,
+          totalPrice: getTotalSaunaPrice(),
+          extrasBreakdown: getProductFeatures('sauna')
+            .map(feature => {
+              const price = calculateFeaturePrice(feature, extras[feature.id], extras) * priceMultiplier;
+              if (price <= 0) return null;
+              const value = extras[feature.id];
+              const name =
+                feature.type === 'selection' ? `${feature.label} — ${value}` : feature.label;
+              return { name, price };
+            })
+            .filter(Boolean) as Array<{ name: string; price: number }>,
+        }}
         isOpen={showQuote}
         onClose={() => setShowQuote(false)}
       />
