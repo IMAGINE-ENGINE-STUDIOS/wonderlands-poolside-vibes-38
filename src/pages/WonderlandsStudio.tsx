@@ -1660,11 +1660,20 @@ const WonderlandsStudio = () => {
   };
 
   const handleRemoveCurrentFeature = (key?: string) => {
-    if (!key || !FEATURE_RESETS[key]) return;
+    if (!key) return;
+    if (key.startsWith('enc:')) {
+      enclosureApiRef.current?.removeElement(key.slice(4));
+      return;
+    }
+    if (!FEATURE_RESETS[key]) return;
     setSelectedExtras((prev: any) => ({ ...prev, ...FEATURE_RESETS[key] }));
   };
 
   const handleCurrentFeatureQuantity = (key: string | undefined, quantity: number) => {
+    if (key?.startsWith('enc:')) {
+      enclosureApiRef.current?.setElementQuantity(key.slice(4), Math.max(0, quantity));
+      return;
+    }
     if (key !== 'jets') return;
     if (quantity <= 0) {
       handleRemoveCurrentFeature('jets');
@@ -1676,6 +1685,12 @@ const WonderlandsStudio = () => {
   /** Switches the selected option of a feature that is still being configured */
   const handleCurrentFeatureOption = (key: string | undefined, optionName: string) => {
     if (!key) return;
+    if (key.startsWith('enc:')) {
+      const element = enclosureProject?.elements.find(el => `enc:${el.key}` === key);
+      const option = element?.options?.find(opt => opt.label === optionName);
+      if (option) enclosureApiRef.current?.setElementOption(element!.key, option.id);
+      return;
+    }
     const startsWith = (prefix: string) => optionName.startsWith(prefix);
     switch (key) {
       case 'finish': {
