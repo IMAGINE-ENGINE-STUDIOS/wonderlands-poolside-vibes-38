@@ -644,6 +644,7 @@ export function estimateEnclosure(config: EnclosureConfigState) {
 
   return {
     lines,
+    elements,
     total: sellPrice,
     costLines,
     categoryTotals,
