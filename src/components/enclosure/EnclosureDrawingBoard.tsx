@@ -87,7 +87,7 @@ export function migrateEnclosureLayout(layout: EnclosureLayout): EnclosureLayout
 }
 
 /** Top-view enclosure footprint board. Same drafting conventions as the 2D pool studio: 10px = 1 ft. */
-const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: Props) => {
+const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameColorHex }: Props) => {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapRef = React.useRef<HTMLDivElement | null>(null);
   const [mode, setMode] = React.useState<'draw' | 'select' | 'door' | 'house'>('draw');
