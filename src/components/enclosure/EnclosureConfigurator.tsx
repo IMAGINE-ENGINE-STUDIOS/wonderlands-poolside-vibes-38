@@ -26,11 +26,24 @@ import {
 
 const CACHE_KEY = 'wonderlands_enclosure_configurator_v1';
 
+export interface EnclosureEditApi {
+  /** Swap the selected option of an element (structure, roof, extrusion, screen, door) */
+  setElementOption: (key: string, optionId: string) => void;
+  /** Remove a removable element (door line, add-on) */
+  removeElement: (key: string) => void;
+  /** Set the quantity of a door element */
+  setElementQuantity: (key: string, quantity: number) => void;
+}
+
 interface Props {
   /** Catalog $/sq ft rate for the selected screen enclosure product */
   baseRatePerSqFt?: number;
   /** Reports the fully configured project total so the studio can price it */
   onTotalChange?: (total: number, summary: { areaSqFt: number; perimeterFt: number; description: string }) => void;
+  /** Reports the full, itemized project (elements, specs, compliance, footprint snapshot) */
+  onProjectChange?: (project: EnclosureProject) => void;
+  /** Exposes an imperative editing API so the cart can change the configuration */
+  onApiReady?: (api: EnclosureEditApi) => void;
 }
 
 const emptyLayout: EnclosureLayout = { points: [], closed: false, features: {} };
