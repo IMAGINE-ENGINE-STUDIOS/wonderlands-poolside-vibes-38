@@ -4,6 +4,8 @@ const { createContext, useContext, useState, useEffect } = React;
 import { useToast } from '@/hooks/use-toast';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import ShoppingCart, { CartItem } from './ShoppingCart';
+import { resolveCategoryLabel } from '@/lib/productCategories';
+
 
 interface ShoppingCartContextType {
   cartItems: CartItem[];
