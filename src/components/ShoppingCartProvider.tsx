@@ -56,8 +56,16 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
     localStorage.setItem('poolShoppingCart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
+  const addToCart = (incoming: Omit<CartItem, 'quantity'>) => {
+    // Categories are product families (Pools, Spas, Saunas...) — never pricing tiers
+    const item = {
+      ...incoming,
+      category:
+        resolveCategoryLabel(incoming.category, (incoming as any).type, incoming.id, incoming.name) ||
+        'Other',
+    };
     const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
+
     
     if (existingItem) {
       const updatedItems = cartItems.map(cartItem =>
