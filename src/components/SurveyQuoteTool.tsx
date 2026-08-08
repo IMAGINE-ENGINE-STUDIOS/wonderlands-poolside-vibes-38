@@ -519,7 +519,7 @@ const SurveyQuoteTool = ({
         'contact-email': prev['contact-email'] || 'sales@wonderlandsworld.com',
         'business-hours': prev['business-hours'] || 'Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM',
         'product-title': prev['product-title'] || (extras?.productType === 'lanai' ? 'Lanai Specifications' : pool ? 'Pool Specifications' : 'Product Details'),
-        'includes-title': prev['includes-title'] || (extras?.productType === 'lanai' ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'),
+        'includes-title': prev['includes-title'] || (extras?.productType === 'lanai' ? 'LANAI INCLUDES' : customProduct?.type === 'Sauna' ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE'),
         'includes-content': prev['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", "),
         'disclaimer': prev['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.',
         'total-title': prev['total-title'] || 'Total Investment',
@@ -2386,11 +2386,11 @@ const SurveyQuoteTool = ({
                           {isEditMode ? (
                             <input
                               type="text"
-                              value={editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE')}
+                              value={editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : isSaunaProduct ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE')}
                               onChange={(e) => setEditableTexts({...editableTexts, 'includes-title': e.target.value})}
                               className="bg-white border rounded px-2 py-1 w-full"
                             />
-                          ) : (editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'))}
+                          ) : (editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : isSaunaProduct ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE'))}
                         </h4>
                         {isLanaiProduct && lanaiIncludedFeatures.length > 0 ? (
                           <ul className="text-sm space-y-1">
