@@ -199,8 +199,12 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                 {feature.description && (
                   <p className="text-xs text-muted-foreground">{feature.description}</p>
                 )}
+                {!!feature.pricePerUnit && (
+                  <p className="text-xs font-semibold text-primary">{fmt(feature.pricePerUnit)} / sq ft</p>
+                )}
               </div>
               <div className="flex items-center gap-2">
+
                 <Input
                   type="number"
                   min={0}
