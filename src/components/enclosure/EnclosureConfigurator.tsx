@@ -49,13 +49,14 @@ interface Props {
 
 const emptyLayout: EnclosureLayout = { points: [], closed: false, features: {} };
 
-const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
+const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange, onApiReady }: Props) => {
   const [config, setConfig] = React.useState<EnclosureConfigState>({
     ...DEFAULT_ENCLOSURE_CONFIG,
     qualityRatePerSqFt: baseRatePerSqFt || DEFAULT_ENCLOSURE_CONFIG.qualityRatePerSqFt,
   });
   const [layout, setLayout] = React.useState<EnclosureLayout>(emptyLayout);
   const [manualArea, setManualArea] = React.useState('');
+  const [snapshot, setSnapshot] = React.useState<string | null>(null);
   const hydrated = React.useRef(false);
 
   React.useEffect(() => {
