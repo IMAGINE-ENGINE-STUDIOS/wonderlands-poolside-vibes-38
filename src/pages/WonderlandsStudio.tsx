@@ -390,8 +390,8 @@ const calculatePoolLinerArea = (dimensions: string | undefined): number => {
   const walls = 2 * (length + width) * 5; // avg 5ft depth
   return Math.round(floor + walls);
 };
-// Product types that use the full pool/spa feature set
-const WATER_PRODUCT_TYPES = ['pool', 'spa', 'tanning-ledge', 'sauna'];
+// Product types that use the full pool/spa feature set (saunas have their own set)
+const WATER_PRODUCT_TYPES = ['pool', 'spa', 'tanning-ledge'];
 const isWaterProduct = (type?: string): boolean => WATER_PRODUCT_TYPES.includes(type || 'pool');
 
 // Unit-priced categories (screen enclosures, fencing, lanai, pavers, grass, liners...)
@@ -1421,6 +1421,44 @@ const WonderlandsStudio = () => {
         }));
     }
 
+    // Saunas: every configured sauna option becomes its own editable cart line
+    if (selectedProduct.type === 'sauna') {
+      return getProductFeatures('sauna')
+        .map(feature => {
+          const value = selectedExtras[feature.id];
+          const price = calculateFeaturePrice(feature, value, selectedExtras);
+          if (feature.type === 'selection') {
+            if (!value || value === 'None' || value === '') return null;
+            return {
+              name: `${feature.label} — ${value}`,
+              price,
+              key: `dyn:${feature.id}`,
+              selectedOption: String(value),
+              options: feature.options?.map(opt => ({ name: opt.name, price: opt.price })),
+            };
+          }
+          if (feature.type === 'area') {
+            const area = parseFloat(value) || 0;
+            if (area <= 0) return null;
+            return {
+              name: `${feature.label} (${area.toLocaleString()} sq ft)`,
+              price,
+              key: `dyn:${feature.id}`,
+            };
+          }
+          if (feature.type === 'quantity') {
+            const qty = parseFloat(value) || 0;
+            if (qty <= 0) return null;
+            return { name: feature.label, price, key: `dyn:${feature.id}`, quantity: qty };
+          }
+          if (!value) return null;
+          return { name: feature.label, price, key: `dyn:${feature.id}` };
+        })
+        .filter(Boolean) as Array<{ name: string; price: number; key?: string }>;
+    }
+
+
+
     // Convert selectedExtras to the format expected by CartItem
     const extrasArray: Array<{ name: string; price: number; key?: string }> = [];
 
@@ -1659,10 +1697,23 @@ const WonderlandsStudio = () => {
     artificialGrass: { artificialGrass: false, artificialGrassArea: '' },
   };
 
+  /** Resets a dynamic (config-driven) feature such as the sauna options */
+  const resetDynamicFeature = (featureId: string) => {
+    const feature = getProductFeatures((selectedProduct?.type || 'sauna') as ProductType)
+      .find(f => f.id === featureId);
+    const cleared =
+      feature?.type === 'selection' ? 'None' : feature?.type === 'boolean' ? false : 0;
+    setSelectedExtras((prev: any) => ({ ...prev, [featureId]: cleared }));
+  };
+
   const handleRemoveCurrentFeature = (key?: string) => {
     if (!key) return;
     if (key.startsWith('enc:')) {
       enclosureApiRef.current?.removeElement(key.slice(4));
+      return;
+    }
+    if (key.startsWith('dyn:')) {
+      resetDynamicFeature(key.slice(4));
       return;
     }
     if (!FEATURE_RESETS[key]) return;
@@ -1672,6 +1723,15 @@ const WonderlandsStudio = () => {
   const handleCurrentFeatureQuantity = (key: string | undefined, quantity: number) => {
     if (key?.startsWith('enc:')) {
       enclosureApiRef.current?.setElementQuantity(key.slice(4), Math.max(0, quantity));
+      return;
+    }
+    if (key?.startsWith('dyn:')) {
+      const featureId = key.slice(4);
+      if (quantity <= 0) {
+        resetDynamicFeature(featureId);
+        return;
+      }
+      setSelectedExtras((prev: any) => ({ ...prev, [featureId]: quantity }));
       return;
     }
     if (key !== 'jets') return;
@@ -1689,6 +1749,10 @@ const WonderlandsStudio = () => {
       const element = enclosureProject?.elements.find(el => `enc:${el.key}` === key);
       const option = element?.options?.find(opt => opt.label === optionName);
       if (option) enclosureApiRef.current?.setElementOption(element!.key, option.id);
+      return;
+    }
+    if (key.startsWith('dyn:')) {
+      setSelectedExtras((prev: any) => ({ ...prev, [key.slice(4)]: optionName }));
       return;
     }
     const startsWith = (prefix: string) => optionName.startsWith(prefix);
@@ -2398,6 +2462,25 @@ const WonderlandsStudio = () => {
                             </div>
                           );
                         })()}
+
+                        {selectedProduct.type === 'sauna' && (
+                          <div className="bg-amber-50 dark:bg-amber-950/20 p-3 sm:p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+                            <h3 className="text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2 sm:mb-3">
+                              ✓ Included at No Extra Cost
+                            </h3>
+                            <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-amber-700 dark:text-amber-400">
+                              <span>• Kiln-dried wood construction & stainless hardware</span>
+                              <span>• Heater, sauna stones & control unit</span>
+                              <span>• Interior LED lighting</span>
+                              <span>• Ergonomic benches</span>
+                              <span>• Ventilation system</span>
+                              <span>• Delivery, permits & professional installation</span>
+                              <span>• {(selectedProduct as any).warranty || 'Structural warranty'}</span>
+                            </div>
+                          </div>
+                        )}
+
+
 
 
                         {getProductFeatures((selectedProduct.type || 'paver') as any).length > 0 &&

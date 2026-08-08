@@ -519,7 +519,7 @@ const SurveyQuoteTool = ({
         'contact-email': prev['contact-email'] || 'sales@wonderlandsworld.com',
         'business-hours': prev['business-hours'] || 'Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM',
         'product-title': prev['product-title'] || (extras?.productType === 'lanai' ? 'Lanai Specifications' : pool ? 'Pool Specifications' : 'Product Details'),
-        'includes-title': prev['includes-title'] || (extras?.productType === 'lanai' ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'),
+        'includes-title': prev['includes-title'] || (extras?.productType === 'lanai' ? 'LANAI INCLUDES' : customProduct?.type === 'Sauna' ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE'),
         'includes-content': prev['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", "),
         'disclaimer': prev['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.',
         'total-title': prev['total-title'] || 'Total Investment',
@@ -648,6 +648,7 @@ const SurveyQuoteTool = ({
     
     // Check if this is a lanai product
     const isLanaiProduct = extras?.productType === 'lanai';
+    const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
     
     // For lanai products, use the pre-calculated total price from LanaiSection
     if (isLanaiProduct && extras?.totalPrice) {
@@ -739,6 +740,17 @@ const SurveyQuoteTool = ({
     return totalArea; // enclosure covers entire footprint
   };
   const getIncludedItems = () => {
+    // Saunas ship with their own inclusions — no pool equipment or salt system
+    if (customProduct?.type === 'Sauna' || extras?.productType === 'sauna') {
+      return [
+        "Kiln-dried wood construction & stainless hardware",
+        "Heater, sauna stones & control unit",
+        "Interior LED lighting",
+        "Ergonomic benches",
+        "Ventilation system",
+        "Delivery, permits & professional installation",
+      ];
+    }
     return ["LED lights", "Pentair pool equipment", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
   };
   const saveQuotationToDatabase = async () => {
@@ -1542,6 +1554,7 @@ const SurveyQuoteTool = ({
                 {(() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
+                  const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
                   return (
                     <>
@@ -2353,6 +2366,7 @@ const SurveyQuoteTool = ({
                 {!hiddenSections.has('included-items') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
+                  const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   const lanaiIncludedFeatures = extras?.includedFeatures || [];
                   
                   if (!isPoolProduct && !isLanaiProduct) return null;
@@ -2375,11 +2389,11 @@ const SurveyQuoteTool = ({
                           {isEditMode ? (
                             <input
                               type="text"
-                              value={editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE')}
+                              value={editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : isSaunaProduct ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE')}
                               onChange={(e) => setEditableTexts({...editableTexts, 'includes-title': e.target.value})}
                               className="bg-white border rounded px-2 py-1 w-full"
                             />
-                          ) : (editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'))}
+                          ) : (editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : isSaunaProduct ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE'))}
                         </h4>
                         {isLanaiProduct && lanaiIncludedFeatures.length > 0 ? (
                           <ul className="text-sm space-y-1">
@@ -2418,6 +2432,7 @@ const SurveyQuoteTool = ({
                 {!hiddenSections.has('construction-details') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
+                  const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
                   if (!isPoolProduct || isLanaiProduct || !extras?.concreteConstruction) return null;
                   
@@ -2463,6 +2478,7 @@ const SurveyQuoteTool = ({
                 {!hiddenSections.has('warranty') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
+                  const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
                   if (!isPoolProduct || isLanaiProduct) return null;
                   
