@@ -1846,7 +1846,7 @@ const WonderlandsStudio = () => {
                   currentCategory={selectedProduct?.category}
                   currentExtras={selectedProduct ? buildCurrentExtras().map(e => ({
                     ...e,
-                    quantity: e.key === 'jets' ? selectedExtras.jetQuantity : undefined,
+                    quantity: e.key === 'jets' ? selectedExtras.jetQuantity : e.quantity,
                   })) : []}
                   onRemoveCurrentExtra={handleRemoveCurrentFeature}
                   onCurrentExtraQuantity={handleCurrentFeatureQuantity}
