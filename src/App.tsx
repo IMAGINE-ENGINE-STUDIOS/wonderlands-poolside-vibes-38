@@ -183,6 +183,7 @@ const App = () => {
             <Route path="/offer/:id" element={<OfferPage />} />
             <Route path="/design" element={<DesignProposals />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/blueprint-builder" element={<BlueprintBuilder />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
