@@ -1751,6 +1751,10 @@ const WonderlandsStudio = () => {
       if (option) enclosureApiRef.current?.setElementOption(element!.key, option.id);
       return;
     }
+    if (key.startsWith('dyn:')) {
+      setSelectedExtras((prev: any) => ({ ...prev, [key.slice(4)]: optionName }));
+      return;
+    }
     const startsWith = (prefix: string) => optionName.startsWith(prefix);
     switch (key) {
       case 'finish': {
