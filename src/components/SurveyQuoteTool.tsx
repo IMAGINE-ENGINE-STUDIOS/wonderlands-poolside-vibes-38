@@ -1376,10 +1376,10 @@ const SurveyQuoteTool = ({
                     <ImageCard src="/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
                     <div>
                       <h1 className="text-2xl font-bold">
-                        {extras?.productType === 'lanai' ? 'LANAI QUOTATION' : 'POOL QUOTATION'}
+                        {extras?.productType === 'lanai' ? 'LANAI QUOTATION' : extras?.enclosure ? 'SCREEN ENCLOSURE QUOTATION' : 'POOL QUOTATION'}
                       </h1>
                       <p className="text-orange-100">
-                        {extras?.productType === 'lanai' ? 'Your Dream Outdoor Living Space Awaits' : 'Your Dream Pool Awaits'}
+                        {extras?.productType === 'lanai' ? 'Your Dream Outdoor Living Space Awaits' : extras?.enclosure ? 'Engineered, Permitted & Installed in Florida' : 'Your Dream Pool Awaits'}
                       </p>
                     </div>
                   </div>
