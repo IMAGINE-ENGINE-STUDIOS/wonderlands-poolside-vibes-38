@@ -612,6 +612,11 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
           <div>
             <p className="quote-eyebrow">Section 03</p>
             <h4 className="text-sm font-semibold mt-1">Doors &amp; Hardware</h4>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {hasFootprint
+                ? 'Doors are linked to the plan — adding here drops one onto the longest free wall, and removing one erases it from the drawing (and vice versa).'
+                : 'Draw a footprint above to place doors directly on the plan.'}
+            </p>
           </div>
           <div className="space-y-2">
             {ENCLOSURE_DOORS.map(door => (
