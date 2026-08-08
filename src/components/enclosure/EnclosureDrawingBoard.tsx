@@ -123,6 +123,26 @@ export function removeDrawnDoorsOfType(layout: EnclosureLayout, doorTypeId: stri
   return { ...layout, features };
 }
 
+/** Remove the last drawn door of a model, or null when none is present */
+export function removeLastDrawnDoor(layout: EnclosureLayout, doorTypeId: string): EnclosureLayout | null {
+  const segKeys = Object.keys(layout.features || {})
+    .map(Number)
+    .sort((a, b) => b - a);
+  for (const seg of segKeys) {
+    const list = layout.features[seg] || [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const f = list[i];
+      if (f.kind !== 'door' || (f.doorTypeId || DEFAULT_DOOR_ID) !== doorTypeId) continue;
+      const kept = list.filter((_, idx) => idx !== i);
+      const features = { ...layout.features };
+      if (kept.length) features[seg] = kept;
+      else delete features[seg];
+      return { ...layout, features };
+    }
+  }
+  return null;
+}
+
 /** Swap every drawn door of one model to another (cart option change -> drawing) */
 export function swapDrawnDoorType(layout: EnclosureLayout, fromId: string, toId: string): EnclosureLayout {
   const from = doorById(fromId);
