@@ -257,6 +257,39 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
     manualDoorQty(id, delta);
   };
 
+  /** Set the exact number of doors of a model (batched against one layout copy) */
+  const setDoorCount = (id: string, quantity: number) => {
+    const current = layoutRef.current;
+    if (current.points.length < 2) {
+      setConfig(prev => {
+        const doors = { ...prev.doors };
+        if (quantity <= 0) delete doors[id];
+        else doors[id] = quantity;
+        return { ...prev, doors };
+      });
+      return;
+    }
+    let next: EnclosureLayout = current;
+    let have = countDrawnDoors(next)[id] || 0;
+    if (quantity <= 0) {
+      setLayout(removeDrawnDoorsOfType(next, id));
+      return;
+    }
+    while (have < quantity) {
+      const placed = addDoorToLongestWall(next, id);
+      if (!placed) break;
+      next = placed;
+      have += 1;
+    }
+    while (have > quantity) {
+      const trimmed = removeLastDrawnDoor(next, id);
+      if (!trimmed) break;
+      next = trimmed;
+      have -= 1;
+    }
+    if (next !== current) setLayout(next);
+  };
+
   /** Drop every door of a model from the plan and the list */
   const removeDoorType = (id: string) => {
     const current = layoutRef.current;
