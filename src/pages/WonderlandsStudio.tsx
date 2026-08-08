@@ -2463,6 +2463,25 @@ const WonderlandsStudio = () => {
                           );
                         })()}
 
+                        {selectedProduct.type === 'sauna' && (
+                          <div className="bg-amber-50 dark:bg-amber-950/20 p-3 sm:p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+                            <h3 className="text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2 sm:mb-3">
+                              ✓ Included at No Extra Cost
+                            </h3>
+                            <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-amber-700 dark:text-amber-400">
+                              <span>• Kiln-dried wood construction & stainless hardware</span>
+                              <span>• Heater, sauna stones & control unit</span>
+                              <span>• Interior LED lighting</span>
+                              <span>• Ergonomic benches</span>
+                              <span>• Ventilation system</span>
+                              <span>• Delivery, permits & professional installation</span>
+                              <span>• {selectedProduct.warranty || 'Structural warranty'}</span>
+                            </div>
+                          </div>
+                        )}
+
+
+
 
                         {getProductFeatures((selectedProduct.type || 'paver') as any).length > 0 &&
                           selectedProduct.type !== 'screen-enclosure' && (
