@@ -1413,7 +1413,13 @@ const WonderlandsStudio = () => {
         image: grassOption?.image || ''
       });
     }
+
+    // Include every other item already in the shopping list
+    extrasBreakdown.push(
+      ...buildCartQuoteLines(selectedProduct ? `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}` : null)
+    );
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+
 
     console.log('✅ EXTRAS BREAKDOWN COMPLETE:', extrasBreakdown);
     console.log('💰 TOTAL EXTRAS:', extrasTotal);
