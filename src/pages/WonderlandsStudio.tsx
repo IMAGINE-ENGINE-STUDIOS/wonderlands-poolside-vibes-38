@@ -1416,7 +1416,7 @@ const WonderlandsStudio = () => {
           price: el.amount,
           key: `enc:${el.key}`,
           quantity: el.kind === 'door' ? el.quantity : undefined,
-          options: el.options?.map(opt => ({ name: `enc-opt:${opt.id}|${opt.label}`, price: el.amount })),
+          options: el.options?.map(opt => ({ name: opt.label, price: opt.id === el.optionId ? el.amount : 0 })),
         }));
     }
 
