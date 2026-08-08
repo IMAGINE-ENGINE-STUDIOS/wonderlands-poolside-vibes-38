@@ -1198,17 +1198,43 @@ const WonderlandsStudio = () => {
     }
     setSelectedExtras(newExtras);
   };
+  /** Turns every other shopping-list item (and its features) into quote lines */
+  const buildCartQuoteLines = (excludeId?: string | null) =>
+    cartItems
+      .filter(item => item.id !== excludeId)
+      .flatMap(item => {
+        const qty = item.quantity || 1;
+        const lines = [
+          {
+            name: `${item.name}${qty > 1 ? ` × ${qty}` : ''}`,
+            price: (item.price || 0) * qty,
+            image: (item as any).image || '',
+          },
+          ...((item.extras || []).map(extra => ({
+            name: `${item.name} — ${extra.name}`,
+            price: (extra.price || 0) * qty,
+            image: '',
+          }))),
+        ];
+        return lines;
+      });
+
   const handleQuoteRequest = () => {
     if (!selectedProduct) return;
 
+
     // Screen enclosures are fully itemized by the enclosure configurator
     if (selectedProduct.type === 'screen-enclosure' && enclosureProject) {
-      const encBreakdown = enclosureProject.elements.map(el => ({
-        name: `${el.label}${el.detail ? ` — ${el.detail}` : ''}`,
-        price: el.amount,
-        image: '',
-      }));
+      const encBreakdown = [
+        ...enclosureProject.elements.map(el => ({
+          name: `${el.label}${el.detail ? ` — ${el.detail}` : ''}`,
+          price: el.amount,
+          image: '',
+        })),
+        ...buildCartQuoteLines(selectedProduct ? `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}` : null),
+      ];
       const encTotal = encBreakdown.reduce((sum, item) => sum + item.price, 0);
+
       extrasDataRef.current = { extrasBreakdown: encBreakdown, extrasTotal: encTotal };
       setSelectedExtras(prev => ({ ...prev, extrasBreakdown: encBreakdown, extrasTotal: encTotal }));
       setShowQuoteModal(true);
@@ -1387,7 +1413,13 @@ const WonderlandsStudio = () => {
         image: grassOption?.image || ''
       });
     }
+
+    // Include every other item already in the shopping list
+    extrasBreakdown.push(
+      ...buildCartQuoteLines(selectedProduct ? `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}` : null)
+    );
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+
 
     console.log('✅ EXTRAS BREAKDOWN COMPLETE:', extrasBreakdown);
     console.log('💰 TOTAL EXTRAS:', extrasTotal);
@@ -1878,6 +1910,21 @@ const WonderlandsStudio = () => {
     );
     syncItemConfig(currentCartId, { price: basePrice, extras });
   }, [currentCartId, liveExtrasKey, liveTotal, cartItems, syncItemConfig]);
+
+  // Auto-add to the shopping list after a few minutes of configuring a product,
+  // so nothing the customer worked on is lost from the quote or checkout.
+  const AUTO_ADD_DELAY_MS = 3 * 60 * 1000;
+  useEffect(() => {
+    if (!currentCartId || liveTotal <= 0) return;
+    if (cartItems.some(item => item.id === currentCartId)) return;
+    const timer = window.setTimeout(() => {
+      handleAddToCart();
+    }, AUTO_ADD_DELAY_MS);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCartId, liveTotal, liveExtrasKey, cartItems]);
+
+
 
   return <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* Compact Header */}

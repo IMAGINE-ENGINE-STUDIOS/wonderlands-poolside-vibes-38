@@ -108,17 +108,29 @@ const StudioCartWidget = ({
       </div>
 
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1 text-[11px]" onClick={onQuote}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 text-[11px]"
+          onClick={() => {
+            if (pendingPrice > 0) onAddCurrent?.();
+            onQuote?.();
+          }}
+        >
           <FileText className="h-3 w-3 mr-1" /> Quote
         </Button>
         <Button
           size="sm"
           className="flex-1 text-[11px]"
-          onClick={() => navigate('/checkout')}
+          onClick={() => {
+            if (pendingPrice > 0) onAddCurrent?.();
+            navigate('/checkout');
+          }}
         >
           <CreditCard className="h-3 w-3 mr-1" /> Checkout
         </Button>
       </div>
+
 
       <button
         type="button"
