@@ -102,6 +102,18 @@ const SurveyQuoteTool = ({
 
   // Quote gallery state
   const [showGallery, setShowGallery] = useState(false);
+  // Dedicated portal host so React never fights other libraries over document.body children
+  const [galleryHost, setGalleryHost] = useState<HTMLElement | null>(null);
+  React.useEffect(() => {
+    const el = document.createElement('div');
+    el.setAttribute('data-quote-gallery-host', '');
+    document.body.appendChild(el);
+    setGalleryHost(el);
+    return () => {
+      setGalleryHost(null);
+      el.remove();
+    };
+  }, []);
   const [savedQuotes, setSavedQuotes] = useState<SavedQuoteSnapshot[]>([]);
   const [currentQuoteId, setCurrentQuoteId] = useState<string | null>(null);
 
@@ -417,7 +429,7 @@ const SurveyQuoteTool = ({
       };
 
       await html2pdf().set(opt).from(iframe.contentDocument?.body).save();
-      document.body.removeChild(iframe);
+      iframe.remove();
       
       toast({
         title: "Success!",
@@ -2796,7 +2808,7 @@ const SurveyQuoteTool = ({
         )}
 
         {/* Quote File Gallery — portaled to body so it always centers in the viewport */}
-        {showGallery && createPortal(
+        {showGallery && galleryHost && createPortal(
           <div
             className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 no-print print:hidden"
             style={{ pointerEvents: 'auto' }}
@@ -2850,7 +2862,7 @@ const SurveyQuoteTool = ({
               </CardContent>
             </Card>
           </div>,
-          document.body
+          galleryHost
         )}
 
         {/* Authentication Prompt */}
