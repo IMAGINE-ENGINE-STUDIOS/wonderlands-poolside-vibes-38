@@ -1421,6 +1421,44 @@ const WonderlandsStudio = () => {
         }));
     }
 
+    // Saunas: every configured sauna option becomes its own editable cart line
+    if (selectedProduct.type === 'sauna') {
+      return getProductFeatures('sauna')
+        .map(feature => {
+          const value = selectedExtras[feature.id];
+          const price = calculateFeaturePrice(feature, value, selectedExtras);
+          if (feature.type === 'selection') {
+            if (!value || value === 'None' || value === '') return null;
+            return {
+              name: `${feature.label} — ${value}`,
+              price,
+              key: `dyn:${feature.id}`,
+              selectedOption: String(value),
+              options: feature.options?.map(opt => ({ name: opt.name, price: opt.price })),
+            };
+          }
+          if (feature.type === 'area') {
+            const area = parseFloat(value) || 0;
+            if (area <= 0) return null;
+            return {
+              name: `${feature.label} (${area.toLocaleString()} sq ft)`,
+              price,
+              key: `dyn:${feature.id}`,
+            };
+          }
+          if (feature.type === 'quantity') {
+            const qty = parseFloat(value) || 0;
+            if (qty <= 0) return null;
+            return { name: feature.label, price, key: `dyn:${feature.id}`, quantity: qty };
+          }
+          if (!value) return null;
+          return { name: feature.label, price, key: `dyn:${feature.id}` };
+        })
+        .filter(Boolean) as Array<{ name: string; price: number; key?: string }>;
+    }
+
+
+
     // Convert selectedExtras to the format expected by CartItem
     const extrasArray: Array<{ name: string; price: number; key?: string }> = [];
 
