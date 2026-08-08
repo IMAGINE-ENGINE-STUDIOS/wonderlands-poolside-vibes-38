@@ -390,19 +390,19 @@ export function estimateEnclosure(config: EnclosureConfigState) {
   });
 
   // Add-ons priced at list, then split into material / labor cost
-  const addOnAmounts: { label: string; detail: string; amount: number }[] = [];
+  const addOnAmounts: { id: string; label: string; detail: string; amount: number }[] = [];
   config.addOns.forEach(id => {
     const addon = ENCLOSURE_ADDONS.find(a => a.id === id);
     if (!addon) return;
     if (addon.pricing === 'each') {
       const qty = addon.id === 'self-closing' ? kitDoorCount : addon.id === 'door-alarm' ? Math.max(doorCount, 1) : 1;
       if (qty <= 0) return;
-      addOnAmounts.push({ label: addon.label, detail: `${qty} x $${addon.price.toLocaleString()}`, amount: qty * addon.price });
+      addOnAmounts.push({ id: addon.id, label: addon.label, detail: `${qty} x $${addon.price.toLocaleString()}`, amount: qty * addon.price });
     } else if (addon.pricing === 'sqft' && area > 0) {
-      addOnAmounts.push({ label: addon.label, detail: `${area.toLocaleString()} sq ft x $${addon.price}/sq ft`, amount: area * addon.price });
+      addOnAmounts.push({ id: addon.id, label: addon.label, detail: `${area.toLocaleString()} sq ft x $${addon.price}/sq ft`, amount: area * addon.price });
     } else if (addon.pricing === 'linear-ft') {
       const ft = addon.id === 'super-gutter' ? config.perimeterFt : config.screenWallFt || config.perimeterFt;
-      if (ft > 0) addOnAmounts.push({ label: addon.label, detail: `${ft.toLocaleString()} ft x $${addon.price}/ft`, amount: ft * addon.price });
+      if (ft > 0) addOnAmounts.push({ id: addon.id, label: addon.label, detail: `${ft.toLocaleString()} ft x $${addon.price}/ft`, amount: ft * addon.price });
     }
   });
   const addOnTotal = addOnAmounts.reduce((s, a) => s + a.amount, 0);
