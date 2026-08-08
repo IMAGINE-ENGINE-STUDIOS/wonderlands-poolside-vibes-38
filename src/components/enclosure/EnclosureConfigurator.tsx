@@ -18,6 +18,7 @@ import {
   ENCLOSURE_SCREENS,
   ENCLOSURE_TYPES,
   EnclosureConfigState,
+  EnclosureProject,
   buildEnclosureSpec,
   checkEnclosureCompliance,
   designPressurePsf,
@@ -26,22 +27,36 @@ import {
 
 const CACHE_KEY = 'wonderlands_enclosure_configurator_v1';
 
+export interface EnclosureEditApi {
+  /** Swap the selected option of an element (structure, roof, extrusion, screen, door) */
+  setElementOption: (key: string, optionId: string) => void;
+  /** Remove a removable element (door line, add-on) */
+  removeElement: (key: string) => void;
+  /** Set the quantity of a door element */
+  setElementQuantity: (key: string, quantity: number) => void;
+}
+
 interface Props {
   /** Catalog $/sq ft rate for the selected screen enclosure product */
   baseRatePerSqFt?: number;
   /** Reports the fully configured project total so the studio can price it */
   onTotalChange?: (total: number, summary: { areaSqFt: number; perimeterFt: number; description: string }) => void;
+  /** Reports the full, itemized project (elements, specs, compliance, footprint snapshot) */
+  onProjectChange?: (project: EnclosureProject) => void;
+  /** Exposes an imperative editing API so the cart can change the configuration */
+  onApiReady?: (api: EnclosureEditApi) => void;
 }
 
 const emptyLayout: EnclosureLayout = { points: [], closed: false, features: {} };
 
-const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
+const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange, onApiReady }: Props) => {
   const [config, setConfig] = React.useState<EnclosureConfigState>({
     ...DEFAULT_ENCLOSURE_CONFIG,
     qualityRatePerSqFt: baseRatePerSqFt || DEFAULT_ENCLOSURE_CONFIG.qualityRatePerSqFt,
   });
   const [layout, setLayout] = React.useState<EnclosureLayout>(emptyLayout);
   const [manualArea, setManualArea] = React.useState('');
+  const [snapshot, setSnapshot] = React.useState<string | null>(null);
   const hydrated = React.useRef(false);
 
   React.useEffect(() => {
@@ -54,6 +69,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
       if (parsed.config) setConfig(prev => ({ ...prev, ...parsed.config }));
       if (parsed.layout) setLayout(migrateEnclosureLayout(parsed.layout));
       if (typeof parsed.manualArea === 'string') setManualArea(parsed.manualArea);
+      if (typeof parsed.snapshot === 'string') setSnapshot(parsed.snapshot);
       }
     } catch {
       /* ignore corrupt cache */
@@ -63,13 +79,18 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
   React.useEffect(() => {
     const t = setTimeout(() => {
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ config, layout, manualArea }));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ config, layout, manualArea, snapshot }));
       } catch {
-        /* storage full */
+        // Storage full — keep the configuration and drop only the image
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ config, layout, manualArea }));
+        } catch {
+          /* storage unavailable */
+        }
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [config, layout, manualArea]);
+  }, [config, layout, manualArea, snapshot]);
 
   // Keep the catalog rate in sync when the selected product changes
   React.useEffect(() => {
@@ -125,6 +146,96 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
       description: `${type?.label || 'Screen Enclosure'} — ${config.areaSqFt.toLocaleString()} sq ft`,
     });
   }, [estimate.total, config.areaSqFt, config.perimeterFt, config.typeId]);
+
+  // ---- report the full, itemized project (cart + quote) ----
+  const projectRef = React.useRef(onProjectChange);
+  projectRef.current = onProjectChange;
+  const project: EnclosureProject = {
+    total: estimate.total,
+    areaSqFt: config.areaSqFt,
+    perimeterFt: config.perimeterFt,
+    description: `${estimate.type.label} — ${config.areaSqFt.toLocaleString()} sq ft footprint`,
+    typeLabel: estimate.type.label,
+    roofLabel: estimate.roof.label,
+    extrusionLabel: estimate.extrusion.label,
+    screenLabel: `${estimate.screen.brand} ${estimate.screen.label}`,
+    elements: estimate.elements,
+    spec,
+    compliance: issues,
+    header: {
+      framedAreaSqFt: estimate.framedArea,
+      screenedAreaSqFt: estimate.screenedArea,
+      screenWallFt: config.screenWallFt,
+      longestSpanFt: config.longestSpanFt,
+      wallHeightFt: config.wallHeightFt,
+      meanRoofHeightFt: config.meanRoofHeightFt,
+      windSpeedMph: config.windSpeedMph,
+      exposure: config.exposure,
+      hvhz: config.hvhz,
+      designPressurePsf: pressure,
+      sealedRequired: estimate.sealedRequired,
+      isPoolBarrier: config.isPoolBarrier,
+      doorCount: estimate.doorCount,
+      pricePerSqFt: estimate.pricePerSqFt,
+    },
+    snapshot,
+  };
+  const projectKey = JSON.stringify(project);
+  React.useEffect(() => {
+    projectRef.current?.(JSON.parse(projectKey) as EnclosureProject);
+  }, [projectKey]);
+
+  // ---- imperative editing API used by the shopping cart ----
+  const apiRef = React.useRef(onApiReady);
+  apiRef.current = onApiReady;
+  React.useEffect(() => {
+    apiRef.current?.({
+      setElementOption: (key, optionId) => {
+        setConfig(prev => {
+          if (key === 'structure') return { ...prev, typeId: optionId };
+          if (key === 'roof') return { ...prev, roofId: optionId };
+          if (key === 'extrusion') return { ...prev, extrusionId: optionId };
+          if (key === 'screen') return { ...prev, screenId: optionId };
+          if (key.startsWith('door:')) {
+            const fromId = key.slice(5);
+            if (fromId === optionId) return prev;
+            const qty = prev.doors[fromId] || 0;
+            const doors = { ...prev.doors };
+            delete doors[fromId];
+            doors[optionId] = (doors[optionId] || 0) + qty;
+            return { ...prev, doors };
+          }
+          return prev;
+        });
+      },
+      removeElement: key => {
+        setConfig(prev => {
+          if (key.startsWith('door:')) {
+            const doors = { ...prev.doors };
+            delete doors[key.slice(5)];
+            return { ...prev, doors };
+          }
+          if (key.startsWith('addon:')) {
+            const id = key.slice(6);
+            return { ...prev, addOns: prev.addOns.filter(a => a !== id) };
+          }
+          return prev;
+        });
+      },
+      setElementQuantity: (key, quantity) => {
+        if (!key.startsWith('door:')) return;
+        const id = key.slice(5);
+        setConfig(prev => {
+          const doors = { ...prev.doors };
+          if (quantity <= 0) delete doors[id];
+          else doors[id] = quantity;
+          return { ...prev, doors };
+        });
+      },
+    });
+  }, []);
+
+
 
   const setDoorQty = (id: string, delta: number) =>
     setConfig(prev => {
@@ -207,7 +318,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange }: Props) => {
               </Button>
             </div>
           </div>
-          <EnclosureDrawingBoard layout={layout} onChange={setLayout} onMeasure={handleMeasure} />
+          <EnclosureDrawingBoard layout={layout} onChange={setLayout} onMeasure={handleMeasure} onSnapshot={setSnapshot} />
       </section>
 
       {/* Structure configuration */}

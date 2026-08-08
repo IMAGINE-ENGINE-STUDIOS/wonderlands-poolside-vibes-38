@@ -52,7 +52,8 @@ import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
 import FenceConfigurator from '@/components/fence/FenceConfigurator';
-import EnclosureConfigurator from '@/components/enclosure/EnclosureConfigurator';
+import EnclosureConfigurator, { EnclosureEditApi } from '@/components/enclosure/EnclosureConfigurator';
+import type { EnclosureProject } from '@/data/screenEnclosureConfigurator';
 
 
 import { artificialGrassOptions, PRICE_PER_SQFT as GRASS_PRICE_PER_SQFT, getGrassPricePerSqFt, calculateGrassCost } from '@/data/artificialGrassData';
@@ -517,6 +518,9 @@ const WonderlandsStudio = () => {
     categoryQuantity: '',
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
+  // Full itemized screen-enclosure project (elements, specs, footprint snapshot)
+  const [enclosureProject, setEnclosureProject] = useState<EnclosureProject | null>(null);
+  const enclosureApiRef = useRef<EnclosureEditApi | null>(null);
   const [paverCategory, setPaverCategory] = useState('all');
   const [showExtrasDropdown, setShowExtrasDropdown] = usePersistentState('studio_extrasDropdown', false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = usePersistentState('studio_sidebarCollapsed', false);
@@ -1197,6 +1201,20 @@ const WonderlandsStudio = () => {
   const handleQuoteRequest = () => {
     if (!selectedProduct) return;
 
+    // Screen enclosures are fully itemized by the enclosure configurator
+    if (selectedProduct.type === 'screen-enclosure' && enclosureProject) {
+      const encBreakdown = enclosureProject.elements.map(el => ({
+        name: `${el.label}${el.detail ? ` — ${el.detail}` : ''}`,
+        price: el.amount,
+        image: '',
+      }));
+      const encTotal = encBreakdown.reduce((sum, item) => sum + item.price, 0);
+      extrasDataRef.current = { extrasBreakdown: encBreakdown, extrasTotal: encTotal };
+      setSelectedExtras(prev => ({ ...prev, extrasBreakdown: encBreakdown, extrasTotal: encTotal }));
+      setShowQuoteModal(true);
+      return;
+    }
+
     // Create detailed extras breakdown for quote tool
     const extrasBreakdown = [];
     
@@ -1385,8 +1403,24 @@ const WonderlandsStudio = () => {
     }));
     setShowQuoteModal(true);
   };
-  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string; options?: { name: string; price: number }[] }> => {
+  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string; quantity?: number; selectedOption?: string; options?: { name: string; price: number }[] }> => {
     if (!selectedProduct) return [];
+
+    // Screen enclosure: every configured element is its own editable cart line
+    if (selectedProduct.type === 'screen-enclosure') {
+      if (!enclosureProject) return [];
+      return enclosureProject.elements
+        .filter(el => el.amount > 0 || el.removable)
+        .map(el => ({
+          name: `${el.label}${el.detail ? ` — ${el.detail}` : ''}`,
+          price: el.amount,
+          key: `enc:${el.key}`,
+          quantity: el.kind === 'door' ? el.quantity : undefined,
+          selectedOption: el.options?.find(opt => opt.id === el.optionId)?.label,
+          options: el.options?.map(opt => ({ name: opt.label, price: opt.id === el.optionId ? el.amount : 0 })),
+        }));
+    }
+
     // Convert selectedExtras to the format expected by CartItem
     const extrasArray: Array<{ name: string; price: number; key?: string }> = [];
 
@@ -1626,11 +1660,20 @@ const WonderlandsStudio = () => {
   };
 
   const handleRemoveCurrentFeature = (key?: string) => {
-    if (!key || !FEATURE_RESETS[key]) return;
+    if (!key) return;
+    if (key.startsWith('enc:')) {
+      enclosureApiRef.current?.removeElement(key.slice(4));
+      return;
+    }
+    if (!FEATURE_RESETS[key]) return;
     setSelectedExtras((prev: any) => ({ ...prev, ...FEATURE_RESETS[key] }));
   };
 
   const handleCurrentFeatureQuantity = (key: string | undefined, quantity: number) => {
+    if (key?.startsWith('enc:')) {
+      enclosureApiRef.current?.setElementQuantity(key.slice(4), Math.max(0, quantity));
+      return;
+    }
     if (key !== 'jets') return;
     if (quantity <= 0) {
       handleRemoveCurrentFeature('jets');
@@ -1642,6 +1685,12 @@ const WonderlandsStudio = () => {
   /** Switches the selected option of a feature that is still being configured */
   const handleCurrentFeatureOption = (key: string | undefined, optionName: string) => {
     if (!key) return;
+    if (key.startsWith('enc:')) {
+      const element = enclosureProject?.elements.find(el => `enc:${el.key}` === key);
+      const option = element?.options?.find(opt => opt.label === optionName);
+      if (option) enclosureApiRef.current?.setElementOption(element!.key, option.id);
+      return;
+    }
     const startsWith = (prefix: string) => optionName.startsWith(prefix);
     switch (key) {
       case 'finish': {
@@ -1812,7 +1861,7 @@ const WonderlandsStudio = () => {
                   currentCategory={selectedProduct?.category}
                   currentExtras={selectedProduct ? buildCurrentExtras().map(e => ({
                     ...e,
-                    quantity: e.key === 'jets' ? selectedExtras.jetQuantity : undefined,
+                    quantity: e.key === 'jets' ? selectedExtras.jetQuantity : e.quantity,
                   })) : []}
                   onRemoveCurrentExtra={handleRemoveCurrentFeature}
                   onCurrentExtraQuantity={handleCurrentFeatureQuantity}
@@ -2320,6 +2369,8 @@ const WonderlandsStudio = () => {
                                   : { ...prev, enclosureTotal: total, categoryQuantity: String(summary.areaSqFt) }
                               )
                             }
+                            onProjectChange={setEnclosureProject}
+                            onApiReady={api => { enclosureApiRef.current = api; }}
                           />
                         ) : (() => {
 
@@ -3743,21 +3794,47 @@ const WonderlandsStudio = () => {
       </div>
 
       {/* Quote Modal */}
-      <SurveyQuoteTool pool={selectedProduct ? {
-      model: selectedProduct.model || selectedProduct.name || 'Product',
-      price: selectedProduct.price,
-      category: selectedProduct.category as any,
-      image: selectedProduct.image,
-      dimensions: selectedProduct.dimensions,
-      depth: selectedProduct.depth,
-      warrantyYears: selectedProduct.warrantyYears
-    } : null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} extras={{
-      ...selectedExtras,
-      // Use ref data which is set synchronously before modal opens
-      extrasBreakdown: extrasDataRef.current.extrasBreakdown,
-      extrasTotal: extrasDataRef.current.extrasTotal,
-      deliveryTime: selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
-    }} />
+      {(() => {
+        const isEnclosureQuote = selectedProduct?.type === 'screen-enclosure';
+        const enclosureExtrasTotal = extrasDataRef.current.extrasTotal || 0;
+        return (
+          <SurveyQuoteTool
+            pool={selectedProduct && !isEnclosureQuote ? {
+              model: selectedProduct.model || selectedProduct.name || 'Product',
+              price: selectedProduct.price,
+              category: selectedProduct.category as any,
+              image: selectedProduct.image,
+              dimensions: selectedProduct.dimensions,
+              depth: selectedProduct.depth,
+              warrantyYears: selectedProduct.warrantyYears
+            } : null}
+            customProduct={selectedProduct && isEnclosureQuote ? {
+              name: selectedProduct.model || selectedProduct.name || 'Screen Enclosure',
+              price: Math.max(0, (enclosureProject?.total || calculateTotalPrice()) - enclosureExtrasTotal),
+              type: 'Screen Enclosure',
+              image: selectedProduct.image,
+            } : undefined}
+            isOpen={showQuoteModal}
+            onClose={() => setShowQuoteModal(false)}
+            extras={{
+              ...selectedExtras,
+              // Use ref data which is set synchronously before modal opens
+              extrasBreakdown: extrasDataRef.current.extrasBreakdown,
+              extrasTotal: extrasDataRef.current.extrasTotal,
+              enclosure: isEnclosureQuote && enclosureProject ? {
+                header: enclosureProject.header,
+                typeLabel: enclosureProject.typeLabel,
+                roofLabel: enclosureProject.roofLabel,
+                extrusionLabel: enclosureProject.extrusionLabel,
+                screenLabel: enclosureProject.screenLabel,
+                snapshot: enclosureProject.snapshot || null,
+                compliance: enclosureProject.compliance,
+              } : undefined,
+              deliveryTime: isEnclosureQuote ? '3-5 weeks' : (selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks')
+            }}
+          />
+        );
+      })()}
     
     {/* Floating AI Search - Hidden for now */}
     </div>;

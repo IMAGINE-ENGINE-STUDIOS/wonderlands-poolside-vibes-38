@@ -319,6 +319,29 @@ export interface EnclosureEstimateLine {
   amount: number;
 }
 
+export type EnclosureElementKind =
+  | 'structure'
+  | 'extrusion'
+  | 'screen'
+  | 'roof'
+  | 'door'
+  | 'addon'
+  | 'soft'
+  | 'general';
+
+export interface EnclosureElement {
+  key: string;
+  kind: EnclosureElementKind;
+  label: string;
+  detail: string;
+  amount: number;
+  quantity?: number;
+  optionId?: string;
+  options?: { id: string; label: string }[];
+  removable: boolean;
+}
+
+
 export type EnclosureCostCategory =
   | 'Materials'
   | 'Delivery & Freight'
@@ -390,19 +413,19 @@ export function estimateEnclosure(config: EnclosureConfigState) {
   });
 
   // Add-ons priced at list, then split into material / labor cost
-  const addOnAmounts: { label: string; detail: string; amount: number }[] = [];
+  const addOnAmounts: { id: string; label: string; detail: string; amount: number }[] = [];
   config.addOns.forEach(id => {
     const addon = ENCLOSURE_ADDONS.find(a => a.id === id);
     if (!addon) return;
     if (addon.pricing === 'each') {
       const qty = addon.id === 'self-closing' ? kitDoorCount : addon.id === 'door-alarm' ? Math.max(doorCount, 1) : 1;
       if (qty <= 0) return;
-      addOnAmounts.push({ label: addon.label, detail: `${qty} x $${addon.price.toLocaleString()}`, amount: qty * addon.price });
+      addOnAmounts.push({ id: addon.id, label: addon.label, detail: `${qty} x $${addon.price.toLocaleString()}`, amount: qty * addon.price });
     } else if (addon.pricing === 'sqft' && area > 0) {
-      addOnAmounts.push({ label: addon.label, detail: `${area.toLocaleString()} sq ft x $${addon.price}/sq ft`, amount: area * addon.price });
+      addOnAmounts.push({ id: addon.id, label: addon.label, detail: `${area.toLocaleString()} sq ft x $${addon.price}/sq ft`, amount: area * addon.price });
     } else if (addon.pricing === 'linear-ft') {
       const ft = addon.id === 'super-gutter' ? config.perimeterFt : config.screenWallFt || config.perimeterFt;
-      if (ft > 0) addOnAmounts.push({ label: addon.label, detail: `${ft.toLocaleString()} ft x $${addon.price}/ft`, amount: ft * addon.price });
+      if (ft > 0) addOnAmounts.push({ id: addon.id, label: addon.label, detail: `${ft.toLocaleString()} ft x $${addon.price}/ft`, amount: ft * addon.price });
     }
   });
   const addOnTotal = addOnAmounts.reduce((s, a) => s + a.amount, 0);
@@ -509,6 +532,98 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     lines[lines.length - 1].amount += diff;
   }
 
+  // ---------- Granular, editable elements (cart / quote) ----------
+  const mk = (cost: number) => Math.round(cost * markupFactor);
+  const extrusionUpgradeCost = framedArea * extrusion.pricePerSqFt * M.frameUpgradeFactor;
+  const elements: EnclosureElement[] = [];
+  if (area > 0) {
+    elements.push({
+      key: 'structure',
+      kind: 'structure',
+      label: `${type.label} — engineered structure installed`,
+      detail: `${area.toLocaleString()} sq ft footprint / ${framedArea.toLocaleString()} sq ft framed surface, ${config.roofPitch} pitch`,
+      amount: mk(frameCost - extrusionUpgradeCost + partsCost + structureLabor + framedArea * M.deliveryPerSqFt + M.deliveryFlat + (twoStory ? M.craneTwoStory : 0)),
+      optionId: type.id,
+      options: ENCLOSURE_TYPES.map(t => ({ id: t.id, label: t.label })),
+      removable: false,
+    });
+    elements.push({
+      key: 'extrusion',
+      kind: 'extrusion',
+      label: `Structural profile — ${extrusion.label}`,
+      detail: `${extrusion.size} @ ${extrusion.wallIn}" wall, rated ${extrusion.maxSpanFt} ft clear span`,
+      amount: mk(extrusionUpgradeCost),
+      optionId: extrusion.id,
+      options: ENCLOSURE_EXTRUSIONS.map(e => ({ id: e.id, label: e.label })),
+      removable: false,
+    });
+    elements.push({
+      key: 'screen',
+      kind: 'screen',
+      label: `Screen fabric — ${screen.brand} ${screen.label}`,
+      detail: `${screenedArea.toLocaleString()} sq ft screened, ${screen.mesh}${screen.warrantyYears ? `, ${screen.warrantyYears}-yr fabric warranty` : ''}`,
+      amount: mk(screenCost),
+      optionId: screen.id,
+      options: ENCLOSURE_SCREENS.map(s => ({ id: s.id, label: `${s.brand} ${s.label}` })),
+      removable: false,
+    });
+    elements.push({
+      key: 'roof',
+      kind: 'roof',
+      label: `Roof assembly — ${roof.label}`,
+      detail: roofPanCost > 0 ? `${roofArea.toLocaleString()} sq ft engineered panel supplied & installed` : `${roofArea.toLocaleString()} sq ft screened roof`,
+      amount: mk(roofPanCost),
+      optionId: roof.id,
+      options: ENCLOSURE_ROOFS.map(r => ({ id: r.id, label: r.label })),
+      removable: false,
+    });
+    ENCLOSURE_DOORS.forEach(door => {
+      const qty = config.doors[door.id] || 0;
+      if (qty <= 0) return;
+      elements.push({
+        key: `door:${door.id}`,
+        kind: 'door',
+        label: door.label,
+        detail: `${qty} x ${door.selfLatching ? 'self-closing / self-latching' : 'standard hinge'}${door.barrierEligible ? ', barrier eligible' : ''}`,
+        amount: mk(qty * door.price * (M.doorMaterialShare + M.doorLaborShare)),
+        quantity: qty,
+        optionId: door.id,
+        options: ENCLOSURE_DOORS.map(d => ({ id: d.id, label: d.label })),
+        removable: true,
+      });
+    });
+    addOnAmounts.forEach(a => {
+      elements.push({
+        key: `addon:${a.id}`,
+        kind: 'addon',
+        label: a.label,
+        detail: a.detail,
+        amount: mk(a.amount * (M.addOnMaterialShare + M.addOnLaborShare)),
+        optionId: a.id,
+        removable: true,
+      });
+    });
+    elements.push({
+      key: 'engineering',
+      kind: 'soft',
+      label: 'Engineering, drawings & permits',
+      detail: sealedRequired ? 'Signed & sealed Florida P.E. package, permit fees, inspections' : 'Engineered plan set, permit fees, inspections',
+      amount: mk(engineering + permitFees + M.nocAndInspections + M.planRunner),
+      removable: false,
+    });
+    elements.push({
+      key: 'mobilization',
+      kind: 'general',
+      label: 'Mobilization, equipment & site conditions',
+      detail: 'Delivery handling, lifts, deck protection, disposal, insurance, cleanup',
+      amount: mk(equipment + M.dumpster + M.layoutAndCleanup + insurance + warrantyReserve + materialTax + contingency),
+      removable: false,
+    });
+    // Reconcile so elements sum exactly to the sell price
+    const eDiff = sellPrice - elements.reduce((s, e) => s + e.amount, 0);
+    elements[0].amount += eDiff;
+  }
+
   const categoryTotals = costLines.reduce<Record<string, number>>((acc, l) => {
     acc[l.category] = (acc[l.category] || 0) + l.amount;
     return acc;
@@ -529,6 +644,7 @@ export function estimateEnclosure(config: EnclosureConfigState) {
 
   return {
     lines,
+    elements,
     total: sellPrice,
     costLines,
     categoryTotals,
@@ -641,4 +757,38 @@ export function buildEnclosureSpec(config: EnclosureConfigState): {
       { label: 'Contractor', value: 'Licensed Florida specialty structure / aluminum contractor with WC and GL certificates' },
     ],
   };
+}
+
+/** Full, itemized enclosure project reported to the studio (cart + quote) */
+export interface EnclosureProject {
+  total: number;
+  areaSqFt: number;
+  perimeterFt: number;
+  description: string;
+  typeLabel: string;
+  roofLabel: string;
+  extrusionLabel: string;
+  screenLabel: string;
+  elements: EnclosureElement[];
+  /** Base shell price = total minus the itemized removable/optional elements */
+  spec: { installer: EnclosureSpecRow[]; architect: EnclosureSpecRow[]; permit: EnclosureSpecRow[] };
+  compliance: EnclosureComplianceIssue[];
+  header: {
+    framedAreaSqFt: number;
+    screenedAreaSqFt: number;
+    screenWallFt: number;
+    longestSpanFt: number;
+    wallHeightFt: number;
+    meanRoofHeightFt: number;
+    windSpeedMph: number;
+    exposure: string;
+    hvhz: boolean;
+    designPressurePsf: number;
+    sealedRequired: boolean;
+    isPoolBarrier: boolean;
+    doorCount: number;
+    pricePerSqFt: number;
+  };
+  /** PNG data-URL of the drawn footprint, when a drawing exists */
+  snapshot?: string | null;
 }

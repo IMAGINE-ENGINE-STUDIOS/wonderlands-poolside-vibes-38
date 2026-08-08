@@ -42,6 +42,8 @@ interface Props {
   layout: EnclosureLayout;
   onChange: (layout: EnclosureLayout) => void;
   onMeasure?: (takeoff: EnclosureTakeoff) => void;
+  /** PNG data-URL of the drawn footprint, or null when nothing is drawn */
+  onSnapshot?: (dataUrl: string | null) => void;
   frameColorHex?: string;
 }
 
@@ -85,7 +87,7 @@ export function migrateEnclosureLayout(layout: EnclosureLayout): EnclosureLayout
 }
 
 /** Top-view enclosure footprint board. Same drafting conventions as the 2D pool studio: 10px = 1 ft. */
-const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: Props) => {
+const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameColorHex }: Props) => {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapRef = React.useRef<HTMLDivElement | null>(null);
   const [mode, setMode] = React.useState<'draw' | 'select' | 'door' | 'house'>('draw');
@@ -400,6 +402,28 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, frameColorHex }: P
       ctx.stroke();
     });
   }, [layout, segments, size, hover, mode, dragIndex, frameColorHex, takeoff]);
+
+  // ---- snapshot export (footprint plan for cart / quote) ----
+  const snapshotRef = React.useRef(onSnapshot);
+  snapshotRef.current = onSnapshot;
+  React.useEffect(() => {
+    if (!snapshotRef.current) return;
+    const t = setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas || layout.points.length < 3) {
+        snapshotRef.current?.(null);
+        return;
+      }
+      try {
+        snapshotRef.current?.(canvas.toDataURL('image/png'));
+      } catch {
+        snapshotRef.current?.(null);
+      }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [layout, size, takeoff]);
+
+
 
   // ---- interaction ----
   const toLocal = (e: React.MouseEvent): EnclosurePoint => {

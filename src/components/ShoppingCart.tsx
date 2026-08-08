@@ -23,6 +23,10 @@ export interface CartItem {
     price: number;
     /** Feature key (finish, heater, liner, ...) used to edit the selection later */
     key?: string;
+    /** Quantity for countable features (jets, doors, ...) */
+    quantity?: number;
+    /** Currently selected option label, when it differs from the display name */
+    selectedOption?: string;
     /** Selectable alternatives for this feature, editable from the shopping cart */
     options?: { name: string; price: number }[];
   }[];

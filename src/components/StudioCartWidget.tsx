@@ -15,7 +15,7 @@ interface StudioCartWidgetProps {
   /** Category of the configuration currently open */
   currentCategory?: string;
   /** Features/extras of the configuration currently open */
-  currentExtras?: Array<{ name: string; price: number; key?: string; quantity?: number; options?: { name: string; price: number }[] }>;
+  currentExtras?: Array<{ name: string; price: number; key?: string; quantity?: number; selectedOption?: string; options?: { name: string; price: number }[] }>;
   /** Removes one feature from the currently open configuration */
   onRemoveCurrentExtra?: (key?: string) => void;
   /** Updates the quantity of a feature in the currently open configuration */
@@ -208,7 +208,7 @@ const StudioCartWidget = ({
                           </div>
                           {extra.options && extra.options.length > 1 && (
                             <select
-                              value={extra.name}
+                              value={extra.selectedOption ?? extra.name}
                               onChange={event => {
                                 const next = extra.options?.find(
                                   option => option.name === event.target.value
@@ -220,7 +220,7 @@ const StudioCartWidget = ({
                             >
                               {extra.options.map(option => (
                                 <option key={option.name} value={option.name}>
-                                  {option.name} — ${option.price.toLocaleString()}
+                                  {option.name}{option.price > 0 ? ` — $${option.price.toLocaleString()}` : ''}
                                 </option>
                               ))}
                             </select>
@@ -326,14 +326,14 @@ const StudioCartWidget = ({
                         </div>
                         {extra.options && extra.options.length > 1 && onCurrentExtraOption && (
                           <select
-                            value={extra.name}
+                            value={extra.selectedOption ?? extra.name}
                             onChange={event => onCurrentExtraOption(extra.key, event.target.value)}
                             className="w-full h-6 rounded border bg-background text-foreground text-[10px] px-1"
                             aria-label={`Change ${extra.name}`}
                           >
                             {extra.options.map(option => (
                               <option key={option.name} value={option.name}>
-                                {option.name} — ${option.price.toLocaleString()}
+                                {option.name}{option.price > 0 ? ` — $${option.price.toLocaleString()}` : ''}
                               </option>
                             ))}
                           </select>

@@ -1042,7 +1042,7 @@ const SurveyQuoteTool = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto pb-8">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-            Get Your Personalized Pool Quote
+            Get Your Personalized {extras?.enclosure ? 'Screen Enclosure' : customProduct && !pool ? (customProduct.type || 'Project') : 'Pool'} Quote
           </DialogTitle>
           <DialogDescription className="text-lg">
             Join 500+ Florida families who've created their dream oasis with Wonderlands
@@ -1376,10 +1376,10 @@ const SurveyQuoteTool = ({
                     <ImageCard src="/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
                     <div>
                       <h1 className="text-2xl font-bold">
-                        {extras?.productType === 'lanai' ? 'LANAI QUOTATION' : 'POOL QUOTATION'}
+                        {extras?.productType === 'lanai' ? 'LANAI QUOTATION' : extras?.enclosure ? 'SCREEN ENCLOSURE QUOTATION' : 'POOL QUOTATION'}
                       </h1>
                       <p className="text-orange-100">
-                        {extras?.productType === 'lanai' ? 'Your Dream Outdoor Living Space Awaits' : 'Your Dream Pool Awaits'}
+                        {extras?.productType === 'lanai' ? 'Your Dream Outdoor Living Space Awaits' : extras?.enclosure ? 'Engineered, Permitted & Installed in Florida' : 'Your Dream Pool Awaits'}
                       </p>
                     </div>
                   </div>
@@ -1666,7 +1666,7 @@ const SurveyQuoteTool = ({
                           ) : null}
                           
                           {/* Delivery & Installation - Only for non-pool, non-lanai, non-paver products */}
-                          {!isPoolProduct && !isLanaiProduct && customProduct?.type !== 'paver' && (
+                          {!isPoolProduct && !isLanaiProduct && customProduct?.type !== 'paver' && !extras?.enclosure && (
                             <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                               <h4 className="font-semibold mb-2 text-teal-600">Delivery & Installation</h4>
                               <div className="space-y-2 text-sm">
@@ -1684,6 +1684,54 @@ const SurveyQuoteTool = ({
                                   Includes delivery and professional installation
                                 </p>
                               </div>
+                            </div>
+                          )}
+
+                          {/* Screen Enclosure — structural specs and drawn footprint */}
+                          {extras?.enclosure && !hiddenSections.has('enclosure-specs') && (
+                            <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg relative space-y-3">
+                              {isEditMode && (
+                                <button
+                                  onClick={() => handleToggleSection('enclosure-specs')}
+                                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                                  title="Remove section"
+                                >
+                                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              )}
+                              <h4 className="font-semibold text-teal-600">Enclosure Specifications</h4>
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                                <p><span className="font-medium">Structure:</span> {extras.enclosure.typeLabel}</p>
+                                <p><span className="font-medium">Roof:</span> {extras.enclosure.roofLabel}</p>
+                                <p><span className="font-medium">Extrusion:</span> {extras.enclosure.extrusionLabel}</p>
+                                <p><span className="font-medium">Screen:</span> {extras.enclosure.screenLabel}</p>
+                                <p><span className="font-medium">Framed Area:</span> {extras.enclosure.header.framedAreaSqFt.toLocaleString()} sq ft</p>
+                                <p><span className="font-medium">Screen Area:</span> {extras.enclosure.header.screenedAreaSqFt.toLocaleString()} sq ft</p>
+                                <p><span className="font-medium">Wall Height:</span> {extras.enclosure.header.wallHeightFt} ft</p>
+                                <p><span className="font-medium">Longest Span:</span> {extras.enclosure.header.longestSpanFt} ft</p>
+                                <p><span className="font-medium">Design Wind:</span> {extras.enclosure.header.windSpeedMph} mph (Exp. {extras.enclosure.header.exposure})</p>
+                                <p><span className="font-medium">Design Pressure:</span> {extras.enclosure.header.designPressurePsf} psf</p>
+                                <p><span className="font-medium">HVHZ:</span> {extras.enclosure.header.hvhz ? 'Yes' : 'No'}</p>
+                                <p><span className="font-medium">Doors:</span> {extras.enclosure.header.doorCount}</p>
+                                {extras.enclosure.header.isPoolBarrier && (
+                                  <p className="col-span-2"><span className="font-medium">Pool Barrier:</span> Self-closing, self-latching doors per Florida code</p>
+                                )}
+                              </div>
+                              {extras.enclosure.snapshot && (
+                                <div>
+                                  <p className="text-sm font-medium mb-1">Footprint Plan</p>
+                                  <img
+                                    src={extras.enclosure.snapshot}
+                                    alt="Screen enclosure footprint plan"
+                                    className="w-full rounded-md border border-teal-200 dark:border-gray-600 bg-white"
+                                  />
+                                </div>
+                              )}
+                              <p className="text-xs text-muted-foreground">
+                                Includes engineering, sealed drawings, permit processing, materials, delivery and professional installation.
+                              </p>
                             </div>
                           )}
                           
@@ -1991,6 +2039,8 @@ const SurveyQuoteTool = ({
                         return <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                           {/* Display item image - use actual image if available or fallback based on type */}
                           {(() => {
+                    // Enclosure line items are technical scope rows — no product photo
+                    if (extras?.enclosure) return null;
                     // First check if item has its own image property
                     if (item.image) {
                       return <div className="mb-3">
