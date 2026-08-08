@@ -69,6 +69,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
       if (parsed.config) setConfig(prev => ({ ...prev, ...parsed.config }));
       if (parsed.layout) setLayout(migrateEnclosureLayout(parsed.layout));
       if (typeof parsed.manualArea === 'string') setManualArea(parsed.manualArea);
+      if (typeof parsed.snapshot === 'string') setSnapshot(parsed.snapshot);
       }
     } catch {
       /* ignore corrupt cache */
@@ -78,13 +79,18 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
   React.useEffect(() => {
     const t = setTimeout(() => {
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ config, layout, manualArea }));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ config, layout, manualArea, snapshot }));
       } catch {
-        /* storage full */
+        // Storage full — keep the configuration and drop only the image
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ config, layout, manualArea }));
+        } catch {
+          /* storage unavailable */
+        }
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [config, layout, manualArea]);
+  }, [config, layout, manualArea, snapshot]);
 
   // Keep the catalog rate in sync when the selected product changes
   React.useEffect(() => {
