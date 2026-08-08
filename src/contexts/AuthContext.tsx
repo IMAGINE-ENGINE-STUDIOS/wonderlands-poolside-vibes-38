@@ -73,20 +73,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Tracks which user the profile belongs to, so background token refreshes
+    // (fired when the tab regains focus) never reset the UI into a loading state.
+    let loadedUserId: string | null = null;
+
     const loadSession = (session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
+      const nextUserId = session?.user?.id ?? null;
+
+      if (nextUserId) {
+        if (nextUserId === loadedUserId) return; // same user: keep current profile/UI
+        loadedUserId = nextUserId;
         setLoading(true);
         setProfile(null);
         // Defer profile fetch to avoid potential auth callback deadlocks,
         // but keep the app in a loading state until role data is ready.
         setTimeout(async () => {
-          await fetchProfile(session.user.id);
+          await fetchProfile(nextUserId);
           setLoading(false);
         }, 0);
       } else {
+        loadedUserId = null;
         setProfile(null);
         setLoading(false);
       }
@@ -94,7 +103,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        // Token refreshes carry no new identity — just keep the session fresh.
+        if (event === 'TOKEN_REFRESHED') {
+          setSession(session);
+          setUser(session?.user ?? null);
+          return;
+        }
         loadSession(session);
       }
     );
