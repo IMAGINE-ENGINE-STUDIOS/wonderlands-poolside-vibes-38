@@ -1225,12 +1225,16 @@ const WonderlandsStudio = () => {
 
     // Screen enclosures are fully itemized by the enclosure configurator
     if (selectedProduct.type === 'screen-enclosure' && enclosureProject) {
-      const encBreakdown = enclosureProject.elements.map(el => ({
-        name: `${el.label}${el.detail ? ` — ${el.detail}` : ''}`,
-        price: el.amount,
-        image: '',
-      }));
+      const encBreakdown = [
+        ...enclosureProject.elements.map(el => ({
+          name: `${el.label}${el.detail ? ` — ${el.detail}` : ''}`,
+          price: el.amount,
+          image: '',
+        })),
+        ...buildCartQuoteLines(currentCartIdRef.current),
+      ];
       const encTotal = encBreakdown.reduce((sum, item) => sum + item.price, 0);
+
       extrasDataRef.current = { extrasBreakdown: encBreakdown, extrasTotal: encTotal };
       setSelectedExtras(prev => ({ ...prev, extrasBreakdown: encBreakdown, extrasTotal: encTotal }));
       setShowQuoteModal(true);
