@@ -599,6 +599,7 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     // Reconcile so elements sum exactly to the sell price
     const eDiff = sellPrice - elements.reduce((s, e) => s + e.amount, 0);
     elements[0].amount += eDiff;
+  }
 
   const categoryTotals = costLines.reduce<Record<string, number>>((acc, l) => {
     acc[l.category] = (acc[l.category] || 0) + l.amount;
