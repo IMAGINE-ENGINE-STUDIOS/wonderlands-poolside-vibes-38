@@ -1198,8 +1198,30 @@ const WonderlandsStudio = () => {
     }
     setSelectedExtras(newExtras);
   };
+  /** Turns every other shopping-list item (and its features) into quote lines */
+  const buildCartQuoteLines = (excludeId?: string | null) =>
+    cartItems
+      .filter(item => item.id !== excludeId)
+      .flatMap(item => {
+        const qty = item.quantity || 1;
+        const lines = [
+          {
+            name: `${item.name}${qty > 1 ? ` × ${qty}` : ''}`,
+            price: (item.price || 0) * qty,
+            image: (item as any).image || '',
+          },
+          ...((item.extras || []).map(extra => ({
+            name: `${item.name} — ${extra.name}`,
+            price: (extra.price || 0) * qty,
+            image: '',
+          }))),
+        ];
+        return lines;
+      });
+
   const handleQuoteRequest = () => {
     if (!selectedProduct) return;
+
 
     // Screen enclosures are fully itemized by the enclosure configurator
     if (selectedProduct.type === 'screen-enclosure' && enclosureProject) {
