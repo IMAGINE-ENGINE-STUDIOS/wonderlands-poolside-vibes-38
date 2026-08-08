@@ -1,7 +1,9 @@
 // Sauna catalog — models, specifications, pricing and imagery from Almost Heaven Saunas
+import { getSaunaRetailPrice } from '@/lib/saunaPricing';
+
 const CDN = 'https://cdn.shopify.com/s/files/1/0555/6355/0889';
 
-export const saunas = [
+const saunaCatalog = [
   {
     id: 'salem-2p',
     name: 'Salem 2 Person Barrel Sauna',
@@ -325,5 +327,16 @@ export const saunas = [
     warranty: '5 years structural',
   }
 ];
+
+/**
+ * Customer-facing catalog: supplier cost is converted to a turnkey retail price
+ * that includes freight, local delivery, installation, electrical, overhead and
+ * profit. `unitCost` stays available for the passcode-protected sales view only.
+ */
+export const saunas = saunaCatalog.map(sauna => ({
+  ...sauna,
+  unitCost: sauna.price,
+  price: getSaunaRetailPrice(sauna.price, sauna.capacity),
+}));
 
 export type Sauna = typeof saunas[0];

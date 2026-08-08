@@ -4,6 +4,7 @@ import { getProductsByCategory } from '@/data/consolidatedProducts';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 import noCoverBlack from '@/assets/no-cover-black.png';
+import { getSaunaOptionRetail } from '@/lib/saunaPricing';
 
 // Product type definitions
 export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'scene';
@@ -821,6 +822,25 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
     }
   ]
 };
+
+/**
+ * Sauna option prices in the catalog above are supplier costs. Apply the internal
+ * Wonderlands markup (freight, labor, profit) once at module load so every surface
+ * — studio, cart, quotes, checkout — shows the same customer-facing price.
+ */
+const applySaunaRetail = (features: FeatureConfig[]): FeatureConfig[] =>
+  features.map(feature => ({
+    ...feature,
+    basePrice: feature.basePrice !== undefined ? getSaunaOptionRetail(feature.basePrice) : undefined,
+    pricePerUnit:
+      feature.pricePerUnit !== undefined ? getSaunaOptionRetail(feature.pricePerUnit) : undefined,
+    options: feature.options?.map(option => ({ ...option, price: getSaunaOptionRetail(option.price) })),
+    subFeatures: feature.subFeatures ? applySaunaRetail(feature.subFeatures) : undefined,
+  }));
+
+PRODUCT_FEATURES.sauna = applySaunaRetail(PRODUCT_FEATURES.sauna);
+
+
 
 // Helper function to get features for a product type
 export const getProductFeatures = (productType: ProductType): FeatureConfig[] => {

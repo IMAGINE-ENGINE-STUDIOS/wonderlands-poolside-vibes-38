@@ -2,13 +2,14 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Users, Zap, Clock, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { Flame, Users, Zap, Clock, ShieldCheck, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { DynamicFeatureRenderer } from "./DynamicFeatureRenderer";
 import { getProductFeatures, calculateFeaturePrice } from "@/config/productFeatures";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { resolveCategoryLabel } from '@/lib/productCategories';
+import SaunaSalesPricingDialog from "./sauna/SaunaSalesPricingDialog";
 
 interface SaunaProductCardProps {
   sauna: {
@@ -23,6 +24,7 @@ interface SaunaProductCardProps {
     description: string;
     features: string[];
     dimensions: string;
+    unitCost?: number;
     installationTime: string;
     warranty: string;
   };
@@ -32,6 +34,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
   const { priceMultiplier, projectType } = useProjectType();
   const [showQuote, setShowQuote] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showSalesPricing, setShowSalesPricing] = useState(false);
   const [extras, setExtras] = useState<Record<string, any>>({});
 
   // Sum every configured sauna option using the shared feature pricing model
@@ -203,9 +206,27 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
             >
               Get Instant Quote
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSalesPricing(true)}
+              aria-label="Sales team pricing"
+              title="Sales team access"
+            >
+              <Lock className="h-4 w-4" />
+            </Button>
           </CardFooter>
         </div>
       </Card>
+
+      <SaunaSalesPricingDialog
+        open={showSalesPricing}
+        onOpenChange={setShowSalesPricing}
+        name={sauna.name}
+        unitCost={sauna.unitCost ?? sauna.price}
+        capacity={sauna.capacity}
+        optionsRetail={extrasTotal}
+      />
 
       <SurveyQuoteTool
         pool={null}
