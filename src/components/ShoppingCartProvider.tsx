@@ -38,6 +38,9 @@ export const useShoppingCart = () => {
   return context;
 };
 
+/** Same as useShoppingCart but returns undefined outside the provider */
+export const useOptionalShoppingCart = () => useContext(ShoppingCartContext);
+
 interface ShoppingCartProviderProps {
   children: React.ReactNode;
 }
