@@ -26,6 +26,7 @@ export interface FeatureConfig {
   description?: string;
   type: FeatureType;
   icon?: string;
+  image?: string;
   options?: FeatureOption[];
   basePrice?: number;
   pricePerUnit?: number; // For area-based features
