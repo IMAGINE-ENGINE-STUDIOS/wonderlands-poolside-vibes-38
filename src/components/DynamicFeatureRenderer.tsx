@@ -121,13 +121,13 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
             </div>
 
             {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && selectedExtras[feature.id] !== '' && activeFeatureCarousel === feature.id && feature.options && (
-              <div className="mb-4 border rounded-lg p-2 bg-background overflow-hidden w-full">
-                <Carousel className="w-full">
-                  <CarouselContent className="h-20 sm:h-24">
+              <div className="mb-4 border rounded-lg p-3 bg-background overflow-hidden w-full">
+                <Carousel className="w-full" opts={{ align: 'start', containScroll: 'trimSnaps' }}>
+                  <CarouselContent className="-ml-3">
                     {feature.options.filter(opt => opt.name !== 'None').map((option) => (
-                      <CarouselItem key={option.name} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
+                      <CarouselItem key={option.name} className="pl-3 basis-full sm:basis-1/2 lg:basis-1/3">
                         <div
-                          className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-1.5 sm:p-2 h-full flex flex-col ${
+                          className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full flex flex-col bg-card ${
                             selectedExtras[feature.id] === option.name
                               ? 'border-primary shadow-md'
                               : 'border-border hover:border-primary/50'
@@ -141,20 +141,28 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                           }}
                         >
                           {option.image && (
-                            <img src={option.image} alt={option.name} className="w-full h-8 sm:h-12 object-cover rounded mb-1 flex-shrink-0" />
+                            <div className="w-full aspect-[4/3] rounded bg-muted mb-2 overflow-hidden flex items-center justify-center">
+                              <img
+                                src={option.image}
+                                alt={option.name}
+                                loading="lazy"
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
                           )}
-                          <p className="text-[10px] sm:text-xs font-medium truncate">{option.name}</p>
-                          <p className="text-[9px] sm:text-xs text-muted-foreground">
+                          <p className="text-xs font-medium leading-tight line-clamp-2">{option.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             {option.price > 0 ? `+$${option.price.toLocaleString()}` : 'Included'}
                           </p>
                         </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className="left-0" />
-                  <CarouselNext className="right-0" />
+                  <CarouselPrevious className="-left-1 h-7 w-7" />
+                  <CarouselNext className="-right-1 h-7 w-7" />
                 </Carousel>
               </div>
+
             )}
           </div>
         );
