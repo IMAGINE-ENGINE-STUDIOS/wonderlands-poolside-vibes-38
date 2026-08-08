@@ -15,7 +15,7 @@ interface StudioCartWidgetProps {
   /** Category of the configuration currently open */
   currentCategory?: string;
   /** Features/extras of the configuration currently open */
-  currentExtras?: Array<{ name: string; price: number; key?: string; quantity?: number; options?: { name: string; price: number }[] }>;
+  currentExtras?: Array<{ name: string; price: number; key?: string; quantity?: number; selectedOption?: string; options?: { name: string; price: number }[] }>;
   /** Removes one feature from the currently open configuration */
   onRemoveCurrentExtra?: (key?: string) => void;
   /** Updates the quantity of a feature in the currently open configuration */
