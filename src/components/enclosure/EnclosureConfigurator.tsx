@@ -318,7 +318,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
               </Button>
             </div>
           </div>
-          <EnclosureDrawingBoard layout={layout} onChange={setLayout} onMeasure={handleMeasure} />
+          <EnclosureDrawingBoard layout={layout} onChange={setLayout} onMeasure={handleMeasure} onSnapshot={setSnapshot} />
       </section>
 
       {/* Structure configuration */}
