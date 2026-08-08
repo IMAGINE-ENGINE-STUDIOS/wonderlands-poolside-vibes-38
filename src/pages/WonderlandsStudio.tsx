@@ -2085,9 +2085,8 @@ const WonderlandsStudio = () => {
                           variant={showPricePanel ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => setShowPricePanel(!showPricePanel)}
-                          className="h-8 text-xs gap-1.5"
+                          className="h-8 text-xs"
                         >
-                          <DollarSign className="h-3.5 w-3.5" />
                           {showPricePanel ? 'Hide' : 'Show'} Price
                         </Button>
                       </div>
