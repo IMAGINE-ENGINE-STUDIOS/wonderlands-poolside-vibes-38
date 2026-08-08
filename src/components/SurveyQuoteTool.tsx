@@ -417,7 +417,7 @@ const SurveyQuoteTool = ({
       };
 
       await html2pdf().set(opt).from(iframe.contentDocument?.body).save();
-      document.body.removeChild(iframe);
+      iframe.remove();
       
       toast({
         title: "Success!",
