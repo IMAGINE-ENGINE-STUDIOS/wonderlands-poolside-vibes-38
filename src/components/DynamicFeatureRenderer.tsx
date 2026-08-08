@@ -158,6 +158,9 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
             )}
           </div>
         );
+      }
+
+
 
       case 'quantity':
         return (
