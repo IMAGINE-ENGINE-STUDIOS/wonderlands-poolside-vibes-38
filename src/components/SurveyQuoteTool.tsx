@@ -1042,7 +1042,7 @@ const SurveyQuoteTool = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto pb-8">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-            Get Your Personalized Pool Quote
+            Get Your Personalized {extras?.enclosure ? 'Screen Enclosure' : customProduct && !pool ? (customProduct.type || 'Project') : 'Pool'} Quote
           </DialogTitle>
           <DialogDescription className="text-lg">
             Join 500+ Florida families who've created their dream oasis with Wonderlands
