@@ -2862,7 +2862,7 @@ const SurveyQuoteTool = ({
               </CardContent>
             </Card>
           </div>,
-          document.body
+          galleryHost
         )}
 
         {/* Authentication Prompt */}
