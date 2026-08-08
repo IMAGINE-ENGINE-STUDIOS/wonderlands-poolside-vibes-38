@@ -19,6 +19,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
 import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSnapshot } from "@/components/quote/quoteGallery";
+import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
+import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 
 import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
@@ -86,7 +88,17 @@ const SurveyQuoteTool = ({
   const [restored, setRestored] = useState<SavedQuoteSnapshot | null>(null);
   const pool = restored ? restored.pool : poolProp;
   const customProduct = restored ? restored.customProduct : customProductProp;
-  const extras = restored ? restored.extras : extrasProp;
+  const baseExtras = restored ? restored.extras : extrasProp;
+
+  // Every product in the shopping list must appear in the quote, whatever its category
+  const cart = useOptionalShoppingCart();
+  const extras = React.useMemo(
+    () =>
+      restored
+        ? baseExtras
+        : mergeCartIntoExtras(baseExtras, cart?.cartItems, pool?.model || customProduct?.name || null),
+    [restored, baseExtras, cart?.cartItems, pool?.model, customProduct?.name]
+  );
 
   // Quote gallery state
   const [showGallery, setShowGallery] = useState(false);
