@@ -3794,21 +3794,47 @@ const WonderlandsStudio = () => {
       </div>
 
       {/* Quote Modal */}
-      <SurveyQuoteTool pool={selectedProduct ? {
-      model: selectedProduct.model || selectedProduct.name || 'Product',
-      price: selectedProduct.price,
-      category: selectedProduct.category as any,
-      image: selectedProduct.image,
-      dimensions: selectedProduct.dimensions,
-      depth: selectedProduct.depth,
-      warrantyYears: selectedProduct.warrantyYears
-    } : null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} extras={{
-      ...selectedExtras,
-      // Use ref data which is set synchronously before modal opens
-      extrasBreakdown: extrasDataRef.current.extrasBreakdown,
-      extrasTotal: extrasDataRef.current.extrasTotal,
-      deliveryTime: selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
-    }} />
+      {(() => {
+        const isEnclosureQuote = selectedProduct?.type === 'screen-enclosure';
+        const enclosureExtrasTotal = extrasDataRef.current.extrasTotal || 0;
+        return (
+          <SurveyQuoteTool
+            pool={selectedProduct && !isEnclosureQuote ? {
+              model: selectedProduct.model || selectedProduct.name || 'Product',
+              price: selectedProduct.price,
+              category: selectedProduct.category as any,
+              image: selectedProduct.image,
+              dimensions: selectedProduct.dimensions,
+              depth: selectedProduct.depth,
+              warrantyYears: selectedProduct.warrantyYears
+            } : null}
+            customProduct={selectedProduct && isEnclosureQuote ? {
+              name: selectedProduct.model || selectedProduct.name || 'Screen Enclosure',
+              price: Math.max(0, (enclosureProject?.total || calculateTotalPrice()) - enclosureExtrasTotal),
+              type: 'Screen Enclosure',
+              image: selectedProduct.image,
+            } : undefined}
+            isOpen={showQuoteModal}
+            onClose={() => setShowQuoteModal(false)}
+            extras={{
+              ...selectedExtras,
+              // Use ref data which is set synchronously before modal opens
+              extrasBreakdown: extrasDataRef.current.extrasBreakdown,
+              extrasTotal: extrasDataRef.current.extrasTotal,
+              enclosure: isEnclosureQuote && enclosureProject ? {
+                header: enclosureProject.header,
+                typeLabel: enclosureProject.typeLabel,
+                roofLabel: enclosureProject.roofLabel,
+                extrusionLabel: enclosureProject.extrusionLabel,
+                screenLabel: enclosureProject.screenLabel,
+                snapshot: enclosureProject.snapshot || null,
+                compliance: enclosureProject.compliance,
+              } : undefined,
+              deliveryTime: isEnclosureQuote ? '3-5 weeks' : (selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks')
+            }}
+          />
+        );
+      })()}
     
     {/* Floating AI Search - Hidden for now */}
     </div>;
