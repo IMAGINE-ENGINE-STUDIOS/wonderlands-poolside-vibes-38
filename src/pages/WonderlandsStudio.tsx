@@ -2475,7 +2475,7 @@ const WonderlandsStudio = () => {
                               <span>• Ergonomic benches</span>
                               <span>• Ventilation system</span>
                               <span>• Delivery, permits & professional installation</span>
-                              <span>• {selectedProduct.warranty || 'Structural warranty'}</span>
+                              <span>• {(selectedProduct as any).warranty || 'Structural warranty'}</span>
                             </div>
                           </div>
                         )}
