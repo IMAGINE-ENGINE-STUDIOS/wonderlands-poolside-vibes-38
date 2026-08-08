@@ -758,3 +758,37 @@ export function buildEnclosureSpec(config: EnclosureConfigState): {
     ],
   };
 }
+
+/** Full, itemized enclosure project reported to the studio (cart + quote) */
+export interface EnclosureProject {
+  total: number;
+  areaSqFt: number;
+  perimeterFt: number;
+  description: string;
+  typeLabel: string;
+  roofLabel: string;
+  extrusionLabel: string;
+  screenLabel: string;
+  elements: EnclosureElement[];
+  /** Base shell price = total minus the itemized removable/optional elements */
+  spec: { installer: EnclosureSpecRow[]; architect: EnclosureSpecRow[]; permit: EnclosureSpecRow[] };
+  compliance: EnclosureComplianceIssue[];
+  header: {
+    framedAreaSqFt: number;
+    screenedAreaSqFt: number;
+    screenWallFt: number;
+    longestSpanFt: number;
+    wallHeightFt: number;
+    meanRoofHeightFt: number;
+    windSpeedMph: number;
+    exposure: string;
+    hvhz: boolean;
+    designPressurePsf: number;
+    sealedRequired: boolean;
+    isPoolBarrier: boolean;
+    doorCount: number;
+    pricePerSqFt: number;
+  };
+  /** PNG data-URL of the drawn footprint, when a drawing exists */
+  snapshot?: string | null;
+}
