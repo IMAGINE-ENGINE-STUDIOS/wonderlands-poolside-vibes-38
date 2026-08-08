@@ -326,14 +326,14 @@ const StudioCartWidget = ({
                         </div>
                         {extra.options && extra.options.length > 1 && onCurrentExtraOption && (
                           <select
-                            value={extra.name}
+                            value={extra.selectedOption ?? extra.name}
                             onChange={event => onCurrentExtraOption(extra.key, event.target.value)}
                             className="w-full h-6 rounded border bg-background text-foreground text-[10px] px-1"
                             aria-label={`Change ${extra.name}`}
                           >
                             {extra.options.map(option => (
                               <option key={option.name} value={option.name}>
-                                {option.name} — ${option.price.toLocaleString()}
+                                {option.name}{option.price > 0 ? ` — $${option.price.toLocaleString()}` : ''}
                               </option>
                             ))}
                           </select>
