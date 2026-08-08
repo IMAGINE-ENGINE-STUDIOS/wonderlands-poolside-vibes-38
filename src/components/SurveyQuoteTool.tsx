@@ -2808,7 +2808,7 @@ const SurveyQuoteTool = ({
         )}
 
         {/* Quote File Gallery — portaled to body so it always centers in the viewport */}
-        {showGallery && createPortal(
+        {showGallery && galleryHost && createPortal(
           <div
             className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 no-print print:hidden"
             style={{ pointerEvents: 'auto' }}
