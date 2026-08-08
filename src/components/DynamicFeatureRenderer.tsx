@@ -18,17 +18,27 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
   const features = getProductFeatures(productType);
 
+  const fmt = (n: number) => `$${n.toLocaleString()}`;
+
   const renderFeature = (feature: FeatureConfig) => {
     switch (feature.type) {
       case 'boolean':
         return (
           <div key={feature.id}>
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <Label className="text-sm font-medium">{feature.label}</Label>
-                {feature.description && (
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+            <div className="flex items-center justify-between mb-2 gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {feature.image && (
+                  <img src={feature.image} alt={feature.label} loading="lazy" className="h-10 w-10 rounded object-cover border border-border flex-shrink-0" />
                 )}
+                <div className="min-w-0">
+                  <Label className="text-sm font-medium">{feature.label}</Label>
+                  {feature.description && (
+                    <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  )}
+                  {!!feature.basePrice && (
+                    <p className="text-xs font-semibold text-primary">+{fmt(feature.basePrice)}</p>
+                  )}
+                </div>
               </div>
               <Checkbox
                 checked={selectedExtras[feature.id]}
@@ -43,15 +53,32 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
           </div>
         );
 
-      case 'selection':
+      case 'selection': {
+        const selectedName = selectedExtras[feature.id];
+        const selectedOption = feature.options?.find(o => o.name === selectedName);
         return (
           <div key={feature.id}>
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <Label className="text-sm font-medium">{feature.label}</Label>
-                {feature.description && (
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+            <div className="flex items-center justify-between mb-2 gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {selectedOption?.image && (
+                  <img src={selectedOption.image} alt={selectedOption.name} loading="lazy" className="h-10 w-10 rounded object-cover border border-border flex-shrink-0" />
                 )}
+                <div className="min-w-0">
+                  <Label className="text-sm font-medium">{feature.label}</Label>
+                  {feature.description && (
+                    <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  )}
+                  {selectedOption && selectedOption.name !== 'None' && (
+                    <p className="text-xs font-semibold text-primary truncate">
+                      {selectedOption.name} — {selectedOption.price > 0 ? `+${fmt(selectedOption.price)}` : 'Included'}
+                    </p>
+                  )}
+                  {!selectedOption && feature.options && feature.options.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      from {fmt(Math.min(...feature.options.filter(o => o.price > 0).map(o => o.price)))}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -92,6 +119,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                 )}
               </div>
             </div>
+
             {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && selectedExtras[feature.id] !== '' && activeFeatureCarousel === feature.id && feature.options && (
               <div className="mb-4 border rounded-lg p-2 bg-background overflow-hidden w-full">
                 <Carousel className="w-full">
@@ -130,6 +158,9 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
             )}
           </div>
         );
+      }
+
+
 
       case 'quantity':
         return (
@@ -168,8 +199,12 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                 {feature.description && (
                   <p className="text-xs text-muted-foreground">{feature.description}</p>
                 )}
+                {!!feature.pricePerUnit && (
+                  <p className="text-xs font-semibold text-primary">{fmt(feature.pricePerUnit)} / sq ft</p>
+                )}
               </div>
               <div className="flex items-center gap-2">
+
                 <Input
                   type="number"
                   min={0}
