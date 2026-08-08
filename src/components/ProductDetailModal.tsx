@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Package, DollarSign, Star } from "lucide-react";
 import type { Product } from "./ProductCatalog";
+import { resolveCategoryLabel } from '@/lib/productCategories';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -32,7 +33,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
         <DialogHeader>
           <div className="flex items-center gap-3 mb-4">
             <Badge className={`${getCategoryColor(product.category)} text-white capitalize font-medium px-3 py-1`}>
-              {product.category}
+              {resolveCategoryLabel(product.category, (product as any).type, product.name)}
             </Badge>
             <div className="flex items-center gap-1 text-amber-500">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -91,7 +92,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
                 )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Category:</span>
-                  <span className="font-medium capitalize">{product.category}</span>
+                  <span className="font-medium">{resolveCategoryLabel(product.category, (product as any).type, product.name)}</span>
                 </div>
               </div>
             </div>

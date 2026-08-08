@@ -8,6 +8,7 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import { DynamicFeatureRenderer } from "./DynamicFeatureRenderer";
 import { getProductFeatures, calculateFeaturePrice } from "@/config/productFeatures";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
+import { resolveCategoryLabel } from '@/lib/productCategories';
 
 interface SaunaProductCardProps {
   sauna: {
@@ -79,7 +80,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
               <div className="absolute top-4 left-4 z-10">
                 <Badge className={`${getCategoryColor(sauna.category)} text-white px-4 py-1.5 shadow-lg backdrop-blur-sm`}>
                   <Flame className="w-3 h-3 mr-1 inline" />
-                  {sauna.category.toUpperCase()}
+                  {resolveCategoryLabel(sauna.category, 'sauna').toUpperCase()}
                 </Badge>
               </div>
               

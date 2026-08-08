@@ -4,6 +4,8 @@ const { createContext, useContext, useState, useEffect } = React;
 import { useToast } from '@/hooks/use-toast';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import ShoppingCart, { CartItem } from './ShoppingCart';
+import { resolveCategoryLabel } from '@/lib/productCategories';
+
 
 interface ShoppingCartContextType {
   cartItems: CartItem[];
@@ -48,16 +50,33 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
   useEffect(() => {
     const savedCart = localStorage.getItem('poolShoppingCart');
     if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+      // Re-label legacy items that stored pricing tiers ("premium") as a category
+      const parsed: CartItem[] = JSON.parse(savedCart);
+      setCartItems(
+        parsed.map(item => ({
+          ...item,
+          category:
+            resolveCategoryLabel(item.category, (item as any).type, item.id, item.name) || 'Other',
+        }))
+      );
     }
   }, []);
+
 
   useEffect(() => {
     localStorage.setItem('poolShoppingCart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
+  const addToCart = (incoming: Omit<CartItem, 'quantity'>) => {
+    // Categories are product families (Pools, Spas, Saunas...) — never pricing tiers
+    const item = {
+      ...incoming,
+      category:
+        resolveCategoryLabel(incoming.category, (incoming as any).type, incoming.id, incoming.name) ||
+        'Other',
+    };
     const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
+
     
     if (existingItem) {
       const updatedItems = cartItems.map(cartItem =>

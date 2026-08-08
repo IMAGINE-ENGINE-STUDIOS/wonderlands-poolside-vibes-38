@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Waves, DollarSign, Star, Clock, Award, Flame, Zap, Palette, Ruler, Droplets } from "lucide-react";
+import { resolveCategoryLabel } from '@/lib/productCategories';
 
 interface Spa {
   model: string;
@@ -47,7 +48,7 @@ const SpaDetailModal = ({ spa, isOpen, onClose, onRequestQuote }: SpaDetailModal
             <Badge className={`${getCategoryColor(spa.category)} text-white capitalize font-medium px-3 py-1`}>
               <span className="flex items-center gap-1">
                 <Waves size={16} />
-                {spa.category}
+                {resolveCategoryLabel(spa.category, 'spa')}
               </span>
             </Badge>
           </div>

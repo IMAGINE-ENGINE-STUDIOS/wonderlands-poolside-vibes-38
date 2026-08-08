@@ -27,6 +27,7 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import { resolveCategoryLabel } from '@/lib/productCategories';
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
@@ -1716,7 +1717,7 @@ const PoolDetails = () => {
                     <div>
                       <h1 className="text-sm sm:text-xl font-bold">{pool.model}</h1>
                       <Badge className={getCategoryColor(pool.category) + " text-xs"}>
-                        {pool.category}
+                        {resolveCategoryLabel(pool.category, 'pool')}
                       </Badge>
                     </div>
                     <div className="text-right">
