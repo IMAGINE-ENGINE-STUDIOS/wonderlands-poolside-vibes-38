@@ -323,8 +323,8 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
   };
 
   // ---- imperative editing API used by the shopping cart ----
-  const doorApiRef = React.useRef({ setDoorQty, removeDoorType, swapDoorType });
-  doorApiRef.current = { setDoorQty, removeDoorType, swapDoorType };
+  const doorApiRef = React.useRef({ setDoorQty, setDoorCount, removeDoorType, swapDoorType });
+  doorApiRef.current = { setDoorQty, setDoorCount, removeDoorType, swapDoorType };
   const apiRef = React.useRef(onApiReady);
   apiRef.current = onApiReady;
   React.useEffect(() => {
