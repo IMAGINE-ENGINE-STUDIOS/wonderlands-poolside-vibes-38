@@ -15,6 +15,7 @@ import EnclosureDrawingBoard, {
   countDrawnDoors,
   addDoorToLongestWall,
   removeDrawnDoorsOfType,
+  removeLastDrawnDoor,
   swapDrawnDoorType,
 } from './EnclosureDrawingBoard';
 import {
