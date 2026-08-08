@@ -517,6 +517,9 @@ const WonderlandsStudio = () => {
     categoryQuantity: '',
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
+  // Full itemized screen-enclosure project (elements, specs, footprint snapshot)
+  const [enclosureProject, setEnclosureProject] = useState<EnclosureProject | null>(null);
+  const enclosureApiRef = useRef<EnclosureEditApi | null>(null);
   const [paverCategory, setPaverCategory] = useState('all');
   const [showExtrasDropdown, setShowExtrasDropdown] = usePersistentState('studio_extrasDropdown', false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = usePersistentState('studio_sidebarCollapsed', false);
