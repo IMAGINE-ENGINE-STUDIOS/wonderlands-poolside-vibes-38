@@ -4,6 +4,7 @@ import { getProductsByCategory } from '@/data/consolidatedProducts';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 import noCoverBlack from '@/assets/no-cover-black.png';
+import { getSaunaOptionRetail } from '@/lib/saunaPricing';
 
 // Product type definitions
 export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'scene';
