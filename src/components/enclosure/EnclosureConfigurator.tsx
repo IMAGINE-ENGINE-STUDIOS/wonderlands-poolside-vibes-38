@@ -8,7 +8,16 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle2, HardHat, Stamp, Ruler, Minus, Plus, Info, Printer } from 'lucide-react';
-import EnclosureDrawingBoard, { EnclosureLayout, EnclosureTakeoff, migrateEnclosureLayout } from './EnclosureDrawingBoard';
+import EnclosureDrawingBoard, {
+  EnclosureLayout,
+  EnclosureTakeoff,
+  migrateEnclosureLayout,
+  countDrawnDoors,
+  addDoorToLongestWall,
+  removeDrawnDoorsOfType,
+  removeLastDrawnDoor,
+  swapDrawnDoorType,
+} from './EnclosureDrawingBoard';
 import {
   DEFAULT_ENCLOSURE_CONFIG,
   ENCLOSURE_ADDONS,
@@ -115,6 +124,28 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
     );
   }, []);
 
+  // ---- drawing <-> shopping list door sync ----
+  const layoutRef = React.useRef(layout);
+  layoutRef.current = layout;
+  const hasFootprint = layout.points.length >= 2;
+  const drawnDoors = React.useMemo(() => countDrawnDoors(layout), [layout]);
+  const drawnDoorsKey = JSON.stringify(drawnDoors);
+
+  /** While a footprint exists, doors drawn on the plan are the single source of truth. */
+  React.useEffect(() => {
+    if (!hasFootprint) return;
+    const doors = JSON.parse(drawnDoorsKey) as Record<string, number>;
+    setConfig(prev => (JSON.stringify(prev.doors) === JSON.stringify(doors) ? prev : { ...prev, doors }));
+  }, [drawnDoorsKey, hasFootprint]);
+
+  /** Remove the last drawn door of a model (shopping list -> drawing) */
+  const removeOneDrawnDoor = (doorTypeId: string) => {
+    const next = removeLastDrawnDoor(layoutRef.current, doorTypeId);
+    if (!next) return false;
+    setLayout(next);
+    return true;
+  };
+
   const applyManual = () => {
     const area = parseFloat(manualArea) || 0;
     // Assume a near-square footprint for perimeter/span when entered numerically
@@ -185,36 +216,123 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
     projectRef.current?.(JSON.parse(projectKey) as EnclosureProject);
   }, [projectKey]);
 
+  const manualDoorQty = (id: string, delta: number) =>
+    setConfig(prev => {
+      const next = Math.max(0, (prev.doors[id] || 0) + delta);
+      const doors = { ...prev.doors };
+      if (next === 0) delete doors[id];
+      else doors[id] = next;
+      return { ...prev, doors };
+    });
+
+  /** Add / remove a door. With a footprint drawn, the plan is edited and the list follows. */
+  const setDoorQty = (id: string, delta: number) => {
+    const current = layoutRef.current;
+    if (current.points.length >= 2) {
+      if (delta > 0) {
+        const next = addDoorToLongestWall(current, id);
+        if (next) {
+          setLayout(next);
+          return;
+        }
+      } else if (removeOneDrawnDoor(id)) {
+        return;
+      }
+      return;
+    }
+    manualDoorQty(id, delta);
+  };
+
+  /** Set the exact number of doors of a model (batched against one layout copy) */
+  const setDoorCount = (id: string, quantity: number) => {
+    const current = layoutRef.current;
+    if (current.points.length < 2) {
+      setConfig(prev => {
+        const doors = { ...prev.doors };
+        if (quantity <= 0) delete doors[id];
+        else doors[id] = quantity;
+        return { ...prev, doors };
+      });
+      return;
+    }
+    let next: EnclosureLayout = current;
+    let have = countDrawnDoors(next)[id] || 0;
+    if (quantity <= 0) {
+      setLayout(removeDrawnDoorsOfType(next, id));
+      return;
+    }
+    while (have < quantity) {
+      const placed = addDoorToLongestWall(next, id);
+      if (!placed) break;
+      next = placed;
+      have += 1;
+    }
+    while (have > quantity) {
+      const trimmed = removeLastDrawnDoor(next, id);
+      if (!trimmed) break;
+      next = trimmed;
+      have -= 1;
+    }
+    if (next !== current) setLayout(next);
+  };
+
+  /** Drop every door of a model from the plan and the list */
+  const removeDoorType = (id: string) => {
+    const current = layoutRef.current;
+    if (current.points.length >= 2) {
+      setLayout(removeDrawnDoorsOfType(current, id));
+      return;
+    }
+    setConfig(prev => {
+      const doors = { ...prev.doors };
+      delete doors[id];
+      return { ...prev, doors };
+    });
+  };
+
+  /** Swap a model for another, on the plan and in the list */
+  const swapDoorType = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const current = layoutRef.current;
+    if (current.points.length >= 2) {
+      setLayout(swapDrawnDoorType(current, fromId, toId));
+      return;
+    }
+    setConfig(prev => {
+      const qty = prev.doors[fromId] || 0;
+      const doors = { ...prev.doors };
+      delete doors[fromId];
+      doors[toId] = (doors[toId] || 0) + qty;
+      return { ...prev, doors };
+    });
+  };
+
   // ---- imperative editing API used by the shopping cart ----
+  const doorApiRef = React.useRef({ setDoorQty, setDoorCount, removeDoorType, swapDoorType });
+  doorApiRef.current = { setDoorQty, setDoorCount, removeDoorType, swapDoorType };
   const apiRef = React.useRef(onApiReady);
   apiRef.current = onApiReady;
   React.useEffect(() => {
     apiRef.current?.({
       setElementOption: (key, optionId) => {
+        if (key.startsWith('door:')) {
+          doorApiRef.current.swapDoorType(key.slice(5), optionId);
+          return;
+        }
         setConfig(prev => {
           if (key === 'structure') return { ...prev, typeId: optionId };
           if (key === 'roof') return { ...prev, roofId: optionId };
           if (key === 'extrusion') return { ...prev, extrusionId: optionId };
           if (key === 'screen') return { ...prev, screenId: optionId };
-          if (key.startsWith('door:')) {
-            const fromId = key.slice(5);
-            if (fromId === optionId) return prev;
-            const qty = prev.doors[fromId] || 0;
-            const doors = { ...prev.doors };
-            delete doors[fromId];
-            doors[optionId] = (doors[optionId] || 0) + qty;
-            return { ...prev, doors };
-          }
           return prev;
         });
       },
       removeElement: key => {
+        if (key.startsWith('door:')) {
+          doorApiRef.current.removeDoorType(key.slice(5));
+          return;
+        }
         setConfig(prev => {
-          if (key.startsWith('door:')) {
-            const doors = { ...prev.doors };
-            delete doors[key.slice(5)];
-            return { ...prev, doors };
-          }
           if (key.startsWith('addon:')) {
             const id = key.slice(6);
             return { ...prev, addOns: prev.addOns.filter(a => a !== id) };
@@ -224,27 +342,11 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
       },
       setElementQuantity: (key, quantity) => {
         if (!key.startsWith('door:')) return;
-        const id = key.slice(5);
-        setConfig(prev => {
-          const doors = { ...prev.doors };
-          if (quantity <= 0) delete doors[id];
-          else doors[id] = quantity;
-          return { ...prev, doors };
-        });
+        doorApiRef.current.setDoorCount(key.slice(5), quantity);
       },
     });
   }, []);
 
-
-
-  const setDoorQty = (id: string, delta: number) =>
-    setConfig(prev => {
-      const next = Math.max(0, (prev.doors[id] || 0) + delta);
-      const doors = { ...prev.doors };
-      if (next === 0) delete doors[id];
-      else doors[id] = next;
-      return { ...prev, doors };
-    });
 
   const toggleAddOn = (id: string) =>
     setConfig(prev => ({
@@ -510,6 +612,11 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
           <div>
             <p className="quote-eyebrow">Section 03</p>
             <h4 className="text-sm font-semibold mt-1">Doors &amp; Hardware</h4>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {hasFootprint
+                ? 'Doors are linked to the plan — adding here drops one onto the longest free wall, and removing one erases it from the drawing (and vice versa).'
+                : 'Draw a footprint above to place doors directly on the plan.'}
+            </p>
           </div>
           <div className="space-y-2">
             {ENCLOSURE_DOORS.map(door => (

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, Square } from 'lucide-react';
+import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, Square, X } from 'lucide-react';
+import { ENCLOSURE_DOORS, EnclosureDoorOption } from '@/data/screenEnclosureConfigurator';
 
 export interface EnclosurePoint {
   x: number;
@@ -15,6 +16,8 @@ export interface EnclosureFeature {
   start: number;
   /** Normalized end position along the segment */
   end: number;
+  /** Catalog door model dropped on the plan (doors only) */
+  doorTypeId?: string;
 }
 
 export interface EnclosureLayout {
@@ -38,6 +41,13 @@ export interface EnclosureTakeoff {
   depthFt: number;
 }
 
+/** Selected drawing element the user can delete */
+type Selection =
+  | { type: 'point'; index: number }
+  | { type: 'feature'; segIndex: number; featIndex: number; kind: 'door' | 'house' }
+  | { type: 'segment'; segIndex: number }
+  | null;
+
 interface Props {
   layout: EnclosureLayout;
   onChange: (layout: EnclosureLayout) => void;
@@ -50,15 +60,19 @@ interface Props {
 const PX_PER_FT = 10;
 const GRID_FT = 1;
 const MAJOR_FT = 5;
-const DEFAULT_DOOR_FT = 3; // standard 36" swing door width
+const DEFAULT_DOOR_ID = 'single-36-sl';
 
 const dist = (a: EnclosurePoint, b: EnclosurePoint) => Math.hypot(a.x - b.x, a.y - b.y);
+const doorById = (id?: string): EnclosureDoorOption =>
+  ENCLOSURE_DOORS.find(d => d.id === id) || ENCLOSURE_DOORS.find(d => d.id === DEFAULT_DOOR_ID) || ENCLOSURE_DOORS[0];
 
 const KIND_COLOR: Record<EnclosureSegmentKind, string> = {
   wall: '#111827',
   door: '#0891b2',
   house: '#f97066',
 };
+
+const SELECT_COLOR = '#f59e0b';
 
 /** Convert legacy segmentKinds into sized features. Doors become 3 ft bays centered on each segment. */
 export function migrateEnclosureLayout(layout: EnclosureLayout): EnclosureLayout {
@@ -78,12 +92,117 @@ export function migrateEnclosureLayout(layout: EnclosureLayout): EnclosureLayout
     if (kind === 'house') {
       features[idx] = [{ kind: 'house', start: 0, end: 1 }];
     } else {
-      const doorFt = Math.min(DEFAULT_DOOR_FT, segFt);
+      const doorFt = Math.min(doorById(DEFAULT_DOOR_ID).widthFt, segFt);
       const margin = Math.max(0, (segFt - doorFt) / 2 / segFt);
-      features[idx] = [{ kind: 'door', start: margin, end: 1 - margin }];
+      features[idx] = [{ kind: 'door', start: margin, end: 1 - margin, doorTypeId: DEFAULT_DOOR_ID }];
     }
   });
   return { points: layout.points, closed: layout.closed, features };
+}
+
+/** Every door bay currently drawn on the plan, grouped by catalog model id */
+export function countDrawnDoors(layout: EnclosureLayout): Record<string, number> {
+  const counts: Record<string, number> = {};
+  Object.values(layout.features || {}).forEach(list =>
+    (list || []).forEach(f => {
+      if (f.kind !== 'door') return;
+      const id = f.doorTypeId || DEFAULT_DOOR_ID;
+      counts[id] = (counts[id] || 0) + 1;
+    })
+  );
+  return counts;
+}
+
+/** Remove every drawn door of a given catalog model (cart -> drawing sync) */
+export function removeDrawnDoorsOfType(layout: EnclosureLayout, doorTypeId: string): EnclosureLayout {
+  const features: Record<number, EnclosureFeature[]> = {};
+  Object.entries(layout.features || {}).forEach(([k, list]) => {
+    const kept = (list || []).filter(f => !(f.kind === 'door' && (f.doorTypeId || DEFAULT_DOOR_ID) === doorTypeId));
+    if (kept.length) features[Number(k)] = kept;
+  });
+  return { ...layout, features };
+}
+
+/** Remove the last drawn door of a model, or null when none is present */
+export function removeLastDrawnDoor(layout: EnclosureLayout, doorTypeId: string): EnclosureLayout | null {
+  const segKeys = Object.keys(layout.features || {})
+    .map(Number)
+    .sort((a, b) => b - a);
+  for (const seg of segKeys) {
+    const list = layout.features[seg] || [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const f = list[i];
+      if (f.kind !== 'door' || (f.doorTypeId || DEFAULT_DOOR_ID) !== doorTypeId) continue;
+      const kept = list.filter((_, idx) => idx !== i);
+      const features = { ...layout.features };
+      if (kept.length) features[seg] = kept;
+      else delete features[seg];
+      return { ...layout, features };
+    }
+  }
+  return null;
+}
+
+/** Swap every drawn door of one model to another (cart option change -> drawing) */
+export function swapDrawnDoorType(layout: EnclosureLayout, fromId: string, toId: string): EnclosureLayout {
+  const from = doorById(fromId);
+  const to = doorById(toId);
+  const features: Record<number, EnclosureFeature[]> = {};
+  Object.entries(layout.features || {}).forEach(([k, list]) => {
+    const segIndex = Number(k);
+    const a = layout.points[segIndex];
+    const b = layout.points[(segIndex + 1) % layout.points.length];
+    const segFt = a && b ? dist(a, b) / PX_PER_FT : 0;
+    features[segIndex] = (list || []).map(f => {
+      if (f.kind !== 'door' || (f.doorTypeId || DEFAULT_DOOR_ID) !== from.id) return f;
+      if (!segFt) return { ...f, doorTypeId: to.id };
+      const mid = (f.start + f.end) / 2;
+      const halfT = Math.min(to.widthFt, segFt) / 2 / segFt;
+      return { ...f, doorTypeId: to.id, start: Math.max(0, mid - halfT), end: Math.min(1, mid + halfT) };
+    });
+  });
+  return { ...layout, features };
+}
+
+/** Drop a door of a given model onto the longest free wall run (cart/list -> drawing) */
+export function addDoorToLongestWall(layout: EnclosureLayout, doorTypeId: string): EnclosureLayout | null {
+  const pts = layout.points;
+  if (pts.length < 2) return null;
+  const door = doorById(doorTypeId);
+  const segs: Array<{ index: number; ft: number }> = [];
+  for (let i = 0; i < pts.length - 1; i++) segs.push({ index: i, ft: dist(pts[i], pts[i + 1]) / PX_PER_FT });
+  if (layout.closed && pts.length > 2) segs.push({ index: pts.length - 1, ft: dist(pts[pts.length - 1], pts[0]) / PX_PER_FT });
+
+  let best: { index: number; t: number } | null = null;
+  let bestGap = 0;
+  segs.forEach(seg => {
+    const feats = (layout.features[seg.index] || []).slice().sort((a, b) => a.start - b.start);
+    let cursor = 0;
+    const gaps: Array<[number, number]> = [];
+    feats.forEach(f => {
+      if (f.start > cursor) gaps.push([cursor, f.start]);
+      cursor = Math.max(cursor, f.end);
+    });
+    if (cursor < 1) gaps.push([cursor, 1]);
+    gaps.forEach(([g0, g1]) => {
+      const gapFt = (g1 - g0) * seg.ft;
+      if (gapFt > bestGap) {
+        bestGap = gapFt;
+        best = { index: seg.index, t: (g0 + g1) / 2 };
+      }
+    });
+  });
+  if (!best || bestGap < door.widthFt) return null;
+  const segFt = segs.find(s => s.index === best!.index)!.ft;
+  const halfT = door.widthFt / 2 / segFt;
+  const feature: EnclosureFeature = {
+    kind: 'door',
+    start: Math.max(0, best.t - halfT),
+    end: Math.min(1, best.t + halfT),
+    doorTypeId: door.id,
+  };
+  const list = [...(layout.features[best.index] || []), feature].sort((a, b) => a.start - b.start);
+  return { ...layout, features: { ...layout.features, [best.index]: list } };
 }
 
 /** Top-view enclosure footprint board. Same drafting conventions as the 2D pool studio: 10px = 1 ft. */
@@ -94,6 +213,8 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   const [dragIndex, setDragIndex] = React.useState<number | null>(null);
   const [hover, setHover] = React.useState<EnclosurePoint | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 520 });
+  const [doorTypeId, setDoorTypeId] = React.useState<string>(DEFAULT_DOOR_ID);
+  const [selection, setSelection] = React.useState<Selection>(null);
 
   React.useEffect(() => {
     const el = wrapRef.current;
@@ -120,24 +241,31 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     const len = dist(seg.a, seg.b);
     const ft = len / PX_PER_FT;
     const feats = featuresOf(seg.index)
-      .filter(f => f.end > f.start)
-      .sort((a, b) => a.start - b.start);
-    const intervals: Array<{ kind: EnclosureSegmentKind; t0: number; t1: number; ft: number }> = [];
+      .map((f, featIndex) => ({ f, featIndex }))
+      .filter(x => x.f.end > x.f.start)
+      .sort((a, b) => a.f.start - b.f.start);
+    const intervals: Array<{
+      kind: EnclosureSegmentKind;
+      t0: number;
+      t1: number;
+      ft: number;
+      featIndex?: number;
+      doorTypeId?: string;
+    }> = [];
     let cursor = 0;
-    feats.forEach(f => {
+    feats.forEach(({ f, featIndex }) => {
       const start = Math.max(f.start, cursor);
       const end = Math.min(1, f.end);
       if (end <= start) return;
       if (start > cursor + 1e-6) {
         intervals.push({ kind: 'wall', t0: cursor, t1: start, ft: (start - cursor) * ft });
       }
-      intervals.push({ kind: f.kind, t0: start, t1: end, ft: (end - start) * ft });
+      intervals.push({ kind: f.kind, t0: start, t1: end, ft: (end - start) * ft, featIndex, doorTypeId: f.doorTypeId });
       cursor = end;
     });
     if (cursor < 1 - 1e-6) intervals.push({ kind: 'wall', t0: cursor, t1: 1, ft: (1 - cursor) * ft });
     return intervals;
   };
-
 
   const takeoff = React.useMemo<EnclosureTakeoff>(() => {
     const pts = layout.points;
@@ -267,10 +395,24 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         ny = -ny;
       }
 
+      const segmentSelected = selection?.type === 'segment' && selection.segIndex === seg.index;
+
       intervals.forEach(iv => {
         const a = { x: seg.a.x + ux * iv.t0 * lenPx, y: seg.a.y + uy * iv.t0 * lenPx };
         const b = { x: seg.a.x + ux * iv.t1 * lenPx, y: seg.a.y + uy * iv.t1 * lenPx };
         const ivLen = dist(a, b);
+        const featureSelected =
+          selection?.type === 'feature' && selection.segIndex === seg.index && selection.featIndex === iv.featIndex;
+        const highlighted = featureSelected || (segmentSelected && iv.kind === 'wall');
+
+        if (highlighted) {
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
+          ctx.lineWidth = 14;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
 
         if (iv.kind === 'door') {
           // architectural door: clean opening in the wall, jambs, and a swing arc
@@ -281,7 +423,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           ctx.lineTo(b.x, b.y);
           ctx.stroke();
 
-          ctx.strokeStyle = KIND_COLOR.door;
+          ctx.strokeStyle = featureSelected ? SELECT_COLOR : KIND_COLOR.door;
           ctx.lineWidth = 2.5;
           [a, b].forEach(j => {
             ctx.beginPath();
@@ -304,7 +446,8 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           ctx.stroke();
           ctx.setLineDash([]);
         } else {
-          const color = iv.kind === 'wall' ? wallColor : KIND_COLOR.house;
+          const base = iv.kind === 'wall' ? wallColor : KIND_COLOR.house;
+          const color = featureSelected ? SELECT_COLOR : base;
           ctx.strokeStyle = color;
           ctx.lineWidth = iv.kind === 'house' ? 6 : 3.5;
           ctx.beginPath();
@@ -330,8 +473,14 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           const mx = (a.x + b.x) / 2;
           const my = (a.y + b.y) / 2;
           const off = iv.kind === 'door' ? 26 : 15;
+          const doorName = iv.kind === 'door' ? doorById(iv.doorTypeId).widthFt : 0;
           labels.push({
-            text: iv.kind === 'door' ? `DOOR ${iv.ft.toFixed(1)}'` : iv.kind === 'house' ? `HOUSE ${iv.ft.toFixed(1)}'` : `${iv.ft.toFixed(1)}'`,
+            text:
+              iv.kind === 'door'
+                ? `DOOR ${doorName}'`
+                : iv.kind === 'house'
+                ? `HOUSE ${iv.ft.toFixed(1)}'`
+                : `${iv.ft.toFixed(1)}'`,
             x: mx + nx * off,
             y: my + ny * off,
             kind: iv.kind,
@@ -361,7 +510,6 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       ctx.fillText(l.text, box.x + w / 2, box.y + h / 2 + 0.5);
       ctx.textBaseline = 'alphabetic';
     });
-
 
     // area callout
     if (layout.closed && takeoff.areaSqFt > 0) {
@@ -393,15 +541,22 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     }
 
     layout.points.forEach((p, i) => {
+      const pointSelected = selection?.type === 'point' && selection.index === i;
+      if (pointSelected) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
+        ctx.fill();
+      }
       ctx.beginPath();
-      ctx.arc(p.x, p.y, i === dragIndex ? 7 : 5, 0, Math.PI * 2);
-      ctx.fillStyle = i === 0 ? '#f97066' : wallColor;
+      ctx.arc(p.x, p.y, i === dragIndex || pointSelected ? 7 : 5, 0, Math.PI * 2);
+      ctx.fillStyle = pointSelected ? SELECT_COLOR : i === 0 ? '#f97066' : wallColor;
       ctx.fill();
       ctx.strokeStyle = bg;
       ctx.lineWidth = 2;
       ctx.stroke();
     });
-  }, [layout, segments, size, hover, mode, dragIndex, frameColorHex, takeoff]);
+  }, [layout, segments, size, hover, mode, dragIndex, frameColorHex, takeoff, selection]);
 
   // ---- snapshot export (footprint plan for cart / quote) ----
   const snapshotRef = React.useRef(onSnapshot);
@@ -423,8 +578,6 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     return () => clearTimeout(t);
   }, [layout, size, takeoff]);
 
-
-
   // ---- interaction ----
   const toLocal = (e: React.MouseEvent): EnclosurePoint => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -439,6 +592,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   const hitSegment = (p: EnclosurePoint) => {
     let best = -1;
     let bestDist = 10;
+    let bestT = 0;
     segments.forEach(seg => {
       const len = dist(seg.a, seg.b) || 1;
       const t = Math.max(0, Math.min(1, ((p.x - seg.a.x) * (seg.b.x - seg.a.x) + (p.y - seg.a.y) * (seg.b.y - seg.a.y)) / (len * len)));
@@ -447,9 +601,10 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       if (d < bestDist) {
         bestDist = d;
         best = seg.index;
+        bestT = t;
       }
     });
-    return best;
+    return { index: best, t: bestT };
   };
 
   /** Remove [s,e] from a house run, splitting it if the cut is in the middle. */
@@ -483,14 +638,14 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         list = [...list, ...runs.filter(r => r.end - r.start > 0.001)];
       }
     } else {
-      // Doors are 3 ft bays centered on the click.
-      const halfFt = Math.min(DEFAULT_DOOR_FT / 2, segFt / 2);
-      const halfT = halfFt / Math.max(segFt, 0.001);
+      const door = doorById(doorTypeId);
+      const widthFt = Math.min(door.widthFt, segFt);
+      const halfT = widthFt / 2 / Math.max(segFt, 0.001);
       let start = Math.max(0, t - halfT);
       let end = Math.min(1, t + halfT);
       // Nudge door-sized bays away from segment ends when possible
-      if ((end - start) * segFt < DEFAULT_DOOR_FT && segFt >= DEFAULT_DOOR_FT) {
-        const missing = (DEFAULT_DOOR_FT - (end - start) * segFt) / segFt / 2;
+      if ((end - start) * segFt < widthFt && segFt >= widthFt) {
+        const missing = (widthFt - (end - start) * segFt) / segFt / 2;
         if (start === 0) end = Math.min(1, end + missing * 2);
         else if (end === 1) start = Math.max(0, start - missing * 2);
       }
@@ -500,7 +655,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       } else {
         // Carve the opening out of any house run so the two never overlap.
         list = list.flatMap(f => (f.kind === 'house' ? subtractHouse(f, start, end) : [f]));
-        list.push({ kind: 'door', start, end });
+        list.push({ kind: 'door', start, end, doorTypeId: door.id });
       }
     }
     list = list.filter(f => f.end - f.start > 0.001).sort((a, b) => a.start - b.start);
@@ -509,21 +664,87 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     onChange({ ...layout, features: next });
   };
 
+  // ---- selection & deletion ----
+  const selectAt = (p: EnclosurePoint) => {
+    const pIdx = hitPoint(p);
+    if (pIdx >= 0) {
+      setSelection({ type: 'point', index: pIdx });
+      return pIdx;
+    }
+    const { index, t } = hitSegment(p);
+    if (index < 0) {
+      setSelection(null);
+      return -1;
+    }
+    const featIndex = featuresOf(index).findIndex(f => t >= f.start && t <= f.end);
+    if (featIndex >= 0) {
+      setSelection({ type: 'feature', segIndex: index, featIndex, kind: featuresOf(index)[featIndex].kind });
+    } else {
+      setSelection({ type: 'segment', segIndex: index });
+    }
+    return -1;
+  };
+
+  /** Delete a corner point and re-index the features of the segments it touched. */
+  const removePoint = (index: number) => {
+    const points = layout.points.filter((_, i) => i !== index);
+    const features: Record<number, EnclosureFeature[]> = {};
+    Object.entries(layout.features).forEach(([k, list]) => {
+      const seg = Number(k);
+      if (seg === index || seg === index - 1) return; // segments destroyed by the deletion
+      features[seg > index ? seg - 1 : seg] = list;
+    });
+    onChange({ points, closed: points.length > 2 ? layout.closed : false, features });
+  };
+
+  const deleteSelection = () => {
+    if (!selection) return;
+    if (selection.type === 'point') {
+      removePoint(selection.index);
+    } else if (selection.type === 'feature') {
+      const list = featuresOf(selection.segIndex).filter((_, i) => i !== selection.featIndex);
+      const features = { ...layout.features };
+      if (list.length) features[selection.segIndex] = list;
+      else delete features[selection.segIndex];
+      onChange({ ...layout, features });
+    } else if (selection.type === 'segment') {
+      // Removing a wall line: open the loop if it is the closing run, otherwise drop its end point
+      const isClosing = layout.closed && selection.segIndex === layout.points.length - 1;
+      if (isClosing) {
+        onChange({ ...layout, closed: false });
+      } else {
+        removePoint(selection.segIndex + 1);
+      }
+    }
+    setSelection(null);
+  };
+
+  const deleteRef = React.useRef(deleteSelection);
+  deleteRef.current = deleteSelection;
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (!selection) return;
+      e.preventDefault();
+      deleteRef.current();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selection]);
 
   const handleDown = (e: React.MouseEvent) => {
     const p = toLocal(e);
     if (mode === 'select') {
-      const idx = hitPoint(p);
+      const idx = selectAt(p);
       if (idx >= 0) setDragIndex(idx);
       return;
     }
     if (mode === 'door' || mode === 'house') {
-      const segIndex = hitSegment(p);
-      if (segIndex < 0) return;
-      const seg = segments.find(s => s.index === segIndex)!;
-      const len = dist(seg.a, seg.b) || 1;
-      const t = Math.max(0, Math.min(1, ((p.x - seg.a.x) * (seg.b.x - seg.a.x) + (p.y - seg.a.y) * (seg.b.y - seg.a.y)) / (len * len)));
-      tagFeature(segIndex, mode === 'door' ? 'door' : 'house', t);
+      const { index, t } = hitSegment(p);
+      if (index < 0) return;
+      tagFeature(index, mode === 'door' ? 'door' : 'house', t);
       return;
     }
     if (layout.points.length > 2 && dist(layout.points[0], p) < 10) {
@@ -551,13 +772,17 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     onChange({ points: layout.points.slice(0, -1), closed: false, features });
   };
 
-  const clear = () => onChange({ points: [], closed: false, features: {} });
+  const clear = () => {
+    setSelection(null);
+    onChange({ points: [], closed: false, features: {} });
+  };
 
   const preset = (w: number, d: number) => {
     const widthPx = w * PX_PER_FT;
     const depthPx = d * PX_PER_FT;
     const ox = Math.round((size.w - widthPx) / 2 / PX_PER_FT) * PX_PER_FT;
     const oy = Math.round((size.h - depthPx) / 2 / PX_PER_FT) * PX_PER_FT;
+    setSelection(null);
     onChange({
       points: [
         { x: ox, y: oy },
@@ -570,19 +795,30 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     });
   };
 
+  const selectionLabel = (() => {
+    if (!selection) return null;
+    if (selection.type === 'point') return `Corner ${selection.index + 1}`;
+    if (selection.type === 'segment') return `Wall line ${selection.segIndex + 1}`;
+    const f = featuresOf(selection.segIndex)[selection.featIndex];
+    if (!f) return null;
+    return f.kind === 'door' ? doorById(f.doorTypeId).label : 'House-attached wall';
+  })();
+
+  const drawnCounts = countDrawnDoors(layout);
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2 rounded-xl glass-tile p-2">
-        <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} onClick={() => setMode('draw')}>
+        <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} onClick={() => { setMode('draw'); setSelection(null); }}>
           <Ruler className="h-3.5 w-3.5 mr-1" /> Draw footprint
         </Button>
         <Button size="sm" variant={mode === 'select' ? 'default' : 'ghost'} onClick={() => setMode('select')}>
-          <MousePointer2 className="h-3.5 w-3.5 mr-1" /> Move corners
+          <MousePointer2 className="h-3.5 w-3.5 mr-1" /> Select &amp; delete
         </Button>
-        <Button size="sm" variant={mode === 'door' ? 'default' : 'ghost'} onClick={() => setMode('door')}>
-          <DoorOpen className="h-3.5 w-3.5 mr-1" /> Tag door
+        <Button size="sm" variant={mode === 'door' ? 'default' : 'ghost'} onClick={() => { setMode('door'); setSelection(null); }}>
+          <DoorOpen className="h-3.5 w-3.5 mr-1" /> Place door
         </Button>
-        <Button size="sm" variant={mode === 'house' ? 'default' : 'ghost'} onClick={() => setMode('house')}>
+        <Button size="sm" variant={mode === 'house' ? 'default' : 'ghost'} onClick={() => { setMode('house'); setSelection(null); }}>
           <Home className="h-3.5 w-3.5 mr-1" /> Tag house wall
         </Button>
         <div className="mx-1 h-5 w-px bg-border/60" />
@@ -601,11 +837,76 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         </Button>
       </div>
 
+      {/* Glass door carousel — pick a model, then click a wall to drop it in */}
+      {mode === 'door' && (
+        <div className="rounded-2xl glass-panel-soft p-3 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="quote-eyebrow">Door models</p>
+              <p className="text-[11px] text-muted-foreground">
+                Select a model, then click any wall line to drop it into the plan. It is added to your shopping list automatically.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+            {ENCLOSURE_DOORS.map(d => {
+              const active = d.id === doorTypeId;
+              const placedCount = drawnCounts[d.id] || 0;
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setDoorTypeId(d.id)}
+                  className={`snap-start shrink-0 w-[220px] text-left rounded-xl p-3 transition-all duration-300 backdrop-blur-xl border ${
+                    active
+                      ? 'border-primary/70 bg-primary/10 shadow-lg shadow-primary/10 scale-[1.02]'
+                      : 'border-white/20 bg-white/10 hover:bg-white/20 hover:border-primary/40'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <DoorOpen className={`h-4 w-4 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                    {placedCount > 0 && (
+                      <span className="text-[10px] font-semibold rounded-full bg-primary/15 text-primary px-2 py-0.5">
+                        {placedCount} placed
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-semibold mt-2 leading-tight line-clamp-2">{d.label}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {d.widthFt} ft wide{d.selfLatching ? ' • self-latching' : ''}
+                  </p>
+                  <p className="text-sm font-semibold mt-1.5 tabular-nums">${d.price.toLocaleString()}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {mode === 'select' && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl glass-tile px-3 py-2">
+          <p className="text-[11px] text-muted-foreground">
+            {selectionLabel ? 'Selected:' : 'Click a door, house wall, wall line or corner to select it.'}
+          </p>
+          {selectionLabel && (
+            <>
+              <span className="text-xs font-semibold">{selectionLabel}</span>
+              <Button size="sm" variant="destructive" className="h-7 ml-auto" onClick={deleteSelection}>
+                <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7" onClick={() => setSelection(null)}>
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+
       <div ref={wrapRef} className="rounded-2xl glass-panel-soft overflow-hidden p-1.5">
         <div className="rounded-xl overflow-hidden">
           <canvas
             ref={canvasRef}
-            style={{ width: size.w, height: size.h, cursor: mode === 'select' ? 'grab' : 'crosshair', display: 'block' }}
+            style={{ width: size.w, height: size.h, cursor: mode === 'select' ? 'pointer' : 'crosshair', display: 'block' }}
             onMouseDown={handleDown}
             onMouseMove={handleMove}
             onMouseUp={() => setDragIndex(null)}
@@ -632,11 +933,10 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         ))}
       </div>
       <p className="text-[11px] text-muted-foreground">
-        Scale 10 px = 1 ft • click to place corners, click the first corner to close the footprint
+        Scale 10 px = 1 ft • click to place corners, click the first corner to close the footprint • Select &amp; delete removes doors, walls and corners (Delete key works too)
       </p>
     </div>
   );
 };
-
 
 export default EnclosureDrawingBoard;
