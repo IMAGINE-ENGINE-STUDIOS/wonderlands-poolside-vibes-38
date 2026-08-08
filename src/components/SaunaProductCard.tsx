@@ -1,60 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Flame, Users, Zap, Clock, ShieldCheck, Droplet, Grid3x3, Home, ChevronDown, ChevronUp } from "lucide-react";
+import { Flame, Users, Zap, Clock, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import { poolLiners, tanningLedges } from "@/data/poolData";
-import { paverTypes } from "@/data/paverData";
+import { DynamicFeatureRenderer } from "./DynamicFeatureRenderer";
+import { getProductFeatures, calculateFeaturePrice } from "@/config/productFeatures";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
-
-// Spa interface and data
-interface Spa {
-  model: string;
-  price: number;
-  category: string;
-  image: string;
-  dimensions?: string;
-  features?: string[];
-}
-
-const spas: Spa[] = [
-  {
-    model: "Mystic",
-    price: 24000,
-    category: 'premium',
-    image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png",
-    dimensions: "7' x 7' x 34\"",
-    features: ["LED Lighting", "Jets", "Heater"]
-  },
-  {
-    model: "Serenity",
-    price: 22000,
-    category: 'deluxe',
-    image: "/lovable-uploads/1412e1fb-72ec-4219-a98f-4fcffbd15095.png",
-    dimensions: "6' x 6' x 32\"",
-    features: ["LED Lighting", "Jets", "Heater"]
-  },
-  {
-    model: "Tranquility",
-    price: 20000,
-    category: 'standard',
-    image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
-    dimensions: "5' x 5' x 30\"",
-    features: ["Basic Lighting", "Jets"]
-  }
-];
-
-// Simplified paver collections with images from paverTypes
-const paverCollections = paverTypes.slice(0, 8).map(p => ({
-  name: p.name,
-  pricePerSqFt: p.basePrice,
-  image: p.image
-}));
 
 interface SaunaProductCardProps {
   sauna: {
@@ -74,102 +27,23 @@ interface SaunaProductCardProps {
   };
 }
 
-interface SaunaExtras {
-  spa: boolean;
-  selectedSpaModel: string;
-  heater: boolean;
-  heaterModel: string;
-  jets: boolean;
-  jetsCount: number;
-  waterline: boolean;
-  waterlineOption: string;
-  deckPavers: boolean;
-  deckPaversArea: number;
-  paverCollection: string;
-  screenEnclosure: boolean;
-  screenEnclosureArea: number;
-  screenEnclosureQuality: string;
-}
-
-const JET_PRICE = 250;
-
-// Pool heater options
-const poolHeaters = [
-  { name: "Heat Pump - Standard", price: 5250, image: "/lovable-uploads/pool-heater.png" },
-  { name: "Heat Pump - Premium", price: 6750, image: "/lovable-uploads/pool-heater.png" },
-  { name: "Pentair MasterTemp 125 (125K BTU)", price: 3450, image: "/lovable-uploads/pool-heater.png" },
-  { name: "Pentair UltraTemp 90 Heat Pump", price: 7762, image: "/lovable-uploads/pool-heater.png" }
-];
-
 const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
   const { priceMultiplier, projectType } = useProjectType();
   const [showQuote, setShowQuote] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [extras, setExtras] = useState<SaunaExtras>({
-    spa: false,
-    selectedSpaModel: '',
-    heater: false,
-    heaterModel: '',
-    jets: false,
-    jetsCount: 0,
-    waterline: false,
-    waterlineOption: '',
-    deckPavers: false,
-    deckPaversArea: 0,
-    paverCollection: '',
-    screenEnclosure: false,
-    screenEnclosureArea: 0,
-    screenEnclosureQuality: '',
-  });
+  const [extras, setExtras] = useState<Record<string, any>>({});
 
-  const toggleExtra = (extra: keyof SaunaExtras) => {
-    setExtras(prev => ({ ...prev, [extra]: !prev[extra] }));
-  };
+  // Sum every configured sauna option using the shared feature pricing model
+  const extrasTotal = useMemo(
+    () =>
+      getProductFeatures('sauna').reduce(
+        (sum, feature) => sum + calculateFeaturePrice(feature, extras[feature.id], extras),
+        0
+      ) * priceMultiplier,
+    [extras, priceMultiplier]
+  );
 
-  const updateExtra = (extra: keyof SaunaExtras, value: any) => {
-    setExtras(prev => ({ ...prev, [extra]: value }));
-  };
-
-  const calculateExtrasTotal = () => {
-    let total = 0;
-
-    if (extras.spa) {
-      const spa = spas.find(s => s.model === extras.selectedSpaModel);
-      total += spa?.price || 0;
-    }
-
-    if (extras.heater) {
-      const heater = poolHeaters.find(h => h.name === extras.heaterModel);
-      total += heater?.price || 0;
-    }
-
-    if (extras.jets && extras.jetsCount > 0) {
-      total += extras.jetsCount * JET_PRICE;
-    }
-
-    if (extras.waterline) {
-      const liner = poolLiners.find(l => l.name === extras.waterlineOption);
-      total += liner?.price || 0;
-    }
-
-    if (extras.deckPavers && extras.deckPaversArea > 0) {
-      const collection = paverCollections.find(c => c.name === extras.paverCollection);
-      total += (collection?.pricePerSqFt || 0) * extras.deckPaversArea;
-    }
-
-    if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 15;
-      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-      total += extras.screenEnclosureArea * pricePerSqFt;
-    }
-
-    // Apply project type multiplier (3x for commercial)
-    return total * priceMultiplier;
-  };
-
-  const getTotalSaunaPrice = () => {
-    return (sauna.price + calculateExtrasTotal() / priceMultiplier) * priceMultiplier;
-  };
+  const getTotalSaunaPrice = () => sauna.price * priceMultiplier + extrasTotal;
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -183,7 +57,6 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
         return 'bg-gradient-to-r from-primary to-teal';
     }
   };
-
   return (
     <>
       <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-background via-background to-amber-50/20 dark:to-amber-950/10 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 h-full flex flex-col">
