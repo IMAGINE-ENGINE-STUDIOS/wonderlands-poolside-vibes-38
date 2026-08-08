@@ -102,6 +102,18 @@ const SurveyQuoteTool = ({
 
   // Quote gallery state
   const [showGallery, setShowGallery] = useState(false);
+  // Dedicated portal host so React never fights other libraries over document.body children
+  const [galleryHost, setGalleryHost] = useState<HTMLElement | null>(null);
+  React.useEffect(() => {
+    const el = document.createElement('div');
+    el.setAttribute('data-quote-gallery-host', '');
+    document.body.appendChild(el);
+    setGalleryHost(el);
+    return () => {
+      setGalleryHost(null);
+      el.remove();
+    };
+  }, []);
   const [savedQuotes, setSavedQuotes] = useState<SavedQuoteSnapshot[]>([]);
   const [currentQuoteId, setCurrentQuoteId] = useState<string | null>(null);
 
