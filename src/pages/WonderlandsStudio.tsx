@@ -2338,6 +2338,8 @@ const WonderlandsStudio = () => {
                                   : { ...prev, enclosureTotal: total, categoryQuantity: String(summary.areaSqFt) }
                               )
                             }
+                            onProjectChange={setEnclosureProject}
+                            onApiReady={api => { enclosureApiRef.current = api; }}
                           />
                         ) : (() => {
 
