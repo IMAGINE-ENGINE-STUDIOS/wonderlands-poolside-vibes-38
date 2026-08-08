@@ -1403,7 +1403,7 @@ const WonderlandsStudio = () => {
     }));
     setShowQuoteModal(true);
   };
-  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string; quantity?: number; options?: { name: string; price: number }[] }> => {
+  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string; quantity?: number; selectedOption?: string; options?: { name: string; price: number }[] }> => {
     if (!selectedProduct) return [];
 
     // Screen enclosure: every configured element is its own editable cart line
@@ -1416,6 +1416,7 @@ const WonderlandsStudio = () => {
           price: el.amount,
           key: `enc:${el.key}`,
           quantity: el.kind === 'door' ? el.quantity : undefined,
+          selectedOption: el.options?.find(opt => opt.id === el.optionId)?.label,
           options: el.options?.map(opt => ({ name: opt.label, price: opt.id === el.optionId ? el.amount : 0 })),
         }));
     }
