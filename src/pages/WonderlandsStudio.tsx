@@ -1231,7 +1231,7 @@ const WonderlandsStudio = () => {
           price: el.amount,
           image: '',
         })),
-        ...buildCartQuoteLines(currentCartIdRef.current),
+        ...buildCartQuoteLines(selectedProduct ? `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}` : null),
       ];
       const encTotal = encBreakdown.reduce((sum, item) => sum + item.price, 0);
 
