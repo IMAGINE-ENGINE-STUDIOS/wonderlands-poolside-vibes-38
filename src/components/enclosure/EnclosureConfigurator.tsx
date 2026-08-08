@@ -123,6 +123,43 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
     );
   }, []);
 
+  // ---- drawing <-> shopping list door sync ----
+  const layoutRef = React.useRef(layout);
+  layoutRef.current = layout;
+  const hasFootprint = layout.points.length >= 2;
+  const drawnDoors = React.useMemo(() => countDrawnDoors(layout), [layout]);
+  const drawnDoorsKey = JSON.stringify(drawnDoors);
+
+  /** While a footprint exists, doors drawn on the plan are the single source of truth. */
+  React.useEffect(() => {
+    if (!hasFootprint) return;
+    const doors = JSON.parse(drawnDoorsKey) as Record<string, number>;
+    setConfig(prev => (JSON.stringify(prev.doors) === JSON.stringify(doors) ? prev : { ...prev, doors }));
+  }, [drawnDoorsKey, hasFootprint]);
+
+  /** Remove the last drawn door of a model (shopping list -> drawing) */
+  const removeOneDrawnDoor = (doorTypeId: string) => {
+    const current = layoutRef.current;
+    const segKeys = Object.keys(current.features)
+      .map(Number)
+      .sort((a, b) => b - a);
+    for (const seg of segKeys) {
+      const list = current.features[seg] || [];
+      for (let i = list.length - 1; i >= 0; i--) {
+        const f = list[i];
+        if (f.kind !== 'door') continue;
+        if ((f.doorTypeId || 'single-36-sl') !== doorTypeId) continue;
+        const kept = list.filter((_, idx) => idx !== i);
+        const features = { ...current.features };
+        if (kept.length) features[seg] = kept;
+        else delete features[seg];
+        setLayout({ ...current, features });
+        return true;
+      }
+    }
+    return false;
+  };
+
   const applyManual = () => {
     const area = parseFloat(manualArea) || 0;
     // Assume a near-square footprint for perimeter/span when entered numerically
