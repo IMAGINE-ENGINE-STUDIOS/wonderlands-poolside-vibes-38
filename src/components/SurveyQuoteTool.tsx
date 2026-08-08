@@ -739,6 +739,17 @@ const SurveyQuoteTool = ({
     return totalArea; // enclosure covers entire footprint
   };
   const getIncludedItems = () => {
+    // Saunas ship with their own inclusions — no pool equipment or salt system
+    if (customProduct?.type === 'Sauna' || extras?.productType === 'sauna') {
+      return [
+        "Kiln-dried wood construction & stainless hardware",
+        "Heater, sauna stones & control unit",
+        "Interior LED lighting",
+        "Ergonomic benches",
+        "Ventilation system",
+        "Delivery, permits & professional installation",
+      ];
+    }
     return ["LED lights", "Pentair pool equipment", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
   };
   const saveQuotationToDatabase = async () => {
