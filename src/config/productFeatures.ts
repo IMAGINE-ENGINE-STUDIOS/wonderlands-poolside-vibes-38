@@ -325,239 +325,261 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       basePrice: 15000
     }
   ],
-  // Saunas have their own option set — no pool finishes, liners, tiles or jets
+  // Saunas — options, pricing and imagery sourced from Almost Heaven Saunas
   'sauna': [
     {
-      id: 'woodUpgrade',
-      label: 'Interior Wood',
-      description: 'Bench and wall species inside the cabin',
-      type: 'selection',
-      icon: 'TreePine',
-      options: [
-        { name: 'Nordic Spruce (included)', price: 0 },
-        { name: 'Western Red Cedar', price: 1800 },
-        { name: 'Thermo-Aspen', price: 2400 },
-        { name: 'Thermo-Alder', price: 2900 }
-      ]
-    },
-    {
-      id: 'exteriorFinish',
-      label: 'Exterior Finish',
-      description: 'Weather protection and exterior look',
-      type: 'selection',
-      icon: 'Paintbrush',
-      options: [
-        { name: 'Natural Clear Coat (included)', price: 0 },
-        { name: 'Black Stain', price: 1200 },
-        { name: 'Charred Shou Sugi Ban', price: 2200 }
-      ]
-    },
-    {
       id: 'saunaHeater',
-      label: 'Heater',
-      description: 'Includes electrical hook-up coordination and permits',
+      label: 'Sauna Heater',
+      description: 'Harvia / KIP heaters as offered by Almost Heaven Saunas',
       type: 'selection',
       icon: 'Flame',
       options: [
-        { name: '6 kW Electric Heater (included)', price: 0 },
-        { name: '8 kW Electric Heater', price: 900 },
-        { name: '9 kW Electric Heater', price: 1400 },
-        { name: 'Harvia Wood-Burning Heater', price: 2600 },
-        { name: 'Huum Electric Heater with App Control', price: 3200 }
+        { name: 'Included Heater (as configured)', price: 0 },
+        { name: 'KIP Heater w/ Dials', price: 1214, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/KIP-B1x1.png' },
+        { name: 'Cilindro Heater', price: 1722, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Accessories_Cilindro_Heater_1.jpg' },
+        { name: 'Cilindro Smart Heater Kit + Fenix', price: 2644, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Saunas_Cilindro_With_Fenix.jpg' },
+        { name: 'KIP Digital Smart Heater Kit + Fenix', price: 2714, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Saunas_KIPW_With_Fenix.jpg' },
+        { name: 'Spirit Smart Heater Kit + Fenix', price: 3291, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Saunas_Spirit_With_Fenix.jpg' },
+        { name: 'Virta Smart Heater Kit + Fenix', price: 3371, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Saunas_Virta_With_Fenix.jpg' },
+        { name: 'Club Smart Heater Kit + Fenix', price: 3760, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Saunas_Club_Heater_With_Fenix.jpg' },
+        { name: 'Virta Combi Smart Heater Kit + Fenix', price: 4865, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Saunas_Virta_Combi_With_Fenix.jpg' },
+        { name: 'M3 Wood-Burning Heater', price: 1093, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Harvia_Heater_M3.jpg' },
+        { name: 'M3 Wood-Burning Heater Kit', price: 3939, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/M3_Chimney.png' },
+        { name: 'Legend 150 Kit + Chimney', price: 5308, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_Legend_WK150LD_WL100_WHP1500_p1.png' }
       ]
     },
     {
-      id: 'controlPanel',
-      label: 'Digital Wi-Fi Control Panel',
-      description: 'Scheduling and remote pre-heat',
-      type: 'boolean',
+      id: 'heaterControl',
+      label: 'Smart Heater Control',
+      type: 'selection',
       icon: 'Smartphone',
-      basePrice: 1150,
-      pricingModifier: base => base
+      options: [
+        { name: 'None', price: 0 },
+        { name: 'Xenio WiFi Remote Kit', price: 473, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_Xenio_control_panel_CX004WIFI_USA_p1.png' },
+        { name: 'Harvia Fenix Smart Heater Control', price: 662, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_Fenix_WifiControlUnit_FX30-U1-U3-XC_FX45-U1-U3-XC_f6.jpg' }
+      ]
     },
     {
       id: 'heaterGuard',
-      label: 'Heater Guard Rail',
-      type: 'boolean',
-      icon: 'ShieldCheck',
-      basePrice: 350,
-      pricingModifier: base => base
-    },
-    {
-      id: 'extraStones',
-      label: 'Premium Volcanic Stone Set',
-      type: 'boolean',
-      icon: 'Mountain',
-      basePrice: 260,
-      pricingModifier: base => base
-    },
-    {
-      id: 'benchUpgrade',
-      label: 'Upgraded Bench Layout (L-bench / two-tier)',
-      type: 'boolean',
-      icon: 'Rows3',
-      basePrice: 1600,
-      pricingModifier: base => base
-    },
-    {
-      id: 'backrests',
-      label: 'Backrests & Headrests',
-      type: 'boolean',
-      icon: 'Armchair',
-      basePrice: 450,
-      pricingModifier: base => base
-    },
-    {
-      id: 'loylySet',
-      label: 'Löyly Bucket & Ladle Set (cedar)',
-      type: 'boolean',
-      icon: 'Droplet',
-      basePrice: 180,
-      pricingModifier: base => base
-    },
-    {
-      id: 'aromaDispenser',
-      label: 'Aroma / Essential-Oil Dispenser',
-      type: 'boolean',
-      icon: 'Flower2',
-      basePrice: 220,
-      pricingModifier: base => base
-    },
-    {
-      id: 'thermoHygro',
-      label: 'Thermometer & Hygrometer Set',
-      type: 'boolean',
-      icon: 'Gauge',
-      basePrice: 140,
-      pricingModifier: base => base
-    },
-    {
-      id: 'sandTimer',
-      label: '24 h Sand Timer',
-      type: 'boolean',
-      icon: 'Hourglass',
-      basePrice: 90,
-      pricingModifier: base => base
-    },
-    {
-      id: 'saunaLighting',
-      label: 'Lighting',
+      label: 'Heater Guard',
       type: 'selection',
-      icon: 'Lightbulb',
+      icon: 'ShieldCheck',
       options: [
-        { name: 'Standard Interior LED (included)', price: 0 },
-        { name: 'Chromotherapy LED with Remote', price: 1250 },
-        { name: 'Fiber-Optic Star Ceiling', price: 1900 }
+        { name: 'None', price: 0 },
+        { name: 'KIP Heater Fence', price: 40, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/UwRYRMsg.jpg' },
+        { name: 'Safety Rail - Cilindro', price: 266, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Untitleddesign-2022-03-08T095422.450.png' }
       ]
     },
     {
-      id: 'saltWall',
-      label: 'Backlit Salt-Brick Wall Panel',
-      type: 'boolean',
-      icon: 'Sparkles',
-      basePrice: 1650,
-      pricingModifier: base => base
+      id: 'saunaStones',
+      label: 'Sauna Stones',
+      type: 'selection',
+      icon: 'Mountain',
+      options: [
+        { name: 'Included Stones', price: 0 },
+        { name: 'Standard Sauna Stones 40 lbs', price: 135, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Stones_Decorative_Olivine_Diabase_Standard_Square.jpg' },
+        { name: 'Vulcanite Sauna Stones 40 lbs', price: 163, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Stones_Decorative_Vulcanite_Square.jpg' },
+        { name: 'Rounded Sauna Stones 33 lbs', price: 168, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Stones_Decorative_Olivine_Diabase_Rounded_Square.jpg' },
+        { name: 'Blizzard Sauna Stones 22 lbs', price: 168, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Stones_Decorative_White_Blizzard_Square.jpg' }
+      ]
     },
     {
-      id: 'bluetoothAudio',
-      label: 'Bluetooth Audio (moisture-rated speakers)',
-      type: 'boolean',
-      icon: 'Speaker',
-      basePrice: 980,
-      pricingModifier: base => base
-    },
-    {
-      id: 'doorGlass',
-      label: 'Glass & Doors',
+      id: 'saunaDoor',
+      label: 'Door Upgrade',
       type: 'selection',
       icon: 'PanelsTopLeft',
       options: [
-        { name: 'Bronze Tempered Door (included)', price: 0 },
-        { name: 'Full-Glass Clear Door', price: 1400 },
-        { name: 'Panoramic Rear Window', price: 2300 }
+        { name: 'Included Door', price: 0 },
+        { name: 'Deluxe Glass Door', price: 930, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Accessories_Bridgeport_Glass_Door.jpg' },
+        { name: 'Half & Half Door', price: 1264, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Accessories_Half_Window_Door.jpg' },
+        { name: 'All-Wood Door', price: 1334, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Accessories_Grayson_All_Wood_Door.jpg' }
+      ]
+    },
+    {
+      id: 'saunaWindow',
+      label: 'Window Upgrade',
+      type: 'selection',
+      icon: 'PanelTop',
+      options: [
+        { name: 'None', price: 0 },
+        { name: 'Port Window', price: 299, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/PW2.jpg' },
+        { name: 'Vista Window', price: 299, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Pinnacle_Vista_Inside_WideAngle_smallcopy.jpg' }
+      ]
+    },
+    {
+      id: 'bucketLadle',
+      label: 'Bucket & Ladle Kit',
+      type: 'selection',
+      icon: 'Droplet',
+      options: [
+        { name: 'None', price: 0 },
+        { name: 'Harvia Legend Bucket & Ladle Kit', price: 99, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Harvia_Legend_pail_SASPO100_p1_1.png' },
+        { name: 'Harvia Click Plastic Bucket & Ladle Kit', price: 118, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Harvia_Click_pail_ladle_SA009_p1.png' },
+        { name: 'Harvia Bucket and Ladle Kit', price: 187, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_bucket-ladle-set_SAC10111.png' },
+        { name: 'Harvia Onyx Bucket, Ladle & Thermometer Kit', price: 330, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Harvia_Onyx_BLT_Set_SA007_p1.png' }
+      ]
+    },
+    {
+      id: 'thermometer',
+      label: 'Thermometer',
+      type: 'selection',
+      icon: 'Gauge',
+      options: [
+        { name: 'None', price: 0 },
+        { name: 'Sauna Thermometer – 4" Chrome', price: 54, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Accessories_Thermometer.jpg' },
+        { name: 'Harvia Wooden Thermometer', price: 73, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Accessories_Harvia_Thermometer.jpg' },
+        { name: 'Harvia Legend Thermometer', price: 167, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_Legend_thermometer_SASPO104_p1.png' }
       ]
     },
     {
       id: 'coldPlunge',
-      label: 'Cold Plunge Tub with Chiller',
-      type: 'boolean',
+      label: 'Cold Plunge',
+      type: 'selection',
       icon: 'Snowflake',
-      basePrice: 9800,
-      pricingModifier: base => base
+      options: [
+        { name: 'None', price: 0 },
+        { name: 'Black Dip Plunge', price: 3018, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Black_Dip_Plunge_7.png' },
+        { name: 'Glacier Cold Plunge + Chiller', price: 9994, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Renew_Cold_Plunge.jpg' },
+        { name: 'Polar Cold Plunge + Chiller', price: 11201, image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Almost_Heaven_Polar_Plunge_White.jpg' }
+      ]
     },
     {
-      id: 'outdoorShower',
-      label: 'Outdoor Shower Column',
+      id: 'ledMoodLighting',
+      label: 'LED Mood Lighting Bar',
       type: 'boolean',
-      icon: 'ShowerHead',
-      basePrice: 1450,
+      icon: 'Lightbulb',
+      basePrice: 92,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/LED_Mood_Lighting.jpg',
       pricingModifier: base => base
     },
     {
-      id: 'changingBench',
-      label: 'Changing Bench & Robe Hooks',
+      id: 'saunaSpeaker',
+      label: 'Harvia Sauna Speaker',
       type: 'boolean',
-      icon: 'Shirt',
-      basePrice: 380,
+      icon: 'Speaker',
+      basePrice: 88,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/6.png',
       pricingModifier: base => base
     },
     {
-      id: 'concreteSlabBase',
-      label: 'New Concrete Slab Base',
-      description: '$12 per sq ft — skip if you already have a slab',
-      type: 'area',
-      icon: 'Square',
-      pricePerUnit: 12
-    },
-    {
-      id: 'saunaSurroundPavers',
-      label: 'Sauna Surround Pavers',
-      description: '$20 per sq ft installed',
-      type: 'area',
-      icon: 'Grid3x3',
-      pricePerUnit: 20
-    },
-    {
-      id: 'electricalRun',
-      label: 'Electrical Run & 240 V Breaker (up to 50 ft)',
+      id: 'headLift',
+      label: 'Cedar Sauna Head Lift (headrest)',
       type: 'boolean',
-      icon: 'Zap',
-      basePrice: 1750,
+      icon: 'Armchair',
+      basePrice: 113,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Accessories_Head_Rest.jpg',
       pricingModifier: base => base
     },
     {
-      id: 'craneAccess',
-      label: 'Crane / Tight-Access Placement',
+      id: 'sandTimer',
+      label: 'Sauna Sand Timer',
       type: 'boolean',
-      icon: 'Truck',
-      basePrice: 1900,
+      icon: 'Hourglass',
+      basePrice: 77,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Accessories_Sand_Timer.jpg',
       pricingModifier: base => base
     },
     {
-      id: 'shadeStructure',
-      label: 'Roof Cover / Shade Structure',
-      type: 'boolean',
-      icon: 'Home',
-      basePrice: 3400,
-      pricingModifier: base => base
-    },
-    {
-      id: 'extendedWarranty',
-      label: 'Extended Warranty (7 years)',
-      type: 'boolean',
-      icon: 'BadgeCheck',
-      basePrice: 1100,
-      pricingModifier: base => base
-    },
-    {
-      id: 'maintenancePackage',
-      label: 'Annual Maintenance Package (first year)',
+      id: 'careSet',
+      label: 'Sauna Care Set',
       type: 'boolean',
       icon: 'Wrench',
-      basePrice: 650,
+      basePrice: 154,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_SaunaCareSet_SAC25070_f4.jpg',
+      pricingModifier: base => base
+    },
+    {
+      id: 'paraffinOil',
+      label: 'Paraffin Oil',
+      type: 'boolean',
+      icon: 'Flower2',
+      basePrice: 75,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_paraffinoil_SAC25060_p1_782d354b-b183-42fe-8926-24ed3eaa0f87.png',
+      pricingModifier: base => base
+    },
+    {
+      id: 'exteriorStain',
+      label: 'Almost Heaven Exterior Sauna Stain',
+      type: 'boolean',
+      icon: 'Paintbrush',
+      basePrice: 284,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Stain_Samples_CANS_display.png',
+      pricingModifier: base => base
+    },
+    {
+      id: 'rainJacket',
+      label: 'Barrel Sauna Rain Jacket',
+      type: 'boolean',
+      icon: 'Umbrella',
+      basePrice: 337,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Princeton_Rain_Jacket.png',
+      pricingModifier: base => base
+    },
+    {
+      id: 'showerFloorKit',
+      label: 'Outdoor Shower Floor Kit',
+      type: 'boolean',
+      icon: 'ShowerHead',
+      basePrice: 489,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/products/Ellipse_Floor.jpg',
+      pricingModifier: base => base
+    },
+    {
+      id: 'irHybridPanels',
+      label: 'Retrofit IR Hybrid Panels',
+      type: 'boolean',
+      icon: 'Sparkles',
+      basePrice: 1259,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Hybrid_IR_Panels_Snippet.png',
+      pricingModifier: base => base
+    },
+    {
+      id: 'firewoodBasket',
+      label: 'Harvia Legend Firewood Basket',
+      type: 'boolean',
+      icon: 'TreePine',
+      basePrice: 425,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_Legend_woodbasket_SASPO102_p1.png',
+      pricingModifier: base => base
+    },
+    {
+      id: 'chimneyWaterTank',
+      label: 'Harvia Chimney Water Tank',
+      type: 'boolean',
+      icon: 'Droplet',
+      basePrice: 635,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Harvia_waterheater_WP220ST_p1.png',
+      pricingModifier: base => base
+    },
+    {
+      id: 'waffleRobe',
+      label: 'Sauna Waffle Robe',
+      type: 'boolean',
+      icon: 'Shirt',
+      basePrice: 214,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/WaffleRobe_White__Model_800x800_2e0aabe3-638c-4d4e-9f1d-df3ff0d69271.png',
+      pricingModifier: base => base
+    },
+    {
+      id: 'velourTowel',
+      label: 'Plush Velour Sauna Towel',
+      type: 'boolean',
+      icon: 'Layers',
+      basePrice: 164,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/BeachTowel_Blue_Flat_800x800_cf825a8f-7a72-4e58-b4d6-62aae02f664c.png',
+      pricingModifier: base => base
+    },
+    {
+      id: 'saunaSlides',
+      label: 'Sauna Slides',
+      type: 'boolean',
+      icon: 'Footprints',
+      basePrice: 86,
+      image: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Sandals_White_Overhead_800x800_61820090-74e8-4d32-bb1f-7f2009cf894a.png',
       pricingModifier: base => base
     }
   ],
+
 
   'tanning-ledge': [
     {
