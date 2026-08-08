@@ -18,6 +18,7 @@ import {
   ENCLOSURE_SCREENS,
   ENCLOSURE_TYPES,
   EnclosureConfigState,
+  EnclosureProject,
   buildEnclosureSpec,
   checkEnclosureCompliance,
   designPressurePsf,
