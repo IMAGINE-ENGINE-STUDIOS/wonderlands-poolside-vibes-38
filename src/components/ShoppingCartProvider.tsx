@@ -50,9 +50,18 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
   useEffect(() => {
     const savedCart = localStorage.getItem('poolShoppingCart');
     if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+      // Re-label legacy items that stored pricing tiers ("premium") as a category
+      const parsed: CartItem[] = JSON.parse(savedCart);
+      setCartItems(
+        parsed.map(item => ({
+          ...item,
+          category:
+            resolveCategoryLabel(item.category, (item as any).type, item.id, item.name) || 'Other',
+        }))
+      );
     }
   }, []);
+
 
   useEffect(() => {
     localStorage.setItem('poolShoppingCart', JSON.stringify(cartItems));
