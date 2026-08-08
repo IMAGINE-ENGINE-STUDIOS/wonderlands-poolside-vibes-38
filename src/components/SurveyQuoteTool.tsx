@@ -648,6 +648,7 @@ const SurveyQuoteTool = ({
     
     // Check if this is a lanai product
     const isLanaiProduct = extras?.productType === 'lanai';
+    const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
     
     // For lanai products, use the pre-calculated total price from LanaiSection
     if (isLanaiProduct && extras?.totalPrice) {
@@ -1553,6 +1554,7 @@ const SurveyQuoteTool = ({
                 {(() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
+                  const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
                   return (
                     <>
@@ -2364,6 +2366,7 @@ const SurveyQuoteTool = ({
                 {!hiddenSections.has('included-items') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
+                  const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   const lanaiIncludedFeatures = extras?.includedFeatures || [];
                   
                   if (!isPoolProduct && !isLanaiProduct) return null;
@@ -2429,6 +2432,7 @@ const SurveyQuoteTool = ({
                 {!hiddenSections.has('construction-details') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
+                  const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
                   if (!isPoolProduct || isLanaiProduct || !extras?.concreteConstruction) return null;
                   
@@ -2474,6 +2478,7 @@ const SurveyQuoteTool = ({
                 {!hiddenSections.has('warranty') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
+                  const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
                   if (!isPoolProduct || isLanaiProduct) return null;
                   
