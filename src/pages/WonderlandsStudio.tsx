@@ -1911,6 +1911,21 @@ const WonderlandsStudio = () => {
     syncItemConfig(currentCartId, { price: basePrice, extras });
   }, [currentCartId, liveExtrasKey, liveTotal, cartItems, syncItemConfig]);
 
+  // Auto-add to the shopping list after a few minutes of configuring a product,
+  // so nothing the customer worked on is lost from the quote or checkout.
+  const AUTO_ADD_DELAY_MS = 3 * 60 * 1000;
+  useEffect(() => {
+    if (!currentCartId || liveTotal <= 0) return;
+    if (cartItems.some(item => item.id === currentCartId)) return;
+    const timer = window.setTimeout(() => {
+      handleAddToCart();
+    }, AUTO_ADD_DELAY_MS);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCartId, liveTotal, liveExtrasKey, cartItems]);
+
+
+
   return <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* Compact Header */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
