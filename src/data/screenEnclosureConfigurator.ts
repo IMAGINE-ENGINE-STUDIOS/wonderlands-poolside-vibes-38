@@ -509,6 +509,97 @@ export function estimateEnclosure(config: EnclosureConfigState) {
     lines[lines.length - 1].amount += diff;
   }
 
+  // ---------- Granular, editable elements (cart / quote) ----------
+  const mk = (cost: number) => Math.round(cost * markupFactor);
+  const extrusionUpgradeCost = framedArea * extrusion.pricePerSqFt * M.frameUpgradeFactor;
+  const elements: EnclosureElement[] = [];
+  if (area > 0) {
+    elements.push({
+      key: 'structure',
+      kind: 'structure',
+      label: `${type.label} — engineered structure installed`,
+      detail: `${area.toLocaleString()} sq ft footprint / ${framedArea.toLocaleString()} sq ft framed surface, ${config.roofPitch} pitch`,
+      amount: mk(frameCost - extrusionUpgradeCost + partsCost + structureLabor + framedArea * M.deliveryPerSqFt + M.deliveryFlat + (twoStory ? M.craneTwoStory : 0)),
+      optionId: type.id,
+      options: ENCLOSURE_TYPES.map(t => ({ id: t.id, label: t.label })),
+      removable: false,
+    });
+    elements.push({
+      key: 'extrusion',
+      kind: 'extrusion',
+      label: `Structural profile — ${extrusion.label}`,
+      detail: `${extrusion.size} @ ${extrusion.wallIn}" wall, rated ${extrusion.maxSpanFt} ft clear span`,
+      amount: mk(extrusionUpgradeCost),
+      optionId: extrusion.id,
+      options: ENCLOSURE_EXTRUSIONS.map(e => ({ id: e.id, label: e.label })),
+      removable: false,
+    });
+    elements.push({
+      key: 'screen',
+      kind: 'screen',
+      label: `Screen fabric — ${screen.brand} ${screen.label}`,
+      detail: `${screenedArea.toLocaleString()} sq ft screened, ${screen.mesh}${screen.warrantyYears ? `, ${screen.warrantyYears}-yr fabric warranty` : ''}`,
+      amount: mk(screenCost),
+      optionId: screen.id,
+      options: ENCLOSURE_SCREENS.map(s => ({ id: s.id, label: `${s.brand} ${s.label}` })),
+      removable: false,
+    });
+    elements.push({
+      key: 'roof',
+      kind: 'roof',
+      label: `Roof assembly — ${roof.label}`,
+      detail: roofPanCost > 0 ? `${roofArea.toLocaleString()} sq ft engineered panel supplied & installed` : `${roofArea.toLocaleString()} sq ft screened roof`,
+      amount: mk(roofPanCost),
+      optionId: roof.id,
+      options: ENCLOSURE_ROOFS.map(r => ({ id: r.id, label: r.label })),
+      removable: false,
+    });
+    ENCLOSURE_DOORS.forEach(door => {
+      const qty = config.doors[door.id] || 0;
+      if (qty <= 0) return;
+      elements.push({
+        key: `door:${door.id}`,
+        kind: 'door',
+        label: door.label,
+        detail: `${qty} x ${door.selfLatching ? 'self-closing / self-latching' : 'standard hinge'}${door.barrierEligible ? ', barrier eligible' : ''}`,
+        amount: mk(qty * door.price * (M.doorMaterialShare + M.doorLaborShare)),
+        quantity: qty,
+        optionId: door.id,
+        options: ENCLOSURE_DOORS.map(d => ({ id: d.id, label: d.label })),
+        removable: true,
+      });
+    });
+    addOnAmounts.forEach(a => {
+      elements.push({
+        key: `addon:${a.id}`,
+        kind: 'addon',
+        label: a.label,
+        detail: a.detail,
+        amount: mk(a.amount * (M.addOnMaterialShare + M.addOnLaborShare)),
+        optionId: a.id,
+        removable: true,
+      });
+    });
+    elements.push({
+      key: 'engineering',
+      kind: 'soft',
+      label: 'Engineering, drawings & permits',
+      detail: sealedRequired ? 'Signed & sealed Florida P.E. package, permit fees, inspections' : 'Engineered plan set, permit fees, inspections',
+      amount: mk(engineering + permitFees + M.nocAndInspections + M.planRunner),
+      removable: false,
+    });
+    elements.push({
+      key: 'mobilization',
+      kind: 'general',
+      label: 'Mobilization, equipment & site conditions',
+      detail: 'Delivery handling, lifts, deck protection, disposal, insurance, cleanup',
+      amount: mk(equipment + M.dumpster + M.layoutAndCleanup + insurance + warrantyReserve + materialTax + contingency),
+      removable: false,
+    });
+    // Reconcile so elements sum exactly to the sell price
+    const eDiff = sellPrice - elements.reduce((s, e) => s + e.amount, 0);
+    elements[0].amount += eDiff;
+
   const categoryTotals = costLines.reduce<Record<string, number>>((acc, l) => {
     acc[l.category] = (acc[l.category] || 0) + l.amount;
     return acc;
