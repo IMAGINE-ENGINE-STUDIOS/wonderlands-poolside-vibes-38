@@ -403,6 +403,28 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     });
   }, [layout, segments, size, hover, mode, dragIndex, frameColorHex, takeoff]);
 
+  // ---- snapshot export (footprint plan for cart / quote) ----
+  const snapshotRef = React.useRef(onSnapshot);
+  snapshotRef.current = onSnapshot;
+  React.useEffect(() => {
+    if (!snapshotRef.current) return;
+    const t = setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas || layout.points.length < 3) {
+        snapshotRef.current?.(null);
+        return;
+      }
+      try {
+        snapshotRef.current?.(canvas.toDataURL('image/png'));
+      } catch {
+        snapshotRef.current?.(null);
+      }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [layout, size, takeoff]);
+
+
+
   // ---- interaction ----
   const toLocal = (e: React.MouseEvent): EnclosurePoint => {
     const rect = canvasRef.current!.getBoundingClientRect();
