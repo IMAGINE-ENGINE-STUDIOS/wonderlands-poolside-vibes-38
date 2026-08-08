@@ -208,7 +208,7 @@ const StudioCartWidget = ({
                           </div>
                           {extra.options && extra.options.length > 1 && (
                             <select
-                              value={extra.name}
+                              value={extra.selectedOption ?? extra.name}
                               onChange={event => {
                                 const next = extra.options?.find(
                                   option => option.name === event.target.value
@@ -220,7 +220,7 @@ const StudioCartWidget = ({
                             >
                               {extra.options.map(option => (
                                 <option key={option.name} value={option.name}>
-                                  {option.name} — ${option.price.toLocaleString()}
+                                  {option.name}{option.price > 0 ? ` — $${option.price.toLocaleString()}` : ''}
                                 </option>
                               ))}
                             </select>
