@@ -48,3 +48,17 @@ In `WonderlandsStudio.tsx`, when the selected product is a screen enclosure, bui
 - The existing `onTotalChange` contract stays working so the fence configurator and other standalone categories are unaffected.
 - Snapshot is stored as a compressed data URL; if `localStorage` rejects the size, the config still saves and only the image is dropped.
 - Prices are always derived from `estimateEnclosure`, so the cart, the studio total and the quote cannot drift from the configurator.
+
+## 5. Category-aware quote content (no pool copy without a pool)
+
+Root cause of the pool copy on an enclosure quote: `WonderlandsStudio` passes every selected product through the quote's `pool` prop, so `isPoolProduct` is true for screen enclosures, fencing, lanai, pavers, grass, gates, etc. That single flag drives the "Pool Specifications" title, the "ALL POOLS INCLUDE / LED lights, Pentair equipment, Salt system" block, the pool structure warranty block, "Estimated Build Time", and the paver-deck section.
+
+Changes:
+- Pass the real product category to the quote instead of forcing everything into the pool slot, and derive `isPoolProduct` from that category (pool / spa / tanning ledge only) rather than from "a product exists".
+- Drive the includes block, warranty block, specification title and build-time wording from a per-category content map, e.g.:
+  - Pool / Spa / Tanning Ledge — current pool copy and pool structure warranty (unchanged).
+  - Screen Enclosure — enclosure inclusions (engineered aluminum structure, code-compliant anchoring, screen fabric warranty, drawings, permits and inspections) and the enclosure spec block from section 4.
+  - Fencing, Lanai, Pavers, Artificial Grass, Landscaping, Covers, Driveway Gates, Saunas, Finishes, Liners — their own short inclusions list and installation-time wording; no pool policies, no salt system, no pool structure warranty.
+- A block with no content for the selected category is omitted entirely rather than printed empty.
+- If a pool, spa or tanning ledge is added as a feature to a non-pool product (or vice versa), the pool inclusions and warranty blocks appear because that scope is genuinely present — the flag reads the full configured scope, not just the headline product.
+- Every heading and body stays editable through the existing `editableTexts` overrides, and the quote's styling is untouched.
