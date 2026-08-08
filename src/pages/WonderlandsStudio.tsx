@@ -18,6 +18,7 @@ import FinancingOptions from "@/components/FinancingOptions";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import StudioCartWidget from "@/components/StudioCartWidget";
+import { getCategoryLabelForProduct } from "@/lib/productCategories";
 import { spas, pools } from "@/components/PoolCatalog";
 import { gilmerPools } from "@/data/gilmerPools";
 import { gilmerSpas } from "@/data/gilmerSpas";
@@ -406,43 +407,8 @@ const getProductUnit = (product: any): 'sqft' | 'linear-ft' | null => {
 const unitLabel = (unit: 'sqft' | 'linear-ft') => (unit === 'sqft' ? 'sq ft' : 'linear ft');
 
 // Real product categories (Pools, Spas, Saunas, ...) — never pricing tiers like "premium"
-const CATEGORY_LABELS: Record<string, string> = {
-  pools: 'Pool',
-  pool: 'Pool',
-  spas: 'Spa',
-  spa: 'Spa',
-  'tanning-ledges': 'Tanning Ledge',
-  'tanning-ledge': 'Tanning Ledge',
-  saunas: 'Sauna',
-  sauna: 'Sauna',
-  'screen-enclosures': 'Screen Enclosure',
-  'screen-enclosure': 'Screen Enclosure',
-  'patio-fencing': 'Patio Fencing',
-  fencing: 'Patio Fencing',
-  lanai: 'Lanai',
-  pavers: 'Pavers',
-  paver: 'Pavers',
-  'artificial-grass': 'Artificial Grass',
-  grass: 'Artificial Grass',
-  landscaping: 'Landscaping',
-  covers: 'Cover',
-  cover: 'Cover',
-  'driveway-gates': 'Driveway Gate',
-  gate: 'Driveway Gate',
-  finishes: 'Finish',
-  finish: 'Finish',
-  liners: 'Liner',
-  liner: 'Liner',
-  scenes: 'Scene'
-};
-const getProductCategoryLabel = (product: any, activeTab?: string): string => {
-  if (!product) return activeTab ? CATEGORY_LABELS[activeTab] || '' : '';
-  const type = String(product.type || '').toLowerCase();
-  if (CATEGORY_LABELS[type]) return CATEGORY_LABELS[type];
-  const cat = String(product.category || '').toLowerCase();
-  if (CATEGORY_LABELS[cat]) return CATEGORY_LABELS[cat];
-  return (activeTab && CATEGORY_LABELS[activeTab]) || '';
-};
+const getProductCategoryLabel = (product: any, activeTab?: string): string =>
+  getCategoryLabelForProduct(product, activeTab);
 
 const WonderlandsStudio = () => {
   const {
@@ -1860,7 +1826,7 @@ const WonderlandsStudio = () => {
       name: product.model || product.name || 'Product',
       price: getProductPrice(product),
       image: product.image,
-      category: product.category,
+      category: getProductCategoryLabel(product),
       extras: [],
     } as any);
   };
@@ -1877,7 +1843,7 @@ const WonderlandsStudio = () => {
       ),
       quantity: 1,
       image: selectedProduct.image,
-      category: selectedProduct.category,
+      category: getProductCategoryLabel(selectedProduct, activeTab),
       extras: extrasArray
     };
     addToCart(cartItem);
