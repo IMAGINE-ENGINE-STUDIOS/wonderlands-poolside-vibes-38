@@ -323,15 +323,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
       },
       setElementQuantity: (key, quantity) => {
         if (!key.startsWith('door:')) return;
-        const id = key.slice(5);
-        const currentQty = drawnDoorsRef.current[id] ?? configRef.current.doors[id] ?? 0;
-        const delta = quantity - currentQty;
-        if (delta === 0) return;
-        if (quantity <= 0) {
-          doorApiRef.current.removeDoorType(id);
-          return;
-        }
-        for (let i = 0; i < Math.abs(delta); i++) doorApiRef.current.setDoorQty(id, delta > 0 ? 1 : -1);
+        doorApiRef.current.setDoorCount(key.slice(5), quantity);
       },
     });
   }, []);
