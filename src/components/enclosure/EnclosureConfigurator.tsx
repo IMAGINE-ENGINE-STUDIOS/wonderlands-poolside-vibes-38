@@ -147,6 +147,96 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
     });
   }, [estimate.total, config.areaSqFt, config.perimeterFt, config.typeId]);
 
+  // ---- report the full, itemized project (cart + quote) ----
+  const projectRef = React.useRef(onProjectChange);
+  projectRef.current = onProjectChange;
+  const project: EnclosureProject = {
+    total: estimate.total,
+    areaSqFt: config.areaSqFt,
+    perimeterFt: config.perimeterFt,
+    description: `${estimate.type.label} — ${config.areaSqFt.toLocaleString()} sq ft footprint`,
+    typeLabel: estimate.type.label,
+    roofLabel: estimate.roof.label,
+    extrusionLabel: estimate.extrusion.label,
+    screenLabel: `${estimate.screen.brand} ${estimate.screen.label}`,
+    elements: estimate.elements,
+    spec,
+    compliance: issues,
+    header: {
+      framedAreaSqFt: estimate.framedArea,
+      screenedAreaSqFt: estimate.screenedArea,
+      screenWallFt: config.screenWallFt,
+      longestSpanFt: config.longestSpanFt,
+      wallHeightFt: config.wallHeightFt,
+      meanRoofHeightFt: config.meanRoofHeightFt,
+      windSpeedMph: config.windSpeedMph,
+      exposure: config.exposure,
+      hvhz: config.hvhz,
+      designPressurePsf: pressure,
+      sealedRequired: estimate.sealedRequired,
+      isPoolBarrier: config.isPoolBarrier,
+      doorCount: estimate.doorCount,
+      pricePerSqFt: estimate.pricePerSqFt,
+    },
+    snapshot,
+  };
+  const projectKey = JSON.stringify(project);
+  React.useEffect(() => {
+    projectRef.current?.(JSON.parse(projectKey) as EnclosureProject);
+  }, [projectKey]);
+
+  // ---- imperative editing API used by the shopping cart ----
+  const apiRef = React.useRef(onApiReady);
+  apiRef.current = onApiReady;
+  React.useEffect(() => {
+    apiRef.current?.({
+      setElementOption: (key, optionId) => {
+        setConfig(prev => {
+          if (key === 'structure') return { ...prev, typeId: optionId };
+          if (key === 'roof') return { ...prev, roofId: optionId };
+          if (key === 'extrusion') return { ...prev, extrusionId: optionId };
+          if (key === 'screen') return { ...prev, screenId: optionId };
+          if (key.startsWith('door:')) {
+            const fromId = key.slice(5);
+            if (fromId === optionId) return prev;
+            const qty = prev.doors[fromId] || 0;
+            const doors = { ...prev.doors };
+            delete doors[fromId];
+            doors[optionId] = (doors[optionId] || 0) + qty;
+            return { ...prev, doors };
+          }
+          return prev;
+        });
+      },
+      removeElement: key => {
+        setConfig(prev => {
+          if (key.startsWith('door:')) {
+            const doors = { ...prev.doors };
+            delete doors[key.slice(5)];
+            return { ...prev, doors };
+          }
+          if (key.startsWith('addon:')) {
+            const id = key.slice(6);
+            return { ...prev, addOns: prev.addOns.filter(a => a !== id) };
+          }
+          return prev;
+        });
+      },
+      setElementQuantity: (key, quantity) => {
+        if (!key.startsWith('door:')) return;
+        const id = key.slice(5);
+        setConfig(prev => {
+          const doors = { ...prev.doors };
+          if (quantity <= 0) delete doors[id];
+          else doors[id] = quantity;
+          return { ...prev, doors };
+        });
+      },
+    });
+  }, []);
+
+
+
   const setDoorQty = (id: string, delta: number) =>
     setConfig(prev => {
       const next = Math.max(0, (prev.doors[id] || 0) + delta);
