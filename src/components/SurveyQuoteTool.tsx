@@ -2039,6 +2039,8 @@ const SurveyQuoteTool = ({
                         return <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                           {/* Display item image - use actual image if available or fallback based on type */}
                           {(() => {
+                    // Enclosure line items are technical scope rows — no product photo
+                    if (extras?.enclosure) return null;
                     // First check if item has its own image property
                     if (item.image) {
                       return <div className="mb-3">
