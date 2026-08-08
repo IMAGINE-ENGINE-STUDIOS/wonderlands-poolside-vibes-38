@@ -390,8 +390,8 @@ const calculatePoolLinerArea = (dimensions: string | undefined): number => {
   const walls = 2 * (length + width) * 5; // avg 5ft depth
   return Math.round(floor + walls);
 };
-// Product types that use the full pool/spa feature set
-const WATER_PRODUCT_TYPES = ['pool', 'spa', 'tanning-ledge', 'sauna'];
+// Product types that use the full pool/spa feature set (saunas have their own set)
+const WATER_PRODUCT_TYPES = ['pool', 'spa', 'tanning-ledge'];
 const isWaterProduct = (type?: string): boolean => WATER_PRODUCT_TYPES.includes(type || 'pool');
 
 // Unit-priced categories (screen enclosures, fencing, lanai, pavers, grass, liners...)
