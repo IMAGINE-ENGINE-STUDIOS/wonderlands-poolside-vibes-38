@@ -230,36 +230,90 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
     projectRef.current?.(JSON.parse(projectKey) as EnclosureProject);
   }, [projectKey]);
 
+  const manualDoorQty = (id: string, delta: number) =>
+    setConfig(prev => {
+      const next = Math.max(0, (prev.doors[id] || 0) + delta);
+      const doors = { ...prev.doors };
+      if (next === 0) delete doors[id];
+      else doors[id] = next;
+      return { ...prev, doors };
+    });
+
+  /** Add / remove a door. With a footprint drawn, the plan is edited and the list follows. */
+  const setDoorQty = (id: string, delta: number) => {
+    const current = layoutRef.current;
+    if (current.points.length >= 2) {
+      if (delta > 0) {
+        const next = addDoorToLongestWall(current, id);
+        if (next) {
+          setLayout(next);
+          return;
+        }
+      } else if (removeOneDrawnDoor(id)) {
+        return;
+      }
+      return;
+    }
+    manualDoorQty(id, delta);
+  };
+
+  /** Drop every door of a model from the plan and the list */
+  const removeDoorType = (id: string) => {
+    const current = layoutRef.current;
+    if (current.points.length >= 2) {
+      setLayout(removeDrawnDoorsOfType(current, id));
+      return;
+    }
+    setConfig(prev => {
+      const doors = { ...prev.doors };
+      delete doors[id];
+      return { ...prev, doors };
+    });
+  };
+
+  /** Swap a model for another, on the plan and in the list */
+  const swapDoorType = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const current = layoutRef.current;
+    if (current.points.length >= 2) {
+      setLayout(swapDrawnDoorType(current, fromId, toId));
+      return;
+    }
+    setConfig(prev => {
+      const qty = prev.doors[fromId] || 0;
+      const doors = { ...prev.doors };
+      delete doors[fromId];
+      doors[toId] = (doors[toId] || 0) + qty;
+      return { ...prev, doors };
+    });
+  };
+
   // ---- imperative editing API used by the shopping cart ----
+  const doorApiRef = React.useRef({ setDoorQty, removeDoorType, swapDoorType });
+  doorApiRef.current = { setDoorQty, removeDoorType, swapDoorType };
   const apiRef = React.useRef(onApiReady);
   apiRef.current = onApiReady;
   React.useEffect(() => {
     apiRef.current?.({
       setElementOption: (key, optionId) => {
+        if (key.startsWith('door:')) {
+          doorApiRef.current.swapDoorType(key.slice(5), optionId);
+          return;
+        }
         setConfig(prev => {
           if (key === 'structure') return { ...prev, typeId: optionId };
           if (key === 'roof') return { ...prev, roofId: optionId };
           if (key === 'extrusion') return { ...prev, extrusionId: optionId };
           if (key === 'screen') return { ...prev, screenId: optionId };
-          if (key.startsWith('door:')) {
-            const fromId = key.slice(5);
-            if (fromId === optionId) return prev;
-            const qty = prev.doors[fromId] || 0;
-            const doors = { ...prev.doors };
-            delete doors[fromId];
-            doors[optionId] = (doors[optionId] || 0) + qty;
-            return { ...prev, doors };
-          }
           return prev;
         });
       },
       removeElement: key => {
+        if (key.startsWith('door:')) {
+          doorApiRef.current.removeDoorType(key.slice(5));
+          return;
+        }
         setConfig(prev => {
-          if (key.startsWith('door:')) {
-            const doors = { ...prev.doors };
-            delete doors[key.slice(5)];
-            return { ...prev, doors };
-          }
           if (key.startsWith('addon:')) {
             const id = key.slice(6);
             return { ...prev, addOns: prev.addOns.filter(a => a !== id) };
@@ -270,26 +324,18 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
       setElementQuantity: (key, quantity) => {
         if (!key.startsWith('door:')) return;
         const id = key.slice(5);
-        setConfig(prev => {
-          const doors = { ...prev.doors };
-          if (quantity <= 0) delete doors[id];
-          else doors[id] = quantity;
-          return { ...prev, doors };
-        });
+        const currentQty = drawnDoorsRef.current[id] ?? configRef.current.doors[id] ?? 0;
+        const delta = quantity - currentQty;
+        if (delta === 0) return;
+        if (quantity <= 0) {
+          doorApiRef.current.removeDoorType(id);
+          return;
+        }
+        for (let i = 0; i < Math.abs(delta); i++) doorApiRef.current.setDoorQty(id, delta > 0 ? 1 : -1);
       },
     });
   }, []);
 
-
-
-  const setDoorQty = (id: string, delta: number) =>
-    setConfig(prev => {
-      const next = Math.max(0, (prev.doors[id] || 0) + delta);
-      const doors = { ...prev.doors };
-      if (next === 0) delete doors[id];
-      else doors[id] = next;
-      return { ...prev, doors };
-    });
 
   const toggleAddOn = (id: string) =>
     setConfig(prev => ({
