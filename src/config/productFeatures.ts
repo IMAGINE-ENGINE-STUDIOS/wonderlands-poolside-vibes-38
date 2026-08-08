@@ -325,51 +325,240 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       basePrice: 15000
     }
   ],
+  // Saunas have their own option set — no pool finishes, liners, tiles or jets
   'sauna': [
     {
-      id: 'spa',
-      label: 'Add a Spa',
-      type: 'nested',
-      icon: 'Droplet',
-      options: spas,
-      subFeatures: [
-        {
-          id: 'heater',
-          label: 'Spa Heater',
-          type: 'selection',
-          icon: 'Zap',
-          options: poolHeaters
-        },
-        {
-          id: 'waterline',
-          label: 'Waterline',
-          type: 'selection',
-          icon: 'Droplet',
-          options: linerOptions
-        }
+      id: 'woodUpgrade',
+      label: 'Interior Wood',
+      description: 'Bench and wall species inside the cabin',
+      type: 'selection',
+      icon: 'TreePine',
+      options: [
+        { name: 'Nordic Spruce (included)', price: 0 },
+        { name: 'Western Red Cedar', price: 1800 },
+        { name: 'Thermo-Aspen', price: 2400 },
+        { name: 'Thermo-Alder', price: 2900 }
       ]
     },
     {
-      id: 'deckPavers',
-      label: 'Deck Pavers',
+      id: 'exteriorFinish',
+      label: 'Exterior Finish',
+      description: 'Weather protection and exterior look',
+      type: 'selection',
+      icon: 'Paintbrush',
+      options: [
+        { name: 'Natural Clear Coat (included)', price: 0 },
+        { name: 'Black Stain', price: 1200 },
+        { name: 'Charred Shou Sugi Ban', price: 2200 }
+      ]
+    },
+    {
+      id: 'saunaHeater',
+      label: 'Heater',
+      description: 'Includes electrical hook-up coordination and permits',
+      type: 'selection',
+      icon: 'Flame',
+      options: [
+        { name: '6 kW Electric Heater (included)', price: 0 },
+        { name: '8 kW Electric Heater', price: 900 },
+        { name: '9 kW Electric Heater', price: 1400 },
+        { name: 'Harvia Wood-Burning Heater', price: 2600 },
+        { name: 'Huum Electric Heater with App Control', price: 3200 }
+      ]
+    },
+    {
+      id: 'controlPanel',
+      label: 'Digital Wi-Fi Control Panel',
+      description: 'Scheduling and remote pre-heat',
+      type: 'boolean',
+      icon: 'Smartphone',
+      basePrice: 1150,
+      pricingModifier: base => base
+    },
+    {
+      id: 'heaterGuard',
+      label: 'Heater Guard Rail',
+      type: 'boolean',
+      icon: 'ShieldCheck',
+      basePrice: 350,
+      pricingModifier: base => base
+    },
+    {
+      id: 'extraStones',
+      label: 'Premium Volcanic Stone Set',
+      type: 'boolean',
+      icon: 'Mountain',
+      basePrice: 260,
+      pricingModifier: base => base
+    },
+    {
+      id: 'benchUpgrade',
+      label: 'Upgraded Bench Layout (L-bench / two-tier)',
+      type: 'boolean',
+      icon: 'Rows3',
+      basePrice: 1600,
+      pricingModifier: base => base
+    },
+    {
+      id: 'backrests',
+      label: 'Backrests & Headrests',
+      type: 'boolean',
+      icon: 'Armchair',
+      basePrice: 450,
+      pricingModifier: base => base
+    },
+    {
+      id: 'loylySet',
+      label: 'Löyly Bucket & Ladle Set (cedar)',
+      type: 'boolean',
+      icon: 'Droplet',
+      basePrice: 180,
+      pricingModifier: base => base
+    },
+    {
+      id: 'aromaDispenser',
+      label: 'Aroma / Essential-Oil Dispenser',
+      type: 'boolean',
+      icon: 'Flower2',
+      basePrice: 220,
+      pricingModifier: base => base
+    },
+    {
+      id: 'thermoHygro',
+      label: 'Thermometer & Hygrometer Set',
+      type: 'boolean',
+      icon: 'Gauge',
+      basePrice: 140,
+      pricingModifier: base => base
+    },
+    {
+      id: 'sandTimer',
+      label: '24 h Sand Timer',
+      type: 'boolean',
+      icon: 'Hourglass',
+      basePrice: 90,
+      pricingModifier: base => base
+    },
+    {
+      id: 'saunaLighting',
+      label: 'Lighting',
+      type: 'selection',
+      icon: 'Lightbulb',
+      options: [
+        { name: 'Standard Interior LED (included)', price: 0 },
+        { name: 'Chromotherapy LED with Remote', price: 1250 },
+        { name: 'Fiber-Optic Star Ceiling', price: 1900 }
+      ]
+    },
+    {
+      id: 'saltWall',
+      label: 'Backlit Salt-Brick Wall Panel',
+      type: 'boolean',
+      icon: 'Sparkles',
+      basePrice: 1650,
+      pricingModifier: base => base
+    },
+    {
+      id: 'bluetoothAudio',
+      label: 'Bluetooth Audio (moisture-rated speakers)',
+      type: 'boolean',
+      icon: 'Speaker',
+      basePrice: 980,
+      pricingModifier: base => base
+    },
+    {
+      id: 'doorGlass',
+      label: 'Glass & Doors',
+      type: 'selection',
+      icon: 'PanelsTopLeft',
+      options: [
+        { name: 'Bronze Tempered Door (included)', price: 0 },
+        { name: 'Full-Glass Clear Door', price: 1400 },
+        { name: 'Panoramic Rear Window', price: 2300 }
+      ]
+    },
+    {
+      id: 'coldPlunge',
+      label: 'Cold Plunge Tub with Chiller',
+      type: 'boolean',
+      icon: 'Snowflake',
+      basePrice: 9800,
+      pricingModifier: base => base
+    },
+    {
+      id: 'outdoorShower',
+      label: 'Outdoor Shower Column',
+      type: 'boolean',
+      icon: 'ShowerHead',
+      basePrice: 1450,
+      pricingModifier: base => base
+    },
+    {
+      id: 'changingBench',
+      label: 'Changing Bench & Robe Hooks',
+      type: 'boolean',
+      icon: 'Shirt',
+      basePrice: 380,
+      pricingModifier: base => base
+    },
+    {
+      id: 'concreteSlabBase',
+      label: 'New Concrete Slab Base',
+      description: '$12 per sq ft — skip if you already have a slab',
+      type: 'area',
+      icon: 'Square',
+      pricePerUnit: 12
+    },
+    {
+      id: 'saunaSurroundPavers',
+      label: 'Sauna Surround Pavers',
+      description: '$20 per sq ft installed',
       type: 'area',
       icon: 'Grid3x3',
-      pricePerUnit: 20,
-      options: paverOptions
+      pricePerUnit: 20
     },
     {
-      id: 'screenEnclosure',
-      label: 'Screen Enclosure',
-      type: 'area',
+      id: 'electricalRun',
+      label: 'Electrical Run & 240 V Breaker (up to 50 ft)',
+      type: 'boolean',
+      icon: 'Zap',
+      basePrice: 1750,
+      pricingModifier: base => base
+    },
+    {
+      id: 'craneAccess',
+      label: 'Crane / Tight-Access Placement',
+      type: 'boolean',
+      icon: 'Truck',
+      basePrice: 1900,
+      pricingModifier: base => base
+    },
+    {
+      id: 'shadeStructure',
+      label: 'Roof Cover / Shade Structure',
+      type: 'boolean',
       icon: 'Home',
-      pricePerUnit: 22,
-      options: [
-        { name: 'standard', price: 22 },
-        { name: 'deluxe', price: 24 },
-        { name: 'premium', price: 26 }
-      ]
+      basePrice: 3400,
+      pricingModifier: base => base
+    },
+    {
+      id: 'extendedWarranty',
+      label: 'Extended Warranty (7 years)',
+      type: 'boolean',
+      icon: 'BadgeCheck',
+      basePrice: 1100,
+      pricingModifier: base => base
+    },
+    {
+      id: 'maintenancePackage',
+      label: 'Annual Maintenance Package (first year)',
+      type: 'boolean',
+      icon: 'Wrench',
+      basePrice: 650,
+      pricingModifier: base => base
     }
   ],
+
   'tanning-ledge': [
     {
       id: 'finish',
