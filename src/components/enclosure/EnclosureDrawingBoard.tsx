@@ -42,6 +42,8 @@ interface Props {
   layout: EnclosureLayout;
   onChange: (layout: EnclosureLayout) => void;
   onMeasure?: (takeoff: EnclosureTakeoff) => void;
+  /** PNG data-URL of the drawn footprint, or null when nothing is drawn */
+  onSnapshot?: (dataUrl: string | null) => void;
   frameColorHex?: string;
 }
 
