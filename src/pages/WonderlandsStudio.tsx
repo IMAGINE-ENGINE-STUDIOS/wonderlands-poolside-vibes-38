@@ -1697,10 +1697,23 @@ const WonderlandsStudio = () => {
     artificialGrass: { artificialGrass: false, artificialGrassArea: '' },
   };
 
+  /** Resets a dynamic (config-driven) feature such as the sauna options */
+  const resetDynamicFeature = (featureId: string) => {
+    const feature = getProductFeatures((selectedProduct?.type || 'sauna') as ProductType)
+      .find(f => f.id === featureId);
+    const cleared =
+      feature?.type === 'selection' ? 'None' : feature?.type === 'boolean' ? false : 0;
+    setSelectedExtras((prev: any) => ({ ...prev, [featureId]: cleared }));
+  };
+
   const handleRemoveCurrentFeature = (key?: string) => {
     if (!key) return;
     if (key.startsWith('enc:')) {
       enclosureApiRef.current?.removeElement(key.slice(4));
+      return;
+    }
+    if (key.startsWith('dyn:')) {
+      resetDynamicFeature(key.slice(4));
       return;
     }
     if (!FEATURE_RESETS[key]) return;
@@ -1710,6 +1723,15 @@ const WonderlandsStudio = () => {
   const handleCurrentFeatureQuantity = (key: string | undefined, quantity: number) => {
     if (key?.startsWith('enc:')) {
       enclosureApiRef.current?.setElementQuantity(key.slice(4), Math.max(0, quantity));
+      return;
+    }
+    if (key?.startsWith('dyn:')) {
+      const featureId = key.slice(4);
+      if (quantity <= 0) {
+        resetDynamicFeature(featureId);
+        return;
+      }
+      setSelectedExtras((prev: any) => ({ ...prev, [featureId]: quantity }));
       return;
     }
     if (key !== 'jets') return;
