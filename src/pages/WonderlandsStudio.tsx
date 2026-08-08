@@ -1403,8 +1403,23 @@ const WonderlandsStudio = () => {
     }));
     setShowQuoteModal(true);
   };
-  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string; options?: { name: string; price: number }[] }> => {
+  const buildCurrentExtras = (): Array<{ name: string; price: number; key?: string; quantity?: number; options?: { name: string; price: number }[] }> => {
     if (!selectedProduct) return [];
+
+    // Screen enclosure: every configured element is its own editable cart line
+    if (selectedProduct.type === 'screen-enclosure') {
+      if (!enclosureProject) return [];
+      return enclosureProject.elements
+        .filter(el => el.amount > 0 || el.removable)
+        .map(el => ({
+          name: `${el.label}${el.detail ? ` — ${el.detail}` : ''}`,
+          price: el.amount,
+          key: `enc:${el.key}`,
+          quantity: el.kind === 'door' ? el.quantity : undefined,
+          options: el.options?.map(opt => ({ name: `enc-opt:${opt.id}|${opt.label}`, price: el.amount })),
+        }));
+    }
+
     // Convert selectedExtras to the format expected by CartItem
     const extrasArray: Array<{ name: string; price: number; key?: string }> = [];
 
