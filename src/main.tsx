@@ -100,7 +100,16 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
-const queryClient = new QueryClient();
+// No refetch/remount churn when the user comes back to the tab
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
 
 // Register service worker for caching static assets (DISABLED - preventing white screen)
 // Service worker disabled to prevent caching issues causing white screen
