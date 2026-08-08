@@ -28,7 +28,14 @@ interface ShoppingCartContextType {
   setIsCartOpen: (open: boolean) => void;
 }
 
-const ShoppingCartContext = createContext<ShoppingCartContextType | undefined>(undefined);
+// Keep a single context instance across hot reloads / duplicate module copies,
+// otherwise consumers hold a stale context and throw "must be used within a Provider".
+const globalStore = globalThis as unknown as {
+  __wlShoppingCartContext?: React.Context<ShoppingCartContextType | undefined>;
+};
+const ShoppingCartContext =
+  globalStore.__wlShoppingCartContext ??
+  (globalStore.__wlShoppingCartContext = createContext<ShoppingCartContextType | undefined>(undefined));
 
 export const useShoppingCart = () => {
   const context = useContext(ShoppingCartContext);
@@ -38,7 +45,6 @@ export const useShoppingCart = () => {
   return context;
 };
 
-/** Same as useShoppingCart but returns undefined outside the provider */
 export const useOptionalShoppingCart = () => useContext(ShoppingCartContext);
 
 interface ShoppingCartProviderProps {
