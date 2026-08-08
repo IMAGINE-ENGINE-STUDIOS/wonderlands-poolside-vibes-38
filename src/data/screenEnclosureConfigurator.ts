@@ -319,6 +319,29 @@ export interface EnclosureEstimateLine {
   amount: number;
 }
 
+export type EnclosureElementKind =
+  | 'structure'
+  | 'extrusion'
+  | 'screen'
+  | 'roof'
+  | 'door'
+  | 'addon'
+  | 'soft'
+  | 'general';
+
+export interface EnclosureElement {
+  key: string;
+  kind: EnclosureElementKind;
+  label: string;
+  detail: string;
+  amount: number;
+  quantity?: number;
+  optionId?: string;
+  options?: { id: string; label: string }[];
+  removable: boolean;
+}
+
+
 export type EnclosureCostCategory =
   | 'Materials'
   | 'Delivery & Freight'
