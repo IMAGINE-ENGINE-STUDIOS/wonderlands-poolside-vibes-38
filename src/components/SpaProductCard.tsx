@@ -28,6 +28,7 @@ import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+import { resolveCategoryLabel } from '@/lib/productCategories';
 interface Pool {
   model: string;
   price: number;
@@ -404,7 +405,7 @@ const SpaProductCard = ({
           <Badge className={`${getCategoryColor(spa.category)} text-white capitalize font-medium px-3 py-1`}>
             <span className="flex items-center gap-1">
               <Waves size={16} />
-              {spa.category}
+              {resolveCategoryLabel(spa.category, 'spa')}
             </span>
           </Badge>
         </div>
