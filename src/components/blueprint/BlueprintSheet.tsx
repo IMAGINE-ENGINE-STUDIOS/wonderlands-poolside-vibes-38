@@ -11,6 +11,7 @@ import {
   PoolDataBox,
   ReferenceCodesBox,
   ScopeOfWorkBox,
+  SurveyDataBox,
 } from './SheetInfoBoxes';
 import type { BlueprintProject } from './types';
 import { SHEET_TEMPLATES } from '@/data/blueprintTemplates';
@@ -67,6 +68,8 @@ export const BlueprintSheet: React.FC<Props> = ({ data, sheetCode, sheets, noteG
             />
           </div>
         ) : null}
+
+        {template.site && data.survey ? <SurveyDataBox data={data} /> : null}
 
         {template.details ? <DetailCalloutsBox details={template.details} sheetCode={sheetCode} /> : null}
 

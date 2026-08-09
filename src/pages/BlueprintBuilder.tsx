@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search, ShieldCheck, Upload } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Ruler, Search, ShieldCheck, Upload } from 'lucide-react';
 import usePersistentState from '@/hooks/usePersistentState';
 import BlueprintSheet from '@/components/blueprint/BlueprintSheet';
 import BlueprintImportDialog from '@/components/blueprint/BlueprintImportDialog';
@@ -116,6 +116,7 @@ const BlueprintBuilder: React.FC = () => {
   const [sealDialogOpen, setSealDialogOpen] = React.useState(false);
   const [printAll, setPrintAll] = React.useState(false);
   const [importOpen, setImportOpen] = React.useState(false);
+  const [surveyOpen, setSurveyOpen] = React.useState(false);
 
   const jurisdiction = findJurisdiction(data.jurisdictionId);
   const projectType = findProjectType(data.projectTypeId);
