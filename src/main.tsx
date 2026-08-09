@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DarkModeProvider } from "@/components/DarkModeProvider";
 import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
+import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import App from "./App.tsx";
 import "./styles/critical.css";
 import "./styles/components.css";
