@@ -456,6 +456,10 @@ export function PoolBuilder({
     currentCurveType: 'linear'
   });
 
+  // Selecting / dragging an in-progress spline point while still in draw mode
+  const [selectedDrawPointId, setSelectedDrawPointId] = useState<string | null>(null);
+  const [draggingDrawPointId, setDraggingDrawPointId] = useState<string | null>(null);
+
   // Symmetry mode for spline drawing
   const [symmetryMode, setSymmetryMode] = useState<{
     enabled: boolean;
@@ -4037,16 +4041,26 @@ export function PoolBuilder({
       // Draw spline points
       splineDrawing.points.forEach((sp, i) => {
         const isFirst = i === 0;
+        const isSelectedDrawPoint = selectedDrawPointId === sp.id;
         ctx.beginPath();
         ctx.arc(sp.x, sp.y, isFirst ? 10 : 7, 0, 2 * Math.PI);
-        ctx.fillStyle = isFirst ? 'hsl(var(--primary))' : '#ffffff';
+        ctx.fillStyle = isSelectedDrawPoint ? '#F97316' : isFirst ? 'hsl(var(--primary))' : '#ffffff';
         ctx.fill();
-        ctx.strokeStyle = 'hsl(var(--primary))';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isSelectedDrawPoint ? '#F97316' : 'hsl(var(--primary))';
+        ctx.lineWidth = isSelectedDrawPoint ? 3 : 2;
         ctx.stroke();
 
+        // Selection ring
+        if (isSelectedDrawPoint) {
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, 13, 0, 2 * Math.PI);
+          ctx.strokeStyle = '#F97316';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
         // Point number label
-        ctx.fillStyle = isFirst ? '#fff' : 'hsl(var(--primary))';
+        ctx.fillStyle = isSelectedDrawPoint || isFirst ? '#fff' : 'hsl(var(--primary))';
         ctx.font = 'bold 10px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -4558,7 +4572,7 @@ export function PoolBuilder({
     ctx.restore();
     // Close camera transform
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, selectedDrawPointId, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -5025,6 +5039,20 @@ export function PoolBuilder({
           return;
         }
       }
+
+      // Clicking an already-placed spline point selects it (and starts dragging it)
+      // instead of adding a new point — lets users fix a point mid-drawing.
+      const hitIndex = splineDrawing.points.findIndex(
+        sp => Math.sqrt(Math.pow(x - sp.x, 2) + Math.pow(y - sp.y, 2)) < 12
+      );
+      if (hitIndex !== -1) {
+        const hitId = splineDrawing.points[hitIndex].id;
+        setSelectedDrawPointId(hitId);
+        setDraggingDrawPointId(hitId);
+        return;
+      }
+
+      setSelectedDrawPointId(null);
       setSplineDrawing(prev => ({
         ...prev,
         points: [...prev.points, newSplinePoint]
@@ -5275,6 +5303,13 @@ export function PoolBuilder({
         x,
         y
       });
+      // Dragging a previously placed spline point while still drawing
+      if (draggingDrawPointId) {
+        setSplineDrawing(prev => ({
+          ...prev,
+          points: prev.points.map(sp => sp.id === draggingDrawPointId ? { ...sp, x, y } : sp)
+        }));
+      }
       return;
     }
 
@@ -5499,6 +5534,7 @@ export function PoolBuilder({
     setIsDraggingDepth(false);
     setIsDraggingFence(false);
     setDraggingAdditionalPoolPoint(null);
+    setDraggingDrawPointId(null);
   };
   const addPoint = () => {
     const newId = (Math.max(...points.map(p => parseInt(p.id))) + 1).toString();
@@ -5920,7 +5956,31 @@ export function PoolBuilder({
           
           {/* Spline Drawing Toolbar - Floating in canvas */}
           {splineDrawing.isActive && <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-              <SplineDrawingToolbar currentCurveType={splineDrawing.currentCurveType} pointCount={splineDrawing.points.length} onCurveTypeChange={type => {
+              <SplineDrawingToolbar
+                currentCurveType={selectedDrawPointId ? (splineDrawing.points.find(sp => sp.id === selectedDrawPointId)?.curveType || splineDrawing.currentCurveType) : splineDrawing.currentCurveType}
+                pointCount={splineDrawing.points.length}
+                isEditMode={!!selectedDrawPointId}
+                pointLabel={selectedDrawPointId ? `Point ${splineDrawing.points.findIndex(sp => sp.id === selectedDrawPointId) + 1}` : undefined}
+                canAddPoint={false}
+                canDelete={!!selectedDrawPointId}
+                onDeletePoint={() => {
+                  if (!selectedDrawPointId) return;
+                  setSplineDrawing(prev => ({
+                    ...prev,
+                    points: prev.points.filter(sp => sp.id !== selectedDrawPointId)
+                  }));
+                  setSelectedDrawPointId(null);
+                  setDraggingDrawPointId(null);
+                }}
+                onCurveTypeChange={type => {
+            if (selectedDrawPointId) {
+              setSplineDrawing(prev => ({
+                ...prev,
+                points: prev.points.map(sp => sp.id === selectedDrawPointId ? { ...sp, curveType: type } : sp),
+                currentCurveType: type
+              }));
+              return;
+            }
             setSplineDrawing(prev => ({
               ...prev,
               currentCurveType: type
