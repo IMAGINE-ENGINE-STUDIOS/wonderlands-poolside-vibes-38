@@ -4,13 +4,11 @@ const SaunaSection = () => {
   return <section className="py-12 bg-gradient-to-br from-amber-50/30 via-orange-50/30 to-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 bg-clip-text text-transparent">
-            Premium Saunas
-          </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Transform your backyard into a wellness sanctuary with our premium barrel and traditional saunas
           </p>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {saunas.map(sauna => <SaunaProductCard key={sauna.id} sauna={sauna} />)}
