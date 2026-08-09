@@ -178,6 +178,45 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
     });
   }, [estimate.total, config.areaSqFt, config.perimeterFt, config.typeId]);
 
+  // ---- price every selectable alternative so the dropdowns show real numbers ----
+  const configKey = JSON.stringify(config);
+  const pricedElements: EnclosureElement[] = React.useMemo(() => {
+    const cfg = JSON.parse(configKey) as EnclosureConfigState;
+    const fieldFor = (key: string): keyof EnclosureConfigState | null =>
+      key === 'structure' ? 'typeId'
+      : key === 'extrusion' ? 'extrusionId'
+      : key === 'screen' ? 'screenId'
+      : key === 'roof' ? 'roofId'
+      : null;
+    return estimate.elements.map(el => {
+      if (!el.options || el.options.length < 2) return el;
+      const field = fieldFor(el.key);
+      const options = el.options.map(opt => {
+        if (opt.id === el.optionId) return { ...opt, amount: el.amount };
+        let altConfig: EnclosureConfigState;
+        if (field) {
+          altConfig = { ...cfg, [field]: opt.id } as EnclosureConfigState;
+        } else if (el.key.startsWith('door:')) {
+          const currentId = el.key.slice(5);
+          const qty = el.quantity || cfg.doors[currentId] || 1;
+          const doors = { ...cfg.doors };
+          delete doors[currentId];
+          doors[opt.id] = (doors[opt.id] || 0) + qty;
+          altConfig = { ...cfg, doors };
+        } else {
+          return { ...opt, amount: el.amount };
+        }
+        const alt = estimateEnclosure(altConfig);
+        const altEl =
+          alt.elements.find(e => e.key === el.key) ||
+          alt.elements.find(e => e.key === `door:${opt.id}`);
+        return { ...opt, amount: altEl?.amount ?? el.amount };
+      });
+      return { ...el, options };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey, estimate]);
+
   // ---- report the full, itemized project (cart + quote) ----
   const projectRef = React.useRef(onProjectChange);
   projectRef.current = onProjectChange;
@@ -190,7 +229,7 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
     roofLabel: estimate.roof.label,
     extrusionLabel: estimate.extrusion.label,
     screenLabel: `${estimate.screen.brand} ${estimate.screen.label}`,
-    elements: estimate.elements,
+    elements: pricedElements,
     spec,
     compliance: issues,
     header: {
