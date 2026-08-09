@@ -457,6 +457,18 @@ const GrassDrawingBoard: React.FC<Props> = ({
       return;
     }
 
+    // In draw mode, clicking the first vertex of the open area closes it —
+    // this must win over the vertex drag hit-test.
+    const drawing = tool === 'draw' ? layout.areas.find(a => !a.closed) : null;
+    if (drawing && drawing.points.length >= 3) {
+      const first = drawing.points[0];
+      if (Math.hypot(first.x - w.x, first.y - w.y) * view.zoom <= HIT_PX + 4) {
+        patch(layout.areas.map(a => (a.id === drawing.id ? { ...a, closed: true } : a)));
+        setSelection(null);
+        return;
+      }
+    }
+
     const ptHit = hitPoint(w);
     if (ptHit) {
       setSelection({ type: 'point', id: ptHit.id, index: ptHit.index });
