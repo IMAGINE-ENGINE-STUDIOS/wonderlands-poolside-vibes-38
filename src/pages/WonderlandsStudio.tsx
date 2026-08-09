@@ -56,6 +56,7 @@ import StudioLandingCanvas from '@/components/studio/StudioLandingCanvas';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
 import FenceConfigurator from '@/components/fence/FenceConfigurator';
 import EnclosureConfigurator, { EnclosureEditApi } from '@/components/enclosure/EnclosureConfigurator';
+import GrassConfigurator from '@/components/grass/GrassConfigurator';
 import type { EnclosureProject } from '@/data/screenEnclosureConfigurator';
 
 
