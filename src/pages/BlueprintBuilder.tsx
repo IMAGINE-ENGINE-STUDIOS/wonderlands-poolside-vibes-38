@@ -434,7 +434,8 @@ const BlueprintBuilder: React.FC = () => {
               <div id="bp-print" className="space-y-6">
                 {printedSheets.map(code => (
                   <BlueprintSheet
-              onRequestImport={() => setImportOpen(true)}
+                    onRequestImport={() => setImportOpen(true)}
+
                     key={code}
                     data={data}
                     sheetCode={code}
