@@ -1,19 +1,19 @@
 import * as React from "react";
 
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
-import saunaBanner from "@/assets/banners/sauna-banner.jpg";
-import spaBanner from "@/assets/banners/spa-banner.jpg";
-import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.jpg";
-import paversBanner from "@/assets/banners/pavers-banner.jpg";
-import coversBanner from "@/assets/banners/covers-banner.jpg";
-import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.jpg";
-import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.jpg";
-import patioFencingBanner from "@/assets/banners/patio-fencing-banner.jpg";
-import lanaiBanner from "@/assets/banners/lanai-banner.jpg";
-import landscapingBanner from "@/assets/banners/landscaping-banner.jpg";
+import saunaBanner from "@/assets/banners/sauna-banner.webp";
+import spaBanner from "@/assets/banners/spa-banner.webp";
+import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.webp";
+import paversBanner from "@/assets/banners/pavers-banner.webp";
+import coversBanner from "@/assets/banners/covers-banner.webp";
+import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.webp";
+import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.webp";
+import patioFencingBanner from "@/assets/banners/patio-fencing-banner.webp";
+import lanaiBanner from "@/assets/banners/lanai-banner.webp";
+import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
 import grassBanner from "@/assets/grass-natural-green.avif";
-import finishImg from "@/assets/finishes/sapphire-blue-g3.jpg";
-import linerImg from "@/assets/finishes/ocean-blue-g3.jpg";
+import finishImg from "@/assets/finishes/sapphire-blue-g3.webp";
+import linerImg from "@/assets/finishes/ocean-blue-g3.webp";
 
 interface BrowseCategoriesEditorialProps {
   activeId: string;

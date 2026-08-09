@@ -2,16 +2,16 @@
 // Base prices are wholesale costs. Final retail price = base * MARKUP.
 // Source: Wonderlands landscaping price list.
 
-import imgShrub from "@/assets/landscaping/cat-shrub.jpg";
-import imgTree from "@/assets/landscaping/cat-tree.jpg";
-import imgPalm from "@/assets/landscaping/cat-palm.jpg";
-import imgGrass from "@/assets/landscaping/cat-grass.jpg";
-import imgFlowering from "@/assets/landscaping/cat-flowering.jpg";
-import imgVine from "@/assets/landscaping/cat-vine.jpg";
-import imgTropical from "@/assets/landscaping/cat-tropical.jpg";
-import imgGroundcover from "@/assets/landscaping/cat-groundcover.jpg";
-import imgFruit from "@/assets/landscaping/cat-fruit.jpg";
-import imgTopiary from "@/assets/landscaping/cat-topiary.jpg";
+import imgShrub from "@/assets/landscaping/cat-shrub.webp";
+import imgTree from "@/assets/landscaping/cat-tree.webp";
+import imgPalm from "@/assets/landscaping/cat-palm.webp";
+import imgGrass from "@/assets/landscaping/cat-grass.webp";
+import imgFlowering from "@/assets/landscaping/cat-flowering.webp";
+import imgVine from "@/assets/landscaping/cat-vine.webp";
+import imgTropical from "@/assets/landscaping/cat-tropical.webp";
+import imgGroundcover from "@/assets/landscaping/cat-groundcover.webp";
+import imgFruit from "@/assets/landscaping/cat-fruit.webp";
+import imgTopiary from "@/assets/landscaping/cat-topiary.webp";
 import { PLANT_IMAGES } from "./landscapingImages";
 
 export const LANDSCAPING_MARKUP = 3;

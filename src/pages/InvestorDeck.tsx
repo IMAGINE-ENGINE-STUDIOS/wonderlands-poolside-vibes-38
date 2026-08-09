@@ -4,32 +4,32 @@ import { Linkedin, Waves, Palmtree, Sparkles, Moon, Palette, Hammer, Droplets, F
 
 // Pool & asset images
 import olympiaPool from "@/assets/pools/olympia-12-optimized.webp";
-import bermudaPool from "@/assets/pools/bermuda.jpg";
-import valenciaPool from "@/assets/pools/valencia.jpg";
-import synergyPool from "@/assets/pools/synergy.jpg";
-import genesisPool from "@/assets/pools/genesis.jpg";
-import fijiPool from "@/assets/pools/fiji.jpg";
-import geometricPool from "@/assets/pools/geometric-luxury.jpg";
-import enchantmentPool from "@/assets/pools/enchantment-917-installed.jpg";
-import axiomPool from "@/assets/pools/axiom-14-deluxe-main.jpg";
+import bermudaPool from "@/assets/pools/bermuda.webp";
+import valenciaPool from "@/assets/pools/valencia.webp";
+import synergyPool from "@/assets/pools/synergy.webp";
+import genesisPool from "@/assets/pools/genesis.webp";
+import fijiPool from "@/assets/pools/fiji.webp";
+import geometricPool from "@/assets/pools/geometric-luxury.webp";
+import enchantmentPool from "@/assets/pools/enchantment-917-installed.webp";
+import axiomPool from "@/assets/pools/axiom-14-deluxe-main.webp";
 import lanaiDeluxe from "@/assets/lanai-deluxe.webp";
 import screenEnclosure from "@/assets/screen-enclosure-deluxe.webp";
 import fenceImg from "@/assets/aluminum-fencing.webp";
 import paverImg from "@/assets/serenitykit.webp";
 import wonderlandsHero from "@/assets/wonderlands-hero.webp";
 import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
-import outdoorKitchen from "@/assets/deck/outdoor-kitchen.jpg";
-import saunaImg from "@/assets/deck/sauna-real.jpg";
-import pergolaImg from "@/assets/deck/pergola.jpg";
-import gardenImg from "@/assets/deck/garden.jpg";
-import spaImg from "@/assets/deck/hot-tub-spa.jpg";
-import luxuryPoolImg from "@/assets/deck/luxury-pool.jpg";
-import kidsParkImg from "@/assets/deck/playground.jpg";
-import tanningLedgeImg from "@/assets/deck/tanning-ledge.jpg";
-import luxuryOutdoorImg from "@/assets/deck/luxury-outdoor.jpg";
-import firePitImg from "@/assets/deck/fire-pit.jpg";
-import lightingImg from "@/assets/deck/lighting.jpg";
-import wonderlandsCta from "@/assets/deck/wonderlands-cta.png";
+import outdoorKitchen from "@/assets/deck/outdoor-kitchen.webp";
+import saunaImg from "@/assets/deck/sauna-real.webp";
+import pergolaImg from "@/assets/deck/pergola.webp";
+import gardenImg from "@/assets/deck/garden.webp";
+import spaImg from "@/assets/deck/hot-tub-spa.webp";
+import luxuryPoolImg from "@/assets/deck/luxury-pool.webp";
+import kidsParkImg from "@/assets/deck/playground.webp";
+import tanningLedgeImg from "@/assets/deck/tanning-ledge.webp";
+import luxuryOutdoorImg from "@/assets/deck/luxury-outdoor.webp";
+import firePitImg from "@/assets/deck/fire-pit.webp";
+import lightingImg from "@/assets/deck/lighting.webp";
+import wonderlandsCta from "@/assets/deck/wonderlands-cta.webp";
 
 const SectionLogo = () => (
   <img loading="lazy" decoding="async" src={wonderlandsLogo} alt="Wonderlands" className="absolute top-6 right-6 h-12 md:h-16 z-20 opacity-80" />

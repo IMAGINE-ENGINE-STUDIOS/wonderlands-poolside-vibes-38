@@ -3,16 +3,16 @@
 // Updated with ALL products from catalog - 3.5x/4x dealer multipliers applied
 
 // Import Wonderlands pool images
-import madrePerlaImage from '@/assets/pools/madre-perla.jpg';
+import madrePerlaImage from '@/assets/pools/madre-perla.webp';
 import maximaImage from '@/assets/maxima-pool.webp';
-import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.jpg';
+import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.webp';
 import cancunDeluxeImage from '@/assets/cancun-deluxe.webp';
-import wonderPalaceImage from '@/assets/pools/wonderpalace.jpg';
+import wonderPalaceImage from '@/assets/pools/wonderpalace.webp';
 
 // Import Latham/Axiom pool images
-import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.jpg';
-import axiom16Main from '@/assets/pools/axiom-16-main.jpg';
-import enchantment917LookupImage from '@/assets/pools/enchantment-917.png';
+import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.webp';
+import axiom16Main from '@/assets/pools/axiom-16-main.webp';
+import enchantment917LookupImage from '@/assets/pools/enchantment-917.webp';
 
 // Import GlimmerGlass pool images
 import gilmerAloha from '@/assets/gilmer-aloha.webp';
@@ -44,9 +44,9 @@ import gilmerTortola from '@/assets/gilmer-tortola.webp';
 import gilmerVision from '@/assets/gilmer-vision.webp';
 
 // Import tanning ledge images
-import glimmerglassParadise from '@/assets/tanning-ledges/glimmerglass-paradise.png';
-import glimmerglassLeeward from '@/assets/tanning-ledges/glimmerglass-leeward.png';
-import glimmerglassLeisure from '@/assets/tanning-ledges/glimmerglass-leisure.png';
+import glimmerglassParadise from '@/assets/tanning-ledges/glimmerglass-paradise.webp';
+import glimmerglassLeeward from '@/assets/tanning-ledges/glimmerglass-leeward.webp';
+import glimmerglassLeisure from '@/assets/tanning-ledges/glimmerglass-leisure.webp';
 
 export interface PoolProductInfo {
   name: string;

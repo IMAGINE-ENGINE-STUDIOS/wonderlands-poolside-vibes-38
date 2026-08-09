@@ -1,8 +1,8 @@
 import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
 import { paverTypes } from '@/data/paverData';
 import { getProductsByCategory } from '@/data/consolidatedProducts';
-import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
-import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 import noCoverBlack from '@/assets/no-cover-black.webp';
 import { getSaunaOptionRetail } from '@/lib/saunaPricing';
 

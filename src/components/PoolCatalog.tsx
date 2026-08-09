@@ -18,24 +18,24 @@ import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight, Droplets, Cpu 
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 
 // Import Madre Perla pool image
-import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
-import pacificRidgeImage from "@/assets/pools/pacific-ridge-new.jpg";
+import madrePerlaImage from "@/assets/pools/madre-perla.webp";
+import pacificRidgeImage from "@/assets/pools/pacific-ridge-new.webp";
 import cancunDeluxeImage from "@/assets/cancun-deluxe.webp";
 import maximaImage from "@/assets/maxima-pool.webp";
-import wonderPalaceImage from "@/assets/pools/wonderpalace.jpg";
+import wonderPalaceImage from "@/assets/pools/wonderpalace.webp";
 
 // Import Axiom 14 Deluxe images
-import axiom14DeluxeMain from "@/assets/pools/axiom-14-deluxe-main.jpg";
-import axiom14DeluxeSpecs from "@/assets/pools/axiom-14-deluxe-specs.jpg";
-import axiom14DeluxeGallery1 from "@/assets/pools/axiom-14-deluxe-gallery-1.jpg";
-import axiom16Main from "@/assets/pools/axiom-16-main.jpg";
-import axiom16Specs from "@/assets/pools/axiom-16-specs.jpg";
+import axiom14DeluxeMain from "@/assets/pools/axiom-14-deluxe-main.webp";
+import axiom14DeluxeSpecs from "@/assets/pools/axiom-14-deluxe-specs.webp";
+import axiom14DeluxeGallery1 from "@/assets/pools/axiom-14-deluxe-gallery-1.webp";
+import axiom16Main from "@/assets/pools/axiom-16-main.webp";
+import axiom16Specs from "@/assets/pools/axiom-16-specs.webp";
 
 // Data loaded successfully
 
 // Pool model images - synchronized with Wonderlands Studio (with cache-busting)
 const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp?v=1";
-import enchantment917Image from "@/assets/pools/enchantment-917.png";
+import enchantment917Image from "@/assets/pools/enchantment-917.webp";
 const enchantment921Image = "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.webp?v=1";
 const enchantment924Image = "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.webp?v=1";
 const tuscan1120Image = "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp";

@@ -6,14 +6,14 @@ import maximaPool from "@/assets/maxima-pool.webp";
 import sunsetGrove from "@/assets/sunset-grove-kit-pool.webp";
 import poolBanner from "@/assets/pool-banner-2.webp";
 import poolTexture from "@/assets/pool-texture-sapphire.webp";
-import luxuryPool from "@/assets/deck/luxury-pool.jpg";
-import luxuryOutdoor from "@/assets/deck/luxury-outdoor.jpg";
-import spa from "@/assets/deck/spa.jpg";
-import hotTub from "@/assets/deck/hot-tub-spa.jpg";
-import firePit from "@/assets/deck/fire-pit.jpg";
-import lighting from "@/assets/deck/lighting.jpg";
-import pergola from "@/assets/deck/pergola.jpg";
-import outdoorKitchen from "@/assets/deck/outdoor-kitchen.jpg";
+import luxuryPool from "@/assets/deck/luxury-pool.webp";
+import luxuryOutdoor from "@/assets/deck/luxury-outdoor.webp";
+import spa from "@/assets/deck/spa.webp";
+import hotTub from "@/assets/deck/hot-tub-spa.webp";
+import firePit from "@/assets/deck/fire-pit.webp";
+import lighting from "@/assets/deck/lighting.webp";
+import pergola from "@/assets/deck/pergola.webp";
+import outdoorKitchen from "@/assets/deck/outdoor-kitchen.webp";
 
 /**
  * /design — 5 NEW interactive proposals

@@ -11,7 +11,7 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import { saunas } from "@/data/saunaData";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { glimmerglassTanningLedges } from "@/data/poolData";
-import enchantment917Image from "@/assets/pools/enchantment-917.png";
+import enchantment917Image from "@/assets/pools/enchantment-917.webp";
 import cancunDeluxeImage from "@/assets/cancun-deluxe.webp";
 
 // Best seller pool definitions (matching PoolCatalog pool structure)

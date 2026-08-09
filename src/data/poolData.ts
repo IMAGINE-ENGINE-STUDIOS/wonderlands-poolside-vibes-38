@@ -3,9 +3,9 @@
 // Liners: $20/sqft installed, $15/sheet material only
 
 // Import GlimmerGlass tanning ledge images
-import glimmerglassParadise from '@/assets/tanning-ledges/glimmerglass-paradise.png';
-import glimmerglassLeeward from '@/assets/tanning-ledges/glimmerglass-leeward.png';
-import glimmerglassLeisure from '@/assets/tanning-ledges/glimmerglass-leisure.png';
+import glimmerglassParadise from '@/assets/tanning-ledges/glimmerglass-paradise.webp';
+import glimmerglassLeeward from '@/assets/tanning-ledges/glimmerglass-leeward.webp';
+import glimmerglassLeisure from '@/assets/tanning-ledges/glimmerglass-leisure.webp';
 
 export const poolLiners = [
   // Glass Tile Collection

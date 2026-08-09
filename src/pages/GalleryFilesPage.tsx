@@ -298,7 +298,7 @@ const GalleryFilesPage = () => {
               </Button>
             )}
             <div className="flex items-center gap-3">
-              <img loading="lazy" decoding="async" src="/images/wonderlands-logo.png" alt="Wonderlands" className="h-9 w-9 rounded-lg shadow-md" />
+              <img loading="lazy" decoding="async" src="/images/wonderlands-logo.webp" alt="Wonderlands" className="h-9 w-9 rounded-lg shadow-md" />
               <div>
                 <h1 className="text-2xl font-bold text-white tracking-tight">
                   {selectedFolder ? selectedFolderData?.name : 'File Gallery'}

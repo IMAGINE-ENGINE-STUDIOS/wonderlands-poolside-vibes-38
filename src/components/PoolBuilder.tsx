@@ -23,7 +23,7 @@ import { PointCoordinateEditor } from './poolBuilder/PointCoordinateEditor';
 import { SplineDrawTutorial } from './poolBuilder/SplineDrawTutorial';
 import { snapToGridRelative, calculateProjectCost, getDeckPricePerSqFt, getCopingPricePerSqFt, FEATURE_COSTS as CENTRALIZED_FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { ShapeRepository } from './ShapeRepository';
-import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
 import poolTextureSapphire from '@/assets/pool-texture-sapphire.webp';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -1465,31 +1465,31 @@ export function PoolBuilder({
   const finishes = [{
     id: 'aquamarine',
     name: 'Aquamarine',
-    image: '/textures/finishes/aquamarine-g3.jpg'
+    image: '/textures/finishes/aquamarine-g3.webp'
   }, {
     id: 'azure',
     name: 'Azure Blue',
-    image: '/textures/finishes/azure-blue-g2.jpg'
+    image: '/textures/finishes/azure-blue-g2.webp'
   }, {
     id: 'lagoon',
     name: 'Lagoon Blue',
-    image: '/textures/finishes/lagoon-blue-g2.jpg'
+    image: '/textures/finishes/lagoon-blue-g2.webp'
   }, {
     id: 'ocean',
     name: 'Ocean Blue',
-    image: '/textures/finishes/ocean-blue-g3.jpg'
+    image: '/textures/finishes/ocean-blue-g3.webp'
   }, {
     id: 'sapphire',
     name: 'Sapphire Blue',
-    image: '/textures/finishes/sapphire-blue-g3.jpg'
+    image: '/textures/finishes/sapphire-blue-g3.webp'
   }, {
     id: 'coastal',
     name: 'Coastal Bronze',
-    image: '/textures/finishes/coastal-bronze-g3.jpg'
+    image: '/textures/finishes/coastal-bronze-g3.webp'
   }, {
     id: 'pearl',
     name: 'Athens Pearl White',
-    image: '/textures/finishes/athens-pearl-white-g3.jpg'
+    image: '/textures/finishes/athens-pearl-white-g3.webp'
   }];
 
   // Load textures with LOD system
