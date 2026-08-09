@@ -94,16 +94,19 @@ const ScrollRestoration = () => {
     let attempts = 0;
 
     const restoreElements = () => {
-      // Only scrollable containers are candidates — keeps this cheap on big pages.
-      const candidates = Array.from(
-        document.querySelectorAll<HTMLElement>("div,ul,ol,section,main,aside")
-      ).filter(
-        node =>
-          node.scrollHeight > node.clientHeight + 4 ||
-          node.scrollWidth > node.clientWidth + 4
-      );
+      if (!entries.length) return;
+      // Single cheap pass: only elements that actually overflow are candidates.
       const byPath = new Map<string, HTMLElement>();
-      candidates.forEach(node => byPath.set(elementPath(node), node));
+      document
+        .querySelectorAll<HTMLElement>("div,ul,ol,section,main,aside")
+        .forEach(node => {
+          if (
+            node.scrollHeight > node.clientHeight + 4 ||
+            node.scrollWidth > node.clientWidth + 4
+          ) {
+            byPath.set(elementPath(node), node);
+          }
+        });
       entries.forEach(([path, pos]) => {
         if (!pos || (!pos.top && !pos.left)) return;
         const match = byPath.get(path);
@@ -120,11 +123,13 @@ const ScrollRestoration = () => {
       restoreElements();
       attempts += 1;
       const settled = !target || Math.abs(window.scrollY - target) <= 4;
-      if ((!settled || attempts < 6) && attempts < 30) {
-        window.setTimeout(tick, 120);
+      // Bounded retries: lazy content usually mounts within a few frames, and
+      // scanning the DOM on a long loop is what made big pages feel frozen.
+      if (!settled && attempts < 4) {
+        window.setTimeout(tick, 200);
       }
     };
-    tick();
+    window.requestAnimationFrame(tick);
 
     return () => {
       cancelled = true;
