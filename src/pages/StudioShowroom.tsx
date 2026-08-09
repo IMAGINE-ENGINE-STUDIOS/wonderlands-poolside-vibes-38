@@ -18,6 +18,15 @@ import { InlineCalculator } from '@/components/search/InlineCalculator';
 import type { FenceLayout } from '@/components/fence/FenceDrawingBoard';
 import type { EnclosureLayout } from '@/components/enclosure/EnclosureDrawingBoard';
 
+// ---- Main page widgets ----
+import Header from '@/components/Header';
+import Hero from '@/components/Hero';
+import Footer from '@/components/Footer';
+import SectionBanner from '@/components/SectionBanner';
+import MissionVisionValues from '@/components/MissionVisionValues';
+import BrowseCategoriesEditorial from '@/components/BrowseCategoriesEditorial';
+import saunaBanner from '@/assets/banners/sauna-banner.webp';
+
 import heroPool from '@/assets/hero-pool-optimized.webp';
 import maximaPool from '@/assets/maxima-pool.webp';
 import poolHeater from '@/assets/pool-heater.webp';
@@ -28,6 +37,26 @@ const EnclosureDrawingBoard = React.lazy(() => import('@/components/enclosure/En
 const EnclosureConfigurator = React.lazy(() => import('@/components/enclosure/EnclosureConfigurator'));
 const SaunaSalesPricingDialog = React.lazy(() => import('@/components/sauna/SaunaSalesPricingDialog'));
 const SurveyQuoteTool = React.lazy(() => import('@/components/SurveyQuoteTool'));
+
+// Home page catalog sections — lazy so only the selected one loads
+const HOME_SECTIONS: { id: string; label: string; Component: React.LazyExoticComponent<any> }[] = [
+  { id: 'pools', label: 'Pool Catalog', Component: React.lazy(() => import('@/components/PoolCatalog')) },
+  { id: 'gilmer-pools', label: 'Latham / Gilmer Pools', Component: React.lazy(() => import('@/components/GilmerPoolsSection')) },
+  { id: 'saunas', label: 'Saunas', Component: React.lazy(() => import('@/components/SaunaSection')) },
+  { id: 'spas', label: 'Spa Catalog', Component: React.lazy(() => import('@/components/SpaCatalog')) },
+  { id: 'gilmer-spas', label: 'Latham / Gilmer Spas', Component: React.lazy(() => import('@/components/GilmerSpasSection')) },
+  { id: 'tanning-ledges', label: 'Tanning Ledges', Component: React.lazy(() => import('@/components/TanningLedgeSection')) },
+  { id: 'screen-enclosures', label: 'Screen Enclosures', Component: React.lazy(() => import('@/components/ScreenEnclosureSection')) },
+  { id: 'patio-fencing', label: 'Patio Fencing', Component: React.lazy(() => import('@/components/PatioFencingSection')) },
+  { id: 'lanai', label: 'Lanai', Component: React.lazy(() => import('@/components/LanaiSection')) },
+  { id: 'pavers', label: 'Pavers', Component: React.lazy(() => import('@/components/PaversSection')) },
+  { id: 'artificial-grass', label: 'Artificial Grass', Component: React.lazy(() => import('@/components/ArtificialGrassSection')) },
+  { id: 'landscaping', label: 'Landscaping', Component: React.lazy(() => import('@/components/LandscapingSection')) },
+  { id: 'covers', label: 'Automatic Covers', Component: React.lazy(() => import('@/components/AutomaticCoversSection')) },
+  { id: 'driveway-gates', label: 'Driveway Gates', Component: React.lazy(() => import('@/components/DrivewayGateSection')) },
+  { id: 'pool-finishes', label: 'Pool Finishes', Component: React.lazy(() => import('@/components/PoolFinishesSection')) },
+  { id: 'liners', label: 'Liners', Component: React.lazy(() => import('@/components/LinersSection')) },
+];
 
 const Fallback = () => (
   <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
@@ -57,6 +86,13 @@ const SECTIONS: SectionDef[] = [
   { id: 'financing', index: '11', title: 'Financing Options', description: 'Monthly payment scenarios by term and rate — used on the checkout page.', tag: 'Commerce' },
   { id: 'quote', index: '12', title: 'Survey Quote Tool', description: 'Guided intake with name and email required, then a printable, itemized quote that includes everything in the cart plus a quote gallery.', tag: 'Documents' },
   { id: 'sauna-pricing', index: '13', title: 'Sauna Sales Pricing', description: 'Internal turnkey cost breakdown for the sales team. Passcode protected.', tag: 'Internal' },
+  { id: 'site-header', index: '14', title: 'Site Header', description: 'Main page navigation bar: logo, menu, search entry, cart and account access.', tag: 'Home page' },
+  { id: 'hero', index: '15', title: 'Hero', description: 'Main page opening statement with the headline, supporting copy and primary calls to action.', tag: 'Home page' },
+  { id: 'mission', index: '16', title: 'Mission, Vision & Values', description: 'Editorial trio block presenting the Wonderlands mission, vision and values on the home page.', tag: 'Home page' },
+  { id: 'browse-categories', index: '17', title: 'Browse Categories (Editorial)', description: 'Magazine-style category index used on the main page. Selecting a tile switches the active home section.', tag: 'Home page' },
+  { id: 'section-banner', index: '18', title: 'Section Banner', description: 'Slim photographic banner that titles each home page section and acts as its scroll anchor.', tag: 'Home page' },
+  { id: 'home-sections', index: '19', title: 'Home Catalog Sections', description: 'Every product section of the main page — pools, spas, saunas, enclosures, fencing, pavers, grass, landscaping, covers, gates, finishes and liners. Pick one to load it live.', tag: 'Home page' },
+  { id: 'site-footer', index: '20', title: 'Site Footer', description: 'Main page footer: navigation, contact details, scheduling link and legal information.', tag: 'Home page' },
 ];
 
 const Frame = ({ section, children }: { section: SectionDef; children: React.ReactNode }) => (
@@ -82,6 +118,12 @@ const StudioShowroom = () => {
   const [saunaPricingOpen, setSaunaPricingOpen] = React.useState(false);
   const [heater, setHeater] = React.useState<string>('');
   const [inlineResult, setInlineResult] = React.useState('');
+  const [browseActive, setBrowseActive] = React.useState('pools');
+  const [homeSection, setHomeSection] = React.useState('pools');
+  const ActiveHomeSection = React.useMemo(
+    () => HOME_SECTIONS.find((s) => s.id === homeSection)?.Component ?? HOME_SECTIONS[0].Component,
+    [homeSection]
+  );
 
   const media = React.useMemo(
     () => [
@@ -242,6 +284,57 @@ const StudioShowroom = () => {
               />
             )}
           </React.Suspense>
+        </Frame>
+        <Frame section={SECTIONS[13]}>
+          <div className="relative">
+            <Header />
+          </div>
+        </Frame>
+
+        <Frame section={SECTIONS[14]}>
+          <Hero />
+        </Frame>
+
+        <Frame section={SECTIONS[15]}>
+          <MissionVisionValues />
+        </Frame>
+
+        <Frame section={SECTIONS[16]}>
+          <BrowseCategoriesEditorial activeId={browseActive} onSelect={setBrowseActive} />
+          <p className="mt-4 text-xs uppercase tracking-[0.2em] text-muted-foreground">Selected: {browseActive}</p>
+        </Frame>
+
+        <Frame section={SECTIONS[17]}>
+          <SectionBanner
+            image={saunaBanner}
+            alt="Premium saunas"
+            title="Premium Saunas"
+            subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas"
+          />
+        </Frame>
+
+        <Frame section={SECTIONS[18]}>
+          <div className="flex flex-wrap gap-2">
+            {HOME_SECTIONS.map((s) => (
+              <Button
+                key={s.id}
+                size="sm"
+                variant={homeSection === s.id ? 'default' : 'outline'}
+                className="rounded-none text-xs"
+                onClick={() => setHomeSection(s.id)}
+              >
+                {s.label}
+              </Button>
+            ))}
+          </div>
+          <Separator className="my-6" />
+          <React.Suspense fallback={<Fallback />}>
+            <ActiveHomeSection />
+          </React.Suspense>
+        </Frame>
+
+        <Frame section={SECTIONS[19]}>
+          <Footer />
         </Frame>
       </main>
 
