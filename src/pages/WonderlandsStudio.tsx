@@ -51,6 +51,8 @@ import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
+import { motion } from 'framer-motion';
+import StudioLandingCanvas from '@/components/studio/StudioLandingCanvas';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
 import FenceConfigurator from '@/components/fence/FenceConfigurator';
 import EnclosureConfigurator, { EnclosureEditApi } from '@/components/enclosure/EnclosureConfigurator';
@@ -1904,7 +1906,7 @@ const WonderlandsStudio = () => {
 
   return <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* Compact Header */}
-      <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="relative z-[300] border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between gap-4">
             {/* Left side: Home button + Title */}
@@ -1924,10 +1926,19 @@ const WonderlandsStudio = () => {
             
             {/* Project Type Toggle - Hidden (commercial mode disabled) */}
             
-            {/* AI Search - Same as main page */}
+            {/* AI Search - centered on the landing, docks to this corner once a product is selected */}
             <div className="w-48 md:w-96">
-              <AdvancedSearch variant="slim" />
+              <motion.div
+                layout
+                transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+                className={selectedProduct
+                  ? 'relative w-full'
+                  : 'fixed left-0 right-0 mx-auto top-[112px] z-[400] w-[min(92vw,680px)] px-2'}
+              >
+                <AdvancedSearch variant={selectedProduct ? 'slim' : 'default'} />
+              </motion.div>
             </div>
+
           </div>
         </div>
       </div>
@@ -3577,12 +3588,23 @@ const WonderlandsStudio = () => {
                     </div>
                    </CardContent>
                  </Card>
-              </div> : <Card className="h-96 flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <Package className="h-12 w-12 mx-auto mb-4" />
-                  <p>Select a product to start configuring</p>
-                </div>
-              </Card>}
+              </div> : <StudioLandingCanvas
+                products={getFilteredProducts()}
+                categories={STUDIO_CATEGORIES}
+                activeCategory={activeTab}
+                activeCategoryLabel={(STUDIO_CATEGORIES.find(c => c.value === activeTab) || STUDIO_CATEGORIES[0]).label}
+                onSelectCategory={value => setActiveTab(value as typeof activeTab)}
+                onSelectProduct={product => {
+                  setSelectedProduct(product);
+                  if (product.type) {
+                    setSelectedExtras(getDefaultExtras(product.type as ProductType));
+                  }
+                  setLeftSidebarCollapsed(false);
+                }}
+                onAddProduct={product => handleAddProductToCart(product)}
+                getPrice={product => getProductPrice(product)}
+                getLabel={product => getProductCategoryLabel(product, activeTab)}
+              />}
           </div>
 
           {/* Retractable Price Panel - Overlay on top of content */}
