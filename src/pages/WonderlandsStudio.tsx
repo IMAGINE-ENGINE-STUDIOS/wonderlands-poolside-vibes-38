@@ -514,6 +514,13 @@ const WonderlandsStudio = () => {
     hydratedRef.current = true;
     try {
       const urlParams = new URLSearchParams(window.location.search);
+      // A category deep-link from the studio landing page wins over the cache
+      const requested = urlParams.get('category');
+      if (requested && STUDIO_CATEGORIES.some(c => c.value === requested)) {
+        setActiveTab(requested as typeof activeTab);
+        setSelectedProduct(null);
+        return;
+      }
       if (urlParams.get('fromBuilder') === 'true' || urlParams.get('model')) return;
       const raw = localStorage.getItem(STUDIO_CACHE_KEY);
       if (!raw) return;
