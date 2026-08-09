@@ -989,6 +989,9 @@ const WonderlandsStudio = () => {
       } else if (productType === 'screen-enclosure') {
         // Screen enclosure pricing comes from the professional enclosure configurator
         total = parseFloat(selectedExtras.enclosureTotal) || 0;
+      } else if (productType === 'artificial-grass') {
+        // Turf pricing comes from the artificial grass design board
+        total = parseFloat(selectedExtras.grassTotal) || 0;
       } else if (unit) {
 
         const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
