@@ -91,6 +91,8 @@ export interface BlueprintProject {
   sheetNotes: Record<string, string>;
   /** Sheet codes the user disabled from the resolved set */
   disabledSheets: string[];
+  /** Data transcribed from an uploaded boundary / topographic survey */
+  survey?: SurveyRecord;
 }
 
 /* -------------------------------------------------- Survey (imported data) */
