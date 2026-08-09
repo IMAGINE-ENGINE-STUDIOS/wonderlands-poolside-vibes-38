@@ -422,6 +422,8 @@ const BlueprintBuilder: React.FC = () => {
                     sheets={sheets}
                     noteGroups={noteGroups}
                     onSiteChange={site => patch(prev => ({ ...prev, site }))}
+                    onDataChange={patch}
+                    onSheetSelect={setActiveSheet}
                     readOnly={printAll && code !== activeSheet}
                   />
                 ))}

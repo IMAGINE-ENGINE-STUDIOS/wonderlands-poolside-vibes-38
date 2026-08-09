@@ -62,7 +62,13 @@ export interface SignatureBlockData {
   ownerSignerName: string;
   ownerSignedDate: string;
   sealNote: string;
+  /** PNG data URLs drawn with the Wonderlands signing tool */
+  engineerSignatureImage?: string;
+  contractorSignatureImage?: string;
+  ownerSignatureImage?: string;
+  sealImage?: string;
 }
+
 
 export interface BlueprintProject {
   jurisdictionId: string;
