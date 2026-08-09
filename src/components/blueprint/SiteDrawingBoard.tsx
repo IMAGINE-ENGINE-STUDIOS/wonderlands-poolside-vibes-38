@@ -1,6 +1,19 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Undo2, Trash2, MousePointer2, PenLine, ZoomIn, ZoomOut, Grid3X3 } from 'lucide-react';
+import {
+  Undo2,
+  Trash2,
+  MousePointer2,
+  PenLine,
+  ZoomIn,
+  ZoomOut,
+  Grid3X3,
+  Image as ImageIcon,
+  Ruler,
+  Move,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 
 export type SiteLayerId =
   | 'property'
@@ -40,12 +53,32 @@ export interface SiteShape {
   layer: SiteLayerId;
   points: { x: number; y: number }[];
   closed: boolean;
+  /** Set when the shape came from an imported PDF/DXF/SVG plan */
+  importedFrom?: string;
+}
+
+/** Imported raster plan placed behind the drawing, used to trace over */
+export interface SiteUnderlay {
+  dataUrl: string;
+  /** Top-left position on the canvas, in canvas px */
+  x: number;
+  y: number;
+  /** Uniform scale applied to the source image */
+  scale: number;
+  opacity: number;
+  visible: boolean;
+  locked: boolean;
+  label: string;
+  naturalWidth: number;
+  naturalHeight: number;
 }
 
 export interface SitePlanData {
   shapes: SiteShape[];
   /** Canvas pixels per foot */
   pxPerFt: number;
+  /** Traced-over imported sheet */
+  underlay?: SiteUnderlay;
 }
 
 export interface SiteAreas {
@@ -57,8 +90,8 @@ export interface SiteAreas {
   fenceLinearFt: number;
 }
 
-const CANVAS_W = 1180;
-const CANVAS_H = 720;
+export const CANVAS_W = 1180;
+export const CANVAS_H = 720;
 
 const layerMeta = (id: SiteLayerId) => SITE_LAYERS.find(l => l.id === id) || SITE_LAYERS[0];
 
@@ -111,6 +144,8 @@ export function measureSitePlan(data: SitePlanData): SiteAreas {
   };
 }
 
+type Mode = 'draw' | 'select' | 'underlay' | 'calibrate';
+
 interface Props {
   data: SitePlanData;
   onChange: (data: SitePlanData) => void;
@@ -118,27 +153,56 @@ interface Props {
   /** Read-only render for the printed sheet */
   readOnly?: boolean;
   height?: number;
+  /** Opens the import dialog from the board toolbar */
+  onRequestImport?: () => void;
 }
 
 /**
  * Architect-style 2D site plan board. Draw the property boundary, the
  * residence, hardscape and the pool on a scaled grid; every polygon feeds the
- * impervious area table on sheet A1.
+ * impervious area table on sheet A1. Imported PDF/JPG sheets sit behind the
+ * grid as a calibratable underlay so an existing blueprint can be traced and
+ * then edited like native geometry.
  */
-export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height }) => {
+export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const imgRef = React.useRef<HTMLImageElement | null>(null);
+  const [imgReady, setImgReady] = React.useState(0);
   const [layer, setLayer] = React.useState<SiteLayerId>('property');
-  const [mode, setMode] = React.useState<'draw' | 'select'>('draw');
+  const [mode, setMode] = React.useState<Mode>('draw');
   const [draft, setDraft] = React.useState<{ x: number; y: number }[]>([]);
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
   const [showGrid, setShowGrid] = React.useState(true);
+  const [calibration, setCalibration] = React.useState<{ x: number; y: number }[]>([]);
+  const drag = React.useRef<
+    | { kind: 'vertex'; shapeId: string; index: number }
+    | { kind: 'shape'; shapeId: string; last: { x: number; y: number } }
+    | { kind: 'underlay'; last: { x: number; y: number } }
+    | null
+  >(null);
 
+  const underlay = data.underlay;
   const pxPerFt = data.pxPerFt;
   const gridFt = pxPerFt >= 8 ? 1 : pxPerFt >= 4 ? 5 : 10;
   const majorFt = gridFt * 5;
 
   const snap = (v: number) => Math.round(v / (pxPerFt * gridFt)) * (pxPerFt * gridFt);
+
+  // Load / reload the underlay bitmap
+  React.useEffect(() => {
+    if (!underlay?.dataUrl) {
+      imgRef.current = null;
+      setImgReady(n => n + 1);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      imgRef.current = img;
+      setImgReady(n => n + 1);
+    };
+    img.src = underlay.dataUrl;
+  }, [underlay?.dataUrl]);
 
   const draw = React.useCallback(() => {
     const canvas = canvasRef.current;
@@ -150,10 +214,37 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
+    // imported sheet underlay
+    if (underlay && underlay.visible && imgRef.current) {
+      ctx.save();
+      ctx.globalAlpha = underlay.opacity;
+      ctx.drawImage(
+        imgRef.current,
+        underlay.x,
+        underlay.y,
+        underlay.naturalWidth * underlay.scale,
+        underlay.naturalHeight * underlay.scale
+      );
+      ctx.restore();
+      if (!readOnly && mode === 'underlay') {
+        ctx.strokeStyle = '#0891b2';
+        ctx.setLineDash([8, 5]);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          underlay.x,
+          underlay.y,
+          underlay.naturalWidth * underlay.scale,
+          underlay.naturalHeight * underlay.scale
+        );
+        ctx.setLineDash([]);
+      }
+    }
+
     if (showGrid) {
       const step = pxPerFt * gridFt;
       const majorStep = pxPerFt * majorFt;
       ctx.lineWidth = 1;
+      ctx.globalAlpha = underlay?.visible ? 0.5 : 1;
       for (let x = 0; x <= CANVAS_W; x += step) {
         ctx.strokeStyle = Math.abs(x % majorStep) < 0.01 ? '#d4d4d8' : '#f1f5f9';
         ctx.beginPath();
@@ -168,6 +259,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         ctx.lineTo(CANVAS_W, y);
         ctx.stroke();
       }
+      ctx.globalAlpha = 1;
     }
 
     const renderShape = (shape: SiteShape, isDraft = false) => {
@@ -187,12 +279,13 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.setLineDash([]);
 
       // vertices
+      const showHandles = !readOnly && (mode === 'select' ? true : isDraft);
       shape.points.forEach(p => {
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = selected === shape.id && showHandles ? '#f59e0b' : '#ffffff';
         ctx.strokeStyle = meta.color;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, selected === shape.id && showHandles ? 5 : 3.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
       });
@@ -230,6 +323,24 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       renderShape({ id: 'draft', layer, points: preview, closed: false }, true);
     }
 
+    // calibration line
+    if (calibration.length) {
+      const pts = hover && calibration.length === 1 ? [...calibration, hover] : calibration;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      pts.forEach(p => {
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
     // scale bar
     const barFt = 20;
     const barPx = barFt * pxPerFt;
@@ -255,15 +366,30 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     ctx.fill();
     ctx.font = 'bold 11px ui-sans-serif, system-ui';
     ctx.fillText('N', CANVAS_W - 44, CANVAS_H - 66);
-  }, [data.shapes, draft, hover, layer, pxPerFt, gridFt, majorFt, selected, showGrid]);
+  }, [
+    data.shapes,
+    draft,
+    hover,
+    layer,
+    pxPerFt,
+    gridFt,
+    majorFt,
+    selected,
+    showGrid,
+    underlay,
+    imgReady,
+    mode,
+    readOnly,
+    calibration,
+  ]);
 
   React.useEffect(() => {
     draw();
     if (!onSnapshot) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    onSnapshot(data.shapes.length ? canvas.toDataURL('image/png') : null);
-  }, [draw, onSnapshot, data.shapes.length]);
+    onSnapshot(data.shapes.length || data.underlay ? canvas.toDataURL('image/png') : null);
+  }, [draw, onSnapshot, data.shapes.length, data.underlay]);
 
   const toLocal = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -289,6 +415,16 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     return null;
   };
 
+  const hitVertex = (p: { x: number; y: number }): { shapeId: string; index: number } | null => {
+    for (let i = data.shapes.length - 1; i >= 0; i--) {
+      const shape = data.shapes[i];
+      for (let v = 0; v < shape.points.length; v++) {
+        if (Math.hypot(shape.points[v].x - p.x, shape.points[v].y - p.y) < 8) return { shapeId: shape.id, index: v };
+      }
+    }
+    return null;
+  };
+
   const commitDraft = (points: { x: number; y: number }[], closed: boolean) => {
     if (points.length < 2) return;
     const shape: SiteShape = {
@@ -301,14 +437,97 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     setDraft([]);
   };
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (readOnly) return;
+    const raw = toLocal(e);
+    if (mode === 'underlay' && underlay && !underlay.locked) {
+      drag.current = { kind: 'underlay', last: raw };
+      return;
+    }
+    if (mode !== 'select') return;
+    const vertex = hitVertex(raw);
+    if (vertex) {
+      setSelected(vertex.shapeId);
+      drag.current = { kind: 'vertex', ...vertex };
+      return;
+    }
+    const shapeId = hitTest(raw);
+    setSelected(shapeId);
+    if (shapeId) drag.current = { kind: 'shape', shapeId, last: raw };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (readOnly) return;
+    const raw = toLocal(e);
+    const active = drag.current;
+    if (active) {
+      if (active.kind === 'underlay' && underlay) {
+        const dx = raw.x - active.last.x;
+        const dy = raw.y - active.last.y;
+        active.last = raw;
+        onChange({ ...data, underlay: { ...underlay, x: underlay.x + dx, y: underlay.y + dy } });
+        return;
+      }
+      if (active.kind === 'vertex') {
+        const p = { x: snap(raw.x), y: snap(raw.y) };
+        onChange({
+          ...data,
+          shapes: data.shapes.map(s =>
+            s.id === active.shapeId ? { ...s, points: s.points.map((pt, i) => (i === active.index ? p : pt)) } : s
+          ),
+        });
+        return;
+      }
+      if (active.kind === 'shape') {
+        const dx = raw.x - active.last.x;
+        const dy = raw.y - active.last.y;
+        active.last = raw;
+        onChange({
+          ...data,
+          shapes: data.shapes.map(s =>
+            s.id === active.shapeId ? { ...s, points: s.points.map(pt => ({ x: pt.x + dx, y: pt.y + dy })) } : s
+          ),
+        });
+        return;
+      }
+    }
+    if (mode === 'calibrate' && calibration.length === 1) {
+      setHover(raw);
+      return;
+    }
+    if (mode !== 'draw' || !draft.length) return;
+    setHover({ x: snap(raw.x), y: snap(raw.y) });
+  };
+
+  const endDrag = () => {
+    drag.current = null;
+  };
+
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
     const raw = toLocal(e);
-    const p = { x: snap(raw.x), y: snap(raw.y) };
-    if (mode === 'select') {
-      setSelected(hitTest(raw));
+    if (mode === 'underlay') return;
+    if (mode === 'calibrate') {
+      const next = [...calibration, raw];
+      if (next.length < 2) {
+        setCalibration(next);
+        return;
+      }
+      const px = Math.hypot(next[1].x - next[0].x, next[1].y - next[0].y);
+      const answer = window.prompt(
+        'Known real-world length of that line, in feet (a dimension on the imported sheet, a property line, etc.):',
+        '20'
+      );
+      setCalibration([]);
+      setHover(null);
+      const ft = Number(answer);
+      if (!answer || !Number.isFinite(ft) || ft <= 0 || px < 4) return;
+      onChange({ ...data, pxPerFt: +(px / ft).toFixed(3) });
+      setMode('draw');
       return;
     }
+    if (mode === 'select') return;
+    const p = { x: snap(raw.x), y: snap(raw.y) };
     // clicking the first vertex closes the polygon
     if (draft.length > 2) {
       const first = draft[0];
@@ -321,7 +540,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   };
 
   const handleDouble = () => {
-    if (readOnly) return;
+    if (readOnly || mode !== 'draw') return;
     if (draft.length >= 2) commitDraft(draft, layerMeta(layer).linear ? false : true);
   };
 
@@ -331,10 +550,21 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     setSelected(null);
   };
 
+  const assignSelectedLayer = (id: SiteLayerId) => {
+    if (!selected) return;
+    onChange({
+      ...data,
+      shapes: data.shapes.map(s => (s.id === selected ? { ...s, layer: id, closed: layerMeta(id).linear ? false : s.closed } : s)),
+    });
+  };
+
   React.useEffect(() => {
     if (readOnly) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setDraft([]);
+      if (e.key === 'Escape') {
+        setDraft([]);
+        setCalibration([]);
+      }
       if (e.key === 'Enter' && draft.length >= 2) commitDraft(draft, !layerMeta(layer).linear);
       if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
         e.preventDefault();
@@ -346,69 +576,153 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   });
 
   const areas = measureSitePlan(data);
+  const selectedShape = data.shapes.find(s => s.id === selected);
+
+  const setUnderlay = (patch: Partial<SiteUnderlay>) => {
+    if (!underlay) return;
+    onChange({ ...data, underlay: { ...underlay, ...patch } });
+  };
 
   return (
     <div className="space-y-3">
       {!readOnly && (
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap gap-1.5">
-            {SITE_LAYERS.map(l => (
-              <button
-                key={l.id}
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap gap-1.5">
+              {SITE_LAYERS.map(l => (
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => {
+                    setLayer(l.id);
+                    if (selected) assignSelectedLayer(l.id);
+                    else {
+                      setMode('draw');
+                      setDraft([]);
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
+                    layer === l.id && mode === 'draw'
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: l.color }} />
+                  {l.label}
+                </button>
+              ))}
+            </div>
+            <div className="ml-auto flex items-center gap-1.5">
+              {onRequestImport ? (
+                <Button type="button" size="sm" variant="outline" onClick={onRequestImport}>
+                  <ImageIcon className="mr-1 h-3.5 w-3.5" /> Import plan
+                </Button>
+              ) : null}
+              <Button
                 type="button"
-                onClick={() => {
-                  setLayer(l.id);
-                  setMode('draw');
-                  setDraft([]);
-                }}
-                className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-                  layer === l.id && mode === 'draw'
-                    ? 'border-primary bg-primary/10 text-foreground'
-                    : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                }`}
+                size="sm"
+                variant={mode === 'select' ? 'default' : 'outline'}
+                onClick={() => setMode(mode === 'select' ? 'draw' : 'select')}
               >
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: l.color }} />
-                {l.label}
-              </button>
-            ))}
+                {mode === 'select' ? <MousePointer2 className="mr-1 h-3.5 w-3.5" /> : <PenLine className="mr-1 h-3.5 w-3.5" />}
+                {mode === 'select' ? 'Select' : 'Draw'}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={mode === 'calibrate' ? 'default' : 'outline'}
+                onClick={() => {
+                  setCalibration([]);
+                  setMode(mode === 'calibrate' ? 'draw' : 'calibrate');
+                }}
+                title="Set the drawing scale from a known dimension"
+              >
+                <Ruler className="mr-1 h-3.5 w-3.5" /> Calibrate
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={() => setDraft(p => p.slice(0, -1))} disabled={!draft.length}>
+                <Undo2 className="h-3.5 w-3.5" />
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={deleteSelected} disabled={!selected}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={() => setShowGrid(g => !g)}>
+                <Grid3X3 className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => onChange({ ...data, pxPerFt: Math.max(1, +(data.pxPerFt - 0.5).toFixed(1)) })}
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </Button>
+              <span className="w-24 text-center text-[11px] text-muted-foreground">{data.pxPerFt} px / ft</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => onChange({ ...data, pxPerFt: Math.min(12, +(data.pxPerFt + 0.5).toFixed(1)) })}
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
-          <div className="ml-auto flex items-center gap-1.5">
-            <Button
-              type="button"
-              size="sm"
-              variant={mode === 'select' ? 'default' : 'outline'}
-              onClick={() => setMode(mode === 'select' ? 'draw' : 'select')}
-            >
-              {mode === 'select' ? <MousePointer2 className="mr-1 h-3.5 w-3.5" /> : <PenLine className="mr-1 h-3.5 w-3.5" />}
-              {mode === 'select' ? 'Select' : 'Draw'}
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => setDraft(p => p.slice(0, -1))} disabled={!draft.length}>
-              <Undo2 className="h-3.5 w-3.5" />
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={deleteSelected} disabled={!selected}>
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => setShowGrid(g => !g)}>
-              <Grid3X3 className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => onChange({ ...data, pxPerFt: Math.max(1, +(data.pxPerFt - 0.5).toFixed(1)) })}
-            >
-              <ZoomOut className="h-3.5 w-3.5" />
-            </Button>
-            <span className="w-24 text-center text-[11px] text-muted-foreground">{data.pxPerFt} px / ft</span>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => onChange({ ...data, pxPerFt: Math.min(12, +(data.pxPerFt + 0.5).toFixed(1)) })}
-            >
-              <ZoomIn className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+
+          {underlay ? (
+            <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-2 text-[11px]">
+              <span className="font-medium">Underlay: {underlay.label}</span>
+              <Button
+                type="button"
+                size="sm"
+                variant={mode === 'underlay' ? 'default' : 'outline'}
+                onClick={() => setMode(mode === 'underlay' ? 'draw' : 'underlay')}
+                disabled={underlay.locked}
+              >
+                <Move className="mr-1 h-3.5 w-3.5" /> Position
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={() => setUnderlay({ visible: !underlay.visible })}>
+                {underlay.visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+              </Button>
+              <label className="flex items-center gap-1.5">
+                Opacity
+                <input
+                  type="range"
+                  min={0.1}
+                  max={1}
+                  step={0.05}
+                  value={underlay.opacity}
+                  onChange={e => setUnderlay({ opacity: Number(e.target.value) })}
+                  className="w-24"
+                />
+              </label>
+              <label className="flex items-center gap-1.5">
+                Scale
+                <input
+                  type="range"
+                  min={0.05}
+                  max={3}
+                  step={0.01}
+                  value={underlay.scale}
+                  onChange={e => setUnderlay({ scale: Number(e.target.value) })}
+                  className="w-28"
+                />
+                <span className="w-10 font-mono">{underlay.scale.toFixed(2)}x</span>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input type="checkbox" checked={underlay.locked} onChange={e => setUnderlay({ locked: e.target.checked })} />
+                Lock
+              </label>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => onChange({ ...data, underlay: undefined })}
+                className="text-destructive"
+              >
+                Remove
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
 
@@ -418,21 +732,38 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         height={CANVAS_H}
         onClick={handleClick}
         onDoubleClick={handleDouble}
-        onMouseMove={e => {
-          if (readOnly || mode !== 'draw' || !draft.length) return;
-          const raw = toLocal(e);
-          setHover({ x: snap(raw.x), y: snap(raw.y) });
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={endDrag}
+        onMouseLeave={() => {
+          endDrag();
+          setHover(null);
         }}
-        onMouseLeave={() => setHover(null)}
         className="w-full rounded-md border border-border bg-white"
-        style={{ height: height ?? undefined, cursor: readOnly ? 'default' : mode === 'select' ? 'pointer' : 'crosshair' }}
+        style={{
+          height: height ?? undefined,
+          cursor: readOnly
+            ? 'default'
+            : mode === 'select'
+              ? 'pointer'
+              : mode === 'underlay'
+                ? 'move'
+                : 'crosshair',
+        }}
       />
 
       {!readOnly && (
         <p className="text-[11px] text-muted-foreground">
-          Click to place corners, click the first corner (or press Enter / double-click) to close the shape. Switch to Select to
-          click a line and delete it. Drawn: {areas.propertySqFt.toLocaleString()} SF lot &middot; {areas.imperviousSqFt.toLocaleString()} SF
-          impervious ({areas.imperviousPct}%) &middot; {areas.fenceLinearFt} LF barrier.
+          {mode === 'calibrate'
+            ? 'Click two points with a known distance on the imported sheet, then type the real length in feet to set the scale.'
+            : mode === 'underlay'
+              ? 'Drag the imported sheet to position it, then use Scale and Calibrate so the drawing matches real dimensions.'
+              : mode === 'select'
+                ? 'Drag a corner to reshape, drag a line to move the whole element, click a layer chip to reassign it, Delete to remove.'
+                : 'Click to place corners, click the first corner (or press Enter / double-click) to close the shape.'}{' '}
+          Drawn: {areas.propertySqFt.toLocaleString()} SF lot &middot; {areas.imperviousSqFt.toLocaleString()} SF impervious (
+          {areas.imperviousPct}%) &middot; {areas.fenceLinearFt} LF barrier.
+          {selectedShape ? ` Selected: ${layerMeta(selectedShape.layer).label}${selectedShape.importedFrom ? ` (imported from ${selectedShape.importedFrom})` : ''}.` : ''}
         </p>
       )}
     </div>
