@@ -5293,6 +5293,13 @@ export function PoolBuilder({
         x,
         y
       });
+      // Dragging a previously placed spline point while still drawing
+      if (draggingDrawPointId) {
+        setSplineDrawing(prev => ({
+          ...prev,
+          points: prev.points.map(sp => sp.id === draggingDrawPointId ? { ...sp, x, y } : sp)
+        }));
+      }
       return;
     }
 
