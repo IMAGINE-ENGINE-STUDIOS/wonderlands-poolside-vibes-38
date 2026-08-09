@@ -337,7 +337,8 @@ export interface EnclosureElement {
   amount: number;
   quantity?: number;
   optionId?: string;
-  options?: { id: string; label: string }[];
+  /** Selectable alternatives. `amount` = this line's price if that option were selected. */
+  options?: { id: string; label: string; amount?: number }[];
   removable: boolean;
 }
 
