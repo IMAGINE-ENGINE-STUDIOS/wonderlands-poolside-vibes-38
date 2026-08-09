@@ -903,6 +903,7 @@ const WonderlandsStudio = () => {
           model: grass.name,
           price: getGrassPricePerSqFt(grass.name),
           image: grass.image,
+          type: 'artificial-grass' as const,
           category: 'per sq ft'
         }));
         break;
