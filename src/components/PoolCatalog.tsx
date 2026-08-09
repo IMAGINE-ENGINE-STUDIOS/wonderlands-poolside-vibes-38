@@ -924,14 +924,15 @@ const getSpaTypeColor = (category: string) => {
   }
 };
 const PoolCatalog = () => {
-  const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
-  const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [showSpaModal, setShowSpaModal] = useState(false);
-  const [selectedTile, setSelectedTile] = useState<any>(null);
-  const [showTileModal, setShowTileModal] = useState(false);
-  const [selectedExtras, setSelectedExtras] = useState<any>(null);
+  // Every selection/filter/panel is cached so a reload restores the exact view.
+  const [selectedPool, setSelectedPool] = usePersistentState<Pool | null>("catalog_selectedPool", null);
+  const [selectedSpa, setSelectedSpa] = usePersistentState<Spa | null>("catalog_selectedSpa", null);
+  const [showDetailModal, setShowDetailModal] = usePersistentState("catalog_showDetailModal", false);
+  const [showQuoteModal, setShowQuoteModal] = usePersistentState("catalog_showQuoteModal", false);
+  const [showSpaModal, setShowSpaModal] = usePersistentState("catalog_showSpaModal", false);
+  const [selectedTile, setSelectedTile] = usePersistentState<any>("catalog_selectedTile", null);
+  const [showTileModal, setShowTileModal] = usePersistentState("catalog_showTileModal", false);
+  const [selectedExtras, setSelectedExtras] = usePersistentState<any>("catalog_selectedExtras", null);
   const [currentPage, setCurrentPage] = usePersistentState("catalog_currentPage", 1);
   const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
 
