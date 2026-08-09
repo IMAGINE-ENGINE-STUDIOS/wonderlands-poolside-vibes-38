@@ -1933,7 +1933,7 @@ const WonderlandsStudio = () => {
                 transition={{ type: 'spring', stiffness: 260, damping: 28 }}
                 className={selectedProduct
                   ? 'relative w-full'
-                  : 'fixed left-0 right-0 mx-auto top-[26vh] z-[400] w-[min(92vw,680px)] px-2'}
+                  : 'fixed left-0 right-0 mx-auto top-[112px] z-[400] w-[min(92vw,680px)] px-2'}
               >
                 <AdvancedSearch variant={selectedProduct ? 'slim' : 'default'} />
               </motion.div>
