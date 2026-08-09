@@ -19,7 +19,7 @@ import SurveyAnalyzerDialog from '@/components/blueprint/SurveyAnalyzerDialog';
 import FloridaDigitalSealDialog from '@/components/blueprint/FloridaDigitalSealDialog';
 import { canonicalSignaturePayload } from '@/components/blueprint/signaturePayload';
 import type { BlueprintProject } from '@/components/blueprint/types';
-import { measureSitePlan } from '@/components/blueprint/SiteDrawingBoard';
+import { DEFAULT_PX_PER_FT, measureSitePlan } from '@/components/blueprint/SiteDrawingBoard';
 import {
   JURISDICTIONS,
   PERMIT_TYPES,
