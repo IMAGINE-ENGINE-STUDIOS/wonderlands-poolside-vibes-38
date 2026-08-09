@@ -41,13 +41,19 @@ export default defineConfig(({ mode }) => ({
         // the first screen does not wait on 3D/chart/PDF code it never uses.
         manualChunks: (id) => {
           if (!id.includes('node_modules')) return undefined;
-          if (/three|@react-three|postprocessing/.test(id)) return 'vendor-three';
-          if (/react-dom|scheduler|\/react\//.test(id)) return 'vendor-react';
+          // The app has cross-chunk circular dependencies between the React/3D
+          // stack and the catch-all vendor chunk. When those chunks execute in
+          // the wrong order, React is undefined and hooks like createContext or
+          // useLayoutEffect crash. To guarantee React is always available to its
+          // consumers, everything that is not explicitly split out lives in the
+          // same chunk as React. The separated chunks below only import from this
+          // merged chunk, never the reverse, so no cycle remains.
+          // NOTE: PDF libs are kept in the React chunk because they form a
+          // bidirectional import cycle with vendor-react in this build.
           if (/@supabase/.test(id)) return 'vendor-supabase';
           if (/recharts|d3-/.test(id)) return 'vendor-charts';
-          if (/jspdf|html2canvas|pdfjs/.test(id)) return 'vendor-pdf';
           if (/@radix-ui|embla|lucide-react/.test(id)) return 'vendor-ui';
-          return 'vendor';
+          return 'vendor-react';
         },
 
         assetFileNames: (assetInfo) => {
