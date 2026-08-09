@@ -58,6 +58,7 @@ const ContractorRegistration = lazy(() => import("./pages/ContractorRegistration
 const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin"));
 const DesignStudio = lazy(() => import("./pages/DesignStudio"));
+const StudioShowroom = lazy(() => import("./pages/StudioShowroom"));
 const JobsPage = lazy(() => import("./pages/JobsPage"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
 const ConsentPage = lazy(() => import("./pages/ConsentPage"));
@@ -184,6 +185,7 @@ const App = () => {
             <Route path="/design" element={<DesignProposals />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/blueprint-builder" element={<BlueprintBuilder />} />
+            <Route path="/studio-showroom" element={<StudioShowroom />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
