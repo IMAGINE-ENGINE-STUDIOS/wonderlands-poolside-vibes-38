@@ -51,6 +51,8 @@ import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
+import { motion } from 'framer-motion';
+import StudioLandingCanvas from '@/components/studio/StudioLandingCanvas';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
 import FenceConfigurator from '@/components/fence/FenceConfigurator';
 import EnclosureConfigurator, { EnclosureEditApi } from '@/components/enclosure/EnclosureConfigurator';
