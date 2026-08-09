@@ -103,6 +103,41 @@ function StudioLandingCanvasInner<TProduct extends { image?: string; model?: str
         </p>
       </div>
 
+      {/* Subcategory carousel — types available inside the active category */}
+      {subcategories.length > 1 && (
+        <div className="mt-5 px-8 sm:px-10">
+          <Carousel className="w-full" opts={{ align: 'start', loop: false, duration: 25 }}>
+            <CarouselContent className="-ml-2">
+              {[{ label: 'All', count: products.length, value: 'all' }, ...subcategories.map(s => ({ ...s, value: s.label }))].map(item => {
+                const active = activeSub === item.value;
+                return (
+                  <CarouselItem key={item.value} className="pl-2 basis-auto">
+                    <button
+                      type="button"
+                      onClick={() => setActiveSub(item.value)}
+                      className={cn(
+                        'inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition-colors',
+                        active
+                          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                          : 'border-border bg-background hover:border-primary/50 hover:text-primary'
+                      )}
+                    >
+                      {item.label}
+                      <span className={cn('text-[10px]', active ? 'opacity-80' : 'text-muted-foreground')}>
+                        {item.count}
+                      </span>
+                    </button>
+                  </CarouselItem>
+                );
+              })}
+            </CarouselContent>
+            <CarouselPrevious className="-left-8" />
+            <CarouselNext className="-right-8" />
+          </Carousel>
+        </div>
+      )}
+
+
       {/* Category shortcuts */}
       <div className="mt-5 flex flex-wrap justify-center gap-2 hidden">
         {categories.map(cat => {
