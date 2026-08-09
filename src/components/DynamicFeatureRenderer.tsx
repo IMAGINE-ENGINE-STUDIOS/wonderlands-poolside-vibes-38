@@ -105,64 +105,60 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                     }
                   }}
                 />
-                {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && selectedExtras[feature.id] !== '' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const newCarousel = activeFeatureCarousel === feature.id ? null : feature.id;
-                      setActiveFeatureCarousel(newCarousel);
-                    }}
-                  >
-                    <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === feature.id ? 'rotate-180' : ''}`} />
-                  </Button>
-                )}
               </div>
             </div>
 
-            {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && selectedExtras[feature.id] !== '' && activeFeatureCarousel === feature.id && feature.options && (
-              <div className="mb-4 border rounded-lg p-3 bg-background overflow-hidden w-full">
-                <Carousel className="w-full" opts={{ align: 'start', containScroll: 'trimSnaps' }}>
-                  <CarouselContent className="-ml-3">
-                    {feature.options.filter(opt => opt.name !== 'None').map((option) => (
-                      <CarouselItem key={option.name} className="pl-3 basis-full sm:basis-1/2 lg:basis-1/3">
+            {/* Always-visible option carousel, matching the pool configurator format */}
+            {feature.options && feature.options.filter(opt => opt.name !== 'None').length > 0 && (
+              <div className="space-y-3 mb-4">
+                <Carousel
+                  className="w-full"
+                  opts={{
+                    align: 'start',
+                    loop: false,
+                    duration: 25,
+                  }}
+                >
+                  <CarouselContent className="-ml-1">
+                    {feature.options.filter(opt => opt.name !== 'None').map((option, idx) => (
+                      <CarouselItem key={`${feature.id}-${option.name}-${idx}`} className="pl-1 basis-1/2 md:basis-1/4">
                         <div
-                          className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full flex flex-col bg-card ${
-                            selectedExtras[feature.id] === option.name
-                              ? 'border-primary shadow-md'
-                              : 'border-border hover:border-primary/50'
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            selectedExtras[feature.id] === option.name ? 'border-primary bg-primary/10' : 'border-border'
                           }`}
                           onClick={() => {
                             onExtrasChange({
                               ...selectedExtras,
                               [feature.id]: option.name
                             });
-                            setActiveFeatureCarousel(null);
                           }}
                         >
-                          {option.image && (
-                            <div className="w-full aspect-[4/3] rounded bg-muted mb-2 overflow-hidden flex items-center justify-center">
+                          <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+                            {option.image ? (
                               <img
                                 src={option.image}
                                 alt={option.name}
                                 loading="lazy"
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-contain transition-transform duration-300 hover:scale-110"
                               />
-                            </div>
-                          )}
-                          <p className="text-xs font-medium leading-tight line-clamp-2">{option.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {option.price > 0 ? `+$${option.price.toLocaleString()}` : 'Included'}
-                          </p>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground px-1 text-center">{option.name}</span>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-0.5">
+                            <p className="text-xs font-medium text-center truncate">{option.name}</p>
+                            <p className="text-xs text-foreground font-semibold text-center">
+                              {option.price > 0 ? `+$${option.price.toLocaleString()}` : 'Included'}
+                            </p>
+                          </div>
                         </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className="-left-1 h-7 w-7" />
-                  <CarouselNext className="-right-1 h-7 w-7" />
+                  <CarouselPrevious className="left-0 animate-pulse" />
+                  <CarouselNext className="right-0 animate-pulse" />
                 </Carousel>
               </div>
-
             )}
           </div>
         );
