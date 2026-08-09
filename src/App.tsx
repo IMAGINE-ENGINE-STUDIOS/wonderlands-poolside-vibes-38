@@ -5,7 +5,6 @@ import ScrollRestoration from "./components/ScrollRestoration";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
 
-import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import RightNavigation from "@/components/RightNavigation";
 import { AIAssistantChat } from "@/components/ai/AIAssistantChat";
 
