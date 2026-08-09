@@ -11,9 +11,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search, ShieldCheck } from 'lucide-react';
 import usePersistentState from '@/hooks/usePersistentState';
 import BlueprintSheet from '@/components/blueprint/BlueprintSheet';
+import FloridaDigitalSealDialog from '@/components/blueprint/FloridaDigitalSealDialog';
+import { canonicalSignaturePayload } from '@/components/blueprint/signaturePayload';
 import type { BlueprintProject } from '@/components/blueprint/types';
 import { measureSitePlan } from '@/components/blueprint/SiteDrawingBoard';
 import {
@@ -109,6 +111,7 @@ const BlueprintBuilder: React.FC = () => {
   const [data, setData] = usePersistentState<BlueprintProject>('blueprint_builder_v1', INITIAL);
   const [jurisdictionQuery, setJurisdictionQuery] = React.useState('');
   const [activeSheet, setActiveSheet] = usePersistentState<string>('blueprint_active_sheet', 'A1');
+  const [sealDialogOpen, setSealDialogOpen] = React.useState(false);
   const [printAll, setPrintAll] = React.useState(false);
 
   const jurisdiction = findJurisdiction(data.jurisdictionId);
@@ -668,6 +671,29 @@ const BlueprintBuilder: React.FC = () => {
           </Tabs>
         </div>
       </main>
+
+      <FloridaDigitalSealDialog
+        open={sealDialogOpen}
+        onOpenChange={setSealDialogOpen}
+        payload={canonicalSignaturePayload(data)}
+        value={data.signatures.digitalSignature}
+        defaultSignerName={data.engineer.engineerName}
+        defaultLicense={data.engineer.engineerLicense}
+        onApply={signature =>
+          patch(p => ({
+            ...p,
+            signatures: { ...p.signatures, digitalSignature: signature },
+            engineer: { ...p.engineer, shaCode: signature.authCode },
+          }))
+        }
+        onRemove={() =>
+          patch(p => ({
+            ...p,
+            signatures: { ...p.signatures, digitalSignature: undefined },
+            engineer: { ...p.engineer, shaCode: '' },
+          }))
+        }
+      />
     </div>
   );
 };
