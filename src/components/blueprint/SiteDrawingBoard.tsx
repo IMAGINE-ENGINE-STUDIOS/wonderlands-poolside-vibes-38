@@ -93,6 +93,10 @@ export interface SiteAreas {
 export const CANVAS_W = 1180;
 export const CANVAS_H = 720;
 
+/** Default view height in real feet — the canvas shows 50 ft top to bottom. */
+export const DEFAULT_VIEW_HEIGHT_FT = 50;
+export const DEFAULT_PX_PER_FT = +(CANVAS_H / DEFAULT_VIEW_HEIGHT_FT).toFixed(2); // 14.4 px/ft
+
 const layerMeta = (id: SiteLayerId) => SITE_LAYERS.find(l => l.id === id) || SITE_LAYERS[0];
 
 const polygonArea = (pts: { x: number; y: number }[]) => {
