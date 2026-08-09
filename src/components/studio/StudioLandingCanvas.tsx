@@ -58,7 +58,36 @@ function StudioLandingCanvasInner<TProduct extends { image?: string; model?: str
   getLabel,
   searchReservedHeight = 110,
 }: StudioLandingCanvasProps<TProduct>) {
-  const sorted = [...products].sort((a, b) => getPrice(a) - getPrice(b));
+  const [activeSub, setActiveSub] = useState<string>('all');
+
+  useEffect(() => {
+    setActiveSub('all');
+  }, [activeCategory]);
+
+  const subcategories = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach(product => {
+      const sub = readSubcategory(product);
+      if (sub) counts.set(sub, (counts.get(sub) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([label, count]) => ({ label, count }));
+  }, [products]);
+
+  const visible = useMemo(
+    () =>
+      activeSub === 'all'
+        ? products
+        : products.filter(product => readSubcategory(product) === activeSub),
+    [products, activeSub]
+  );
+
+  const sorted = useMemo(
+    () => [...visible].sort((a, b) => getPrice(a) - getPrice(b)),
+    [visible, getPrice]
+  );
+
 
   return (
     <div className="rounded-xl border border-border/60 bg-background/60 backdrop-blur-sm p-4 sm:p-8">
