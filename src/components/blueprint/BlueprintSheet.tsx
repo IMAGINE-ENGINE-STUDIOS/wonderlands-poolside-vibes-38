@@ -28,13 +28,15 @@ interface Props {
   onSheetSelect?: (code: string) => void;
   /** Print/preview mode disables drawing tools */
   readOnly?: boolean;
+  /** Opens the blueprint import dialog from the drawing board toolbar */
+  onRequestImport?: () => void;
 }
 
 /**
  * One 36 x 24 plan sheet: drawing area + note/legend column on the left,
  * full architectural title block on the right.
  */
-export const BlueprintSheet: React.FC<Props> = ({ data, sheetCode, sheets, noteGroups, onSiteChange, onDataChange, onSheetSelect, readOnly }) => {
+export const BlueprintSheet: React.FC<Props> = ({ data, sheetCode, sheets, noteGroups, onSiteChange, onDataChange, onSheetSelect, readOnly, onRequestImport }) => {
   const template = SHEET_TEMPLATES[sheetCode];
   const j = findJurisdiction(data.jurisdictionId);
   const sheetIndex = sheets.map(code => ({ code, description: SHEET_TEMPLATES[code]?.description || code }));
@@ -61,6 +63,7 @@ export const BlueprintSheet: React.FC<Props> = ({ data, sheetCode, sheets, noteG
               onChange={onSiteChange}
               readOnly={readOnly}
               height={readOnly ? 420 : undefined}
+              onRequestImport={onRequestImport}
             />
           </div>
         ) : null}
