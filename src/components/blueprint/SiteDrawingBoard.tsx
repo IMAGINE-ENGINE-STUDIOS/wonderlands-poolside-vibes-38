@@ -685,7 +685,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 type="button"
                 size="sm"
                 variant="outline"
-                onClick={() => onChange({ ...data, pxPerFt: Math.min(12, +(data.pxPerFt + 0.5).toFixed(1)) })}
+                onClick={() => onChange({ ...data, pxPerFt: Math.min(24, +(data.pxPerFt + 0.5).toFixed(1)) })}
               >
                 <ZoomIn className="h-3.5 w-3.5" />
               </Button>
