@@ -222,9 +222,14 @@ const StudioCartWidget = ({
                             <select
                               value={extra.selectedOption ?? extra.name}
                               onChange={event => {
-                                const next = extra.options?.find(
-                                  option => option.name === event.target.value
-                                );
+                                const value = event.target.value;
+                                // If this line belongs to the configuration currently open in
+                                // the studio, change the real product so pricing recalculates.
+                                if (item.name === currentName && extra.key && onCurrentExtraOption) {
+                                  onCurrentExtraOption(extra.key, value);
+                                  return;
+                                }
+                                const next = extra.options?.find(option => option.name === value);
                                 if (next) updateExtra(item.id, idx, next);
                               }}
                               className="w-full h-6 rounded border bg-background text-foreground text-[10px] px-1"
