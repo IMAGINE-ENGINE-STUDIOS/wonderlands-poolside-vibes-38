@@ -1,5 +1,6 @@
 import type { SitePlanData } from './SiteDrawingBoard';
 import type { PermitTypeId, ProjectTypeId } from '@/data/blueprintJurisdictions';
+import type { FlDigitalSignature } from '@/data/floridaDigitalSignature';
 
 export interface EngineerBlock {
   firm: string;
@@ -67,6 +68,8 @@ export interface SignatureBlockData {
   contractorSignatureImage?: string;
   ownerSignatureImage?: string;
   sealImage?: string;
+  /** Florida statutory electronic signature & seal of the design professional */
+  digitalSignature?: FlDigitalSignature;
 }
 
 

@@ -2,6 +2,9 @@ import * as React from 'react';
 import type { BlueprintProject } from './types';
 import { findJurisdiction } from '@/data/blueprintJurisdictions';
 import SignaturePad from './SignaturePad';
+import FloridaSealStatement from './FloridaSealStatement';
+import FloridaDigitalSealDialog from './FloridaDigitalSealDialog';
+import { canonicalSignaturePayload } from './signaturePayload';
 
 type Patch = (fn: (draft: BlueprintProject) => BlueprintProject) => void;
 
@@ -91,6 +94,8 @@ export const TitleBlock: React.FC<Props> = ({
   const j = findJurisdiction(data.jurisdictionId);
   const editable = !!onDataChange;
   const [signing, setSigning] = React.useState<SigKey | null>(null);
+  const [sealDialog, setSealDialog] = React.useState(false);
+  const payload = React.useMemo(() => canonicalSignaturePayload(data), [data]);
 
   const setEngineer = (key: keyof BlueprintProject['engineer']) => (v: string) =>
     onDataChange?.(prev => ({ ...prev, engineer: { ...prev.engineer, [key]: v } }));
@@ -242,11 +247,12 @@ export const TitleBlock: React.FC<Props> = ({
             </div>
           ))}
         </div>
-        <div className="mt-1.5 flex gap-1 text-[6px] leading-tight text-[#64748b]">
-          <span className="shrink-0">SHA AUTH CODE:</span>
-          <span className="min-w-0 flex-1 font-mono text-[#0f172a]">
-            <Edit value={data.engineer.shaCode} onChange={setEngineer('shaCode')} editable={editable} />
-          </span>
+        <div className="mt-1.5">
+          <FloridaSealStatement
+            signature={data.signatures.digitalSignature}
+            payload={payload}
+            onClick={editable ? () => setSealDialog(true) : undefined}
+          />
         </div>
       </div>
 
