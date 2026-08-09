@@ -148,8 +148,8 @@ const Index = () => {
       case "saunas":
         return (
           <div key="saunas" className="animate-fade-in">
-            <SaunaSection />
             <SectionBanner id="saunas" image={saunaBanner} alt="Luxury Saunas" title="Premium Saunas" subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas" />
+            <SaunaSection />
           </div>
         );
       case "spas":
