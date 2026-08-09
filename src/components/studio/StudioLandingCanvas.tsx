@@ -1,7 +1,30 @@
-import { memo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+
+const titleCase = (value: string) =>
+  value
+    .replace(/[-_]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+const readSubcategory = (product: any): string | undefined => {
+  const raw = product?.subcategory ?? product?.collection ?? product?.brand ?? product?.category;
+  if (!raw || typeof raw !== 'string') return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed || /^per (sq ?ft|linear ft|ft)$/i.test(trimmed)) return undefined;
+  return titleCase(trimmed);
+};
 
 export interface StudioLandingCategory {
   value: string;
@@ -35,7 +58,36 @@ function StudioLandingCanvasInner<TProduct extends { image?: string; model?: str
   getLabel,
   searchReservedHeight = 110,
 }: StudioLandingCanvasProps<TProduct>) {
-  const sorted = [...products].sort((a, b) => getPrice(a) - getPrice(b));
+  const [activeSub, setActiveSub] = useState<string>('all');
+
+  useEffect(() => {
+    setActiveSub('all');
+  }, [activeCategory]);
+
+  const subcategories = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach(product => {
+      const sub = readSubcategory(product);
+      if (sub) counts.set(sub, (counts.get(sub) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([label, count]) => ({ label, count }));
+  }, [products]);
+
+  const visible = useMemo(
+    () =>
+      activeSub === 'all'
+        ? products
+        : products.filter(product => readSubcategory(product) === activeSub),
+    [products, activeSub]
+  );
+
+  const sorted = useMemo(
+    () => [...visible].sort((a, b) => getPrice(a) - getPrice(b)),
+    [visible, getPrice]
+  );
+
 
   return (
     <div className="rounded-xl border border-border/60 bg-background/60 backdrop-blur-sm p-4 sm:p-8">
@@ -50,6 +102,41 @@ function StudioLandingCanvasInner<TProduct extends { image?: string; model?: str
           Pick a model to open the configurator, then shape finishes, features and pricing in real time.
         </p>
       </div>
+
+      {/* Subcategory carousel — types available inside the active category */}
+      {subcategories.length > 1 && (
+        <div className="mt-5 px-8 sm:px-10">
+          <Carousel className="w-full" opts={{ align: 'start', loop: false, duration: 25 }}>
+            <CarouselContent className="-ml-2">
+              {[{ label: 'All', count: products.length, value: 'all' }, ...subcategories.map(s => ({ ...s, value: s.label }))].map(item => {
+                const active = activeSub === item.value;
+                return (
+                  <CarouselItem key={item.value} className="pl-2 basis-auto">
+                    <button
+                      type="button"
+                      onClick={() => setActiveSub(item.value)}
+                      className={cn(
+                        'inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition-colors',
+                        active
+                          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                          : 'border-border bg-background hover:border-primary/50 hover:text-primary'
+                      )}
+                    >
+                      {item.label}
+                      <span className={cn('text-[10px]', active ? 'opacity-80' : 'text-muted-foreground')}>
+                        {item.count}
+                      </span>
+                    </button>
+                  </CarouselItem>
+                );
+              })}
+            </CarouselContent>
+            <CarouselPrevious className="-left-8" />
+            <CarouselNext className="-right-8" />
+          </Carousel>
+        </div>
+      )}
+
 
       {/* Category shortcuts */}
       <div className="mt-5 flex flex-wrap justify-center gap-2 hidden">
