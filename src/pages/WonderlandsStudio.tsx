@@ -1221,6 +1221,25 @@ const WonderlandsStudio = () => {
       return;
     }
 
+    // Artificial turf projects are itemized by the grass design board
+    if (selectedProduct.type === 'artificial-grass' && Array.isArray(selectedExtras.grassLines) && selectedExtras.grassLines.length > 0) {
+      const grassBreakdown = [
+        ...selectedExtras.grassLines.map((l: any) => ({
+          name: `${l.label}${l.detail ? ` — ${l.detail}` : ''}`,
+          price: l.price,
+          image: '',
+        })),
+        ...buildCartQuoteLines(selectedProduct ? `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}` : null),
+      ];
+      const grassTotal = grassBreakdown.reduce((sum, item) => sum + item.price, 0);
+      extrasDataRef.current = { extrasBreakdown: grassBreakdown, extrasTotal: grassTotal };
+      setSelectedExtras(prev => ({ ...prev, extrasBreakdown: grassBreakdown, extrasTotal: grassTotal }));
+      setShowQuoteModal(true);
+      return;
+    }
+
+
+
     // Create detailed extras breakdown for quote tool
     const extrasBreakdown = [];
     
