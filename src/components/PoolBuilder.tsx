@@ -5524,6 +5524,7 @@ export function PoolBuilder({
     setIsDraggingDepth(false);
     setIsDraggingFence(false);
     setDraggingAdditionalPoolPoint(null);
+    setDraggingDrawPointId(null);
   };
   const addPoint = () => {
     const newId = (Math.max(...points.map(p => parseInt(p.id))) + 1).toString();
