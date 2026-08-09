@@ -48,9 +48,10 @@ export default defineConfig(({ mode }) => ({
           // consumers, everything that is not explicitly split out lives in the
           // same chunk as React. The separated chunks below only import from this
           // merged chunk, never the reverse, so no cycle remains.
+          // NOTE: PDF libs are kept in the React chunk because they form a
+          // bidirectional import cycle with vendor-react in this build.
           if (/@supabase/.test(id)) return 'vendor-supabase';
           if (/recharts|d3-/.test(id)) return 'vendor-charts';
-          if (/jspdf|html2canvas|pdfjs/.test(id)) return 'vendor-pdf';
           if (/@radix-ui|embla|lucide-react/.test(id)) return 'vendor-ui';
           return 'vendor-react';
         },
