@@ -15,6 +15,7 @@ import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search,
 import usePersistentState from '@/hooks/usePersistentState';
 import BlueprintSheet from '@/components/blueprint/BlueprintSheet';
 import BlueprintImportDialog from '@/components/blueprint/BlueprintImportDialog';
+import SurveyAnalyzerDialog from '@/components/blueprint/SurveyAnalyzerDialog';
 import FloridaDigitalSealDialog from '@/components/blueprint/FloridaDigitalSealDialog';
 import { canonicalSignaturePayload } from '@/components/blueprint/signaturePayload';
 import type { BlueprintProject } from '@/components/blueprint/types';
@@ -406,6 +407,16 @@ const BlueprintBuilder: React.FC = () => {
           />
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="w-full">
             <Upload className="mr-1 h-4 w-4" /> Import existing blueprint
+          </Button>
+
+          <SurveyAnalyzerDialog
+            open={surveyOpen}
+            onOpenChange={setSurveyOpen}
+            project={data}
+            onApply={next => setData(next)}
+          />
+          <Button size="sm" onClick={() => setSurveyOpen(true)} className="w-full">
+            <Ruler className="mr-1 h-4 w-4" /> Analyze survey &amp; autofill
           </Button>
         </div>
 
