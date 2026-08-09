@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     {
       name: 'chunk-graph-analyzer',
-      generateBundle(options, bundle) {
-        const graph = {};
+      generateBundle(_options: any, bundle: Record<string, any>) {
+        const graph: Record<string, any> = {};
         for (const [fileName, chunk] of Object.entries(bundle)) {
           if (chunk.type !== 'chunk') continue;
           graph[fileName] = {
