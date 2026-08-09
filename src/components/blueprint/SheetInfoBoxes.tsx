@@ -274,4 +274,49 @@ export const JurisdictionBox: React.FC<{
   </Panel>
 );
 
+export const SurveyDataBox: React.FC<{ data: BlueprintProject }> = ({ data }) => {
+  const survey = data.survey;
+  if (!survey) return null;
+  const p = survey.property || {};
+  const lot = survey.lot || {};
+  const sb = survey.setbacks || {};
+  const el = survey.elevations || {};
+  const s = survey.surveyor || {};
+  const val = (v: unknown, suffix = '') =>
+    v === null || v === undefined || v === '' ? '—' : `${v}${suffix}`;
+  return (
+    <Panel title="SURVEY DATA (OF RECORD)">
+      <div className="grid grid-cols-2 gap-x-3 text-[6.5px] text-[#0f172a]">
+        <div>
+          <div>LOT: {val(p.lotNumber)}{p.subdivision ? ` — ${p.subdivision.toUpperCase()}` : ''}{p.phase ? ` PH. ${p.phase}` : ''}</div>
+          <div>PLAT BOOK {val(p.platBook)} / PG {val(p.platPages)}</div>
+          <div>{val(p.county)} COUNTY, {val(p.state || 'FL')}</div>
+          <div>PARCEL ID: {val(p.parcelId)}</div>
+          <div>LOT SIZE: {val(lot.widthFt, "'")} x {val(lot.depthFt, "'")} ({val(lot.areaSf ? Math.round(lot.areaSf).toLocaleString() : null)} SF)</div>
+          <div>FFE: {val(el.finishedFloorFt, "'")} &middot; DATUM {val(el.datum)}</div>
+          <div>FLOOD ZONE {val(el.floodZone)} &middot; FIRM {val(el.firmPanel)}</div>
+        </div>
+        <div>
+          <div className="font-bold">BUILDING SETBACKS (BSL)</div>
+          <div>FRONT {val(sb.frontFt, "'")}{sb.frontPorchFt ? ` (PORCH ${sb.frontPorchFt}')` : ''}</div>
+          <div>REAR {val(sb.rearFt, "'")} &middot; SIDE {val(sb.sideFt, "'")}</div>
+          <div>SIDE CORNER {val(sb.sideCornerFt, "'")} &middot; REAR POOL {val(sb.rearPoolFt, "'")}</div>
+          <div className="mt-[2px] font-bold">SURVEYOR OF RECORD</div>
+          <div>{val(s.firm)}</div>
+          <div>{val(s.name)} &middot; PSM {val(s.licenseNumber)}</div>
+          <div>SURVEY DATE: {val(s.signedDate)}</div>
+        </div>
+      </div>
+      {survey.easements && survey.easements.length ? (
+        <div className="mt-1 text-[6px] text-[#334155]">
+          EASEMENTS: {survey.easements.map(e => `${e.label.toUpperCase()}${e.widthFt ? ` ${e.widthFt}'` : ''}`).join(' | ')}
+        </div>
+      ) : null}
+      {survey.sourceFile ? (
+        <div className="mt-[2px] text-[6px] text-[#64748b]">SOURCE: {survey.sourceFile.toUpperCase()}</div>
+      ) : null}
+    </Panel>
+  );
+};
+
 export default Panel;
