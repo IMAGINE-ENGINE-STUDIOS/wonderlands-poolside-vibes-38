@@ -290,16 +290,29 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         ctx.stroke();
       });
 
-      // segment dimensions
-      ctx.font = '10px ui-monospace, monospace';
-      ctx.fillStyle = '#334155';
+      // segment dimensions — offset perpendicular to the segment so text never sits on the line
+      ctx.font = 'bold 14px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       const segCount = shape.closed ? shape.points.length : shape.points.length - 1;
       for (let i = 0; i < segCount; i++) {
         const a = shape.points[i];
         const b = shape.points[(i + 1) % shape.points.length];
-        const ft = Math.hypot(b.x - a.x, b.y - a.y) / pxPerFt;
-        if (ft < 3) continue;
-        ctx.fillText(`${ft.toFixed(1)}'`, (a.x + b.x) / 2 + 4, (a.y + b.y) / 2 - 4);
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        const ft = len / pxPerFt;
+        if (ft < 3 || len < 1) continue;
+        const nx = -(b.y - a.y) / len;
+        const ny = (b.x - a.x) / len;
+        const off = 14;
+        const tx = (a.x + b.x) / 2 + nx * off;
+        const ty = (a.y + b.y) / 2 + ny * off;
+        const text = `${ft.toFixed(1)}'`;
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+        ctx.lineJoin = 'round';
+        ctx.strokeText(text, tx, ty);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillText(text, tx, ty);
       }
 
       // label + area
@@ -307,14 +320,25 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         const cx = shape.points.reduce((s, p) => s + p.x, 0) / shape.points.length;
         const cy = shape.points.reduce((s, p) => s + p.y, 0) / shape.points.length;
         const area = polygonArea(shape.points) / (pxPerFt * pxPerFt);
-        ctx.fillStyle = meta.color;
-        ctx.font = 'bold 11px ui-sans-serif, system-ui';
         ctx.textAlign = 'center';
-        ctx.fillText(meta.label.toUpperCase(), cx, cy - 6);
-        ctx.font = '10px ui-monospace, monospace';
-        ctx.fillText(`${Math.round(area).toLocaleString()} SF`, cx, cy + 8);
-        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+        ctx.lineJoin = 'round';
+        ctx.font = 'bold 13px ui-sans-serif, system-ui';
+        ctx.strokeText(meta.label.toUpperCase(), cx, cy - 9);
+        ctx.fillStyle = meta.color;
+        ctx.fillText(meta.label.toUpperCase(), cx, cy - 9);
+        ctx.font = 'bold 14px ui-monospace, monospace';
+        const areaText = `${Math.round(area).toLocaleString()} SF`;
+        ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+        ctx.strokeText(areaText, cx, cy + 9);
+        ctx.fillStyle = meta.color;
+        ctx.fillText(areaText, cx, cy + 9);
       }
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+
     };
 
     data.shapes.forEach(s => renderShape(s));
