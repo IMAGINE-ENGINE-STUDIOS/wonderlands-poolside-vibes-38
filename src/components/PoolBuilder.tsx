@@ -5956,7 +5956,31 @@ export function PoolBuilder({
           
           {/* Spline Drawing Toolbar - Floating in canvas */}
           {splineDrawing.isActive && <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-              <SplineDrawingToolbar currentCurveType={splineDrawing.currentCurveType} pointCount={splineDrawing.points.length} onCurveTypeChange={type => {
+              <SplineDrawingToolbar
+                currentCurveType={selectedDrawPointId ? (splineDrawing.points.find(sp => sp.id === selectedDrawPointId)?.curveType || splineDrawing.currentCurveType) : splineDrawing.currentCurveType}
+                pointCount={splineDrawing.points.length}
+                isEditMode={!!selectedDrawPointId}
+                pointLabel={selectedDrawPointId ? `Point ${splineDrawing.points.findIndex(sp => sp.id === selectedDrawPointId) + 1}` : undefined}
+                canAddPoint={false}
+                canDelete={!!selectedDrawPointId}
+                onDeletePoint={() => {
+                  if (!selectedDrawPointId) return;
+                  setSplineDrawing(prev => ({
+                    ...prev,
+                    points: prev.points.filter(sp => sp.id !== selectedDrawPointId)
+                  }));
+                  setSelectedDrawPointId(null);
+                  setDraggingDrawPointId(null);
+                }}
+                onCurveTypeChange={type => {
+            if (selectedDrawPointId) {
+              setSplineDrawing(prev => ({
+                ...prev,
+                points: prev.points.map(sp => sp.id === selectedDrawPointId ? { ...sp, curveType: type } : sp),
+                currentCurveType: type
+              }));
+              return;
+            }
             setSplineDrawing(prev => ({
               ...prev,
               currentCurveType: type
