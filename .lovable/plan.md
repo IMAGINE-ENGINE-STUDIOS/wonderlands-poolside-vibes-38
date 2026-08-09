@@ -1,25 +1,20 @@
-# Fix: Browse Categories panel hidden behind the Studio sidebar
+# Studio landing canvas + search that flies to the corner
 
-## What's happening
+## What changes
 
-Confirmed in the browser at `/wonderlands-studio`: clicking the header search opens the **Browse Categories** panel, but the right-hand sidebar (Total Configuration Price + Product Categories card) paints on top of it and covers most of the panel.
+**1. No more empty state.** The "Select a product to start configuring" placeholder in the Studio canvas is replaced by a real landing surface: a gallery of every pool in the catalog (Wonderlands + Gilmer), sorted least to most expensive per the existing rule, using the same product card outline and images already in use. Each card selects that pool and drops straight into the configurator.
 
-Cause: the Studio header bar uses `backdrop-blur`. A backdrop filter creates its own stacking context, so the panel's `z-[200]` is trapped inside the header instead of competing with the rest of the page. The header itself has no z-index, so the sidebar — which comes later in the document — wins and draws over the panel.
+The landing also carries a short header ("Design your pool" + one line of copy) and a row of category shortcuts (Spas, Saunas, Tanning Ledges, Screen Enclosures, Fencing, and the rest) so the landing reflects the active category — pick Saunas and the gallery shows saunas, not pools. Pools is the default.
 
-## The fix
-
-1. Give the Studio header bar in `src/pages/WonderlandsStudio.tsx` a real stacking position (`relative` + a high z-index) so everything inside it, including the search panel, sits above the page body and the sidebar.
-2. Make the panel itself portal-proof: render the Browse Categories panel (and the search-results dropdown right below it) in `src/components/AdvancedSearch.tsx` so they are no longer clipped or outranked by any ancestor with a blur/transform. Position is anchored to the search field so it keeps opening directly under the input, still centered and inside the viewport on all widths.
-3. Keep the panel inside the visible viewport: cap its height against available space below the header so the top row of category tiles is never cut off.
-
-No changes to panel content, category list, styling, or search behavior — only layering and positioning.
+**2. Search moves to the center.** While nothing is selected, the search field renders large and centered above the gallery. The moment a product is selected, it animates smoothly back up into its header corner slot, and animates back to center if the selection is cleared. It stays a single search instance, so typing, focus, and the Browse Categories panel keep working in both positions.
 
 ## Technical notes
 
-- Header container: add `relative z-[300]` to the `border-b … bg-background/95 backdrop-blur` wrapper (around line 1900) in `WonderlandsStudio.tsx`.
-- `AdvancedSearch.tsx`: the section menu `Card` (line ~836) and results `Card` (line ~885) get rendered through a portal with fixed positioning derived from the input's bounding rect, replacing `absolute top-full` anchoring, with a resize/scroll listener to keep them aligned.
-- Sidebar (`sticky top-4`) stays untouched.
+- New `src/components/studio/StudioLandingCanvas.tsx`: takes the already-computed product list from `getFilteredProducts()`, the active category, and callbacks for select/category-change. Renders the gallery grid (price ascending) and the category shortcut row. No new data source, no new images, no randomization.
+- `src/pages/WonderlandsStudio.tsx` line ~3580: swap the empty `Card` for `<StudioLandingCanvas />`.
+- Search relocation: wrap the existing single `<AdvancedSearch variant="slim" />` in a `framer-motion` element with a shared `layoutId`, rendered into the centered landing slot when `!selectedProduct` and into the header slot when a product is selected. Framer Motion's shared-layout transition handles the fly-to-corner animation (spring, ~400ms); the header keeps its width reserved so nothing jumps. Variant switches to the full (non-slim) look while centered.
+- Header layering fix from the previous pass still applies so the Browse Categories panel stays above the sidebar in both positions.
 
 ## Verification
 
-Re-run the Playwright check on `/wonderlands-studio`: open the search, screenshot, and confirm the panel renders fully above the sidebar and is not clipped at the top. Also verify the same panel on the main page (`/`) still opens correctly.
+Playwright on `/wonderlands-studio`: screenshot the landing (centered search + pool gallery), click a pool, screenshot again to confirm the search has settled in the header corner and the configurator is showing; then check a non-pool category shortcut renders the right gallery.
