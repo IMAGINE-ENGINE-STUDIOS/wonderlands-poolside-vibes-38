@@ -406,6 +406,31 @@ export const TitleBlock: React.FC<Props> = ({
           }}
         />
       ) : null}
+
+      {editable ? (
+        <FloridaDigitalSealDialog
+          open={sealDialog}
+          onOpenChange={setSealDialog}
+          payload={payload}
+          value={data.signatures.digitalSignature}
+          defaultSignerName={data.engineer.engineerName}
+          defaultLicense={data.engineer.engineerLicense}
+          onApply={signature =>
+            onDataChange?.(prev => ({
+              ...prev,
+              signatures: { ...prev.signatures, digitalSignature: signature },
+              engineer: { ...prev.engineer, shaCode: signature.authCode },
+            }))
+          }
+          onRemove={() =>
+            onDataChange?.(prev => ({
+              ...prev,
+              signatures: { ...prev.signatures, digitalSignature: undefined },
+              engineer: { ...prev.engineer, shaCode: '' },
+            }))
+          }
+        />
+      ) : null}
     </aside>
   );
 };

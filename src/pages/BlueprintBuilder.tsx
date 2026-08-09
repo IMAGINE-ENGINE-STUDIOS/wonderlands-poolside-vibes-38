@@ -146,7 +146,10 @@ const BlueprintBuilder: React.FC = () => {
     ];
     if (jurisdiction.requiresEngineerSeal) {
       items.push({ label: 'Engineer of record + license entered', done: Boolean(data.engineer.engineerName && data.engineer.engineerLicense) });
-      items.push({ label: 'SHA authentication code entered', done: Boolean(data.engineer.shaCode) });
+      items.push({
+        label: 'Florida electronic signature & seal applied',
+        done: Boolean(data.signatures.digitalSignature?.signedAt),
+      });
     }
     data.permitTypeIds.forEach(id => {
       const permit = PERMIT_TYPES.find(p => p.id === id);
@@ -620,6 +623,27 @@ const BlueprintBuilder: React.FC = () => {
                   <Field label="Contractor signed date" value={data.signatures.contractorSignedDate} onChange={v => patch(p => ({ ...p, signatures: { ...p.signatures, contractorSignedDate: v } }))} />
                   <Field label="Owner signer" value={data.signatures.ownerSignerName} onChange={v => patch(p => ({ ...p, signatures: { ...p.signatures, ownerSignerName: v } }))} />
                   <Field label="Owner signed date" value={data.signatures.ownerSignedDate} onChange={v => patch(p => ({ ...p, signatures: { ...p.signatures, ownerSignedDate: v } }))} />
+                  <div className="md:col-span-2 space-y-1.5 rounded-md border p-3">
+                    <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Florida electronic signature &amp; seal
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Florida requires the design professional's electronic signature to be a digital certificate
+                      signature or a published SHA authentication code, with the statutory statement printed beside the
+                      seal. Applying it here binds the signature to a hash of this plan set — any later edit prints as
+                      invalidated.
+                    </p>
+                    {data.signatures.digitalSignature?.signedAt ? (
+                      <p className="break-all font-mono text-[11px]">
+                        {data.signatures.digitalSignature.hashAlgorithm} AUTH CODE:{' '}
+                        {data.signatures.digitalSignature.authCode}
+                      </p>
+                    ) : null}
+                    <Button variant="outline" size="sm" onClick={() => setSealDialogOpen(true)}>
+                      <ShieldCheck className="mr-1.5 h-4 w-4" />
+                      {data.signatures.digitalSignature?.signedAt ? 'Manage signature & seal' : 'Sign & seal plan set'}
+                    </Button>
+                  </div>
                   <div className="md:col-span-2 space-y-1">
                     <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Seal disclaimer</Label>
                     <Textarea
