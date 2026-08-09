@@ -18,15 +18,15 @@ import { getProductsByCategory } from '@/data/consolidatedProducts';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
-import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
-import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
-import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
-import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
-import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
-import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
-import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
-import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
-import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
+import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
+import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.webp';
+import nightSkyFinish from '@/assets/finishes/night-sky-g3.webp';
+import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.webp';
+import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.webp';
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
+import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.webp';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 import { resolveCategoryLabel } from '@/lib/productCategories';
 
 // Helper function to get pool price (no discount applied)
@@ -74,32 +74,32 @@ interface PoolExtras {
 const poolHeaters = [{
   name: 'Pentair MasterTemp 125 (125K BTU)',
   price: 3450,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Compact high-efficiency gas heater for pools up to 15,000 gallons'
 }, {
   name: 'Pentair MasterTemp 250 (250K BTU)',
   price: 5520,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Mid-size high-performance gas heater for medium pools'
 }, {
   name: 'Pentair MasterTemp 400 (400K BTU)',
   price: 7245,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'High-capacity gas heater for large pools and quick heating'
 }, {
   name: 'Pentair UltraTemp 90 Heat Pump',
   price: 7762,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Energy-efficient heat pump for pools up to 20,000 gallons'
 }, {
   name: 'Pentair UltraTemp 110 Heat Pump',
   price: 9488,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'High-efficiency heat pump for medium to large pools'
 }, {
   name: 'Pentair UltraTemp 140 Heat Pump',
   price: 11212,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Premium heat pump for large pools with maximum efficiency'
 }];
 
@@ -303,31 +303,31 @@ const copingPaverOptions = [{
   name: 'No Coping',
   color: '#808080',
   price: 0,
-  image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png',
+  image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp',
   description: 'No additional coping'
 }, {
   name: 'Bullnose Coping',
   color: '#FFFFFF',
   price: 18,
-  image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png',
+  image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp',
   description: 'Rounded edge bullnose coping for pool edges'
 }, {
   name: 'Cantilever Coping',
   color: '#A9A9A9',
   price: 22,
-  image: '/lovable-uploads/d6ea993e-6b84-4fd9-b0f5-0ae906e45b0b.png',
+  image: '/lovable-uploads/d6ea993e-6b84-4fd9-b0f5-0ae906e45b0b.webp',
   description: 'Modern cantilever edge design for contemporary pools'
 }, {
   name: 'Natural Stone Coping',
   color: '#4682B4',
   price: 28,
-  image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png',
+  image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.webp',
   description: 'Premium natural stone pool edge coping'
 }, {
   name: 'Tile Coping',
   color: '#4169E1',
   price: 16,
-  image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png',
+  image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.webp',
   description: 'Ceramic or porcelain tile coping for pool edges'
 }];
 const getCategoryColor = (category: string) => {
@@ -923,7 +923,7 @@ const PoolDetails = () => {
             body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
             .quote-container { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; max-width: 1000px; margin: 0 auto; }
             .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 50px 40px; text-align: center; position: relative; }
-            .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png') center/cover; opacity: 0.1; }
+            .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp') center/cover; opacity: 0.1; }
             .header-content { position: relative; z-index: 2; }
             .logo { font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); letter-spacing: -1px; }
             .header-title { font-family: 'Poppins', sans-serif; font-size: 42px; font-weight: 700; margin: 20px 0 15px 0; letter-spacing: -0.5px; }
@@ -1066,7 +1066,7 @@ const PoolDetails = () => {
                 ${selectedItems.map(item => `
                   <div class="extra-item">
                     <div class="item-info">
-                      <img src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'}" alt="${item.name}" class="item-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'" />
+                      <img loading="lazy" decoding="async" src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp'}" alt="${item.name}" class="item-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp'" />
                       <div class="item-details">
                         <h4>${item.name}</h4>
                         ${item.description ? `<p>${item.description}</p>` : ''}
@@ -1081,7 +1081,7 @@ const PoolDetails = () => {
                 ${extras.jets ? `
                   <div class="extra-item">
                     <div class="item-info">
-                      <img src="/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.png" alt="Spa Jets" class="item-image" />
+                      <img loading="lazy" decoding="async" src="/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.webp" alt="Spa Jets" class="item-image" />
                       <div class="item-details">
                         <h4>Premium Spa Jets (${extras.jetQuantity} Units)</h4>
                         <p>High-performance hydrotherapy jets with adjustable pressure settings for ultimate relaxation and therapeutic benefits</p>
@@ -1352,7 +1352,7 @@ const PoolDetails = () => {
         }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{finish.name}</p>
@@ -1368,7 +1368,7 @@ const PoolDetails = () => {
         }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{liner.name}</p>
@@ -1421,7 +1421,7 @@ const PoolDetails = () => {
           return options.map((option: any) => <div key={option.name || option.model} className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50" onClick={() => handleOptionSelect(activePanel!, option)}>
               <div className="flex gap-2">
                 <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                  <img src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{option.name || option.model}</p>
@@ -1451,7 +1451,7 @@ const PoolDetails = () => {
               {paverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('pavers', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
@@ -1489,7 +1489,7 @@ const PoolDetails = () => {
               {copingPaverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('coping', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
@@ -1508,7 +1508,7 @@ const PoolDetails = () => {
               {coverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.coverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('covers', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
@@ -1571,7 +1571,7 @@ const PoolDetails = () => {
         }}>
             <div className="flex gap-2">
               {product.image_url && <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                 </div>}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{product.name}</p>
@@ -1700,7 +1700,7 @@ const PoolDetails = () => {
                 {/* Selected Products Snapshots - Responsive */}
                 {getConfigurationItems().length > 0 && <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-1 max-w-[150px] sm:max-w-[200px]">
                     {getConfigurationItems().slice(0, 4).map((item, index) => <div key={index} className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 overflow-hidden">
-                        <img src={item.image || pool.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img loading="lazy" decoding="async" src={item.image || pool.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>)}
                     {getConfigurationItems().length > 4 && <div className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 flex items-center justify-center text-[10px] sm:text-xs">
                         +{getConfigurationItems().length - 4}
@@ -1708,7 +1708,7 @@ const PoolDetails = () => {
                   </div>}
                 
                 <div className="aspect-[4/3] overflow-hidden">
-                  <img src={getCurrentImage()} alt={pool.model} className="w-[90%] h-[90%] object-cover transition-all duration-500 mx-auto my-auto" />
+                  <img loading="lazy" decoding="async" src={getCurrentImage()} alt={pool.model} className="w-[90%] h-[90%] object-cover transition-all duration-500 mx-auto my-auto" />
                 </div>
                 
                 {/* Pool Info Overlay - Responsive */}
@@ -1800,7 +1800,7 @@ const PoolDetails = () => {
                         finish: finish.name
                       }))}>
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" onError={e => {
+                              <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" onError={e => {
                             const target = e.target as HTMLImageElement;
                             const parent = target.parentElement;
                             if (parent) {
@@ -1839,7 +1839,7 @@ const PoolDetails = () => {
                           }))}
                         >
                           <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                            <img
+                            <img loading="lazy" decoding="async"
                               src={finishOptions.find(f => f.name === extras.finish)?.image || azureBlueFinish}
                               alt={extras.finish || "Pool Finish"}
                               className="w-full h-full object-cover"
@@ -1860,7 +1860,7 @@ const PoolDetails = () => {
                         linerOption: liner.name
                       }))}>
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" onError={e => {
+                              <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover" onError={e => {
                             const target = e.target as HTMLImageElement;
                             const parent = target.parentElement;
                             if (parent) {
@@ -1904,7 +1904,7 @@ const PoolDetails = () => {
                         paverOption: paver.name
                       }))}>
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" onError={e => {
+                              <img loading="lazy" decoding="async" src={paver.image} alt={paver.name} className="w-full h-full object-cover" onError={e => {
                             const target = e.target as HTMLImageElement;
                             const parent = target.parentElement;
                             if (parent) {
@@ -1959,7 +1959,7 @@ const PoolDetails = () => {
                   >
                     <CarouselContent className="-ml-1">
                       {[
-                        { key: "standard", name: "Wonder Cage", price: 15, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                        { key: "standard", name: "Wonder Cage", price: 15, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp" },
                         { key: "deluxe", name: "Deluxe", price: 22, image: "/lovable-uploads/c4b57a78-5a42-4268-884f-c8397a65a270.png" },
                         { key: "premium", name: "2 Stories", price: 28, image: "/lovable-uploads/1c09e3d5-ee90-4c32-a32f-e1ae1a7b0f36.png" },
                       ].map((quality) => (
@@ -1972,7 +1972,7 @@ const PoolDetails = () => {
                             }))}
                           >
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={quality.image} 
                                 alt={quality.name} 
                                 className="w-full h-full object-cover" 
@@ -2018,7 +2018,7 @@ const PoolDetails = () => {
                               <CarouselItem key={heater.name} className="pl-1 basis-1/2">
                                 <div onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10' : 'border-border'}`}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
+                                    <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
                                     <p className="text-xs font-medium text-center line-clamp-2">{heater.name}</p>
@@ -2053,7 +2053,7 @@ const PoolDetails = () => {
                               <CarouselItem key={cover.name} className="pl-1 basis-1/2">
                                 <div onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border'}`}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <img src={cover.image} alt={cover.name} className="w-full h-full object-cover" />
+                                    <img loading="lazy" decoding="async" src={cover.image} alt={cover.name} className="w-full h-full object-cover" />
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
                                     <p className="text-xs font-medium text-center line-clamp-2">{cover.name}</p>
@@ -2104,7 +2104,7 @@ const PoolDetails = () => {
                               <CarouselItem key={spa.model} className="pl-1 basis-1/2">
                                 <div onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaModel === spa.model ? 'border-primary bg-primary/10' : 'border-border'}`}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    {spa.image && <img src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
+                                    {spa.image && <img loading="lazy" decoding="async" src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
                                     <p className="text-xs font-medium text-center line-clamp-2">{spa.model}</p>
@@ -2139,7 +2139,7 @@ const PoolDetails = () => {
                               <CarouselItem key={ledge.name} className="pl-1 basis-1/2">
                                 <div onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tanningLedgeModel === ledge.name ? 'border-coral bg-coral/10' : 'border-border'}`}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <img src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
+                                    <img loading="lazy" decoding="async" src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
                                     <p className="text-xs font-medium text-center line-clamp-2">{ledge.name}</p>
@@ -2186,7 +2186,7 @@ const PoolDetails = () => {
                             tileOption: tile.name
                           }))}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" onError={e => {
+                                    <img loading="lazy" decoding="async" src={tile.image} alt={tile.name} className="w-full h-full object-cover" onError={e => {
                                 const target = e.target as HTMLImageElement;
                                 const parent = target.parentElement;
                                 if (parent) {
@@ -2341,7 +2341,7 @@ const PoolDetails = () => {
                     extrasBreakdown.push({
                       name: `Spa Jets (${extras.jetQuantity}x)`,
                       price: getExtraPrice('jets') * extras.jetQuantity,
-                      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" // Jets don't have their own image, using heater image as placeholder
+                      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" // Jets don't have their own image, using heater image as placeholder
                     });
                   }
 
@@ -2354,7 +2354,7 @@ const PoolDetails = () => {
                     extrasBreakdown.push({
                       name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`,
                       price: enclosurePrice,
-                      image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
+                      image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp'
                     });
                   }
 
@@ -2364,7 +2364,7 @@ const PoolDetails = () => {
                     extrasBreakdown.push({
                       name: 'Concrete Construction Upgrade',
                       price: concretePrice,
-                      image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+                      image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
                     });
                   }
                   const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);

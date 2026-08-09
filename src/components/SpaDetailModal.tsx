@@ -59,7 +59,7 @@ const SpaDetailModal = ({ spa, isOpen, onClose, onRequestQuote }: SpaDetailModal
           <div className="space-y-4">
             <div className="relative w-full h-64 sm:h-80 bg-gradient-to-br from-primary/10 to-teal/10 rounded-lg overflow-hidden">
               {spa.image ? (
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={spa.image} 
                   alt={spa.model}
                   className="w-full h-full object-cover"

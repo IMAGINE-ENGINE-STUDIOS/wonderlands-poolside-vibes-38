@@ -27,7 +27,7 @@ const covers: AutomaticCover[] = [{
   features: ["Dual track system", "Emergency manual override", "Auto-close sensors", "LED status indicators"],
   benefits: ["Advanced safety features", "Quiet operation", "Weather resistant"],
   installation: "2-3 days",
-  image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png"
+  image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp"
 }, {
   name: "CS3000",
   price: 30000,
@@ -38,7 +38,7 @@ const covers: AutomaticCover[] = [{
   features: ["Smart automation", "Variable speed control", "Weather sensors", "Remote monitoring"],
   benefits: ["Commercial grade reliability", "Energy efficient", "Low maintenance"],
   installation: "3-4 days",
-  image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png"
+  image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.webp"
 }, {
   name: "Infinity 4000",
   price: 32000,
@@ -49,7 +49,7 @@ const covers: AutomaticCover[] = [{
   features: ["AI-powered automation", "Solar integration", "App control", "Predictive maintenance"],
   benefits: ["Ultimate performance", "Maximum energy savings", "Smart home integration"],
   installation: "4-5 days",
-  image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png"
+  image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.webp"
 }, {
   name: "Atom",
   price: 25000,
@@ -60,7 +60,7 @@ const covers: AutomaticCover[] = [{
   features: ["Compact design", "Quick deployment", "Temperature sensors", "Timer controls"],
   benefits: ["Space efficient", "Fast operation", "Thermal retention"],
   installation: "2-3 days",
-  image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png"
+  image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.webp"
 }];
 const getTypeColor = (type: string) => {
   switch (type) {
@@ -150,7 +150,7 @@ const AutomaticCoversSection = () => {
                 <CardContent className="space-y-4">
                   {/* Cover Image */}
                   <div className="aspect-video overflow-hidden rounded-lg bg-muted/30">
-                    <img src={cover.image} alt={cover.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img loading="lazy" decoding="async" src={cover.image} alt={cover.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   
                   {/* Price */}

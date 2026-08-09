@@ -92,7 +92,7 @@ export const ProductImageModal = ({
 
           {/* Image */}
           <div className="relative w-full aspect-square bg-muted">
-            <img
+            <img loading="lazy" decoding="async"
               src={imageSrc}
               alt={productName}
               className="w-full h-full object-contain"

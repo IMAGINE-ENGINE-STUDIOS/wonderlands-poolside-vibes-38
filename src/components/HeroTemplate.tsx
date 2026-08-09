@@ -38,7 +38,7 @@ const HeroTemplate = ({
         
         {/* Logo at Top */}
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
-          <img 
+          <img loading="lazy" decoding="async" 
             src={logo}
             alt={logoAlt} 
             className="w-32 h-32 md:w-40 md:h-40 animate-scale-in"

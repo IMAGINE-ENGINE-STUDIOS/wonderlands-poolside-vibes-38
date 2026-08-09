@@ -86,7 +86,7 @@ const OfferPage = () => {
       <div className="max-w-5xl mx-auto px-6 py-10 grid lg:grid-cols-2 gap-10">
         <div className="rounded-xl overflow-hidden bg-muted aspect-[4/3]">
           {promotion.image_url ? (
-            <img src={promotion.image_url} alt={promotion.name} className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={promotion.image_url} alt={promotion.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">No image</div>
           )}

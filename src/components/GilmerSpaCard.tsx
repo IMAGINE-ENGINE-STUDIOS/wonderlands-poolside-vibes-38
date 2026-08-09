@@ -9,7 +9,7 @@ import { Waves, DollarSign, Thermometer, Zap, Droplets, Clock, Award, Cpu } from
 import { GilmerSpa } from "@/data/gilmerSpas";
 import { paverTypes } from "@/data/paverData";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
-import azureBlueFinish from "@/assets/finishes/azure-blue-g2.jpg";
+import azureBlueFinish from "@/assets/finishes/azure-blue-g2.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 interface GilmerSpaCardProps {
   spa: GilmerSpa;
@@ -179,7 +179,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
         className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
         onClick={handleImageClick}>
         
-        <img
+        <img loading="lazy" decoding="async"
           src={spa.image}
           alt={spa.model}
           className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" />

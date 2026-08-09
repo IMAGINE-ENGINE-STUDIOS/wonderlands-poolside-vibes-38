@@ -70,32 +70,32 @@ export const parseDepth = (depthStr?: string): number => {
 // Map finish names to texture URLs
 export const getFinishTextureUrl = (finishName?: string): string => {
   if (!finishName || finishName === 'None' || finishName === '' || finishName === 'undefined') {
-    return '/textures/finishes/sapphire-blue-g3.jpg';
+    return '/textures/finishes/sapphire-blue-g3.webp';
   }
   
   const finishMap: Record<string, string> = {
-    'Aquamarine': '/textures/finishes/aquamarine-g3.jpg',
-    'Ocean Blue': '/textures/finishes/ocean-blue-g3.jpg',
-    'Sapphire Blue': '/textures/finishes/sapphire-blue-g3.jpg',
-    'Night Sky': '/textures/finishes/night-sky-g3.jpg',
-    'Athens Pearl White': '/textures/finishes/athens-pearl-white-g3.jpg',
-    'Lagoon Blue': '/textures/finishes/lagoon-blue-g2.jpg',
-    'Azure Blue': '/textures/finishes/azure-blue-g2.jpg',
-    'Coastal Bronze': '/textures/finishes/coastal-bronze-g3.jpg',
-    'Shale Gray': '/textures/finishes/shale-gray-g3.jpg',
+    'Aquamarine': '/textures/finishes/aquamarine-g3.webp',
+    'Ocean Blue': '/textures/finishes/ocean-blue-g3.webp',
+    'Sapphire Blue': '/textures/finishes/sapphire-blue-g3.webp',
+    'Night Sky': '/textures/finishes/night-sky-g3.webp',
+    'Athens Pearl White': '/textures/finishes/athens-pearl-white-g3.webp',
+    'Lagoon Blue': '/textures/finishes/lagoon-blue-g2.webp',
+    'Azure Blue': '/textures/finishes/azure-blue-g2.webp',
+    'Coastal Bronze': '/textures/finishes/coastal-bronze-g3.webp',
+    'Shale Gray': '/textures/finishes/shale-gray-g3.webp',
   };
   
-  return finishMap[finishName] || '/textures/finishes/sapphire-blue-g3.jpg';
+  return finishMap[finishName] || '/textures/finishes/sapphire-blue-g3.webp';
 };
 
 // Map paver names to texture URLs
 export const getPaverTextureUrl = (paverName?: string, paverTypes?: any[]): string => {
   if (!paverName || paverName === 'None' || paverName === 'Concrete Patio' || paverName === '' || paverName === 'undefined') {
-    return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+    return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
   }
   
   const paver = paverTypes?.find(p => p.name === paverName);
-  return paver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+  return paver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
 };
 
 // Convert product configurator data to Scene3D
@@ -116,7 +116,7 @@ export function productToScene(
     ? getFinishTextureUrl(selectedExtras.finish)
     : selectedExtras.linerOption 
       ? getFinishTextureUrl(selectedExtras.linerOption)
-      : '/textures/finishes/sapphire-blue-g3.jpg';
+      : '/textures/finishes/sapphire-blue-g3.webp';
       
   const paverTextureUrl = getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
   const copingTextureUrl = getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);
@@ -480,7 +480,7 @@ export function productToScene(
       },
       copingWidth: copingWidth,
       waterline: {
-        url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', // Ballad glass tile as default
+        url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.webp', // Ballad glass tile as default
         name: 'Ballad',
         roughness: 0.1,
         metalness: 0.3,

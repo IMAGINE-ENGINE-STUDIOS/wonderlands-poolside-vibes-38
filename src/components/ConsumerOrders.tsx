@@ -93,7 +93,7 @@ const ConsumerOrders = () => {
         <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
           <div className="flex items-center space-x-4">
             {order.products?.image_url && (
-              <img
+              <img loading="lazy" decoding="async"
                 src={order.products.image_url}
                 alt={order.products?.name}
                 className="w-12 h-12 rounded object-cover"

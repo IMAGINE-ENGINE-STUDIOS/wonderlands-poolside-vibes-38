@@ -4,9 +4,9 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import { lathamTanningLedges, glimmerglassTanningLedges, tanningLedges } from "@/data/poolData";
 
 // Import GlimmerGlass images
-import paradiseImg from "@/assets/tanning-ledges/glimmerglass-paradise.png";
-import leewardImg from "@/assets/tanning-ledges/glimmerglass-leeward.png";
-import leisureImg from "@/assets/tanning-ledges/glimmerglass-leisure.png";
+import paradiseImg from "@/assets/tanning-ledges/glimmerglass-paradise.webp";
+import leewardImg from "@/assets/tanning-ledges/glimmerglass-leeward.webp";
+import leisureImg from "@/assets/tanning-ledges/glimmerglass-leisure.webp";
 
 interface TanningLedge {
   name: string;

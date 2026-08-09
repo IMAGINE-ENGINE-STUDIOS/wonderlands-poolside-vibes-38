@@ -35,16 +35,16 @@ import ProjectTypeToggle from "@/components/ProjectTypeToggle";
 import { DynamicFeatureRenderer } from "@/components/DynamicFeatureRenderer";
 import { PoolBuilder } from "@/components/PoolBuilder";
 import HeaterSizeCalculator from "@/components/HeaterSizeCalculator";
-import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
-import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
-import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
-import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
-import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
-import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
-import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
-import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
-import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
-import noCoverBlack from '@/assets/no-cover-black.png';
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
+import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
+import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.webp';
+import nightSkyFinish from '@/assets/finishes/night-sky-g3.webp';
+import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.webp';
+import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.webp';
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
+import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.webp';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
+import noCoverBlack from '@/assets/no-cover-black.webp';
 import ProductMediaGallery, { MediaItem } from '@/components/ProductMediaGallery';
 import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type ProductType } from '@/config/productFeatures';
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
@@ -62,9 +62,9 @@ import { landscapingPlants } from '@/data/landscapingData';
 import { drivewayGates } from '@/data/drivewayGates';
 
 // Rocky Waterfalls data
-import sunsetGroveImage from '@/assets/sunset-grove-kit-pool.jpg';
-import maldivesImage from '@/assets/maldiveskit-castlerock.jpg';
-import serenityImage from '@/assets/serenitykit.jpg';
+import sunsetGroveImage from '@/assets/sunset-grove-kit-pool.webp';
+import maldivesImage from '@/assets/maldiveskit-castlerock.webp';
+import serenityImage from '@/assets/serenitykit.webp';
 
 const rockyWaterfallTiers = [
   { name: 'Sunset Grove', price: 17500, image: sunsetGroveImage },
@@ -204,27 +204,27 @@ const finishOptions = poolFinishesData.map(finish => ({
 const poolHeaters = [{
   name: 'Pentair MasterTemp 125 (125K BTU)',
   price: 3450,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp'
 }, {
   name: 'Pentair MasterTemp 250 (250K BTU)',
   price: 5520,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp'
 }, {
   name: 'Pentair MasterTemp 400 (400K BTU)',
   price: 7245,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp'
 }, {
   name: 'Pentair UltraTemp 90 Heat Pump',
   price: 7762,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp'
 }, {
   name: 'Pentair UltraTemp 110 Heat Pump',
   price: 9488,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp'
 }, {
   name: 'Pentair UltraTemp 140 Heat Pump',
   price: 11212,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp'
 }];
 
 // Liner options - using consolidated data (no Standard Blue - default is selected finish)
@@ -240,25 +240,25 @@ const coverOptions = [{
   name: 'Eclipse',
   color: '#2F4F4F',
   price: 27000, // Updated price
-  image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png",
+  image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp",
   category: 'cover'
 }, {
   name: 'CS3000',
   color: '#2F4F4F',
   price: 30000, // Updated price
-  image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png",
+  image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.webp",
   category: 'cover'
 }, {
   name: 'Infinity 4000',
   color: '#2F4F4F',
   price: 32000,
-  image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png",
+  image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.webp",
   category: 'cover'
 }, {
   name: 'Atom',
   color: '#2F4F4F',
   price: 25000, // Updated price
-  image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png",
+  image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.webp",
   category: 'cover'
 }];
 
@@ -279,8 +279,8 @@ const tileOptions = poolTilesData.map(tile => ({
 }));
 
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
 
 // Paver options - using consolidated data + existing paverTypes
 const paverOptions = [{
@@ -717,7 +717,7 @@ const WonderlandsStudio = () => {
     name: 'Sandbox - Build Your Own',
     category: 'scene',
     price: 0,
-    image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png',
+    image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp',
     // Astoria pool image
     description: 'Build your own custom outdoor space with all available options'
   }, {
@@ -755,55 +755,55 @@ const WonderlandsStudio = () => {
     concreteSlabs: [{
       name: 'Concrete Paver Slab - Sample',
       price: 12,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }],
     permeablePavers: [{
       name: 'Permeable Paver - Sample',
       price: 18,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }],
     porcelainPavers: [{
       name: 'Porcelain Paver - Sample',
       price: 25,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }],
     wallSystems: [{
       name: 'Retaining Wall System - Sample',
       price: 35,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }],
     capsEdgers: [{
       name: 'Cap & Edger Set - Sample',
       price: 8,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }],
     outdoorKitchens: [{
       name: 'Outdoor Kitchen Island - Sample',
       price: 8500,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }],
     fireplaces: [{
       name: 'Outdoor Fireplace - Sample',
       price: 4500,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }],
     firePitKits: [{
       name: 'Fire Pit Kit - Sample',
       price: 1200,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }],
     pergolas: [{
       name: 'Pergola & Panel System - Sample',
       price: 3500,
-      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
       category: 'sample'
     }]
   };
@@ -1253,7 +1253,7 @@ const WonderlandsStudio = () => {
       extrasBreakdown.push({
         name: `Spa Jets (${selectedExtras.jetQuantity})`,
         price: getExtraPrice('jets') * selectedExtras.jetQuantity,
-        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
       });
     }
 
@@ -1297,7 +1297,7 @@ const WonderlandsStudio = () => {
       extrasBreakdown.push({
         name: `${selectedExtras.paverOption} (${paverAreaStr} sq ft @ $${pricePerSqFt}/sqft)`,
         price: calculatePaverCost(paverAreaStr, selectedExtras.paverOption),
-        image: selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+        image: selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp',
       });
     }
 
@@ -1309,7 +1309,7 @@ const WonderlandsStudio = () => {
       extrasBreakdown.push({
         name: `Screen Enclosure - ${quality === 'standard' ? 'Wonder Cage' : 'Premium'} (${selectedExtras.screenEnclosureArea} sq ft)`,
         price: enclosurePrice,
-        image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
+        image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp'
       });
     }
 
@@ -1319,7 +1319,7 @@ const WonderlandsStudio = () => {
       extrasBreakdown.push({
         name: 'Concrete Construction',
         price: concreteMarkup,
-        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
       });
     }
 
@@ -1331,7 +1331,7 @@ const WonderlandsStudio = () => {
         extrasBreakdown.push({
           name: `${selectedSpa.model} Spa`,
           price: selectedSpa.price,
-          image: selectedSpa.image || '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+          image: selectedSpa.image || '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
         });
       }
     }
@@ -1341,7 +1341,7 @@ const WonderlandsStudio = () => {
       extrasBreakdown.push({
         name: `${selectedExtras.spaFinish} Spa Finish`,
         price: selectedExtras.spaFinishPrice,
-        image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png'
+        image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp'
       });
     }
 
@@ -1352,7 +1352,7 @@ const WonderlandsStudio = () => {
         extrasBreakdown.push({
           name: `${selectedLedge.name} Tanning Ledge`,
           price: selectedLedge.price,
-          image: selectedLedge.image || '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+          image: selectedLedge.image || '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
         });
       }
     }
@@ -2026,7 +2026,7 @@ const WonderlandsStudio = () => {
 
                   }}>
                           <div className="flex items-center gap-3">
-                            {product.image && <img src={product.image} alt={product.model || product.name || 'Product'} className="w-12 h-12 object-cover rounded" />}
+                            {product.image && <img loading="lazy" decoding="async" src={product.image} alt={product.model || product.name || 'Product'} className="w-12 h-12 object-cover rounded" />}
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-sm truncate">
                                 {product.model || product.name}
@@ -2207,7 +2207,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.concreteSlabs.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price}/sq ft
@@ -2255,7 +2255,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.outdoorKitchens.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price.toLocaleString()}
@@ -2303,7 +2303,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.fireplaces.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price.toLocaleString()}
@@ -2351,7 +2351,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.firePitKits.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price.toLocaleString()}
@@ -2399,7 +2399,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.pergolas.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price.toLocaleString()}
@@ -2609,7 +2609,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={finish.image}
                                         alt={finish.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2658,7 +2658,7 @@ const WonderlandsStudio = () => {
                           {!selectedExtras.liner && (
                             <div className="p-3 border rounded-lg border-primary bg-primary/10">
                               <div className="w-full h-28 rounded-md mb-2 overflow-hidden">
-                                <img
+                                <img loading="lazy" decoding="async"
                                   src={finishOptions.find(f => f.name === selectedExtras.finish)?.image || aquamarineFinish}
                                   alt="Selected Finish"
                                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2693,7 +2693,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={liner.image}
                                         alt={liner.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2761,7 +2761,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={tile.image}
                                         alt={tile.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2820,7 +2820,7 @@ const WonderlandsStudio = () => {
                                       }
                                     >
                                       <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                        <img
+                                        <img loading="lazy" decoding="async"
                                           src={cover.image}
                                           alt={cover.name}
                                           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2945,7 +2945,7 @@ const WonderlandsStudio = () => {
                                         }
                                       >
                                         <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                          <img
+                                          <img loading="lazy" decoding="async"
                                             src={spa.image}
                                             alt={spa.model}
                                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2983,12 +2983,12 @@ const WonderlandsStudio = () => {
                             
                             if (isGlimmerglassPool && isLathamSpa) {
                               const crystiteFinishes = [
-                                { id: 'sapphire-blue', name: 'Sapphire Blue', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png' },
-                                { id: 'ocean-blue', name: 'Ocean Blue', price: 3500, image: '/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png' },
-                                { id: 'night-sky', name: 'Night Sky', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png' },
-                                { id: 'shale-gray', name: 'Shale Gray', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png' },
-                                { id: 'coastal-bronze', name: 'Coastal Bronze', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png' },
-                                { id: 'pearl-white', name: 'Pearl White', price: 3500, image: '/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.png' },
+                                { id: 'sapphire-blue', name: 'Sapphire Blue', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp' },
+                                { id: 'ocean-blue', name: 'Ocean Blue', price: 3500, image: '/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.webp' },
+                                { id: 'night-sky', name: 'Night Sky', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.webp' },
+                                { id: 'shale-gray', name: 'Shale Gray', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp' },
+                                { id: 'coastal-bronze', name: 'Coastal Bronze', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp' },
+                                { id: 'pearl-white', name: 'Pearl White', price: 3500, image: '/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp' },
                               ];
                               
                               return (
@@ -3016,7 +3016,7 @@ const WonderlandsStudio = () => {
                                             }
                                           >
                                             <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                              <img
+                                              <img loading="lazy" decoding="async"
                                                 src={finish.image}
                                                 alt={finish.name}
                                                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3078,7 +3078,7 @@ const WonderlandsStudio = () => {
                                       }
                                     >
                                       <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                        <img
+                                        <img loading="lazy" decoding="async"
                                           src={ledge.image}
                                           alt={ledge.name}
                                           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3126,7 +3126,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img src={tier.image} alt={tier.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
+                                      <img loading="lazy" decoding="async" src={tier.image} alt={tier.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
                                     </div>
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{tier.name}</p>
@@ -3200,7 +3200,7 @@ const WonderlandsStudio = () => {
                                         }
                                       >
                                         <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                          <img src={grass.image} alt={grass.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
+                                          <img loading="lazy" decoding="async" src={grass.image} alt={grass.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
                                         </div>
                                         <div className="flex flex-col gap-0.5">
                                           <p className="text-xs font-medium text-center truncate">{grass.name}</p>
@@ -3268,7 +3268,7 @@ const WonderlandsStudio = () => {
                                     }}
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={paver.image}
                                         alt={paver.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3341,7 +3341,7 @@ const WonderlandsStudio = () => {
                           >
                             <CarouselContent className="-ml-1">
                             {[
-                                { key: "standard", name: "Wonder Cage", price: 22, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                                { key: "standard", name: "Wonder Cage", price: 22, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp" },
                                 { key: "deluxe", name: "Deluxe", price: 24, image: screenEnclosureDeluxe },
                                 { key: "premium", name: "2 Stories", price: 26, image: screenEnclosurePremium },
                               ].map((quality) => (
@@ -3357,7 +3357,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={quality.image}
                                         alt={quality.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3524,7 +3524,7 @@ const WonderlandsStudio = () => {
                                           }
                                         >
                                           <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                            <img
+                                            <img loading="lazy" decoding="async"
                                               src={heater.image}
                                               alt={heater.name}
                                               className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"

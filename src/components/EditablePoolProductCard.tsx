@@ -25,15 +25,15 @@ import { getProductsByCompatiblePool } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles } from '@/data/poolData';
 
 // Import finish images
-import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
-import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
-import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
-import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
-import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
-import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
-import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
-import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
-import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
+import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
+import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.webp';
+import nightSkyFinish from '@/assets/finishes/night-sky-g3.webp';
+import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.webp';
+import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.webp';
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
+import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.webp';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 
 interface Pool {
   model: string;
@@ -384,7 +384,7 @@ const EditablePoolProductCard = ({
         onClick={handleImageClick}
       >
         {currentPoolImage ? (
-          <img 
+          <img loading="lazy" decoding="async" 
             src={currentPoolImage} 
             alt={editedPool.model}
             className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
@@ -629,8 +629,8 @@ const EditablePoolProductCard = ({
                   />
                  <div className="flex items-center gap-2">
                   <Thermometer className="h-4 w-4 text-orange-500" />
-                  <img 
-                    src="/src/assets/pool-heater.png"
+                  <img loading="lazy" decoding="async" 
+                    src="/src/assets/pool-heater.webp"
                     alt="Pool Heater"
                     className="w-4 h-4 object-cover rounded"
                     onError={(e) => {
@@ -726,7 +726,7 @@ const EditablePoolProductCard = ({
                             onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
                           >
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={tile.image} 
                                 alt={tile.name}
                                 className="w-full h-full object-cover"
@@ -769,7 +769,7 @@ const EditablePoolProductCard = ({
                             onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
                           >
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={finish.image} 
                                 alt={finish.name}
                                 className="w-full h-full object-cover"
@@ -812,7 +812,7 @@ const EditablePoolProductCard = ({
                             onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
                           >
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={liner.image} 
                                 alt={liner.name}
                                 className="w-full h-full object-cover"
@@ -856,7 +856,7 @@ const EditablePoolProductCard = ({
                               onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))}
                             >
                               <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                <img 
+                                <img loading="lazy" decoding="async" 
                                   src={spa.image} 
                                   alt={spa.model}
                                   className="w-full h-full object-cover"
@@ -891,7 +891,7 @@ const EditablePoolProductCard = ({
                               onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))}
                             >
                               <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                <img 
+                                <img loading="lazy" decoding="async" 
                                   src={ledge.image} 
                                   alt={ledge.name}
                                   className="w-full h-full object-cover"

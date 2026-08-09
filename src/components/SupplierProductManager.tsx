@@ -327,7 +327,7 @@ const SupplierProductManager = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex space-x-4">
                     {product.image_url && (
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={product.image_url}
                         alt={product.name}
                         className="w-16 h-16 rounded object-cover"

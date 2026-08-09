@@ -133,7 +133,7 @@ const LinersSection = ({
                       <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
                         {/* Full Background Image */}
                         <div className="relative h-56 sm:h-64 overflow-hidden">
-                          <img src={liner.image} alt={liner.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
                             <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
                               <Badge className={`${getTypeColor(liner.subcategory || 'Glass')} text-white capitalize font-medium px-2 py-0.5 sm:px-3 sm:py-1 text-xs sm:text-sm`}>
@@ -196,7 +196,7 @@ const LinersSection = ({
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <img src={selectedLiner.image} alt={selectedLiner.name} className="w-full h-48 sm:h-64 object-cover rounded-lg" />
+                  <img loading="lazy" decoding="async" src={selectedLiner.image} alt={selectedLiner.name} className="w-full h-48 sm:h-64 object-cover rounded-lg" />
                 </div>
                 <div className="space-y-3 sm:space-y-4">
                   <Badge className={`${getTypeColor(selectedLiner.subcategory || 'Glass')} text-white text-xs sm:text-sm`}>

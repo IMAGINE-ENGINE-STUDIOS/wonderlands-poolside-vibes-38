@@ -28,9 +28,9 @@ import { useToast } from "@/hooks/use-toast";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { paverTypes } from "@/data/paverData";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
-import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
-import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
-import serenityImage from "@/assets/serenitykit.jpg";
+import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.webp";
+import maldivesImage from "@/assets/maldiveskit-castlerock.webp";
+import serenityImage from "@/assets/serenitykit.webp";
 import grassLightGreenImage from "@/assets/grass-light-green.avif";
 import grassDarkGreenImage from "@/assets/grass-dark-green.avif";
 import grassNaturalGreenImage from "@/assets/grass-natural-green.avif";
@@ -386,7 +386,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
       <CardContent className="space-y-6">
         {/* Pool Image */}
         <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-          <img 
+          <img loading="lazy" decoding="async" 
             src={pool.image} 
             alt={`${pool.brand} ${pool.model}`}
             className="w-full h-full object-cover"

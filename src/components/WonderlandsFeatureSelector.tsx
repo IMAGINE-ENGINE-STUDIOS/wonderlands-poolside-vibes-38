@@ -172,7 +172,7 @@ export const WonderlandsFeatureSelector = ({
                         >
                           {/* Option Image */}
                           <div className="aspect-square mb-2 overflow-hidden rounded bg-muted">
-                            <img
+                            <img loading="lazy" decoding="async"
                               src={option.image}
                               alt={option.name}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"

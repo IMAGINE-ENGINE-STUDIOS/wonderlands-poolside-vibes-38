@@ -177,7 +177,7 @@ const poolOptions: PoolOption[] = [
     description: 'Premium aluminum frame with standard screen mesh - $22/sq ft',
     price: 0,
     category: 'screen-enclosure',
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp'
   },
   { 
     id: 'screen-standard-2-story', 
@@ -185,7 +185,7 @@ const poolOptions: PoolOption[] = [
     description: 'Reinforced aluminum frame for two-story applications - $26/sq ft',
     price: 0,
     category: 'screen-enclosure',
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp'
   },
   { 
     id: 'screen-deluxe-1-story', 
@@ -193,7 +193,7 @@ const poolOptions: PoolOption[] = [
     description: 'Enhanced aluminum frame with upgraded mesh - $24/sq ft',
     price: 0,
     category: 'screen-enclosure',
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp'
   },
   { 
     id: 'screen-premium-1-story', 
@@ -201,7 +201,7 @@ const poolOptions: PoolOption[] = [
     description: 'High-end aluminum frame with superior screen mesh - $26/sq ft',
     price: 0,
     category: 'screen-enclosure',
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp'
   },
   { 
     id: 'screen-premium-2-story', 
@@ -209,7 +209,7 @@ const poolOptions: PoolOption[] = [
     description: 'Premium two-story screen enclosure with enhanced features - $26/sq ft',
     price: 0,
     category: 'screen-enclosure',
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp'
   },
 ];
 

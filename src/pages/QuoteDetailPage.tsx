@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import ImageCard from '@/components/ImageCard';
-import poolHeaterImg from '@/assets/pool-heater.png';
+import poolHeaterImg from '@/assets/pool-heater.webp';
 import InvoiceGenerator from '@/components/InvoiceGenerator';
 import { DEFAULT_PAVER_PRICE_PER_SQFT } from "@/utils/paverPricing";
 
@@ -161,7 +161,7 @@ const QuoteDetailPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <ImageCard 
-                  src="/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png" 
+                  src="/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.webp" 
                   alt="Wonderlands Logo" 
                   className="h-16 w-16" 
                   enableZoom={false} 
@@ -266,7 +266,7 @@ const QuoteDetailPage = () => {
                     <h4 className="font-semibold mb-2 text-teal-600">Property Photos</h4>
                     {quote.processed_image_url && (
                       <div className="mb-2">
-                        <img 
+                        <img loading="lazy" decoding="async" 
                           src={quote.processed_image_url} 
                           alt="Processed property" 
                           className="w-full h-32 rounded-lg border border-teal-200 object-cover"
@@ -292,7 +292,7 @@ const QuoteDetailPage = () => {
                           return (
                             <div className="mb-3">
                               <OptimizedImage 
-                                src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" 
+                                src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp" 
                                 alt={option.name} 
                                 className="w-full h-20 rounded-md border border-orange-200 object-cover"
                                 sizeConfig="quoteImage"
@@ -304,7 +304,7 @@ const QuoteDetailPage = () => {
                         if (option.name?.toLowerCase().includes('heater') || option.name?.toLowerCase().includes('heat pump')) {
                           return (
                             <div className="mb-3">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={poolHeaterImg} 
                                 alt={option.name} 
                                 className="w-full h-20 rounded-md border border-orange-200 object-cover"
@@ -317,7 +317,7 @@ const QuoteDetailPage = () => {
                           return (
                             <div className="mb-3">
                               <OptimizedImage 
-                                src="/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png" 
+                                src="/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp" 
                                 alt={option.name} 
                                 className="w-full h-20 rounded-md border border-orange-200 object-cover"
                                 sizeConfig="quoteImage"
@@ -330,7 +330,7 @@ const QuoteDetailPage = () => {
                           return (
                             <div className="mb-3">
                               <OptimizedImage 
-                                src="/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png" 
+                                src="/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.webp" 
                                 alt={option.name} 
                                 className="w-full h-20 rounded-md border border-orange-200 object-cover"
                                 sizeConfig="quoteImage"

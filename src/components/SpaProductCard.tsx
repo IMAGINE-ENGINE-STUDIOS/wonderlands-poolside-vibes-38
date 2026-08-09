@@ -16,18 +16,18 @@ import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
 import { getPaverPricePerSqFt, calculatePaverCost } from "@/utils/paverPricing";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
-import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
-import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
-import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
-import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
-import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
-import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
-import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
-import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
-import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
+import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
+import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.webp';
+import nightSkyFinish from '@/assets/finishes/night-sky-g3.webp';
+import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.webp';
+import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.webp';
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
+import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.webp';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
 import { resolveCategoryLabel } from '@/lib/productCategories';
 interface Pool {
   model: string;
@@ -135,22 +135,22 @@ import { poolLiners, poolTiles } from '@/data/poolData';
 const spaHeaters = [{
   name: 'Spa Heat Pump - Compact',
   price: 5250,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
   description: 'Compact heat pump designed for spas'
 }, {
   name: 'Spa Heat Pump - Premium',
   price: 6750,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
   description: 'Premium spa heat pump with digital controls'
 }, {
   name: 'Spa Gas Heater',
   price: 4200,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
   description: 'Efficient gas heater for quick spa heating'
 }, {
   name: 'Solar Spa Heater',
   price: 3300,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
   description: 'Eco-friendly solar heating for spas'
 }];
 
@@ -396,7 +396,7 @@ const SpaProductCard = ({
   return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Spa Image at top */}
       <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick}>
-        {currentPoolImage ? <img src={currentPoolImage} alt={spa.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
+        {currentPoolImage ? <img loading="lazy" decoding="async" src={currentPoolImage} alt={spa.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
             <Waves size={48} className="text-primary/60" />
           </div>}
         
@@ -547,7 +547,7 @@ const SpaProductCard = ({
                       });
                     }
                   }}>
-                            {tile.image ? <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
+                            {tile.image ? <img loading="lazy" decoding="async" src={tile.image} alt={tile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
                                 <div className="w-3 h-3 bg-teal rounded-full"></div>
                               </div>}
                           </div>
@@ -587,7 +587,7 @@ const SpaProductCard = ({
                       });
                     }
                   }}>
-                            {liner.image ? <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
+                            {liner.image ? <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
                                 <div className="w-3 h-3 bg-secondary rounded-full"></div>
                               </div>}
                           </div>
@@ -628,7 +628,7 @@ const SpaProductCard = ({
                       description: heater.description
                     });
                   }}>
-                            <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
+                            <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
                           </div>
                           <p className="text-xs font-medium text-center">{heater.name}</p>
                           <p className="text-xs text-teal font-semibold text-center">+${heater.price.toLocaleString()}</p>
@@ -665,7 +665,7 @@ const SpaProductCard = ({
                       description: paver.description
                     });
                   }}>
-                          <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
+                          <img loading="lazy" decoding="async" src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <p className="text-xs font-medium text-center">{paver.name}</p>
                         {paver.collection !== 'none' && <p className="text-[10px] text-secondary font-semibold text-center capitalize">{paver.collection}</p>}

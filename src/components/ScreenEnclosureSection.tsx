@@ -1,5 +1,5 @@
 import { useState } from "react";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,14 +21,14 @@ const screenEnclosureOptions: ScreenEnclosureOption[] = [{
   name: "Standard Screen Enclosure",
   type: "standard",
   pricePerSqFt: 22,
-  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp",
   description: "Basic aluminum frame screen enclosure with standard mesh screening",
   features: ["Aluminum Frame", "Standard Screen Mesh", "Basic Hardware", "5-Year Warranty"]
 }, {
   name: "Deluxe Screen Enclosure",
   type: "standard",
   pricePerSqFt: 24,
-  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp",
   description: "Enhanced aluminum frame with upgraded mesh and hardware",
   features: ["Enhanced Aluminum Frame", "Premium Screen Mesh", "Upgraded Hardware", "10-Year Warranty"]
 }, {
@@ -102,7 +102,7 @@ const ScreenEnclosureSection = () => {
                 <CardContent className="space-y-4">
                   {/* Enclosure Preview */}
                   <div className="w-full h-48 rounded-lg overflow-hidden border-2 border-muted">
-                    <img src={enclosure.image} alt={enclosure.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    <img loading="lazy" decoding="async" src={enclosure.image} alt={enclosure.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                   </div>
                   
                   {/* Price */}
@@ -191,7 +191,7 @@ const ScreenEnclosureSection = () => {
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <img src={selectedEnclosure.image} alt={selectedEnclosure.name} className="w-full h-64 object-cover rounded-lg mb-4" />
+                  <img loading="lazy" decoding="async" src={selectedEnclosure.image} alt={selectedEnclosure.name} className="w-full h-64 object-cover rounded-lg mb-4" />
                   
                   <div className="space-y-2">
                     <h4 className="font-semibold">Features:</h4>

@@ -131,7 +131,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
       
       {job.image_url && (
         <div className="h-32 bg-gradient-to-r from-primary/10 to-teal/10 relative overflow-hidden">
-          <img 
+          <img loading="lazy" decoding="async" 
             src={job.image_url} 
             alt={job.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 

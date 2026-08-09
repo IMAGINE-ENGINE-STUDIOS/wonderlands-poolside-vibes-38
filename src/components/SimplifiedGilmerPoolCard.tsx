@@ -19,8 +19,8 @@ import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu, Droplets } from 'lucide-react';
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 
 interface SimplifiedGilmerPoolCardProps {
@@ -39,9 +39,9 @@ interface SimplifiedGilmerPoolCardProps {
   };
 }
 
-import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
-import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
-import serenityImage from "@/assets/serenitykit.jpg";
+import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.webp";
+import maldivesImage from "@/assets/maldiveskit-castlerock.webp";
+import serenityImage from "@/assets/serenitykit.webp";
 
 interface GilmerOptions {
   colorFinish: string;
@@ -145,7 +145,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
   // Pool tile options
   const tileOptions = [
-    { name: 'Standard Waterline', price: 0, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png' },
+    { name: 'Standard Waterline', price: 0, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.webp' },
     ...poolTiles.map(tile => ({ name: tile.name, price: tile.price, image: tile.image }))
   ];
 
@@ -522,7 +522,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               >
                 <CarouselContent className="-ml-1">
                   {[
-                    { key: "standard", name: "Wonder Cage", price: SCREEN_ENCLOSURE_PRICING.standard, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                    { key: "standard", name: "Wonder Cage", price: SCREEN_ENCLOSURE_PRICING.standard, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp" },
                     { key: "deluxe", name: "Deluxe", price: SCREEN_ENCLOSURE_PRICING.deluxe, image: screenEnclosureDeluxe },
                     { key: "premium", name: "2 Stories", price: SCREEN_ENCLOSURE_PRICING.premium, image: screenEnclosurePremium },
                   ].map((quality) => (
@@ -534,7 +534,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                         onClick={() => updateOption('screenEnclosureQuality', quality.key)}
                       >
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={quality.image} 
                             alt={quality.name} 
                             className="w-full h-full object-cover" 
@@ -1036,7 +1036,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               price: parseFloat(options.paverSurfaceArea) * (paverOptions.find(p => p.name === options.paverOption)?.pricePerSqFt || 20),
               description: `${options.paverSurfaceArea} sq ft at $${paverOptions.find(p => p.name === options.paverOption)?.pricePerSqFt || 20} per sq ft`,
               category: 'pavers',
-              image: paverOptions.find(p => p.name === options.paverOption)?.image || '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+              image: paverOptions.find(p => p.name === options.paverOption)?.image || '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp'
             }] : []),
             ...(options.tiles ? [{ 
               name: `Pool Tiles: ${options.tileOption}`, 

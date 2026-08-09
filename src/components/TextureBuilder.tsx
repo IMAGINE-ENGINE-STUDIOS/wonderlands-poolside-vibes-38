@@ -216,7 +216,7 @@ export const TextureBuilder = ({ onTexturesChange, currentTextures = [] }: Textu
                 <>
                   {previewVisible[texture.id] && (
                     <div className="relative w-full h-20 rounded overflow-hidden bg-muted">
-                      <img 
+                      <img loading="lazy" decoding="async" 
                         src={texture.preview} 
                         alt={texture.name}
                         className="w-full h-full object-cover"

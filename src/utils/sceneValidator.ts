@@ -4,7 +4,7 @@ import { Scene3D, TextureConfig } from '@/components/scene3d/types';
  * Default texture configuration for fallback
  */
 const DEFAULT_FINISH_TEXTURE: TextureConfig = {
-  url: '/textures/finishes/sapphire-blue-g3.jpg',
+  url: '/textures/finishes/sapphire-blue-g3.webp',
   name: 'Default Finish',
   roughness: 0.3,
   metalness: 0.2,
@@ -22,7 +22,7 @@ const DEFAULT_PAVER_TEXTURE: TextureConfig = {
 };
 
 const DEFAULT_COPING_TEXTURE: TextureConfig = {
-  url: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+  url: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp',
   name: 'Default Coping',
   roughness: 0.6,
   metalness: 0.0,

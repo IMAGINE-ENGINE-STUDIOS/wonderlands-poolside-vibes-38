@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <OptimizedImage src="/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.png" alt="Wonderlands Logo" className="w-12 h-12" sizeConfig="logoSmall" />
+              <OptimizedImage src="/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.webp" alt="Wonderlands Logo" className="w-12 h-12" sizeConfig="logoSmall" />
               <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
                 Wonderlands
               </h3>

@@ -19,16 +19,37 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ["react", "react-dom", "react/jsx-runtime"],
+    dedupe: [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      // A second copy of three used to be pulled in through drei/postprocessing,
+      // shipping the engine twice and warning at runtime.
+      "three",
+      "@react-three/fiber",
+    ],
   },
   build: {
     cssCodeSplit: false,
     sourcemap: false,
     minify: 'esbuild',
     target: 'es2020',
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        // Split the heavy, rarely-changing libraries out of the entry chunk so
+        // the first screen does not wait on 3D/chart/PDF code it never uses.
+        manualChunks: (id) => {
+          if (!id.includes('node_modules')) return undefined;
+          if (/three|@react-three|postprocessing/.test(id)) return 'vendor-three';
+          if (/react-dom|scheduler|\/react\//.test(id)) return 'vendor-react';
+          if (/@supabase/.test(id)) return 'vendor-supabase';
+          if (/recharts|d3-/.test(id)) return 'vendor-charts';
+          if (/jspdf|html2canvas|pdfjs/.test(id)) return 'vendor-pdf';
+          if (/@radix-ui|embla|lucide-react/.test(id)) return 'vendor-ui';
+          return 'vendor';
+        },
+
         assetFileNames: (assetInfo) => {
           if (assetInfo.name && assetInfo.name.endsWith('.css')) {
             return 'assets/css/[name]-[hash][extname]';

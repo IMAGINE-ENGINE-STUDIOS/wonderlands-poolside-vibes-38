@@ -242,7 +242,7 @@ const ImageEditor = ({ isOpen, onClose, onImageSave, currentImage }: ImageEditor
 
               {/* Image Display with Crop Overlay */}
               <div className="relative max-w-full max-h-96 overflow-hidden border rounded-lg">
-                <img
+                <img loading="lazy" decoding="async"
                   ref={imageRef}
                   src={selectedImage}
                   alt="Edit"

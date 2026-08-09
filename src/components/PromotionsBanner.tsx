@@ -61,7 +61,7 @@ const PromotionsBanner = ({ variant = 'light' }: PromotionsBannerProps) => {
               <div className="flex flex-col md:flex-row">
                 {promo.image_url && (
                   <div className="w-full md:w-48 h-40 md:h-auto flex-shrink-0">
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={promo.image_url}
                       alt={promo.name}
                       className="w-full h-full object-cover"

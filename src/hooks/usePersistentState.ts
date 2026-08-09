@@ -12,10 +12,10 @@ export function usePersistentState<T>(
 ): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [value, setValue] = React.useState<T>(() => cacheRead(key, initialValue));
 
-  // Write is debounced with rAF so rapid typing/dragging never blocks paint.
+  // cacheWrite coalesces per key and flushes on idle, so rapid typing,
+  // dragging or cart edits never trigger synchronous localStorage I/O.
   React.useEffect(() => {
-    const frame = requestAnimationFrame(() => cacheWrite(key, value));
-    return () => cancelAnimationFrame(frame);
+    cacheWrite(key, value);
   }, [key, value]);
 
   return [value, setValue];

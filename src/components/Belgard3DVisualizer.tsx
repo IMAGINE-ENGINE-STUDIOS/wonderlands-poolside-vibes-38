@@ -129,7 +129,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   return <Card className="group bg-card border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       <div className="relative aspect-[16/10] bg-muted overflow-hidden rounded-t-lg">
         {!isViewing3D ? (
-          <img 
+          <img loading="lazy" decoding="async" 
             src={room.image} 
             alt={room.name} 
             className="absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-transform duration-300 group-hover:scale-105" 
@@ -282,7 +282,7 @@ export const Belgard3DVisualizer: React.FC = () => {
 
       {/* Lightbox Modal */}
       {lightboxImage && <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={closeLightbox}>
-          <img src={lightboxImage.src} alt={lightboxImage.alt} className="max-w-[92vw] max-h-[92vh] object-contain rounded-lg" onClick={e => e.stopPropagation()} />
+          <img loading="lazy" decoding="async" src={lightboxImage.src} alt={lightboxImage.alt} className="max-w-[92vw] max-h-[92vh] object-contain rounded-lg" onClick={e => e.stopPropagation()} />
           <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:bg-white/20" onClick={closeLightbox}>
             ×
           </Button>

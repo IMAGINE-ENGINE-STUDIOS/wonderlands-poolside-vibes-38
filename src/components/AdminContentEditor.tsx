@@ -280,7 +280,7 @@ const AdminContentEditor = ({ isOpen, onClose }: AdminContentEditorProps) => {
                         onClick={() => editMode && editElement(element)}
                       >
                         {element.type === 'image' ? (
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={element.content} 
                             alt="Uploaded" 
                             className="w-full h-full object-cover rounded"

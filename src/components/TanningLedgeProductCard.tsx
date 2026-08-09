@@ -12,15 +12,15 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { paverTypes } from "@/data/paverData";
-import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
-import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
-import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
-import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
-import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
-import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
-import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
-import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
-import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
+import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
+import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.webp';
+import nightSkyFinish from '@/assets/finishes/night-sky-g3.webp';
+import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.webp';
+import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.webp';
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
+import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.webp';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 interface TanningLedge {
   name: string;
@@ -84,12 +84,12 @@ const getExtraPrice = (extra: string) => {
 const ledgeHeaters = [{
   name: 'Pentair MasterTemp 125 (125K BTU)',
   price: 3450,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Compact high-efficiency gas heater'
 }, {
   name: 'Pentair UltraTemp 90 Heat Pump',
   price: 7762,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Energy-efficient heat pump for tanning ledges'
 }];
 
@@ -231,7 +231,7 @@ const TanningLedgeProductCard = ({
   return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-coral/40 overflow-hidden">
       {/* Edge-to-edge Tanning Ledge Image at top */}
       <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-coral/10 to-orange/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick}>
-        {currentLedgeImage ? <img src={currentLedgeImage} alt={ledge.name} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-coral/20 to-orange/20">
+        {currentLedgeImage ? <img loading="lazy" decoding="async" src={currentLedgeImage} alt={ledge.name} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-coral/20 to-orange/20">
             <Sun size={48} className="text-coral/60" />
           </div>}
         
@@ -327,7 +327,7 @@ const TanningLedgeProductCard = ({
                   finish: finish.name
                 }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
+                          <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
@@ -352,7 +352,7 @@ const TanningLedgeProductCard = ({
                   paverOption: paver.name
                 }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
+                          <img loading="lazy" decoding="async" src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
@@ -398,7 +398,7 @@ const TanningLedgeProductCard = ({
                   ...prev,
                   heaterModel: heater.name
                 }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'}`}>
-                          <img src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
+                          <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
                           <div className="flex-1 text-left">
                             <div>{heater.name}</div>
                             <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
@@ -469,7 +469,7 @@ const TanningLedgeProductCard = ({
                 extrasBreakdown.push({
                   name: `Tanning Ledge Jets (${extras.jetQuantity})`,
                   price: getExtraPrice('jets') * extras.jetQuantity,
-                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
                 });
               }
 
@@ -478,7 +478,7 @@ const TanningLedgeProductCard = ({
                 extrasBreakdown.push({
                   name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
                   price: parseFloat(paverSurfaceArea) * 15,
-                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp'
                 });
               }
               const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);

@@ -135,7 +135,7 @@ const LivePreview = ({ formData, requirements, attachments, customFields }: Live
                   <div key={attachment.id} className="relative group">
                     {attachment.type === 'image' && attachment.preview ? (
                       <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-                        <img 
+                        <img loading="lazy" decoding="async" 
                           src={attachment.preview} 
                           alt="Preview" 
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"

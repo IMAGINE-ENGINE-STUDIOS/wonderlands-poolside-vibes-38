@@ -410,8 +410,8 @@ const InvoiceDetailPage = () => {
           <div className="bg-gradient-to-r from-primary to-coral p-8 text-white">
             <div className="flex justify-between items-start">
               <div>
-                <img
-                  src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
+                <img loading="lazy" decoding="async"
+                  src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.webp"
                   alt="Wonderlands Logo"
                   className="h-16 mb-4 object-contain"
                 />

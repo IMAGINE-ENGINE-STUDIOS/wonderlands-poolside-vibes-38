@@ -445,7 +445,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
         {/* Small thumbnail */}
         {group.cover_image_url ? (
-          <img
+          <img loading="lazy" decoding="async"
             src={group.cover_image_url}
             alt={group.project_name}
             className="h-10 w-16 rounded object-cover flex-shrink-0"
@@ -488,7 +488,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           {/* Cover image */}
           {group.cover_image_url && (
             <div className="relative aspect-[3/1] w-full">
-              <img
+              <img loading="lazy" decoding="async"
                 src={group.cover_image_url}
                 alt={group.project_name}
                 className="w-full h-full object-cover"

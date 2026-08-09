@@ -1,31 +1,31 @@
 // Glimmerglass Pools Data - 2025 Georgia Pricing (Dealer Price × 3.5) + $10K Out-of-State Delivery
-import gilmerAloha from '@/assets/gilmer-aloha.png';
-import gilmerAtlantis from '@/assets/gilmer-atlantis.png';
-import gilmerBeachcomber from '@/assets/gilmer-beachcomber.png';
-import gilmerBallagio from '@/assets/gilmer-ballagio.png';
-import gilmerCapri from '@/assets/gilmer-capri.png';
-import gilmerCaribbean from '@/assets/gilmer-caribbean.png';
-import gilmerCoralCove from '@/assets/gilmer-coral-cove.png';
-import gilmerCostaBrava from '@/assets/gilmer-costa-brava.png';
-import gilmerEmerald from '@/assets/gilmer-emerald.png';
-import gilmerGoldCoast from '@/assets/gilmer-gold-coast.png';
-import gilmerGrandCayman from '@/assets/gilmer-grand-cayman.png';
-import gilmerIslander from '@/assets/gilmer-islander.png';
-import gilmerMajestic from '@/assets/gilmer-majestic.png';
-import gilmerMystic from '@/assets/gilmer-mystic.png';
-import gilmerNeptune from '@/assets/gilmer-neptune.png';
-import gilmerNewport from '@/assets/gilmer-newport.png';
-import gilmerPonceXL from '@/assets/gilmer-ponce-xl.png';
-import gilmerRegalPlunge from '@/assets/gilmer-regal-plunge.png';
-import gilmerRetreat from '@/assets/gilmer-retreat.png';
-import gilmerRoman from '@/assets/gilmer-roman.png';
-import gilmerSerafina from '@/assets/gilmer-serafina.png';
-import gilmerSerenade from '@/assets/gilmer-serenade.png';
-import gilmerSilverShore from '@/assets/gilmer-silver-shore.png';
-import gilmerRegal from '@/assets/gilmer-regal.png';
-import gilmerSuperior from '@/assets/gilmer-superior.png';
-import gilmerTortola from '@/assets/gilmer-tortola.png';
-import gilmerVision from '@/assets/gilmer-vision.png';
+import gilmerAloha from '@/assets/gilmer-aloha.webp';
+import gilmerAtlantis from '@/assets/gilmer-atlantis.webp';
+import gilmerBeachcomber from '@/assets/gilmer-beachcomber.webp';
+import gilmerBallagio from '@/assets/gilmer-ballagio.webp';
+import gilmerCapri from '@/assets/gilmer-capri.webp';
+import gilmerCaribbean from '@/assets/gilmer-caribbean.webp';
+import gilmerCoralCove from '@/assets/gilmer-coral-cove.webp';
+import gilmerCostaBrava from '@/assets/gilmer-costa-brava.webp';
+import gilmerEmerald from '@/assets/gilmer-emerald.webp';
+import gilmerGoldCoast from '@/assets/gilmer-gold-coast.webp';
+import gilmerGrandCayman from '@/assets/gilmer-grand-cayman.webp';
+import gilmerIslander from '@/assets/gilmer-islander.webp';
+import gilmerMajestic from '@/assets/gilmer-majestic.webp';
+import gilmerMystic from '@/assets/gilmer-mystic.webp';
+import gilmerNeptune from '@/assets/gilmer-neptune.webp';
+import gilmerNewport from '@/assets/gilmer-newport.webp';
+import gilmerPonceXL from '@/assets/gilmer-ponce-xl.webp';
+import gilmerRegalPlunge from '@/assets/gilmer-regal-plunge.webp';
+import gilmerRetreat from '@/assets/gilmer-retreat.webp';
+import gilmerRoman from '@/assets/gilmer-roman.webp';
+import gilmerSerafina from '@/assets/gilmer-serafina.webp';
+import gilmerSerenade from '@/assets/gilmer-serenade.webp';
+import gilmerSilverShore from '@/assets/gilmer-silver-shore.webp';
+import gilmerRegal from '@/assets/gilmer-regal.webp';
+import gilmerSuperior from '@/assets/gilmer-superior.webp';
+import gilmerTortola from '@/assets/gilmer-tortola.webp';
+import gilmerVision from '@/assets/gilmer-vision.webp';
 
 export const gilmerPools = [
   // Small & Compact Models
@@ -100,7 +100,7 @@ export const gilmerPools = [
     dimensions: "8'2\" x 20'",
     depth: "3'6\" - 5'",
     price: 57750,
-    image: "/lovable-uploads/gilmer-extreme-27.jpeg",
+    image: "/lovable-uploads/gilmer-extreme-27.webp",
     warranty: "Life Warranty",
     brand: "Glimmerglass",
     type: "Fiber Pool",
@@ -260,11 +260,11 @@ export const gilmerPools = [
     dimensions: "12'6\" x 27'",
     depth: "3'6\" - 5'11\"",
     price: 66500,
-    image: "/lovable-uploads/gilmer-extreme-27.jpeg",
+    image: "/lovable-uploads/gilmer-extreme-27.webp",
     media: [
-      { type: 'image' as const, url: "/lovable-uploads/gilmer-extreme-27.jpeg", alt: "Extreme 27 main view" },
-      { type: 'image' as const, url: "/lovable-uploads/gilmer-extreme-38.jpeg", alt: "Extreme 27 side view" },
-      { type: 'image' as const, url: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png", alt: "Extreme 27 installed" }
+      { type: 'image' as const, url: "/lovable-uploads/gilmer-extreme-27.webp", alt: "Extreme 27 main view" },
+      { type: 'image' as const, url: "/lovable-uploads/gilmer-extreme-38.webp", alt: "Extreme 27 side view" },
+      { type: 'image' as const, url: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp", alt: "Extreme 27 installed" }
     ],
     warranty: "Life Warranty",
     brand: "Glimmerglass",
@@ -345,7 +345,7 @@ export const gilmerPools = [
     dimensions: "15'6\" x 38'",
     depth: "3'6\" - 7'",
     price: 92750,
-    image: "/lovable-uploads/gilmer-extreme-38.jpeg",
+    image: "/lovable-uploads/gilmer-extreme-38.webp",
     warranty: "Life Warranty",
     brand: "Glimmerglass",
     type: "Fiber Pool",

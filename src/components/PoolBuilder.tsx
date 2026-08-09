@@ -23,8 +23,8 @@ import { PointCoordinateEditor } from './poolBuilder/PointCoordinateEditor';
 import { SplineDrawTutorial } from './poolBuilder/SplineDrawTutorial';
 import { snapToGridRelative, calculateProjectCost, getDeckPricePerSqFt, getCopingPricePerSqFt, FEATURE_COSTS as CENTRALIZED_FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { ShapeRepository } from './ShapeRepository';
-import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
-import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
+import poolTextureSapphire from '@/assets/pool-texture-sapphire.webp';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';
@@ -1465,31 +1465,31 @@ export function PoolBuilder({
   const finishes = [{
     id: 'aquamarine',
     name: 'Aquamarine',
-    image: '/textures/finishes/aquamarine-g3.jpg'
+    image: '/textures/finishes/aquamarine-g3.webp'
   }, {
     id: 'azure',
     name: 'Azure Blue',
-    image: '/textures/finishes/azure-blue-g2.jpg'
+    image: '/textures/finishes/azure-blue-g2.webp'
   }, {
     id: 'lagoon',
     name: 'Lagoon Blue',
-    image: '/textures/finishes/lagoon-blue-g2.jpg'
+    image: '/textures/finishes/lagoon-blue-g2.webp'
   }, {
     id: 'ocean',
     name: 'Ocean Blue',
-    image: '/textures/finishes/ocean-blue-g3.jpg'
+    image: '/textures/finishes/ocean-blue-g3.webp'
   }, {
     id: 'sapphire',
     name: 'Sapphire Blue',
-    image: '/textures/finishes/sapphire-blue-g3.jpg'
+    image: '/textures/finishes/sapphire-blue-g3.webp'
   }, {
     id: 'coastal',
     name: 'Coastal Bronze',
-    image: '/textures/finishes/coastal-bronze-g3.jpg'
+    image: '/textures/finishes/coastal-bronze-g3.webp'
   }, {
     id: 'pearl',
     name: 'Athens Pearl White',
-    image: '/textures/finishes/athens-pearl-white-g3.jpg'
+    image: '/textures/finishes/athens-pearl-white-g3.webp'
   }];
 
   // Load textures with LOD system
@@ -1497,8 +1497,8 @@ export function PoolBuilder({
     const selectedPaver = paverTypes.find(p => p.id === selectedPaverId);
     const selectedCoping = paverTypes.find(p => p.id === selectedCopingId);
     const selectedFinish = finishes.find(f => f.id === selectedFinishId);
-    const paverImage = selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
-    const copingImage = selectedCoping?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+    const paverImage = selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
+    const copingImage = selectedCoping?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
     const finishImage = selectedFinish?.image || aquamarineFinish;
 
     // Load all textures with LOD levels

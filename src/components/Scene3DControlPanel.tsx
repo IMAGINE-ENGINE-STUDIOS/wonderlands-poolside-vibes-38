@@ -676,7 +676,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                     className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all"
                     title={texture.name}
                   >
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={texture.url}
                       alt={texture.name}
                       className="w-full h-full object-cover"

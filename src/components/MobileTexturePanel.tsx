@@ -39,7 +39,7 @@ export function MobileTexturePanel({
             }`}
             title={texture.name}
           >
-            <img
+            <img loading="lazy" decoding="async"
               src={texture.url}
               alt={texture.name}
               className="w-full h-full object-cover"

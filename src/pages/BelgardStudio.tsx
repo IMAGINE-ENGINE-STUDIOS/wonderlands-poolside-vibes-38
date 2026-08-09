@@ -474,7 +474,7 @@ const BelgardStudio = () => {
                 <Card key={product.id} className="overflow-hidden">
                   <div className="aspect-video bg-muted relative">
                     {product.image_url ? (
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={product.image_url}
                         alt={product.name}
                         className="w-full h-full object-cover"

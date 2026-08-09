@@ -89,7 +89,7 @@ const TileDetailModal = ({ tile, isOpen, onClose }: TileDetailModalProps) => {
           {/* Image Section */}
           <div className="space-y-4">
             <div className="aspect-square overflow-hidden rounded-lg border">
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={tile.image} 
                 alt={tile.name}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"

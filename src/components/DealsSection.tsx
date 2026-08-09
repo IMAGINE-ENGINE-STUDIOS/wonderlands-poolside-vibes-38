@@ -11,8 +11,8 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import { saunas } from "@/data/saunaData";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { glimmerglassTanningLedges } from "@/data/poolData";
-import enchantment917Image from "@/assets/pools/enchantment-917.png";
-import cancunDeluxeImage from "@/assets/cancun-deluxe.png";
+import enchantment917Image from "@/assets/pools/enchantment-917.webp";
+import cancunDeluxeImage from "@/assets/cancun-deluxe.webp";
 
 // Best seller pool definitions (matching PoolCatalog pool structure)
 const bestSellerPools = [
@@ -20,7 +20,7 @@ const bestSellerPools = [
     model: "Bermuda 12",
     price: 56525,
     category: 'standard' as const,
-    image: "/lovable-uploads/bermuda-pool.png",
+    image: "/lovable-uploads/bermuda-pool.webp",
     dimensions: "12′ × 24′",
     depth: "3′ 6″ – 5′ 6″",
     installationTimeWeeks: 16,

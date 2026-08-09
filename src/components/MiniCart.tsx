@@ -46,7 +46,7 @@ const MiniCart = ({ onViewFullCart }: MiniCartProps) => {
         {displayItems.map((item) => (
           <div key={item.id} className="flex gap-2 p-2 rounded-lg hover:bg-muted/50">
             {item.image ? (
-              <img
+              <img loading="lazy" decoding="async"
                 src={item.image}
                 alt={item.name}
                 className="w-12 h-12 object-cover rounded flex-shrink-0"

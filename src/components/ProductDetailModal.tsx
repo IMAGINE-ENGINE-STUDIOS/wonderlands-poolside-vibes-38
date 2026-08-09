@@ -49,7 +49,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
           <div className="space-y-4">
             <div className="w-full h-80 bg-gradient-to-br from-primary/20 to-teal/20 rounded-lg overflow-hidden">
               {product.image ? (
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={product.image} 
                   alt={product.name}
                   className="w-full h-full object-cover"

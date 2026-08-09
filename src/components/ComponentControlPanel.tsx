@@ -196,7 +196,7 @@ export function ComponentControlPanel({
           {currentTexture && (
             <div className="bg-muted/50 rounded-lg p-3 space-y-2">
               <div className="text-xs font-medium text-muted-foreground">Current: {currentTexture.name}</div>
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={currentTexture.url} 
                 alt={currentTexture.name}
                 className="w-full h-24 object-cover rounded border border-border"
@@ -247,7 +247,7 @@ export function ComponentControlPanel({
                 } ${!isTextureGridVisible ? 'pointer-events-none' : ''}`}
                 title={texture.name}
               >
-                <img
+                <img loading="lazy" decoding="async"
                   src={texture.url}
                   alt={texture.name}
                   className="w-full h-20 object-cover group-hover:scale-110 transition-transform"

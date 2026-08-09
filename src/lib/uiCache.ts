@@ -5,13 +5,21 @@
  * we want to survive a reload: viewport + element scroll positions, search
  * queries, filters, active categories, product selections, cart panels, etc.
  *
- * Kept intentionally tiny and synchronous (localStorage) so reads happen during
- * the first render and the app repaints exactly where the user left it.
+ * Performance model:
+ *  - Reads are served from an in-memory map, so a hot path never pays for
+ *    `JSON.parse` more than once per key.
+ *  - Writes are coalesced per key and flushed on an idle callback (or a short
+ *    timeout fallback), so scroll/drag/typing bursts never block paint with
+ *    synchronous `localStorage` I/O.
+ *  - Anything that would exceed the sanity size limit is skipped rather than
+ *    thrashing the quota.
  */
 
 const PREFIX = 'wl_ui_';
 const VERSION_KEY = 'wl_ui_cache_version';
 const VERSION = '2';
+const MAX_ENTRY_BYTES = 256 * 1024; // per-key sanity cap
+const FLUSH_DELAY_MS = 400;
 
 // Drop the whole namespace when the shape/version changes (software update).
 try {
@@ -25,31 +33,95 @@ try {
   /* storage unavailable (private mode, quota) — cache simply disabled */
 }
 
+/** Hydrated values, keyed without the prefix. */
+const memory = new Map<string, unknown>();
+/** Keys whose in-memory value has not reached localStorage yet. */
+const dirty = new Set<string>();
+let flushHandle: number | null = null;
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+function serialize(value: unknown): string | null {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return null;
+  }
+}
+
+function flush(): void {
+  flushHandle = null;
+  if (!dirty.size) return;
+  const keys = Array.from(dirty);
+  dirty.clear();
+  for (const key of keys) {
+    const raw = serialize(memory.get(key));
+    if (raw === null || raw.length > MAX_ENTRY_BYTES) continue;
+    try {
+      localStorage.setItem(PREFIX + key, raw);
+    } catch {
+      /* quota exceeded — reclaim the biggest offender, then give up quietly */
+      try {
+        localStorage.removeItem(PREFIX + 'scroll_elements');
+        localStorage.setItem(PREFIX + key, raw);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+}
+
+function scheduleFlush(): void {
+  if (flushHandle !== null) return;
+  const w = window as IdleWindow;
+  if (typeof w.requestIdleCallback === 'function') {
+    flushHandle = w.requestIdleCallback(flush, { timeout: FLUSH_DELAY_MS });
+  } else {
+    flushHandle = window.setTimeout(flush, FLUSH_DELAY_MS);
+  }
+}
+
+/** Force pending writes out — used when the page is being hidden/unloaded. */
+export function cacheFlush(): void {
+  flush();
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush();
+  });
+}
+
 export function cacheRead<T>(key: string, fallback: T): T {
+  if (memory.has(key)) return memory.get(key) as T;
   try {
     const raw = localStorage.getItem(PREFIX + key);
-    if (raw === null) return fallback;
-    return JSON.parse(raw) as T;
+    if (raw === null) {
+      memory.set(key, fallback);
+      return fallback;
+    }
+    const parsed = JSON.parse(raw) as T;
+    memory.set(key, parsed);
+    return parsed;
   } catch {
     return fallback;
   }
 }
 
 export function cacheWrite(key: string, value: unknown): void {
-  try {
-    localStorage.setItem(PREFIX + key, JSON.stringify(value));
-  } catch {
-    /* quota exceeded — drop the oldest scroll map first, then give up */
-    try {
-      localStorage.removeItem('wl_scroll_elements_v1');
-      localStorage.setItem(PREFIX + key, JSON.stringify(value));
-    } catch {
-      /* ignore */
-    }
-  }
+  if (memory.get(key) === value) return; // identical reference, nothing to do
+  memory.set(key, value);
+  dirty.add(key);
+  scheduleFlush();
 }
 
 export function cacheRemove(key: string): void {
+  memory.delete(key);
+  dirty.delete(key);
   try {
     localStorage.removeItem(PREFIX + key);
   } catch {
@@ -77,4 +149,4 @@ export function elementPath(el: Element): string {
   return parts.join('>');
 }
 
-export default { cacheRead, cacheWrite, cacheRemove, elementPath };
+export default { cacheRead, cacheWrite, cacheRemove, cacheFlush, elementPath };
