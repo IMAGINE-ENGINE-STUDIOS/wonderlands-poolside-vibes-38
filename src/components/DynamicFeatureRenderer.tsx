@@ -133,13 +133,13 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                             });
                           }}
                         >
-                          <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+                          <div className="product-media-frame w-full aspect-[4/3] rounded-md mb-2 overflow-hidden flex-shrink-0 flex items-center justify-center p-1.5">
                             {option.image ? (
                               <img
                                 src={option.image}
                                 alt={option.name}
                                 loading="lazy"
-                                className="w-full h-full object-contain transition-transform duration-300 hover:scale-110"
+                                className="max-w-full max-h-full w-auto h-auto object-contain transition-transform duration-300 hover:scale-105"
                               />
                             ) : (
                               <span className="text-[10px] text-muted-foreground px-1 text-center">{option.name}</span>

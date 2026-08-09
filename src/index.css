@@ -35,6 +35,8 @@
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
+    /* Neutral plate behind product imagery (stays white in every theme) */
+    --product-media: 0 0% 100%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     --primary: 240 5.9% 10%;
@@ -87,6 +89,7 @@
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
+    --product-media: 0 0% 100%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
@@ -124,6 +127,7 @@
     --background: 220 20% 4%;
     --foreground: 185 100% 80%;
     --card: 220 20% 6%;
+    --product-media: 0 0% 100%;
     --card-foreground: 185 100% 80%;
     --popover: 220 20% 6%;
     --popover-foreground: 185 100% 80%;
@@ -396,4 +400,10 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
+}
+
+/* Product media frame — always a neutral white plate so catalog/option imagery
+   reads consistently in both light and dark studio themes. */
+.product-media-frame {
+  background: hsl(var(--product-media));
 }
