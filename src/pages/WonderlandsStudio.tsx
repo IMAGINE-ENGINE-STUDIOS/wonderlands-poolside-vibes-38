@@ -2096,15 +2096,6 @@ const WonderlandsStudio = () => {
                           </Button>
                           {/* Design Studio access hidden */}
                         </div>
-                        
-                        <Button
-                          variant={showPricePanel ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setShowPricePanel(!showPricePanel)}
-                          className="h-8 text-xs"
-                        >
-                          {showPricePanel ? 'Hide' : 'Show'} Price
-                        </Button>
                       </div>
                     )}
                     
