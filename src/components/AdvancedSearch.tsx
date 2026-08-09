@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useInlineAISearch } from '@/hooks/useInlineAISearch';
 import { InlineCalculator } from '@/components/search/InlineCalculator';
@@ -72,7 +73,7 @@ interface AdvancedSearchProps {
 
 const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
   const isSlim = variant === 'slim';
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = usePersistentState(`search_query_${variant}`, '');
   const [lastQuery, setLastQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);

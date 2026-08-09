@@ -94,10 +94,19 @@ const ScrollRestoration = () => {
     let attempts = 0;
 
     const restoreElements = () => {
+      // Only scrollable containers are candidates — keeps this cheap on big pages.
+      const candidates = Array.from(
+        document.querySelectorAll<HTMLElement>("div,ul,ol,section,main,aside")
+      ).filter(
+        node =>
+          node.scrollHeight > node.clientHeight + 4 ||
+          node.scrollWidth > node.clientWidth + 4
+      );
+      const byPath = new Map<string, HTMLElement>();
+      candidates.forEach(node => byPath.set(elementPath(node), node));
       entries.forEach(([path, pos]) => {
         if (!pos || (!pos.top && !pos.left)) return;
-        const nodes = Array.from(document.querySelectorAll<HTMLElement>("*"));
-        const match = nodes.find(node => elementPath(node) === path);
+        const match = byPath.get(path);
         if (match) {
           if (pos.top) match.scrollTop = pos.top;
           if (pos.left) match.scrollLeft = pos.left;
