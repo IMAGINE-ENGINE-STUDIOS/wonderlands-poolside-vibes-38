@@ -137,7 +137,9 @@ createRoot(document.getElementById("root")!).render(
           <DarkModeProvider>
             <BrowserRouter>
               <ShoppingCartProvider>
-                <App />
+                <AIAssistantProvider>
+                  <App />
+                </AIAssistantProvider>
                 <Toaster />
                 <Sonner position="top-right" duration={3000} />
               </ShoppingCartProvider>
