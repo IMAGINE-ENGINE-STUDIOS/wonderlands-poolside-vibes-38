@@ -1,7 +1,30 @@
-import { memo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+
+const titleCase = (value: string) =>
+  value
+    .replace(/[-_]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+const readSubcategory = (product: any): string | undefined => {
+  const raw = product?.subcategory ?? product?.collection ?? product?.brand ?? product?.category;
+  if (!raw || typeof raw !== 'string') return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed || /^per (sq ?ft|linear ft|ft)$/i.test(trimmed)) return undefined;
+  return titleCase(trimmed);
+};
 
 export interface StudioLandingCategory {
   value: string;
