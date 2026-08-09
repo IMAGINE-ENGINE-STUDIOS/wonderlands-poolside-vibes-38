@@ -119,7 +119,7 @@ interface Product {
   warrantyYears?: number | string;
   saltSystem?: boolean;
   carbonFiber?: boolean;
-  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'fencing' | 'lanai' | 'landscaping' | 'finish' | 'liner';
+  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'fencing' | 'lanai' | 'landscaping' | 'finish' | 'liner' | 'artificial-grass';
   unit?: 'sqft' | 'linear-ft';
   id?: string;
   description?: string;
