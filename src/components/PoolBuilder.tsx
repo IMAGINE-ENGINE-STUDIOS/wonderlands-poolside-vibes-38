@@ -4041,16 +4041,26 @@ export function PoolBuilder({
       // Draw spline points
       splineDrawing.points.forEach((sp, i) => {
         const isFirst = i === 0;
+        const isSelectedDrawPoint = selectedDrawPointId === sp.id;
         ctx.beginPath();
         ctx.arc(sp.x, sp.y, isFirst ? 10 : 7, 0, 2 * Math.PI);
-        ctx.fillStyle = isFirst ? 'hsl(var(--primary))' : '#ffffff';
+        ctx.fillStyle = isSelectedDrawPoint ? '#F97316' : isFirst ? 'hsl(var(--primary))' : '#ffffff';
         ctx.fill();
-        ctx.strokeStyle = 'hsl(var(--primary))';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isSelectedDrawPoint ? '#F97316' : 'hsl(var(--primary))';
+        ctx.lineWidth = isSelectedDrawPoint ? 3 : 2;
         ctx.stroke();
 
+        // Selection ring
+        if (isSelectedDrawPoint) {
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, 13, 0, 2 * Math.PI);
+          ctx.strokeStyle = '#F97316';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
         // Point number label
-        ctx.fillStyle = isFirst ? '#fff' : 'hsl(var(--primary))';
+        ctx.fillStyle = isSelectedDrawPoint || isFirst ? '#fff' : 'hsl(var(--primary))';
         ctx.font = 'bold 10px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
