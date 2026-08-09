@@ -554,7 +554,7 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
 
   return (
     <div 
-      className={`relative w-full max-w-lg mx-auto transition-transform duration-300 ${
+      className={`relative w-full max-w-lg md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto transition-transform duration-300 ${
         shouldShowSectionMenu ? (isSlim ? '-translate-y-12' : '-translate-y-48 sm:-translate-y-16') : ''
       }`} 
       ref={containerRef}
