@@ -72,7 +72,7 @@ const INITIAL: BlueprintProject = {
   pool: { ...DEFAULT_POOL_ROW },
   scopeOfWork: PROJECT_TYPES[0].scope,
   existingAreas: { building: 0, driveway: 0, patio: 0 },
-  site: { shapes: [], pxPerFt: 3 },
+  site: { shapes: [], pxPerFt: 8 },
   signatures: {
     engineerSignedDate: '',
     contractorSignerName: '',
@@ -392,7 +392,7 @@ const BlueprintBuilder: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setData({ ...INITIAL, site: { shapes: [], pxPerFt: 3 } })}
+            onClick={() => setData({ ...INITIAL, site: { shapes: [], pxPerFt: 8 } })}
             className="w-full"
           >
             <RotateCcw className="mr-1 h-4 w-4" /> Reset plan set
