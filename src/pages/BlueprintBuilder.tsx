@@ -11,10 +11,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search, ShieldCheck, Upload } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Ruler, Search, ShieldCheck, Upload } from 'lucide-react';
 import usePersistentState from '@/hooks/usePersistentState';
 import BlueprintSheet from '@/components/blueprint/BlueprintSheet';
 import BlueprintImportDialog from '@/components/blueprint/BlueprintImportDialog';
+import SurveyAnalyzerDialog from '@/components/blueprint/SurveyAnalyzerDialog';
 import FloridaDigitalSealDialog from '@/components/blueprint/FloridaDigitalSealDialog';
 import { canonicalSignaturePayload } from '@/components/blueprint/signaturePayload';
 import type { BlueprintProject } from '@/components/blueprint/types';
@@ -115,6 +116,7 @@ const BlueprintBuilder: React.FC = () => {
   const [sealDialogOpen, setSealDialogOpen] = React.useState(false);
   const [printAll, setPrintAll] = React.useState(false);
   const [importOpen, setImportOpen] = React.useState(false);
+  const [surveyOpen, setSurveyOpen] = React.useState(false);
 
   const jurisdiction = findJurisdiction(data.jurisdictionId);
   const projectType = findProjectType(data.projectTypeId);
@@ -406,6 +408,16 @@ const BlueprintBuilder: React.FC = () => {
           />
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="w-full">
             <Upload className="mr-1 h-4 w-4" /> Import existing blueprint
+          </Button>
+
+          <SurveyAnalyzerDialog
+            open={surveyOpen}
+            onOpenChange={setSurveyOpen}
+            project={data}
+            onApply={next => setData(next)}
+          />
+          <Button size="sm" onClick={() => setSurveyOpen(true)} className="w-full">
+            <Ruler className="mr-1 h-4 w-4" /> Analyze survey &amp; autofill
           </Button>
         </div>
 

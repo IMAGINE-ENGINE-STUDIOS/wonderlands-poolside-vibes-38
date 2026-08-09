@@ -91,4 +91,84 @@ export interface BlueprintProject {
   sheetNotes: Record<string, string>;
   /** Sheet codes the user disabled from the resolved set */
   disabledSheets: string[];
+  /** Data transcribed from an uploaded boundary / topographic survey */
+  survey?: SurveyRecord;
+}
+
+/* -------------------------------------------------- Survey (imported data) */
+
+export interface SurveyBoundaryCall {
+  label: string | null;
+  bearing: string | null;
+  distanceFt: number | null;
+}
+
+export interface SurveyGeometryFeature {
+  layer: string;
+  label: string;
+  closed: boolean;
+  points: [number, number][];
+}
+
+/** Structured data transcribed from an uploaded boundary / topographic survey */
+export interface SurveyRecord {
+  surveyor?: {
+    firm?: string | null;
+    name?: string | null;
+    licenseNumber?: string | null;
+    certificateOfAuthorization?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    signedDate?: string | null;
+    electronicSignatureNote?: string | null;
+  };
+  property?: {
+    lotNumber?: string | null;
+    subdivision?: string | null;
+    phase?: string | null;
+    platBook?: string | null;
+    platPages?: string | null;
+    county?: string | null;
+    state?: string | null;
+    streetAddress?: string | null;
+    cityStateZip?: string | null;
+    parcelId?: string | null;
+    rightOfWayStreet?: string | null;
+    scaleText?: string | null;
+    northArrowDeg?: number | null;
+  };
+  lot?: {
+    widthFt?: number | null;
+    depthFt?: number | null;
+    areaSf?: number | null;
+    boundaryCalls?: SurveyBoundaryCall[];
+  };
+  setbacks?: {
+    frontFt?: number | null;
+    frontPorchFt?: number | null;
+    rearFt?: number | null;
+    sideFt?: number | null;
+    sideCornerFt?: number | null;
+    rearPoolFt?: number | null;
+  };
+  elevations?: {
+    finishedFloorFt?: number | null;
+    benchmarkFt?: number | null;
+    datum?: string | null;
+    floodZone?: string | null;
+    firmPanel?: string | null;
+    communityNumber?: string | null;
+  };
+  easements?: { label: string; widthFt?: number | null; location?: string | null }[];
+  structures?: { label: string; type?: string; areaSf?: number | null; dimensions?: string | null }[];
+  surveyNotes?: string[];
+  certifiedTo?: string[];
+  revisions?: { description: string; date?: string | null }[];
+  geometry?: {
+    lotPolygon?: [number, number][];
+    features?: SurveyGeometryFeature[];
+  };
+  confidence?: number;
+  /** File the data was read from */
+  sourceFile?: string;
 }
