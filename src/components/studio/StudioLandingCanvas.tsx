@@ -52,7 +52,7 @@ function StudioLandingCanvasInner<TProduct extends { image?: string; model?: str
       </div>
 
       {/* Category shortcuts */}
-      <div className="mt-5 flex flex-wrap justify-center gap-2">
+      <div className="mt-5 flex flex-wrap justify-center gap-2 hidden">
         {categories.map(cat => {
           const Icon = cat.icon;
           const active = cat.value === activeCategory;
