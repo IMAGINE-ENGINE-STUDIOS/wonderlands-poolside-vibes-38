@@ -2464,6 +2464,23 @@ const WonderlandsStudio = () => {
                             onProjectChange={setEnclosureProject}
                             onApiReady={api => { enclosureApiRef.current = api; }}
                           />
+                        ) : selectedProduct.type === 'artificial-grass' ? (
+                          <GrassConfigurator
+                            initialGrassName={selectedProduct.model || selectedProduct.name}
+                            onTotalChange={(total, summary) =>
+                              setSelectedExtras((prev: any) =>
+                                prev.grassTotal === total && prev.categoryQuantity === String(summary.areaSqFt)
+                                  ? prev
+                                  : {
+                                      ...prev,
+                                      grassTotal: total,
+                                      categoryQuantity: String(summary.areaSqFt),
+                                      grassSnapshot: summary.snapshot,
+                                      grassLines: summary.lines,
+                                    }
+                              )
+                            }
+                          />
                         ) : (() => {
 
                           const unit = getProductUnit(selectedProduct);
