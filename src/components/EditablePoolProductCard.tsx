@@ -630,7 +630,7 @@ const EditablePoolProductCard = ({
                  <div className="flex items-center gap-2">
                   <Thermometer className="h-4 w-4 text-orange-500" />
                   <img loading="lazy" decoding="async" 
-                    src="/src/assets/pool-heater.png"
+                    src="/src/assets/pool-heater.webp"
                     alt="Pool Heater"
                     className="w-4 h-4 object-cover rounded"
                     onError={(e) => {

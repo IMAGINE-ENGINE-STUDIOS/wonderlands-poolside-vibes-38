@@ -91,11 +91,11 @@ export const getFinishTextureUrl = (finishName?: string): string => {
 // Map paver names to texture URLs
 export const getPaverTextureUrl = (paverName?: string, paverTypes?: any[]): string => {
   if (!paverName || paverName === 'None' || paverName === 'Concrete Patio' || paverName === '' || paverName === 'undefined') {
-    return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+    return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
   }
   
   const paver = paverTypes?.find(p => p.name === paverName);
-  return paver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+  return paver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
 };
 
 // Convert product configurator data to Scene3D
@@ -480,7 +480,7 @@ export function productToScene(
       },
       copingWidth: copingWidth,
       waterline: {
-        url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', // Ballad glass tile as default
+        url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.webp', // Ballad glass tile as default
         name: 'Ballad',
         roughness: 0.1,
         metalness: 0.3,

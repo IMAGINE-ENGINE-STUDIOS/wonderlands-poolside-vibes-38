@@ -1,6 +1,6 @@
-import lifesaverTeal from "@/assets/lifesaver-teal.png";
-import lifesaverCoral from "@/assets/lifesaver-coral.png";
-import lifesaverYellow from "@/assets/lifesaver-yellow.png";
+import lifesaverTeal from "@/assets/lifesaver-teal.webp";
+import lifesaverCoral from "@/assets/lifesaver-coral.webp";
+import lifesaverYellow from "@/assets/lifesaver-yellow.webp";
 
 const ITEMS = [
   {

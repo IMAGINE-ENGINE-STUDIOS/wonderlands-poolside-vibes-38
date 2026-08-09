@@ -84,12 +84,12 @@ const getExtraPrice = (extra: string) => {
 const ledgeHeaters = [{
   name: 'Pentair MasterTemp 125 (125K BTU)',
   price: 3450,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Compact high-efficiency gas heater'
 }, {
   name: 'Pentair UltraTemp 90 Heat Pump',
   price: 7762,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Energy-efficient heat pump for tanning ledges'
 }];
 
@@ -469,7 +469,7 @@ const TanningLedgeProductCard = ({
                 extrasBreakdown.push({
                   name: `Tanning Ledge Jets (${extras.jetQuantity})`,
                   price: getExtraPrice('jets') * extras.jetQuantity,
-                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
                 });
               }
 
@@ -478,7 +478,7 @@ const TanningLedgeProductCard = ({
                 extrasBreakdown.push({
                   name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
                   price: parseFloat(paverSurfaceArea) * 15,
-                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp'
                 });
               }
               const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);

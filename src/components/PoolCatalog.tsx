@@ -20,8 +20,8 @@ import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 // Import Madre Perla pool image
 import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
 import pacificRidgeImage from "@/assets/pools/pacific-ridge-new.jpg";
-import cancunDeluxeImage from "@/assets/cancun-deluxe.png";
-import maximaImage from "@/assets/maxima-pool.jpg";
+import cancunDeluxeImage from "@/assets/cancun-deluxe.webp";
+import maximaImage from "@/assets/maxima-pool.webp";
 import wonderPalaceImage from "@/assets/pools/wonderpalace.jpg";
 
 // Import Axiom 14 Deluxe images
@@ -34,15 +34,15 @@ import axiom16Specs from "@/assets/pools/axiom-16-specs.jpg";
 // Data loaded successfully
 
 // Pool model images - synchronized with Wonderlands Studio (with cache-busting)
-const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png?v=1";
+const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp?v=1";
 import enchantment917Image from "@/assets/pools/enchantment-917.png";
-const enchantment921Image = "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png?v=1";
-const enchantment924Image = "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png?v=1";
-const tuscan1120Image = "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png";
-const tuscan1324Image = "/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.png";
-const tuscan1427Image = "/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.png";
-const tuscan1430Image = "/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.png";
-const tuscan1440Image = "/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.png";
+const enchantment921Image = "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.webp?v=1";
+const enchantment924Image = "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.webp?v=1";
+const tuscan1120Image = "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp";
+const tuscan1324Image = "/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.webp";
+const tuscan1427Image = "/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.webp";
+const tuscan1430Image = "/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.webp";
+const tuscan1440Image = "/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.webp";
 interface Pool {
   model: string;
   price: number;
@@ -156,7 +156,7 @@ const pools: Pool[] = [
   model: "Winderview",
   price: 91875,
   category: 'premium',
-  image: "/lovable-uploads/winderview-pool.jpg",
+  image: "/lovable-uploads/winderview-pool.webp",
   dimensions: "15.5' × 31'",
   depth: "3'6\" - 6'",
   installationTimeWeeks: 18,
@@ -231,7 +231,7 @@ const pools: Pool[] = [
   model: "Milan 8.14",
   price: 31150,
   category: 'compact',
-  image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
+  image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.webp",
   dimensions: "8′ × 14′",
   depth: "4′",
   installationTimeWeeks: 16,
@@ -245,7 +245,7 @@ const pools: Pool[] = [
   model: "Milan 10.16",
   price: 41650,
   category: 'compact',
-  image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
+  image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.webp",
   dimensions: "10′ × 16′",
   depth: "4′",
   installationTimeWeeks: 16,
@@ -259,7 +259,7 @@ const pools: Pool[] = [
   model: "Milan 10.20",
   price: 51100,
   category: 'compact',
-  image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
+  image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.webp",
   dimensions: "10′ × 20′",
   depth: "4′",
   installationTimeWeeks: 16,
@@ -273,7 +273,7 @@ const pools: Pool[] = [
   model: "Jamaica 10",
   price: 42350,
   category: 'compact',
-  image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
+  image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.webp",
   dimensions: "10′ × 20′",
   depth: "3′ 2″ – 5′",
   installationTimeWeeks: 16,
@@ -287,7 +287,7 @@ const pools: Pool[] = [
   model: "Jamaica 12",
   price: 52150,
   category: 'compact',
-  image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
+  image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.webp",
   dimensions: "12′ × 24′",
   depth: "3′ 2″ – 5′",
   installationTimeWeeks: 16,
@@ -301,7 +301,7 @@ const pools: Pool[] = [
   model: "Jamaica 14",
   price: 60200,
   category: 'standard',
-  image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
+  image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.webp",
   dimensions: "14′ × 28′",
   depth: "3′ 2″ – 5′",
   installationTimeWeeks: 16,
@@ -315,7 +315,7 @@ const pools: Pool[] = [
   model: "Aruba",
   price: 47163,
   category: 'compact',
-  image: "/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png",
+  image: "/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.webp",
   dimensions: "11′ × 22′",
   depth: "3′ 6″ – 5′",
   installationTimeWeeks: 16,
@@ -329,7 +329,7 @@ const pools: Pool[] = [
   model: "Bermuda 12",
   price: 56525,
   category: 'standard',
-  image: "/lovable-uploads/bermuda-pool.png",
+  image: "/lovable-uploads/bermuda-pool.webp",
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -343,7 +343,7 @@ const pools: Pool[] = [
   model: "Bermuda 12 Deluxe",
   price: 70000,
   category: 'standard',
-  image: "/lovable-uploads/bermuda-pool.png",
+  image: "/lovable-uploads/bermuda-pool.webp",
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -357,7 +357,7 @@ const pools: Pool[] = [
   model: "Bermuda 14",
   price: 75950,
   category: 'deluxe',
-  image: "/lovable-uploads/bermuda-pool.png",
+  image: "/lovable-uploads/bermuda-pool.webp",
   dimensions: "14′ × 28′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -371,7 +371,7 @@ const pools: Pool[] = [
   model: "Bermuda 14 Deluxe",
   price: 87588,
   category: 'deluxe',
-  image: "/lovable-uploads/bermuda-pool.png",
+  image: "/lovable-uploads/bermuda-pool.webp",
   dimensions: "14′ × 28′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -399,7 +399,7 @@ const pools: Pool[] = [
   model: "Corinthian 12",
   price: 69300,
   category: 'standard',
-  image: "/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png",
+  image: "/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.webp",
   dimensions: "12′ × 25′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -413,7 +413,7 @@ const pools: Pool[] = [
   model: "Corinthian 12 BME",
   price: 72800,
   category: 'standard',
-  image: "/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.png",
+  image: "/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.webp",
   dimensions: "12′ × 25′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -427,7 +427,7 @@ const pools: Pool[] = [
   model: "Corinthian 14",
   price: 86888,
   category: 'deluxe',
-  image: "/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png",
+  image: "/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.webp",
   dimensions: "14′ × 32′",
   depth: "3′ 6″ – 6′ 6″",
   installationTimeWeeks: 16,
@@ -441,7 +441,7 @@ const pools: Pool[] = [
   model: "Corinthian 14 BME",
   price: 90388,
   category: 'deluxe',
-  image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png",
+  image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.webp",
   dimensions: "14′ × 32′",
   depth: "3′ 6″ – 6′ 6″",
   installationTimeWeeks: 16,
@@ -455,7 +455,7 @@ const pools: Pool[] = [
   model: "Delray",
   price: 54513,
   category: 'standard',
-  image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png",
+  image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.webp",
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -511,7 +511,7 @@ const pools: Pool[] = [
   model: "Key West",
   price: 59150,
   category: 'standard',
-  image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png",
+  image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.webp",
   dimensions: "13′ × 26′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -525,7 +525,7 @@ const pools: Pool[] = [
   model: "Olympia 12",
   price: 70088,
   category: 'standard',
-  image: "/lovable-uploads/olympia-pool.jpg",
+  image: "/lovable-uploads/olympia-pool.webp",
   dimensions: "12′ × 25′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -539,7 +539,7 @@ const pools: Pool[] = [
   model: "Olympia 14",
   price: 88550,
   category: 'deluxe',
-  image: "/lovable-uploads/olympia-pool.jpg",
+  image: "/lovable-uploads/olympia-pool.webp",
   dimensions: "14′ × 32′",
   depth: "3′ 6″ – 6′ 6″",
   installationTimeWeeks: 16,
@@ -553,7 +553,7 @@ const pools: Pool[] = [
   model: "Olympia 16",
   price: 93363,
   category: 'premium',
-  image: "/lovable-uploads/olympia-pool.jpg",
+  image: "/lovable-uploads/olympia-pool.webp",
   dimensions: "16′ × 40′",
   depth: "3′ 6″ – 8′",
   installationTimeWeeks: 16,
@@ -567,7 +567,7 @@ const pools: Pool[] = [
   model: "Pleasant Cove",
   price: 47163,
   category: 'compact',
-  image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
+  image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.webp",
   dimensions: "11′ × 22′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -651,7 +651,7 @@ const pools: Pool[] = [
   model: "Vista Isle",
   price: 64313,
   category: 'standard',
-  image: "/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.png",
+  image: "/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.webp",
   dimensions: "13′ × 27′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -666,7 +666,7 @@ const pools: Pool[] = [
   model: "Axiom 12 Deluxe",
   price: 69213,
   category: 'standard',
-  image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png",
+  image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp",
   dimensions: "12′ × 28′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -680,7 +680,7 @@ const pools: Pool[] = [
   model: "Axiom 14",
   price: 80500,
   category: 'deluxe',
-  image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png",
+  image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp",
   dimensions: "14′ × 32′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -724,7 +724,7 @@ const pools: Pool[] = [
   model: "Bay Isle",
   price: 73938,
   category: 'deluxe',
-  image: "/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png",
+  image: "/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.webp",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -738,7 +738,7 @@ const pools: Pool[] = [
   model: "Claremont",
   price: 76738,
   category: 'deluxe',
-  image: "/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.png",
+  image: "/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.webp",
   dimensions: "14′ × 32′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -752,7 +752,7 @@ const pools: Pool[] = [
   model: "Laguna",
   price: 64543,
   category: 'deluxe',
-  image: "/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png",
+  image: "/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.webp",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -766,7 +766,7 @@ const pools: Pool[] = [
   model: "Laguna Deluxe",
   price: 74419,
   category: 'deluxe',
-  image: "/lovable-uploads/laguna-deluxe-pool.png",
+  image: "/lovable-uploads/laguna-deluxe-pool.webp",
   dimensions: "14′ × 35′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -780,7 +780,7 @@ const pools: Pool[] = [
   model: "Valencia",
   price: 51144,
   category: 'standard',
-  image: "/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png",
+  image: "/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.webp",
   dimensions: "12′ × 28′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -795,7 +795,7 @@ const pools: Pool[] = [
   model: "Coronado",
   price: 78750,
   category: 'premium',
-  image: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png",
+  image: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp",
   dimensions: "16′ × 32′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -809,7 +809,7 @@ const pools: Pool[] = [
   model: "Synergy",
   price: 80763,
   category: 'premium',
-  image: "/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png",
+  image: "/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.webp",
   dimensions: "16′ × 36′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
@@ -826,7 +826,7 @@ const spas: Spa[] = [{
   model: "Mystic",
   price: 17045,
   category: 'premium',
-  image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png",
+  image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.webp",
   dimensions: "8′ × 8′",
   depth: "3′ 6″",
   features: ["LED Lighting", "Premium Jets", "Heater Ready"],
@@ -837,7 +837,7 @@ const spas: Spa[] = [{
   model: "Mystic Spillover",
   price: 18638,
   category: 'premium',
-  image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png",
+  image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.webp",
   dimensions: "8′ × 8′",
   depth: "3′ 6″",
   features: ["Spillover Feature", "LED Lighting", "Premium Jets", "Heater Ready"],
@@ -848,7 +848,7 @@ const spas: Spa[] = [{
   model: "Regal",
   price: 16363,
   category: 'deluxe',
-  image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png",
+  image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.webp",
   dimensions: "7′ × 7′",
   depth: "3′ 2″",
   features: ["Therapeutic Jets", "Easy Controls", "Energy Efficient"],
@@ -859,7 +859,7 @@ const spas: Spa[] = [{
   model: "Regal Spillover",
   price: 17850,
   category: 'deluxe',
-  image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png",
+  image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.webp",
   dimensions: "7′ × 7′",
   depth: "3′ 2″",
   features: ["Spillover Feature", "Therapeutic Jets", "Easy Controls", "Energy Efficient"],
@@ -870,7 +870,7 @@ const spas: Spa[] = [{
   model: "Royal",
   price: 16363,
   category: 'standard',
-  image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.png",
+  image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.webp",
   dimensions: "6′ × 8′",
   depth: "3′",
   features: ["Modern Design", "Durable Construction", "Low Maintenance"],
@@ -881,7 +881,7 @@ const spas: Spa[] = [{
   model: "Royal Spillover",
   price: 17850,
   category: 'standard',
-  image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.png",
+  image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.webp",
   dimensions: "6′ × 8′",
   depth: "3′",
   features: ["Spillover Feature", "Modern Design", "Durable Construction", "Low Maintenance"],
@@ -892,7 +892,7 @@ const spas: Spa[] = [{
   model: "Shasta",
   price: 13213,
   category: 'standard',
-  image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png",
+  image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.webp",
   dimensions: "7′ diameter",
   depth: "3′",
   features: ["Circular Design", "Compact Footprint", "Easy Entry"],
@@ -903,7 +903,7 @@ const spas: Spa[] = [{
   model: "Shasta Spillover",
   price: 14788,
   category: 'standard',
-  image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png",
+  image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.webp",
   dimensions: "7′ diameter",
   depth: "3′",
   features: ["Spillover Feature", "Circular Design", "Compact Footprint", "Easy Entry"],
@@ -1055,7 +1055,7 @@ const PoolCatalog = () => {
           {/* Banner between Wonderlands and Latham */}
           <div className="w-full my-12">
             <img loading="lazy" decoding="async" 
-              src="/lovable-uploads/Astoria_Maxima_029.jpg" 
+              src="/lovable-uploads/Astoria_Maxima_029.webp" 
               alt="Luxury Pool with Mosaic Tiles" 
               className="w-full h-auto object-cover rounded-lg"
             />

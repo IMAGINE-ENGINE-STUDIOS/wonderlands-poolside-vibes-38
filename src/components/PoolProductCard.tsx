@@ -51,13 +51,13 @@ import lagoonBlueFinish from "@/assets/finishes/lagoon-blue-g2.jpg";
 import azureBlueFinish from "@/assets/finishes/azure-blue-g2.jpg";
 import coastalBronzeFinish from "@/assets/finishes/coastal-bronze-g3.jpg";
 import shaleGrayFinish from "@/assets/finishes/shale-gray-g3.jpg";
-import noCoverBlack from "@/assets/no-cover-black.png";
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+import noCoverBlack from "@/assets/no-cover-black.webp";
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
-import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
-import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
-import serenityImage from "@/assets/serenitykit.jpg";
+import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.webp";
+import maldivesImage from "@/assets/maldiveskit-castlerock.webp";
+import serenityImage from "@/assets/serenitykit.webp";
 import grassLightGreenImage from "@/assets/grass-light-green.avif";
 import grassDarkGreenImage from "@/assets/grass-dark-green.avif";
 import grassNaturalGreenImage from "@/assets/grass-natural-green.avif";
@@ -192,37 +192,37 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     {
       name: "Pentair MasterTemp 125 (125K BTU)",
       price: 3450,
-      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
       description: "Compact high-efficiency gas heater for pools up to 15,000 gallons",
     },
     {
       name: "Pentair MasterTemp 250 (250K BTU)",
       price: 5520,
-      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
       description: "Mid-size high-performance gas heater for medium pools",
     },
     {
       name: "Pentair MasterTemp 400 (400K BTU)",
       price: 7245,
-      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
       description: "High-capacity gas heater for large pools and quick heating",
     },
     {
       name: "Pentair UltraTemp 90 Heat Pump",
       price: 7762,
-      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
       description: "Energy-efficient heat pump for pools up to 20,000 gallons",
     },
     {
       name: "Pentair UltraTemp 110 Heat Pump",
       price: 9488,
-      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
       description: "High-efficiency heat pump for medium to large pools",
     },
     {
       name: "Pentair UltraTemp 140 Heat Pump",
       price: 11212,
-      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
       description: "Premium heat pump for large pools with maximum efficiency",
     },
   ];
@@ -255,7 +255,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       surname: "Eclipse", 
       color: "#2F4F4F", 
       price: 27000, 
-      image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png", 
+      image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp", 
       category: "cover", 
       description: "High-grade PVC with dual track system",
       colors: [
@@ -1119,7 +1119,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
               >
                 <CarouselContent className="-ml-1">
                   {[
-                    { key: "standard", name: "Wonder Cage", price: SCREEN_ENCLOSURE_PRICING.standard, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                    { key: "standard", name: "Wonder Cage", price: SCREEN_ENCLOSURE_PRICING.standard, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp" },
                     { key: "deluxe", name: "Deluxe", price: SCREEN_ENCLOSURE_PRICING.deluxe, image: screenEnclosureDeluxe },
                     { key: "premium", name: "2 Stories", price: SCREEN_ENCLOSURE_PRICING.premium, image: screenEnclosurePremium },
                   ].map((quality) => (
@@ -1607,12 +1607,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         
                         if (isGlimmerglassPool && isLathamSpa) {
                           const crystiteFinishes = [
-                            { id: 'sapphire-blue', name: 'Sapphire Blue', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png' },
-                            { id: 'ocean-blue', name: 'Ocean Blue', price: 3500, image: '/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png' },
-                            { id: 'night-sky', name: 'Night Sky', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png' },
-                            { id: 'shale-gray', name: 'Shale Gray', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png' },
-                            { id: 'coastal-bronze', name: 'Coastal Bronze', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png' },
-                            { id: 'pearl-white', name: 'Pearl White', price: 3500, image: '/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.png' },
+                            { id: 'sapphire-blue', name: 'Sapphire Blue', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp' },
+                            { id: 'ocean-blue', name: 'Ocean Blue', price: 3500, image: '/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.webp' },
+                            { id: 'night-sky', name: 'Night Sky', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.webp' },
+                            { id: 'shale-gray', name: 'Shale Gray', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp' },
+                            { id: 'coastal-bronze', name: 'Coastal Bronze', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp' },
+                            { id: 'pearl-white', name: 'Pearl White', price: 3500, image: '/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp' },
                           ];
                           
                           return (
@@ -1835,7 +1835,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         extrasBreakdown.push({
                           name: selectedHeater.name,
                           price: selectedHeater.price,
-                          image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+                          image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
                         });
                       }
                     }
@@ -1855,7 +1855,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       extrasBreakdown.push({
                         name: `Spa Jets (${extras.jetQuantity})`,
                         price: getExtraPrice("jets") * extras.jetQuantity,
-                        image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png",
+                        image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp",
                       });
                     }
 
@@ -1924,7 +1924,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       extrasBreakdown.push({
                         name: `Screen Enclosure - ${quality === "standard" ? "Wonder Cage" : "Premium"} (${extras.screenEnclosureArea} sq ft)`,
                         price: enclosurePrice,
-                        image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+                        image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp",
                       });
                     }
 
@@ -1934,7 +1934,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       extrasBreakdown.push({
                         name: "Concrete Construction",
                         price: concreteMarkup,
-                        image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png",
+                        image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp",
                       });
                     }
                     

@@ -517,7 +517,7 @@ const DesignStudio = () => {
             metalness: 0.0
           })),
           waterlines: [{
-            url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png',
+            url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.webp',
             name: 'Ballad',
             roughness: 0.1,
             metalness: 0.3

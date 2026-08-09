@@ -1,5 +1,5 @@
 import { useState } from "react";
-import aluminumFencing from "@/assets/aluminum-fencing.jpg";
+import aluminumFencing from "@/assets/aluminum-fencing.webp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -112,7 +112,7 @@ const PatioFencingSection = () => {
 
                 <CardContent className="space-y-4">
                   <div className="w-full h-48 rounded-lg overflow-hidden border-2 border-muted">
-                    <img loading="lazy" decoding="async" alt={fencing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" src="/lovable-uploads/96e12412-10ac-45a5-b879-6ed8fc8e8046.jpg" />
+                    <img loading="lazy" decoding="async" alt={fencing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" src="/lovable-uploads/96e12412-10ac-45a5-b879-6ed8fc8e8046.webp" />
                   </div>
 
                   <div className="flex items-center gap-2">

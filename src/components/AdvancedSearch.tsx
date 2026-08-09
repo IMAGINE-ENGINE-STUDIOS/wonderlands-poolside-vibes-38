@@ -24,10 +24,10 @@ import productImages from '@/data/productImages';
 
 // Import Wonderlands pool images for search
 import madrePerlaImage from '@/assets/pools/madre-perla.jpg';
-import maximaImage from '@/assets/maxima-pool.jpg';
+import maximaImage from '@/assets/maxima-pool.webp';
 import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.jpg';
 import wonderPalaceImage from '@/assets/pools/wonderpalace.jpg';
-import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
+import cancunDeluxeImage from '@/assets/cancun-deluxe.webp';
 import enchantment917SearchImage from '@/assets/pools/enchantment-917.png';
 
 // Import banner images for sections
@@ -43,7 +43,7 @@ import lanaiBanner from "@/assets/banners/lanai-banner.jpg";
 
 // Section data for quick navigation dropdown
 const mainPageSections = [
-  { id: 'pools', label: 'Pools', image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', description: 'Premium fiberglass & concrete pools' },
+  { id: 'pools', label: 'Pools', image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp', description: 'Premium fiberglass & concrete pools' },
   { id: 'saunas', label: 'Saunas', image: saunaBanner, description: 'Indoor & outdoor barrel saunas' },
   { id: 'spas', label: 'Hot Tubs & Spas', image: spaBanner, description: 'Luxury hot tubs & jacuzzis' },
   { id: 'tanning-ledges', label: 'Tanning Ledges', image: tanningLedgeBanner, description: 'In-pool sun shelves & ledges' },
@@ -54,8 +54,8 @@ const mainPageSections = [
   { id: 'artificial-grass', label: 'Artificial Grass', image: paversBanner, description: 'Premium low-maintenance turf' },
   { id: 'covers', label: 'Pool Covers', image: coversBanner, description: 'Automatic safety covers' },
   { id: 'driveway-gates', label: 'Driveway Gates', image: drivewayGateBanner, description: 'Ornamental entry gates' },
-  { id: 'finishes', label: 'Pool Finishes', image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png', description: 'Interior pool finishes' },
-  { id: 'liners', label: 'Pool Liners', image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png', description: 'Glass & porcelain tiles' },
+  { id: 'finishes', label: 'Pool Finishes', image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp', description: 'Interior pool finishes' },
+  { id: 'liners', label: 'Pool Liners', image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.webp', description: 'Glass & porcelain tiles' },
 ];
 
 interface SearchResult {
@@ -156,75 +156,75 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
       { id: 'madre-perla', name: 'Madre Perla', category: 'Pool', price: 168438, image: madrePerlaImage, keywords: ['pool', 'premium', 'concrete', 'infinity', 'madre', 'perla', '20x40'] },
       { id: 'maxima', name: 'Maxima', category: 'Pool', price: 144375, image: maximaImage, keywords: ['pool', 'premium', 'fiberglass', '16x40'] },
       { id: 'pacific-ridge', name: 'Pacific Ridge', category: 'Pool', price: 96250, image: pacificRidgeImage, keywords: ['pool', 'premium', 'concrete', '14x32'] },
-      { id: 'winderview', name: 'Winderview', category: 'Pool', price: 91875, image: '/lovable-uploads/winderview-pool.jpg', keywords: ['pool', 'premium', 'concrete', 'tanning', '15x31'] },
+      { id: 'winderview', name: 'Winderview', category: 'Pool', price: 91875, image: '/lovable-uploads/winderview-pool.webp', keywords: ['pool', 'premium', 'concrete', 'tanning', '15x31'] },
       { id: 'cancun-deluxe', name: 'Cancún Deluxe', category: 'Pool', price: 112875, image: cancunDeluxeImage, keywords: ['pool', 'deluxe', 'spa', 'integrated', '16x35'] },
       
       // Astoria Series
-      { id: 'astoria-12', name: 'Astoria 12', category: 'Pool', price: 81900, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', keywords: ['pool', 'standard', 'latham', 'astoria', '12x25'] },
-      { id: 'astoria-14', name: 'Astoria 14', category: 'Pool', price: 97825, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', keywords: ['pool', 'deluxe', 'latham', 'astoria', '14x35'] },
-      { id: 'astoria-16', name: 'Astoria 16', category: 'Pool', price: 110338, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', keywords: ['pool', 'premium', 'latham', 'astoria', '16x40'] },
+      { id: 'astoria-12', name: 'Astoria 12', category: 'Pool', price: 81900, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp', keywords: ['pool', 'standard', 'latham', 'astoria', '12x25'] },
+      { id: 'astoria-14', name: 'Astoria 14', category: 'Pool', price: 97825, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp', keywords: ['pool', 'deluxe', 'latham', 'astoria', '14x35'] },
+      { id: 'astoria-16', name: 'Astoria 16', category: 'Pool', price: 110338, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp', keywords: ['pool', 'premium', 'latham', 'astoria', '16x40'] },
       
       // Milan Series (Compact)
-      { id: 'milan-8-14', name: 'Milan 8.14', category: 'Pool', price: 31150, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png', keywords: ['pool', 'compact', 'small', 'milan', '8x14'] },
-      { id: 'milan-10-16', name: 'Milan 10.16', category: 'Pool', price: 41650, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png', keywords: ['pool', 'compact', 'small', 'milan', '10x16'] },
-      { id: 'milan-10-20', name: 'Milan 10.20', category: 'Pool', price: 51100, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png', keywords: ['pool', 'compact', 'small', 'milan', '10x20'] },
+      { id: 'milan-8-14', name: 'Milan 8.14', category: 'Pool', price: 31150, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.webp', keywords: ['pool', 'compact', 'small', 'milan', '8x14'] },
+      { id: 'milan-10-16', name: 'Milan 10.16', category: 'Pool', price: 41650, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.webp', keywords: ['pool', 'compact', 'small', 'milan', '10x16'] },
+      { id: 'milan-10-20', name: 'Milan 10.20', category: 'Pool', price: 51100, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.webp', keywords: ['pool', 'compact', 'small', 'milan', '10x20'] },
       
       // Jamaica Series
-      { id: 'jamaica-10', name: 'Jamaica 10', category: 'Pool', price: 42350, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png', keywords: ['pool', 'compact', 'jamaica', '10x20'] },
-      { id: 'jamaica-12', name: 'Jamaica 12', category: 'Pool', price: 52150, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png', keywords: ['pool', 'compact', 'jamaica', '12x24'] },
-      { id: 'jamaica-14', name: 'Jamaica 14', category: 'Pool', price: 60200, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png', keywords: ['pool', 'standard', 'jamaica', '14x28'] },
+      { id: 'jamaica-10', name: 'Jamaica 10', category: 'Pool', price: 42350, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.webp', keywords: ['pool', 'compact', 'jamaica', '10x20'] },
+      { id: 'jamaica-12', name: 'Jamaica 12', category: 'Pool', price: 52150, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.webp', keywords: ['pool', 'compact', 'jamaica', '12x24'] },
+      { id: 'jamaica-14', name: 'Jamaica 14', category: 'Pool', price: 60200, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.webp', keywords: ['pool', 'standard', 'jamaica', '14x28'] },
       
       // Standard/Deluxe
-      { id: 'aruba', name: 'Aruba', category: 'Pool', price: 47163, image: '/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png', keywords: ['pool', 'compact', 'latham', '11x22'] },
-      { id: 'pleasant-cove', name: 'Pleasant Cove', category: 'Pool', price: 47163, image: '/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png', keywords: ['pool', 'compact', 'cove', '11x22'] },
-      { id: 'delray', name: 'Delray', category: 'Pool', price: 54513, image: '/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png', keywords: ['pool', 'standard', 'delray', '12x24'] },
-      { id: 'key-west', name: 'Key West', category: 'Pool', price: 59150, image: '/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png', keywords: ['pool', 'standard', 'florida', 'key west', '13x26'] },
+      { id: 'aruba', name: 'Aruba', category: 'Pool', price: 47163, image: '/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.webp', keywords: ['pool', 'compact', 'latham', '11x22'] },
+      { id: 'pleasant-cove', name: 'Pleasant Cove', category: 'Pool', price: 47163, image: '/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.webp', keywords: ['pool', 'compact', 'cove', '11x22'] },
+      { id: 'delray', name: 'Delray', category: 'Pool', price: 54513, image: '/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.webp', keywords: ['pool', 'standard', 'delray', '12x24'] },
+      { id: 'key-west', name: 'Key West', category: 'Pool', price: 59150, image: '/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.webp', keywords: ['pool', 'standard', 'florida', 'key west', '13x26'] },
       { id: 'cape-cod-12', name: 'Cape Cod 12', category: 'Pool', price: 55125, image: '/lovable-uploads/wonderlands-logo.png', keywords: ['pool', 'standard', 'cape cod', '12x24'] },
-      { id: 'valencia', name: 'Valencia', category: 'Pool', price: 51144, image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png', keywords: ['pool', 'standard', 'valencia', '12x28'] },
-      { id: 'vista-isle', name: 'Vista Isle', category: 'Pool', price: 64313, image: '/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.png', keywords: ['pool', 'standard', 'vista', '13x27'] },
+      { id: 'valencia', name: 'Valencia', category: 'Pool', price: 51144, image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.webp', keywords: ['pool', 'standard', 'valencia', '12x28'] },
+      { id: 'vista-isle', name: 'Vista Isle', category: 'Pool', price: 64313, image: '/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.webp', keywords: ['pool', 'standard', 'vista', '13x27'] },
       
       // Bermuda Series
-      { id: 'bermuda-12', name: 'Bermuda 12', category: 'Pool', price: 56525, image: '/lovable-uploads/bermuda-pool.png', keywords: ['pool', 'standard', 'bermuda', '12x24'] },
-      { id: 'bermuda-12-deluxe', name: 'Bermuda 12 Deluxe', category: 'Pool', price: 70000, image: '/lovable-uploads/bermuda-pool.png', keywords: ['pool', 'standard', 'bermuda', 'deluxe', '12x24'] },
-      { id: 'bermuda-14', name: 'Bermuda 14', category: 'Pool', price: 75950, image: '/lovable-uploads/bermuda-pool.png', keywords: ['pool', 'deluxe', 'bermuda', '14x28'] },
-      { id: 'bermuda-14-deluxe', name: 'Bermuda 14 Deluxe', category: 'Pool', price: 87588, image: '/lovable-uploads/bermuda-pool.png', keywords: ['pool', 'deluxe', 'bermuda', 'deluxe', '14x28'] },
+      { id: 'bermuda-12', name: 'Bermuda 12', category: 'Pool', price: 56525, image: '/lovable-uploads/bermuda-pool.webp', keywords: ['pool', 'standard', 'bermuda', '12x24'] },
+      { id: 'bermuda-12-deluxe', name: 'Bermuda 12 Deluxe', category: 'Pool', price: 70000, image: '/lovable-uploads/bermuda-pool.webp', keywords: ['pool', 'standard', 'bermuda', 'deluxe', '12x24'] },
+      { id: 'bermuda-14', name: 'Bermuda 14', category: 'Pool', price: 75950, image: '/lovable-uploads/bermuda-pool.webp', keywords: ['pool', 'deluxe', 'bermuda', '14x28'] },
+      { id: 'bermuda-14-deluxe', name: 'Bermuda 14 Deluxe', category: 'Pool', price: 87588, image: '/lovable-uploads/bermuda-pool.webp', keywords: ['pool', 'deluxe', 'bermuda', 'deluxe', '14x28'] },
       
       // Enchantment Series
       { id: 'enchantment-917', name: 'Enchantment 9.17', category: 'Pool', price: 44100, image: enchantment917SearchImage, keywords: ['pool', 'compact', 'enchantment', '9x17'] },
-      { id: 'enchantment-921', name: 'Enchantment 9.21', category: 'Pool', price: 50050, image: '/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png', keywords: ['pool', 'compact', 'enchantment', '9x21'] },
-      { id: 'enchantment-924', name: 'Enchantment 9.24', category: 'Pool', price: 55913, image: '/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png', keywords: ['pool', 'compact', 'enchantment', '9x24'] },
+      { id: 'enchantment-921', name: 'Enchantment 9.21', category: 'Pool', price: 50050, image: '/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.webp', keywords: ['pool', 'compact', 'enchantment', '9x21'] },
+      { id: 'enchantment-924', name: 'Enchantment 9.24', category: 'Pool', price: 55913, image: '/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.webp', keywords: ['pool', 'compact', 'enchantment', '9x24'] },
       
       // Tuscan Series
-      { id: 'tuscan-1120', name: 'Tuscan 11.20', category: 'Pool', price: 51975, image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png', keywords: ['pool', 'standard', 'tuscan', '11x20'] },
-      { id: 'tuscan-1324', name: 'Tuscan 13.24', category: 'Pool', price: 63788, image: '/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.png', keywords: ['pool', 'standard', 'tuscan', '13x24'] },
-      { id: 'tuscan-1427', name: 'Tuscan 14.27', category: 'Pool', price: 73500, image: '/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.png', keywords: ['pool', 'deluxe', 'tuscan', '14x27'] },
-      { id: 'tuscan-1430', name: 'Tuscan 14.30', category: 'Pool', price: 81113, image: '/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.png', keywords: ['pool', 'deluxe', 'tuscan', '14x30'] },
-      { id: 'tuscan-1440', name: 'Tuscan 14.40', category: 'Pool', price: 102025, image: '/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.png', keywords: ['pool', 'premium', 'tuscan', '14x40'] },
+      { id: 'tuscan-1120', name: 'Tuscan 11.20', category: 'Pool', price: 51975, image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp', keywords: ['pool', 'standard', 'tuscan', '11x20'] },
+      { id: 'tuscan-1324', name: 'Tuscan 13.24', category: 'Pool', price: 63788, image: '/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.webp', keywords: ['pool', 'standard', 'tuscan', '13x24'] },
+      { id: 'tuscan-1427', name: 'Tuscan 14.27', category: 'Pool', price: 73500, image: '/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.webp', keywords: ['pool', 'deluxe', 'tuscan', '14x27'] },
+      { id: 'tuscan-1430', name: 'Tuscan 14.30', category: 'Pool', price: 81113, image: '/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.webp', keywords: ['pool', 'deluxe', 'tuscan', '14x30'] },
+      { id: 'tuscan-1440', name: 'Tuscan 14.40', category: 'Pool', price: 102025, image: '/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.webp', keywords: ['pool', 'premium', 'tuscan', '14x40'] },
       
       // Corinthian Series
-      { id: 'corinthian-12', name: 'Corinthian 12', category: 'Pool', price: 69300, image: '/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png', keywords: ['pool', 'standard', 'corinthian', '12x25'] },
-      { id: 'corinthian-12-bme', name: 'Corinthian 12 BME', category: 'Pool', price: 72800, image: '/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.png', keywords: ['pool', 'standard', 'corinthian', 'bme', '12x25'] },
-      { id: 'corinthian-14', name: 'Corinthian 14', category: 'Pool', price: 86888, image: '/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png', keywords: ['pool', 'deluxe', 'corinthian', '14x32'] },
-      { id: 'corinthian-14-bme', name: 'Corinthian 14 BME', category: 'Pool', price: 90388, image: '/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png', keywords: ['pool', 'deluxe', 'corinthian', 'bme', '14x32'] },
+      { id: 'corinthian-12', name: 'Corinthian 12', category: 'Pool', price: 69300, image: '/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.webp', keywords: ['pool', 'standard', 'corinthian', '12x25'] },
+      { id: 'corinthian-12-bme', name: 'Corinthian 12 BME', category: 'Pool', price: 72800, image: '/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.webp', keywords: ['pool', 'standard', 'corinthian', 'bme', '12x25'] },
+      { id: 'corinthian-14', name: 'Corinthian 14', category: 'Pool', price: 86888, image: '/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.webp', keywords: ['pool', 'deluxe', 'corinthian', '14x32'] },
+      { id: 'corinthian-14-bme', name: 'Corinthian 14 BME', category: 'Pool', price: 90388, image: '/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.webp', keywords: ['pool', 'deluxe', 'corinthian', 'bme', '14x32'] },
       
       // Olympia Series
-      { id: 'olympia-12', name: 'Olympia 12', category: 'Pool', price: 70088, image: '/lovable-uploads/olympia-pool.jpg', keywords: ['pool', 'standard', 'olympia', '12x25'] },
-      { id: 'olympia-14', name: 'Olympia 14', category: 'Pool', price: 88550, image: '/lovable-uploads/olympia-pool.jpg', keywords: ['pool', 'deluxe', 'olympia', '14x32'] },
-      { id: 'olympia-16', name: 'Olympia 16', category: 'Pool', price: 93363, image: '/lovable-uploads/olympia-pool.jpg', keywords: ['pool', 'premium', 'olympia', '16x40'] },
+      { id: 'olympia-12', name: 'Olympia 12', category: 'Pool', price: 70088, image: '/lovable-uploads/olympia-pool.webp', keywords: ['pool', 'standard', 'olympia', '12x25'] },
+      { id: 'olympia-14', name: 'Olympia 14', category: 'Pool', price: 88550, image: '/lovable-uploads/olympia-pool.webp', keywords: ['pool', 'deluxe', 'olympia', '14x32'] },
+      { id: 'olympia-16', name: 'Olympia 16', category: 'Pool', price: 93363, image: '/lovable-uploads/olympia-pool.webp', keywords: ['pool', 'premium', 'olympia', '16x40'] },
       
       // Axiom Series
-      { id: 'axiom-12-deluxe', name: 'Axiom 12 Deluxe', category: 'Pool', price: 69213, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png', keywords: ['pool', 'standard', 'axiom', 'deluxe', '12x28'] },
-      { id: 'axiom-14', name: 'Axiom 14', category: 'Pool', price: 80500, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png', keywords: ['pool', 'deluxe', 'axiom', '14x32'] },
+      { id: 'axiom-12-deluxe', name: 'Axiom 12 Deluxe', category: 'Pool', price: 69213, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp', keywords: ['pool', 'standard', 'axiom', 'deluxe', '12x28'] },
+      { id: 'axiom-14', name: 'Axiom 14', category: 'Pool', price: 80500, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp', keywords: ['pool', 'deluxe', 'axiom', '14x32'] },
       { id: 'axiom-14-deluxe', name: 'Axiom 14 Deluxe', category: 'Pool', price: 87413, image: productImages.axiom14DeluxeMain, keywords: ['pool', 'deluxe', 'axiom', 'spa', '14x30'] },
       { id: 'axiom-16', name: 'Axiom 16', category: 'Pool', price: 94500, image: productImages.axiom16Main, keywords: ['pool', 'premium', 'axiom', '16x35'] },
       
       // Premium/Deluxe
-      { id: 'bay-isle', name: 'Bay Isle', category: 'Pool', price: 73938, image: '/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png', keywords: ['pool', 'deluxe', 'bay', 'isle', '14x30'] },
-      { id: 'claremont', name: 'Claremont', category: 'Pool', price: 76738, image: '/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.png', keywords: ['pool', 'deluxe', 'claremont', '14x32'] },
-      { id: 'laguna', name: 'Laguna', category: 'Pool', price: 64543, image: '/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png', keywords: ['pool', 'deluxe', 'laguna', '14x30'] },
-      { id: 'laguna-deluxe', name: 'Laguna Deluxe', category: 'Pool', price: 74419, image: '/lovable-uploads/laguna-deluxe-pool.png', keywords: ['pool', 'deluxe', 'laguna', '14x35'] },
-      { id: 'coronado', name: 'Coronado', category: 'Pool', price: 78750, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', keywords: ['pool', 'premium', 'coronado', '16x32'] },
-      { id: 'synergy', name: 'Synergy', category: 'Pool', price: 80763, image: '/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png', keywords: ['pool', 'premium', 'synergy', '16x36'] },
+      { id: 'bay-isle', name: 'Bay Isle', category: 'Pool', price: 73938, image: '/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.webp', keywords: ['pool', 'deluxe', 'bay', 'isle', '14x30'] },
+      { id: 'claremont', name: 'Claremont', category: 'Pool', price: 76738, image: '/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.webp', keywords: ['pool', 'deluxe', 'claremont', '14x32'] },
+      { id: 'laguna', name: 'Laguna', category: 'Pool', price: 64543, image: '/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.webp', keywords: ['pool', 'deluxe', 'laguna', '14x30'] },
+      { id: 'laguna-deluxe', name: 'Laguna Deluxe', category: 'Pool', price: 74419, image: '/lovable-uploads/laguna-deluxe-pool.webp', keywords: ['pool', 'deluxe', 'laguna', '14x35'] },
+      { id: 'coronado', name: 'Coronado', category: 'Pool', price: 78750, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp', keywords: ['pool', 'premium', 'coronado', '16x32'] },
+      { id: 'synergy', name: 'Synergy', category: 'Pool', price: 80763, image: '/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.webp', keywords: ['pool', 'premium', 'synergy', '16x36'] },
     ];
 
     // GLIMMERGLASS POOLS - Use imported data from gilmerPools (has correct image imports)
@@ -242,22 +242,22 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
 
     // Spas and Hot Tubs (4x multiplier)
     const spaData = [
-      { id: 'moonlight-spa', name: 'Moonlight Spillover Spa', category: 'Spa', price: 20000, image: '/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png', keywords: ['spa', 'hot tub', 'jacuzzi', 'moonlight', 'spillover'] },
-      { id: 'tranquility-spa', name: 'Tranquility Spa', category: 'Spa', price: 20000, image: '/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png', keywords: ['spa', 'hot tub', 'jacuzzi', 'tranquility'] },
-      { id: 'pacifica-spa', name: 'Pacifica Spa', category: 'Spa', price: 18000, image: '/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.png', keywords: ['spa', 'hot tub', 'jacuzzi', 'pacifica'] },
-      { id: 'pearl-spa', name: 'Pearl Spillover Spa', category: 'Spa', price: 18000, image: '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png', keywords: ['spa', 'hot tub', 'jacuzzi', 'pearl', 'spillover'] },
+      { id: 'moonlight-spa', name: 'Moonlight Spillover Spa', category: 'Spa', price: 20000, image: '/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.webp', keywords: ['spa', 'hot tub', 'jacuzzi', 'moonlight', 'spillover'] },
+      { id: 'tranquility-spa', name: 'Tranquility Spa', category: 'Spa', price: 20000, image: '/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.webp', keywords: ['spa', 'hot tub', 'jacuzzi', 'tranquility'] },
+      { id: 'pacifica-spa', name: 'Pacifica Spa', category: 'Spa', price: 18000, image: '/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.webp', keywords: ['spa', 'hot tub', 'jacuzzi', 'pacifica'] },
+      { id: 'pearl-spa', name: 'Pearl Spillover Spa', category: 'Spa', price: 18000, image: '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.webp', keywords: ['spa', 'hot tub', 'jacuzzi', 'pearl', 'spillover'] },
     ];
 
     // Pool Finishes from consolidatedProducts and additional data
     const finishData = [
-      { id: 'sapphire-blue-crystal', name: 'Sapphire Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png', keywords: ['finish', 'crystal', 'blue', 'sapphire'] },
-      { id: 'ocean-blue-crystal', name: 'Ocean Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png', keywords: ['finish', 'crystal', 'blue', 'ocean'] },
-      { id: 'night-sky-crystal', name: 'Night Sky Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png', keywords: ['finish', 'crystal', 'dark', 'night', 'sky'] },
-      { id: 'shale-gray-crystal', name: 'Shale Gray Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png', keywords: ['finish', 'crystal', 'gray', 'shale'] },
-      { id: 'coastal-bronze-crystal', name: 'Coastal Bronze Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png', keywords: ['finish', 'crystal', 'bronze', 'coastal'] },
-      { id: 'aquamarine-crystal', name: 'Aquamarine Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/0c70745d-4bf3-4394-8fb2-da6024bf72b9.png', keywords: ['finish', 'crystal', 'aquamarine', 'blue'] },
-      { id: 'lagoon-blue-crystal', name: 'Lagoon Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/805c3cea-4684-4e5b-acae-3405dc854aac.png', keywords: ['finish', 'crystal', 'blue', 'lagoon'] },
-      { id: 'pearl-white-crystal', name: 'Pearl White Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.png', keywords: ['finish', 'crystal', 'white', 'pearl'] }
+      { id: 'sapphire-blue-crystal', name: 'Sapphire Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp', keywords: ['finish', 'crystal', 'blue', 'sapphire'] },
+      { id: 'ocean-blue-crystal', name: 'Ocean Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.webp', keywords: ['finish', 'crystal', 'blue', 'ocean'] },
+      { id: 'night-sky-crystal', name: 'Night Sky Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.webp', keywords: ['finish', 'crystal', 'dark', 'night', 'sky'] },
+      { id: 'shale-gray-crystal', name: 'Shale Gray Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp', keywords: ['finish', 'crystal', 'gray', 'shale'] },
+      { id: 'coastal-bronze-crystal', name: 'Coastal Bronze Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp', keywords: ['finish', 'crystal', 'bronze', 'coastal'] },
+      { id: 'aquamarine-crystal', name: 'Aquamarine Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/0c70745d-4bf3-4394-8fb2-da6024bf72b9.webp', keywords: ['finish', 'crystal', 'aquamarine', 'blue'] },
+      { id: 'lagoon-blue-crystal', name: 'Lagoon Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/805c3cea-4684-4e5b-acae-3405dc854aac.webp', keywords: ['finish', 'crystal', 'blue', 'lagoon'] },
+      { id: 'pearl-white-crystal', name: 'Pearl White Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp', keywords: ['finish', 'crystal', 'white', 'pearl'] }
     ];
 
     // Pool Tiles from poolData and additional tiles
@@ -312,27 +312,27 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
 
     // Pool Equipment and Accessories
     const equipmentData = [
-      { id: 'gas-heater', name: 'Natural Gas Pool Heater', category: 'Heater', price: 5250, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'gas', 'heating'] },
-      { id: 'electric-heater', name: 'Electric Pool Heater', category: 'Heater', price: 4200, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'electric', 'heating'] },
-      { id: 'heat-pump', name: 'Heat Pump Pool Heater', category: 'Heater', price: 6300, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'heat pump', 'heating'] },
-      { id: 'solar-heater', name: 'Solar Pool Heater', category: 'Heater', price: 7500, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png', keywords: ['heater', 'heaters', 'pool heater', 'solar', 'heating'] }
+      { id: 'gas-heater', name: 'Natural Gas Pool Heater', category: 'Heater', price: 5250, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.webp', keywords: ['heater', 'heaters', 'pool heater', 'gas', 'heating'] },
+      { id: 'electric-heater', name: 'Electric Pool Heater', category: 'Heater', price: 4200, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.webp', keywords: ['heater', 'heaters', 'pool heater', 'electric', 'heating'] },
+      { id: 'heat-pump', name: 'Heat Pump Pool Heater', category: 'Heater', price: 6300, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.webp', keywords: ['heater', 'heaters', 'pool heater', 'heat pump', 'heating'] },
+      { id: 'solar-heater', name: 'Solar Pool Heater', category: 'Heater', price: 7500, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.webp', keywords: ['heater', 'heaters', 'pool heater', 'solar', 'heating'] }
     ];
 
     // Pool Covers
     const coverData = [
-      { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'eclipse'] },
-      { id: 'cs3000', name: 'CS3000 Automatic Cover', category: 'Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'cs3000'] },
-      { id: 'infinity-4000', name: 'Infinity 4000 Cover', category: 'Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'infinity'] },
-      { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'atom'] },
-      { id: 'safety-cover', name: 'Safety Pool Cover', category: 'Cover', price: 1800, image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png', keywords: ['cover', 'covers', 'safety', 'pool cover', 'safety cover'] },
-      { id: 'solar-cover', name: 'Solar Pool Cover', category: 'Cover', price: 800, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png', keywords: ['cover', 'covers', 'solar', 'pool cover', 'solar cover'] }
+      { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'eclipse'] },
+      { id: 'cs3000', name: 'CS3000 Automatic Cover', category: 'Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.webp', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'cs3000'] },
+      { id: 'infinity-4000', name: 'Infinity 4000 Cover', category: 'Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.webp', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'infinity'] },
+      { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.webp', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'atom'] },
+      { id: 'safety-cover', name: 'Safety Pool Cover', category: 'Cover', price: 1800, image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.webp', keywords: ['cover', 'covers', 'safety', 'pool cover', 'safety cover'] },
+      { id: 'solar-cover', name: 'Solar Pool Cover', category: 'Cover', price: 800, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.webp', keywords: ['cover', 'covers', 'solar', 'pool cover', 'solar cover'] }
     ];
 
     // Screen Enclosures - Standard $22, Deluxe $24, 2 Story $26
     const screenData = [
-      { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard', 'wonder cage'] },
-      { id: 'deluxe-screen', name: 'Deluxe Screen Enclosure', category: 'Screen Enclosure', price: 24, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'deluxe'] },
-      { id: 'premium-screen', name: '2 Story Screen Enclosure', category: 'Screen Enclosure', price: 26, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium', '2 story', 'two story'] },
+      { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard', 'wonder cage'] },
+      { id: 'deluxe-screen', name: 'Deluxe Screen Enclosure', category: 'Screen Enclosure', price: 24, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp', keywords: ['screen', 'enclosure', 'screen enclosure', 'deluxe'] },
+      { id: 'premium-screen', name: '2 Story Screen Enclosure', category: 'Screen Enclosure', price: 26, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium', '2 story', 'two story'] },
     ];
 
     // Saunas from saunaData

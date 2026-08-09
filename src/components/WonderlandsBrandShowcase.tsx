@@ -5,31 +5,31 @@ import { ArrowRight, Sparkles, Waves, Sun } from "lucide-react";
 const brandImages = [
   {
     id: 1,
-    url: "/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png",
+    url: "/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp",
     title: "Pool Paradise",
     description: "Create your perfect backyard oasis with Wonderlands premium pool accessories and vibrant outdoor furniture."
   },
   {
     id: 2,
-    url: "/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.png",
+    url: "/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.webp",
     title: "Luxury Lifestyle",
     description: "Experience the ultimate in pool luxury with our colorful floats and premium poolside comfort."
   },
   {
     id: 3,
-    url: "/lovable-uploads/2ad9f663-7ae0-4ea4-8ae6-cf232b78f58e.png",
+    url: "/lovable-uploads/2ad9f663-7ae0-4ea4-8ae6-cf232b78f58e.webp",
     title: "Evening Elegance",
     description: "Transform your outdoor space into an illuminated wonderland with our branded ambient lighting."
   },
   {
     id: 4,
-    url: "/lovable-uploads/ed2e7763-9e47-4400-9fee-f7dff2ccb0ee.png",
+    url: "/lovable-uploads/ed2e7763-9e47-4400-9fee-f7dff2ccb0ee.webp",
     title: "Poolside Essentials",
     description: "From towels to inflatables, everything you need for the perfect pool day experience."
   },
   {
     id: 5,
-    url: "/lovable-uploads/eaf313f5-2a7b-4b5e-a94b-da9d4104de79.png",
+    url: "/lovable-uploads/eaf313f5-2a7b-4b5e-a94b-da9d4104de79.webp",
     title: "Fun Collection",
     description: "Dive into fun with our complete collection of pool accessories, goggles, and water toys."
   }

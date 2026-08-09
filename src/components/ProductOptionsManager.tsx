@@ -52,7 +52,7 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
       enclosureType,
       pricePerSqFt,
       totalPrice,
-      image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+      image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp',
       features: enclosureType === 'premium' 
         ? ['Premium Aluminum Frame', 'Superior Screen Mesh', `${enclosureHeight === '2-story' ? 'Two' : 'Single'} Story Height`, 'Enhanced Hardware', 'Weather Resistant']
         : ['Aluminum Frame', 'Standard Screen Mesh', `${enclosureHeight === '2-story' ? 'Two' : 'Single'} Story Height`, 'Basic Hardware']

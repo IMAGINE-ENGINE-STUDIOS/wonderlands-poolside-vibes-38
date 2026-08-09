@@ -196,7 +196,7 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
         roughness: 0.6,
         metalness: 0.0
       } : {
-        url: paverTypes[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+        url: paverTypes[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp',
         name: 'Default Coping',
         roughness: 0.6,
         metalness: 0.0
@@ -269,9 +269,9 @@ export function buildTextureLibrary(
 
   // Pool tiles for waterline borders (Mountain, Carnegie, Panama from poolTilesData)
   const poolTiles = [
-    { url: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png', name: 'Mountain Tile' },
-    { url: '/lovable-uploads/5bfe3308-05a6-4d01-9f62-014d86ea281c.png', name: 'Carnegie Tile' },
-    { url: '/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png', name: 'Panama Tile' }
+    { url: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.webp', name: 'Mountain Tile' },
+    { url: '/lovable-uploads/5bfe3308-05a6-4d01-9f62-014d86ea281c.webp', name: 'Carnegie Tile' },
+    { url: '/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.webp', name: 'Panama Tile' }
   ];
   
   // Combine all finishes: premium liners + pool tiles for waterline options
@@ -334,19 +334,19 @@ export function buildTextureLibrary(
   // Waterline tiles (from poolLiners - glass and porcelain tiles)
   const waterlines: TextureConfig[] = [
     // Glass Tiles
-    { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', name: 'Ballad', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png', name: 'Paradise', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.png', name: 'Water Lilies', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.png', name: 'Sail Boat', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.png', name: 'Stormy', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.png', name: 'Galant', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.png', name: 'Melody', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png', name: 'Soul', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.png', name: 'Glacier', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.webp', name: 'Ballad', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.webp', name: 'Paradise', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.webp', name: 'Water Lilies', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.webp', name: 'Sail Boat', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.webp', name: 'Stormy', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.webp', name: 'Galant', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.webp', name: 'Melody', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.webp', name: 'Soul', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.webp', name: 'Glacier', roughness: 0.1, metalness: 0.3 },
     // Porcelain Tiles
-    { url: '/lovable-uploads/d5e74c29-95f6-4a9a-9395-a98fe4efdadd.png', name: 'Tikal', roughness: 0.2, metalness: 0.1 },
-    { url: '/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.png', name: 'Port Royal', roughness: 0.2, metalness: 0.1 },
-    { url: '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png', name: 'Alexandria', roughness: 0.2, metalness: 0.1 },
+    { url: '/lovable-uploads/d5e74c29-95f6-4a9a-9395-a98fe4efdadd.webp', name: 'Tikal', roughness: 0.2, metalness: 0.1 },
+    { url: '/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.webp', name: 'Port Royal', roughness: 0.2, metalness: 0.1 },
+    { url: '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.webp', name: 'Alexandria', roughness: 0.2, metalness: 0.1 },
   ];
 
   return {

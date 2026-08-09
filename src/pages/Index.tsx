@@ -25,7 +25,7 @@ import MissionVisionValues from "@/components/MissionVisionValues";
 import BrowseCategoriesEditorial from "@/components/BrowseCategoriesEditorial";
 
 import grassBanner from "@/assets/grass-natural-green.avif";
-import lathamGilmerBanner from "@/assets/latham-gilmer-banner.jpeg";
+import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.jpg";
 import spaBanner from "@/assets/banners/spa-banner.jpg";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.jpg";
@@ -252,10 +252,10 @@ const Index = () => {
         <meta property="og:url" content="https://www.wonderlandsworld.com/" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.wonderlandsworld.com/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png" />
-        <link rel="preload" as="image" href="/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png" />
-        <link rel="preload" as="image" href="/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png" />
-        <link rel="preload" as="image" href="/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png" />
-        <link rel="preload" as="image" href="/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png" />
+        <link rel="preload" as="image" href="/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp" />
+        <link rel="preload" as="image" href="/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.webp" />
+        <link rel="preload" as="image" href="/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.webp" />
+        <link rel="preload" as="image" href="/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.webp" />
       </Helmet>
 
       <Header />

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import lathamGilmerBanner from "@/assets/latham-gilmer-banner.jpeg";
+import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.jpg";
 import spaBanner from "@/assets/banners/spa-banner.jpg";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.jpg";

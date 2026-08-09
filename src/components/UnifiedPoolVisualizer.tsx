@@ -473,7 +473,7 @@ export function UnifiedPoolVisualizer({
   // Extract safe texture URLs
   const linerTextureUrl = safeGetTextureUrl(scene.pool.finish, '/src/assets/finishes/sapphire-blue-g3.jpg');
   const paverTextureUrl = safeGetTextureUrl(scene.deck.paver, '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png');
-  const copingTextureUrl = safeGetTextureUrl(scene.deck.coping, '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png');
+  const copingTextureUrl = safeGetTextureUrl(scene.deck.coping, '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp');
   const waterlineTextureUrl = safeGetTextureUrl(scene.deck.waterline, scene.pool.finish.url);
   
   // Log extracted texture URLs for debugging
@@ -1374,7 +1374,7 @@ export function UnifiedPoolVisualizer({
               paverTextureUrl={paverTextureUrl}
               copingTextureUrl={copingTextureUrl}
               waterlineTextureUrl={waterlineTextureUrl}
-              fenceTextureUrl="/src/assets/fence-texture.png"
+              fenceTextureUrl="/src/assets/fence-texture.webp"
               features={scene.features.map(f => ({
                 type: f.type as any,
                 x: f.position[0],

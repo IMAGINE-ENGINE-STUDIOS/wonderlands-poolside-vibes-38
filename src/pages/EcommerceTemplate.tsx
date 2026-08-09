@@ -90,7 +90,7 @@ const EcommerceTemplate = () => {
       <FloridaPoolElements />
       <div className="relative z-10">
         <HeroTemplate
-          logo="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
+          logo="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.webp"
           logoAlt="Your Business Logo"
           title="Your Amazing Business"
           subtitle="Transform your experience with our premium products and services. Where quality meets excellence."

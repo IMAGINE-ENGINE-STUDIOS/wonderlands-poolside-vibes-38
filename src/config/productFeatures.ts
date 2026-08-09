@@ -3,7 +3,7 @@ import { paverTypes } from '@/data/paverData';
 import { getProductsByCategory } from '@/data/consolidatedProducts';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
-import noCoverBlack from '@/assets/no-cover-black.png';
+import noCoverBlack from '@/assets/no-cover-black.webp';
 import { getSaunaOptionRetail } from '@/lib/saunaPricing';
 
 // Product type definitions
@@ -42,7 +42,7 @@ const spas: FeatureOption[] = [
     name: "Mystic",
     price: 24000,
     category: 'premium',
-    image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png",
+    image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.webp",
     dimensions: "7' x 7' x 34\"",
     features: ["LED Lighting", "Jets", "Heater"]
   },
@@ -51,7 +51,7 @@ const spas: FeatureOption[] = [
     name: "Serenity",
     price: 22000,
     category: 'deluxe',
-    image: "/lovable-uploads/1412e1fb-72ec-4219-a98f-4fcffbd15095.png",
+    image: "/lovable-uploads/1412e1fb-72ec-4219-a98f-4fcffbd15095.webp",
     dimensions: "6' x 6' x 32\"",
     features: ["LED Lighting", "Jets", "Heater"]
   },
@@ -60,24 +60,24 @@ const spas: FeatureOption[] = [
     name: "Tranquility",
     price: 20000,
     category: 'standard',
-    image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
+    image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.webp",
     dimensions: "5' x 5' x 30\"",
     features: ["Basic Lighting", "Jets"]
   }
 ];
 
 const poolHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 5520, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 7245, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 110 Heat Pump', price: 9488, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 140 Heat Pump', price: 11212, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 5520, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 7245, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair UltraTemp 110 Heat Pump', price: 9488, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair UltraTemp 140 Heat Pump', price: 11212, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" }
 ];
 
 const spaHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" }
 ];
 
 const ledgeHeaters: FeatureOption[] = [
@@ -120,38 +120,38 @@ const tileOptions: FeatureOption[] = [
 
 const coverOptions: FeatureOption[] = [
   { name: 'NO COVER', price: 0, image: noCoverBlack },
-  { name: 'Eclipse Automatic Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
-  { name: 'CS3000 Safety Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png' },
-  { name: 'Infinity 4000 Smart Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png' },
-  { name: 'Atom Loop-Loc Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png' }
+  { name: 'Eclipse Automatic Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp' },
+  { name: 'CS3000 Safety Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.webp' },
+  { name: 'Infinity 4000 Smart Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.webp' },
+  { name: 'Atom Loop-Loc Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.webp' }
 ];
 
 const paverOptions: FeatureOption[] = [
   { name: 'Concrete Patio', price: 10, image: '/images/concrete-patio-texture.avif', collection: 'none' },
   
   // Appian Collection - $15/sq ft
-  { name: 'Appian Adobe', price: 15, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png', collection: 'Appian Collection' },
-  { name: 'Appian Amaretto', price: 15, image: '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png', collection: 'Appian Collection' },
-  { name: 'Appian Harvest Blend', price: 15, image: '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png', collection: 'Appian Collection' },
-  { name: 'Appian Knightsbridge', price: 15, image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png', collection: 'Appian Collection' },
-  { name: 'Appian Napoli', price: 15, image: '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png', collection: 'Appian Collection' },
-  { name: 'Appian Rio', price: 15, image: '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png', collection: 'Appian Collection' },
-  { name: 'Appian Slate', price: 15, image: '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png', collection: 'Appian Collection' },
-  { name: 'Appian Titanium', price: 15, image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png', collection: 'Appian Collection' },
-  { name: 'Appian Charco', price: 15, image: '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png', collection: 'Appian Collection' },
+  { name: 'Appian Adobe', price: 15, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp', collection: 'Appian Collection' },
+  { name: 'Appian Amaretto', price: 15, image: '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.webp', collection: 'Appian Collection' },
+  { name: 'Appian Harvest Blend', price: 15, image: '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.webp', collection: 'Appian Collection' },
+  { name: 'Appian Knightsbridge', price: 15, image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.webp', collection: 'Appian Collection' },
+  { name: 'Appian Napoli', price: 15, image: '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.webp', collection: 'Appian Collection' },
+  { name: 'Appian Rio', price: 15, image: '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.webp', collection: 'Appian Collection' },
+  { name: 'Appian Slate', price: 15, image: '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.webp', collection: 'Appian Collection' },
+  { name: 'Appian Titanium', price: 15, image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp', collection: 'Appian Collection' },
+  { name: 'Appian Charco', price: 15, image: '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.webp', collection: 'Appian Collection' },
   
   // Catalina Grana Collection - $22/sq ft
-  { name: 'Catalina Grana Amaretto', price: 22, image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Napoli', price: 22, image: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Rio', price: 22, image: '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Scandina Gray', price: 22, image: '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Slate', price: 22, image: '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Titanium', price: 22, image: '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Amaretto', price: 22, image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.webp', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Napoli', price: 22, image: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.webp', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Rio', price: 22, image: '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.webp', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Scandina Gray', price: 22, image: '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.webp', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Slate', price: 22, image: '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.webp', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Titanium', price: 22, image: '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.webp', collection: 'Catalina Grana Collection' },
   
   // Catalina Collection - $20/sq ft
-  { name: 'Catalina Napoli', price: 20, image: '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png', collection: 'Catalina Collection' },
-  { name: 'Catalina Slate', price: 20, image: '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png', collection: 'Catalina Collection' },
-  { name: 'Catalina Titanium', price: 20, image: '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png', collection: 'Catalina Collection' }
+  { name: 'Catalina Napoli', price: 20, image: '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.webp', collection: 'Catalina Collection' },
+  { name: 'Catalina Slate', price: 20, image: '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.webp', collection: 'Catalina Collection' },
+  { name: 'Catalina Titanium', price: 20, image: '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.webp', collection: 'Catalina Collection' }
 ];
 
 const tanningLedgeOptions: FeatureOption[] = tanningLedges.map(ledge => ({

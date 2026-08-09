@@ -140,7 +140,7 @@ const PaversSection = () => {
             {/* First Card - Appian Collection */}
             <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
               <div className="relative w-full h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden">
-                <img loading="lazy" decoding="async" src={appianPavers[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png'} alt="Appian Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <img loading="lazy" decoding="async" src={appianPavers[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp'} alt="Appian Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 <div className="absolute top-4 left-4">
                   <Badge className="bg-gradient-to-r from-coral to-orange text-white font-medium px-3 py-1">
                     Premium Collection
@@ -233,7 +233,7 @@ const PaversSection = () => {
             {/* Second Card - Catalina Grana Collection */}
             <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
               <div className="relative w-full h-64 bg-gradient-to-br from-teal/10 to-coral/10 overflow-hidden">
-                <img loading="lazy" decoding="async" src={catalinaGranaPavers[0]?.image || '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png'} alt="Catalina Grana Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <img loading="lazy" decoding="async" src={catalinaGranaPavers[0]?.image || '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.webp'} alt="Catalina Grana Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 <div className="absolute top-4 left-4">
                   <Badge className="bg-gradient-to-r from-teal to-coral text-white font-medium px-3 py-1">
                     Grana Collection
@@ -326,7 +326,7 @@ const PaversSection = () => {
             {/* Third Card - Catalina Collection */}
             <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
               <div className="relative w-full h-64 bg-gradient-to-br from-secondary/10 to-accent/10 overflow-hidden">
-                <img loading="lazy" decoding="async" src={catalinaPavers[0]?.image || '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png'} alt="Catalina Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <img loading="lazy" decoding="async" src={catalinaPavers[0]?.image || '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.webp'} alt="Catalina Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 <div className="absolute top-4 left-4">
                   <Badge className="bg-gradient-to-r from-secondary to-accent text-white font-medium px-3 py-1">
                     Catalina Collection
