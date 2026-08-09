@@ -243,7 +243,7 @@ const StudioLanding = () => {
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+                <div className={`grid grid-cols-2 gap-4 sm:grid-cols-3 ${group.items.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-5'}`}>
                   {group.items.map((cat) => {
                     counter += 1;
                     return <CategoryTile key={cat.id} cat={cat} num={counter} total={total} />;
