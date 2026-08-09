@@ -11,9 +11,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search, ShieldCheck } from 'lucide-react';
 import usePersistentState from '@/hooks/usePersistentState';
 import BlueprintSheet from '@/components/blueprint/BlueprintSheet';
+import FloridaDigitalSealDialog from '@/components/blueprint/FloridaDigitalSealDialog';
+import { canonicalSignaturePayload } from '@/components/blueprint/signaturePayload';
 import type { BlueprintProject } from '@/components/blueprint/types';
 import { measureSitePlan } from '@/components/blueprint/SiteDrawingBoard';
 import {
@@ -109,6 +111,7 @@ const BlueprintBuilder: React.FC = () => {
   const [data, setData] = usePersistentState<BlueprintProject>('blueprint_builder_v1', INITIAL);
   const [jurisdictionQuery, setJurisdictionQuery] = React.useState('');
   const [activeSheet, setActiveSheet] = usePersistentState<string>('blueprint_active_sheet', 'A1');
+  const [sealDialogOpen, setSealDialogOpen] = React.useState(false);
   const [printAll, setPrintAll] = React.useState(false);
 
   const jurisdiction = findJurisdiction(data.jurisdictionId);
@@ -146,7 +149,10 @@ const BlueprintBuilder: React.FC = () => {
     ];
     if (jurisdiction.requiresEngineerSeal) {
       items.push({ label: 'Engineer of record + license entered', done: Boolean(data.engineer.engineerName && data.engineer.engineerLicense) });
-      items.push({ label: 'SHA authentication code entered', done: Boolean(data.engineer.shaCode) });
+      items.push({
+        label: 'Florida electronic signature & seal applied',
+        done: Boolean(data.signatures.digitalSignature?.signedAt),
+      });
     }
     data.permitTypeIds.forEach(id => {
       const permit = PERMIT_TYPES.find(p => p.id === id);
@@ -620,6 +626,27 @@ const BlueprintBuilder: React.FC = () => {
                   <Field label="Contractor signed date" value={data.signatures.contractorSignedDate} onChange={v => patch(p => ({ ...p, signatures: { ...p.signatures, contractorSignedDate: v } }))} />
                   <Field label="Owner signer" value={data.signatures.ownerSignerName} onChange={v => patch(p => ({ ...p, signatures: { ...p.signatures, ownerSignerName: v } }))} />
                   <Field label="Owner signed date" value={data.signatures.ownerSignedDate} onChange={v => patch(p => ({ ...p, signatures: { ...p.signatures, ownerSignedDate: v } }))} />
+                  <div className="md:col-span-2 space-y-1.5 rounded-md border p-3">
+                    <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Florida electronic signature &amp; seal
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Florida requires the design professional's electronic signature to be a digital certificate
+                      signature or a published SHA authentication code, with the statutory statement printed beside the
+                      seal. Applying it here binds the signature to a hash of this plan set — any later edit prints as
+                      invalidated.
+                    </p>
+                    {data.signatures.digitalSignature?.signedAt ? (
+                      <p className="break-all font-mono text-[11px]">
+                        {data.signatures.digitalSignature.hashAlgorithm} AUTH CODE:{' '}
+                        {data.signatures.digitalSignature.authCode}
+                      </p>
+                    ) : null}
+                    <Button variant="outline" size="sm" onClick={() => setSealDialogOpen(true)}>
+                      <ShieldCheck className="mr-1.5 h-4 w-4" />
+                      {data.signatures.digitalSignature?.signedAt ? 'Manage signature & seal' : 'Sign & seal plan set'}
+                    </Button>
+                  </div>
                   <div className="md:col-span-2 space-y-1">
                     <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Seal disclaimer</Label>
                     <Textarea
@@ -644,6 +671,29 @@ const BlueprintBuilder: React.FC = () => {
           </Tabs>
         </div>
       </main>
+
+      <FloridaDigitalSealDialog
+        open={sealDialogOpen}
+        onOpenChange={setSealDialogOpen}
+        payload={canonicalSignaturePayload(data)}
+        value={data.signatures.digitalSignature}
+        defaultSignerName={data.engineer.engineerName}
+        defaultLicense={data.engineer.engineerLicense}
+        onApply={signature =>
+          patch(p => ({
+            ...p,
+            signatures: { ...p.signatures, digitalSignature: signature },
+            engineer: { ...p.engineer, shaCode: signature.authCode },
+          }))
+        }
+        onRemove={() =>
+          patch(p => ({
+            ...p,
+            signatures: { ...p.signatures, digitalSignature: undefined },
+            engineer: { ...p.engineer, shaCode: '' },
+          }))
+        }
+      />
     </div>
   );
 };
