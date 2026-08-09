@@ -11,9 +11,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, CircleAlert, Plus, Printer, RotateCcw, Search, ShieldCheck, Upload } from 'lucide-react';
 import usePersistentState from '@/hooks/usePersistentState';
 import BlueprintSheet from '@/components/blueprint/BlueprintSheet';
+import BlueprintImportDialog from '@/components/blueprint/BlueprintImportDialog';
 import FloridaDigitalSealDialog from '@/components/blueprint/FloridaDigitalSealDialog';
 import { canonicalSignaturePayload } from '@/components/blueprint/signaturePayload';
 import type { BlueprintProject } from '@/components/blueprint/types';
@@ -113,6 +114,7 @@ const BlueprintBuilder: React.FC = () => {
   const [activeSheet, setActiveSheet] = usePersistentState<string>('blueprint_active_sheet', 'A1');
   const [sealDialogOpen, setSealDialogOpen] = React.useState(false);
   const [printAll, setPrintAll] = React.useState(false);
+  const [importOpen, setImportOpen] = React.useState(false);
 
   const jurisdiction = findJurisdiction(data.jurisdictionId);
   const projectType = findProjectType(data.projectTypeId);
@@ -395,6 +397,16 @@ const BlueprintBuilder: React.FC = () => {
           >
             <RotateCcw className="mr-1 h-4 w-4" /> Reset plan set
           </Button>
+
+          <BlueprintImportDialog
+            open={importOpen}
+            onOpenChange={setImportOpen}
+            site={data.site}
+            onApply={site => setData(prev => ({ ...prev, site }))}
+          />
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="w-full">
+            <Upload className="mr-1 h-4 w-4" /> Import existing blueprint
+          </Button>
         </div>
 
         {/* Sheet + data entry */}
@@ -422,6 +434,8 @@ const BlueprintBuilder: React.FC = () => {
               <div id="bp-print" className="space-y-6">
                 {printedSheets.map(code => (
                   <BlueprintSheet
+                    onRequestImport={() => setImportOpen(true)}
+
                     key={code}
                     data={data}
                     sheetCode={code}
