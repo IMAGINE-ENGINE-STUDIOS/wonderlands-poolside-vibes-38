@@ -76,7 +76,7 @@ const ArtificialGrassSection = () => {
           {selectedGrass && (
             <div className="space-y-4">
               <div className="aspect-video overflow-hidden rounded-lg bg-muted">
-                <img
+                <img loading="lazy" decoding="async"
                   src={selectedGrass.image}
                   alt={selectedGrass.name}
                   className="w-full h-full object-cover"

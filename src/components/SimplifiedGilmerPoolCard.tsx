@@ -534,7 +534,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                         onClick={() => updateOption('screenEnclosureQuality', quality.key)}
                       >
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={quality.image} 
                             alt={quality.name} 
                             className="w-full h-full object-cover" 

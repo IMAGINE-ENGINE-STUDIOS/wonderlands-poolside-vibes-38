@@ -1332,7 +1332,7 @@ const SurveyQuoteTool = ({
                             <span className="text-sm">Processing...</span>
                           </div> : uploadedImage ? <div className="space-y-2">
                             <p className="text-sm text-green-600">✓ Photos uploaded</p>
-                            {processedImage && <img src={processedImage} alt="Processed" className="max-w-20 max-h-20 rounded border mx-auto" />}
+                            {processedImage && <img loading="lazy" decoding="async" src={processedImage} alt="Processed" className="max-w-20 max-h-20 rounded border mx-auto" />}
                           </div> : <div className="space-y-1">
                             <Upload className="h-6 w-6 mx-auto text-teal" />
                             <p className="text-sm">Upload backyard photos</p>
@@ -1759,7 +1759,7 @@ const SurveyQuoteTool = ({
                               {extras.enclosure.snapshot && (
                                 <div>
                                   <p className="text-sm font-medium mb-1">Footprint Plan</p>
-                                  <img
+                                  <img loading="lazy" decoding="async"
                                     src={extras.enclosure.snapshot}
                                     alt="Screen enclosure footprint plan"
                                     className="w-full rounded-md border border-teal-200 dark:border-gray-600 bg-white"

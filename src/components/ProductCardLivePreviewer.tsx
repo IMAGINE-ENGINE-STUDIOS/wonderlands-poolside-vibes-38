@@ -310,7 +310,7 @@ const getCategoryColor = (category: string) => {
                     <Upload className="h-4 w-4" />
                   </div>
                   {imagePreview && (
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={imagePreview} 
                       alt="Preview" 
                       className="w-24 h-24 object-cover rounded mt-2"
@@ -329,7 +329,7 @@ const getCategoryColor = (category: string) => {
               {/* Product Image */}
               <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image">
                 {imagePreview ? (
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={imagePreview} 
                     alt={editedProduct.name}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"

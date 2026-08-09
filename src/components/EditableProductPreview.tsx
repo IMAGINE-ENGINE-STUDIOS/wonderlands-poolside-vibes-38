@@ -101,7 +101,7 @@ const EditableProductPreview = ({ product, onUpdate, onClose }: EditableProductP
           <div className="space-y-4">
             <div className="aspect-square bg-muted rounded-lg overflow-hidden">
               {editedProduct.image_url ? (
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={editedProduct.image_url} 
                   alt={editedProduct.name}
                   className="w-full h-full object-cover"

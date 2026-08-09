@@ -1054,7 +1054,7 @@ const PoolCatalog = () => {
 
           {/* Banner between Wonderlands and Latham */}
           <div className="w-full my-12">
-            <img 
+            <img loading="lazy" decoding="async" 
               src="/lovable-uploads/Astoria_Maxima_029.jpg" 
               alt="Luxury Pool with Mosaic Tiles" 
               className="w-full h-auto object-cover rounded-lg"

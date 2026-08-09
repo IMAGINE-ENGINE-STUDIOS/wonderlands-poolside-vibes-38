@@ -252,7 +252,7 @@ const UserProfileManager = ({ isOpen, onClose }: UserProfileManagerProps) => {
                         <div>
                           <Label className="text-sm text-muted-foreground">Company Logo</Label>
                           <div className="mt-2">
-                            <img 
+                            <img loading="lazy" decoding="async" 
                               src={profile.company_logo_url} 
                               alt="Company Logo" 
                               className="w-16 h-16 object-contain border rounded"

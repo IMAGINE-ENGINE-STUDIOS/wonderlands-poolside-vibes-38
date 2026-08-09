@@ -94,7 +94,7 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged }:
           className="flex-1 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing"
           onWheel={handleWheel}
         >
-          <img
+          <img loading="lazy" decoding="async"
             src={file.file_url}
             alt={file.file_name}
             className="max-w-full max-h-full object-contain transition-transform duration-200 select-none"

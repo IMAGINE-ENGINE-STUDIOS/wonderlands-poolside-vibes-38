@@ -216,7 +216,7 @@ const LanaiSection = () => {
               className="group overflow-hidden border-2 transition-all duration-300"
             >
               <div className="relative h-48 sm:h-56 overflow-hidden">
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={lanai.image} 
                   alt={lanai.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
@@ -360,7 +360,7 @@ const LanaiSection = () => {
                                   }))}
                                 >
                                   <div className="w-full flex-1 rounded-md mb-1 overflow-hidden">
-                                    <img 
+                                    <img loading="lazy" decoding="async" 
                                       src={paver.image} 
                                       alt={paver.name}
                                       className="w-full h-full object-cover"

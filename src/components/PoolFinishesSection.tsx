@@ -98,7 +98,7 @@ const PoolFinishesSection = () => {
                   onClick={() => setSelectedFinish(finish)}
                 >
                   <div className="relative overflow-hidden rounded-t-lg">
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={finish.image} 
                       alt={finish.name}
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
@@ -147,7 +147,7 @@ const PoolFinishesSection = () => {
             <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="grid md:grid-cols-2 gap-6 p-6">
                 <div className="space-y-4">
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={selectedFinish.image} 
                     alt={selectedFinish.name}
                     className="w-full h-64 object-cover rounded-lg"

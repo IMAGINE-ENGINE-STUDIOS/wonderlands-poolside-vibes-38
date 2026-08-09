@@ -164,7 +164,7 @@ const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selecte
           draggable={editMode}
         >
           {element.type === 'image' ? (
-            <img 
+            <img loading="lazy" decoding="async" 
               src={element.content} 
               alt="Custom" 
               className="w-full h-full object-cover rounded"

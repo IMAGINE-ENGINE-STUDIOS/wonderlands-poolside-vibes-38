@@ -88,7 +88,7 @@ const ProductPreview = ({ product, variant = 'default' }: ProductPreviewProps) =
         <CardContent className="p-4">
           <div className="flex gap-4">
             <div className="relative w-20 h-20 flex-shrink-0">
-              <img
+              <img loading="lazy" decoding="async"
                 src={product.image || '/placeholder.svg'}
                 alt={product.name}
                 className="w-full h-full object-cover rounded-md"

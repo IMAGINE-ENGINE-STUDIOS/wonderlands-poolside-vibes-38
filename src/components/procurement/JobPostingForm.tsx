@@ -364,7 +364,7 @@ const JobPostingForm = ({ onJobCreated }: JobPostingFormProps) => {
                   </div>
                   
                   {attachment.preview && (
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={attachment.preview}
                       alt="Preview"
                       className="w-full h-20 object-cover rounded"

@@ -2026,7 +2026,7 @@ const WonderlandsStudio = () => {
 
                   }}>
                           <div className="flex items-center gap-3">
-                            {product.image && <img src={product.image} alt={product.model || product.name || 'Product'} className="w-12 h-12 object-cover rounded" />}
+                            {product.image && <img loading="lazy" decoding="async" src={product.image} alt={product.model || product.name || 'Product'} className="w-12 h-12 object-cover rounded" />}
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-sm truncate">
                                 {product.model || product.name}
@@ -2207,7 +2207,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.concreteSlabs.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price}/sq ft
@@ -2255,7 +2255,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.outdoorKitchens.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price.toLocaleString()}
@@ -2303,7 +2303,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.fireplaces.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price.toLocaleString()}
@@ -2351,7 +2351,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.firePitKits.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price.toLocaleString()}
@@ -2399,7 +2399,7 @@ const WonderlandsStudio = () => {
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.pergolas.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
                                       <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
-                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
                                         <p className="text-xs text-muted-foreground">
                                           ${option.price.toLocaleString()}
@@ -2609,7 +2609,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={finish.image}
                                         alt={finish.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2658,7 +2658,7 @@ const WonderlandsStudio = () => {
                           {!selectedExtras.liner && (
                             <div className="p-3 border rounded-lg border-primary bg-primary/10">
                               <div className="w-full h-28 rounded-md mb-2 overflow-hidden">
-                                <img
+                                <img loading="lazy" decoding="async"
                                   src={finishOptions.find(f => f.name === selectedExtras.finish)?.image || aquamarineFinish}
                                   alt="Selected Finish"
                                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2693,7 +2693,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={liner.image}
                                         alt={liner.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2761,7 +2761,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={tile.image}
                                         alt={tile.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2820,7 +2820,7 @@ const WonderlandsStudio = () => {
                                       }
                                     >
                                       <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                        <img
+                                        <img loading="lazy" decoding="async"
                                           src={cover.image}
                                           alt={cover.name}
                                           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -2945,7 +2945,7 @@ const WonderlandsStudio = () => {
                                         }
                                       >
                                         <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                          <img
+                                          <img loading="lazy" decoding="async"
                                             src={spa.image}
                                             alt={spa.model}
                                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3016,7 +3016,7 @@ const WonderlandsStudio = () => {
                                             }
                                           >
                                             <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                              <img
+                                              <img loading="lazy" decoding="async"
                                                 src={finish.image}
                                                 alt={finish.name}
                                                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3078,7 +3078,7 @@ const WonderlandsStudio = () => {
                                       }
                                     >
                                       <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                        <img
+                                        <img loading="lazy" decoding="async"
                                           src={ledge.image}
                                           alt={ledge.name}
                                           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3126,7 +3126,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img src={tier.image} alt={tier.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
+                                      <img loading="lazy" decoding="async" src={tier.image} alt={tier.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
                                     </div>
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{tier.name}</p>
@@ -3200,7 +3200,7 @@ const WonderlandsStudio = () => {
                                         }
                                       >
                                         <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                          <img src={grass.image} alt={grass.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
+                                          <img loading="lazy" decoding="async" src={grass.image} alt={grass.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
                                         </div>
                                         <div className="flex flex-col gap-0.5">
                                           <p className="text-xs font-medium text-center truncate">{grass.name}</p>
@@ -3268,7 +3268,7 @@ const WonderlandsStudio = () => {
                                     }}
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={paver.image}
                                         alt={paver.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3357,7 +3357,7 @@ const WonderlandsStudio = () => {
                                     }
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                      <img
+                                      <img loading="lazy" decoding="async"
                                         src={quality.image}
                                         alt={quality.name}
                                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
@@ -3524,7 +3524,7 @@ const WonderlandsStudio = () => {
                                           }
                                         >
                                           <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                            <img
+                                            <img loading="lazy" decoding="async"
                                               src={heater.image}
                                               alt={heater.name}
                                               className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"

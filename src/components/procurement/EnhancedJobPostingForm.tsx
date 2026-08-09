@@ -444,7 +444,7 @@ const EnhancedJobPostingForm = ({ onJobCreated }: EnhancedJobPostingFormProps) =
                         <Card className="border-border/30 overflow-hidden">
                           <CardContent className="p-3">
                             {attachment.preview ? (
-                              <img
+                              <img loading="lazy" decoding="async"
                                 src={attachment.preview}
                                 alt="Preview"
                                 className="w-full h-32 object-cover rounded-lg mb-2"

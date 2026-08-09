@@ -98,7 +98,7 @@ const ServiceSection = ({
                   {/* Service Image/Icon */}
                   <div className="w-full h-32 bg-gradient-to-br from-primary/20 to-teal/20 rounded-lg flex items-center justify-center border-2 border-muted">
                     {service.image ? (
-                      <img 
+                      <img loading="lazy" decoding="async" 
                         src={service.image} 
                         alt={service.name}
                         className="w-full h-full object-cover rounded-lg"

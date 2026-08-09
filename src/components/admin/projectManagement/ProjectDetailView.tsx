@@ -161,7 +161,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       <div className="relative rounded-lg overflow-hidden group">
         {project.cover_image_url ? (
           <div className="aspect-[3/1] w-full">
-            <img
+            <img loading="lazy" decoding="async"
               src={project.cover_image_url}
               alt={project.project_name}
               className="w-full h-full object-cover"

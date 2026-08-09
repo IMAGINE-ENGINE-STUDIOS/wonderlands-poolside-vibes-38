@@ -154,7 +154,7 @@ const SmartProductCard = ({
         {/* Product Image */}
         <div className="relative w-full h-48 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image">
           {image ? (
-            <img 
+            <img loading="lazy" decoding="async" 
               src={image} 
               alt={name}
               className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"

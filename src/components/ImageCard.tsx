@@ -27,7 +27,7 @@ const ImageCard: React.FC<ImageCardProps> = ({
 
   return (
     <>
-      <img
+      <img loading="lazy" decoding="async"
         src={src}
         alt={alt}
         className={cn(
@@ -46,7 +46,7 @@ const ImageCard: React.FC<ImageCardProps> = ({
               <DialogTitle>{alt}</DialogTitle>
             </DialogHeader>
             <div className="p-6 pt-0">
-              <img
+              <img loading="lazy" decoding="async"
                 src={src}
                 alt={alt}
                 className="w-full h-auto max-h-[70vh] object-contain rounded-lg"

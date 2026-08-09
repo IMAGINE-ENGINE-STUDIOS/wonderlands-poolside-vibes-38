@@ -32,7 +32,7 @@ import lightingImg from "@/assets/deck/lighting.jpg";
 import wonderlandsCta from "@/assets/deck/wonderlands-cta.png";
 
 const SectionLogo = () => (
-  <img src={wonderlandsLogo} alt="Wonderlands" className="absolute top-6 right-6 h-12 md:h-16 z-20 opacity-80" />
+  <img loading="lazy" decoding="async" src={wonderlandsLogo} alt="Wonderlands" className="absolute top-6 right-6 h-12 md:h-16 z-20 opacity-80" />
 );
 
 const fadeUp = {
@@ -48,7 +48,7 @@ const stagger = {
 
 const HeroSection = () => (
   <section className="relative w-full flex items-center justify-center">
-    <img
+    <img loading="lazy" decoding="async"
       src={wonderlandsHero}
       alt="Wonderlands – Pools for Outdoor Living"
       className="w-full h-auto block"
@@ -1018,7 +1018,7 @@ const FutureSection = () => (
     <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
     <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-    <img src={synergyPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay" />
+    <img loading="lazy" decoding="async" src={synergyPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay" />
     <motion.div
       variants={stagger}
       initial="hidden"
@@ -1049,7 +1049,7 @@ const FutureSection = () => (
 
 const CTASection = () => (
   <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-    <img src={wonderlandsCta} alt="Wonderlands" className="absolute inset-0 w-full h-full object-cover" />
+    <img loading="lazy" decoding="async" src={wonderlandsCta} alt="Wonderlands" className="absolute inset-0 w-full h-full object-cover" />
     <div className="absolute inset-0 bg-black/20" />
     <motion.div
       initial={{ opacity: 0, y: 40 }}

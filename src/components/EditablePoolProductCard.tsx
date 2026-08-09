@@ -384,7 +384,7 @@ const EditablePoolProductCard = ({
         onClick={handleImageClick}
       >
         {currentPoolImage ? (
-          <img 
+          <img loading="lazy" decoding="async" 
             src={currentPoolImage} 
             alt={editedPool.model}
             className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
@@ -629,7 +629,7 @@ const EditablePoolProductCard = ({
                   />
                  <div className="flex items-center gap-2">
                   <Thermometer className="h-4 w-4 text-orange-500" />
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src="/src/assets/pool-heater.png"
                     alt="Pool Heater"
                     className="w-4 h-4 object-cover rounded"
@@ -726,7 +726,7 @@ const EditablePoolProductCard = ({
                             onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
                           >
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={tile.image} 
                                 alt={tile.name}
                                 className="w-full h-full object-cover"
@@ -769,7 +769,7 @@ const EditablePoolProductCard = ({
                             onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
                           >
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={finish.image} 
                                 alt={finish.name}
                                 className="w-full h-full object-cover"
@@ -812,7 +812,7 @@ const EditablePoolProductCard = ({
                             onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
                           >
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={liner.image} 
                                 alt={liner.name}
                                 className="w-full h-full object-cover"
@@ -856,7 +856,7 @@ const EditablePoolProductCard = ({
                               onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))}
                             >
                               <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                <img 
+                                <img loading="lazy" decoding="async" 
                                   src={spa.image} 
                                   alt={spa.model}
                                   className="w-full h-full object-cover"
@@ -891,7 +891,7 @@ const EditablePoolProductCard = ({
                               onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))}
                             >
                               <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                <img 
+                                <img loading="lazy" decoding="async" 
                                   src={ledge.image} 
                                   alt={ledge.name}
                                   className="w-full h-full object-cover"

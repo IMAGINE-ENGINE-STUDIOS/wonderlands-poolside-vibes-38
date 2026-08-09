@@ -49,7 +49,7 @@ const GilmerPoolsShowcase = () => {
             >
               <CardHeader className="pb-4">
                 <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={pool.image} 
                     alt={`${pool.brand} ${pool.model}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

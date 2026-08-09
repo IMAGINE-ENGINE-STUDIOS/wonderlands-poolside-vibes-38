@@ -93,7 +93,7 @@ const PoolDetailModal = ({ pool, isOpen, onClose, onRequestQuote }: PoolDetailMo
           <div className="space-y-4">
             <div className="relative rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-teal/10 min-h-[300px] flex items-center justify-center">
               {pool.image ? (
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={pool.image} 
                   alt={pool.model}
                   className="w-full h-full object-cover"

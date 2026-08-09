@@ -1066,7 +1066,7 @@ const PoolDetails = () => {
                 ${selectedItems.map(item => `
                   <div class="extra-item">
                     <div class="item-info">
-                      <img src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'}" alt="${item.name}" class="item-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'" />
+                      <img loading="lazy" decoding="async" src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'}" alt="${item.name}" class="item-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'" />
                       <div class="item-details">
                         <h4>${item.name}</h4>
                         ${item.description ? `<p>${item.description}</p>` : ''}
@@ -1081,7 +1081,7 @@ const PoolDetails = () => {
                 ${extras.jets ? `
                   <div class="extra-item">
                     <div class="item-info">
-                      <img src="/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.png" alt="Spa Jets" class="item-image" />
+                      <img loading="lazy" decoding="async" src="/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.png" alt="Spa Jets" class="item-image" />
                       <div class="item-details">
                         <h4>Premium Spa Jets (${extras.jetQuantity} Units)</h4>
                         <p>High-performance hydrotherapy jets with adjustable pressure settings for ultimate relaxation and therapeutic benefits</p>
@@ -1352,7 +1352,7 @@ const PoolDetails = () => {
         }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{finish.name}</p>
@@ -1368,7 +1368,7 @@ const PoolDetails = () => {
         }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{liner.name}</p>
@@ -1421,7 +1421,7 @@ const PoolDetails = () => {
           return options.map((option: any) => <div key={option.name || option.model} className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50" onClick={() => handleOptionSelect(activePanel!, option)}>
               <div className="flex gap-2">
                 <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                  <img src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{option.name || option.model}</p>
@@ -1451,7 +1451,7 @@ const PoolDetails = () => {
               {paverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('pavers', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
@@ -1489,7 +1489,7 @@ const PoolDetails = () => {
               {copingPaverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('coping', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
@@ -1508,7 +1508,7 @@ const PoolDetails = () => {
               {coverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.coverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('covers', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
@@ -1571,7 +1571,7 @@ const PoolDetails = () => {
         }}>
             <div className="flex gap-2">
               {product.image_url && <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                 </div>}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{product.name}</p>
@@ -1700,7 +1700,7 @@ const PoolDetails = () => {
                 {/* Selected Products Snapshots - Responsive */}
                 {getConfigurationItems().length > 0 && <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-1 max-w-[150px] sm:max-w-[200px]">
                     {getConfigurationItems().slice(0, 4).map((item, index) => <div key={index} className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 overflow-hidden">
-                        <img src={item.image || pool.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img loading="lazy" decoding="async" src={item.image || pool.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>)}
                     {getConfigurationItems().length > 4 && <div className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 flex items-center justify-center text-[10px] sm:text-xs">
                         +{getConfigurationItems().length - 4}
@@ -1708,7 +1708,7 @@ const PoolDetails = () => {
                   </div>}
                 
                 <div className="aspect-[4/3] overflow-hidden">
-                  <img src={getCurrentImage()} alt={pool.model} className="w-[90%] h-[90%] object-cover transition-all duration-500 mx-auto my-auto" />
+                  <img loading="lazy" decoding="async" src={getCurrentImage()} alt={pool.model} className="w-[90%] h-[90%] object-cover transition-all duration-500 mx-auto my-auto" />
                 </div>
                 
                 {/* Pool Info Overlay - Responsive */}
@@ -1800,7 +1800,7 @@ const PoolDetails = () => {
                         finish: finish.name
                       }))}>
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" onError={e => {
+                              <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" onError={e => {
                             const target = e.target as HTMLImageElement;
                             const parent = target.parentElement;
                             if (parent) {
@@ -1839,7 +1839,7 @@ const PoolDetails = () => {
                           }))}
                         >
                           <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                            <img
+                            <img loading="lazy" decoding="async"
                               src={finishOptions.find(f => f.name === extras.finish)?.image || azureBlueFinish}
                               alt={extras.finish || "Pool Finish"}
                               className="w-full h-full object-cover"
@@ -1860,7 +1860,7 @@ const PoolDetails = () => {
                         linerOption: liner.name
                       }))}>
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" onError={e => {
+                              <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover" onError={e => {
                             const target = e.target as HTMLImageElement;
                             const parent = target.parentElement;
                             if (parent) {
@@ -1904,7 +1904,7 @@ const PoolDetails = () => {
                         paverOption: paver.name
                       }))}>
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" onError={e => {
+                              <img loading="lazy" decoding="async" src={paver.image} alt={paver.name} className="w-full h-full object-cover" onError={e => {
                             const target = e.target as HTMLImageElement;
                             const parent = target.parentElement;
                             if (parent) {
@@ -1972,7 +1972,7 @@ const PoolDetails = () => {
                             }))}
                           >
                             <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={quality.image} 
                                 alt={quality.name} 
                                 className="w-full h-full object-cover" 
@@ -2018,7 +2018,7 @@ const PoolDetails = () => {
                               <CarouselItem key={heater.name} className="pl-1 basis-1/2">
                                 <div onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10' : 'border-border'}`}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
+                                    <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
                                     <p className="text-xs font-medium text-center line-clamp-2">{heater.name}</p>
@@ -2053,7 +2053,7 @@ const PoolDetails = () => {
                               <CarouselItem key={cover.name} className="pl-1 basis-1/2">
                                 <div onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border'}`}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <img src={cover.image} alt={cover.name} className="w-full h-full object-cover" />
+                                    <img loading="lazy" decoding="async" src={cover.image} alt={cover.name} className="w-full h-full object-cover" />
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
                                     <p className="text-xs font-medium text-center line-clamp-2">{cover.name}</p>
@@ -2104,7 +2104,7 @@ const PoolDetails = () => {
                               <CarouselItem key={spa.model} className="pl-1 basis-1/2">
                                 <div onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaModel === spa.model ? 'border-primary bg-primary/10' : 'border-border'}`}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    {spa.image && <img src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
+                                    {spa.image && <img loading="lazy" decoding="async" src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
                                     <p className="text-xs font-medium text-center line-clamp-2">{spa.model}</p>
@@ -2139,7 +2139,7 @@ const PoolDetails = () => {
                               <CarouselItem key={ledge.name} className="pl-1 basis-1/2">
                                 <div onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tanningLedgeModel === ledge.name ? 'border-coral bg-coral/10' : 'border-border'}`}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <img src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
+                                    <img loading="lazy" decoding="async" src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
                                     <p className="text-xs font-medium text-center line-clamp-2">{ledge.name}</p>
@@ -2186,7 +2186,7 @@ const PoolDetails = () => {
                             tileOption: tile.name
                           }))}>
                                   <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                    <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" onError={e => {
+                                    <img loading="lazy" decoding="async" src={tile.image} alt={tile.name} className="w-full h-full object-cover" onError={e => {
                                 const target = e.target as HTMLImageElement;
                                 const parent = target.parentElement;
                                 if (parent) {

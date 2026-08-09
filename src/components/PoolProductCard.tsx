@@ -942,7 +942,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       }
                     >
                       <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all">
-                        <img
+                        <img loading="lazy" decoding="async"
                           src={finishOptions.find(f => f.name === extras.finish)?.image || azureBlueFinish}
                           alt={extras.finish || "Pool Finish"}
                           className="w-full h-full object-cover"
@@ -981,7 +981,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                             });
                           }}
                         >
-                          <img
+                          <img loading="lazy" decoding="async"
                             src={liner.image}
                             alt={liner.name}
                             className="w-full h-full object-cover"
@@ -1134,7 +1134,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         }
                       >
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all">
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={quality.image} 
                             alt={quality.name} 
                             className="w-full h-full object-cover" 
@@ -1231,7 +1231,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                               className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? "border-coral bg-coral/10" : "border-border"}`}
                             >
                               <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
+                                <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
                               </div>
                               <div className="flex-1 flex flex-col justify-between min-h-0">
                                 <p className="text-xs font-medium text-center line-clamp-2">{heater.name}</p>
@@ -1330,7 +1330,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           }
                           className={`p-2 text-xs rounded-md border transition-all flex items-center gap-3 ${extras.coverOption === cover.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
                         >
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={cover.image} 
                             alt={cover.name} 
                             className="w-12 h-12 rounded object-contain bg-muted/50 p-1" 
@@ -1581,7 +1581,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                                 className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
                               >
                                 <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                  {spa.image && <img src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
+                                  {spa.image && <img loading="lazy" decoding="async" src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between min-h-0">
                                   <p className="text-xs font-medium text-center line-clamp-2">{spa.model}</p>
@@ -1627,7 +1627,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaFinish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
                                       >
                                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                          <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
+                                          <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-between min-h-0">
                                           <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
@@ -1680,7 +1680,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                               className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tanningLedgeModel === ledge.name ? "border-coral bg-coral/10" : "border-border"}`}
                             >
                               <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                <img src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
+                                <img loading="lazy" decoding="async" src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
                               </div>
                               <div className="flex-1 flex flex-col justify-between min-h-0">
                                 <p className="text-xs font-medium text-center line-clamp-2">{ledge.name}</p>

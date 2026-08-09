@@ -396,7 +396,7 @@ const SpaProductCard = ({
   return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Spa Image at top */}
       <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick}>
-        {currentPoolImage ? <img src={currentPoolImage} alt={spa.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
+        {currentPoolImage ? <img loading="lazy" decoding="async" src={currentPoolImage} alt={spa.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
             <Waves size={48} className="text-primary/60" />
           </div>}
         
@@ -547,7 +547,7 @@ const SpaProductCard = ({
                       });
                     }
                   }}>
-                            {tile.image ? <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
+                            {tile.image ? <img loading="lazy" decoding="async" src={tile.image} alt={tile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
                                 <div className="w-3 h-3 bg-teal rounded-full"></div>
                               </div>}
                           </div>
@@ -587,7 +587,7 @@ const SpaProductCard = ({
                       });
                     }
                   }}>
-                            {liner.image ? <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
+                            {liner.image ? <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
                                 <div className="w-3 h-3 bg-secondary rounded-full"></div>
                               </div>}
                           </div>
@@ -628,7 +628,7 @@ const SpaProductCard = ({
                       description: heater.description
                     });
                   }}>
-                            <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
+                            <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
                           </div>
                           <p className="text-xs font-medium text-center">{heater.name}</p>
                           <p className="text-xs text-teal font-semibold text-center">+${heater.price.toLocaleString()}</p>
@@ -665,7 +665,7 @@ const SpaProductCard = ({
                       description: paver.description
                     });
                   }}>
-                          <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
+                          <img loading="lazy" decoding="async" src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <p className="text-xs font-medium text-center">{paver.name}</p>
                         {paver.collection !== 'none' && <p className="text-[10px] text-secondary font-semibold text-center capitalize">{paver.collection}</p>}

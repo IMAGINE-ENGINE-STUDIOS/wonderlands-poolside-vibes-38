@@ -284,7 +284,7 @@ export const FloatingAISearch = ({ isInStudio = false, onDocked }: FloatingAISea
                               {/* Product Image */}
                               {product.image && (
                                 <div className="relative h-20 overflow-hidden bg-gradient-to-br from-primary/10 to-teal/10">
-                                  <img 
+                                  <img loading="lazy" decoding="async" 
                                     src={product.image} 
                                     alt={product.name}
                                     className="w-full h-full object-cover transition-transform group-hover:scale-105"

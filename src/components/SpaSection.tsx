@@ -159,7 +159,7 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                 <CardContent className="space-y-4">
                   {/* Spa Preview */}
                   <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={spa.image} 
                       alt={spa.model}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -211,7 +211,7 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={selectedSpa.image} 
                     alt={selectedSpa.model}
                     className="w-full h-64 object-cover rounded-lg"

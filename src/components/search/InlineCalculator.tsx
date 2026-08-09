@@ -147,7 +147,7 @@ export function InlineCalculator({ type, onResult }: InlineCalculatorProps) {
                       : "border-border hover:border-green-500/50"
                   )}
                 >
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={paver.image} 
                     alt={paver.name}
                     className="w-full h-full object-cover"

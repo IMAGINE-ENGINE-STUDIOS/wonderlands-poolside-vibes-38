@@ -96,7 +96,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                 <CardContent className="space-y-4">
                   {/* Tile Preview */}
                   <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={tile.image} 
                       alt={tile.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -148,7 +148,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={selectedTile.image} 
                     alt={selectedTile.name}
                     className="w-full h-64 object-cover rounded-lg"

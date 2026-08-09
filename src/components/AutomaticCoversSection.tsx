@@ -150,7 +150,7 @@ const AutomaticCoversSection = () => {
                 <CardContent className="space-y-4">
                   {/* Cover Image */}
                   <div className="aspect-video overflow-hidden rounded-lg bg-muted/30">
-                    <img src={cover.image} alt={cover.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img loading="lazy" decoding="async" src={cover.image} alt={cover.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   
                   {/* Price */}

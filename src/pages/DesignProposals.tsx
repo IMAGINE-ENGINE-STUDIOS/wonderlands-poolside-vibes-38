@@ -49,7 +49,7 @@ const ESCAPE_TILES = [
 ];
 
 const Logo = ({ invert = false }: { invert?: boolean }) => (
-  <img
+  <img loading="lazy" decoding="async"
     src={wonderlandsLogo}
     alt="Wonderlands"
     className={`h-9 w-auto ${invert ? "brightness-0 invert" : ""}`}
@@ -105,7 +105,7 @@ const ImmersiveParallax = () => {
           className="absolute inset-0 will-change-transform"
           style={{ transform: `translateY(${scroll * 80}px) scale(${1 + scroll * 0.1})` }}
         >
-          <img src={heroPool} className="w-full h-full object-cover" />
+          <img loading="lazy" decoding="async" src={heroPool} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#04111a] via-[#04111a]/40 to-[#04111a]/60" />
         </div>
         <div
@@ -155,7 +155,7 @@ const ImmersiveParallax = () => {
         </div>
         <div className="md:col-span-7 relative">
           <div className="sticky top-6 aspect-[4/5] md:aspect-[4/4] rounded-3xl overflow-hidden bg-black">
-            <img
+            <img loading="lazy" decoding="async"
               key={item.img}
               src={item.img}
               className="w-full h-full object-cover animate-fade-in"
@@ -230,7 +230,7 @@ const LivingConfigurator = () => {
           {/* Live preview */}
           <div className="md:col-span-7">
             <div className="relative aspect-[16/11] rounded-3xl overflow-hidden bg-neutral-900 shadow-xl shadow-black/10">
-              <img key={finishImg} src={finishImg} className="w-full h-full object-cover animate-fade-in" />
+              <img loading="lazy" decoding="async" key={finishImg} src={finishImg} className="w-full h-full object-cover animate-fade-in" />
               <div className="absolute top-4 left-4 backdrop-blur bg-black/40 text-white text-xs px-3 py-1.5 rounded-full">
                 {shape} · {size}′ × {length}′ · {finish}
               </div>
@@ -386,7 +386,7 @@ const SilkScroll = () => {
               className="snap-start shrink-0 w-[340px] cursor-pointer group"
             >
               <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
-                <img
+                <img loading="lazy" decoding="async"
                   src={c.img}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -465,7 +465,7 @@ const CrystalOS = () => {
         <div className="grid md:grid-cols-6 gap-4 auto-rows-[180px]">
           {/* Live build progress */}
           <div className="md:col-span-4 md:row-span-2 rounded-3xl bg-white/5 border border-white/10 p-6 backdrop-blur relative overflow-hidden">
-            <img src={maximaPool} className="absolute inset-0 w-full h-full object-cover opacity-30" />
+            <img loading="lazy" decoding="async" src={maximaPool} className="absolute inset-0 w-full h-full object-cover opacity-30" />
             <div className="relative">
               <div className="text-xs uppercase tracking-widest text-white/60 mb-2">Your Project · Maxima 16×35</div>
               <div style={{ fontFamily: "'Sora', sans-serif" }} className="text-3xl mb-6">Build day 24 of 38</div>
@@ -598,7 +598,7 @@ const ZenSpa = () => {
             className="aspect-square rounded-full overflow-hidden shadow-2xl shadow-[#1f2a25]/10"
             style={{ animation: "breathe 8s ease-in-out infinite" }}
           >
-            <img src={spa} className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={spa} className="w-full h-full object-cover" />
           </div>
           <style>{`@keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }`}</style>
         </div>
@@ -622,7 +622,7 @@ const ZenSpa = () => {
               }`}
               style={{ flex: active === i ? "2 1 0" : "1 1 0" }}
             >
-              <img src={t.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+              <img loading="lazy" decoding="async" src={t.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className={`absolute inset-x-0 bottom-0 p-5 text-white text-left transition-all duration-500 ${
                 active === i ? "translate-y-0" : "translate-y-2"
@@ -788,7 +788,7 @@ const LinerCatalog = () => {
           const on = selected.includes(l.name);
           return (
             <button key={l.name} onClick={() => toggle(l.name)} className="group bg-white relative aspect-square overflow-hidden text-left">
-              <img src={l.img} alt={l.name} className="w-full h-full object-cover transition group-hover:scale-110 duration-500" />
+              <img loading="lazy" decoding="async" src={l.img} alt={l.name} className="w-full h-full object-cover transition group-hover:scale-110 duration-500" />
               <div className={`absolute inset-0 transition ${on ? "bg-[#0891b2]/40" : "bg-gradient-to-t from-black/70 via-transparent to-transparent group-hover:from-black/85"}`} />
               <div className="absolute top-3 right-3">
                 <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm transition ${on ? "bg-white text-[#0891b2] border-white" : "border-white/60 text-transparent group-hover:bg-white/20"}`}>✓</div>
@@ -844,7 +844,7 @@ const PoolCompare = () => {
     return (
       <div className="bg-white rounded-2xl overflow-hidden border border-neutral-200 flex flex-col">
         <div className="relative h-56 overflow-hidden">
-          <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
+          <img loading="lazy" decoding="async" src={p.img} alt={p.name} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4 text-white">
             <div className="text-[10px] uppercase tracking-wider opacity-70">{p.line}</div>
@@ -931,7 +931,7 @@ const FinishPicker = () => {
   return (
     <div className="rounded-3xl overflow-hidden border border-neutral-200 bg-[#0a1620] text-white grid lg:grid-cols-[1.4fr_1fr]" style={{ fontFamily: "Manrope, sans-serif" }}>
       <div className="relative h-[420px] lg:h-auto overflow-hidden">
-        <img src={heroPool} alt="Pool" className="absolute inset-0 w-full h-full object-cover transition-all duration-700" />
+        <img loading="lazy" decoding="async" src={heroPool} alt="Pool" className="absolute inset-0 w-full h-full object-cover transition-all duration-700" />
         <div className="absolute inset-0 mix-blend-multiply transition-all duration-700" style={{ background: f.color, opacity: 0.55 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <div className="absolute top-6 left-6 bg-white/10 backdrop-blur-xl rounded-full px-4 py-2 text-xs uppercase tracking-[0.2em]">Crystite Crystal Collection</div>
@@ -1021,7 +1021,7 @@ const BackyardBuilder = () => {
             const on = picked.includes(a.name);
             return (
               <button key={a.name} onClick={() => toggle(a.name)} className={`group relative aspect-square rounded-2xl overflow-hidden border-2 transition ${on ? "border-[#f97066] scale-[1.02]" : "border-transparent hover:border-neutral-300"}`}>
-                <img src={a.img} alt={a.name} className="absolute inset-0 w-full h-full object-cover transition group-hover:scale-110 duration-500" />
+                <img loading="lazy" decoding="async" src={a.img} alt={a.name} className="absolute inset-0 w-full h-full object-cover transition group-hover:scale-110 duration-500" />
                 <div className={`absolute inset-0 transition ${on ? "bg-[#f97066]/30" : "bg-gradient-to-t from-black/80 via-black/20 to-transparent"}`} />
                 <div className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-sm bg-white/95 text-[#0891b2] font-bold opacity-0 group-hover:opacity-100 transition" style={on ? { opacity: 1, background: "#f97066", color: "white" } : {}}>
                   {on ? "✓" : "+"}
@@ -1172,7 +1172,7 @@ const DesignProposals = () => {
       <header className="sticky top-0 z-30 bg-white/85 backdrop-blur-xl border-b border-neutral-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img src={wonderlandsLogo} alt="Wonderlands" className="h-8 w-auto" />
+            <img loading="lazy" decoding="async" src={wonderlandsLogo} alt="Wonderlands" className="h-8 w-auto" />
             <div>
               <Link to="/" className="text-xs text-neutral-500 hover:text-neutral-900">← Back</Link>
               <h1 className="text-base font-semibold tracking-tight">Interactive style proposals</h1>

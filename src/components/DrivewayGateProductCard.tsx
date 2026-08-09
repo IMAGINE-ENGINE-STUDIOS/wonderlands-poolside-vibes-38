@@ -133,7 +133,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
           
           <div className="space-y-6">
             <div className="aspect-[4/3] overflow-hidden rounded-lg">
-              <img
+              <img loading="lazy" decoding="async"
                 src={gate.image}
                 alt={gate.model}
                 className="w-full h-full object-cover"

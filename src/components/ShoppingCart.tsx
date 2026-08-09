@@ -148,7 +148,7 @@ const ShoppingCart = ({ isOpen, onClose }: ShoppingCartProps) => {
                   <div className="flex gap-2 sm:gap-4">
                     {/* Item Image */}
                     {item.image ? (
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={item.image}
                         alt={item.name}
                         className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border flex-shrink-0"

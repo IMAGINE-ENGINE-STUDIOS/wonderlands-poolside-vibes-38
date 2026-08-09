@@ -99,7 +99,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         <Card className="relative group">
           <CardContent className="p-4">
             <div className={`relative ${aspectRatio} w-full overflow-hidden rounded-lg`}>
-              <img
+              <img loading="lazy" decoding="async"
                 src={uploadedImage}
                 alt="Uploaded"
                 className="w-full h-full object-cover"

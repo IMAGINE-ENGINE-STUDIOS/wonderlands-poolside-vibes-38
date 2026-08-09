@@ -179,7 +179,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
         className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
         onClick={handleImageClick}>
         
-        <img
+        <img loading="lazy" decoding="async"
           src={spa.image}
           alt={spa.model}
           className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" />

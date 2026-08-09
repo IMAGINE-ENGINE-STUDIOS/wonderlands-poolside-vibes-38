@@ -266,7 +266,7 @@ const QuoteDetailPage = () => {
                     <h4 className="font-semibold mb-2 text-teal-600">Property Photos</h4>
                     {quote.processed_image_url && (
                       <div className="mb-2">
-                        <img 
+                        <img loading="lazy" decoding="async" 
                           src={quote.processed_image_url} 
                           alt="Processed property" 
                           className="w-full h-32 rounded-lg border border-teal-200 object-cover"
@@ -304,7 +304,7 @@ const QuoteDetailPage = () => {
                         if (option.name?.toLowerCase().includes('heater') || option.name?.toLowerCase().includes('heat pump')) {
                           return (
                             <div className="mb-3">
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={poolHeaterImg} 
                                 alt={option.name} 
                                 className="w-full h-20 rounded-md border border-orange-200 object-cover"

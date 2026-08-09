@@ -790,7 +790,7 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
                       {/* Product Image */}
                       {product.image && (
                         <div className="relative h-24 overflow-hidden bg-gradient-to-br from-primary/10 to-teal/10">
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={product.image} 
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform group-hover:scale-105"
@@ -856,7 +856,7 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
                   }}
                 >
                   <div className={cn("relative", isSlim ? "h-16" : "h-20 sm:h-24")}>
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={section.image} 
                       alt={section.label}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
@@ -898,7 +898,7 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
                     onClick={() => handleResultClick(result)}
                   >
                     {result.image && (
-                      <img 
+                      <img loading="lazy" decoding="async" 
                         src={result.image} 
                         alt={result.name}
                         className="w-12 h-12 object-cover rounded-md"

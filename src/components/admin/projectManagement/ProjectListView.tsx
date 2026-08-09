@@ -99,7 +99,7 @@ const ProjectListView: React.FC<ProjectListViewProps> = ({
               {/* Cover Image */}
               <div className="relative aspect-video bg-cyan-900/10 overflow-hidden">
                 {project.cover_image_url ? (
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={project.cover_image_url}
                     alt={project.project_name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

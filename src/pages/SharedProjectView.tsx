@@ -196,7 +196,7 @@ const SharedProjectView: React.FC = () => {
       {/* Cover Image */}
       {project.cover_image_url && (
         <div className="relative w-full aspect-[3/1] max-h-[360px] overflow-hidden">
-          <img
+          <img loading="lazy" decoding="async"
             src={project.cover_image_url}
             alt={project.project_name}
             className="w-full h-full object-cover"

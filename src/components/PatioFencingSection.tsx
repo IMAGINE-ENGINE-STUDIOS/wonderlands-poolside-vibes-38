@@ -112,7 +112,7 @@ const PatioFencingSection = () => {
 
                 <CardContent className="space-y-4">
                   <div className="w-full h-48 rounded-lg overflow-hidden border-2 border-muted">
-                    <img alt={fencing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" src="/lovable-uploads/96e12412-10ac-45a5-b879-6ed8fc8e8046.jpg" />
+                    <img loading="lazy" decoding="async" alt={fencing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" src="/lovable-uploads/96e12412-10ac-45a5-b879-6ed8fc8e8046.jpg" />
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ const PatioFencingSection = () => {
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <img src={aluminumFencing} alt={selectedFencing.name} className="w-full h-64 object-cover rounded-lg mb-4" />
+                  <img loading="lazy" decoding="async" src={aluminumFencing} alt={selectedFencing.name} className="w-full h-64 object-cover rounded-lg mb-4" />
 
                   <div className="space-y-2">
                     <h4 className="font-semibold">Features:</h4>

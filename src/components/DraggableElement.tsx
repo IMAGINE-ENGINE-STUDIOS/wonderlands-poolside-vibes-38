@@ -128,7 +128,7 @@ export const DraggableElement = ({
     switch (element.type) {
       case 'image':
         return (
-          <img 
+          <img loading="lazy" decoding="async" 
             src={element.content} 
             alt="Custom" 
             className={`w-full h-full object-cover rounded ${isPreviewMode ? 'pointer-events-none' : ''}`}
@@ -139,7 +139,7 @@ export const DraggableElement = ({
         return (
           <div className={`border rounded-lg p-3 bg-card shadow-sm max-w-xs ${isPreviewMode ? 'pointer-events-none' : ''}`}>
             {element.productData?.image_url && (
-              <img 
+              <img loading="lazy" decoding="async" 
                 src={element.productData.image_url} 
                 alt={element.content}
                 className={`w-full h-32 object-cover rounded mb-2 ${isPreviewMode ? 'pointer-events-none' : ''}`}

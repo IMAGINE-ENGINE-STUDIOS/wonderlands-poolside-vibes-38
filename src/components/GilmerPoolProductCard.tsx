@@ -386,7 +386,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
       <CardContent className="space-y-6">
         {/* Pool Image */}
         <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-          <img 
+          <img loading="lazy" decoding="async" 
             src={pool.image} 
             alt={`${pool.brand} ${pool.model}`}
             className="w-full h-full object-cover"

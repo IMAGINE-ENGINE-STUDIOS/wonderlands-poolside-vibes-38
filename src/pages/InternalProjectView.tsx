@@ -280,7 +280,7 @@ const InternalProjectView: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {project.cover_image_url && (
         <div className="w-full aspect-[4/1] max-h-[280px] overflow-hidden">
-          <img src={project.cover_image_url} alt={project.project_name} className="w-full h-full object-cover" />
+          <img loading="lazy" decoding="async" src={project.cover_image_url} alt={project.project_name} className="w-full h-full object-cover" />
         </div>
       )}
 

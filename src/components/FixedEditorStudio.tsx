@@ -498,7 +498,7 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                       }}
                     >
                       {element.type === 'image' ? (
-                        <img 
+                        <img loading="lazy" decoding="async" 
                           src={element.content} 
                           alt="Custom" 
                           className="w-full h-full object-cover rounded"

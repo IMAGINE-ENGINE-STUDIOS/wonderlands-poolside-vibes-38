@@ -48,7 +48,7 @@ const AppianPaversSection = () => {
               onClick={() => handlePaverClick(paver)}
             >
               <div className="relative overflow-hidden rounded-t-lg">
-                <img
+                <img loading="lazy" decoding="async"
                   src={paver.image}
                   alt={paver.name}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
@@ -134,7 +134,7 @@ const AppianPaversSection = () => {
             {selectedPaver && (
               <div className="space-y-6">
                 <div className="aspect-video rounded-lg overflow-hidden">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={selectedPaver.image}
                     alt={selectedPaver.name}
                     className="w-full h-full object-cover"
