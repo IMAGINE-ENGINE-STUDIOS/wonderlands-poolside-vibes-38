@@ -5,7 +5,6 @@ import ScrollRestoration from "./components/ScrollRestoration";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
 
-import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import RightNavigation from "@/components/RightNavigation";
 import { AIAssistantChat } from "@/components/ai/AIAssistantChat";
 
@@ -90,10 +89,9 @@ const App = () => {
   return (
     <AuthProvider>
       <ProjectTypeProvider>
-          <AIAssistantProvider>
-            <ScrollRestoration />
-            <RightNavigation />
-            <AIAssistantChat />
+        <ScrollRestoration />
+        <RightNavigation />
+        <AIAssistantChat />
 
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
@@ -191,7 +189,6 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
-          </AIAssistantProvider>
       </ProjectTypeProvider>
     </AuthProvider>
   );
