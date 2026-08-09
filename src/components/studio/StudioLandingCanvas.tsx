@@ -33,7 +33,7 @@ function StudioLandingCanvasInner<TProduct extends { image?: string; model?: str
   onAddProduct,
   getPrice,
   getLabel,
-  searchReservedHeight = 120,
+  searchReservedHeight = 110,
 }: StudioLandingCanvasProps<TProduct>) {
   const sorted = [...products].sort((a, b) => getPrice(a) - getPrice(b));
 
