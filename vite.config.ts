@@ -41,12 +41,14 @@ export default defineConfig(({ mode }) => ({
         // the first screen does not wait on 3D/chart/PDF code it never uses.
         manualChunks: (id) => {
           if (!id.includes('node_modules')) return undefined;
-          // Keep every three-related package in one chunk so the catch-all vendor
-          // chunk never imports from it. This prevents a circular dependency
-          // vendor-react -> vendor -> vendor-three -> vendor-react that causes
-          // React to be undefined when @react-three/fiber initializes.
-          if (/three|@react-three|postprocessing|n8ao|camera-controls|maath|meshline|stats-gl|@monogrid\/gainmap-js|@react-spring\/three|troika-three|three-mesh-bvh|three-stdlib|three-bvh-csg/.test(id)) return 'vendor-three';
+          // React and the 3D stack must live in the SAME chunk. When they were
+          // split (vendor-react -> vendor -> vendor-three -> vendor-react), a
+          // circular dependency caused React to be undefined while @react-three/
+          // fiber initialized, crashing the app with "useLayoutEffect is not
+          // defined". Keeping React + three together lets ESM resolve the cycle
+          // safely inside one chunk.
           if (/react-dom|scheduler|\/react\//.test(id)) return 'vendor-react';
+          if (/three|@react-three|postprocessing|n8ao|camera-controls|maath|meshline|stats-gl|@monogrid\/gainmap-js|@react-spring\/three|troika-three|three-mesh-bvh|three-stdlib|three-bvh-csg/.test(id)) return 'vendor-react';
           if (/@supabase/.test(id)) return 'vendor-supabase';
           if (/recharts|d3-/.test(id)) return 'vendor-charts';
           if (/jspdf|html2canvas|pdfjs/.test(id)) return 'vendor-pdf';
