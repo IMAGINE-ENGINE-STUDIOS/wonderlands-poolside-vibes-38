@@ -22,6 +22,10 @@ interface Props {
   sheets: string[];
   noteGroups: string[];
   onSiteChange: (site: BlueprintProject['site']) => void;
+  /** Enables in-place editing of the title block fields and signatures */
+  onDataChange?: (fn: (draft: BlueprintProject) => BlueprintProject) => void;
+  /** Selecting a DRW row in the sheet index switches the active sheet */
+  onSheetSelect?: (code: string) => void;
   /** Print/preview mode disables drawing tools */
   readOnly?: boolean;
 }
@@ -30,7 +34,7 @@ interface Props {
  * One 36 x 24 plan sheet: drawing area + note/legend column on the left,
  * full architectural title block on the right.
  */
-export const BlueprintSheet: React.FC<Props> = ({ data, sheetCode, sheets, noteGroups, onSiteChange, readOnly }) => {
+export const BlueprintSheet: React.FC<Props> = ({ data, sheetCode, sheets, noteGroups, onSiteChange, onDataChange, onSheetSelect, readOnly }) => {
   const template = SHEET_TEMPLATES[sheetCode];
   const j = findJurisdiction(data.jurisdictionId);
   const sheetIndex = sheets.map(code => ({ code, description: SHEET_TEMPLATES[code]?.description || code }));
@@ -102,6 +106,8 @@ export const BlueprintSheet: React.FC<Props> = ({ data, sheetCode, sheets, noteG
         sheetIndex={sheetIndex}
         sheetNumber={sheetNumber}
         sheetCount={sheets.length}
+        onDataChange={readOnly ? undefined : onDataChange}
+        onSheetSelect={readOnly ? undefined : onSheetSelect}
       />
     </div>
   );
