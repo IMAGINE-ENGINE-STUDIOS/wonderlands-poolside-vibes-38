@@ -27,6 +27,7 @@ import {
   ENCLOSURE_SCREENS,
   ENCLOSURE_TYPES,
   EnclosureConfigState,
+  EnclosureElement,
   EnclosureProject,
   buildEnclosureSpec,
   checkEnclosureCompliance,
