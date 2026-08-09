@@ -15,6 +15,20 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' &&
     componentTagger(),
+    {
+      name: 'chunk-graph-analyzer',
+      generateBundle(options, bundle) {
+        const graph = {};
+        for (const [fileName, chunk] of Object.entries(bundle)) {
+          if (chunk.type !== 'chunk') continue;
+          graph[fileName] = {
+            imports: chunk.imports,
+            modules: Object.keys(chunk.modules || {}),
+          };
+        }
+        fs.writeFileSync('dist/chunk-graph.json', JSON.stringify(graph, null, 2));
+      }
+    }
   ].filter(Boolean),
   resolve: {
     alias: {
