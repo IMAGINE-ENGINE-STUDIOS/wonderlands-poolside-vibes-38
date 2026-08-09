@@ -41,18 +41,19 @@ export default defineConfig(({ mode }) => ({
         // the first screen does not wait on 3D/chart/PDF code it never uses.
         manualChunks: (id) => {
           if (!id.includes('node_modules')) return undefined;
-          // The app has cross-chunk circular dependencies between the React/3D
-          // stack and the catch-all vendor chunk. When those chunks execute in
-          // the wrong order, React is undefined and hooks like createContext or
-          // useLayoutEffect crash. To guarantee React is always available to its
-          // consumers, everything that is not explicitly split out lives in the
-          // same chunk as React. The separated chunks below only import from this
-          // merged chunk, never the reverse, so no cycle remains.
+          // The 3D stack (three, r3f, cesium, etc.) and React must not form a
+          // cross-chunk cycle. We keep React in vendor-react, put the entire 3D
+          // stack in vendor-3d, and leave the rest in vendor. vendor-3d imports
+          // utilities (zustand, suspend-react, etc.) from vendor, and vendor
+          // imports React from vendor-react; no chunk imports back towards its
+          // dependents, so ESM can initialize React before any consumer runs.
+          if (/react-dom|scheduler|\/react\//.test(id)) return 'vendor-react';
+          if (/three|@react-three|postprocessing|n8ao|camera-controls|maath|meshline|stats-gl|@monogrid\/gainmap-js|@react-spring\/three|troika-three|three-mesh-bvh|three-stdlib|three-bvh-csg|@cesium\/engine|resium|cesium/.test(id)) return 'vendor-3d';
           if (/@supabase/.test(id)) return 'vendor-supabase';
           if (/recharts|d3-/.test(id)) return 'vendor-charts';
           if (/jspdf|html2canvas|pdfjs/.test(id)) return 'vendor-pdf';
           if (/@radix-ui|embla|lucide-react/.test(id)) return 'vendor-ui';
-          return 'vendor-react';
+          return 'vendor';
         },
 
         assetFileNames: (assetInfo) => {
