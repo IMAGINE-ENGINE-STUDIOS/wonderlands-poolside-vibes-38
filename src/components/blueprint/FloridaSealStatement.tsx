@@ -64,12 +64,18 @@ export const FloridaSealStatement: React.FC<Props> = ({ signature, payload, onCl
       className="w-full border border-[#0f172a] px-1 py-[3px] text-left disabled:cursor-default"
       title={onClick ? 'Edit or revoke the electronic signature' : undefined}
     >
-      <div className="flex items-center justify-between text-[6px] font-bold tracking-[0.12em] text-[#0f172a]">
-        <span>ELECTRONIC SIGNATURE &amp; SEAL</span>
-        <span className={valid === false ? 'text-[#b91c1c]' : 'text-[#15803d]'}>
-          {valid === false ? 'INVALIDATED — DOCUMENT ALTERED' : valid ? 'VERIFIED' : ''}
-        </span>
+      <div className="text-[6px] font-bold leading-tight tracking-[0.12em] text-[#0f172a]">
+        ELECTRONIC SIGNATURE &amp; SEAL
       </div>
+      {valid !== null ? (
+        <div
+          className={`text-[5.6px] font-bold tracking-[0.1em] ${
+            valid ? 'text-[#15803d]' : 'text-[#b91c1c]'
+          }`}
+        >
+          {valid ? 'SIGNATURE VERIFIED — DOCUMENT UNALTERED' : 'INVALIDATED — DOCUMENT ALTERED SINCE SIGNING'}
+        </div>
+      ) : null}
       <p className="mt-[2px] text-[5.6px] leading-[1.35] text-[#0f172a]">{buildSignatureStatement(signature)}</p>
       <div className="mt-[2px] space-y-[1px] text-[5.6px] leading-[1.3] text-[#334155]">
         <div>
