@@ -3588,12 +3588,23 @@ const WonderlandsStudio = () => {
                     </div>
                    </CardContent>
                  </Card>
-              </div> : <Card className="h-96 flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <Package className="h-12 w-12 mx-auto mb-4" />
-                  <p>Select a product to start configuring</p>
-                </div>
-              </Card>}
+              </div> : <StudioLandingCanvas
+                products={getFilteredProducts()}
+                categories={STUDIO_CATEGORIES}
+                activeCategory={activeTab}
+                activeCategoryLabel={(STUDIO_CATEGORIES.find(c => c.value === activeTab) || STUDIO_CATEGORIES[0]).label}
+                onSelectCategory={value => setActiveTab(value as typeof activeTab)}
+                onSelectProduct={product => {
+                  setSelectedProduct(product);
+                  if (product.type) {
+                    setSelectedExtras(getDefaultExtras(product.type as ProductType));
+                  }
+                  setLeftSidebarCollapsed(false);
+                }}
+                onAddProduct={product => handleAddProductToCart(product)}
+                getPrice={product => getProductPrice(product)}
+                getLabel={product => getProductCategoryLabel(product, activeTab)}
+              />}
           </div>
 
           {/* Retractable Price Panel - Overlay on top of content */}
