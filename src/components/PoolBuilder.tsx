@@ -456,6 +456,10 @@ export function PoolBuilder({
     currentCurveType: 'linear'
   });
 
+  // Selecting / dragging an in-progress spline point while still in draw mode
+  const [selectedDrawPointId, setSelectedDrawPointId] = useState<string | null>(null);
+  const [draggingDrawPointId, setDraggingDrawPointId] = useState<string | null>(null);
+
   // Symmetry mode for spline drawing
   const [symmetryMode, setSymmetryMode] = useState<{
     enabled: boolean;
