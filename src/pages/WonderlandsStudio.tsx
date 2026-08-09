@@ -56,6 +56,7 @@ import StudioLandingCanvas from '@/components/studio/StudioLandingCanvas';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
 import FenceConfigurator from '@/components/fence/FenceConfigurator';
 import EnclosureConfigurator, { EnclosureEditApi } from '@/components/enclosure/EnclosureConfigurator';
+import GrassConfigurator from '@/components/grass/GrassConfigurator';
 import type { EnclosureProject } from '@/data/screenEnclosureConfigurator';
 
 
@@ -119,7 +120,7 @@ interface Product {
   warrantyYears?: number | string;
   saltSystem?: boolean;
   carbonFiber?: boolean;
-  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'fencing' | 'lanai' | 'landscaping' | 'finish' | 'liner';
+  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'fencing' | 'lanai' | 'landscaping' | 'finish' | 'liner' | 'artificial-grass';
   unit?: 'sqft' | 'linear-ft';
   id?: string;
   description?: string;
@@ -903,6 +904,7 @@ const WonderlandsStudio = () => {
           model: grass.name,
           price: getGrassPricePerSqFt(grass.name),
           image: grass.image,
+          type: 'artificial-grass' as const,
           category: 'per sq ft'
         }));
         break;
@@ -988,6 +990,9 @@ const WonderlandsStudio = () => {
       } else if (productType === 'screen-enclosure') {
         // Screen enclosure pricing comes from the professional enclosure configurator
         total = parseFloat(selectedExtras.enclosureTotal) || 0;
+      } else if (productType === 'artificial-grass') {
+        // Turf pricing comes from the artificial grass design board
+        total = parseFloat(selectedExtras.grassTotal) || 0;
       } else if (unit) {
 
         const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
@@ -1215,6 +1220,25 @@ const WonderlandsStudio = () => {
       setShowQuoteModal(true);
       return;
     }
+
+    // Artificial turf projects are itemized by the grass design board
+    if (selectedProduct.type === 'artificial-grass' && Array.isArray(selectedExtras.grassLines) && selectedExtras.grassLines.length > 0) {
+      const grassBreakdown = [
+        ...selectedExtras.grassLines.map((l: any) => ({
+          name: `${l.label}${l.detail ? ` — ${l.detail}` : ''}`,
+          price: l.price,
+          image: '',
+        })),
+        ...buildCartQuoteLines(selectedProduct ? `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}` : null),
+      ];
+      const grassTotal = grassBreakdown.reduce((sum, item) => sum + item.price, 0);
+      extrasDataRef.current = { extrasBreakdown: grassBreakdown, extrasTotal: grassTotal };
+      setSelectedExtras(prev => ({ ...prev, extrasBreakdown: grassBreakdown, extrasTotal: grassTotal }));
+      setShowQuoteModal(true);
+      return;
+    }
+
+
 
     // Create detailed extras breakdown for quote tool
     const extrasBreakdown = [];
@@ -2459,6 +2483,23 @@ const WonderlandsStudio = () => {
                             }
                             onProjectChange={setEnclosureProject}
                             onApiReady={api => { enclosureApiRef.current = api; }}
+                          />
+                        ) : selectedProduct.type === 'artificial-grass' ? (
+                          <GrassConfigurator
+                            initialGrassName={selectedProduct.model || selectedProduct.name}
+                            onTotalChange={(total, summary) =>
+                              setSelectedExtras((prev: any) =>
+                                prev.grassTotal === total && prev.categoryQuantity === String(summary.areaSqFt)
+                                  ? prev
+                                  : {
+                                      ...prev,
+                                      grassTotal: total,
+                                      categoryQuantity: String(summary.areaSqFt),
+                                      grassSnapshot: summary.snapshot,
+                                      grassLines: summary.lines,
+                                    }
+                              )
+                            }
                           />
                         ) : (() => {
 
