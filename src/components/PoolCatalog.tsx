@@ -385,7 +385,7 @@ const pools: Pool[] = [
   model: "Cape Cod 12",
   price: 55125,
   category: 'standard',
-  image: "/lovable-uploads/wonderlands-logo.png",
+  image: "/lovable-uploads/wonderlands-logo.webp",
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,

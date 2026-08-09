@@ -99,7 +99,7 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   "pleasant cove": { name: "Pleasant Cove", dimensions: "11' × 22'", depth: "3'6\" - 5'6\"", price: 47163, image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.webp", category: "Pool", brand: "Latham" },
   "delray": { name: "Delray", dimensions: "12' × 24'", depth: "3'6\" - 5'6\"", price: 54513, image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.webp", category: "Pool", brand: "Latham" },
   "key west": { name: "Key West", dimensions: "13' × 26'", depth: "3'6\" - 5'6\"", price: 59150, image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.webp", category: "Pool", brand: "Latham" },
-  "cape cod 12": { name: "Cape Cod 12", dimensions: "12' × 24'", depth: "3'6\" - 5'6\"", price: 55125, image: "/lovable-uploads/wonderlands-logo.png", category: "Pool", brand: "Latham" },
+  "cape cod 12": { name: "Cape Cod 12", dimensions: "12' × 24'", depth: "3'6\" - 5'6\"", price: 55125, image: "/lovable-uploads/wonderlands-logo.webp", category: "Pool", brand: "Latham" },
   "valencia": { name: "Valencia", dimensions: "12' × 28'", depth: "3'6\" - 5'6\"", price: 51144, image: "/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.webp", category: "Pool", brand: "Latham" },
   "vista isle": { name: "Vista Isle", dimensions: "13' × 27'", depth: "3'6\" - 5'6\"", price: 64313, image: "/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.webp", category: "Pool", brand: "Latham" },
 
