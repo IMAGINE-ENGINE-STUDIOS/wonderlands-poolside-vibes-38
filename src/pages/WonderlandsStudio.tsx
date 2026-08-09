@@ -1906,7 +1906,7 @@ const WonderlandsStudio = () => {
 
   return <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* Compact Header */}
-      <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="relative z-[300] border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between gap-4">
             {/* Left side: Home button + Title */}
@@ -1926,10 +1926,19 @@ const WonderlandsStudio = () => {
             
             {/* Project Type Toggle - Hidden (commercial mode disabled) */}
             
-            {/* AI Search - Same as main page */}
+            {/* AI Search - centered on the landing, docks to this corner once a product is selected */}
             <div className="w-48 md:w-96">
-              <AdvancedSearch variant="slim" />
+              <motion.div
+                layout
+                transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+                className={selectedProduct
+                  ? 'relative w-full'
+                  : 'fixed left-0 right-0 mx-auto top-[26vh] z-[400] w-[min(92vw,680px)] px-2'}
+              >
+                <AdvancedSearch variant={selectedProduct ? 'slim' : 'default'} />
+              </motion.div>
             </div>
+
           </div>
         </div>
       </div>
