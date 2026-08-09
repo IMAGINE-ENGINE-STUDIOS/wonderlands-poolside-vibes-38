@@ -5029,6 +5029,20 @@ export function PoolBuilder({
           return;
         }
       }
+
+      // Clicking an already-placed spline point selects it (and starts dragging it)
+      // instead of adding a new point — lets users fix a point mid-drawing.
+      const hitIndex = splineDrawing.points.findIndex(
+        sp => Math.sqrt(Math.pow(x - sp.x, 2) + Math.pow(y - sp.y, 2)) < 12
+      );
+      if (hitIndex !== -1) {
+        const hitId = splineDrawing.points[hitIndex].id;
+        setSelectedDrawPointId(hitId);
+        setDraggingDrawPointId(hitId);
+        return;
+      }
+
+      setSelectedDrawPointId(null);
       setSplineDrawing(prev => ({
         ...prev,
         points: [...prev.points, newSplinePoint]
