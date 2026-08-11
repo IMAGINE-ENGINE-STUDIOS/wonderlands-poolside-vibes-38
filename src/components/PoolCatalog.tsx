@@ -1061,27 +1061,28 @@ const PoolCatalog = () => {
           </div>
 
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
-            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+          <div className="mb-16 grid grid-cols-1 gap-px border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
+            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <div key={pool.model} className="bg-background"><PoolProductCard pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} /></div>)}
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && <div className="flex justify-center items-center gap-2 mt-8">
-              <Button variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2">
+          {totalPages > 1 && <div className="mt-8 flex items-center justify-center gap-px border border-border/60 bg-border/60">
+              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="bg-background px-5 py-3 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background disabled:opacity-30 disabled:hover:bg-background disabled:hover:text-foreground">
                 Previous
-              </Button>
+              </button>
               
               {[...Array(totalPages)].map((_, index) => {
             const page = index + 1;
-            return <Button key={page} variant={currentPage === page ? "default" : "outline"} onClick={() => handlePageChange(page)} className="px-3 py-2">
+            return <button key={page} onClick={() => handlePageChange(page)} className={`px-5 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors ${currentPage === page ? 'bg-foreground text-background' : 'bg-background text-foreground hover:bg-foreground hover:text-background'}`}>
                     {page}
-                  </Button>;
+                  </button>;
           })}
               
-              <Button variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="px-3 py-2">
+              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="bg-background px-5 py-3 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background disabled:opacity-30 disabled:hover:bg-background disabled:hover:text-foreground">
                 Next
-              </Button>
+              </button>
             </div>}
+
 
           {/* Results Info */}
           <div className="text-center mt-4 text-sm text-muted-foreground">
