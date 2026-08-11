@@ -2110,22 +2110,26 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
               </Carousel>
             </div>
             
-            {/* Expand Arrow */}
-            <div 
-              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-none transition-all group"
+            {/* Expand */}
+            <button
+              type="button"
+              className="group flex w-full items-center justify-between border-t border-border/70 px-1 py-4 text-left transition-colors hover:bg-secondary/40"
               onClick={() => setShowDetails(true)}
               onMouseEnter={() => setShowDetails(true)}
             >
-              <span className="text-xs text-muted-foreground mb-1">View all options</span>
-              <svg 
-                className="w-5 h-5 text-primary animate-bounce group-hover:text-primary/80 transition-colors" 
-                fill="none" 
-                stroke="currentColor" 
+              <span className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground group-hover:text-foreground">
+                View all options
+              </span>
+              <svg
+                className="h-4 w-4 text-foreground transition-transform duration-300 group-hover:translate-y-0.5"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
               </svg>
-            </div>
+            </button>
+
           </div>
         )}
       </CardContent>
