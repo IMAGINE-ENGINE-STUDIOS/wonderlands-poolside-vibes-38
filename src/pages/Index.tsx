@@ -21,7 +21,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
-import MissionVisionValues from "@/components/MissionVisionValues";
+import StudioEditorial from "@/components/StudioEditorial";
 import BrowseCategoriesEditorial from "@/components/BrowseCategoriesEditorial";
 
 import grassBanner from "@/assets/grass-natural-green.avif";
@@ -260,7 +260,7 @@ const Index = () => {
 
       <Header />
       <Hero />
-      <MissionVisionValues />
+      <StudioEditorial />
       <BrowseCategoriesEditorial activeId={active} onSelect={handleChange} />
 
       <main>
