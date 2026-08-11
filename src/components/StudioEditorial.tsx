@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 
+import HeroCategoryMarquee from "@/components/HeroCategoryMarquee";
 import studioImage from "@/assets/pool-banner-2.webp";
-import studioImageAlt from "@/assets/hero-pool-optimized.webp";
 
 const STEPS = [
   { num: "01", title: "Draw", text: "Trace your pool, deck and patio at true scale on an infinite canvas." },
