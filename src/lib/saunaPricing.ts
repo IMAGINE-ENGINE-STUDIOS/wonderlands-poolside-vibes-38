@@ -26,9 +26,9 @@ export const SAUNA_PRICING_MODEL = {
   /** Company overhead (office, insurance, warranty reserve, financing fees) */
   overheadRate: 0.11,
   /** Target gross profit on total delivered cost */
-  profitRate: 0.28,
+  profitRate: 0.40,
   /** Markup applied to accessories and upgrade options (freight + labor + profit) */
-  optionMarkup: 1.45,
+  optionMarkup: 1.40,
 } as const;
 
 export interface SaunaPriceBreakdown {
