@@ -852,7 +852,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
             <Accordion type="single" collapsible defaultValue="finishes" className="space-y-2">
             {/* Pool Finishing Options */}
-            <AccordionItem value="finishes" className="border rounded-lg px-3">
+            <AccordionItem value="finishes" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Pool Finishes</span>
               </AccordionTrigger>
@@ -873,7 +873,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       className="pl-1 basis-1/2"
                     >
                       <div
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() =>
                           setExtras((prev) => ({
                             ...prev,
@@ -882,7 +882,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         }
                       >
                         <div 
-                          className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                          className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             setImagePopup({
@@ -924,7 +924,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             </AccordionItem>
 
             {/* Pool Liner Options */}
-            <AccordionItem value="liner" className="border rounded-lg px-3">
+            <AccordionItem value="liner" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Pool Liner</span>
               </AccordionTrigger>
@@ -942,7 +942,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   {/* First option: Selected Pool Finish (no liner) */}
                   <CarouselItem className="pl-1 basis-1/2">
                     <div
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === "" || extras.linerOption === "Standard Blue" ? "border-primary bg-primary/10" : "border-border"}`}
+                      className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === "" || extras.linerOption === "Standard Blue" ? "border-primary bg-primary/10" : "border-border"}`}
                       onClick={() =>
                         setExtras((prev) => ({
                           ...prev,
@@ -950,7 +950,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         }))
                       }
                     >
-                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all">
+                      <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all">
                         <img loading="lazy" decoding="async"
                           src={finishOptions.find(f => f.name === extras.finish)?.image || azureBlueFinish}
                           alt={extras.finish || "Pool Finish"}
@@ -969,7 +969,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   {linerOptions.filter(l => l.name !== "Standard Blue").map((liner) => (
                     <CarouselItem key={liner.name} className="pl-1 basis-1/2">
                       <div
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === liner.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === liner.name ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() =>
                           setExtras((prev) => ({
                             ...prev,
@@ -978,7 +978,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         }
                       >
                         <div 
-                          className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                          className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             setImagePopup({
@@ -1025,7 +1025,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             </AccordionItem>
 
             {/* Pavers Options */}
-            <AccordionItem value="pavers" className="border rounded-lg px-3">
+            <AccordionItem value="pavers" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Deck Pavers</span>
               </AccordionTrigger>
@@ -1043,7 +1043,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   {paverOptions.map((paver) => (
                     <CarouselItem key={paver.name} className="pl-1 basis-1/2">
                       <div
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() =>
                           setExtras((prev) => ({
                             ...prev,
@@ -1052,7 +1052,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         }
                       >
                         <div 
-                          className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                          className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             setExtras((prev) => ({
@@ -1112,7 +1112,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             </AccordionItem>
 
             {/* Screen Enclosure Options */}
-            <AccordionItem value="enclosure" className="border rounded-lg px-3">
+            <AccordionItem value="enclosure" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Screen Enclosure</span>
               </AccordionTrigger>
@@ -1134,7 +1134,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   ].map((quality) => (
                     <CarouselItem key={quality.key} className="pl-1 basis-1/2">
                       <div
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.screenEnclosureQuality === quality.key ? "border-primary bg-primary/10" : "border-border"}`}
+                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.screenEnclosureQuality === quality.key ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() =>
                           setExtras((prev) => ({
                             ...prev,
@@ -1142,7 +1142,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           }))
                         }
                       >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all">
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all">
                           <img loading="lazy" decoding="async" 
                             src={quality.image} 
                             alt={quality.name} 
@@ -1198,7 +1198,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             {/* Cover Options */}
 
             {/* Add-ons */}
-            <AccordionItem value="addons" className="border rounded-lg px-3">
+            <AccordionItem value="addons" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Additional Features</span>
               </AccordionTrigger>
@@ -1207,7 +1207,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
 
               <div className="grid grid-cols-1 gap-3">
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox
                     checked={extras.heater}
                     onCheckedChange={() => toggleExtra("heater")}
@@ -1237,9 +1237,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           <CarouselItem key={heater.name} className="pl-1 basis-1/2">
                             <div
                               onClick={() => setExtras((prev) => ({ ...prev, heaterModel: heater.name }))}
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? "border-coral bg-coral/10" : "border-border"}`}
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? "border-coral bg-coral/10" : "border-border"}`}
                             >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                 <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
                               </div>
                               <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -1256,7 +1256,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
 
-                <div className="flex items-center justify-between p-2 border rounded-lg">
+                <div className="flex items-center justify-between p-2 border rounded-none">
                   <label className="flex items-center space-x-2 cursor-pointer flex-1">
                     <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra("jets")} />
                     <div className="flex items-center space-x-1">
@@ -1301,7 +1301,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
                 {/* Remove Cover from Additional Features - it's now in main options */}
 
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox
                     checked={extras.cover}
                     onCheckedChange={() => toggleExtra("cover")}
@@ -1337,7 +1337,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                               coverOption: cover.name,
                             }))
                           }
-                          className={`p-2 text-xs rounded-md border transition-all flex items-center gap-3 ${extras.coverOption === cover.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
+                          className={`p-2 text-xs rounded-none border transition-all flex items-center gap-3 ${extras.coverOption === cover.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
                         >
                           <img loading="lazy" decoding="async" 
                             src={cover.image} 
@@ -1373,7 +1373,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                                   <button
                                     key={color.name}
                                     onClick={() => setCoverColor(color.name)}
-                                    className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${coverColor === color.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
+                                    className={`p-2 text-xs rounded-none border transition-all flex flex-col items-center gap-1 ${coverColor === color.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
                                   >
                                     <div
                                       className="w-6 h-6 rounded-full border border-border"
@@ -1394,7 +1394,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
                 {pool.model !== "Madre Perla" && pool.model !== "Pacific Ridge" && pool.model !== "Maxima" && pool.model !== "Winderview" && (
                   <>
-                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                       <Checkbox
                         checked={extras.concreteConstruction}
                         onCheckedChange={() => toggleExtra("concreteConstruction")}
@@ -1416,7 +1416,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 )}
 
                 {/* Rocky Waterfalls */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox
                     checked={extras.rockyWaterfalls}
                     onCheckedChange={() => toggleExtra("rockyWaterfalls")}
@@ -1439,13 +1439,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           <CarouselItem key={waterfall.name} className="pl-1 basis-1/3">
                             <div
                               onClick={() => setExtras((prev) => ({ ...prev, rockyWaterfallsType: waterfall.name, rockyWaterfallsColor: waterfall.colors[0] }))}
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                                 extras.rockyWaterfallsType === waterfall.name
                                   ? 'border-stone-600 bg-stone-600/10'
                                   : 'border-border'
                               }`}
                             >
-                              <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-20 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                 <OptimizedImage
                                   src={waterfall.image}
                                   alt={waterfall.name}
@@ -1471,7 +1471,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         <button
                           key={color}
                           onClick={() => setExtras((prev) => ({ ...prev, rockyWaterfallsColor: color }))}
-                          className={`px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
+                          className={`px-3 py-2 rounded-none border text-xs font-medium transition-all ${
                             extras.rockyWaterfallsColor === color
                               ? 'border-stone-600 bg-stone-600/10 text-stone-700'
                               : 'border-border hover:border-stone-600/50'
@@ -1485,7 +1485,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 )}
 
                 {/* Artificial Grass */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox
                     checked={extras.artificialGrass}
                     onCheckedChange={() => toggleExtra("artificialGrass")}
@@ -1509,13 +1509,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         <button
                           key={opt.name}
                           onClick={() => setExtras((prev) => ({ ...prev, artificialGrassColor: opt.name }))}
-                          className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-center ${
+                          className={`p-2 border rounded-none cursor-pointer transition-all hover:shadow-md flex flex-col items-center ${
                             extras.artificialGrassColor === opt.name
                               ? 'border-green-600 bg-green-600/10'
                               : 'border-border'
                           }`}
                         >
-                          <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                          <div className="w-full h-16 rounded-none mb-2 overflow-hidden">
                             <OptimizedImage
                               src={opt.image}
                               alt={opt.name}
@@ -1550,7 +1550,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 {/* Exclusive Sauna Offer - Moved here, after Rocky Waterfalls */}
                 <ExclusiveSaunaOffer poolModel={pool.model} poolPrice={pool.price} />
 
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra("spa")} />
                   <div className="flex items-center space-x-1">
                     <Waves size={16} className="text-primary" />
@@ -1587,9 +1587,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                             <CarouselItem key={spa.model} className="pl-1 basis-1/2">
                               <div
                                 onClick={() => setExtras((prev) => ({ ...prev, spaModel: spa.model }))}
-                                className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
+                                className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
                               >
-                                <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                   {spa.image && <img loading="lazy" decoding="async" src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -1633,9 +1633,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                                     <CarouselItem key={finish.id} className="pl-1 basis-1/2">
                                       <div
                                         onClick={() => setExtras((prev) => ({ ...prev, spaFinish: finish.name, spaFinishPrice: finish.price }))}
-                                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaFinish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaFinish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
                                       >
-                                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                           <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -1658,7 +1658,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   );
                 })()}
 
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox checked={extras.tanningLedge} onCheckedChange={() => toggleExtra("tanningLedge")} />
                   <div className="flex items-center space-x-1">
                     <Sun size={16} className="text-coral" />
@@ -1686,9 +1686,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           <CarouselItem key={ledge.name} className="pl-1 basis-1/2">
                             <div
                               onClick={() => setExtras((prev) => ({ ...prev, tanningLedgeModel: ledge.name }))}
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tanningLedgeModel === ledge.name ? "border-coral bg-coral/10" : "border-border"}`}
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tanningLedgeModel === ledge.name ? "border-coral bg-coral/10" : "border-border"}`}
                             >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                 <img loading="lazy" decoding="async" src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
                               </div>
                               <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -1706,7 +1706,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 )}
 
                 {/* Pool Tiles */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox checked={extras.tiles} onCheckedChange={() => toggleExtra("tiles")} />
                   <div className="flex items-center space-x-1">
                     <Cpu size={16} className="text-primary" />
@@ -1738,7 +1738,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         {tileOptions.map((tile) => (
                           <CarouselItem key={tile.name} className="pl-1 basis-1/2">
                             <div
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? "border-primary bg-primary/10" : "border-border"}`}
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? "border-primary bg-primary/10" : "border-border"}`}
                               onClick={() =>
                                 setExtras((prev) => ({
                                   ...prev,
@@ -1747,7 +1747,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                               }
                             >
                               <div 
-                                className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                                className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setImagePopup({
@@ -1790,7 +1790,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
             {/* Carbon Fiber Technology Section */}
             {pool.carbonFiber && (
-              <AccordionItem value="carbon" className="border rounded-lg px-3 bg-gradient-to-r from-primary/5 to-teal/5 border-primary/20">
+              <AccordionItem value="carbon" className="border rounded-none px-3 bg-gradient-to-r from-primary/5 to-teal/5 border-primary/20">
                 <AccordionTrigger className="hover:no-underline py-3">
                   <span className="font-semibold text-foreground flex items-center gap-2 text-sm">
                     <Shield className="h-4 w-4 text-primary" />
@@ -2004,7 +2004,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             </div>
 
             {/* Final Price Display */}
-            <div className="mt-4 p-3 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg border border-primary/30">
+            <div className="mt-4 p-3 bg-gradient-to-r from-primary/10 to-teal/10 rounded-none border border-primary/30">
               <div className="text-center">
                 <h5 className="text-sm font-medium text-muted-foreground">Total Configuration Price</h5>
                 <div className="space-y-1">
@@ -2085,7 +2085,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       className="pl-1 basis-1/2"
                     >
                       <div
-                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        className={`p-2 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() => {
                           setExtras((prev) => ({
                             ...prev,
@@ -2094,7 +2094,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           setShowDetails(true);
                         }}
                       >
-                        <div className="w-full h-12 rounded-md mb-1 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-12 rounded-none mb-1 overflow-hidden flex-shrink-0">
                           <OptimizedImage
                             src={finish.image}
                             alt={finish.name}
@@ -2114,7 +2114,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             
             {/* Expand Arrow */}
             <div 
-              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-none transition-all group"
               onClick={() => setShowDetails(true)}
               onMouseEnter={() => setShowDetails(true)}
             >
