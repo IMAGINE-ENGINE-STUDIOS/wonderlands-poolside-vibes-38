@@ -54,11 +54,19 @@ export const parseSeats = (capacity?: string): number => {
   return Math.max(...matches.map(Number));
 };
 
-export function getSaunaPriceBreakdown(unitCost: number, capacity?: string): SaunaPriceBreakdown {
+export function getSaunaPriceBreakdown(
+  unitCost: number,
+  capacity?: string,
+  /** Published factory freight for the model (Harvia dealer pricelist) */
+  freightOverride?: number,
+): SaunaPriceBreakdown {
   const m = SAUNA_PRICING_MODEL;
   const seats = parseSeats(capacity);
 
-  const freight = m.freightBase + Math.max(0, seats - 2) * m.freightPerSeat;
+  const freight =
+    freightOverride && freightOverride > 0
+      ? freightOverride
+      : m.freightBase + Math.max(0, seats - 2) * m.freightPerSeat;
   const localDelivery = m.localDelivery;
   const installation = roundTo(m.installBase + unitCost * m.installCostRate, 5);
   const electrical = m.electrical;
