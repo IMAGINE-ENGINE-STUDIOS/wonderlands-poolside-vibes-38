@@ -48,6 +48,7 @@ const BrowseCategoriesEditorial: React.FC<BrowseCategoriesEditorialProps> = ({ a
 
   return (
     <section
+      id="browse-categories"
       aria-label="Browse Categories"
       className="bg-background py-20 md:py-28"
     >
