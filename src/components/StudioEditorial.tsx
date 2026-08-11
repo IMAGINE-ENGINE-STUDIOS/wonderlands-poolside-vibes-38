@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import HeroCategoryMarquee from "@/components/HeroCategoryMarquee";
 import studioImage from "@/assets/pool-banner-2.webp";
 
 const STEPS = [
