@@ -1,28 +1,11 @@
 import * as React from "react";
 const { useEffect, useState, lazy, Suspense } = React;
 import { Helmet } from "react-helmet";
-import {
-  Waves,
-  Flame,
-  Droplet,
-  Sun,
-  Shield,
-  Fence,
-  Home as HomeIcon,
-  Grid3x3,
-  Sprout,
-  Umbrella,
-  DoorOpen,
-  Palette,
-  Layers,
-  Trees,
-} from "lucide-react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import StudioEditorial from "@/components/StudioEditorial";
-import BrowseCategoriesEditorial from "@/components/BrowseCategoriesEditorial";
 
 import grassBanner from "@/assets/grass-natural-green.avif";
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
@@ -71,29 +54,27 @@ type SectionId =
   | "finishes"
   | "liners";
 
-const CATEGORIES = [
-  { id: "pools", label: "Pools", icon: Waves },
-  { id: "saunas", label: "Saunas", icon: Flame },
-  { id: "spas", label: "Spas", icon: Droplet },
-  { id: "tanning-ledges", label: "Tanning Ledges", icon: Sun },
-  { id: "screen-enclosures", label: "Screen Enclosures", icon: Shield },
-  { id: "patio-fencing", label: "Patio Fencing", icon: Fence },
-  { id: "lanai", label: "Lanai", icon: HomeIcon },
-  { id: "pavers", label: "Pavers", icon: Grid3x3 },
-  { id: "artificial-grass", label: "Artificial Grass", icon: Sprout },
-  { id: "landscaping", label: "Landscaping", icon: Trees },
-  { id: "covers", label: "Covers", icon: Umbrella },
-  { id: "driveway-gates", label: "Driveway Gates", icon: DoorOpen },
-  { id: "finishes", label: "Finishes", icon: Palette },
-  { id: "liners", label: "Liners", icon: Layers },
-];
-
-const VALID_IDS = new Set(CATEGORIES.map((c) => c.id));
+const VALID_IDS = new Set<SectionId>([
+  "pools",
+  "saunas",
+  "spas",
+  "tanning-ledges",
+  "screen-enclosures",
+  "patio-fencing",
+  "lanai",
+  "pavers",
+  "artificial-grass",
+  "landscaping",
+  "covers",
+  "driveway-gates",
+  "finishes",
+  "liners",
+]);
 
 const getInitialFromHash = (): SectionId => {
   if (typeof window === "undefined") return "pools";
   const hash = window.location.hash.replace("#", "");
-  return (VALID_IDS.has(hash) ? hash : "pools") as SectionId;
+  return (VALID_IDS.has(hash as SectionId) ? hash : "pools") as SectionId;
 };
 
 const SectionFallback = () => (
@@ -109,21 +90,13 @@ const Index = () => {
   useEffect(() => {
     const onHashChange = () => {
       const id = window.location.hash.replace("#", "");
-      if (VALID_IDS.has(id)) {
+      if (VALID_IDS.has(id as SectionId)) {
         setActive(id as SectionId);
       }
     };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
-
-  const handleChange = (id: string) => {
-    if (!VALID_IDS.has(id)) return;
-    setActive(id as SectionId);
-    if (window.location.hash !== `#${id}`) {
-      history.replaceState(null, "", `#${id}`);
-    }
-  };
 
   const renderActive = () => {
     switch (active) {
@@ -261,7 +234,6 @@ const Index = () => {
       <Header />
       <Hero />
       <StudioEditorial />
-      <BrowseCategoriesEditorial activeId={active} onSelect={handleChange} />
 
       <main>
         <Suspense fallback={<SectionFallback />}>{renderActive()}</Suspense>
