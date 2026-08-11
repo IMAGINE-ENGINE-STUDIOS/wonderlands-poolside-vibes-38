@@ -74,11 +74,11 @@ const StudioEditorial: React.FC = () => {
             <div className="mt-10 flex flex-col items-start gap-4">
               <Link
                 to="/studio"
-                className="group relative inline-flex items-center gap-4 overflow-hidden rounded-full border border-blue-700 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-blue-700 transition-all duration-500 hover:border-blue-700 hover:text-white"
+                className="group relative inline-flex items-center gap-4 overflow-hidden rounded-none border border-blue-700 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-blue-700 transition-all duration-500 hover:border-blue-700 hover:text-white"
               >
                 <span className="absolute inset-0 -z-10 origin-left scale-x-0 bg-blue-700 transition-transform duration-500 group-hover:scale-x-100" />
                 Open the Studio
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-blue-700/40 transition-colors duration-500 group-hover:border-white/40">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-none border border-blue-700/40 transition-colors duration-500 group-hover:border-white/40">
                   <svg
                     width="10"
                     height="10"
@@ -102,11 +102,11 @@ const StudioEditorial: React.FC = () => {
                 href="https://calendly.com/wonderlandsworlds/30min"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative inline-flex items-center gap-4 overflow-hidden rounded-full border border-foreground/70 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-foreground transition-all duration-500 hover:border-foreground hover:text-background"
+                className="group relative inline-flex items-center gap-4 overflow-hidden rounded-none border border-foreground/70 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-foreground transition-all duration-500 hover:border-foreground hover:text-background"
               >
                 <span className="absolute inset-0 -z-10 origin-left scale-x-0 bg-foreground transition-transform duration-500 group-hover:scale-x-100" />
                 Make an Appointment
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-foreground/40 transition-colors duration-500 group-hover:border-background/40">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-none border border-foreground/40 transition-colors duration-500 group-hover:border-background/40">
                   <svg
                     width="10"
                     height="10"
