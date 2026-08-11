@@ -709,7 +709,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     });
   };
   return (
-    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
+    <Card className="group rounded-none border border-border/70 transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] overflow-hidden">
       {/* Edge-to-edge Pool Image at top */}
       <div
         className="relative w-full h-48 sm:h-56 md:h-64 bg-muted cursor-pointer overflow-hidden group/image"
