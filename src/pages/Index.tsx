@@ -98,13 +98,6 @@ const Index = () => {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  const handleSelect = (id: SectionId) => {
-    setActive(id);
-    if (window.location.hash !== `#${id}`) {
-      history.replaceState(null, "", `#${id}`);
-    }
-  };
-
   const renderActive = () => {
     switch (active) {
       case "pools":
