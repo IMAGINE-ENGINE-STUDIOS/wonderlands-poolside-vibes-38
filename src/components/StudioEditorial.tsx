@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import HeroCategoryMarquee from "@/components/HeroCategoryMarquee";
 import studioImage from "@/assets/pool-banner-2.webp";
 
 const STEPS = [
@@ -131,10 +130,6 @@ const StudioEditorial: React.FC = () => {
         </div>
       </div>
 
-      {/* Category carousel — full bleed edge-to-edge */}
-      <div className="mt-16 md:mt-24">
-        <HeroCategoryMarquee />
-      </div>
     </section>
   );
 };
