@@ -131,10 +131,6 @@ const StudioEditorial: React.FC = () => {
         </div>
       </div>
 
-      {/* Category carousel — full bleed edge-to-edge */}
-      <div className="mt-16 md:mt-24">
-        <HeroCategoryMarquee />
-      </div>
     </section>
   );
 };
