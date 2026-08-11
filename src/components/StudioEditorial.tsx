@@ -72,14 +72,14 @@ const StudioEditorial: React.FC = () => {
               </dl>
             </div>
 
-            <div className="mt-10">
+            <div className="mt-10 flex flex-col items-start gap-4">
               <Link
                 to="/studio"
-                className="group relative inline-flex items-center gap-4 overflow-hidden rounded-full border border-primary/70 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-primary transition-all duration-500 hover:border-primary hover:text-primary-foreground"
+                className="group relative inline-flex items-center gap-4 overflow-hidden rounded-full border border-blue-700 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-blue-700 transition-all duration-500 hover:border-blue-700 hover:text-white"
               >
-                <span className="absolute inset-0 -z-10 origin-left scale-x-0 bg-primary transition-transform duration-500 group-hover:scale-x-100" />
-                Enter the Studio
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/40 transition-colors duration-500 group-hover:border-primary-foreground/40">
+                <span className="absolute inset-0 -z-10 origin-left scale-x-0 bg-blue-700 transition-transform duration-500 group-hover:scale-x-100" />
+                Open the Studio
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-blue-700/40 transition-colors duration-500 group-hover:border-white/40">
                   <svg
                     width="10"
                     height="10"
@@ -98,6 +98,34 @@ const StudioEditorial: React.FC = () => {
                   </svg>
                 </span>
               </Link>
+
+              <a
+                href="https://calendly.com/wonderlandsworlds/30min"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative inline-flex items-center gap-4 overflow-hidden rounded-full border border-foreground/70 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-foreground transition-all duration-500 hover:border-foreground hover:text-background"
+              >
+                <span className="absolute inset-0 -z-10 origin-left scale-x-0 bg-foreground transition-transform duration-500 group-hover:scale-x-100" />
+                Make an Appointment
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-foreground/40 transition-colors duration-500 group-hover:border-background/40">
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    className="transition-transform duration-500 group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M1 5H9M9 5L5.5 1.5M9 5L5.5 8.5"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              </a>
             </div>
           </div>
         </div>
