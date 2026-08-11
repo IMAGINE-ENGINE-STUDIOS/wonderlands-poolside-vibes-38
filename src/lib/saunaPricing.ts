@@ -26,9 +26,9 @@ export const SAUNA_PRICING_MODEL = {
   /** Company overhead (office, insurance, warranty reserve, financing fees) */
   overheadRate: 0.11,
   /** Target gross profit on total delivered cost */
-  profitRate: 0.28,
+  profitRate: 0.40,
   /** Markup applied to accessories and upgrade options (freight + labor + profit) */
-  optionMarkup: 1.45,
+  optionMarkup: 1.40,
 } as const;
 
 export interface SaunaPriceBreakdown {
@@ -54,11 +54,19 @@ export const parseSeats = (capacity?: string): number => {
   return Math.max(...matches.map(Number));
 };
 
-export function getSaunaPriceBreakdown(unitCost: number, capacity?: string): SaunaPriceBreakdown {
+export function getSaunaPriceBreakdown(
+  unitCost: number,
+  capacity?: string,
+  /** Published factory freight for the model (Harvia dealer pricelist) */
+  freightOverride?: number,
+): SaunaPriceBreakdown {
   const m = SAUNA_PRICING_MODEL;
   const seats = parseSeats(capacity);
 
-  const freight = m.freightBase + Math.max(0, seats - 2) * m.freightPerSeat;
+  const freight =
+    freightOverride && freightOverride > 0
+      ? freightOverride
+      : m.freightBase + Math.max(0, seats - 2) * m.freightPerSeat;
   const localDelivery = m.localDelivery;
   const installation = roundTo(m.installBase + unitCost * m.installCostRate, 5);
   const electrical = m.electrical;
@@ -87,8 +95,8 @@ export function getSaunaPriceBreakdown(unitCost: number, capacity?: string): Sau
 }
 
 /** Customer-facing turnkey price for a sauna model */
-export const getSaunaRetailPrice = (unitCost: number, capacity?: string): number =>
-  getSaunaPriceBreakdown(unitCost, capacity).retail;
+export const getSaunaRetailPrice = (unitCost: number, capacity?: string, freight?: number): number =>
+  getSaunaPriceBreakdown(unitCost, capacity, freight).retail;
 
 /** Customer-facing price for a sauna accessory / upgrade option */
 export const getSaunaOptionRetail = (cost: number): number =>

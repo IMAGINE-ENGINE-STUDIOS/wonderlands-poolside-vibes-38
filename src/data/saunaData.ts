@@ -8,7 +8,8 @@ const saunaCatalog = [
     id: 'salem-2p',
     name: 'Salem 2 Person Barrel Sauna',
     model: 'Salem 2P',
-    price: 4037,
+    price: 3446,
+    shipping: 699,
     category: 'compact',
     image: `${CDN}/files/Salem_HT_White_BG_2048x2048_e8a5a203-eb46-40ae-a91a-f3be9e1d8655.jpg`,
     media: [
@@ -35,7 +36,8 @@ const saunaCatalog = [
     id: 'pinnacle-4p',
     name: 'Pinnacle 4 Person Barrel Sauna',
     model: 'Pinnacle 4P',
-    price: 5303,
+    price: 4294,
+    shipping: 699,
     category: 'best-seller',
     image: `${CDN}/products/Barrel_Classic_Pinnacle_glass.jpg`,
     media: [
@@ -62,7 +64,8 @@ const saunaCatalog = [
     id: 'watoga-24p-kit',
     name: 'Watoga 2-4 Person Barrel Sauna Kit',
     model: 'Watoga 2-4P',
-    price: 6183,
+    price: 3995,
+    shipping: 699,
     category: 'premium',
     image: `${CDN}/products/Barrel_Classic_Watoga_glass_2.jpg`,
     media: [
@@ -90,6 +93,7 @@ const saunaCatalog = [
     name: 'Allegheny 6 Person Cabin Sauna',
     model: 'Allegheny 6P',
     price: 7505,
+    shipping: 1999,
     category: 'cabin',
     image: `${CDN}/products/Cabin_Allegheny_white_BG.jpg`,
     media: [
@@ -116,7 +120,8 @@ const saunaCatalog = [
     id: 'essex-4p',
     name: 'Essex 4 Person Barrel Sauna',
     model: 'Essex 4P',
-    price: 8548,
+    price: 4994,
+    shipping: 699,
     category: 'premium',
     image: `${CDN}/files/Essex_Rustic_Cedar_White_BG.jpg`,
     media: [
@@ -143,7 +148,8 @@ const saunaCatalog = [
     id: 'seneca-6p',
     name: 'Seneca 6 Person Barrel Sauna',
     model: 'Seneca 6P',
-    price: 8844,
+    price: 5170,
+    shipping: 699,
     category: 'premium',
     image: `${CDN}/products/Senecca_7652.jpg`,
     media: [
@@ -170,7 +176,8 @@ const saunaCatalog = [
     id: 'shenandoah-4p',
     name: 'Shenandoah 4 Person Barrel Sauna',
     model: 'Shenandoah 4P',
-    price: 10650,
+    price: 6128,
+    shipping: 1499,
     category: 'deluxe',
     image: `${CDN}/files/Almost_Heaven_Saunas_-_Shendandoah_-_Josh_Ciardullo_-_4_optimized_1000.png`,
     media: [
@@ -198,6 +205,7 @@ const saunaCatalog = [
     name: 'Appalachia 6 Person Cabin Sauna',
     model: 'Appalachia 6P',
     price: 8855,
+    shipping: 1999,
     category: 'cabin',
     image: `${CDN}/files/Appalacia_white_background.png`,
     media: [
@@ -225,6 +233,7 @@ const saunaCatalog = [
     name: 'Kuuma 4-6 Person Classic Barrel Sauna — Harvia Collection',
     model: 'Kuuma 4-6P',
     price: 14132,
+    shipping: 999,
     category: 'harvia-collection',
     image: `${CDN}/files/Kumma.75DoorClosedLQ.jpg`,
     media: [
@@ -251,6 +260,7 @@ const saunaCatalog = [
     name: 'Takoa Half Moon Classic Barrel Sauna — Harvia Collection',
     model: 'Takoa 4-6P',
     price: 15273,
+    shipping: 999,
     category: 'harvia-collection',
     image: `${CDN}/files/Takoa_Half_Moon_Classic_Barrel_Sauna_Heritage_Collection_-_Almost_Heaven_Sauna.png`,
     media: [
@@ -278,6 +288,7 @@ const saunaCatalog = [
     name: 'Magnus 6 Person Canopy Barrel Sauna — Harvia Collection',
     model: 'Magnus 6P',
     price: 16558,
+    shipping: 999,
     category: 'harvia-collection',
     image: `${CDN}/files/Almost_Heaven_Magnus_Sauna.jpg`,
     media: [
@@ -304,6 +315,7 @@ const saunaCatalog = [
     name: 'Evander Half-Moon Canopy Barrel Sauna — Harvia Collection',
     model: 'Evander 6P',
     price: 17653,
+    shipping: 999,
     category: 'harvia-collection',
     image: `${CDN}/files/Almost_Heaven_Sauna_Evander_6_Person_Sauna_1.png`,
     media: [
@@ -336,7 +348,7 @@ const saunaCatalog = [
 export const saunas = saunaCatalog.map(sauna => ({
   ...sauna,
   unitCost: sauna.price,
-  price: getSaunaRetailPrice(sauna.price, sauna.capacity),
+  price: getSaunaRetailPrice(sauna.price, sauna.capacity, sauna.shipping),
 }));
 
 export type Sauna = typeof saunas[0];

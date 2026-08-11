@@ -25,6 +25,7 @@ interface SaunaProductCardProps {
     features: string[];
     dimensions: string;
     unitCost?: number;
+    shipping?: number;
     installationTime: string;
     warranty: string;
   };
@@ -225,6 +226,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
         name={sauna.name}
         unitCost={sauna.unitCost ?? sauna.price}
         capacity={sauna.capacity}
+        freight={sauna.shipping}
         optionsRetail={extrasTotal}
       />
 

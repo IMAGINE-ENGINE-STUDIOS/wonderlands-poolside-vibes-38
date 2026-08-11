@@ -14,6 +14,8 @@ interface SaunaSalesPricingDialogProps {
   name: string;
   unitCost: number;
   capacity?: string;
+  /** Published factory freight for the model */
+  freight?: number;
   /** Retail total of the options the customer configured (already marked up) */
   optionsRetail?: number;
 }
@@ -26,13 +28,14 @@ const SaunaSalesPricingDialog = ({
   name,
   unitCost,
   capacity,
+  freight,
   optionsRetail = 0,
 }: SaunaSalesPricingDialogProps) => {
   const [passcode, setPasscode] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState(false);
 
-  const breakdown = useMemo(() => getSaunaPriceBreakdown(unitCost, capacity), [unitCost, capacity]);
+  const breakdown = useMemo(() => getSaunaPriceBreakdown(unitCost, capacity, freight), [unitCost, capacity, freight]);
 
   const handleUnlock = () => {
     if (passcode.trim().toUpperCase() === SALES_PASSCODE) {
