@@ -974,98 +974,92 @@ const PoolCatalog = () => {
     }
   };
   return <>
-      {/* Pool Collection Section */}
-      <section className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden border-t-4 border-gradient-to-r from-primary via-coral to-teal">
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-coral/5">
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-0 left-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-coral/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-            <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-teal/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-          </div>
-          {/* Wave Pattern */}
-          <svg className="absolute bottom-0 left-0 w-full h-32 opacity-10" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" className="fill-primary"></path>
-            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" className="fill-coral"></path>
-            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" className="fill-teal/50"></path>
-          </svg>
+      {/* Pool Collection Section — editorial */}
+      <section className="relative overflow-hidden border-t border-border/60 bg-secondary/20 px-2 py-14 sm:px-4 sm:py-20 lg:py-28">
+        {/* Quiet editorial backdrop: paper tone + hairline rules */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--secondary)/0.35)_45%,hsl(var(--background))_100%)]" />
+          <div className="absolute inset-y-0 left-[12%] hidden w-px bg-border/40 lg:block" />
+          <div className="absolute inset-y-0 right-[12%] hidden w-px bg-border/40 lg:block" />
         </div>
+
         <div className="max-w-7xl mx-auto relative z-10">
-          {/* Prominent Appointment Button with Railing */}
-          <div className="text-center mb-8 sm:mb-12">
-            
-            <Button variant="gradient" size="lg" className="group shadow-xl hover:shadow-2xl transition-all duration-300" onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}>
-              <Calendar className="mr-2 h-5 w-5" />
-              Make an Appointment
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <p className="text-sm text-muted-foreground mt-3">Book your free consultation with our pool experts</p>
-            
+          {/* Prominent Appointment CTA */}
+          <div className="mb-12 flex flex-col items-center text-center sm:mb-16">
+            <p className="mb-5 text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
+              Private Consultation
+            </p>
+            <button
+              onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}
+              className="group relative inline-flex items-center gap-4 overflow-hidden rounded-none border border-foreground bg-foreground px-10 py-5 text-foreground transition-colors duration-500 hover:bg-transparent sm:px-14"
+            >
+              <span className="absolute inset-0 origin-left scale-x-100 bg-foreground transition-transform duration-500 ease-out group-hover:scale-x-0" />
+              <Calendar className="relative z-10 h-4 w-4 text-background transition-colors duration-500 group-hover:text-foreground" />
+              <span className="relative z-10 text-[11px] uppercase tracking-[0.4em] text-background transition-colors duration-500 group-hover:text-foreground">
+                Make an Appointment
+              </span>
+              <ArrowRight className="relative z-10 h-4 w-4 text-background transition-all duration-500 group-hover:translate-x-1 group-hover:text-foreground" />
+            </button>
+            <p className="mt-5 text-xs uppercase tracking-[0.25em] text-muted-foreground">
+              Book a free consultation with our pool designers
+            </p>
           </div>
 
-          {/* Wonderlands World Collection - Only Madre Perla and Pacific Ridge */}
-          <div className="relative overflow-hidden py-16 bg-gradient-to-b from-primary/5 via-background to-coral/5">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {/* Gradient Orbs */}
-              <div className="absolute top-20 left-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-              <div className="absolute bottom-20 right-10 w-96 h-96 bg-coral/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-teal/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-              
-              {/* Floating Elements */}
-              <div className="absolute top-10 right-20 animate-[float_6s_ease-in-out_infinite]">
-                <Droplets className="w-12 h-12 text-primary/30" />
-              </div>
-              <div className="absolute bottom-20 left-20 animate-[float_8s_ease-in-out_infinite]" style={{ animationDelay: '2s' }}>
-                <Sparkles className="w-10 h-10 text-coral/30" />
-              </div>
-              
-              {/* SVG Wave Pattern */}
-              <svg className="absolute bottom-0 left-0 w-full h-32 opacity-20" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path d="M0,50 C150,80 350,0 600,50 C850,100 1050,20 1200,50 L1200,120 L0,120 Z" fill="url(#wave-gradient)" />
-                <defs>
-                  <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
-                    <stop offset="50%" stopColor="hsl(var(--coral))" stopOpacity="0.5" />
-                    <stop offset="100%" stopColor="hsl(var(--teal))" stopOpacity="0.5" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            {/* Content */}
+          {/* Wonderlands World Collection */}
+          <div className="relative border-y border-border/60 py-14 sm:py-20">
             <div className="relative z-10">
-              <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">Wonderlands World Collection</h2>
-                <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">Premium Concrete Infinity Pools - The Pinnacle of Luxury</p>
+              <div className="mb-12 grid gap-6 border-b border-border/60 pb-10 lg:mb-16 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div>
+                  <p className="mb-4 text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
+                    Volume I — Signature
+                  </p>
+                  <h2 className="font-serif text-4xl font-light leading-[1.02] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+                    Wonderlands World Collection
+                  </h2>
+                </div>
+                <p className="max-w-sm text-sm leading-relaxed text-muted-foreground lg:text-right">
+                  Premium concrete infinity pools — the pinnacle of luxury, engineered and finished in Florida.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
+              <div className="grid grid-cols-1 gap-px border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
                 {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').sort((a, b) => a.price - b.price).map(pool => {
                   // Override some props for Winderview since it's concrete
                   const poolProps = pool.model === 'Winderview' 
                     ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
                     : pool;
-                  return <PoolProductCard key={pool.model} pool={poolProps} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />;
+                  return <div key={pool.model} className="bg-background">
+                    <PoolProductCard pool={poolProps} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
+                  </div>;
                 })}
               </div>
             </div>
           </div>
 
           {/* Banner between Wonderlands and Latham */}
-          <div className="w-full my-12">
+          <div className="w-full my-16">
             <img loading="lazy" decoding="async" 
               src="/lovable-uploads/Astoria_Maxima_029.webp" 
               alt="Luxury Pool with Mosaic Tiles" 
-              className="w-full h-auto object-cover rounded-lg"
+              className="w-full h-auto object-cover"
             />
           </div>
 
           {/* Latham Pools Collection */}
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16 mt-20">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">Latham Pools Collection</h2>
-            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">Fiberglass Pools with Lifetime Warranty</p>
+          <div className="mb-12 grid gap-6 border-b border-border/60 pb-10 lg:mb-16 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="mb-4 text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
+                Volume II — Fiberglass
+              </p>
+              <h2 className="font-serif text-4xl font-light leading-[1.02] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+                Latham Pools Collection
+              </h2>
+            </div>
+            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground lg:text-right">
+              Fiberglass pools with a lifetime structural warranty.
+            </p>
           </div>
+
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
             {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
