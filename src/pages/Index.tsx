@@ -260,7 +260,7 @@ const Index = () => {
 
       <Header />
       <Hero />
-      <MissionVisionValues />
+      <StudioEditorial />
       <BrowseCategoriesEditorial activeId={active} onSelect={handleChange} />
 
       <main>
