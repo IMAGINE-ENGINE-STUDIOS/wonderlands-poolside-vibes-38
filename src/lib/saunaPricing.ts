@@ -95,8 +95,8 @@ export function getSaunaPriceBreakdown(
 }
 
 /** Customer-facing turnkey price for a sauna model */
-export const getSaunaRetailPrice = (unitCost: number, capacity?: string): number =>
-  getSaunaPriceBreakdown(unitCost, capacity).retail;
+export const getSaunaRetailPrice = (unitCost: number, capacity?: string, freight?: number): number =>
+  getSaunaPriceBreakdown(unitCost, capacity, freight).retail;
 
 /** Customer-facing price for a sauna accessory / upgrade option */
 export const getSaunaOptionRetail = (cost: number): number =>
