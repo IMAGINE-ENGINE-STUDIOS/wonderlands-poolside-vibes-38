@@ -1980,27 +1980,25 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           : undefined,
                     });
                   }}
-                  className="flex-1 instant-quote-btn transition-all duration-300"
-                  size="sm"
+                  className="flex-1 instant-quote-btn h-11 rounded-none bg-foreground text-background text-[10px] uppercase tracking-[0.3em] transition-colors duration-300 hover:bg-foreground/85"
                 >
                   Instant Quote
                 </Button>
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={handleAddToCart} variant="outline" size="icon" className="w-10 h-10">
+                <Button onClick={handleAddToCart} variant="outline" size="icon" className="h-11 w-11 rounded-none border-border/70 hover:border-foreground hover:bg-foreground hover:text-background">
                   <ShoppingCart className="h-4 w-4" />
                 </Button>
                 <StripeCheckoutButton
                   productId={`pool_${pool.model.replace(/\s+/g, "_")}`}
                   productName={pool.model}
                   price={calculateTotalPrice()}
-                  variant="gradient"
-                  className="flex-1 hover:scale-105 transition-all duration-300"
-                  size="sm"
-                 
+                  variant="outline"
+                  className="flex-1 h-11 rounded-none border-foreground text-[10px] uppercase tracking-[0.3em] transition-colors duration-300 hover:bg-foreground hover:text-background"
                 />
               </div>
+
             </div>
 
             {/* Final Price Display */}
