@@ -75,11 +75,27 @@ const StudioEditorial: React.FC = () => {
             <div className="mt-10">
               <Link
                 to="/studio"
-                className="group inline-flex items-center gap-4 border-b border-foreground/40 pb-2 text-[11px] uppercase tracking-[0.4em] text-foreground transition-colors hover:border-foreground"
+                className="group relative inline-flex items-center gap-4 overflow-hidden rounded-full border border-primary/70 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-primary transition-all duration-500 hover:border-primary hover:text-primary-foreground"
               >
+                <span className="absolute inset-0 -z-10 origin-left scale-x-0 bg-primary transition-transform duration-500 group-hover:scale-x-100" />
                 Enter the Studio
-                <span className="inline-block transition-transform duration-500 group-hover:translate-x-2">
-                  &rarr;
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/40 transition-colors duration-500 group-hover:border-primary-foreground/40">
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    className="transition-transform duration-500 group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M1 5H9M9 5L5.5 1.5M9 5L5.5 8.5"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </span>
               </Link>
             </div>
