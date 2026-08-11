@@ -2,35 +2,33 @@ import * as React from "react";
 const { useState } = React;
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AdvancedSearch from "./AdvancedSearch";
-import heroVideo from "@/assets/hero-beach.mp4.asset.json";
+import HeroCategoryMarquee from "./HeroCategoryMarquee";
+import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
+
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   return <>
-    <section className="relative h-screen w-full overflow-hidden bg-background">
-      {/* Full-bleed background video */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        src={heroVideo.url}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-      />
-      {/* Legibility overlay */}
-      <div className="absolute inset-0 bg-background/40" />
-
-      {/* Centered Search Engine */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto">
+    <section className="relative w-full overflow-hidden bg-background">
+      <div className="container mx-auto px-4 pt-16 pb-12 md:pt-24 md:pb-16">
+        <div className="mx-auto flex max-w-3xl flex-col items-center">
+          {/* Wonderlands logo above the search bar */}
+          <img
+            src={wonderlandsLogo}
+            alt="Wonderlands World"
+            width={300}
+            height={120}
+            decoding="async"
+            className="mb-8 h-20 w-auto object-contain md:h-28"
+          />
+          <div className="w-full max-w-2xl">
             <AdvancedSearch />
           </div>
         </div>
       </div>
+
+      <HeroCategoryMarquee />
     </section>
 
-    
     <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} />
     </>;
 };
