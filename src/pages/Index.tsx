@@ -234,7 +234,6 @@ const Index = () => {
       <Header />
       <Hero />
       <StudioEditorial />
-      <BrowseCategoriesEditorial activeId={active} onSelect={handleChange} />
 
       <main>
         <Suspense fallback={<SectionFallback />}>{renderActive()}</Suspense>
