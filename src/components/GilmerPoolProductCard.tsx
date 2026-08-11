@@ -338,60 +338,61 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              <Waves className="h-6 w-6 text-primary" />
-              {pool.brand} {pool.model}
-            </CardTitle>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {pool.dimensions}
-              </Badge>
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Droplets className="h-3 w-3" />
-                Depth: {pool.depth}
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Award className="h-3 w-3" />
-                {pool.warranty}
-              </Badge>
-              <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                {pool.type}
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                Installation: {getInstallationTime()} weeks
-              </Badge>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-primary">
+      <CardHeader className="pb-6">
+        <p className="mb-3 text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
+          {pool.brand} — {pool.type}
+        </p>
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <CardTitle className="font-serif text-3xl md:text-4xl font-light leading-[1.05] tracking-tight">
+            {pool.model}
+          </CardTitle>
+          <div className="md:text-right">
+            <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+            <div className="font-serif text-3xl font-light text-foreground">
               ${getTotalPoolPrice().toLocaleString()}
             </div>
-            <div className="text-sm text-muted-foreground">
-              {calculateExtrasTotal() > 0 && (
-                <span>+ ${calculateExtrasTotal().toLocaleString()} extras</span>
-              )}
-            </div>
+            {calculateExtrasTotal() > 0 && (
+              <div className="text-xs text-muted-foreground">
+                + ${calculateExtrasTotal().toLocaleString()} extras
+              </div>
+            )}
             {projectType === 'commercial' && (
-              <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/30 mt-1">Commercial Rate</Badge>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Commercial Rate</p>
             )}
           </div>
         </div>
+
+        <dl className="mt-6 grid grid-cols-2 gap-x-8 divide-y divide-border/60 border-y border-border/60 md:grid-cols-4 md:divide-y-0">
+          <div className="py-3">
+            <dt className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Dimensions</dt>
+            <dd className="mt-1 text-sm text-foreground">{pool.dimensions}</dd>
+          </div>
+          <div className="py-3">
+            <dt className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Depth</dt>
+            <dd className="mt-1 text-sm text-foreground">{pool.depth}</dd>
+          </div>
+          <div className="py-3">
+            <dt className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Warranty</dt>
+            <dd className="mt-1 text-sm text-foreground">{pool.warranty}</dd>
+          </div>
+          <div className="py-3">
+            <dt className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Installation</dt>
+            <dd className="mt-1 text-sm text-foreground">{getInstallationTime()} weeks</dd>
+          </div>
+        </dl>
       </CardHeader>
 
       <CardContent className="space-y-6">
         {/* Pool Image */}
-        <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
+        <div className="aspect-video relative overflow-hidden bg-muted">
           <img loading="lazy" decoding="async" 
             src={pool.image} 
             alt={`${pool.brand} ${pool.model}`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-[900ms] ease-out hover:scale-[1.04]"
           />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         </div>
+
 
         {/* Color Selection */}
         <div className="space-y-3">
