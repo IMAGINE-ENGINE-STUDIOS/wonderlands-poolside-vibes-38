@@ -1342,7 +1342,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           <img loading="lazy" decoding="async" 
                             src={cover.image} 
                             alt={cover.name} 
-                            className="w-12 h-12 rounded object-contain bg-muted/50 p-1" 
+                            className="w-12 h-12 object-contain bg-muted/50 p-1" 
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                             }}
