@@ -100,24 +100,24 @@ const StudioEditorial: React.FC = () => {
               </Link>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Secondary wide image */}
-          <div className="relative overflow-hidden bg-background lg:col-span-12">
-            <div className="relative aspect-[16/7]">
-              <img
-                src={studioImageAlt}
-                alt="Finished Wonderlands pool and patio"
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
-              <div className="absolute inset-y-0 left-0 flex items-center p-6 md:p-10">
-                <p className="max-w-xs font-serif text-xl font-light leading-snug text-foreground md:text-2xl">
-                  From first line to final water — one continuous drawing.
-                </p>
-              </div>
-            </div>
+      {/* Secondary wide image — full bleed edge-to-edge */}
+      <div className="relative mt-16 overflow-hidden md:mt-24">
+        <div className="relative aspect-[16/7] w-full md:aspect-[21/8]">
+          <img
+            src={studioImageAlt}
+            alt="Finished Wonderlands pool and patio"
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
+          <div className="absolute inset-y-0 left-0 mx-auto flex w-full max-w-7xl items-center px-6 md:px-10">
+            <p className="max-w-xs font-serif text-xl font-light leading-snug text-foreground md:text-2xl">
+              From first line to final water — one continuous drawing.
+            </p>
           </div>
         </div>
       </div>
