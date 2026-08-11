@@ -90,7 +90,7 @@ const Index = () => {
   useEffect(() => {
     const onHashChange = () => {
       const id = window.location.hash.replace("#", "");
-      if (VALID_IDS.has(id)) {
+      if (VALID_IDS.has(id as SectionId)) {
         setActive(id as SectionId);
       }
     };
@@ -98,9 +98,8 @@ const Index = () => {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  const handleChange = (id: string) => {
-    if (!VALID_IDS.has(id)) return;
-    setActive(id as SectionId);
+  const handleSelect = (id: SectionId) => {
+    setActive(id);
     if (window.location.hash !== `#${id}`) {
       history.replaceState(null, "", `#${id}`);
     }
