@@ -187,6 +187,7 @@ const App = () => {
             <Route path="/blueprint-builder" element={<BlueprintBuilder />} />
             <Route path="/studio-showroom" element={<StudioShowroom />} />
             <Route path="/studio" element={<StudioLanding />} />
+            <Route path="/tools" element={<ToolsGallery />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
