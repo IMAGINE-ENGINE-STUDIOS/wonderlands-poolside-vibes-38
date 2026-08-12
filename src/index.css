@@ -449,3 +449,118 @@
   box-shadow: 0 26px 60px -28px hsl(var(--primary) / 0.45);
 }
 
+
+/* ================= Tools presentation (/tools) ================= */
+@layer utilities {
+  /* Scroll-driven: --p (-1 → 1 across viewport) and --v (0 → 1 visibility)
+     are written by useParallax; CSS consumes them so scrolling never re-renders. */
+  .tl-par {
+    transform: translate3d(0, calc(var(--p, 0) * -28px), 0) scale(calc(1 + (1 - var(--v, 1)) * 0.04));
+    will-change: transform;
+  }
+  .tl-par-soft {
+    transform: translate3d(0, calc(var(--p, 0) * -14px), 0);
+    will-change: transform;
+  }
+  .tl-par-deep {
+    transform: translate3d(0, calc(var(--p, 0) * -52px), 0) scale(1.06);
+    will-change: transform;
+  }
+  .tl-fade {
+    opacity: calc(0.25 + var(--v, 1) * 0.75);
+  }
+
+  .tl-in {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0);
+    transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1), transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .tl-in-x {
+    opacity: 0;
+    transform: translate3d(-24px, 0, 0);
+    transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1), transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .tl-shown.tl-in,
+  .tl-shown.tl-in-x,
+  .tl-shown .tl-in,
+  .tl-shown .tl-in-x {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  .tl-d1 { transition-delay: 90ms; }
+  .tl-d2 { transition-delay: 180ms; }
+  .tl-d3 { transition-delay: 270ms; }
+  .tl-d4 { transition-delay: 360ms; }
+
+  @keyframes tl-marquee {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+  .tl-marquee {
+    animation: tl-marquee 42s linear infinite;
+  }
+  .tl-marquee-fast {
+    animation: tl-marquee 26s linear infinite;
+  }
+
+  @keyframes tl-sweep {
+    0% { transform: translateX(-120%) skewX(-12deg); opacity: 0; }
+    35% { opacity: 0.65; }
+    100% { transform: translateX(220%) skewX(-12deg); opacity: 0; }
+  }
+  .tl-sweep::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, hsl(var(--background) / 0.55), transparent);
+    animation: tl-sweep 5.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes tl-scanline {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(400%); }
+  }
+  .tl-scanline::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 22%;
+    background: linear-gradient(180deg, transparent, hsl(var(--primary) / 0.16), transparent);
+    animation: tl-scanline 6s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes tl-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+  .tl-blink { animation: tl-blink 1.8s ease-in-out infinite; }
+
+  .tl-grid {
+    background-image:
+      linear-gradient(hsl(var(--foreground) / 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.055) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .tl-grid-inv {
+    background-image:
+      linear-gradient(hsl(var(--background) / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--background) / 0.07) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .tl-noscroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .tl-noscroll::-webkit-scrollbar { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tl-par, .tl-par-soft, .tl-par-deep { transform: none !important; }
+    .tl-in, .tl-in-x { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .tl-marquee, .tl-marquee-fast, .tl-blink { animation: none !important; }
+    .tl-sweep::after, .tl-scanline::before { animation: none !important; opacity: 0 !important; }
+  }
+}
