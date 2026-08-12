@@ -7,6 +7,7 @@ import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import TileDetailModal from "./TileDetailModal";
 import { useShoppingCart } from "./ShoppingCartProvider";
+import ProductScrollRow from "./ProductScrollRow";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -933,21 +934,8 @@ const PoolCatalog = () => {
   const [selectedTile, setSelectedTile] = usePersistentState<any>("catalog_selectedTile", null);
   const [showTileModal, setShowTileModal] = usePersistentState("catalog_showTileModal", false);
   const [selectedExtras, setSelectedExtras] = usePersistentState<any>("catalog_selectedExtras", null);
-  const [currentPage, setCurrentPage] = usePersistentState("catalog_currentPage", 1);
-  const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
-
-  const {
-    addToCart
-  } = useShoppingCart();
-  const {
-    toast
-  } = useToast();
-
-  // Filter and paginate pools
+  // Filter pools
   const filteredPools = pools.filter(pool => pool.model !== 'Pleasant Cove');
-  const totalPages = Math.ceil(filteredPools.length / poolsPerPage);
-  const startIndex = (currentPage - 1) * poolsPerPage;
-  const paginatedPools = filteredPools.slice(startIndex, startIndex + poolsPerPage);
   const handleViewDetails = (pool: Pool) => {
     setSelectedPool(pool);
     setShowDetailModal(true);
@@ -961,17 +949,6 @@ const PoolCatalog = () => {
   const handleSpaRequest = (spa: Spa) => {
     setSelectedSpa(spa);
     setShowSpaModal(true);
-  };
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    // Smooth scroll to top of Latham section (not page top)
-    const lathamSection = document.querySelector('[class*="text-center mb-8 sm:mb-12 lg:mb-16 mt-20"]');
-    if (lathamSection) {
-      lathamSection.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
   };
   return <>
       {/* Pool Collection Section — editorial */}
@@ -1022,17 +999,15 @@ const PoolCatalog = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-px border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
+              <ProductScrollRow>
                 {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').sort((a, b) => a.price - b.price).map(pool => {
                   // Override some props for Winderview since it's concrete
                   const poolProps = pool.model === 'Winderview' 
                     ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
                     : pool;
-                  return <div key={pool.model} className="bg-background">
-                    <PoolProductCard pool={poolProps} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
-                  </div>;
+                  return <PoolProductCard key={pool.model} pool={poolProps} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />;
                 })}
-              </div>
+              </ProductScrollRow>
             </div>
           </div>
 
@@ -1061,33 +1036,9 @@ const PoolCatalog = () => {
           </div>
 
 
-          <div className="mb-16 grid grid-cols-1 gap-px border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
-            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <div key={pool.model} className="bg-background"><PoolProductCard pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} /></div>)}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && <div className="mt-8 flex items-center justify-center gap-px border border-border/60 bg-border/60">
-              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="bg-background px-5 py-3 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background disabled:opacity-30 disabled:hover:bg-background disabled:hover:text-foreground">
-                Previous
-              </button>
-              
-              {[...Array(totalPages)].map((_, index) => {
-            const page = index + 1;
-            return <button key={page} onClick={() => handlePageChange(page)} className={`px-5 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors ${currentPage === page ? 'bg-foreground text-background' : 'bg-background text-foreground hover:bg-foreground hover:text-background'}`}>
-                    {page}
-                  </button>;
-          })}
-              
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="bg-background px-5 py-3 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background disabled:opacity-30 disabled:hover:bg-background disabled:hover:text-foreground">
-                Next
-              </button>
-            </div>}
-
-
-          {/* Results Info */}
-          <div className="text-center mt-4 text-sm text-muted-foreground">
-            Showing {startIndex + 1}-{Math.min(startIndex + poolsPerPage, filteredPools.length)} of {filteredPools.length} pools
-          </div>
+          <ProductScrollRow className="mb-16">
+            {filteredPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+          </ProductScrollRow>
         </div>
       </section>
 

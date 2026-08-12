@@ -1,5 +1,6 @@
 import { drivewayGates } from "@/data/drivewayGates";
 import DrivewayGateProductCard from "./DrivewayGateProductCard";
+import ProductScrollRow from "./ProductScrollRow";
 
 const DrivewayGateSection = () => {
   return (
@@ -14,11 +15,11 @@ const DrivewayGateSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <ProductScrollRow className="mb-8">
           {drivewayGates.map((gate, index) => (
             <DrivewayGateProductCard key={`${gate.model}-${gate.baseDimensions}-${index}`} gate={gate} />
           ))}
-        </div>
+        </ProductScrollRow>
       </div>
     </section>
   );

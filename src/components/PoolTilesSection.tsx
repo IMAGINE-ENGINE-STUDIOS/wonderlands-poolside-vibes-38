@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Star, DollarSign, ShoppingCart, Sparkles } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
 import { poolTiles as poolTilesData } from "@/data/poolData";
@@ -66,7 +67,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <ProductScrollRow className="mb-8">
             {poolTiles.map((tile, index) => (
               <Card 
                 key={tile.name} 
@@ -134,7 +135,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </ProductScrollRow>
         </div>
       </section>
       

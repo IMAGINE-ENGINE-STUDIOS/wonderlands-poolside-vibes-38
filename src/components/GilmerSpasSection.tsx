@@ -2,6 +2,7 @@ import { useState } from "react";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import GilmerSpaCard from "./GilmerSpaCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 import type { GilmerSpa } from "@/data/gilmerSpas";
 
 interface SpaExtras {
@@ -40,9 +41,9 @@ const GilmerSpasSection = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <ProductScrollRow className="mb-12">
             {gilmerSpas.map(spa => <GilmerSpaCard key={spa.model} spa={spa} onRequestQuote={handleRequestQuote} />)}
-          </div>
+          </ProductScrollRow>
 
           {/* Features Section */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">

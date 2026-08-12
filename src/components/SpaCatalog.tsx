@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import SpaProductCard from "./SpaProductCard";
 import SpaDetailModal from "./SpaDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 interface Spa {
   model: string;
   price: number;
@@ -158,11 +159,11 @@ const SpaCatalog = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <ProductScrollRow className="mb-8">
             {spas.map(spa => (
               <SpaProductCard key={spa.model} spa={spa} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
             ))}
-          </div>
+          </ProductScrollRow>
         </div>
       </section>
 

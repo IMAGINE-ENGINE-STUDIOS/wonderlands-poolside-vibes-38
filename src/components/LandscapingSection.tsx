@@ -24,6 +24,7 @@ import {
   type PlantVariant,
 } from "@/data/landscapingData";
 import { useShoppingCart } from "./ShoppingCartProvider";
+import ProductScrollRow from "./ProductScrollRow";
 
 const formatPrice = (n: number) =>
   `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -639,7 +640,7 @@ const LandscapingSection = () => {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+          <ProductScrollRow className="mb-8">
             {filtered.map((plant) => {
               const variantCount = plant.variants.length;
               return (
@@ -681,7 +682,7 @@ const LandscapingSection = () => {
                 </Card>
               );
             })}
-          </div>
+          </ProductScrollRow>
 
           {filtered.length === 0 && (
             <div className="text-center py-16 text-muted-foreground">

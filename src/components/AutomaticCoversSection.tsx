@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Zap, Leaf, Settings, DollarSign, Star, Droplets, Thermometer, Bolt } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 interface AutomaticCover {
   name: string;
   price: number;
@@ -129,7 +130,7 @@ const AutomaticCoversSection = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <ProductScrollRow className="mb-8">
             {covers.map((cover, index) => <Card key={cover.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
@@ -210,9 +211,9 @@ const AutomaticCoversSection = () => {
                   
                   {/* Action Button */}
                   <Button onClick={() => handleRequestQuote(cover)} className="w-full instant-quote-btn transition-all duration-300" size="lg">Instant Quote with Installation</Button>
-                </CardContent>
-              </Card>)}
-          </div>
+              </CardContent>
+            </Card>)}
+          </ProductScrollRow>
         </div>
       </section>
 
