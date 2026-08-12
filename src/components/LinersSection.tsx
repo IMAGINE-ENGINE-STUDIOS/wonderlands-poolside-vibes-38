@@ -13,6 +13,7 @@ import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "@/components/ui/use-toast";
 import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 interface Liner extends Product {
   type?: string; // For backwards compatibility
 }
@@ -117,14 +118,11 @@ const LinersSection = ({
   return <>
       <section className="py-12 px-4 bg-gradient-to-br from-background to-muted/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Premium Pool Liners
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto px-4">
-              Transform your pool with our premium liner collection. Each liner is designed for durability, beauty, and long-lasting performance.
-            </p>
-          </div>
+          <EditorialSectionHeader
+          eyebrow="Volume V — Lining"
+          title="Premium Pool Liners"
+          description="A liner collection drawn for durability, depth of colour and long-lasting performance."
+        />
 
             <ProductScrollRow className="mb-8">
               {getProductsByCategory('liner').map((liner, index) => <Card key={liner.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>

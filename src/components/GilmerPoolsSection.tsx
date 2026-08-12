@@ -4,6 +4,7 @@ import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import ProductScrollRow from "./ProductScrollRow";
 import { Badge } from "@/components/ui/badge";
 import { Waves, Shield, Clock } from "lucide-react";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 const sortedPools = [...gilmerPools].sort((a, b) => a.price - b.price);
 
 const GilmerPoolsSection = () => {
@@ -11,22 +12,15 @@ const GilmerPoolsSection = () => {
     <section id="gilmer-pools" className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-primary/5 to-background">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12 space-y-4">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Waves className="h-8 w-8 text-primary" />
-            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-teal to-primary bg-clip-text text-transparent">
-              Glimerglass Pools Collection
-            </h2>
-            <Waves className="h-8 w-8 text-primary" />
-          </div>
-
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Premium fiberglass pools built to last. Experience the durability and beauty of Gilmer Glass construction
-            with our lifetime warranty guarantee.
-          </p>
+        <div className="mb-12">
+          <EditorialSectionHeader
+            eyebrow="Volume III — Fiberglass"
+            title="Glimerglass Pools Collection"
+            description="Premium fiberglass pools built to last — Gilmer Glass construction with a lifetime warranty."
+          />
 
           {/* Feature Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+          <div className="flex flex-wrap items-center gap-3 mb-10">
             <Badge className="bg-gradient-to-r from-primary to-teal text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
               <Shield className="h-4 w-4 mr-2" />
               Life Warranty

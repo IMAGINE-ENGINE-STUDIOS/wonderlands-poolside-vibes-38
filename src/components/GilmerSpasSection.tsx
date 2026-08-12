@@ -3,6 +3,7 @@ import { gilmerSpas } from "@/data/gilmerSpas";
 import GilmerSpaCard from "./GilmerSpaCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 import type { GilmerSpa } from "@/data/gilmerSpas";
 
 interface SpaExtras {
@@ -26,20 +27,11 @@ const GilmerSpasSection = () => {
   return <>
       <section id="gilmer-spas" className="py-12 px-4 bg-gradient-to-br from-background via-muted/20 to-background">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-block mb-4">
-              <span className="text-sm font-semibold text-primary uppercase tracking-wide">
-                Premium Spas & Spillovers
-              </span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Gilmmerglass Spas
-            </h2>
-            <p className="text-xl text-foreground/80 max-w-3xl mx-auto">
-              Experience ultimate relaxation with our fiberglass spas and spillover features. 
-              Lifetime warranty backed by superior craftsmanship and quality materials.
-            </p>
-          </div>
+          <EditorialSectionHeader
+            eyebrow="Premium Spas & Spillovers"
+            title="Gilmmerglass Spas"
+            description="Fiberglass spas and spillover features — lifetime warranty, superior craftsmanship."
+          />
 
           <ProductScrollRow className="mb-12">
             {gilmerSpas.map(spa => <GilmerSpaCard key={spa.model} spa={spa} onRequestQuote={handleRequestQuote} />)}

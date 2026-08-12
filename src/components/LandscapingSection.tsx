@@ -25,6 +25,7 @@ import {
 } from "@/data/landscapingData";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import ProductScrollRow from "./ProductScrollRow";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 
 const formatPrice = (n: number) =>
   `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -129,14 +130,11 @@ const LandscapingSection = () => {
     <>
       <section className="py-12 bg-gradient-to-br from-emerald-50/40 via-background to-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 bg-clip-text text-transparent">
-              Landscaping
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Premium plants, palms, trees, and grasses to bring your landscape to life.
-            </p>
-          </div>
+          <EditorialSectionHeader
+            eyebrow="Volume XIII — Planting"
+            title="Landscaping"
+            description="Premium plants, palms, trees and grasses — bringing the drawing to life."
+          />
 
           {/* Quote tool */}
           {(() => {

@@ -10,6 +10,7 @@ import { DollarSign, ShoppingCart, Calculator, Home, Zap, Star } from "lucide-re
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 interface ScreenEnclosureOption {
   name: string;
   type: 'standard' | 'premium';
@@ -76,14 +77,11 @@ const ScreenEnclosureSection = () => {
       <section className="py-12 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
 
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Screen Enclosures
-            </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-              Transform your pool area into a comfortable, protected oasis with our premium screen enclosure systems.
-            </p>
-          </div>
+          <EditorialSectionHeader
+          eyebrow="Volume VII — Enclosure"
+          title="Screen Enclosures"
+          description="Premium screen systems that turn the pool deck into a protected, year-round room."
+        />
 
           <ProductScrollRow className="mb-8">
             {screenEnclosureOptions.map((enclosure) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleEnclosureClick(enclosure)}>

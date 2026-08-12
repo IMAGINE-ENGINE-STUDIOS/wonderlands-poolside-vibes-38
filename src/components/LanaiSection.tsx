@@ -22,6 +22,7 @@ import lanaiStandardImg from "@/assets/lanai-standard.webp";
 import lanaiDeluxeImg from "@/assets/lanai-deluxe.webp";
 import lanaiPremiumImg from "@/assets/lanai-premium.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 
 interface LanaiOption {
   id: string;
@@ -200,14 +201,11 @@ const LanaiSection = () => {
     <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-coral bg-clip-text text-transparent">
-            Roof & Lanai Spaces
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Create the perfect outdoor living space with our premium aluminum frame lanai systems
-          </p>
-        </div>
+        <EditorialSectionHeader
+          eyebrow="Volume IX — Shade"
+          title="Roof & Lanai Spaces"
+          description="Aluminium frame lanai systems composing the perfect outdoor living room."
+        />
 
         {/* Lanai Options Grid */}
         <ProductScrollRow className="mb-16">
