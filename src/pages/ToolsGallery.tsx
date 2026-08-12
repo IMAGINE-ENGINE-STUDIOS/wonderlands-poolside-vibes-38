@@ -1,28 +1,28 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Box, PenTool, Calculator, FileText, Layers, Sparkles } from "lucide-react";
+import { ArrowUpRight, Box, PenTool, Calculator, FileText, Layers, Sparkles, ArrowDown } from "lucide-react";
 import useReveal from "@/hooks/useReveal";
+import useParallax from "@/hooks/useParallax";
+import ToolFrame from "@/components/tools/ToolFrame";
 
-import heroPool from "@/assets/hero-pool-optimized.webp";
-import maximaPool from "@/assets/maxima-pool.webp";
-import poolBanner from "@/assets/pool-banner-2.webp";
-import enclosureImg from "@/assets/screen-enclosure-premium.webp";
-import fenceImg from "@/assets/aluminum-fencing.webp";
-import lanaiImg from "@/assets/lanai-premium.webp";
-import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
-import paversBanner from "@/assets/banners/pavers-banner.webp";
-import saunaBanner from "@/assets/banners/sauna-banner.webp";
-import spaBanner from "@/assets/banners/spa-banner.webp";
-import coversBanner from "@/assets/banners/covers-banner.webp";
-import gateBanner from "@/assets/banners/driveway-gate-banner.webp";
-import lathamBanner from "@/assets/latham-gilmer-banner.webp";
-import wonderlandsHero from "@/assets/wonderlands-hero.webp";
 import logo from "@/assets/wonderlands-logo.webp";
+import shotDesigner3d from "@/assets/tools/designer-3d-ui.webp";
+import shotDesigner2d from "@/assets/tools/designer-2d-ui.webp";
+import shotBlueprint from "@/assets/tools/blueprint-ui.webp";
+import shotEnclosure from "@/assets/tools/enclosure-ui.webp";
+import shotFence from "@/assets/tools/fence-ui.webp";
+import shotGrass from "@/assets/tools/grass-ui.webp";
+import shotStudio from "@/assets/tools/studio-ui.webp";
+import shotShowroom from "@/assets/tools/showroom-ui.webp";
+import shotQuote from "@/assets/tools/quote-ui.webp";
+import shotCalculator from "@/assets/tools/calculator-ui.webp";
+import shotCheckout from "@/assets/tools/checkout-ui.webp";
+import shotFiles from "@/assets/tools/files-ui.webp";
+import shotLandscaping from "@/assets/tools/landscaping-ui.webp";
+import shotProposals from "@/assets/tools/proposals-ui.webp";
 
 type Family = "3D" | "2D" | "Configurator" | "Documents" | "Commerce" | "Catalog";
-
-/** Each tool gets its own presentation treatment, Apple-keynote style. */
-type Stage = "cinema" | "split" | "dark" | "duo" | "poster" | "band";
+type Stage = "cinema" | "split" | "console" | "duo" | "poster" | "band";
 
 interface ToolSample {
   id: string;
@@ -55,7 +55,7 @@ const TOOLS: ToolSample[] = [
     index: "01",
     name: "3D Pool Designer",
     family: "3D",
-    image: heroPool,
+    image: shotDesigner3d,
     eyebrow: "Three dimensions. Real time.",
     headline: "Walk the water before it exists.",
     description:
@@ -75,7 +75,7 @@ const TOOLS: ToolSample[] = [
     index: "02",
     name: "2D Drawing Board",
     family: "2D",
-    image: maximaPool,
+    image: shotDesigner2d,
     eyebrow: "Plan view. True scale.",
     headline: "One continuous line, drawn to scale.",
     description:
@@ -95,7 +95,7 @@ const TOOLS: ToolSample[] = [
     index: "03",
     name: "Blueprint Builder",
     family: "Documents",
-    image: poolBanner,
+    image: shotBlueprint,
     eyebrow: "Permit ready. Signature ready.",
     headline: "The whole plan set, editable.",
     description:
@@ -108,14 +108,14 @@ const TOOLS: ToolSample[] = [
     ],
     to: "/blueprint-builder",
     cta: "Open Blueprint Builder",
-    stage: "dark",
+    stage: "console",
   },
   {
     id: "enclosure",
     index: "04",
     name: "Screen Enclosure Studio",
     family: "2D",
-    image: enclosureImg,
+    image: shotEnclosure,
     eyebrow: "Structure. Priced as you draw.",
     headline: "Draw the footprint, price the structure.",
     description:
@@ -126,7 +126,7 @@ const TOOLS: ToolSample[] = [
       { label: "Doors", value: "Self-hatching" },
       { label: "Pricing", value: "Turnkey" },
     ],
-    to: "/wonderlands-studio",
+    to: "/studio-showroom#enclosure",
     cta: "Configure an Enclosure",
     stage: "duo",
   },
@@ -135,18 +135,18 @@ const TOOLS: ToolSample[] = [
     index: "05",
     name: "Aluminum Fence Studio",
     family: "2D",
-    image: fenceImg,
+    image: shotFence,
     eyebrow: "Barrier logic, built in.",
     headline: "Every run, every gate, measured.",
     description:
-      "Draw the fence line on a scaled grid, flag gate segments, then price height, style, posts and installation — built around Florida barrier requirements.",
+      "Draw the fence line on a scaled grid, flag gate segments, then price height, style, posts and installation — built around Florida pool barrier requirements.",
     highlights: ["Gate flags", "Linear-foot pricing", "Barrier rules"],
     specs: [
       { label: "Takeoff", value: "Linear ft" },
       { label: "Heights", value: "4 · 5 · 6 ft" },
       { label: "Gates", value: "Self-closing" },
     ],
-    to: "/wonderlands-studio",
+    to: "/studio-showroom#fence",
     cta: "Design a Fence",
     stage: "poster",
   },
@@ -155,7 +155,7 @@ const TOOLS: ToolSample[] = [
     index: "06",
     name: "Artificial Grass Board",
     family: "2D",
-    image: landscapingBanner,
+    image: shotGrass,
     eyebrow: "Any silhouette. Any size.",
     headline: "Turf, drawn free-hand.",
     description:
@@ -175,7 +175,7 @@ const TOOLS: ToolSample[] = [
     index: "07",
     name: "Wonderlands Studio",
     family: "Configurator",
-    image: wonderlandsHero,
+    image: shotStudio,
     eyebrow: "The master instrument.",
     headline: "The whole outdoor world, configured.",
     description:
@@ -195,14 +195,14 @@ const TOOLS: ToolSample[] = [
     index: "08",
     name: "Widget Showroom",
     family: "Configurator",
-    image: paversBanner,
+    image: shotShowroom,
     eyebrow: "Every component, on stage.",
     headline: "Test the parts, not the promise.",
     description:
       "Living index of every Wonderlands widget — search, cart, configurators, calculators and drawing boards — rendered fully functional so behaviour can be tested in isolation.",
-    highlights: ["Every widget", "Fully live", "Isolated testing"],
+    highlights: ["20 widgets", "Fully live", "Isolated testing"],
     specs: [
-      { label: "Widgets", value: "Live" },
+      { label: "Widgets", value: "20" },
       { label: "State", value: "Cached" },
       { label: "Scope", value: "Isolated" },
     ],
@@ -215,7 +215,7 @@ const TOOLS: ToolSample[] = [
     index: "09",
     name: "Quote & Survey Tool",
     family: "Documents",
-    image: lathamBanner,
+    image: shotQuote,
     eyebrow: "Intake to proposal.",
     headline: "One survey becomes the document.",
     description:
@@ -228,14 +228,14 @@ const TOOLS: ToolSample[] = [
     ],
     to: "/quote",
     cta: "Build a Quote",
-    stage: "dark",
+    stage: "console",
   },
   {
     id: "calculator",
     index: "10",
     name: "Pool Calculator",
     family: "Commerce",
-    image: spaBanner,
+    image: shotCalculator,
     eyebrow: "Volume. Heat. Chemistry.",
     headline: "The numbers behind the water.",
     description:
@@ -255,14 +255,14 @@ const TOOLS: ToolSample[] = [
     index: "11",
     name: "Checkout & Financing",
     family: "Commerce",
-    image: coversBanner,
+    image: shotCheckout,
     eyebrow: "Terms, plainly presented.",
     headline: "From cart to signature.",
     description:
       "Complete checkout surface with itemized cart, deposit schedule and monthly financing scenarios by term and rate, ready for secure payment.",
     highlights: ["Deposit schedule", "Monthly terms", "Secure pay"],
     specs: [
-      { label: "Schedule", value: "20 / 35 / 40 / 10" },
+      { label: "Schedule", value: "20/35/40/10" },
       { label: "Terms", value: "Monthly" },
       { label: "Payment", value: "Secure" },
     ],
@@ -273,13 +273,13 @@ const TOOLS: ToolSample[] = [
   {
     id: "files",
     index: "12",
-    name: "File Gallery",
+    name: "Media & File Gallery",
     family: "Documents",
-    image: saunaBanner,
+    image: shotFiles,
     eyebrow: "One repository.",
     headline: "Every document, in reach.",
     description:
-      "Project file repository with webp thumbnails, soft delete, sharing links and a high-DPI PDF workstation for reviewing and signing plan sets.",
+      "Project media and file repository with webp thumbnails, soft delete, sharing links and a high-DPI PDF workstation for reviewing and signing plan sets.",
     highlights: ["PDF workstation", "Share links", "Thumbnails"],
     specs: [
       { label: "Preview", value: "High-DPI" },
@@ -295,7 +295,7 @@ const TOOLS: ToolSample[] = [
     index: "13",
     name: "Landscaping Designer",
     family: "Catalog",
-    image: lanaiImg,
+    image: shotLandscaping,
     eyebrow: "Verdure, specified.",
     headline: "Planting, priced by area.",
     description:
@@ -315,7 +315,7 @@ const TOOLS: ToolSample[] = [
     index: "14",
     name: "Design Proposals",
     family: "Catalog",
-    image: gateBanner,
+    image: shotProposals,
     eyebrow: "Five directions.",
     headline: "Choose the character of the world.",
     description:
@@ -338,7 +338,7 @@ const FamilyTag = ({ family, tone = "light" }: { family: Family; tone?: "light" 
   const Icon = FAMILY_ICON[family];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[10px] uppercase tracking-[0.28em] ${
+      className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[9px] uppercase tracking-[0.28em] sm:text-[10px] ${
         tone === "dark" ? "border-background/30 text-background/80" : "border-foreground/25 text-foreground/70"
       }`}
     >
@@ -348,10 +348,22 @@ const FamilyTag = ({ family, tone = "light" }: { family: Family; tone?: "light" 
   );
 };
 
-const Cta = ({ to, label, tone = "light" }: { to: string; label: string; tone?: "light" | "dark" }) => (
+const Cta = ({
+  to,
+  label,
+  tone = "light",
+  full,
+}: {
+  to: string;
+  label: string;
+  tone?: "light" | "dark";
+  full?: boolean;
+}) => (
   <Link
     to={to}
-    className={`group/cta relative inline-flex items-center gap-6 overflow-hidden border px-7 py-4 text-[11px] uppercase tracking-[0.28em] transition-colors duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+    className={`group/cta relative inline-flex items-center justify-between gap-6 overflow-hidden border px-6 py-3.5 text-[10px] uppercase tracking-[0.26em] transition-colors duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-7 sm:py-4 sm:text-[11px] ${
+      full ? "w-full" : ""
+    } ${
       tone === "dark"
         ? "border-background/70 text-background hover:text-foreground"
         : "border-foreground/80 text-foreground hover:text-background"
@@ -368,22 +380,18 @@ const Cta = ({ to, label, tone = "light" }: { to: string; label: string; tone?: 
 );
 
 const Specs = ({ specs, tone = "light" }: { specs: ToolSample["specs"]; tone?: "light" | "dark" }) => (
-  <dl
-    className={`grid grid-cols-3 border-t ${
-      tone === "dark" ? "border-background/20" : "border-foreground/15"
-    }`}
-  >
+  <dl className={`grid grid-cols-3 border-t ${tone === "dark" ? "border-background/20" : "border-foreground/15"}`}>
     {specs.map((s) => (
-      <div key={s.label} className="py-4 pr-4">
+      <div key={s.label} className="py-3 pr-3 sm:py-4 sm:pr-4">
         <dt
-          className={`text-[9px] uppercase tracking-[0.3em] ${
+          className={`text-[8px] uppercase tracking-[0.28em] sm:text-[9px] ${
             tone === "dark" ? "text-background/50" : "text-muted-foreground"
           }`}
         >
           {s.label}
         </dt>
         <dd
-          className={`mt-1.5 font-serif text-lg font-light ${
+          className={`mt-1.5 font-serif text-base font-light sm:text-lg ${
             tone === "dark" ? "text-background" : "text-foreground"
           }`}
         >
@@ -399,7 +407,7 @@ const Highlights = ({ items, tone = "light" }: { items: string[]; tone?: "light"
     {items.map((h) => (
       <li
         key={h}
-        className={`text-[10px] uppercase tracking-[0.22em] before:mr-2 before:content-['—'] ${
+        className={`text-[9px] uppercase tracking-[0.22em] before:mr-2 before:content-['—'] sm:text-[10px] ${
           tone === "dark" ? "text-background/70 before:text-background/40" : "text-foreground/70 before:text-primary"
         }`}
       >
@@ -409,47 +417,66 @@ const Highlights = ({ items, tone = "light" }: { items: string[]; tone?: "light"
   </ul>
 );
 
+const Meta = ({ tool, tone = "light" }: { tool: ToolSample; tone?: "light" | "dark" }) => (
+  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+    <span
+      className={`font-mono text-[10px] tracking-[0.4em] sm:text-[11px] ${
+        tone === "dark" ? "text-background/50" : "text-muted-foreground"
+      }`}
+    >
+      {tool.index}
+    </span>
+    <FamilyTag family={tool.family} tone={tone} />
+    <span
+      className={`hidden font-mono text-[9px] uppercase tracking-[0.3em] sm:inline ${
+        tone === "dark" ? "text-background/40" : "text-foreground/40"
+      }`}
+    >
+      {tool.name}
+    </span>
+  </div>
+);
+
 /* --------------------------------- stages --------------------------------- */
 
-const DELAY_CLASS: Record<number, string> = { 0: "", 120: "delay-100", 140: "delay-150", 160: "delay-150", 200: "delay-200" };
-
-const reveal = (shown: boolean, delay = 0) =>
-  `transition-all duration-[900ms] ease-out ${shown ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} ${
-    DELAY_CLASS[delay] ?? ""
-  }`;
+const useStage = () => useReveal<HTMLElement>(0.12);
 
 const CinemaStage = ({ tool }: { tool: ToolSample }) => {
-  const { ref, shown } = useReveal<HTMLElement>();
+  const { ref, shown } = useStage();
+  const bg = useParallax<HTMLDivElement>(0.7);
   return (
-    <section ref={ref} id={tool.id} className="relative flex min-h-[92vh] items-end overflow-hidden bg-foreground">
-      <img
-        src={tool.image}
-        alt={`${tool.name} preview`}
-        loading="lazy"
-        decoding="async"
-        className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[2200ms] ease-out ${
-          shown ? "scale-100" : "scale-110"
-        }`}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/40 to-foreground/10" />
+    <section
+      ref={ref}
+      id={tool.id}
+      className={`relative overflow-hidden bg-foreground ${shown ? "tl-shown" : ""}`}
+    >
+      <div ref={bg} className="pointer-events-none absolute inset-0 tl-grid-inv tl-par-soft opacity-70" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-20 pt-40">
-        <div className={reveal(shown)}>
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-[11px] tracking-[0.4em] text-background/60">{tool.index}</span>
-            <FamilyTag family={tool.family} tone="dark" />
+      <div className="relative z-10 mx-auto grid max-w-[1600px] items-center gap-10 px-5 py-20 sm:px-8 md:py-28 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14 lg:py-32">
+        <div>
+          <div className="tl-in">
+            <Meta tool={tool} tone="dark" />
           </div>
-          <p className="mt-8 text-[11px] uppercase tracking-[0.4em] text-background/60">{tool.eyebrow}</p>
-          <h2 className="mt-5 max-w-4xl font-serif text-4xl font-light leading-[1.02] tracking-tight text-background md:text-7xl">
+          <p className="tl-in tl-d1 mt-6 text-[10px] uppercase tracking-[0.4em] text-background/60 sm:text-[11px]">
+            {tool.eyebrow}
+          </p>
+          <h2 className="tl-in tl-d1 mt-4 font-serif text-[clamp(2rem,6vw,4.75rem)] font-light leading-[0.98] tracking-tight text-background">
             {tool.headline}
           </h2>
-          <p className="mt-7 max-w-xl text-sm leading-relaxed text-background/70 md:text-base">{tool.description}</p>
-          <div className="mt-9 max-w-lg">
+          <p className="tl-in tl-d2 mt-6 max-w-xl text-sm leading-relaxed text-background/70 md:text-base">
+            {tool.description}
+          </p>
+          <div className="tl-in tl-d3 mt-8 max-w-md">
             <Specs specs={tool.specs} tone="dark" />
           </div>
-          <div className="mt-10">
+          <div className="tl-in tl-d4 mt-9">
             <Cta to={tool.to} label={tool.cta} tone="dark" />
           </div>
+        </div>
+
+        <div className="tl-in tl-d2 lg:-mr-8 xl:-mr-16">
+          <ToolFrame image={tool.image} name={tool.name} route={tool.to} tone="dark" scanline parallax="soft" />
         </div>
       </div>
     </section>
@@ -457,95 +484,74 @@ const CinemaStage = ({ tool }: { tool: ToolSample }) => {
 };
 
 const SplitStage = ({ tool, flip }: { tool: ToolSample; flip?: boolean }) => {
-  const { ref, shown } = useReveal<HTMLElement>();
+  const { ref, shown } = useStage();
   return (
-    <section ref={ref} id={tool.id} className="border-t border-border/60 bg-background">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 py-24 md:grid-cols-2 md:gap-16 md:py-32">
-        <div className={`${flip ? "md:order-2" : ""} ${reveal(shown)}`}>
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-[11px] tracking-[0.4em] text-muted-foreground">{tool.index}</span>
-            <FamilyTag family={tool.family} />
+    <section
+      ref={ref}
+      id={tool.id}
+      className={`relative border-t border-border/60 bg-background ${shown ? "tl-shown" : ""}`}
+    >
+      <div className="mx-auto grid max-w-[1500px] items-center gap-10 px-5 py-20 sm:px-8 md:py-28 lg:grid-cols-2 lg:gap-16">
+        <div className={flip ? "lg:order-2" : ""}>
+          <div className="tl-in-x">
+            <Meta tool={tool} />
           </div>
-          <p className="mt-7 text-[11px] uppercase tracking-[0.4em] text-muted-foreground">{tool.eyebrow}</p>
-          <h2 className="mt-4 font-serif text-3xl font-light leading-[1.05] tracking-tight md:text-5xl">
+          <p className="tl-in-x tl-d1 mt-6 text-[10px] uppercase tracking-[0.4em] text-muted-foreground sm:text-[11px]">
+            {tool.eyebrow}
+          </p>
+          <h2 className="tl-in-x tl-d1 mt-4 font-serif text-[clamp(1.75rem,4.4vw,3.4rem)] font-light leading-[1.03] tracking-tight">
             {tool.headline}
           </h2>
-          <p className="mt-6 max-w-lg text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
-          <div className="mt-8">
+          <p className="tl-in-x tl-d2 mt-6 max-w-lg text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
+          <div className="tl-in-x tl-d2 mt-7">
             <Highlights items={tool.highlights} />
           </div>
-          <div className="mt-8 max-w-md">
+          <div className="tl-in-x tl-d3 mt-7 max-w-md">
             <Specs specs={tool.specs} />
           </div>
-          <div className="mt-9">
+          <div className="tl-in-x tl-d4 mt-8">
             <Cta to={tool.to} label={tool.cta} />
           </div>
         </div>
 
-        <div className={`${flip ? "md:order-1" : ""} relative overflow-hidden`}>
-          <div className={`aspect-[4/5] overflow-hidden bg-muted ${reveal(shown, 120)}`}>
-            <img
-              src={tool.image}
-              alt={`${tool.name} preview`}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover transition-transform duration-[1600ms] ease-out hover:scale-105"
-            />
-          </div>
-          <span className="pointer-events-none absolute -left-2 bottom-4 font-serif text-[120px] font-light leading-none text-foreground/5 md:text-[180px]">
+        <div className={`relative tl-in tl-d1 ${flip ? "lg:order-1" : ""}`}>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -top-10 left-0 select-none font-serif text-[clamp(5rem,14vw,12rem)] font-light leading-none text-foreground/[0.055]"
+          >
             {tool.index}
           </span>
+          <ToolFrame image={tool.image} name={tool.name} route={tool.to} className="relative" />
         </div>
       </div>
     </section>
   );
 };
 
-const DarkStage = ({ tool }: { tool: ToolSample }) => {
-  const { ref, shown } = useReveal<HTMLElement>();
+const ConsoleStage = ({ tool }: { tool: ToolSample }) => {
+  const { ref, shown } = useStage();
   return (
-    <section ref={ref} id={tool.id} className="bg-foreground">
-      <div className="mx-auto max-w-5xl px-6 py-24 text-center md:py-32">
-        <div className={reveal(shown)}>
-          <div className="flex items-center justify-center gap-4">
-            <span className="font-mono text-[11px] tracking-[0.4em] text-background/50">{tool.index}</span>
-            <FamilyTag family={tool.family} tone="dark" />
-          </div>
-          <p className="mt-8 text-[11px] uppercase tracking-[0.4em] text-background/60">{tool.eyebrow}</p>
-          <h2 className="mx-auto mt-5 max-w-3xl font-serif text-3xl font-light leading-[1.05] tracking-tight text-background md:text-6xl">
-            {tool.headline}
-          </h2>
-          <p className="mx-auto mt-7 max-w-2xl text-sm leading-relaxed text-background/70 md:text-base">
-            {tool.description}
-          </p>
+    <section ref={ref} id={tool.id} className={`relative overflow-hidden bg-foreground ${shown ? "tl-shown" : ""}`}>
+      <div className="pointer-events-none absolute inset-0 tl-grid-inv opacity-60" />
+      <div className="relative z-10 mx-auto max-w-5xl px-5 py-20 text-center sm:px-8 md:py-28">
+        <div className="tl-in flex justify-center">
+          <Meta tool={tool} tone="dark" />
+        </div>
+        <p className="tl-in tl-d1 mt-7 text-[10px] uppercase tracking-[0.4em] text-background/60 sm:text-[11px]">
+          {tool.eyebrow}
+        </p>
+        <h2 className="tl-in tl-d1 mx-auto mt-4 max-w-3xl font-serif text-[clamp(1.9rem,5.4vw,4rem)] font-light leading-[1.02] tracking-tight text-background">
+          {tool.headline}
+        </h2>
+        <p className="tl-in tl-d2 mx-auto mt-6 max-w-2xl text-sm leading-relaxed text-background/70 md:text-base">
+          {tool.description}
+        </p>
+
+        <div className="tl-in tl-d2 mt-12">
+          <ToolFrame image={tool.image} name={tool.name} route={tool.to} tone="dark" ratio="16/10" scanline parallax="deep" />
         </div>
 
-        <div
-          className={`mt-14 overflow-hidden border border-background/15 shadow-[0_60px_120px_-60px_hsl(var(--background)/0.5)] ${reveal(
-            shown,
-            140
-          )}`}
-        >
-          <div className="flex items-center gap-1.5 border-b border-background/15 bg-background/5 px-4 py-3">
-            <span className="h-2 w-2 rounded-full bg-background/30" />
-            <span className="h-2 w-2 rounded-full bg-background/20" />
-            <span className="h-2 w-2 rounded-full bg-background/20" />
-            <span className="ml-4 font-mono text-[10px] uppercase tracking-[0.3em] text-background/40">
-              {tool.name}
-            </span>
-          </div>
-          <div className="aspect-[16/9] overflow-hidden bg-muted">
-            <img
-              src={tool.image}
-              alt={`${tool.name} interface preview`}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover transition-transform duration-[1800ms] ease-out hover:scale-[1.04]"
-            />
-          </div>
-        </div>
-
-        <div className={`mt-12 flex flex-col items-center gap-9 ${reveal(shown, 200)}`}>
+        <div className="tl-in tl-d3 mt-10 flex flex-col items-center gap-8">
           <Highlights items={tool.highlights} tone="dark" />
           <Cta to={tool.to} label={tool.cta} tone="dark" />
         </div>
@@ -555,40 +561,43 @@ const DarkStage = ({ tool }: { tool: ToolSample }) => {
 };
 
 const DuoStage = ({ tool }: { tool: ToolSample }) => {
-  const { ref, shown } = useReveal<HTMLElement>();
+  const { ref, shown } = useStage();
   return (
-    <section ref={ref} id={tool.id} className="border-t border-border/60 bg-secondary/40">
-      <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
-        <div className={`grid grid-cols-1 gap-10 md:grid-cols-12 ${reveal(shown)}`}>
-          <div className="md:col-span-4">
-            <span className="font-serif text-6xl font-light leading-none text-foreground/15 md:text-8xl">
+    <section
+      ref={ref}
+      id={tool.id}
+      className={`relative border-t border-border/60 bg-secondary/40 ${shown ? "tl-shown" : ""}`}
+    >
+      <div className="mx-auto max-w-[1500px] px-5 py-20 sm:px-8 md:py-28">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-4">
+            <span
+              aria-hidden
+              className="tl-in block font-serif text-[clamp(3.5rem,9vw,7rem)] font-light leading-none text-foreground/15"
+            >
               {tool.index}
             </span>
-            <div className="mt-6">
+            <div className="tl-in tl-d1 mt-5">
               <FamilyTag family={tool.family} />
             </div>
-            <p className="mt-7 text-[11px] uppercase tracking-[0.4em] text-muted-foreground">{tool.eyebrow}</p>
-            <h2 className="mt-4 font-serif text-3xl font-light leading-[1.06] tracking-tight md:text-4xl">
+            <p className="tl-in tl-d1 mt-6 text-[10px] uppercase tracking-[0.4em] text-muted-foreground sm:text-[11px]">
+              {tool.eyebrow}
+            </p>
+            <h2 className="tl-in tl-d2 mt-4 font-serif text-[clamp(1.7rem,3.8vw,2.8rem)] font-light leading-[1.05] tracking-tight">
               {tool.headline}
             </h2>
-            <p className="mt-6 text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
-            <div className="mt-8">
+            <p className="tl-in tl-d2 mt-5 text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
+            <div className="tl-in tl-d3 mt-8">
               <Cta to={tool.to} label={tool.cta} />
             </div>
           </div>
 
-          <div className="md:col-span-8">
-            <div className="grid grid-cols-1 gap-px bg-border/60 sm:grid-cols-3">
-              <div className="relative col-span-1 aspect-[4/3] overflow-hidden bg-muted sm:col-span-2 sm:aspect-auto sm:min-h-[420px]">
-                <img
-                  src={tool.image}
-                  alt={`${tool.name} preview`}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition-transform duration-[1600ms] ease-out hover:scale-105"
-                />
+          <div className="lg:col-span-8">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-0 sm:bg-border/60 sm:gap-px">
+              <div className="tl-in tl-d1 sm:col-span-2">
+                <ToolFrame image={tool.image} name={tool.name} route={tool.to} chrome="plate" ratio="4/3" />
               </div>
-              <div className="flex flex-col justify-between bg-background p-7">
+              <div className="tl-in tl-d3 flex flex-col justify-between border border-border/60 bg-background p-6 sm:border-0 sm:p-7">
                 <ul className="space-y-5">
                   {tool.highlights.map((h) => (
                     <li key={h}>
@@ -615,47 +624,39 @@ const DuoStage = ({ tool }: { tool: ToolSample }) => {
 };
 
 const PosterStage = ({ tool }: { tool: ToolSample }) => {
-  const { ref, shown } = useReveal<HTMLElement>();
+  const { ref, shown } = useStage();
   return (
-    <section ref={ref} id={tool.id} className="border-t border-border/60 bg-background">
-      <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
-        <div className="relative">
-          <div className={`relative mx-auto max-w-3xl overflow-hidden bg-muted ${reveal(shown)}`}>
-            <div className="aspect-[3/4] md:aspect-[16/10]">
-              <img
-                src={tool.image}
-                alt={`${tool.name} preview`}
-                loading="lazy"
-                decoding="async"
-                className={`h-full w-full object-cover transition-transform duration-[2000ms] ease-out ${
-                  shown ? "scale-100" : "scale-105"
-                }`}
-              />
-            </div>
-          </div>
+    <section
+      ref={ref}
+      id={tool.id}
+      className={`relative overflow-hidden border-t border-border/60 bg-background ${shown ? "tl-shown" : ""}`}
+    >
+      <div className="pointer-events-none absolute inset-0 tl-grid opacity-60" />
+      <div className="relative z-10 mx-auto max-w-[1400px] px-5 py-20 sm:px-8 md:py-28">
+        <div className="tl-in mx-auto max-w-4xl">
+          <ToolFrame image={tool.image} name={tool.name} route={tool.to} ratio="16/9" parallax="deep" />
+        </div>
 
-          <div
-            className={`relative z-10 mx-auto -mt-16 max-w-2xl border border-border/70 bg-background p-8 md:-mt-24 md:p-12 ${reveal(
-              shown,
-              160
-            )}`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] tracking-[0.4em] text-muted-foreground">{tool.index}</span>
-              <FamilyTag family={tool.family} />
-            </div>
-            <p className="mt-7 text-[11px] uppercase tracking-[0.4em] text-muted-foreground">{tool.eyebrow}</p>
-            <h2 className="mt-4 font-serif text-3xl font-light leading-[1.06] tracking-tight md:text-5xl">
-              {tool.headline}
-            </h2>
-            <p className="mt-6 text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
-            <div className="mt-8">
-              <Specs specs={tool.specs} />
-            </div>
-            <div className="mt-9 flex flex-wrap items-center gap-6">
-              <Cta to={tool.to} label={tool.cta} />
-              <Highlights items={tool.highlights} />
-            </div>
+        <div className="tl-in tl-d2 relative z-10 mx-auto -mt-10 max-w-2xl border border-border/70 bg-background p-6 shadow-[0_40px_90px_-60px_hsl(var(--foreground)/0.5)] sm:-mt-16 sm:p-9 md:-mt-24 md:p-12">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="font-mono text-[10px] tracking-[0.4em] text-muted-foreground sm:text-[11px]">
+              {tool.index}
+            </span>
+            <FamilyTag family={tool.family} />
+          </div>
+          <p className="mt-6 text-[10px] uppercase tracking-[0.4em] text-muted-foreground sm:text-[11px]">
+            {tool.eyebrow}
+          </p>
+          <h2 className="mt-4 font-serif text-[clamp(1.7rem,4.4vw,3.2rem)] font-light leading-[1.04] tracking-tight">
+            {tool.headline}
+          </h2>
+          <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
+          <div className="mt-7">
+            <Specs specs={tool.specs} />
+          </div>
+          <div className="mt-8 flex flex-wrap items-center gap-5">
+            <Cta to={tool.to} label={tool.cta} />
+            <Highlights items={tool.highlights} />
           </div>
         </div>
       </div>
@@ -664,41 +665,34 @@ const PosterStage = ({ tool }: { tool: ToolSample }) => {
 };
 
 const BandStage = ({ tool }: { tool: ToolSample }) => {
-  const { ref, shown } = useReveal<HTMLElement>();
+  const { ref, shown } = useStage();
   return (
-    <section ref={ref} id={tool.id} className="border-t border-border/60 bg-background">
-      <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
-        <div
-          className={`group grid grid-cols-1 items-center gap-8 md:grid-cols-[minmax(0,320px)_1fr_auto] md:gap-12 ${reveal(
-            shown
-          )}`}
-        >
-          <div className="aspect-[16/10] overflow-hidden bg-muted md:aspect-square">
-            <img
-              src={tool.image}
-              alt={`${tool.name} preview`}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-105"
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center gap-4">
-              <span className="font-mono text-[11px] tracking-[0.4em] text-muted-foreground">{tool.index}</span>
-              <FamilyTag family={tool.family} />
-            </div>
-            <h2 className="mt-5 font-serif text-2xl font-light leading-[1.1] tracking-tight md:text-4xl">
+    <section
+      ref={ref}
+      id={tool.id}
+      className={`border-t border-border/60 bg-background ${shown ? "tl-shown" : ""}`}
+    >
+      <div className="mx-auto max-w-[1500px] px-5 py-16 sm:px-8 md:py-20">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-14">
+          <div className="tl-in-x order-2 lg:order-1">
+            <Meta tool={tool} />
+            <h2 className="mt-5 font-serif text-[clamp(1.6rem,4vw,2.9rem)] font-light leading-[1.06] tracking-tight">
               {tool.headline}
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
             <div className="mt-6">
               <Highlights items={tool.highlights} />
             </div>
+            <div className="mt-8 flex flex-wrap items-center gap-6">
+              <Cta to={tool.to} label={tool.cta} />
+              <div className="hidden max-w-[240px] flex-1 sm:block">
+                <Specs specs={tool.specs} />
+              </div>
+            </div>
           </div>
 
-          <div className="md:pl-6">
-            <Cta to={tool.to} label={tool.cta} />
+          <div className="tl-in order-1 lg:order-2">
+            <ToolFrame image={tool.image} name={tool.name} route={tool.to} ratio="16/10" />
           </div>
         </div>
       </div>
@@ -710,8 +704,8 @@ const ToolStage = ({ tool, i }: { tool: ToolSample; i: number }) => {
   switch (tool.stage) {
     case "cinema":
       return <CinemaStage tool={tool} />;
-    case "dark":
-      return <DarkStage tool={tool} />;
+    case "console":
+      return <ConsoleStage tool={tool} />;
     case "duo":
       return <DuoStage tool={tool} />;
     case "poster":
@@ -720,19 +714,44 @@ const ToolStage = ({ tool, i }: { tool: ToolSample; i: number }) => {
       return <BandStage tool={tool} />;
     case "split":
     default:
-      return <SplitStage tool={tool} flip={i % 2 === 1} />;
+      return <SplitStage tool={tool} flip={i % 4 === 1} />;
   }
 };
 
 /* ---------------------------------- page ---------------------------------- */
 
+const MARQUEE = [...TOOLS, ...TOOLS];
+
 const ToolsGallery = () => {
   const [active, setActive] = React.useState(TOOLS[0].id);
+  const barRef = React.useRef<HTMLDivElement | null>(null);
+  const heroImg = useParallax<HTMLDivElement>(1.2);
+
+  // scroll progress bar — direct DOM write, no re-render per frame
+  React.useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      if (barRef.current) barRef.current.style.transform = `scaleX(${p})`;
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
 
   React.useEffect(() => {
     const sections = TOOLS.map((t) => document.getElementById(t.id)).filter(Boolean) as HTMLElement[];
     if (!sections.length || typeof IntersectionObserver === "undefined") return;
-
     const io = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -740,70 +759,165 @@ const ToolsGallery = () => {
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
         if (visible?.target.id) setActive(visible.target.id);
       },
-      { threshold: [0.25, 0.5], rootMargin: "-20% 0px -40% 0px" }
+      { threshold: [0.2, 0.5], rootMargin: "-15% 0px -45% 0px" }
     );
-
     sections.forEach((s) => io.observe(s));
     return () => io.disconnect();
   }, []);
 
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <main className="min-h-screen bg-background">
-      {/* Opening title card */}
-      <header className="relative flex min-h-[88vh] flex-col justify-between overflow-hidden border-b border-border/60 px-6 py-14">
-        <div className="mx-auto flex w-full max-w-7xl items-center gap-4">
-          <img src={logo} alt="Wonderlands World" className="h-9 w-auto" loading="eager" decoding="async" />
-          <span className="font-mono text-[11px] uppercase tracking-[0.4em] text-muted-foreground">
-            Tools — Presentation
+      {/* progress */}
+      <div className="fixed inset-x-0 top-0 z-50 h-[3px] bg-transparent">
+        <div ref={barRef} className="h-full origin-left scale-x-0 bg-primary" />
+      </div>
+
+      {/* desktop index rail */}
+      <nav
+        aria-label="Tool index"
+        className="fixed left-5 top-1/2 z-40 hidden -translate-y-1/2 xl:block"
+      >
+        <ul className="space-y-2.5">
+          {TOOLS.map((t) => {
+            const on = active === t.id;
+            return (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  onClick={() => scrollTo(t.id)}
+                  className="group flex items-center gap-3 focus-visible:outline-none"
+                  aria-current={on ? "true" : undefined}
+                >
+                  <span
+                    className={`block h-px transition-all duration-500 ${
+                      on ? "w-9 bg-primary" : "w-4 bg-foreground/25 group-hover:w-7 group-hover:bg-foreground/60"
+                    }`}
+                  />
+                  <span
+                    className={`font-mono text-[9px] uppercase tracking-[0.28em] transition-all duration-500 ${
+                      on
+                        ? "translate-x-0 text-foreground opacity-100"
+                        : "-translate-x-1 text-muted-foreground opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
+                    }`}
+                  >
+                    {t.index} {t.name}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* hero */}
+      <header className="relative flex min-h-[92svh] flex-col justify-between overflow-hidden border-b border-border/60">
+        <div ref={heroImg} className="pointer-events-none absolute inset-0 tl-grid tl-par-soft opacity-80" />
+        <div className="pointer-events-none absolute -right-24 top-1/4 h-[420px] w-[420px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="pointer-events-none absolute -left-32 bottom-0 h-[380px] w-[380px] rounded-full bg-primary/[0.07] blur-[130px]" />
+
+        <div className="relative z-10 mx-auto flex w-full max-w-[1500px] items-center justify-between gap-4 px-5 py-8 sm:px-8">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <img src={logo} alt="Wonderlands World" className="h-8 w-auto sm:h-9" loading="eager" decoding="async" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-muted-foreground sm:text-[11px]">
+              Tools — Presentation
+            </span>
+          </div>
+          <span className="hidden items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground md:flex">
+            <span className="tl-blink h-1.5 w-1.5 rounded-full bg-primary" />
+            captured live
           </span>
         </div>
 
-        <div className="mx-auto w-full max-w-7xl">
-          <p className="text-[11px] uppercase tracking-[0.45em] text-muted-foreground">Fourteen instruments</p>
-          <h1 className="mt-6 max-w-4xl font-serif text-5xl font-light leading-[0.98] tracking-tight md:text-8xl">
+        <div className="relative z-10 mx-auto w-full max-w-[1500px] px-5 py-10 sm:px-8">
+          <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground sm:text-[11px]">
+            Fourteen instruments
+          </p>
+          <h1 className="mt-5 max-w-5xl font-serif text-[clamp(2.5rem,9vw,7.5rem)] font-light leading-[0.94] tracking-tight">
             Designed to be
             <span className="block italic text-primary">used, not admired.</span>
           </h1>
-          <p className="mt-8 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
-            Each Wonderlands tool gets its own stage — three-dimensional studios, plan-view boards, configurators,
-            calculators and permit documents. Scroll through the set, then step straight into any one of them.
+          <p className="mt-7 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
+            Every screen on this page is a real capture of the live product — 3D studios, plan-view boards,
+            configurators, calculators and permit documents. Scroll the set, then step straight into any one of them.
           </p>
+
+          <div className="mt-9 flex flex-wrap items-center gap-4 sm:gap-6">
+            <Cta to="/studio" label="Enter the Studio" />
+            <button
+              type="button"
+              onClick={() => scrollTo(TOOLS[0].id)}
+              className="group inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground transition-colors hover:text-foreground sm:text-[11px]"
+            >
+              <span className="flex h-9 w-9 items-center justify-center border border-foreground/25 transition-colors group-hover:border-foreground/70">
+                <ArrowDown className="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-y-0.5" />
+              </span>
+              Begin the set
+            </button>
+          </div>
         </div>
 
-        <div className="mx-auto w-full max-w-7xl">
-          <div className="flex snap-x snap-mandatory gap-x-8 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {TOOLS.map((t) => (
-              <a
-                key={t.id}
-                href={`#${t.id}`}
-                className={`relative shrink-0 snap-start pb-2 text-[10px] uppercase tracking-[0.26em] transition-colors ${
-                  active === t.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                }`}
+        {/* infinite index marquee */}
+        <div className="relative z-10 overflow-hidden border-t border-border/60 py-4">
+          <div className="tl-marquee flex w-max items-center gap-10 whitespace-nowrap pr-10">
+            {MARQUEE.map((t, i) => (
+              <button
+                key={`${t.id}-${i}`}
+                type="button"
+                onClick={() => scrollTo(t.id)}
+                className="group inline-flex shrink-0 items-center gap-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground transition-colors hover:text-foreground"
               >
-                <span className="mr-2 font-mono text-foreground/40">{t.index}</span>
+                <span className="font-mono text-foreground/35">{t.index}</span>
                 {t.name}
-                <span
-                  className={`absolute bottom-0 left-0 h-px w-full origin-left bg-foreground transition-transform duration-500 ${
-                    active === t.id ? "scale-x-100" : "scale-x-0"
-                  }`}
-                />
-              </a>
+                <span className="h-1 w-1 rounded-full bg-primary/50" />
+              </button>
             ))}
           </div>
         </div>
       </header>
 
+      {/* mobile / tablet sticky chip index */}
+      <div className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-md xl:hidden">
+        <div className="tl-noscroll flex gap-x-6 overflow-x-auto px-5 py-3 sm:px-8">
+          {TOOLS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => scrollTo(t.id)}
+              className={`relative shrink-0 whitespace-nowrap pb-1.5 text-[9px] uppercase tracking-[0.24em] transition-colors sm:text-[10px] ${
+                active === t.id ? "text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              <span className="mr-2 font-mono text-foreground/40">{t.index}</span>
+              {t.name}
+              <span
+                className={`absolute bottom-0 left-0 h-px w-full origin-left bg-primary transition-transform duration-500 ${
+                  active === t.id ? "scale-x-100" : "scale-x-0"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+
       {TOOLS.map((tool, i) => (
         <ToolStage key={tool.id} tool={tool} i={i} />
       ))}
 
-      <footer className="border-t border-border/60 bg-secondary/40 py-20 text-center">
-        <p className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground">End of the set</p>
-        <p className="mx-auto mt-5 max-w-xl font-serif text-2xl font-light md:text-3xl">
-          Fourteen instruments, one continuous drawing.
-        </p>
-        <div className="mt-9 flex justify-center">
-          <Cta to="/studio" label="Enter the Studio" />
+      <footer className="relative overflow-hidden border-t border-border/60 bg-secondary/40 py-20 text-center">
+        <div className="pointer-events-none absolute inset-0 tl-grid opacity-50" />
+        <div className="relative z-10 px-5">
+          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground sm:text-[11px]">End of the set</p>
+          <p className="mx-auto mt-5 max-w-2xl font-serif text-[clamp(1.5rem,4vw,2.5rem)] font-light">
+            Fourteen instruments, one continuous drawing.
+          </p>
+          <div className="mt-9 flex flex-wrap justify-center gap-4">
+            <Cta to="/studio" label="Enter the Studio" />
+            <Cta to="/quote" label="Build a Quote" />
+          </div>
         </div>
       </footer>
     </main>
