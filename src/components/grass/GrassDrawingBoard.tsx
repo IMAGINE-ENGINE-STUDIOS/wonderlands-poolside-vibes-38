@@ -199,23 +199,23 @@ function buildSeamlessTile(img: HTMLImageElement): HTMLCanvasElement | null {
     // cross-origin / unreadable: fall back to the full image
   }
 
-  // map back to source pixels and inset 3% to shed soft edges
+  // map back to source pixels, then take the CENTRE core of the swatch.
+  // The product photos are studio swatches with soft, feathered blade edges that
+  // stay pale even after trimming pure white, so only the dense middle tiles cleanly.
   const scale = 1 / s;
-  let sx = x0 * scale;
-  let sy = y0 * scale;
-  let sw = (x1 - x0 + 1) * scale;
-  let sh = (y1 - y0 + 1) * scale;
-  const inset = 0.03;
-  sx += sw * inset;
-  sy += sh * inset;
-  sw *= 1 - inset * 2;
-  sh *= 1 - inset * 2;
-  if (sw < 8 || sh < 8) {
-    sx = 0; sy = 0; sw = iw; sh = ih;
+  let bx = x0 * scale;
+  let by = y0 * scale;
+  let bw = (x1 - x0 + 1) * scale;
+  let bh = (y1 - y0 + 1) * scale;
+  if (bw < 16 || bh < 16) {
+    bx = 0; by = 0; bw = iw; bh = ih;
   }
+  const core = Math.min(bw, bh) * 0.52;
+  const sx = bx + (bw - core) / 2;
+  const sy = by + (bh - core) / 2;
 
   // square, capped quarter used for the mirrored tile
-  const q = Math.max(32, Math.min(256, Math.round(Math.min(sw, sh) / 2)));
+  const q = Math.max(32, Math.min(256, Math.round(core / 2)));
   const tile = document.createElement('canvas');
   tile.width = q * 2;
   tile.height = q * 2;
@@ -224,7 +224,7 @@ function buildSeamlessTile(img: HTMLImageElement): HTMLCanvasElement | null {
   tctx.imageSmoothingQuality = 'high';
 
   // top-left quarter
-  tctx.drawImage(img, sx, sy, Math.min(sw, sh), Math.min(sw, sh), 0, 0, q, q);
+  tctx.drawImage(img, sx, sy, core, core, 0, 0, q, q);
   // mirror horizontally, vertically and both
   tctx.save();
   tctx.translate(tile.width, 0);
