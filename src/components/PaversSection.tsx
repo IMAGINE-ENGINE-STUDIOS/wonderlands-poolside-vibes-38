@@ -11,6 +11,7 @@ import { paverTypes } from "@/data/paverData";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 
 // Collection base prices: Appian $15, Catalina $20, Catalina Grana $22
 const APPIAN_PRICE = 15;
@@ -136,7 +137,7 @@ const PaversSection = () => {
           </div>
 
           {/* Three Collections Grid */}
-          <div className="grid lg:grid-cols-3 gap-8 max-w-full mx-auto">
+          <ProductScrollRow className="mb-8">
             {/* First Card - Appian Collection */}
             <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
               <div className="relative w-full h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden">
@@ -415,7 +416,7 @@ const PaversSection = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </ProductScrollRow>
         </div>
       </section>
 

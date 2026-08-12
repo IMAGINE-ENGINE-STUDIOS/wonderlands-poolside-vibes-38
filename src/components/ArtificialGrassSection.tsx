@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { artificialGrassOptions, PRICE_PER_SQFT, type ArtificialGrassOption } from "@/data/artificialGrassData";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 
 const ArtificialGrassSection = () => {
   const [selectedGrass, setSelectedGrass] = useState<ArtificialGrassOption | null>(null);
@@ -39,7 +40,7 @@ const ArtificialGrassSection = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <ProductScrollRow className="mb-8">
             {artificialGrassOptions.map((grass) => (
               <Card key={grass.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
                 <div className="aspect-square overflow-hidden bg-muted">
@@ -63,7 +64,7 @@ const ArtificialGrassSection = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </ProductScrollRow>
         </div>
       </section>
 

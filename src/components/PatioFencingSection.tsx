@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { DollarSign, ShoppingCart, Calculator, Fence, Palette, Ruler } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
 interface FencingOption {
   name: string;
@@ -97,7 +98,7 @@ const PatioFencingSection = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <ProductScrollRow className="mb-8">
             {fencingOptions.map(fencing => <Card key={fencing.height} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleFencingClick(fencing)}>
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
@@ -144,7 +145,7 @@ const PatioFencingSection = () => {
                   </Button>
                 </CardContent>
               </Card>)}
-          </div>
+          </ProductScrollRow>
 
           {/* Information Section */}
           <div className="bg-gradient-to-r from-primary/10 to-teal/10 rounded-2xl p-8 mt-16">
