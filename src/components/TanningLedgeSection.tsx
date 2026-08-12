@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import TanningLedgeProductCard from "./TanningLedgeProductCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 import { lathamTanningLedges, glimmerglassTanningLedges, tanningLedges } from "@/data/poolData";
 
 // Import GlimmerGlass images
@@ -91,20 +92,18 @@ const TanningLedgeSection = () => {
     <>
       <section className="py-12 px-4 bg-gradient-to-br from-background to-coral/5" data-tanning-ledge-section>
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-coral via-orange to-amber-500">
-              Tanning Ledges
-            </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-              Add the perfect relaxation spot to your pool. Our tanning ledges provide the ideal shallow area for lounging and soaking up the sun.
-            </p>
-          </div>
+          <EditorialSectionHeader
+            eyebrow="Volume II — Sun Shelf"
+            title="Tanning Ledges"
+            description="The ideal shallow plane — drawn for lounging, reading and long afternoons of sun."
+          />
 
           {/* Latham Tanning Ledges Section */}
           <div className="mb-16">
-            <h3 className="text-2xl md:text-3xl font-bold mb-8 text-center text-foreground/90">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500">Latham</span> Tanning Ledges
-            </h3>
+            <div className="mb-8 border-b border-border/60 pb-4">
+              <p className="mb-2 text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Chapter I</p>
+              <h3 className="font-serif text-2xl font-light tracking-tight text-foreground sm:text-3xl">Latham Tanning Ledges</h3>
+            </div>
             <ProductScrollRow className="mb-8">
               {lathamLedgesWithCategory.map((ledge) => (
                 <TanningLedgeProductCard
@@ -119,9 +118,10 @@ const TanningLedgeSection = () => {
 
           {/* GlimmerGlass Tanning Ledges Section */}
           <div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-8 text-center text-foreground/90">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">GlimmerGlass</span> Tanning Ledges
-            </h3>
+            <div className="mb-8 border-b border-border/60 pb-4">
+              <p className="mb-2 text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Chapter II</p>
+              <h3 className="font-serif text-2xl font-light tracking-tight text-foreground sm:text-3xl">GlimmerGlass Tanning Ledges</h3>
+            </div>
             <ProductScrollRow className="mb-8">
               {glimmerglassLedgesWithCategory.map((ledge) => (
                 <TanningLedgeProductCard
