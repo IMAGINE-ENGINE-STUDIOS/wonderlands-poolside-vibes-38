@@ -134,10 +134,10 @@ const PatioFencingSection = () => {
                       </div>)}
                   </div>
 
-                  <Button className="rounded-none" onClick={e => {
+                  <Button onClick={e => {
                 e.stopPropagation();
                 handleFencingClick(fencing);
-              }} variant="default" className="w-full hover:scale-105 transition-all duration-300" size="sm">
+              }} variant="default" className="w-full hover:scale-105 transition-all duration-300 rounded-none" size="sm">
                     <Calculator className="h-4 w-4 mr-2" />
                     Calculate Price
                   </Button>
@@ -253,11 +253,11 @@ const PatioFencingSection = () => {
                   </div>
 
                   <div className="flex gap-3">
-                    <Button className="rounded-none" onClick={() => handleAddToCart(selectedFencing, linearFeet)} disabled={!linearFeet || linearFeet <= 0} variant="default" className="flex-1">
+                    <Button onClick={() => handleAddToCart(selectedFencing, linearFeet)} disabled={!linearFeet || linearFeet <= 0} variant="default" className="flex-1 rounded-none">
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
                     </Button>
-                    <Button className="rounded-none" onClick={() => handleRequestQuote(selectedFencing)} variant="outline" className="flex-1">
+                    <Button onClick={() => handleRequestQuote(selectedFencing)} variant="outline" className="flex-1 rounded-none">
                       Get Quote
                     </Button>
                   </div>

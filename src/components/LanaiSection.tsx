@@ -239,17 +239,17 @@ const LanaiSection = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="rounded-none" 
+                  <Button 
                     onClick={() => toggleDetails(lanai)}
-                    className="flex-1"
+                    className="flex-1 rounded-none"
                     variant={showDetails === lanai.id ? "secondary" : "default"}
                   >
                     {showDetails === lanai.id ? 'Hide Details' : 'Customize'}
                   </Button>
-                  <Button className="rounded-none" 
+                  <Button 
                     onClick={() => openQuote(lanai)}
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 rounded-none"
                   >
                     Get Quote
                   </Button>

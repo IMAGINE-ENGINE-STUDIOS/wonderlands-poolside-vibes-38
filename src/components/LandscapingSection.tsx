@@ -672,7 +672,7 @@ const LandscapingSection = () => {
                       <p className="text-lg font-bold text-emerald-700">
                         {formatPrice(plant.minPrice)}
                       </p>
-                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs rounded-none">
+                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs">
                         {variantCount > 1 ? "View Options" : "View Sizes"}
                       </Button>
                     </div>
@@ -765,7 +765,7 @@ const LandscapingSection = () => {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 rounded-none"
+                            className="h-8 w-8"
                             onClick={() => adjustQty(key, -1)}
                           >
                             <Minus className="h-3 w-3" />
@@ -774,14 +774,14 @@ const LandscapingSection = () => {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 rounded-none"
+                            className="h-8 w-8"
                             onClick={() => adjustQty(key, 1)}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <Button className="rounded-none"
+                          <Button
                             size="sm"
                             onClick={() => {
                               const quantity = Math.max(1, qty[key] || 1);
@@ -806,7 +806,7 @@ const LandscapingSection = () => {
                             <FileText className="h-3.5 w-3.5 mr-1" />
                             Quote
                           </Button>
-                          <Button className="rounded-none"
+                          <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleAdd(selected, activeVariant, opt)}

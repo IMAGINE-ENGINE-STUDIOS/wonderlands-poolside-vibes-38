@@ -36,6 +36,7 @@ import grassDarkGreenImage from "@/assets/grass-dark-green.avif";
 import grassNaturalGreenImage from "@/assets/grass-natural-green.avif";
 import grassEmeraldImage from "@/assets/grass-emerald.avif";
 import grassOliveImage from "@/assets/grass-olive.avif";
+import InstallationNote from "@/components/InstallationNote";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: { price: number }) => {
@@ -351,6 +352,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
             <div className="font-serif text-3xl font-light text-foreground">
               ${getTotalPoolPrice().toLocaleString()}
             </div>
+            <InstallationNote className="mt-2 !text-[9px]" />
             {calculateExtrasTotal() > 0 && (
               <div className="text-xs text-muted-foreground">
                 + ${calculateExtrasTotal().toLocaleString()} extras
@@ -786,10 +788,11 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
         <Separator />
 
         {/* Add to Cart Button */}
+        <InstallationNote className="mb-2" />
         <div className="flex gap-2">
-          <Button className="rounded-none" 
+          <Button 
             onClick={() => setShowQuoteTool(true)} 
-            className="flex-1 instant-quote-btn transition-all duration-300"
+            className="flex-1 instant-quote-btn transition-all duration-300 rounded-none"
           >
             <FileText className="h-4 w-4 mr-2" />
             Instant Quote

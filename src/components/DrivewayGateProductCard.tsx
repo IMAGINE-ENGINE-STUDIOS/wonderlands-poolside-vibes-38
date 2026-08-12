@@ -10,6 +10,7 @@ import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { FileText } from "lucide-react";
+import InstallationNote from "@/components/InstallationNote";
 
 interface DrivewayGateProps {
   model: string;
@@ -96,6 +97,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
           </div>
         </CardContent>
 
+        <InstallationNote className="mb-2" />
         <CardFooter className="p-4 pt-0 flex flex-col gap-2 mt-auto">
           <div className="flex gap-2 w-full">
             <Button

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
 import EditorialSectionHeader from "./EditorialSectionHeader";
+import InstallationNote from "@/components/InstallationNote";
 
 // Collection base prices: Appian $15, Catalina $20, Catalina Grana $22
 const APPIAN_PRICE = 15;
@@ -213,8 +214,9 @@ const PaversSection = () => {
                 </div>
 
                 {/* Action Buttons */}
+                <InstallationNote className="mb-2" />
                 <div className="flex gap-3">
-                  <Button className="rounded-none" onClick={() => handleRequestQuote('appian')} className="flex-1 instant-quote-btn transition-all duration-300" size="sm">Instant Quote</Button>
+                  <Button onClick={() => handleRequestQuote('appian')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
                   <Button className="rounded-none" onClick={() => {
                     setSelectedCollection('appian');
                     setSelectedPaverType(appianPavers[0]);
@@ -306,8 +308,9 @@ const PaversSection = () => {
                 </div>
 
                 {/* Action Buttons */}
+                <InstallationNote className="mb-2" />
                 <div className="flex gap-3">
-                  <Button className="rounded-none" onClick={() => handleRequestQuote('catalina-grana')} className="flex-1 instant-quote-btn transition-all duration-300" size="sm">Instant Quote</Button>
+                  <Button onClick={() => handleRequestQuote('catalina-grana')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
                   <Button className="rounded-none" onClick={() => {
                     setSelectedCollection('catalina-grana');
                     setSelectedPaverType(catalinaGranaPavers[0]);
@@ -399,8 +402,9 @@ const PaversSection = () => {
                 </div>
 
                 {/* Action Buttons */}
+                <InstallationNote className="mb-2" />
                 <div className="flex gap-3">
-                  <Button className="rounded-none" onClick={() => handleRequestQuote('catalina')} className="flex-1 instant-quote-btn transition-all duration-300" size="sm">Instant Quote</Button>
+                  <Button onClick={() => handleRequestQuote('catalina')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
                   <Button className="rounded-none" onClick={() => {
                     setSelectedCollection('catalina');
                     setSelectedPaverType(catalinaPavers[0]);

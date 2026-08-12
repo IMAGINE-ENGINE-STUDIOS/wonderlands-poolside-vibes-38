@@ -130,6 +130,7 @@ const finishOptions = getProductsByCategory('finish').map(finish => ({
 
 // Import pool liners from PoolCatalog
 import { poolLiners, poolTiles } from '@/data/poolData';
+import InstallationNote from "@/components/InstallationNote";
 
 // Pool heater options for spas (spa-specific pricing)
 const spaHeaters = [{
@@ -755,9 +756,10 @@ const SpaProductCard = ({
         
         {/* Action Buttons - Only when expanded */}
         {showDetails && <div className="space-y-2">
+          <InstallationNote className="mb-2" />
           <div className="grid grid-cols-2 gap-2">
             
-            <Button className="rounded-none" variant="outline" size="sm" onClick={() => {
+            <Button variant="outline" size="sm" onClick={() => {
             // Create detailed extras breakdown for quote tool
             const extrasBreakdown = [] as Array<{
               name: string;
@@ -825,7 +827,7 @@ const SpaProductCard = ({
               extrasBreakdown,
               extrasTotal
             });
-          }} className="flex-1 instant-quote-btn transition-all duration-300 text-xs">Instant Quote</Button>
+          }} className="flex-1 instant-quote-btn transition-all duration-300 text-xs rounded-none">Instant Quote</Button>
           
           <Button onClick={handleAddToCart} variant="outline" size="icon" className="w-10 h-10 rounded-none">
             <ShoppingCart className="h-4 w-4" />

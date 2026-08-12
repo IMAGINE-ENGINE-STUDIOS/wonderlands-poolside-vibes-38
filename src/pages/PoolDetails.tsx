@@ -28,6 +28,7 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.webp';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 import { resolveCategoryLabel } from '@/lib/productCategories';
+import InstallationNote from "@/components/InstallationNote";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
@@ -2247,6 +2248,7 @@ const PoolDetails = () => {
                 </div>
 
                 {/* Action Buttons */}
+                <InstallationNote className="mb-2" />
                 <div className="space-y-2">
                   <Button onClick={() => {
                   // Create detailed extras breakdown for quote tool

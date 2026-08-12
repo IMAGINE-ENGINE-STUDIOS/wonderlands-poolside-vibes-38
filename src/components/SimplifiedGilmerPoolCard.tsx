@@ -42,6 +42,7 @@ interface SimplifiedGilmerPoolCardProps {
 import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.webp";
 import maldivesImage from "@/assets/maldiveskit-castlerock.webp";
 import serenityImage from "@/assets/serenitykit.webp";
+import InstallationNote from "@/components/InstallationNote";
 
 interface GilmerOptions {
   colorFinish: string;
@@ -350,6 +351,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
                 ${getTotalPoolPrice().toLocaleString()}
               </p>
+              <InstallationNote className="mt-2 !text-[9px]" />
               {projectType === 'commercial' && (
                 <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Commercial Rate</p>
               )}
@@ -890,6 +892,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 </div>
               </div>
 
+              <InstallationNote className="mb-2" />
               <div className="flex gap-2">
                 <Button 
                   onClick={() => {

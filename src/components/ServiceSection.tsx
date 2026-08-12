@@ -160,10 +160,10 @@ const ServiceSection = ({
                   </div>
                   
                   {/* Action Button */}
-                  <Button className="rounded-none" 
+                  <Button 
                     onClick={() => handleRequestQuote(service)}
                     variant="gradient"
-                    className="w-full hover:scale-105 transition-all duration-300"
+                    className="w-full hover:scale-105 transition-all duration-300 rounded-none"
                     size="sm"
                   >
                     Get Quote

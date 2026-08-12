@@ -52,9 +52,9 @@ const ArtificialGrassSection = () => {
                 <CardContent className="p-4">
                   <h3 className="text-lg font-bold mb-1">{grass.name}</h3>
                   <p className="text-sm text-muted-foreground mb-3">${PRICE_PER_SQFT}/sq ft</p>
-                  <Button className="rounded-none"
+                  <Button 
                     onClick={() => handleOpenInstantQuote(grass)}
-                    className="w-full"
+                    className="w-full rounded-none"
                     size="sm"
                   >
                     Instant Quote

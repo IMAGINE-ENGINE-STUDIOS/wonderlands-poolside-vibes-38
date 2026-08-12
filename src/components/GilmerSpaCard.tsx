@@ -11,6 +11,7 @@ import { paverTypes } from "@/data/paverData";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import azureBlueFinish from "@/assets/finishes/azure-blue-g2.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
+import InstallationNote from "@/components/InstallationNote";
 interface GilmerSpaCardProps {
   spa: GilmerSpa;
   onRequestQuote?: (spa: GilmerSpa, extras: any) => void;
@@ -470,6 +471,8 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
         {/* Action Buttons - Only when expanded */}
         {showDetails &&
         <div className="space-y-2 pt-2">
+            <InstallationNote className="mb-1" />
+
             <Button
             className="w-full instant-quote-btn transition-all duration-300 rounded-none"
             onClick={handleRequestQuote}>

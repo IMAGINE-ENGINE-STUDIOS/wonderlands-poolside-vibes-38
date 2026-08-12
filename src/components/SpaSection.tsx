@@ -183,13 +183,13 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                   <Separator />
                   
                   {/* Action Button */}
-                  <Button className="rounded-none" 
+                  <Button 
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddToCart(spa);
                     }}
                     variant="default"
-                    className="w-full hover:scale-105 transition-all duration-300"
+                    className="w-full hover:scale-105 transition-all duration-300 rounded-none"
                     size="sm"
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
@@ -252,29 +252,29 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                   
                   <div className="flex gap-3">
                     {allowSelection && !selectedSpaProp && selectedSpa && (
-                      <Button className="rounded-none" 
+                      <Button 
                         onClick={() => {
                           onSpaSelect?.(selectedSpa!);
                           setShowDetailModal(false);
                         }}
                         variant="default"
-                        className="flex-1"
+                        className="flex-1 rounded-none"
                       >
                         Select Spa
                       </Button>
                     )}
-                    <Button className="rounded-none" 
+                    <Button 
                       onClick={() => handleAddToCart(selectedSpa)}
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 rounded-none"
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
                     </Button>
-                    <Button className="rounded-none" 
+                    <Button 
                       onClick={() => handleRequestQuote(selectedSpa)}
                       variant="gradient"
-                      className="flex-1"
+                      className="flex-1 rounded-none"
                     >
                       Get Quote
                     </Button>

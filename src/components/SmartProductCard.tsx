@@ -10,6 +10,7 @@ import { Edit, ShoppingCart, DollarSign, Waves, Eye, ExternalLink, FileText } fr
 import { useShoppingCart } from './ShoppingCartProvider';
 import { useProjectType } from '@/contexts/ProjectTypeContext';
 import SurveyQuoteTool from './SurveyQuoteTool';
+import InstallationNote from "@/components/InstallationNote";
 
 interface SmartProductCardProps {
   id: string;
@@ -258,11 +259,12 @@ const SmartProductCard = ({
           </div>
 
           {/* Action Buttons */}
+          <InstallationNote className="mb-2" />
           <div className="flex gap-2 pt-2 flex-wrap">
-            <Button className="rounded-none" 
+            <Button 
               onClick={() => setShowOptions(true)}
               variant="outline"
-              className="flex-1 min-w-[120px]"
+              className="flex-1 min-w-[120px] rounded-none"
               size="sm"
             >
               <ExternalLink className="h-4 w-4 mr-1" />
@@ -277,9 +279,9 @@ const SmartProductCard = ({
               <ShoppingCart className="h-4 w-4 mr-1" />
               Add to Cart
             </Button>
-            <Button className="rounded-none"
+            <Button 
               onClick={() => setShowQuoteTool(true)}
-              className="w-full gap-2 instant-quote-btn transition-all duration-300"
+              className="w-full gap-2 instant-quote-btn transition-all duration-300 rounded-none"
               size="sm"
             >
               <FileText className="h-4 w-4" />

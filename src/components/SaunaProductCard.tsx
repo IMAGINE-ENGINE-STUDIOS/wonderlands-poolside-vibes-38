@@ -10,6 +10,7 @@ import { getProductFeatures, calculateFeaturePrice } from "@/config/productFeatu
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { resolveCategoryLabel } from '@/lib/productCategories';
 import SaunaSalesPricingDialog from "./sauna/SaunaSalesPricingDialog";
+import InstallationNote from "@/components/InstallationNote";
 
 interface SaunaProductCardProps {
   sauna: {
@@ -95,6 +96,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
                   <div className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
                     ${(sauna.price * priceMultiplier).toLocaleString()}
                   </div>
+                  <InstallationNote className="mt-2 !text-[9px]" />
                   {projectType === 'commercial' && (
                     <div className="text-xs text-amber-600 font-medium">Commercial</div>
                   )}
@@ -163,11 +165,11 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
 
             {/* Additional Features Toggle - pushed to bottom of content */}
             <div className="pt-3 border-t mt-auto">
-              <Button className="rounded-none"
+              <Button 
                 variant="outline"
                 size="sm"
                 onClick={() => setShowDetails(!showDetails)}
-                className="w-full flex items-center justify-between"
+                className="w-full flex items-center justify-between rounded-none"
               >
                 <span className="text-xs font-semibold">Additional Features</span>
                 {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -199,10 +201,11 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
           )}
           </CardContent>
 
+          <InstallationNote className="px-4 pb-2" />
           <CardFooter className="p-4 pt-0 flex gap-2 mt-auto">
-            <Button className="rounded-none"
+            <Button 
               onClick={() => setShowQuote(true)}
-              className="flex-1 instant-quote-btn transition-all duration-300"
+              className="flex-1 instant-quote-btn transition-all duration-300 rounded-none"
               size="sm"
             >
               Get Instant Quote

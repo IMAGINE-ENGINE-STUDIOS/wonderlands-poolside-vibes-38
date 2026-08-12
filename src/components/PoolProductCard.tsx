@@ -169,6 +169,7 @@ const getExtraPrice = (extra: string) => {
 // Import pool finishes and liners from consolidated products
 import { getProductsByCompatiblePool } from "@/data/consolidatedProducts";
 import { poolLiners, poolTiles } from "@/data/poolData";
+import InstallationNote from "@/components/InstallationNote";
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false, priority = false }: PoolProductCardProps) => {
   const { priceMultiplier, projectType } = useProjectType();
@@ -787,6 +788,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
               {projectType === 'commercial' && (
                 <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Commercial Rate</p>
               )}
+              <InstallationNote className="mt-2 !text-[9px]" />
+
             </div>
             {pool.dimensions && (
               <p className="text-right text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
@@ -1268,7 +1271,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </label>
                   {extras.jets && (
                     <div className="flex items-center space-x-2">
-                      <Button className="rounded-none"
+                      <Button 
                         variant="outline"
                         size="sm"
                         onClick={() =>
@@ -1277,12 +1280,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                             jetQuantity: Math.max(1, prev.jetQuantity - 1),
                           }))
                         }
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 rounded-none"
                       >
                         -
                       </Button>
                       <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
-                      <Button className="rounded-none"
+                      <Button 
                         variant="outline"
                         size="sm"
                         onClick={() =>
@@ -1291,7 +1294,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                             jetQuantity: prev.jetQuantity + 1,
                           }))
                         }
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 rounded-none"
                       >
                         +
                       </Button>
@@ -1821,8 +1824,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
             {/* Action Buttons */}
             <div className="space-y-2">
+              <InstallationNote className="mb-2" />
               <div className="flex gap-2">
-                <Button className="rounded-none"
+                <Button 
                   onClick={() => {
                     // Create detailed extras breakdown for quote tool
                     const extrasBreakdown = [];
