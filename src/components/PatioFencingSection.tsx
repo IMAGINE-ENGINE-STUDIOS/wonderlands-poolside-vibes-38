@@ -12,6 +12,7 @@ import { DollarSign, ShoppingCart, Calculator, Fence, Palette, Ruler } from "luc
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 interface FencingOption {
   name: string;
   height: string;

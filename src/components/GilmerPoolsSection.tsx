@@ -3,7 +3,7 @@ import { gilmerPools } from "@/data/gilmerPools";
 import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import ProductScrollRow from "./ProductScrollRow";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Clock } from "lucide-react";
+import { Waves, Shield, Clock } from "lucide-react";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 const sortedPools = [...gilmerPools].sort((a, b) => a.price - b.price);
 
