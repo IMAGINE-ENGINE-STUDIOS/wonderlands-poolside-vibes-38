@@ -229,29 +229,31 @@ const TanningLedgeProductCard = ({
       extras: cartExtras
     });
   };
-  return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-coral/40 overflow-hidden">
+  return <Card className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)]">
       {/* Edge-to-edge Tanning Ledge Image at top */}
-      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-coral/10 to-orange/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick}>
-        {currentLedgeImage ? <img loading="lazy" decoding="async" src={currentLedgeImage} alt={ledge.name} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-coral/20 to-orange/20">
-            <Sun size={48} className="text-coral/60" />
+      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-muted cursor-pointer overflow-hidden group/image" onClick={handleImageClick}>
+        {currentLedgeImage ? <img loading="lazy" decoding="async" src={currentLedgeImage} alt={ledge.name} className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover/image:scale-[1.06]" /> : <div className="w-full h-full flex items-center justify-center bg-muted">
+            <Sun size={48} className="text-muted-foreground/50" />
           </div>}
-        
-        {/* Category Badge overlay */}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+
+        {/* Category kicker overlay */}
         <div className="absolute top-4 left-4">
-          <Badge className={`${getCategoryColor(ledge.category)} text-white capitalize font-medium px-3 py-1`}>
-            <span className="flex items-center gap-1">
-              <Sun size={16} />
-              Luxury
-            </span>
-          </Badge>
+          <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm capitalize">
+            {ledge.category}
+          </span>
         </div>
-        
-        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-          <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
-            Click for Details
-          </div>
+
+        <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-3 p-4 sm:p-5">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/80">
+            Tanning Ledge Collection
+          </p>
+          <span className="translate-y-1 text-[9px] uppercase tracking-[0.35em] text-white/0 transition-all duration-500 group-hover/image:translate-y-0 group-hover/image:text-white/90">
+            View Details →
+          </span>
         </div>
-        
+
         {/* Image Edit Button - Only visible for admins */}
         {isAdmin && isEditable && <Button size="sm" variant="secondary" className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 rounded-none" onClick={e => {
         e.stopPropagation();
@@ -261,50 +263,50 @@ const TanningLedgeProductCard = ({
           </Button>}
       </div>
       
-      <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
+      <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5">
         
         {/* Tanning Ledge Name & Collection */}
-        <div className="space-y-2">
-          <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-coral transition-colors">
+        <div>
+          <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
             {ledge.name}
           </h3>
-          <Badge variant="secondary" className="text-xs font-semibold">
-            Premium Tanning Ledge Collection
-          </Badge>
-        </div>
-        
-        {/* Rating */}
-        
-        
-        {/* Price */}
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-coral" />
-          <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-            ${calculateTotalPrice().toLocaleString()}
-          </span>
-          {hasExtras}
+
+          <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+              <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
+                ${calculateTotalPrice().toLocaleString()}
+              </p>
+            </div>
+            {ledge.dimensions && (
+              <p className="text-right text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                {ledge.dimensions}
+              </p>
+            )}
+          </div>
         </div>
         
         {/* Basic Info */}
-        <div className="text-sm text-muted-foreground space-y-1">
-          {ledge.dimensions && <p>Size: {ledge.dimensions}</p>}
-          {ledge.depth && <p>Depth: {ledge.depth}</p>}
-          {ledge.installationTimeWeeks && <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>Installation: {ledge.installationTimeWeeks} weeks</span>
+        <dl className="divide-y divide-border/60 border-y border-border/60 text-sm">
+          {ledge.depth && <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Depth</dt>
+              <dd className="text-right text-foreground">{ledge.depth}</dd>
             </div>}
-          <div className="flex items-center gap-1">
-            <Award className="h-3 w-3" />
-            <span className="font-bold text-coral">Warranty: LIFETIME WARRANTY</span>
+          {ledge.installationTimeWeeks && <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Installation</dt>
+              <dd className="text-right text-foreground">{ledge.installationTimeWeeks} weeks</dd>
+            </div>}
+          <div className="flex items-baseline justify-between gap-4 py-2.5">
+            <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Warranty</dt>
+            <dd className="text-right text-foreground">Lifetime</dd>
           </div>
-        </div>
+        </dl>
 
         {/* Key Features */}
         {ledge.features && ledge.features.length > 0 && <div className="space-y-2">
-            <h4 className="font-semibold text-sm">Features:</h4>
+            <h4 className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Features</h4>
             <ul className="space-y-1">
-              {ledge.features.slice(0, 2).map((feature, idx) => <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-coral rounded-full"></div>
+              {ledge.features.slice(0, 2).map((feature, idx) => <li key={idx} className="text-sm text-muted-foreground">
                   {feature}
                 </li>)}
             </ul>
@@ -323,7 +325,7 @@ const TanningLedgeProductCard = ({
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {finishOptions.map(finish => <CarouselItem key={finish.name} className="pl-1 basis-1/2">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-coral bg-coral/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-foreground/60 bg-foreground/5' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   finish: finish.name
                 }))}>
@@ -332,7 +334,7 @@ const TanningLedgeProductCard = ({
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
-                          {finish.price > 0 && <p className="text-xs text-coral font-semibold text-center mt-1">+${finish.price.toLocaleString()}</p>}
+                          {finish.price > 0 && <p className="text-xs text-foreground font-medium text-center mt-1">+${finish.price.toLocaleString()}</p>}
                         </div>
                       </div>
                     </CarouselItem>)}
@@ -348,7 +350,7 @@ const TanningLedgeProductCard = ({
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {paverOptions.map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/2">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-coral bg-coral/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-foreground/60 bg-foreground/5' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   paverOption: paver.name
                 }))}>
@@ -357,7 +359,7 @@ const TanningLedgeProductCard = ({
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
-                          {paver.price > 0 && <p className="text-xs text-coral font-semibold text-center mt-1">+${paver.price.toLocaleString()}</p>}
+                          {paver.price > 0 && <p className="text-xs text-foreground font-medium text-center mt-1">+${paver.price.toLocaleString()}</p>}
                         </div>
                       </div>
                     </CarouselItem>)}
@@ -382,9 +384,9 @@ const TanningLedgeProductCard = ({
               
               <div className="grid grid-cols-1 gap-3">
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox checked={extras.heater} onCheckedChange={() => toggleExtra('heater')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
+                  <Checkbox checked={extras.heater} onCheckedChange={() => toggleExtra('heater')} className="data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
                   <div className="flex items-center space-x-1">
-                    <Thermometer size={16} className="text-coral" />
+                    <Thermometer size={16} className="text-muted-foreground" />
                     <span className="text-sm">Add Heater (+${extras.heater ? (() => {
                     const selectedHeater = ledgeHeaters.find(heater => heater.name === extras.heaterModel);
                     return selectedHeater ? selectedHeater.price.toLocaleString() : '0';
@@ -398,7 +400,7 @@ const TanningLedgeProductCard = ({
                       {ledgeHeaters.map(heater => <button key={heater.name} onClick={() => setExtras(prev => ({
                   ...prev,
                   heaterModel: heater.name
-                }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'}`}>
+                }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.heaterModel === heater.name ? 'border-foreground/60 bg-foreground/5 text-foreground' : 'border-border hover:border-foreground/40'}`}>
                           <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
                           <div className="flex-1 text-left">
                             <div>{heater.name}</div>
@@ -413,7 +415,7 @@ const TanningLedgeProductCard = ({
                   <label className="flex items-center space-x-2 cursor-pointer flex-1">
                     <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} />
                     <div className="flex items-center space-x-1">
-                      <Zap size={16} className="text-orange" />
+                      <Zap size={16} className="text-muted-foreground" />
                       <span className="text-sm">Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
                     </div>
                   </label>
@@ -504,7 +506,7 @@ const TanningLedgeProductCard = ({
             </div>
             
             {/* Final Price Display */}
-            <div className="mt-4 p-3 bg-gradient-to-r from-coral/10 to-orange/10 rounded-lg border border-coral/30">
+            <div className="mt-4 p-3 border-t border-border/60">
               <div className="text-center">
                 <h5 className="text-sm font-medium text-muted-foreground">Total Configuration Price</h5>
                 <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
@@ -512,7 +514,7 @@ const TanningLedgeProductCard = ({
             </div>
 
             {/* Bottom Dashboard - Integrated Financing */}
-            <div className="mt-4 p-4 bg-gradient-to-r from-orange/5 to-coral/5 rounded-lg border border-orange/20">
+            <div className="mt-4 p-4 border border-border/60">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h5 className="font-semibold text-sm text-foreground">Finance This Purchase</h5>
@@ -522,11 +524,11 @@ const TanningLedgeProductCard = ({
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div className="text-center p-2 bg-white/50 rounded">
                       <div className="font-semibold">2 Years</div>
-                      <div className="text-coral">${(calculateTotalPrice() / 24).toLocaleString()}/mo</div>
+                      <div className="text-muted-foreground">${(calculateTotalPrice() / 24).toLocaleString()}/mo</div>
                     </div>
                     <div className="text-center p-2 bg-white/50 rounded">
                       <div className="font-semibold">4 Years</div>
-                      <div className="text-coral">${(calculateTotalPrice() / 48).toLocaleString()}/mo</div>
+                      <div className="text-muted-foreground">${(calculateTotalPrice() / 48).toLocaleString()}/mo</div>
                     </div>
                   </div>
                   
@@ -569,7 +571,7 @@ const TanningLedgeProductCard = ({
                       className="pl-1 basis-1/2"
                     >
                       <div
-                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-coral bg-coral/10" : "border-border"}`}
+                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-foreground/60 bg-foreground/5" : "border-border"}`}
                         onClick={() => {
                           setExtras((prev) => ({
                             ...prev,
@@ -604,7 +606,7 @@ const TanningLedgeProductCard = ({
             >
               <span className="text-xs text-muted-foreground mb-1">View all options</span>
               <svg 
-                className="w-5 h-5 text-coral animate-bounce group-hover:text-coral/80 transition-colors" 
+                className="w-5 h-5 text-muted-foreground animate-bounce group-hover:text-foreground/70 transition-colors" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
