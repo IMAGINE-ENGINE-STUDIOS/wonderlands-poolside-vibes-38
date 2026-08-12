@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
+import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
+import useBoardDensity from '@/hooks/useBoardDensity';
 import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, Square, X } from 'lucide-react';
 import { ENCLOSURE_DOORS, EnclosureDoorOption } from '@/data/screenEnclosureConfigurator';
 
@@ -215,6 +217,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   const [size, setSize] = React.useState({ w: 900, h: 520 });
   const [doorTypeId, setDoorTypeId] = React.useState<string>(DEFAULT_DOOR_ID);
   const [selection, setSelection] = React.useState<Selection>(null);
+  const { compact, toggle: toggleDensity } = useBoardDensity();
 
   React.useEffect(() => {
     const el = wrapRef.current;
@@ -828,13 +831,18 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         <Button size="sm" variant="ghost" onClick={clear}>
           <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
         </Button>
-        <div className="mx-1 h-5 w-px bg-border/60" />
-        <Button size="sm" variant="outline" onClick={() => preset(30, 20)}>
-          <Square className="h-3.5 w-3.5 mr-1" /> 30 x 20
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => preset(40, 24)}>
-          <Square className="h-3.5 w-3.5 mr-1" /> 40 x 24
-        </Button>
+        {!compact && (
+          <>
+            <div className="mx-1 h-5 w-px bg-border/60" />
+            <Button size="sm" variant="outline" onClick={() => preset(30, 20)}>
+              <Square className="h-3.5 w-3.5 mr-1" /> 30 x 20
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => preset(40, 24)}>
+              <Square className="h-3.5 w-3.5 mr-1" /> 40 x 24
+            </Button>
+          </>
+        )}
+        <BoardDensityToggle compact={compact} onToggle={toggleDensity} className="ml-auto" />
       </div>
 
       {/* Glass door carousel — pick a model, then click a wall to drop it in */}
@@ -843,9 +851,11 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="quote-eyebrow">Door models</p>
-              <p className="text-[11px] text-muted-foreground">
-                Select a model, then click any wall line to drop it into the plan. It is added to your shopping list automatically.
-              </p>
+              {!compact && (
+                <p className="text-[11px] text-muted-foreground">
+                  Select a model, then click any wall line to drop it into the plan. It is added to your shopping list automatically.
+                </p>
+              )}
             </div>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
@@ -918,6 +928,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         </div>
       </div>
 
+      {!compact && (
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         {[
           { label: 'Area', value: `${takeoff.areaSqFt.toLocaleString()} sq ft` },
@@ -932,6 +943,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 };

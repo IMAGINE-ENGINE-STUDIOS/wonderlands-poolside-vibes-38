@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
+import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
+import useBoardDensity from '@/hooks/useBoardDensity';
 import { Badge } from '@/components/ui/badge';
 import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler } from 'lucide-react';
 
@@ -34,6 +36,7 @@ const dist = (a: FencePoint, b: FencePoint) => Math.hypot(a.x - b.x, a.y - b.y);
 const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827' }: FenceDrawingBoardProps) => {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const [mode, setMode] = React.useState<'draw' | 'select' | 'gate'>('draw');
+  const { compact, toggle: toggleDensity } = useBoardDensity();
   const [dragIndex, setDragIndex] = React.useState<number | null>(null);
   const [hover, setHover] = React.useState<FencePoint | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 520 });
@@ -293,12 +296,17 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827' }
           <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
         </Button>
         <div className="ml-auto flex items-center gap-2">
-          <Badge variant="secondary">{measurements.fenceFt.toLocaleString()} linear ft</Badge>
-          {layout.gateSegments.length > 0 && (
-            <Badge className="bg-primary text-primary-foreground">
-              {layout.gateSegments.length} gate opening{layout.gateSegments.length > 1 ? 's' : ''} • {measurements.gateFt} ft
-            </Badge>
+          {!compact && (
+            <>
+              <Badge variant="secondary">{measurements.fenceFt.toLocaleString()} linear ft</Badge>
+              {layout.gateSegments.length > 0 && (
+                <Badge className="bg-primary text-primary-foreground">
+                  {layout.gateSegments.length} gate opening{layout.gateSegments.length > 1 ? 's' : ''} • {measurements.gateFt} ft
+                </Badge>
+              )}
+            </>
           )}
+          <BoardDensityToggle compact={compact} onToggle={toggleDensity} />
         </div>
       </div>
 
