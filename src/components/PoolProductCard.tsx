@@ -788,6 +788,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
               {projectType === 'commercial' && (
                 <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Commercial Rate</p>
               )}
+              <InstallationNote className="mt-2 !text-[9px]" />
+
             </div>
             {pool.dimensions && (
               <p className="text-right text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
