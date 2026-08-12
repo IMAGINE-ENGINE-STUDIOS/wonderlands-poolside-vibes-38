@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "@/components/ui/use-toast";
 import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
@@ -126,11 +127,8 @@ const LinersSection = ({
             </p>
           </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-4">
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-2 md:-ml-1">
-                  {getProductsByCategory('liner').map((liner, index) => <CarouselItem key={liner.name} className="pl-2 md:pl-1 basis-full sm:basis-1/2 lg:basis-1/3">
-                      <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
+            <ProductScrollRow className="mb-8">
+              {getProductsByCategory('liner').map((liner, index) => <Card key={liner.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
                         {/* Full Background Image */}
                         <div className="relative h-56 sm:h-64 overflow-hidden">
                           <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
@@ -177,13 +175,8 @@ const LinersSection = ({
                             View Details
                           </Button>
                         </CardContent>
-                      </Card>
-                    </CarouselItem>)}
-                </CarouselContent>
-                <CarouselPrevious className="left-2 sm:left-0 h-8 w-8 sm:h-10 sm:w-10" />
-                <CarouselNext className="right-2 sm:right-0 h-8 w-8 sm:h-10 sm:w-10" />
-              </Carousel>
-            </div>
+                      </Card>)}
+            </ProductScrollRow>
         </div>
       </section>
       
