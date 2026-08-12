@@ -198,7 +198,7 @@ const LanaiSection = () => {
   const totalPrice = calculatePrice();
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
+    <section className="py-20 px-4 bg-background">
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <EditorialSectionHeader
@@ -212,36 +212,41 @@ const LanaiSection = () => {
           {lanaiOptions.map((lanai) => (
             <Card 
               key={lanai.id}
-              className="group overflow-hidden border-2 transition-all duration-300"
+              className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)]"
             >
-              <div className="relative h-48 sm:h-56 overflow-hidden">
+              <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
                 <img loading="lazy" decoding="async" 
                   src={lanai.image} 
                   alt={lanai.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
                 />
-                <Badge className={`absolute top-4 right-4 ${lanai.gradient} border-0`}>
-                  {lanai.badge}
-                </Badge>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                <div className="absolute top-4 left-4">
+                  <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                    {lanai.badge}
+                  </span>
+                </div>
               </div>
               
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="p-4 sm:p-5 space-y-4">
                 <div>
-                  <h3 className="text-2xl font-bold mb-2">{lanai.name}</h3>
-                  <div className="flex items-baseline gap-2 mb-3">
-                    <span className="text-3xl font-bold text-primary">${lanai.basePrice}</span>
-                    <span className="text-muted-foreground">/sq ft</span>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground mb-3">{lanai.name}</h3>
+                  <div className="flex items-end justify-between gap-4 border-t border-border/60 pt-4 mb-3">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Rate</p>
+                      <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">${lanai.basePrice}<span className="text-sm text-muted-foreground">/sq ft</span></p>
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">{lanai.description}</p>
-                  <div className="text-xs bg-primary/5 rounded-lg p-2 border border-primary/20">
-                    <span className="text-primary font-semibold">✓ Includes:</span> Paver or concrete foundation & complete roof installation
+                  <div className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground border-t border-border/60 pt-3">
+                    Includes foundation &amp; complete roof installation
                   </div>
                 </div>
 
                 <div className="flex gap-2">
                   <Button 
                     onClick={() => toggleDetails(lanai)}
-                    className="flex-1 rounded-none"
+                    className={`flex-1 rounded-none text-[10px] uppercase tracking-[0.3em] ${showDetails === lanai.id ? '' : 'bg-foreground text-background hover:bg-foreground/90'}`}
                     variant={showDetails === lanai.id ? "secondary" : "default"}
                   >
                     {showDetails === lanai.id ? 'Hide Details' : 'Customize'}
@@ -249,7 +254,7 @@ const LanaiSection = () => {
                   <Button 
                     onClick={() => openQuote(lanai)}
                     variant="outline"
-                    className="flex-1 rounded-none"
+                    className="flex-1 rounded-none text-[10px] uppercase tracking-[0.3em]"
                   >
                     Get Quote
                   </Button>
@@ -397,7 +402,7 @@ const LanaiSection = () => {
                     {/* Add to Cart Button */}
                     <Button 
                       onClick={handleAddToCart}
-                      className="w-full rounded-none"
+                      className="w-full rounded-none bg-foreground text-background text-[10px] uppercase tracking-[0.3em] hover:bg-foreground/90"
                       disabled={!squareFootage}
                     >
                       Add to Cart - ${calculatePrice().toLocaleString()}

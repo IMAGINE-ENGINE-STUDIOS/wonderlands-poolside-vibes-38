@@ -93,45 +93,50 @@ const PoolFinishesSection = () => {
               {filteredFinishes.map((finish, index) => (
                 <Card 
                   key={finish.id} 
-                  className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 bg-card/50 backdrop-blur-sm border border-border/50 h-full"
+                  className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer h-full"
                   onClick={() => setSelectedFinish(finish)}
                 >
-                  <div className="relative overflow-hidden rounded-t-lg">
+                  <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden group/image">
                     <img loading="lazy" decoding="async" 
                       src={finish.image} 
                       alt={finish.name}
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover/image:scale-[1.06]"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
                     {finish.isPopular && (
-                      <Badge className="absolute top-2 right-2 bg-coral text-white">
-                        Popular
-                      </Badge>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-4 left-4 text-white">
-                        <p className="text-sm font-medium">{finish.collection}</p>
+                      <div className="absolute top-4 right-4">
+                        <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                          Popular
+                        </span>
                       </div>
+                    )}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                      <p className="text-[9px] uppercase tracking-[0.4em] text-white/80">{finish.collection}</p>
                     </div>
                   </div>
                   
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">{finish.name}</CardTitle>
-                    <CardDescription className="text-sm">
-                      {finish.subcategory}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <p className="text-sm text-foreground/70 mb-4 line-clamp-2">
-                      {finish.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-primary">
-                        +${finish.price.toLocaleString()}
-                      </span>
-                      <Button className="rounded-none" variant="outline" size="sm">
-                        View Details
-                      </Button>
+                  <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5">
+                    <div>
+                      <p className="mb-2 text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+                        {finish.subcategory}
+                      </p>
+                      <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                        {finish.name}
+                      </h3>
+                      <p className="mt-3 text-sm text-foreground/70 line-clamp-2">
+                        {finish.description}
+                      </p>
+                      <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                        <div>
+                          <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Upgrade</p>
+                          <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
+                            +${finish.price.toLocaleString()}
+                          </p>
+                        </div>
+                        <Button className="rounded-none text-[10px] uppercase tracking-[0.3em]" variant="outline" size="sm">
+                          View Details
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

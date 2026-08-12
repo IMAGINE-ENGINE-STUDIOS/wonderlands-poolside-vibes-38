@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Flame, Users, Zap, Clock, ShieldCheck, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
@@ -51,177 +50,143 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
 
   const getTotalSaunaPrice = () => sauna.price * priceMultiplier + extrasTotal;
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'premium':
-        return 'bg-gradient-to-r from-amber-500 to-orange-500';
-      case 'deluxe':
-        return 'bg-gradient-to-r from-orange-500 to-red-500';
-      case 'compact':
-        return 'bg-gradient-to-r from-yellow-500 to-amber-500';
-      default:
-        return 'bg-gradient-to-r from-primary to-teal';
-    }
-  };
   return (
     <>
-      <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-background via-background to-amber-50/20 dark:to-amber-950/10 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 h-full flex flex-col">
-        {/* Animated gradient border effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        
-        <div className="relative flex flex-col flex-1">
-          <CardHeader className="p-0 relative overflow-hidden">
-            <div className="relative aspect-[4/3] overflow-hidden">
-              <OptimizedImage
-                src={sauna.image}
-                alt={sauna.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                sizeConfig="hero"
-              />
-              {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-              
-              {/* Category badge */}
-              <div className="absolute top-4 left-4 z-10">
-                <Badge className={`${getCategoryColor(sauna.category)} text-white px-4 py-1.5 shadow-lg backdrop-blur-sm`}>
-                  <Flame className="w-3 h-3 mr-1 inline" />
-                  {resolveCategoryLabel(sauna.category, 'sauna').toUpperCase()}
-                </Badge>
+      <div className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] h-full flex flex-col">
+        <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden">
+          <OptimizedImage
+            src={sauna.image}
+            alt={sauna.name}
+            className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+            sizeConfig="hero"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+
+          <div className="absolute top-4 left-4">
+            <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+              {resolveCategoryLabel(sauna.category, 'sauna')}
+            </span>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-white/80">Wellness Collection</p>
+          </div>
+        </div>
+
+        <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5 flex-1 flex flex-col">
+          <div>
+            <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+              {sauna.name}
+            </h3>
+
+            <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+                <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
+                  ${(sauna.price * priceMultiplier).toLocaleString()}
+                </p>
+                {projectType === 'commercial' && (
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Commercial Rate</p>
+                )}
+                <InstallationNote className="mt-2 !text-[9px]" />
               </div>
-              
-              {/* Price badge - top right */}
-              <div className="absolute top-4 right-4 z-10">
-                <div className="bg-white/95 dark:bg-black/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-xl border border-amber-200 dark:border-amber-800">
-                  <div className="text-xs text-muted-foreground">From</div>
-                  <div className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                    ${(sauna.price * priceMultiplier).toLocaleString()}
-                  </div>
-                  <InstallationNote className="mt-2 !text-[9px]" />
-                  {projectType === 'commercial' && (
-                    <div className="text-xs text-amber-600 font-medium">Commercial</div>
-                  )}
-                </div>
-              </div>
+              <p className="text-right text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                {sauna.dimensions}
+              </p>
             </div>
-          </CardHeader>
+          </div>
 
-          <CardContent className="p-4 space-y-4 relative z-10 flex-1 flex flex-col">
-            {/* Title and specs - moved from image overlay */}
-            <div>
-              <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                {sauna.name}
-              </h3>
-              <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                <div className="flex items-center gap-1.5">
-                  <Users className="h-4 w-4 text-amber-600" />
-                  <span>{sauna.capacity}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Zap className="h-4 w-4 text-orange-600" />
-                  <span>{sauna.heaterPower}</span>
-                </div>
-              </div>
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+            {sauna.description}
+          </p>
+
+          <dl className="divide-y divide-border/60 border-y border-border/60 text-sm">
+            <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Capacity</dt>
+              <dd className="text-right text-foreground">{sauna.capacity}</dd>
             </div>
+            <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Heater</dt>
+              <dd className="text-right text-foreground">{sauna.heaterPower}</dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Installation</dt>
+              <dd className="text-right text-foreground">{sauna.installationTime}</dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Warranty</dt>
+              <dd className="text-right text-foreground">{sauna.warranty}</dd>
+            </div>
+          </dl>
 
-            {/* Description */}
-            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-              {sauna.description}
-            </p>
-
-            {/* Key specs grid */}
-            <div className="grid grid-cols-2 gap-3 p-4 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg border border-amber-200/50 dark:border-amber-800/50">
-              <div className="flex items-start gap-2">
-                <Clock className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <div className="text-xs text-muted-foreground">Installation</div>
-                  <div className="text-xs font-medium">{sauna.installationTime}</div>
+          <div className="space-y-2 flex-1">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">Highlights</p>
+            <div className="grid grid-cols-1 gap-1.5">
+              {sauna.features.slice(0, 4).map((feature, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <div className="mt-1.5 h-1 w-1 rounded-full bg-foreground/60 flex-shrink-0" />
+                  <span className="text-xs text-muted-foreground leading-tight">{feature}</span>
                 </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <ShieldCheck className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <div className="text-xs text-muted-foreground">Warranty</div>
-                  <div className="text-xs font-medium">{sauna.warranty}</div>
-                </div>
-              </div>
+              ))}
             </div>
+          </div>
 
-            {/* Features showcase - fixed height for consistency */}
-            <div className="space-y-3 flex-1">
-              <div className="flex items-center gap-2">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
-                <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Premium Features</p>
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {sauna.features.slice(0, 4).map((feature, index) => (
-                  <div key={index} className="flex items-start gap-2 p-2 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <Flame className="h-3.5 w-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <span className="text-xs text-foreground/80 leading-tight line-clamp-2">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="pt-3 border-t border-border/60 mt-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDetails(!showDetails)}
+              className="w-full flex items-center justify-between rounded-none text-[10px] uppercase tracking-[0.3em]"
+            >
+              <span>Additional Features</span>
+              {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </div>
 
-            {/* Additional Features Toggle - pushed to bottom of content */}
-            <div className="pt-3 border-t mt-auto">
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDetails(!showDetails)}
-                className="w-full flex items-center justify-between rounded-none"
-              >
-                <span className="text-xs font-semibold">Additional Features</span>
-                {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </Button>
-            </div>
-
-          {/* Sauna-specific configuration options */}
           {showDetails && (
-            <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-4 pt-4 border-t border-border/60">
               <DynamicFeatureRenderer
                 productType="sauna"
                 selectedExtras={extras}
                 onExtrasChange={setExtras}
               />
               {extrasTotal > 0 && (
-                <div className="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 px-3 py-2">
-                  <span className="text-xs font-medium text-amber-800 dark:text-amber-300">Selected options</span>
-                  <span className="text-sm font-bold text-amber-700 dark:text-amber-400">+${extrasTotal.toLocaleString()}</span>
+                <div className="flex items-center justify-between border-t border-border/60 pt-3">
+                  <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Selected options</span>
+                  <span className="font-serif text-lg font-light text-foreground">+${extrasTotal.toLocaleString()}</span>
                 </div>
               )}
-              <div className="rounded-lg bg-muted/40 border px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Included at no extra cost</p>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <div className="border-t border-border/60 pt-3">
+                <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground mb-1">Included at no extra cost</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Kiln-dried wood construction, heater with sauna stones, control unit, interior LED lighting,
                   ergonomic benches, ventilation, delivery, permits and professional installation.
                 </p>
               </div>
             </div>
           )}
-          </CardContent>
+        </CardContent>
 
-          <InstallationNote className="px-4 pb-2" />
-          <CardFooter className="p-4 pt-0 flex gap-2 mt-auto">
-            <Button 
-              onClick={() => setShowQuote(true)}
-              className="flex-1 instant-quote-btn transition-all duration-300 rounded-none"
-              size="sm"
-            >
-              Get Instant Quote
-            </Button>
-            <Button className="rounded-none"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSalesPricing(true)}
-              aria-label="Sales team pricing"
-              title="Sales team access"
-            >
-              <Lock className="h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </div>
-      </Card>
+        <CardFooter className="p-4 sm:p-5 lg:p-7 pt-0 flex gap-2 mt-auto">
+          <Button
+            onClick={() => setShowQuote(true)}
+            className="flex-1 instant-quote-btn transition-all duration-300 rounded-none bg-foreground text-background text-[10px] uppercase tracking-[0.3em] hover:bg-foreground/90"
+            size="sm"
+          >
+            Get Instant Quote
+          </Button>
+          <Button
+            className="rounded-none"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSalesPricing(true)}
+            aria-label="Sales team pricing"
+            title="Sales team access"
+          >
+            <Lock className="h-4 w-4" />
+          </Button>
+        </CardFooter>
+      </div>
 
       <SaunaSalesPricingDialog
         open={showSalesPricing}

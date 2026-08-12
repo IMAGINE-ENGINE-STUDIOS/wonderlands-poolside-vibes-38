@@ -88,7 +88,7 @@ const PatioFencingSection = () => {
   };
   const getColorName = () => colorOptions.find(c => c.id === selectedColor)?.name || "Basic Black";
   return <>
-      <section className="py-12 px-4 bg-gradient-to-br from-background to-muted/30">
+      <section className="py-12 px-4 bg-background">
         <div className="max-w-7xl mx-auto">
           <EditorialSectionHeader
           eyebrow="Volume VIII — Boundary"
@@ -97,47 +97,43 @@ const PatioFencingSection = () => {
         />
 
           <ProductScrollRow className="mb-8">
-            {fencingOptions.map(fencing => <Card key={fencing.height} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleFencingClick(fencing)}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge className={`${fencing.height === '56' ? 'bg-gradient-to-r from-coral to-orange' : 'bg-gradient-to-r from-primary to-teal'} text-white font-medium px-3 py-1`}>
+            {fencingOptions.map(fencing => <Card key={fencing.height} className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer" onClick={() => handleFencingClick(fencing)}>
+                <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
+                  <img loading="lazy" decoding="async" alt={fencing.name} className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]" src="/lovable-uploads/96e12412-10ac-45a5-b879-6ed8fc8e8046.webp" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
                       {fencing.height}" Height
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {fencing.name}
-                  </CardTitle>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="w-full h-48 rounded-lg overflow-hidden border-2 border-muted">
-                    <img loading="lazy" decoding="async" alt={fencing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" src="/lovable-uploads/96e12412-10ac-45a5-b879-6ed8fc8e8046.webp" />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-teal" />
-                    <span className="text-2xl font-bold text-foreground">
-                      ${fencing.pricePerLinearFt}/linear ft
                     </span>
+                  </div>
+                </div>
+
+                <CardContent className="p-4 sm:p-5 space-y-4">
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                    {fencing.name}
+                  </h3>
+
+                  <div className="flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Rate</p>
+                      <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">${fencing.pricePerLinearFt}<span className="text-sm text-muted-foreground">/linear ft</span></p>
+                    </div>
                   </div>
 
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {fencing.description}
                   </p>
 
-                  <Separator />
-
-                  <div className="space-y-1">
-                    {fencing.features.slice(0, 2).map((feature, idx) => <div key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                  <div className="space-y-1 border-t border-border/60 pt-3">
+                    {fencing.features.slice(0, 2).map((feature, idx) => <p key={idx} className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
                         {feature}
-                      </div>)}
+                      </p>)}
                   </div>
 
                   <Button onClick={e => {
                 e.stopPropagation();
                 handleFencingClick(fencing);
-              }} variant="default" className="w-full hover:scale-105 transition-all duration-300 rounded-none" size="sm">
+              }} variant="default" className="w-full rounded-none bg-foreground text-background text-[10px] uppercase tracking-[0.3em] hover:bg-foreground/90" size="sm">
                     <Calculator className="h-4 w-4 mr-2" />
                     Calculate Price
                   </Button>

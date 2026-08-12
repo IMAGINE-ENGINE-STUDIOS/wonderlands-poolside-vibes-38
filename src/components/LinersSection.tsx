@@ -125,50 +125,43 @@ const LinersSection = ({
         />
 
             <ProductScrollRow className="mb-8">
-              {getProductsByCategory('liner').map((liner, index) => <Card key={liner.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
-                        {/* Full Background Image */}
-                        <div className="relative h-56 sm:h-64 overflow-hidden">
-                          <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-                            <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
-                              <Badge className={`${getTypeColor(liner.subcategory || 'Glass')} text-white capitalize font-medium px-2 py-0.5 sm:px-3 sm:py-1 text-xs sm:text-sm`}>
-                                <span className="flex items-center gap-1">
-                                  {getTypeIcon(liner.subcategory || 'Glass')}
-                                  {liner.subcategory}
-                                </span>
-                              </Badge>
-                            </div>
-                            <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 text-white">
-                              <CardTitle className="text-base sm:text-lg font-semibold mb-1.5 sm:mb-2 line-clamp-1">
-                                {liner.name}
-                              </CardTitle>
-                              <div className="space-y-0.5 sm:space-y-1 mb-1.5 sm:mb-2">
-                                <div className="flex items-center gap-1.5 sm:gap-2">
-                                  <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-teal flex-shrink-0" />
-                                  <span className="text-sm sm:text-lg font-bold truncate">
-                                    ${liner.price}/sqft installed
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1.5 sm:gap-2">
-                                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-teal flex-shrink-0" />
-                                  <span className="text-xs sm:text-sm font-medium text-white/90 truncate">
-                                    ${liner.originalPrice}/sheet material
-                                  </span>
-                                </div>
-                              </div>
-                              <p className="text-xs sm:text-sm text-white/80 line-clamp-2">
-                                {liner.description}
-                              </p>
-                            </div>
+              {getProductsByCategory('liner').map((liner, index) => <Card key={liner.name} className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
+                        {/* Edge-to-edge image */}
+                        <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
+                          <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                          <div className="absolute top-4 left-4">
+                            <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                              {liner.subcategory}
+                            </span>
                           </div>
                         </div>
-                        
-                        <CardContent className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 pb-3 sm:pb-4 px-3 sm:px-6">
-                          {/* Action Button */}
+
+                        <CardContent className="p-4 sm:p-5 lg:p-7 space-y-4">
+                          <div>
+                            <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground line-clamp-1">
+                              {liner.name}
+                            </h3>
+                            <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
+                              {liner.description}
+                            </p>
+                          </div>
+
+                          <dl className="divide-y divide-border/60 border-y border-border/60 text-sm">
+                            <div className="flex items-baseline justify-between gap-4 py-2.5">
+                              <dt className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Installed</dt>
+                              <dd className="font-serif text-lg font-light text-foreground">${liner.price}/sqft</dd>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-4 py-2.5">
+                              <dt className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Material</dt>
+                              <dd className="font-serif text-lg font-light text-foreground">${liner.originalPrice}/sheet</dd>
+                            </div>
+                          </dl>
+
                           <Button onClick={e => {
                       e.stopPropagation();
                       handleLinerClick(liner);
-                    }} variant="default" className="w-full hover:scale-105 transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5 rounded-none" size="sm">
+                    }} variant="default" className="w-full rounded-none text-[10px] uppercase tracking-[0.3em]" size="sm">
                             View Details
                           </Button>
                         </CardContent>

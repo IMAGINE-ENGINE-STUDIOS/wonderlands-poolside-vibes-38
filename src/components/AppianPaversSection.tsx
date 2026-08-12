@@ -44,59 +44,56 @@ const AppianPaversSection = () => {
           {appianPavers.map((paver) => (
             <Card 
               key={paver.id} 
-              className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer"
+              className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer"
               onClick={() => handlePaverClick(paver)}
             >
-              <div className="relative overflow-hidden rounded-t-lg">
+              <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden group/image">
                 <img loading="lazy" decoding="async"
                   src={paver.image}
                   alt={paver.name}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover/image:scale-[1.06]"
                 />
-                <Badge className="absolute top-3 left-3 bg-primary text-white">
-                  Premium
-                </Badge>
-                <div className="absolute top-3 right-3">
-                  <div className="flex items-center gap-1 bg-white/90 rounded-full px-2 py-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={12} fill="#fbbf24" className="text-amber-400" />
-                    ))}
-                  </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                <div className="absolute top-4 left-4">
+                  <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                    Premium
+                  </span>
                 </div>
               </div>
               
-              <CardContent className="p-4">
-                <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">
-                  {paver.name}
-                </h3>
-                
-                <p className="text-muted-foreground text-sm mb-3">
-                  {paver.description}
-                </p>
-                
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-primary font-bold">
-                    ${paver.basePrice}/sq ft base
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
+              <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5">
+                <div>
+                  <p className="mb-2 text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
                     Appian Collection
-                  </Badge>
+                  </p>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                    {paver.name}
+                  </h3>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {paver.description}
+                  </p>
+                  <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Base Price</p>
+                      <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">${paver.basePrice}/sq ft</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-2 mb-4">
-                  <p className="text-xs font-semibold">Available Colors:</p>
+                <div className="space-y-2">
+                  <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Available Colors</p>
                   <div className="flex gap-1 flex-wrap">
                     {paver.colors.slice(0, 3).map((color) => (
                       <div 
                         key={color.name}
-                        className="w-6 h-6 rounded border-2 border-white shadow-sm"
+                        className="w-6 h-6 border border-border"
                         style={{ backgroundColor: color.hex }}
                         title={color.name}
                       />
                     ))}
                     {paver.colors.length > 3 && (
-                      <div className="w-6 h-6 rounded border-2 border-border bg-muted flex items-center justify-center">
-                        <span className="text-xs">+{paver.colors.length - 3}</span>
+                      <div className="w-6 h-6 border border-border bg-muted flex items-center justify-center">
+                        <span className="text-[9px]">+{paver.colors.length - 3}</span>
                       </div>
                     )}
                   </div>
@@ -107,10 +104,9 @@ const AppianPaversSection = () => {
                     e.stopPropagation();
                     handleRequestQuote(paver);
                   }}
-                  className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90 rounded-none"
+                  className="w-full rounded-none text-[10px] uppercase tracking-[0.3em] bg-foreground text-background hover:bg-foreground/90"
                   size="sm"
                 >
-                  <Calculator className="h-4 w-4 mr-2" />
                   Get Quote
                 </Button>
               </CardContent>

@@ -58,59 +58,66 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group h-full flex flex-col">
-        <div className="relative overflow-hidden aspect-[4/3]">
+      <Card className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] h-full flex flex-col">
+        <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden">
           <img
             src={gate.image}
             alt={gate.model}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
             loading="lazy"
           />
-          <Badge className="absolute top-4 right-4 bg-primary/90 backdrop-blur-sm">
-            {gate.brand}
-          </Badge>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+          <div className="absolute top-4 left-4">
+            <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+              {gate.brand}
+            </span>
+          </div>
         </div>
-        
-        <CardContent className="p-4 flex-1">
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold line-clamp-1">{gate.model}</h3>
-            <p className="text-sm text-muted-foreground font-medium">
+
+        <CardContent className="p-4 sm:p-5 lg:p-7 space-y-4 flex-1">
+          <div>
+            <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground line-clamp-1">
+              {gate.model}
+            </h3>
+            <p className="mt-2 text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
               {gate.baseDimensions}
             </p>
-            <p className="text-xs text-muted-foreground line-clamp-2">{gate.description}</p>
-            <div className="flex flex-wrap items-baseline gap-1 pt-2">
-              <span className="text-xl font-bold text-primary">
-                ${(gate.basePrice * priceMultiplier).toLocaleString()}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                incl. installation
-              </span>
+            <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{gate.description}</p>
+
+            <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+                <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
+                  ${(gate.basePrice * priceMultiplier).toLocaleString()}
+                </p>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Incl. installation</p>
+              </div>
               {projectType === 'commercial' && (
-                <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/30">Commercial</Badge>
+                <p className="text-right text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Commercial</p>
               )}
             </div>
             {gate.deliveryTime && (
-              <p className="text-xs font-medium text-green-600">
+              <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                 {gate.deliveryTime}
               </p>
             )}
           </div>
         </CardContent>
 
-        <InstallationNote className="mb-2" />
-        <CardFooter className="p-4 pt-0 flex flex-col gap-2 mt-auto">
+        <InstallationNote className="mb-2 px-4 sm:px-5 lg:px-7" />
+        <CardFooter className="p-4 sm:p-5 lg:p-7 pt-0 flex flex-col gap-2 mt-auto">
           <div className="flex gap-2 w-full">
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 text-xs rounded-none"
+              className="flex-1 rounded-none text-[10px] uppercase tracking-[0.3em]"
               onClick={() => setShowDetails(true)}
             >
               View Details
             </Button>
             <Button
               size="sm"
-              className="flex-1 text-xs rounded-none"
+              className="flex-1 rounded-none text-[10px] uppercase tracking-[0.3em]"
               onClick={() => setShowDetails(true)}
             >
               Configure
@@ -118,7 +125,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
           </div>
           <Button
             size="sm"
-            className="w-full gap-2 instant-quote-btn transition-all duration-300 text-xs rounded-none"
+            className="w-full gap-2 instant-quote-btn rounded-none text-[10px] uppercase tracking-[0.3em]"
             onClick={() => setShowQuoteTool(true)}
           >
             <FileText className="h-3 w-3" />

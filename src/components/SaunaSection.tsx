@@ -3,7 +3,7 @@ import SaunaProductCard from "./SaunaProductCard";
 import ProductScrollRow from "./ProductScrollRow";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 const SaunaSection = () => {
-  return <section className="py-12 bg-gradient-to-br from-amber-50/30 via-orange-50/30 to-background">
+  return <section className="py-12 bg-background">
       <div className="container mx-auto px-4">
         <EditorialSectionHeader
           eyebrow="Volume III — Heat"
@@ -17,13 +17,14 @@ const SaunaSection = () => {
 
 
         <div className="mt-12 text-center">
-          <div className="inline-block bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-6 max-w-3xl">
-            <h3 className="text-xl font-bold mb-2 text-amber-600"> Special Sauna Bundle Offers</h3>
+          <div className="inline-block border border-border/70 p-6 max-w-3xl">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground mb-2">Special Offer</p>
+            <h3 className="font-serif text-xl font-light mb-2 text-foreground">Sauna Bundle Offers</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Add a sauna to your premium pool purchase (Astoria, Genesis, Claremont, or Extreme 38 models over $70,000) 
               and get exclusive pricing or complimentary installation!
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               * Offer valid for eligible pool purchases. See product cards for details.
             </p>
           </div>

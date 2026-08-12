@@ -84,54 +84,49 @@ const ScreenEnclosureSection = () => {
         />
 
           <ProductScrollRow className="mb-8">
-            {screenEnclosureOptions.map((enclosure) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleEnclosureClick(enclosure)}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge className={`${enclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : 'bg-gradient-to-r from-secondary to-accent'} text-white capitalize font-medium px-3 py-1`}>
+            {screenEnclosureOptions.map((enclosure) => <Card key={enclosure.name} className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer h-full" onClick={() => handleEnclosureClick(enclosure)}>
+                <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden">
+                  <img loading="lazy" decoding="async" src={enclosure.image} alt={enclosure.name} className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm capitalize">
                       {enclosure.type}
-                    </Badge>
-                    
-                  </div>
-                  
-                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {enclosure.name}
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  {/* Enclosure Preview */}
-                  <div className="w-full h-48 rounded-lg overflow-hidden border-2 border-muted">
-                    <img loading="lazy" decoding="async" src={enclosure.image} alt={enclosure.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                  </div>
-                  
-                  {/* Price */}
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-teal" />
-                    <span className="text-2xl font-bold text-foreground">
-                      ${enclosure.pricePerSqFt}/sq ft
                     </span>
                   </div>
-                  
+                </div>
+
+                <CardContent className="p-4 sm:p-5 lg:p-7 space-y-4">
+                  <div>
+                    <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                      {enclosure.name}
+                    </h3>
+                    <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Rate</p>
+                        <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
+                          ${enclosure.pricePerSqFt}<span className="text-sm">/sq ft</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Description */}
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {enclosure.description}
                   </p>
-                  
-                  <Separator />
-                  
+
                   {/* Features */}
-                  <div className="space-y-1">
-                    {enclosure.features.slice(0, 2).map((feature, idx) => <div key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                        {feature}
+                  <dl className="divide-y divide-border/60 border-y border-border/60 text-sm">
+                    {enclosure.features.slice(0, 2).map((feature, idx) => <div key={idx} className="flex items-baseline justify-between gap-4 py-2.5">
+                        <dd className="text-muted-foreground">{feature}</dd>
                       </div>)}
-                  </div>
-                  
+                  </dl>
+
                   {/* Action Button */}
                   <Button onClick={e => {
                 e.stopPropagation();
                 handleEnclosureClick(enclosure);
-              }} variant="default" className="w-full hover:scale-105 transition-all duration-300 rounded-none" size="sm">
+              }} variant="default" className="w-full rounded-none text-[10px] uppercase tracking-[0.3em]" size="sm">
                     <Calculator className="h-4 w-4 mr-2" />
                     Calculate Price
                   </Button>

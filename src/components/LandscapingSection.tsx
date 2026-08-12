@@ -128,7 +128,7 @@ const LandscapingSection = () => {
 
   return (
     <>
-      <section className="py-12 bg-gradient-to-br from-emerald-50/40 via-background to-background">
+      <section className="py-12 bg-background">
         <div className="container mx-auto px-4">
           <EditorialSectionHeader
             eyebrow="Volume XIII — Planting"
@@ -644,35 +644,40 @@ const LandscapingSection = () => {
               return (
                 <Card
                   key={plant.id}
-                  className="overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col"
+                  className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer flex flex-col"
                   onClick={() => openPlant(plant)}
                 >
-                  <div className="aspect-square overflow-hidden bg-muted relative">
+                  <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-muted">
                     <PlantImage
                       src={plant.image}
                       alt={plant.name}
                       fallback={landscapingCategoryImages[plant.category]}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                        {plant.category}
+                      </span>
+                    </div>
                     {variantCount > 1 && (
-                      <Badge className="absolute top-2 right-2 bg-emerald-700 text-white text-[10px] px-1.5 py-0">
-                        {variantCount} options
-                      </Badge>
+                      <div className="absolute top-4 right-4">
+                        <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                          {variantCount} options
+                        </span>
+                      </div>
                     )}
                   </div>
-                  <CardContent className="p-3 flex-1 flex flex-col">
-                    <Badge variant="outline" className="self-start mb-2 text-[10px] px-1.5 py-0">
-                      {plant.category}
-                    </Badge>
-                    <h3 className="text-sm font-semibold leading-snug line-clamp-2 mb-2 min-h-[2.5rem]">
+                  <CardContent className="p-4 sm:p-5 flex-1 flex flex-col space-y-4">
+                    <h3 className="font-serif text-xl sm:text-2xl font-light leading-[1.05] tracking-tight text-foreground line-clamp-2 min-h-[2.5rem]">
                       {plant.name}
                     </h3>
-                    <div className="mt-auto">
-                      <p className="text-xs text-muted-foreground">Starting at</p>
-                      <p className="text-lg font-bold text-emerald-700">
+                    <div className="mt-auto border-t border-border/60 pt-4">
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Starting at</p>
+                      <p className="font-serif text-2xl font-light text-foreground">
                         {formatPrice(plant.minPrice)}
                       </p>
-                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs">
+                      <Button size="sm" variant="outline" className="w-full mt-3 rounded-none text-[10px] uppercase tracking-[0.3em]">
                         {variantCount > 1 ? "View Options" : "View Sizes"}
                       </Button>
                     </div>
