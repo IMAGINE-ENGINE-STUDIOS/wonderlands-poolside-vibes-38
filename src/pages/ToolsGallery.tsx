@@ -411,9 +411,11 @@ const Highlights = ({ items, tone = "light" }: { items: string[]; tone?: "light"
 
 /* --------------------------------- stages --------------------------------- */
 
+const DELAY_CLASS: Record<number, string> = { 0: "", 120: "delay-100", 140: "delay-150", 160: "delay-150", 200: "delay-200" };
+
 const reveal = (shown: boolean, delay = 0) =>
   `transition-all duration-[900ms] ease-out ${shown ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} ${
-    delay ? `[transition-delay:${delay}ms]` : ""
+    DELAY_CLASS[delay] ?? ""
   }`;
 
 const CinemaStage = ({ tool }: { tool: ToolSample }) => {
