@@ -200,7 +200,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
           )}
           </CardContent>
 
-          <InstallationNote className="mb-2" />
+          <InstallationNote className="px-4 pb-2" />
           <CardFooter className="p-4 pt-0 flex gap-2 mt-auto">
             <Button 
               onClick={() => setShowQuote(true)}
