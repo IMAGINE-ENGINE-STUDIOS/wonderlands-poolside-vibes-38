@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight, Droplets, Cpu } from "lucide-react";
+import { Waves, Sparkles, Flame, Plus, Sun, Droplets, Cpu } from "lucide-react";
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
