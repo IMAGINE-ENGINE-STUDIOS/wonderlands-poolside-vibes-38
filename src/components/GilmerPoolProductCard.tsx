@@ -36,6 +36,7 @@ import grassDarkGreenImage from "@/assets/grass-dark-green.avif";
 import grassNaturalGreenImage from "@/assets/grass-natural-green.avif";
 import grassEmeraldImage from "@/assets/grass-emerald.avif";
 import grassOliveImage from "@/assets/grass-olive.avif";
+import InstallationNote from "@/components/InstallationNote";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: { price: number }) => {
@@ -786,6 +787,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
         <Separator />
 
         {/* Add to Cart Button */}
+        <InstallationNote className="mb-2" />
         <div className="flex gap-2">
           <Button 
             onClick={() => setShowQuoteTool(true)} 

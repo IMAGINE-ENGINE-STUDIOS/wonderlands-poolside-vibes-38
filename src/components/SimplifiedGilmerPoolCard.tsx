@@ -42,6 +42,7 @@ interface SimplifiedGilmerPoolCardProps {
 import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.webp";
 import maldivesImage from "@/assets/maldiveskit-castlerock.webp";
 import serenityImage from "@/assets/serenitykit.webp";
+import InstallationNote from "@/components/InstallationNote";
 
 interface GilmerOptions {
   colorFinish: string;
@@ -890,6 +891,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 </div>
               </div>
 
+              <InstallationNote className="mb-2" />
               <div className="flex gap-2">
                 <Button 
                   onClick={() => {

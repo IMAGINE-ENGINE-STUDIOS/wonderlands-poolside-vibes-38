@@ -95,6 +95,7 @@ const ledgeHeaters = [{
 
 // Import pool finishes from consolidated products
 import { getProductsByCategory } from '@/data/consolidatedProducts';
+import InstallationNote from "@/components/InstallationNote";
 
 // Convert pool finishes data to finish options format
 const finishOptions = getProductsByCategory('finish').map(finish => ({
@@ -437,6 +438,7 @@ const TanningLedgeProductCard = ({
             
             {/* Action Buttons */}
             <div className="space-y-2">
+              <InstallationNote className="mb-2" />
               <div className="flex gap-2">
                 <Button onClick={() => {
               // Create extras breakdown for quote

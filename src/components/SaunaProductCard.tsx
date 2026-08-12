@@ -10,6 +10,7 @@ import { getProductFeatures, calculateFeaturePrice } from "@/config/productFeatu
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { resolveCategoryLabel } from '@/lib/productCategories';
 import SaunaSalesPricingDialog from "./sauna/SaunaSalesPricingDialog";
+import InstallationNote from "@/components/InstallationNote";
 
 interface SaunaProductCardProps {
   sauna: {
@@ -199,6 +200,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
           )}
           </CardContent>
 
+          <InstallationNote className="mb-2" />
           <CardFooter className="p-4 pt-0 flex gap-2 mt-auto">
             <Button 
               onClick={() => setShowQuote(true)}

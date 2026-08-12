@@ -10,6 +10,7 @@ import { Edit, ShoppingCart, DollarSign, Waves, Eye, ExternalLink, FileText } fr
 import { useShoppingCart } from './ShoppingCartProvider';
 import { useProjectType } from '@/contexts/ProjectTypeContext';
 import SurveyQuoteTool from './SurveyQuoteTool';
+import InstallationNote from "@/components/InstallationNote";
 
 interface SmartProductCardProps {
   id: string;
@@ -258,6 +259,7 @@ const SmartProductCard = ({
           </div>
 
           {/* Action Buttons */}
+          <InstallationNote className="mb-2" />
           <div className="flex gap-2 pt-2 flex-wrap">
             <Button 
               onClick={() => setShowOptions(true)}

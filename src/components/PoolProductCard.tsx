@@ -169,6 +169,7 @@ const getExtraPrice = (extra: string) => {
 // Import pool finishes and liners from consolidated products
 import { getProductsByCompatiblePool } from "@/data/consolidatedProducts";
 import { poolLiners, poolTiles } from "@/data/poolData";
+import InstallationNote from "@/components/InstallationNote";
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false, priority = false }: PoolProductCardProps) => {
   const { priceMultiplier, projectType } = useProjectType();
@@ -1821,6 +1822,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
             {/* Action Buttons */}
             <div className="space-y-2">
+              <InstallationNote className="mb-2" />
               <div className="flex gap-2">
                 <Button 
                   onClick={() => {

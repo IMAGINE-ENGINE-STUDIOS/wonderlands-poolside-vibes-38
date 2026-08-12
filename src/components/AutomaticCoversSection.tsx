@@ -7,6 +7,7 @@ import { Shield, Zap, Leaf, Settings, DollarSign, Star, Droplets, Thermometer, B
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
 import EditorialSectionHeader from "./EditorialSectionHeader";
+import InstallationNote from "@/components/InstallationNote";
 interface AutomaticCover {
   name: string;
   price: number;
@@ -146,6 +147,7 @@ const AutomaticCoversSection = () => {
                   </CardTitle>
                 </CardHeader>
                 
+                <InstallationNote className="mb-2" />
                 <CardContent className="space-y-4">
                   {/* Cover Image */}
                   <div className="aspect-video overflow-hidden rounded-lg bg-muted/30">

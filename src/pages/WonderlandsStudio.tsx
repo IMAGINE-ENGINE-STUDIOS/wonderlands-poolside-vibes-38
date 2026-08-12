@@ -284,6 +284,7 @@ const tileOptions = poolTilesData.map(tile => ({
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
+import InstallationNote from "@/components/InstallationNote";
 
 // Paver options - using consolidated data + existing paverTypes
 const paverOptions = [{
@@ -3611,6 +3612,7 @@ const WonderlandsStudio = () => {
                     <Separator />
 
                     {/* Action Buttons */}
+                    <InstallationNote className="mb-2" />
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                       <Button onClick={handleQuoteRequest} className="flex-1 instant-quote-btn text-xs sm:text-sm transition-all duration-300">
                         <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />

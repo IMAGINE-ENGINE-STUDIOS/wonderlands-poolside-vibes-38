@@ -130,6 +130,7 @@ const finishOptions = getProductsByCategory('finish').map(finish => ({
 
 // Import pool liners from PoolCatalog
 import { poolLiners, poolTiles } from '@/data/poolData';
+import InstallationNote from "@/components/InstallationNote";
 
 // Pool heater options for spas (spa-specific pricing)
 const spaHeaters = [{
@@ -755,6 +756,7 @@ const SpaProductCard = ({
         
         {/* Action Buttons - Only when expanded */}
         {showDetails && <div className="space-y-2">
+          <InstallationNote className="mb-2" />
           <div className="grid grid-cols-2 gap-2">
             
             <Button variant="outline" size="sm" onClick={() => {
