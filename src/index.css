@@ -157,23 +157,24 @@
   }
   
   .instant-quote-btn {
-    background: linear-gradient(90deg, 
-      hsl(12 76% 61%), 
-      hsl(27 87% 67%), 
-      hsl(12 76% 61%), 
-      hsl(27 87% 67%)
-    );
-    background-size: 300% 100%;
-    animation: gradient-cycle 30s ease-in-out infinite;
-    color: white;
-    font-weight: 600;
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+    font-weight: 500;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
     border: none;
+    border-radius: 0;
+    animation: none;
   }
-  
+
   .instant-quote-btn:hover {
-    filter: brightness(1.1);
-    transform: scale(1.02);
+    background: hsl(var(--foreground) / 0.85);
+    color: hsl(var(--background));
+    filter: none;
+    transform: none;
   }
+
   /* Spaceship Command Center Effects */
   .holographic-panel {
     position: relative;
