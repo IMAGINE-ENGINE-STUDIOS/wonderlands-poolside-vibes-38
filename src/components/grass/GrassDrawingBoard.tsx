@@ -155,6 +155,93 @@ const rect = (x: number, y: number, w: number, h: number): GrassPoint[] => [
   { x, y: y + h },
 ];
 
+/**
+ * Turns a grass product photo into a seamless repeating tile:
+ * 1. trims the white studio border (which otherwise tiles as white grid lines)
+ * 2. insets a few percent to drop soft vignette edges
+ * 3. mirrors the crop 2x2 so opposite edges always match
+ */
+function buildSeamlessTile(img: HTMLImageElement): HTMLCanvasElement | null {
+  const iw = img.naturalWidth || img.width;
+  const ih = img.naturalHeight || img.height;
+  if (!iw || !ih) return null;
+
+  const probe = document.createElement('canvas');
+  const max = 512;
+  const s = Math.min(1, max / Math.max(iw, ih));
+  probe.width = Math.max(1, Math.round(iw * s));
+  probe.height = Math.max(1, Math.round(ih * s));
+  const pctx = probe.getContext('2d', { willReadFrequently: true });
+  if (!pctx) return null;
+  pctx.drawImage(img, 0, 0, probe.width, probe.height);
+
+  // find bounding box of non-white content
+  let x0 = 0, y0 = 0, x1 = probe.width - 1, y1 = probe.height - 1;
+  try {
+    const { data } = pctx.getImageData(0, 0, probe.width, probe.height);
+    const isContent = (px: number, py: number) => {
+      const i = (py * probe.width + px) * 4;
+      return data[i] + data[i + 1] + data[i + 2] < 720 && data[i + 3] > 8;
+    };
+    const rowHas = (py: number) => {
+      for (let px = 0; px < probe.width; px += 2) if (isContent(px, py)) return true;
+      return false;
+    };
+    const colHas = (px: number) => {
+      for (let py = 0; py < probe.height; py += 2) if (isContent(px, py)) return true;
+      return false;
+    };
+    while (y0 < y1 && !rowHas(y0)) y0++;
+    while (y1 > y0 && !rowHas(y1)) y1--;
+    while (x0 < x1 && !colHas(x0)) x0++;
+    while (x1 > x0 && !colHas(x1)) x1--;
+  } catch {
+    // cross-origin / unreadable: fall back to the full image
+  }
+
+  // map back to source pixels and inset 3% to shed soft edges
+  const scale = 1 / s;
+  let sx = x0 * scale;
+  let sy = y0 * scale;
+  let sw = (x1 - x0 + 1) * scale;
+  let sh = (y1 - y0 + 1) * scale;
+  const inset = 0.03;
+  sx += sw * inset;
+  sy += sh * inset;
+  sw *= 1 - inset * 2;
+  sh *= 1 - inset * 2;
+  if (sw < 8 || sh < 8) {
+    sx = 0; sy = 0; sw = iw; sh = ih;
+  }
+
+  // square, capped quarter used for the mirrored tile
+  const q = Math.max(32, Math.min(256, Math.round(Math.min(sw, sh) / 2)));
+  const tile = document.createElement('canvas');
+  tile.width = q * 2;
+  tile.height = q * 2;
+  const tctx = tile.getContext('2d');
+  if (!tctx) return null;
+  tctx.imageSmoothingQuality = 'high';
+
+  // top-left quarter
+  tctx.drawImage(img, sx, sy, Math.min(sw, sh), Math.min(sw, sh), 0, 0, q, q);
+  // mirror horizontally, vertically and both
+  tctx.save();
+  tctx.translate(tile.width, 0);
+  tctx.scale(-1, 1);
+  tctx.drawImage(tile, 0, 0, q, q, 0, 0, q, q);
+  tctx.restore();
+  tctx.save();
+  tctx.translate(0, tile.height);
+  tctx.scale(1, -1);
+  tctx.drawImage(tile, 0, 0, tile.width, q, 0, 0, tile.width, q);
+  tctx.restore();
+
+  return tile;
+}
+
+
+
 const GrassDrawingBoard: React.FC<Props> = ({
   layout,
   onChange,
