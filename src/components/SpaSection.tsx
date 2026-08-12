@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sparkles, Thermometer, Shield, Zap, DollarSign, ShoppingCart, Sun } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
 
 interface Spa {
@@ -129,7 +130,7 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <ProductScrollRow className="mb-8">
             {spas.map((spa, index) => (
               <Card 
                 key={spa.model} 
@@ -197,7 +198,7 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </ProductScrollRow>
         </div>
       </section>
       
