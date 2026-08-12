@@ -128,8 +128,8 @@ const LandscapingSection = () => {
 
   return (
     <>
-      <section className="py-12 bg-gradient-to-br from-emerald-50/40 via-background to-background">
-        <div className="container mx-auto px-4">
+      <section className="py-12 bg-gradient-to-br from-emerald-50/40 via-background to-background rounded-none">
+        <div className="container mx-auto px-4 rounded-none">
           <EditorialSectionHeader
             eyebrow="Volume XIII — Planting"
             title="Landscaping"
@@ -158,15 +158,15 @@ const LandscapingSection = () => {
               `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
             return (
-              <Card className="max-w-5xl mx-auto mb-8 border-emerald-200 shadow-sm">
-                <CardContent className="p-5 space-y-5">
-                  <div className="flex items-center gap-2">
+              <Card className="max-w-5xl mx-auto mb-8 border-emerald-200 shadow-sm rounded-none">
+                <CardContent className="p-5 space-y-5 rounded-none">
+                  <div className="flex items-center gap-2 rounded-none">
                     <FileText className="h-5 w-5 text-emerald-700" />
-                    <h3 className="text-lg font-bold text-emerald-800">Build Your Landscaping Quote</h3>
+                    <h3 className="text-lg font-bold text-emerald-800 rounded-none">Build Your Landscaping Quote</h3>
                   </div>
 
                   {/* Tier picker */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 rounded-none">
                     {TIERS.map((t) => {
                       const isActive = t.id === quoteTier;
                       return (
@@ -180,23 +180,23 @@ const LandscapingSection = () => {
                               : "border-border hover:border-emerald-300"
                           }`}
                         >
-                          <div className="text-xl mb-1">{t.emoji}</div>
-                          <div className="font-semibold text-sm">{t.title}</div>
-                          <div className="text-emerald-700 font-bold text-lg">
+                          <div className="text-xl mb-1 rounded-none">{t.emoji}</div>
+                          <div className="font-semibold text-sm rounded-none">{t.title}</div>
+                          <div className="text-emerald-700 font-bold text-lg rounded-none">
                             ${t.price}
                             {t.id === "luxury" ? "+" : ""}
-                            <span className="text-xs font-normal text-muted-foreground">/sq ft</span>
+                            <span className="text-xs font-normal text-muted-foreground rounded-none">/sq ft</span>
                           </div>
-                          <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
+                          <div className="text-xs text-muted-foreground mt-1 rounded-none">{t.description}</div>
                         </button>
                       );
                     })}
                   </div>
 
                   {/* Sqft + summary */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end rounded-none">
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide rounded-none">
                         Square Footage
                       </label>
                       <Input
@@ -208,21 +208,21 @@ const LandscapingSection = () => {
                         className="mt-1"
                       />
                     </div>
-                    <div className="text-sm">
-                      <div className="text-muted-foreground">Base ({sqft || 0} sq ft × ${tier.price})</div>
-                      <div className="font-semibold text-emerald-800">{fmt(baseCost)}</div>
+                    <div className="text-sm rounded-none">
+                      <div className="text-muted-foreground rounded-none">Base ({sqft || 0} sq ft × ${tier.price})</div>
+                      <div className="font-semibold text-emerald-800 rounded-none">{fmt(baseCost)}</div>
                     </div>
-                    <div className="text-sm">
-                      <div className="text-muted-foreground">Selected Plants</div>
-                      <div className="font-semibold text-emerald-800">{fmt(plantsCost)}</div>
+                    <div className="text-sm rounded-none">
+                      <div className="text-muted-foreground rounded-none">Selected Plants</div>
+                      <div className="font-semibold text-emerald-800 rounded-none">{fmt(plantsCost)}</div>
                     </div>
                   </div>
 
                   {/* Selected plants list */}
                   {Object.keys(quoteItems).length > 0 && (
-                    <div className="border-t pt-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    <div className="border-t pt-4 space-y-2 rounded-none">
+                      <div className="flex items-center justify-between rounded-none">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide rounded-none">
                           Plants in Quote ({Object.keys(quoteItems).length})
                         </p>
                         <Button
@@ -234,11 +234,11 @@ const LandscapingSection = () => {
                           Clear all
                         </Button>
                       </div>
-                      <div className="space-y-1.5 max-h-48 overflow-auto pr-1">
+                      <div className="space-y-1.5 max-h-48 overflow-auto pr-1 rounded-none">
                         {Object.entries(quoteItems).map(([key, it]) => (
                           <div
                             key={key}
-                            className="flex items-center gap-2 p-2 bg-muted/40 rounded-md text-sm"
+                            className="flex items-center gap-2 p-2 bg-muted/40 rounded-md text-sm rounded-none"
                           >
                             <img
                               src={it.image}
@@ -247,14 +247,14 @@ const LandscapingSection = () => {
                               loading="lazy"
                               referrerPolicy="no-referrer"
                             />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium truncate">{it.plantName}</div>
-                              <div className="text-xs text-muted-foreground truncate">
+                            <div className="flex-1 min-w-0 rounded-none">
+                              <div className="font-medium truncate rounded-none">{it.plantName}</div>
+                              <div className="text-xs text-muted-foreground truncate rounded-none">
                                 {it.variantLabel !== "Standard" ? `${it.variantLabel} · ` : ""}
                                 {it.sizeLabel} · {fmt(it.price)} ea
                               </div>
                             </div>
-                            <div className="flex items-center gap-1 border rounded-md bg-background">
+                            <div className="flex items-center gap-1 border rounded-md bg-background rounded-none">
                               <Button
                                 size="icon"
                                 variant="ghost"
@@ -272,7 +272,7 @@ const LandscapingSection = () => {
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="w-6 text-center text-xs font-semibold">{it.qty}</span>
+                              <span className="w-6 text-center text-xs font-semibold rounded-none">{it.qty}</span>
                               <Button
                                 size="icon"
                                 variant="ghost"
@@ -308,11 +308,11 @@ const LandscapingSection = () => {
                   )}
 
                   {/* Customer info */}
-                  <div className="border-t pt-4 space-y-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  <div className="border-t pt-4 space-y-3 rounded-none">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide rounded-none">
                       Your Information
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-none">
                       <Input
                         placeholder="Full name *"
                         value={custName}
@@ -345,9 +345,9 @@ const LandscapingSection = () => {
                   </div>
 
                   {/* Admin unlock & overrides */}
-                  <div className="border-t pt-4">
+                  <div className="border-t pt-4 rounded-none">
                     {!isAdmin ? (
-                      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:items-center rounded-none">
                         <Input
                           type="password"
                           placeholder="Admin passcode"
@@ -355,7 +355,7 @@ const LandscapingSection = () => {
                           onChange={(e) => setPasscode(e.target.value)}
                           className="sm:max-w-xs"
                         />
-                        <Button className="rounded-none"
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
@@ -378,9 +378,9 @@ const LandscapingSection = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-md p-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
+                      <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-md p-3 rounded-none">
+                        <div className="flex items-center justify-between rounded-none">
+                          <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide rounded-none">
                             Admin Overrides Active
                           </p>
                           <Button
@@ -396,9 +396,9 @@ const LandscapingSection = () => {
                             Lock
                           </Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-none">
                           <div>
-                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase rounded-none">
                               Override $/sq ft (optional)
                             </label>
                             <Input
@@ -410,7 +410,7 @@ const LandscapingSection = () => {
                             />
                           </div>
                           <div>
-                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase rounded-none">
                               Override Total (optional)
                             </label>
                             <Input
@@ -427,20 +427,20 @@ const LandscapingSection = () => {
                   </div>
 
                   {/* Total + actions */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t rounded-none">
                     <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold rounded-none">
                         Estimated Total
                       </p>
-                      <p className="text-3xl font-bold text-emerald-700">{fmt(total)}</p>
+                      <p className="text-3xl font-bold text-emerald-700 rounded-none">{fmt(total)}</p>
                       {isAdmin && overrideTotal !== "" && (
-                        <p className="text-[11px] text-amber-700 mt-0.5">
+                        <p className="text-[11px] text-amber-700 mt-0.5 rounded-none">
                           Computed {fmt(computedTotal)} · overridden
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button className="rounded-none"
+                    <div className="flex flex-wrap gap-2 rounded-none">
+                      <Button
                         size="lg"
                         variant="outline"
                         disabled={total <= 0}
@@ -608,15 +608,15 @@ const LandscapingSection = () => {
           })()}
 
           {/* Category filter */}
-          <div className="max-w-5xl mx-auto mb-8">
-            <p className="text-center text-sm text-muted-foreground mb-3">
+          <div className="max-w-5xl mx-auto mb-8 rounded-none">
+            <p className="text-center text-sm text-muted-foreground mb-3 rounded-none">
               Browse the catalog and add plants to your quote
             </p>
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-2 justify-center rounded-none">
               <Badge
                 variant={activeCat === "All" ? "default" : "outline"}
                 onClick={() => setActiveCat("All")}
-                className="cursor-pointer px-4 py-1.5 text-sm"
+                className="cursor-pointer px-4 py-1.5 text-sm rounded-none"
               >
                 All ({landscapingPlants.length})
               </Badge>
@@ -628,7 +628,7 @@ const LandscapingSection = () => {
                     key={cat}
                     variant={activeCat === cat ? "default" : "outline"}
                     onClick={() => setActiveCat(cat)}
-                    className="cursor-pointer px-4 py-1.5 text-sm"
+                    className="cursor-pointer px-4 py-1.5 text-sm rounded-none"
                   >
                     {cat} ({count})
                   </Badge>
@@ -638,7 +638,7 @@ const LandscapingSection = () => {
           </div>
 
           {/* Grid */}
-          <ProductScrollRow className="mb-8">
+          <ProductScrollRow className="mb-8 rounded-none">
             {filtered.map((plant) => {
               const variantCount = plant.variants.length;
               return (
@@ -647,7 +647,7 @@ const LandscapingSection = () => {
                   className="overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col"
                   onClick={() => openPlant(plant)}
                 >
-                  <div className="aspect-square overflow-hidden bg-muted relative">
+                  <div className="aspect-square overflow-hidden bg-muted relative rounded-none">
                     <PlantImage
                       src={plant.image}
                       alt={plant.name}
@@ -655,21 +655,21 @@ const LandscapingSection = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     {variantCount > 1 && (
-                      <Badge className="absolute top-2 right-2 bg-emerald-700 text-white text-[10px] px-1.5 py-0">
+                      <Badge className="absolute top-2 right-2 bg-emerald-700 text-white text-[10px] px-1.5 py-0 rounded-none">
                         {variantCount} options
                       </Badge>
                     )}
                   </div>
-                  <CardContent className="p-3 flex-1 flex flex-col">
-                    <Badge variant="outline" className="self-start mb-2 text-[10px] px-1.5 py-0">
+                  <CardContent className="p-3 flex-1 flex flex-col rounded-none">
+                    <Badge variant="outline" className="self-start mb-2 text-[10px] px-1.5 py-0 rounded-none">
                       {plant.category}
                     </Badge>
-                    <h3 className="text-sm font-semibold leading-snug line-clamp-2 mb-2 min-h-[2.5rem]">
+                    <h3 className="text-sm font-semibold leading-snug line-clamp-2 mb-2 min-h-[2.5rem] rounded-none">
                       {plant.name}
                     </h3>
-                    <div className="mt-auto">
-                      <p className="text-xs text-muted-foreground">Starting at</p>
-                      <p className="text-lg font-bold text-emerald-700">
+                    <div className="mt-auto rounded-none">
+                      <p className="text-xs text-muted-foreground rounded-none">Starting at</p>
+                      <p className="text-lg font-bold text-emerald-700 rounded-none">
                         {formatPrice(plant.minPrice)}
                       </p>
                       <Button size="sm" variant="outline" className="w-full mt-2 text-xs rounded-none">
@@ -683,7 +683,7 @@ const LandscapingSection = () => {
           </ProductScrollRow>
 
           {filtered.length === 0 && (
-            <div className="text-center py-16 text-muted-foreground">
+            <div className="text-center py-16 text-muted-foreground rounded-none">
               No plants found. Try a different search.
             </div>
           )}
@@ -700,7 +700,7 @@ const LandscapingSection = () => {
           }
         }}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-none">
           <DialogHeader>
             <DialogTitle>{selected?.name}</DialogTitle>
             <DialogDescription>
@@ -714,8 +714,8 @@ const LandscapingSection = () => {
             const activeVariant =
               selected.variants.find((v) => v.id === activeVariantId) ?? selected.variants[0];
             return (
-              <div className="space-y-4">
-                <div className="aspect-video overflow-hidden rounded-lg bg-muted">
+              <div className="space-y-4 rounded-none">
+                <div className="aspect-video overflow-hidden rounded-lg bg-muted rounded-none">
                   <PlantImage
                     src={activeVariant.image}
                     alt={activeVariant.fullName}
@@ -726,10 +726,10 @@ const LandscapingSection = () => {
 
                 {selected.variants.length > 1 && (
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide rounded-none">
                       Options
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 rounded-none">
                       {selected.variants.map((v) => (
                         <Badge
                           key={v.id}
@@ -746,22 +746,22 @@ const LandscapingSection = () => {
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-2 rounded-none">
                   {activeVariant.sizes.map((opt) => {
                     const key = `${activeVariant.id}-${opt.size}`;
                     const quantity = qty[key] || 1;
                     return (
                       <div
                         key={opt.size}
-                        className="flex items-center justify-between gap-3 p-3 border rounded-lg"
+                        className="flex items-center justify-between gap-3 p-3 border rounded-lg rounded-none"
                       >
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm">{opt.size}</p>
-                          <p className="text-lg font-bold text-emerald-700">
+                        <div className="flex-1 rounded-none">
+                          <p className="font-semibold text-sm rounded-none">{opt.size}</p>
+                          <p className="text-lg font-bold text-emerald-700 rounded-none">
                             {formatPrice(opt.finalPrice)}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 border rounded-md">
+                        <div className="flex items-center gap-1 border rounded-md rounded-none">
                           <Button
                             size="icon"
                             variant="ghost"
@@ -770,7 +770,7 @@ const LandscapingSection = () => {
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
-                          <span className="w-8 text-center text-sm font-medium">{quantity}</span>
+                          <span className="w-8 text-center text-sm font-medium rounded-none">{quantity}</span>
                           <Button
                             size="icon"
                             variant="ghost"
@@ -780,8 +780,8 @@ const LandscapingSection = () => {
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <Button className="rounded-none"
+                        <div className="flex flex-col gap-1 rounded-none">
+                          <Button
                             size="sm"
                             onClick={() => {
                               const quantity = Math.max(1, qty[key] || 1);
@@ -801,16 +801,16 @@ const LandscapingSection = () => {
                                 };
                               });
                             }}
-                            className="bg-emerald-700 hover:bg-emerald-800 h-8"
+                            className="bg-emerald-700 hover:bg-emerald-800 h-8 rounded-none"
                           >
                             <FileText className="h-3.5 w-3.5 mr-1" />
                             Quote
                           </Button>
-                          <Button className="rounded-none"
+                          <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleAdd(selected, activeVariant, opt)}
-                            className="h-7 text-xs"
+                            className="h-7 text-xs rounded-none"
                           >
                             <CartIcon className="h-3 w-3 mr-1" />
                             Cart
