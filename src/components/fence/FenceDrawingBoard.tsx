@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
+import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
+import useBoardDensity from '@/hooks/useBoardDensity';
 import { Badge } from '@/components/ui/badge';
 import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler } from 'lucide-react';
 
@@ -293,12 +295,17 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827' }
           <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
         </Button>
         <div className="ml-auto flex items-center gap-2">
-          <Badge variant="secondary">{measurements.fenceFt.toLocaleString()} linear ft</Badge>
-          {layout.gateSegments.length > 0 && (
-            <Badge className="bg-primary text-primary-foreground">
-              {layout.gateSegments.length} gate opening{layout.gateSegments.length > 1 ? 's' : ''} • {measurements.gateFt} ft
-            </Badge>
+          {!compact && (
+            <>
+              <Badge variant="secondary">{measurements.fenceFt.toLocaleString()} linear ft</Badge>
+              {layout.gateSegments.length > 0 && (
+                <Badge className="bg-primary text-primary-foreground">
+                  {layout.gateSegments.length} gate opening{layout.gateSegments.length > 1 ? 's' : ''} • {measurements.gateFt} ft
+                </Badge>
+              )}
+            </>
           )}
+          <BoardDensityToggle compact={compact} onToggle={toggleDensity} />
         </div>
       </div>
 

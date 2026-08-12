@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
+import useBoardDensity from '@/hooks/useBoardDensity';
 import {
   MousePointer2,
   PenTool,
@@ -754,10 +756,12 @@ const GrassDrawingBoard: React.FC<Props> = ({
           <Badge variant="secondary" className="font-mono">
             {takeoff.perimeterFt.toLocaleString()} lf edge
           </Badge>
+          <BoardDensityToggle compact={compact} onToggle={toggleDensity} />
         </div>
       </div>
 
       {/* Turf swatch carousel — applies to new or selected areas */}
+      {!compact && (
       <div className="rounded-xl border border-white/40 bg-white/50 p-2 backdrop-blur-md">
         <div className="mb-2 flex items-center gap-2 px-1 text-xs font-medium text-muted-foreground">
           <Sparkles className="h-3.5 w-3.5" /> Turf applied to {selectedArea ? 'selected area' : 'new areas'}
@@ -788,6 +792,7 @@ const GrassDrawingBoard: React.FC<Props> = ({
           })}
         </div>
       </div>
+      )}
 
       {/* Canvas */}
       <div ref={wrapRef} className="overflow-hidden rounded-xl border border-white/40 bg-white/60 shadow-inner backdrop-blur-md">
@@ -847,9 +852,11 @@ const GrassDrawingBoard: React.FC<Props> = ({
         >
           <Waves className="mr-1 h-3 w-3" /> Organic island
         </Button>
-        <p className="ml-auto text-[11px] text-muted-foreground">
-          Click to place points · click the first point or double-click to close · scroll to zoom · shift-drag to pan
-        </p>
+        {!compact && (
+          <p className="ml-auto text-[11px] text-muted-foreground">
+            Click to place points · click the first point or double-click to close · scroll to zoom · shift-drag to pan
+          </p>
+        )}
       </div>
     </div>
   );
