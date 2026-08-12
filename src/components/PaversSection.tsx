@@ -12,6 +12,7 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 
 // Collection base prices: Appian $15, Catalina $20, Catalina Grana $22
 const APPIAN_PRICE = 15;
@@ -124,17 +125,11 @@ const PaversSection = () => {
     <>
       <section className="py-12 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Premium Pool Pavers
-            </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto mb-6">
-              Transform your pool area with our premium paver collections, featuring multiple styles and finishes.
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Design & configure your complete hardscape project
-            </p>
-          </div>
+          <EditorialSectionHeader
+          eyebrow="Volume X — Stone"
+          title="Premium Pool Pavers"
+          description="Paver collections in multiple styles and finishes, configured for a complete hardscape."
+        />
 
           {/* Three Collections Grid */}
           <ProductScrollRow className="mb-8">

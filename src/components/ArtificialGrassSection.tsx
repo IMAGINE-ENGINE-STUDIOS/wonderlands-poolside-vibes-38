@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { artificialGrassOptions, PRICE_PER_SQFT, type ArtificialGrassOption } from "@/data/artificialGrassData";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 
 const ArtificialGrassSection = () => {
   const [selectedGrass, setSelectedGrass] = useState<ArtificialGrassOption | null>(null);
@@ -31,14 +32,11 @@ const ArtificialGrassSection = () => {
     <>
       <section className="py-12 bg-gradient-to-br from-green-50/30 via-emerald-50/30 to-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              Artificial Grass
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Premium artificial grass options for your backyard — low maintenance, year-round green at ${PRICE_PER_SQFT}/sq ft
-            </p>
-          </div>
+          <EditorialSectionHeader
+          eyebrow="Volume XI — Verdure"
+          title="Artificial Grass"
+          description="Premium turf — low maintenance, year-round green, installed to a single flawless plane."
+        />
 
           <ProductScrollRow className="mb-8">
             {artificialGrassOptions.map((grass) => (

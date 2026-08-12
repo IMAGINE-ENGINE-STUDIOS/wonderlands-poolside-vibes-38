@@ -8,6 +8,7 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { getProductsByCategory, getProductsBySubcategory, Product } from "@/data/consolidatedProducts";
 import ProductScrollRow from "./ProductScrollRow";
+import EditorialSectionHeader from "./EditorialSectionHeader";
 
 const PoolFinishesSection = () => {
   const [selectedFinish, setSelectedFinish] = useState<Product | null>(null);
@@ -67,14 +68,11 @@ const PoolFinishesSection = () => {
   return (
     <section className="py-12 px-4 bg-gradient-to-b from-background to-background/50">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-            Premium Pool Finishes
-          </h2>
-          <p className="text-xl text-foreground/80 max-w-3xl mx-auto">
-            Transform your pool with Latham's premium Crystite finishes. Choose from stunning colors and advanced materials designed for beauty, durability, and easy maintenance.
-          </p>
-        </div>
+        <EditorialSectionHeader
+          eyebrow="Volume IV — Surface"
+          title="Premium Pool Finishes"
+          description="Latham Crystite finishes — colours and advanced materials engineered for beauty, durability and easy maintenance."
+        />
 
         <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-12">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-8">
