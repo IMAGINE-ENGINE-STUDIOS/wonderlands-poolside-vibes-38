@@ -47,7 +47,7 @@ const GilmerPoolsSection = () => {
               <SimplifiedGilmerPoolCard key={pool.model} pool={pool} />
             ))}
           </ProductScrollRow>
-
+        </div>
 
         {/* Info Banner */}
         <div className="mt-12 p-6 rounded-lg bg-gradient-to-r from-primary/10 via-teal/10 to-primary/10 border border-primary/20">
