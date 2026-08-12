@@ -357,14 +357,16 @@ const GrassDrawingBoard: React.FC<Props> = ({
 
       if (area.closed) {
         const tex = textures[area.grassId];
-        if (tex) {
-          const pattern = ctx.createPattern(tex, 'repeat');
-          if (pattern) {
-            const scale = (PX_PER_FT * zoom * 2) / tex.width; // 2 ft texture tile
-            (pattern as CanvasPattern).setTransform?.(new DOMMatrix([scale, 0, 0, scale, ox, oy]));
-            ctx.fillStyle = pattern;
-            ctx.fill();
-          }
+        // 4 ft tile, pre-rendered at the exact on-screen pixel size so the
+        // pattern never gets hard-downscaled (which is what produced seams).
+        const tilePx = Math.max(24, Math.round(PX_PER_FT * zoom * 4 * dpr));
+        const scaled = tex ? getScaledTile(area.grassId, tex, tilePx) : null;
+        const pattern = scaled ? ctx.createPattern(scaled, 'repeat') : null;
+        if (pattern) {
+          const k = 1 / dpr;
+          (pattern as CanvasPattern).setTransform?.(new DOMMatrix([k, 0, 0, k, ox, oy]));
+          ctx.fillStyle = pattern;
+          ctx.fill();
         } else {
           ctx.fillStyle = 'rgba(34,120,72,0.35)';
           ctx.fill();
