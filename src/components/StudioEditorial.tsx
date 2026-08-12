@@ -11,7 +11,7 @@ const STEPS = [
 
 const StudioEditorial: React.FC = () => {
   return (
-    <section aria-label="Wonderlands Studio" className="bg-background py-20 md:py-28">
+    <section aria-label="Wonderlands Studio" className="bg-background py-20 pb-8 md:py-28 md:pb-10">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
         {/* Header */}
         <div className="mb-14 md:mb-20">
