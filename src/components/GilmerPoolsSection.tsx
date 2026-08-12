@@ -1,28 +1,13 @@
 import * as React from "react";
-const { useState } = React;
 import { gilmerPools } from "@/data/gilmerPools";
 import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
+import ProductScrollRow from "./ProductScrollRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Waves, Shield, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Waves, Shield, Clock } from "lucide-react";
 const sortedPools = [...gilmerPools].sort((a, b) => a.price - b.price);
 
 const GilmerPoolsSection = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const poolsPerPage = 9; // 3x3 grid
-
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedPools.length / poolsPerPage);
-  const startIndex = (currentPage - 1) * poolsPerPage;
-  const endIndex = startIndex + poolsPerPage;
-  const currentPools = sortedPools.slice(startIndex, endIndex);
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    // Scroll to top of section
-    document.getElementById("gilmer-pools")?.scrollIntoView({
-      behavior: "smooth",
-    });
-  };
   return (
     <section id="gilmer-pools" className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-primary/5 to-background">
       <div className="max-w-7xl mx-auto">
@@ -57,22 +42,13 @@ const GilmerPoolsSection = () => {
             </Badge>
           </div>
 
-          {/* Page indicator */}
-          <p className="text-sm text-muted-foreground mt-4">
-            Showing {startIndex + 1}-{Math.min(endIndex, sortedPools.length)} of {sortedPools.length} models
-          </p>
-        </div>
+          {/* Pool Scroll */}
+          <ProductScrollRow className="mb-8">
+            {sortedPools.map((pool) => (
+              <SimplifiedGilmerPoolCard key={pool.model} pool={pool} />
+            ))}
+          </ProductScrollRow>
 
-        {/* Pool Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {currentPools.map((pool) => (
-            <SimplifiedGilmerPoolCard key={pool.model} pool={pool} />
-          ))}
-        </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
             <Button
               variant="outline"
               size="icon"

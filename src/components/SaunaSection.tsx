@@ -1,5 +1,6 @@
 import { saunas } from "@/data/saunaData";
 import SaunaProductCard from "./SaunaProductCard";
+import ProductScrollRow from "./ProductScrollRow";
 const SaunaSection = () => {
   return <section className="py-12 bg-gradient-to-br from-amber-50/30 via-orange-50/30 to-background">
       <div className="container mx-auto px-4">
@@ -9,10 +10,10 @@ const SaunaSection = () => {
           </p>
         </div>
 
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <ProductScrollRow className="mb-8">
           {saunas.map(sauna => <SaunaProductCard key={sauna.id} sauna={sauna} />)}
-        </div>
+        </ProductScrollRow>
+
 
         <div className="mt-12 text-center">
           <div className="inline-block bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-6 max-w-3xl">
