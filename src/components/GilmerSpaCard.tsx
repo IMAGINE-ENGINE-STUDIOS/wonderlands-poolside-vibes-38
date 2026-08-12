@@ -470,8 +470,9 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
         
         {/* Action Buttons - Only when expanded */}
         {showDetails &&
-        <InstallationNote className="mb-2" />
         <div className="space-y-2 pt-2">
+            <InstallationNote className="mb-1" />
+
             <Button
             className="w-full instant-quote-btn transition-all duration-300 rounded-none"
             onClick={handleRequestQuote}>
