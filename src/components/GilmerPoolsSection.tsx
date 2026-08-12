@@ -3,7 +3,6 @@ import { gilmerPools } from "@/data/gilmerPools";
 import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import ProductScrollRow from "./ProductScrollRow";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Waves, Shield, Clock } from "lucide-react";
 const sortedPools = [...gilmerPools].sort((a, b) => a.price - b.price);
 
@@ -49,44 +48,6 @@ const GilmerPoolsSection = () => {
             ))}
           </ProductScrollRow>
 
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="h-10 w-10"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            {Array.from(
-              {
-                length: totalPages,
-              },
-              (_, i) => i + 1,
-            ).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? "default" : "outline"}
-                size="icon"
-                onClick={() => handlePageChange(page)}
-                className={`h-10 w-10 ${currentPage === page ? "bg-gradient-to-r from-primary to-teal text-white border-0" : ""}`}
-              >
-                {page}
-              </Button>
-            ))}
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="h-10 w-10"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
 
         {/* Info Banner */}
         <div className="mt-12 p-6 rounded-lg bg-gradient-to-r from-primary/10 via-teal/10 to-primary/10 border border-primary/20">
