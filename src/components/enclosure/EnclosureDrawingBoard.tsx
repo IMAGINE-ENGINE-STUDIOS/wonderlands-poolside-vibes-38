@@ -932,9 +932,6 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           </div>
         ))}
       </div>
-      <p className="text-[11px] text-muted-foreground">
-        Scale 10 px = 1 ft • click to place corners, click the first corner to close the footprint • Select &amp; delete removes doors, walls and corners (Delete key works too)
-      </p>
     </div>
   );
 };

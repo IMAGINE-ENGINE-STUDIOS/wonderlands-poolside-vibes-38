@@ -315,12 +315,6 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827' }
           }}
         />
       </div>
-
-      <p className="text-xs text-muted-foreground">
-        Grid = 1 ft (bold line every 5 ft), same 10 px / ft drafting scale as the 2D pool studio. Click to drop posts,
-        click the first post again to close the enclosure, then use <strong>Mark gate</strong> to convert a run into a
-        gate opening.
-      </p>
     </div>
   );
 };
