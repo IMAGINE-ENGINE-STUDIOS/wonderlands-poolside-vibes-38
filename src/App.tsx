@@ -73,6 +73,7 @@ const DesignProposals = lazy(() => import("./pages/DesignProposals"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const BlueprintBuilder = lazy(() => import("./pages/BlueprintBuilder"));
 const ToolsGallery = lazy(() => import("./pages/ToolsGallery"));
+const ToolsGallery2 = lazy(() => import("./pages/ToolsGallery2"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -188,6 +189,7 @@ const App = () => {
             <Route path="/studio-showroom" element={<StudioShowroom />} />
             <Route path="/studio" element={<StudioLanding />} />
             <Route path="/tools" element={<ToolsGallery />} />
+            <Route path="/tools2" element={<ToolsGallery2 />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
