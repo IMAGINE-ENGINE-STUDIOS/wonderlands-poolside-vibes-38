@@ -961,26 +961,6 @@ const PoolCatalog = () => {
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
-          {/* Prominent Appointment CTA */}
-          <div className="mb-12 flex flex-col items-center text-center sm:mb-16">
-            <p className="mb-5 text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
-              Private Consultation
-            </p>
-            <button
-              onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}
-              className="group relative inline-flex items-center gap-4 overflow-hidden rounded-none border border-foreground bg-foreground px-10 py-5 text-foreground transition-colors duration-500 hover:bg-transparent sm:px-14"
-            >
-              <span className="absolute inset-0 origin-left scale-x-100 bg-foreground transition-transform duration-500 ease-out group-hover:scale-x-0" />
-              <Calendar className="relative z-10 h-4 w-4 text-background transition-colors duration-500 group-hover:text-foreground" />
-              <span className="relative z-10 text-[11px] uppercase tracking-[0.4em] text-background transition-colors duration-500 group-hover:text-foreground">
-                Make an Appointment
-              </span>
-              <ArrowRight className="relative z-10 h-4 w-4 text-background transition-all duration-500 group-hover:translate-x-1 group-hover:text-foreground" />
-            </button>
-            <p className="mt-5 text-xs uppercase tracking-[0.25em] text-muted-foreground">
-              Book a free consultation with our pool designers
-            </p>
-          </div>
 
           {/* Wonderlands World Collection */}
           <div className="relative border-y border-border/60 py-14 sm:py-20">
