@@ -135,7 +135,7 @@ const ScreenEnclosureSection = () => {
           </ProductScrollRow>
           
           {/* Information Section - Moved below products */}
-          <div className="bg-gradient-to-r from-primary/10 to-teal/10 rounded-2xl p-8 mt-16">
+          <div className="bg-gradient-to-r from-primary/10 to-teal/10 rounded-none p-8 mt-16">
             <div className="max-w-4xl mx-auto text-center">
               <h3 className="text-2xl font-bold text-foreground mb-4">
                 Complete Pool Protection & Comfort
@@ -185,12 +185,12 @@ const ScreenEnclosureSection = () => {
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <img loading="lazy" decoding="async" src={selectedEnclosure.image} alt={selectedEnclosure.name} className="w-full h-64 object-cover rounded-lg mb-4" />
+                  <img loading="lazy" decoding="async" src={selectedEnclosure.image} alt={selectedEnclosure.name} className="w-full h-64 object-cover rounded-none mb-4" />
                   
                   <div className="space-y-2">
                     <h4 className="font-semibold">Features:</h4>
                     {selectedEnclosure.features.map((feature, idx) => <div key={idx} className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <div className="w-2 h-2 bg-primary rounded-none"></div>
                         {feature}
                       </div>)}
                   </div>
@@ -208,7 +208,7 @@ const ScreenEnclosureSection = () => {
                       <Input type="number" min={0} step={1} value={squareFootage || ''} onChange={e => setSquareFootage(parseFloat(e.target.value) || 0)} placeholder="Enter area in sq ft" />
                     </div>
                     
-                    <div className="bg-muted/50 p-4 rounded-lg">
+                    <div className="bg-muted/50 p-4 rounded-none">
                       <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
                         <span>Rate: ${selectedEnclosure.pricePerSqFt}/sq ft</span>
                         <span>Area: {squareFootage} sq ft</span>

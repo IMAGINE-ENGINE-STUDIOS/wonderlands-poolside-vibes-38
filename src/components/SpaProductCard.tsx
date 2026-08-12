@@ -475,7 +475,7 @@ const SpaProductCard = ({
             <p className="mb-2 text-[9px] uppercase tracking-[0.4em] text-muted-foreground">Highlights</p>
             <ul className="space-y-1.5">
               {spa.features.slice(0, 2).map((feature, idx) => <li key={idx} className="flex items-start gap-2">
-                  <div className="mt-1.5 h-1 w-1 rounded-full bg-foreground/60 flex-shrink-0"></div>
+                  <div className="mt-1.5 h-1 w-1 rounded-none bg-foreground/60 flex-shrink-0"></div>
                   <span className="text-xs text-muted-foreground">{feature}</span>
                 </li>)}
             </ul>
@@ -498,11 +498,11 @@ const SpaProductCard = ({
           }}>
                 <CarouselContent className="-ml-1">
                   {finishOptions.map((finish, idx) => <CarouselItem key={`spa-${finish.name}-${idx}`} className="pl-1 basis-1/2">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                      <div className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   finish: finish.name
                 }))}>
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
                     e.stopPropagation();
                     setImagePopup({
                       isOpen: true,
@@ -537,11 +537,11 @@ const SpaProductCard = ({
           }}>
                   <CarouselContent className="-ml-1">
                     {tileOptions.map(tile => <CarouselItem key={tile.name} className="pl-1 basis-1/2">
-                        <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? 'border-teal bg-teal/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                        <div className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? 'border-teal bg-teal/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   tileOption: tile.name
                 }))}>
-                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
+                          <div className="w-full h-12 rounded-none mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
                     e.stopPropagation();
                     if (tile.image) {
                       setImagePopup({
@@ -554,7 +554,7 @@ const SpaProductCard = ({
                     }
                   }}>
                             {tile.image ? <img loading="lazy" decoding="async" src={tile.image} alt={tile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
-                                <div className="w-3 h-3 bg-teal rounded-full"></div>
+                                <div className="w-3 h-3 bg-teal rounded-none"></div>
                               </div>}
                           </div>
                           <p className="text-xs font-medium text-center">{tile.name}</p>
@@ -577,11 +577,11 @@ const SpaProductCard = ({
           }}>
                   <CarouselContent className="-ml-1">
                     {linerOptions.map(liner => <CarouselItem key={liner.name} className="pl-1 basis-1/2">
-                        <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === liner.name ? 'border-secondary bg-secondary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                        <div className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === liner.name ? 'border-secondary bg-secondary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   linerOption: liner.name
                 }))}>
-                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
+                          <div className="w-full h-12 rounded-none mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
                     e.stopPropagation();
                     if (liner.image) {
                       setImagePopup({
@@ -594,7 +594,7 @@ const SpaProductCard = ({
                     }
                   }}>
                             {liner.image ? <img loading="lazy" decoding="async" src={liner.image} alt={liner.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
-                                <div className="w-3 h-3 bg-secondary rounded-full"></div>
+                                <div className="w-3 h-3 bg-secondary rounded-none"></div>
                               </div>}
                           </div>
                           <p className="text-xs font-medium text-center">{liner.name}</p>
@@ -620,11 +620,11 @@ const SpaProductCard = ({
           }}>
                   <CarouselContent className="-ml-1">
                     {spaHeaters.map(heater => <CarouselItem key={heater.name} className="pl-1 basis-1/2">
-                        <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? 'border-teal bg-teal/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                        <div className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? 'border-teal bg-teal/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   heaterModel: heater.name
                 }))}>
-                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
+                          <div className="w-full h-12 rounded-none mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
                     e.stopPropagation();
                     setImagePopup({
                       isOpen: true,
@@ -657,11 +657,11 @@ const SpaProductCard = ({
           }}>
                 <CarouselContent className="-ml-1">
                   {paverOptions.map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/2">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-secondary bg-secondary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                      <div className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-secondary bg-secondary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   paverOption: paver.name
                 }))}>
-                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
+                        <div className="w-full h-12 rounded-none mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all" onClick={e => {
                     e.stopPropagation();
                     setImagePopup({
                       isOpen: true,
@@ -731,14 +731,14 @@ const SpaProductCard = ({
           }}>
                 <CarouselContent className="-ml-1">
                   {finishOptions.slice(0, 6).map((finish, idx) => <CarouselItem key={`spa-preview-${finish.name}-${idx}`} className="pl-1 basis-1/2">
-                      <div className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`} onClick={() => {
+                      <div className={`p-2 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`} onClick={() => {
                   setExtras(prev => ({
                     ...prev,
                     finish: finish.name
                   }));
                   setShowDetails(true);
                 }}>
-                        <div className="w-full h-12 rounded-md mb-1 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-12 rounded-none mb-1 overflow-hidden flex-shrink-0">
                           <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" loading="lazy" />
                         </div>
                         <p className="text-[10px] font-medium text-center line-clamp-1">{finish.name}</p>
@@ -751,7 +751,7 @@ const SpaProductCard = ({
             </div>
             
             {/* Expand Arrow */}
-            <div className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group" onClick={() => setShowDetails(true)} onMouseEnter={() => setShowDetails(true)}>
+            <div className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-none transition-all group" onClick={() => setShowDetails(true)} onMouseEnter={() => setShowDetails(true)}>
               <span className="text-xs text-muted-foreground mb-1">View all options</span>
               <svg className="w-5 h-5 text-primary animate-bounce group-hover:text-primary/80 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

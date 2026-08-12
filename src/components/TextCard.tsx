@@ -220,7 +220,7 @@ const TextCard: React.FC<TextCardProps> = ({ isOpen, onClose }) => {
       {/* Text Canvas Area */}
       <div className="flex-1 relative bg-background overflow-auto">
         <div className="absolute inset-0 p-4">
-          <div className="relative w-full h-full bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="relative w-full h-full bg-white rounded-none shadow-lg overflow-hidden">
             {/* Canvas Background */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100">
               {textElements.map(element => (

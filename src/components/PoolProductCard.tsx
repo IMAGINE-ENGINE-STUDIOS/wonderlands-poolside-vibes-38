@@ -1379,7 +1379,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                                     className={`p-2 text-xs rounded-none border transition-all flex flex-col items-center gap-1 ${coverColor === color.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
                                   >
                                     <div
-                                      className="w-6 h-6 rounded-full border border-border"
+                                      className="w-6 h-6 rounded-none border border-border"
                                       style={{
                                         backgroundColor: color.hex,
                                       }}

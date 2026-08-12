@@ -234,7 +234,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
 
           {/* Final Price Summary */}
           {(extras.heater || extras.jets || extras.pavers) && calculateTotalPrice() > spa.price &&
-          <div className="bg-primary/10 p-2 rounded-lg">
+          <div className="bg-primary/10 p-2 rounded-none">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Final Price:</span>
                 <span className="text-lg font-bold text-primary">${calculateTotalPrice().toLocaleString()}</span>
@@ -264,7 +264,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
             <ul className="space-y-1">
               {spa.features.slice(0, 3).map((feature, idx) =>
             <li key={idx} className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-primary rounded-none"></div>
                   <span className="text-xs">{feature}</span>
                 </li>
             )}
@@ -290,10 +290,10 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
               <button
                 key={color}
                 onClick={() => handleColorSelect(color)}
-                className={`p-2 rounded-lg border-2 transition-all ${selectedColor === color ? "border-primary bg-primary/10" : "border-gray-200 hover:border-primary/50"}`}>
+                className={`p-2 rounded-none border-2 transition-all ${selectedColor === color ? "border-primary bg-primary/10" : "border-gray-200 hover:border-primary/50"}`}>
                 
                     <div className="flex items-center gap-2">
-                      <div className={`w-6 h-6 rounded-full ${colorSwatches[color]}`} />
+                      <div className={`w-6 h-6 rounded-none ${colorSwatches[color]}`} />
                       <span className="text-xs font-medium">{color}</span>
                     </div>
                   </button>
@@ -348,7 +348,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
                   heaterModel: heater.name
                 }))
                 }
-                className={`p-3 rounded-lg border-2 text-left transition-all ${extras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-gray-200 hover:border-primary/50"}`}>
+                className={`p-3 rounded-none border-2 text-left transition-all ${extras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-gray-200 hover:border-primary/50"}`}>
                 
                       <div className="flex justify-between items-start">
                         <div>
@@ -379,7 +379,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
                   paverOption: e.target.value
                 }))
                 }
-                className="w-full p-2 rounded-lg border-2 border-gray-200 focus:border-primary outline-none">
+                className="w-full p-2 rounded-none border-2 border-gray-200 focus:border-primary outline-none">
                 
                     <option value="">Select Paver Type</option>
                     {paverOptions.map((paver) =>
@@ -435,7 +435,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
                 {spa.colorOptions.slice(0, 5).map((color, idx) =>
               <div
                 key={`spa-color-${color}-${idx}`}
-                className={`w-10 h-10 rounded-lg cursor-pointer border-2 transition-all hover:scale-110 ${
+                className={`w-10 h-10 rounded-none cursor-pointer border-2 transition-all hover:scale-110 ${
                 selectedColor === color ? "border-primary ring-2 ring-primary/30" : "border-border"} ${
                 colorSwatches[color] || "bg-gray-400"}`}
                 onClick={() => {
@@ -451,7 +451,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
             
             {/* Expand Arrow */}
             <div
-            className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+            className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-none transition-all group"
             onClick={() => setShowDetails(true)}
             onMouseEnter={() => setShowDetails(true)}>
             

@@ -137,7 +137,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                   <img loading="lazy" decoding="async" 
                     src={selectedTile.image} 
                     alt={selectedTile.name}
-                    className="w-full h-64 object-cover rounded-lg"
+                    className="w-full h-64 object-cover rounded-none"
                   />
                 </div>
                 <div className="space-y-4">

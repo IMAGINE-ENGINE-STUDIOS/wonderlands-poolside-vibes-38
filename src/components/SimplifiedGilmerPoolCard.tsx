@@ -397,7 +397,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
             <Accordion type="single" collapsible defaultValue="gelcoat" className="space-y-2">
             {/* Gelcoat Color Selection */}
-            <AccordionItem value="gelcoat" className="border rounded-lg px-3">
+            <AccordionItem value="gelcoat" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Gelcoat Color (Included)</span>
               </AccordionTrigger>
@@ -418,11 +418,11 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                       className="pl-1 basis-1/2"
                     >
                       <div
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${options.colorFinish === color.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${options.colorFinish === color.name ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() => updateOption('colorFinish', color.name)}
                       >
                         <div 
-                          className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0"
+                          className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0"
                           style={{ backgroundColor: color.color }}
                         />
                         <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -441,7 +441,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             </AccordionItem>
 
             {/* Pavers Options - matching Latham format */}
-            <AccordionItem value="pavers" className="border rounded-lg px-3">
+            <AccordionItem value="pavers" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Deck Pavers</span>
               </AccordionTrigger>
@@ -459,12 +459,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   {paverOptions.map((paver, idx) => (
                     <CarouselItem key={`paver-${paver.name}-${idx}`} className="pl-1 basis-1/2">
                       <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                           options.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
                         }`} 
                         onClick={() => updateOption('paverOption', paver.name)}
                       >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                           <OptimizedImage 
                             src={paver.image} 
                             alt={paver.name} 
@@ -514,7 +514,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             </AccordionItem>
 
             {/* Screen Enclosure Options - matching Latham format */}
-            <AccordionItem value="enclosure" className="border rounded-lg px-3">
+            <AccordionItem value="enclosure" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Screen Enclosure</span>
               </AccordionTrigger>
@@ -536,12 +536,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   ].map((quality) => (
                     <CarouselItem key={quality.key} className="pl-1 basis-1/2">
                       <div
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                           options.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'
                         }`}
                         onClick={() => updateOption('screenEnclosureQuality', quality.key)}
                       >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                           <img loading="lazy" decoding="async" 
                             src={quality.image} 
                             alt={quality.name} 
@@ -598,7 +598,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             </AccordionItem>
 
             {/* Additional Features - matching Latham format */}
-            <AccordionItem value="addons" className="border rounded-lg px-3">
+            <AccordionItem value="addons" className="border rounded-none px-3">
               <AccordionTrigger className="hover:no-underline py-3">
                 <span className="font-semibold text-foreground text-sm">Additional Features</span>
               </AccordionTrigger>
@@ -607,7 +607,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
               <div className="grid grid-cols-1 gap-3">
                 {/* Pool Tiles */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox 
                     checked={options.tiles} 
                     onCheckedChange={() => toggleOption('tiles')} 
@@ -626,12 +626,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                         {tileOptions.map((tile) => (
                           <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                             <div 
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                                 options.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
                               }`} 
                               onClick={() => updateOption('tileOption', tile.name)}
                             >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                 <OptimizedImage 
                                   src={tile.image} 
                                   alt={tile.name} 
@@ -658,7 +658,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 )}
 
                 {/* Pool Heater */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox 
                     checked={options.poolHeater} 
                     onCheckedChange={() => toggleOption('poolHeater')} 
@@ -678,13 +678,13 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                           <CarouselItem key={heater.name} className="pl-1 basis-1/2">
                             <div
                               onClick={() => updateOption('heaterModel', heater.name)}
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                                 options.heaterModel === heater.name 
                                   ? 'border-coral bg-coral/10' 
                                   : 'border-border'
                               }`}
                             >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 bg-muted/50 flex items-center justify-center">
+                              <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0 bg-muted/50 flex items-center justify-center">
                                 <Thermometer className="h-8 w-8 text-coral" />
                               </div>
                               <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -702,7 +702,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 )}
 
                 {/* Rocky Waterfalls */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox 
                     checked={options.rockyWaterfalls}
                     onCheckedChange={() => toggleOption('rockyWaterfalls')}
@@ -728,13 +728,13 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                                 updateOption('rockyWaterfallsType', waterfall.name);
                                 updateOption('rockyWaterfallsColor', waterfall.colors[0]);
                               }}
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                                 options.rockyWaterfallsType === waterfall.name
                                   ? 'border-stone-600 bg-stone-600/10'
                                   : 'border-border'
                               }`}
                             >
-                              <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-20 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                 <OptimizedImage
                                   src={waterfall.image}
                                   alt={waterfall.name}
@@ -760,7 +760,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                         <button
                           key={color}
                           onClick={() => updateOption('rockyWaterfallsColor', color)}
-                          className={`px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
+                          className={`px-3 py-2 rounded-none border text-xs font-medium transition-all ${
                             options.rockyWaterfallsColor === color
                               ? 'border-stone-600 bg-stone-600/10 text-stone-700'
                               : 'border-border hover:border-stone-600/50'
@@ -774,7 +774,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 )}
 
                 {/* Add Spa */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox 
                     checked={options.addSpa}
                     onCheckedChange={(checked) => {
@@ -808,13 +808,13 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                           <CarouselItem key={spa.name} className="pl-1 basis-1/2">
                             <div
                               onClick={() => updateOption('spaOption', spa.name)}
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                                 options.spaOption === spa.name
                                   ? 'border-coral bg-coral/10'
                                   : 'border-border'
                               }`}
                             >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                 <OptimizedImage
                                   src={spa.image}
                                   alt={spa.name}
@@ -839,7 +839,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 {/* Concrete Construction - Hide for concrete pools (already concrete) */}
                 {pool.model !== "Winderview" && pool.model !== "Cape Coral" && (
                   <>
-                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                       <Checkbox 
                         checked={options.concreteConstruction} 
                         onCheckedChange={() => toggleOption('concreteConstruction')} 
@@ -865,7 +865,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
             {/* Pricing Section */}
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-primary/5 to-teal/5 rounded-xl p-4 border border-primary/10">
+              <div className="bg-gradient-to-r from-primary/5 to-teal/5 rounded-none p-4 border border-primary/10">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-muted-foreground">Pool Base Price</span>
                   <span className="text-lg font-bold text-foreground">${pool.price.toLocaleString()}</span>
@@ -950,14 +950,14 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                       className="pl-1 basis-1/2"
                     >
                       <div
-                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${options.colorFinish === color.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        className={`p-2 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${options.colorFinish === color.name ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() => {
                           updateOption('colorFinish', color.name);
                           setShowDetails(true);
                         }}
                       >
                         <div 
-                          className="w-full h-12 rounded-md mb-1 overflow-hidden flex-shrink-0"
+                          className="w-full h-12 rounded-none mb-1 overflow-hidden flex-shrink-0"
                           style={{ backgroundColor: color.color }}
                         />
                         <p className="text-[10px] font-medium text-center line-clamp-1">{color.name}</p>
@@ -972,7 +972,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             
             {/* Expand Arrow */}
             <div 
-              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-none transition-all group"
               onClick={() => setShowDetails(true)}
               onMouseEnter={() => setShowDetails(true)}
             >

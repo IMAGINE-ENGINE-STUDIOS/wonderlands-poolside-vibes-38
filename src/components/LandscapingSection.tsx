@@ -174,7 +174,7 @@ const LandscapingSection = () => {
                           key={t.id}
                           type="button"
                           onClick={() => setQuoteTier(t.id)}
-                          className={`text-left p-4 rounded-lg border-2 transition-all ${
+                          className={`text-left p-4 rounded-none border-2 transition-all ${
                             isActive
                               ? "border-emerald-600 bg-emerald-50 shadow"
                               : "border-border hover:border-emerald-300"
@@ -238,7 +238,7 @@ const LandscapingSection = () => {
                         {Object.entries(quoteItems).map(([key, it]) => (
                           <div
                             key={key}
-                            className="flex items-center gap-2 p-2 bg-muted/40 rounded-md text-sm"
+                            className="flex items-center gap-2 p-2 bg-muted/40 rounded-none text-sm"
                           >
                             <img
                               src={it.image}
@@ -254,7 +254,7 @@ const LandscapingSection = () => {
                                 {it.sizeLabel} · {fmt(it.price)} ea
                               </div>
                             </div>
-                            <div className="flex items-center gap-1 border rounded-md bg-background">
+                            <div className="flex items-center gap-1 border rounded-none bg-background">
                               <Button
                                 size="icon"
                                 variant="ghost"
@@ -378,7 +378,7 @@ const LandscapingSection = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-md p-3">
+                      <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-none p-3">
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
                             Admin Overrides Active
@@ -720,7 +720,7 @@ const LandscapingSection = () => {
               selected.variants.find((v) => v.id === activeVariantId) ?? selected.variants[0];
             return (
               <div className="space-y-4">
-                <div className="aspect-video overflow-hidden rounded-lg bg-muted">
+                <div className="aspect-video overflow-hidden rounded-none bg-muted">
                   <PlantImage
                     src={activeVariant.image}
                     alt={activeVariant.fullName}
@@ -758,7 +758,7 @@ const LandscapingSection = () => {
                     return (
                       <div
                         key={opt.size}
-                        className="flex items-center justify-between gap-3 p-3 border rounded-lg"
+                        className="flex items-center justify-between gap-3 p-3 border rounded-none"
                       >
                         <div className="flex-1">
                           <p className="font-semibold text-sm">{opt.size}</p>
@@ -766,7 +766,7 @@ const LandscapingSection = () => {
                             {formatPrice(opt.finalPrice)}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 border rounded-md">
+                        <div className="flex items-center gap-1 border rounded-none">
                           <Button
                             size="icon"
                             variant="ghost"

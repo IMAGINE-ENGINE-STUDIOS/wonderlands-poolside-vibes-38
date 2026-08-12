@@ -223,7 +223,7 @@ const AutomaticCoversSection = () => {
             <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-background/90 backdrop-blur-sm border-2 hover:border-teal/30">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
-                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-teal to-cyan-400 rounded-full flex items-center justify-center mb-4">
+                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-teal to-cyan-400 rounded-none flex items-center justify-center mb-4">
                     <Droplets className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-3xl font-bold text-foreground mb-2">Up to 90%</h3>
@@ -240,7 +240,7 @@ const AutomaticCoversSection = () => {
             <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-background/90 backdrop-blur-sm border-2 hover:border-orange/30">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
-                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-orange to-amber-500 rounded-full flex items-center justify-center mb-4">
+                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-orange to-amber-500 rounded-none flex items-center justify-center mb-4">
                     <Thermometer className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-3xl font-bold text-foreground mb-2">Up to 70%</h3>
@@ -257,7 +257,7 @@ const AutomaticCoversSection = () => {
             <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-background/90 backdrop-blur-sm border-2 hover:border-primary/30">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
-                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-purple-400 rounded-full flex items-center justify-center mb-4">
+                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-purple-400 rounded-none flex items-center justify-center mb-4">
                     <Bolt className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-3xl font-bold text-foreground mb-2">Up to 50%</h3>

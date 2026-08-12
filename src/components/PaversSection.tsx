@@ -132,7 +132,7 @@ const PaversSection = () => {
               setSelectedPaverType(paver);
               setShowOptionsModal(true);
             }}>
-              <div className="w-full h-20 rounded-md mb-2 overflow-hidden border-2 border-transparent hover:border-primary transition-colors">
+              <div className="w-full h-20 rounded-none mb-2 overflow-hidden border-2 border-transparent hover:border-primary transition-colors">
                 <img loading="lazy" decoding="async" src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
               </div>
               <p className="text-xs font-medium truncate">{paver.name.replace('Appian ', '').replace('Catalina Grana ', '').replace('Catalina ', '')}</p>
@@ -407,10 +407,10 @@ const PaversSection = () => {
                   {(selectedCollection === 'appian' ? appianPavers : selectedCollection === 'catalina-grana' ? catalinaGranaPavers : catalinaPavers).map(paver => (
                     <CarouselItem key={paver.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3">
                       <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${selectedPaverType?.id === paver.id ? 'border-primary bg-primary/10' : 'border-border'}`} 
+                        className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md ${selectedPaverType?.id === paver.id ? 'border-primary bg-primary/10' : 'border-border'}`} 
                         onClick={() => setSelectedPaverType(paver)}
                       >
-                        <div className="w-full h-24 rounded-md mb-2 overflow-hidden">
+                        <div className="w-full h-24 rounded-none mb-2 overflow-hidden">
                           <img loading="lazy" decoding="async" src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <p className="text-sm font-medium text-center">
@@ -445,7 +445,7 @@ const PaversSection = () => {
             <Separator />
 
             {/* Price Summary */}
-            <div className="p-4 bg-muted/30 rounded-lg">
+            <div className="p-4 bg-muted/30 rounded-none">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold">Price Summary</h3>
                 <div className="text-right">

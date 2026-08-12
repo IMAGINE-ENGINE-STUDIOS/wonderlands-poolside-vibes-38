@@ -286,25 +286,25 @@ const LanaiSection = () => {
                       <div className="grid grid-cols-2 gap-3 mt-2">
                         <button
                           onClick={() => setLanaiExtras(prev => ({ ...prev, color: 'white' }))}
-                          className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                          className={`p-3 rounded-none border-2 transition-all flex flex-col items-center gap-2 ${
                             lanaiExtras.color === 'white' 
                               ? 'border-primary bg-primary/10' 
                               : 'border-border hover:border-primary/50'
                           }`}
                         >
-                          <div className="w-10 h-10 rounded-full border-2 border-border bg-white" />
+                          <div className="w-10 h-10 rounded-none border-2 border-border bg-white" />
                           <span className="text-xs font-medium">White</span>
                         </button>
                         
                         <button
                           onClick={() => setLanaiExtras(prev => ({ ...prev, color: 'black' }))}
-                          className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                          className={`p-3 rounded-none border-2 transition-all flex flex-col items-center gap-2 ${
                             lanaiExtras.color === 'black' 
                               ? 'border-primary bg-primary/10' 
                               : 'border-border hover:border-primary/50'
                           }`}
                         >
-                          <div className="w-10 h-10 rounded-full border-2 border-border bg-black" />
+                          <div className="w-10 h-10 rounded-none border-2 border-border bg-black" />
                           <span className="text-xs font-medium">Black</span>
                         </button>
                       </div>
@@ -320,7 +320,7 @@ const LanaiSection = () => {
                             foundationType: 'concrete',
                             paverOption: ''
                           }))}
-                          className={`p-3 rounded-lg border-2 transition-all ${
+                          className={`p-3 rounded-none border-2 transition-all ${
                             lanaiExtras.foundationType === 'concrete' 
                               ? 'border-primary bg-primary/10' 
                               : 'border-border hover:border-primary/50'
@@ -332,7 +332,7 @@ const LanaiSection = () => {
                         
                         <button
                           onClick={() => setLanaiExtras(prev => ({ ...prev, foundationType: 'pavers' }))}
-                          className={`p-3 rounded-lg border-2 transition-all ${
+                          className={`p-3 rounded-none border-2 transition-all ${
                             lanaiExtras.foundationType === 'pavers' 
                               ? 'border-primary bg-primary/10' 
                               : 'border-border hover:border-primary/50'
@@ -353,7 +353,7 @@ const LanaiSection = () => {
                             {paverOptions.map(paver => (
                               <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                                 <div 
-                                  className={`aspect-square p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col ${
+                                  className={`aspect-square p-2 border rounded-none cursor-pointer transition-all hover:shadow-md flex flex-col ${
                                     lanaiExtras.paverOption === paver.name 
                                       ? 'border-primary bg-primary/10' 
                                       : 'border-border'
@@ -363,7 +363,7 @@ const LanaiSection = () => {
                                     paverOption: paver.name 
                                   }))}
                                 >
-                                  <div className="w-full flex-1 rounded-md mb-1 overflow-hidden">
+                                  <div className="w-full flex-1 rounded-none mb-1 overflow-hidden">
                                     <img loading="lazy" decoding="async" 
                                       src={paver.image} 
                                       alt={paver.name}
@@ -386,7 +386,7 @@ const LanaiSection = () => {
 
                     {/* Price Summary */}
                     {squareFootage && (
-                      <div className="bg-muted p-4 rounded-lg">
+                      <div className="bg-muted p-4 rounded-none">
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-semibold">Lanai ({squareFootage} sq ft)</span>
                           <span className="text-xl font-bold text-primary">${calculatePrice().toLocaleString()}</span>
@@ -415,11 +415,11 @@ const LanaiSection = () => {
         </ProductScrollRow>
 
         {/* Information Section */}
-        <div className="bg-card border rounded-2xl p-8 shadow-lg">
+        <div className="bg-card border rounded-none p-8 shadow-lg">
           <h3 className="text-2xl font-bold mb-6 text-center">Why Choose Our Roof & Lanai Covers?</h3>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
+              <div className="w-16 h-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
                 <Home className="w-8 h-8 text-primary" />
               </div>
               <h4 className="font-bold mb-2">Outdoor Living</h4>
@@ -428,7 +428,7 @@ const LanaiSection = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
+              <div className="w-16 h-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
                 <Shield className="w-8 h-8 text-primary" />
               </div>
               <h4 className="font-bold mb-2">Weather Protection</h4>
@@ -437,7 +437,7 @@ const LanaiSection = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
+              <div className="w-16 h-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
                 <TrendingUp className="w-8 h-8 text-primary" />
               </div>
               <h4 className="font-bold mb-2">Value Addition</h4>

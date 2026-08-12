@@ -179,7 +179,7 @@ const LinersSection = ({
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <img loading="lazy" decoding="async" src={selectedLiner.image} alt={selectedLiner.name} className="w-full h-48 sm:h-64 object-cover rounded-lg" />
+                  <img loading="lazy" decoding="async" src={selectedLiner.image} alt={selectedLiner.name} className="w-full h-48 sm:h-64 object-cover rounded-none" />
                 </div>
                 <div className="space-y-3 sm:space-y-4">
                   <Badge className={`${getTypeColor(selectedLiner.subcategory || 'Glass')} text-white text-xs sm:text-sm`}>
@@ -237,7 +237,7 @@ const LinersSection = ({
                       />
                     </div>
 
-                    <div className="bg-muted/50 p-3 rounded-lg">
+                    <div className="bg-muted/50 p-3 rounded-none">
                       <div className="flex justify-between items-center">
                         <span className="text-xs sm:text-sm font-medium">Total:</span>
                         <span className="text-lg sm:text-xl font-bold text-primary">
