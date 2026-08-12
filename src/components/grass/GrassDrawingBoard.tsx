@@ -393,11 +393,12 @@ const GrassDrawingBoard: React.FC<Props> = ({
       if (area.closed) ctx.closePath();
 
       if (area.closed) {
-        const tex = textures[area.grassId];
+        const texId = grassById(area.grassId).id;
+        const tex = textures[texId];
         // 4 ft tile, pre-rendered at the exact on-screen pixel size so the
         // pattern never gets hard-downscaled (which is what produced seams).
         const tilePx = Math.max(24, Math.round(PX_PER_FT * zoom * 4 * dpr));
-        const scaled = tex ? getScaledTile(area.grassId, tex, tilePx) : null;
+        const scaled = tex ? getScaledTile(texId, tex, tilePx) : null;
         const pattern = scaled ? ctx.createPattern(scaled, 'repeat') : null;
         if (pattern) {
           const k = 1 / dpr;
