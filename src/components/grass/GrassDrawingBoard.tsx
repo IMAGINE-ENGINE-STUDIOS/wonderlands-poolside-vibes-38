@@ -286,6 +286,7 @@ const GrassDrawingBoard: React.FC<Props> = ({
   const wrapRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = React.useState<Tool>('draw');
+  const { compact, toggle: toggleDensity } = useBoardDensity();
   const [spline, setSpline] = React.useState(false);
   const [selection, setSelection] = React.useState<Selection>(null);
   const [hover, setHover] = React.useState<GrassPoint | null>(null);
