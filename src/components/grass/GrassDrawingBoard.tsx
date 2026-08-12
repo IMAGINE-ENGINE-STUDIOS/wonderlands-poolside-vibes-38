@@ -304,13 +304,11 @@ const GrassDrawingBoard: React.FC<Props> = ({
         if (!alive) return;
         try {
           const tile = buildSeamlessTile(img);
-          console.log('[grass tile]', g.id, tile ? `${tile.width}x${tile.height}` : 'null');
           if (tile) setTextures(prev => ({ ...prev, [g.id]: tile }));
-        } catch (e) {
-          console.log('[grass tile error]', g.id, String(e));
+        } catch {
+          /* texture stays unavailable; the board falls back to a flat wash */
         }
       };
-      img.onerror = () => console.log('[grass tile load fail]', g.id, g.image);
     });
     return () => {
       alive = false;
