@@ -173,16 +173,19 @@ const GrassDrawingBoard: React.FC<Props> = ({
   const dragRef = React.useRef<{ mode: 'point' | 'pan'; id?: string; index?: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 540 });
 
-  // Grass textures for pattern fills
-  const [textures, setTextures] = React.useState<Record<string, HTMLImageElement>>({});
+  // Grass textures for pattern fills — product photos carry a white studio border,
+  // so we trim it and mirror the crop into a seamless tile (no white seam lines).
+  const [textures, setTextures] = React.useState<Record<string, HTMLCanvasElement>>({});
   React.useEffect(() => {
     let alive = true;
     artificialGrassOptions.forEach(g => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = g.image;
       img.onload = () => {
         if (!alive) return;
-        setTextures(prev => ({ ...prev, [g.id]: img }));
+        const tile = buildSeamlessTile(img);
+        if (tile) setTextures(prev => ({ ...prev, [g.id]: tile }));
       };
     });
     return () => {
