@@ -85,8 +85,8 @@ const ScreenEnclosureSection = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {screenEnclosureOptions.map((enclosure) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleEnclosureClick(enclosure)}>
+          <ProductScrollRow className="mb-8">
+            {screenEnclosureOptions.map((enclosure) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleEnclosureClick(enclosure)}>
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
                     <Badge className={`${enclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : 'bg-gradient-to-r from-secondary to-accent'} text-white capitalize font-medium px-3 py-1`}>
@@ -139,7 +139,7 @@ const ScreenEnclosureSection = () => {
                   </Button>
                 </CardContent>
               </Card>)}
-          </div>
+          </ProductScrollRow>
           
           {/* Information Section - Moved below products */}
           <div className="bg-gradient-to-r from-primary/10 to-teal/10 rounded-2xl p-8 mt-16">
