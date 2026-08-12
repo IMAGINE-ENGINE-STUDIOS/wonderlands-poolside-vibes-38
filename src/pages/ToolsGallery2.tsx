@@ -6,20 +6,14 @@ import { Separator } from "@/components/ui/separator";
 import useReveal from "@/hooks/useReveal";
 
 import logo from "@/assets/wonderlands-logo.webp";
-import heroPool from "@/assets/hero-pool-optimized.webp";
-import maximaPool from "@/assets/maxima-pool.webp";
-import poolHeater from "@/assets/pool-heater.webp";
 
 /* Light widgets — loaded with the page */
 import AdvancedSearch from "@/components/AdvancedSearch";
-import StudioCartWidget from "@/components/StudioCartWidget";
-import MiniCart from "@/components/MiniCart";
 import { PoolCalculator } from "@/components/PoolCalculator";
 import HeaterSizeCalculator from "@/components/HeaterSizeCalculator";
-import FinancingOptions from "@/components/FinancingOptions";
-import ProductMediaGallery from "@/components/ProductMediaGallery";
 import { DynamicFeatureRenderer } from "@/components/DynamicFeatureRenderer";
 import { InlineCalculator } from "@/components/search/InlineCalculator";
+import { SignaturePad } from "@/components/blueprint/SignaturePad";
 
 import type { FenceLayout } from "@/components/fence/FenceDrawingBoard";
 import type { EnclosureLayout } from "@/components/enclosure/EnclosureDrawingBoard";
@@ -35,10 +29,9 @@ const GrassDrawingBoard = React.lazy(() => import("@/components/grass/GrassDrawi
 const GrassConfigurator = React.lazy(() => import("@/components/grass/GrassConfigurator"));
 const SiteDrawingBoard = React.lazy(() => import("@/components/blueprint/SiteDrawingBoard"));
 const SurveyQuoteTool = React.lazy(() => import("@/components/SurveyQuoteTool"));
-const SaunaSalesPricingDialog = React.lazy(() => import("@/components/sauna/SaunaSalesPricingDialog"));
-const LandscapingSection = React.lazy(() => import("@/components/LandscapingSection"));
-const PoolCatalog = React.lazy(() => import("@/components/PoolCatalog"));
-const SaunaSection = React.lazy(() => import("@/components/SaunaSection"));
+const BlueprintImportDialog = React.lazy(() =>
+  import("@/components/blueprint/BlueprintImportDialog").then((m) => ({ default: m.BlueprintImportDialog }))
+);
 
 /* Full tools — page-scale surfaces, mounted only when launched */
 const DesignStudioTool = React.lazy(() => import("@/pages/DesignStudio"));
@@ -136,6 +129,10 @@ interface SectionMeta {
   eyebrow: string;
   headline: string;
   description: string;
+  /** What the module actually does, in reviewable bullets. */
+  capabilities: string[];
+  /** Licensing metadata shown on every module. */
+  license: { module: string; tier: string; delivery: string };
   route: string;
   cta: string;
 }
@@ -192,6 +189,31 @@ const Stage = ({
               <p className="tl-in tl-d2 mt-5 max-w-md text-sm leading-relaxed text-muted-foreground">
                 {meta.description}
               </p>
+
+              <ul className="tl-in tl-d2 mt-6 max-w-md space-y-2 border-t border-foreground/12 pt-5">
+                {meta.capabilities.map((c) => (
+                  <li key={c} className="flex gap-3 text-[12px] leading-relaxed text-foreground/75">
+                    <span className="mt-[7px] h-1 w-1 shrink-0 bg-primary" />
+                    {c}
+                  </li>
+                ))}
+              </ul>
+
+              <dl className="tl-in tl-d3 mt-6 max-w-md border-t border-foreground/12 pt-4 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                <div className="flex justify-between gap-3 py-1">
+                  <dt>Module</dt>
+                  <dd className="text-foreground/80">{meta.license.module}</dd>
+                </div>
+                <div className="flex justify-between gap-3 py-1">
+                  <dt>License tier</dt>
+                  <dd className="text-foreground/80">{meta.license.tier}</dd>
+                </div>
+                <div className="flex justify-between gap-3 py-1">
+                  <dt>Delivery</dt>
+                  <dd className="text-foreground/80">{meta.license.delivery}</dd>
+                </div>
+              </dl>
+
               <div className="tl-in tl-d3 mt-8">
                 <Cta to={meta.route} label={meta.cta} />
               </div>
@@ -213,24 +235,40 @@ const SECTIONS: SectionMeta[] = [
   {
     id: "designer",
     index: "01",
-    name: "3D & 2D Pool Designer",
-    tag: "3D",
-    eyebrow: "Three dimensions. Real time.",
+    name: "Pool Designer — 3D / 2D",
+    tag: "CAD engine",
+    eyebrow: "Real-time WebGL. True scale.",
     headline: "Walk the water before it exists.",
     description:
-      "The complete design studio: real-time 3D scene, plan-view board, depth anchors, coping, waterline, deck elevation and interactive lights — running here, not pictured.",
+      "A dual-view design engine: a real-time 3D scene and a plan-view board bound to the same geometry at 10 px per foot. Draw or edit the shell outline and the depth profile rebuilds from linear anchors — shallow end, transition, deep end — with coping, waterline tile, deck elevation and retaining walls generated automatically. Stairs, benches, seating contours and interactive pool lights snap to the shell and re-price as they move.",
+    capabilities: [
+      "Bidirectional 2D ↔ 3D geometry sync",
+      "Linear depth anchors with auto wall generation",
+      "Coping, waterline and deck at 1 ft UV texture scale",
+      "Snap-to-wall lighting with gradient presets",
+      "Live cost model per shell, deck and feature",
+    ],
+    license: { module: "WL-DESIGN-3D", tier: "Enterprise", delivery: "Embedded React module" },
     route: "/design-studio",
     cta: "Open the Designer",
   },
   {
     id: "site-board",
     index: "02",
-    name: "2D Site Drawing Board",
-    tag: "2D",
-    eyebrow: "Plan view. True scale.",
+    name: "Site Drawing Board",
+    tag: "CAD engine",
+    eyebrow: "Plan view. Survey accurate.",
     headline: "One continuous line, drawn to scale.",
     description:
-      "Architect-style site board on a 14.4 px/ft grid. Draw the property boundary, residence, hardscape and pool; every polygon feeds the impervious-area table.",
+      "The architectural site board used for permit drawings. Draw property boundaries, residence footprint, hardscape, pool and easements as layered polygons on a 14.4 px/ft grid, with perpendicular dimension labels, vertex dragging and snap-to-line closing. Every polygon reports its own area and feeds the impervious-surface table used by plan reviewers.",
+    capabilities: [
+      "Layered site polygons with per-layer styling",
+      "Vertex-level editing and dimension callouts",
+      "Automatic area and impervious-coverage totals",
+      "Calibratable underlay for tracing surveys",
+      "Exports geometry to the plan set and the designer",
+    ],
+    license: { module: "WL-SITE-2D", tier: "Enterprise", delivery: "Embedded React module" },
     route: "/blueprint-builder",
     cta: "Open the Board",
   },
@@ -238,181 +276,221 @@ const SECTIONS: SectionMeta[] = [
     id: "blueprint",
     index: "03",
     name: "Blueprint Builder",
-    tag: "Documents",
-    eyebrow: "Permit ready. Signature ready.",
-    headline: "The whole plan set, editable.",
+    tag: "Document engine",
+    eyebrow: "Permit ready. Print ready.",
+    headline: "The whole plan set, editable in place.",
     description:
-      "Editable information blocks, jurisdiction data, survey import for PDF, DXF and vector, and Florida statutory electronic signature — the real builder, embedded.",
+      "A complete permit plan set generator. Title block, engineer data, jurisdiction requirements, scope of work, equipment schedule, structural and electrical details, code references and note libraries are all editable inline on the sheet itself. Sheets render to print at true scale, so what appears on screen is what the building department receives.",
+    capabilities: [
+      "Inline editing of every information block",
+      "Jurisdiction presets and reference-code libraries",
+      "Equipment schedule, legend and scope tables",
+      "Multi-sheet templates with true-scale print output",
+      "Site geometry pulled straight from the drawing board",
+    ],
+    license: { module: "WL-PLANSET", tier: "Enterprise", delivery: "Embedded React module" },
     route: "/blueprint-builder",
     cta: "Open Blueprint Builder",
   },
   {
-    id: "enclosure",
+    id: "import",
     index: "04",
+    name: "Survey & CAD Import",
+    tag: "Data pipeline",
+    eyebrow: "Any survey. Fully editable.",
+    headline: "Bring an existing plan in, keep editing it.",
+    description:
+      "The ingestion engine behind the builder. PDF, JPG and PNG sheets land as a calibratable underlay to trace over at a known scale; DXF (AutoCAD) and SVG geometry lands as real, vertex-editable site polygons with CAD layers mapped onto our site layers. Nothing arrives as a flat picture — everything imported stays drawable.",
+    capabilities: [
+      "PDF / JPG / PNG underlay with two-point scale calibration",
+      "DXF and SVG vector import with layer mapping",
+      "Imported geometry remains vertex-editable",
+      "Survey metadata autofill into the plan set",
+      "Runs client-side — no document leaves the session",
+    ],
+    license: { module: "WL-IMPORT", tier: "Enterprise add-on", delivery: "Embedded React module" },
+    route: "/blueprint-builder",
+    cta: "Open the Importer",
+  },
+  {
+    id: "signature",
+    index: "05",
+    name: "Electronic Signature",
+    tag: "Compliance",
+    eyebrow: "Florida statutory signature.",
+    headline: "Signed, sealed, and verifiable.",
+    description:
+      "A signature module built for Florida statutory electronic signatures on construction documents. Signers draw, type in one of several script faces, or upload an image; every output is normalised to a transparent PNG for document embedding. The signature is bound to a canonical payload of the drawings, title block and notes via a SHA-256 authentication code, so any later edit invalidates it.",
+    capabilities: [
+      "Draw, type or upload — one normalised output",
+      "Transparent PNG suitable for sheet embedding",
+      "SHA-256 authentication code over the document payload",
+      "Separate engineer, contractor and owner signature blocks",
+      "Statutory seal statement rendered with the signature",
+    ],
+    license: { module: "WL-ESIGN", tier: "Enterprise add-on", delivery: "Embedded React module" },
+    route: "/blueprint-builder",
+    cta: "Open the Signature Tool",
+  },
+  {
+    id: "enclosure",
+    index: "06",
     name: "Screen Enclosure Studio",
     tag: "Configurator",
-    eyebrow: "Structure. Priced as you draw.",
+    eyebrow: "Structure, priced as you draw.",
     headline: "Draw the footprint, price the structure.",
     description:
-      "Enclosure board with fixed-size doors and house-attached walls, paired with the live configurator for fabric, frame gauge and turnkey pricing.",
+      "A code-aware screen enclosure tool. Draw the footprint on a scaled grid with house-attached walls and fixed-width self-closing doors placed as discrete bays, then configure screen fabric, frame gauge, roof style and wind-load requirements. The configurator returns a turnkey number and a contractor cost view of the same structure.",
+    capabilities: [
+      "Vertex drawing with house-attached wall segments",
+      "Fixed-size door bays, not painted spline runs",
+      "Centred presets for common enclosure shapes",
+      "Fabric, gauge, roof style and wind-load options",
+      "Customer turnkey price and contractor cost view",
+    ],
+    license: { module: "WL-ENCLOSURE", tier: "Professional", delivery: "Embedded React module" },
     route: "/studio-showroom#enclosure",
     cta: "Configure an Enclosure",
   },
   {
     id: "fence",
-    index: "05",
+    index: "07",
     name: "Aluminum Fence Studio",
     tag: "Configurator",
     eyebrow: "Barrier logic, built in.",
     headline: "Every run, every gate, measured.",
     description:
-      "Draw the fence line on a scaled grid, flag gate segments, then price height, style, posts and installation under Florida pool-barrier rules.",
+      "Draw the fence line on a 1 ft grid, flag individual segments as gates, and the tool derives linear footage, post count, panel breaks and gate hardware. Pricing follows Florida pool-barrier rules by height and style, including self-latching gate requirements, and returns installation as a separate line.",
+    capabilities: [
+      "Segment-level gate flagging with hardware rules",
+      "Automatic linear footage, panel and post takeoff",
+      "Height and style pricing by barrier compliance",
+      "Separate material and installation lines",
+      "Layout persists across sessions",
+    ],
+    license: { module: "WL-FENCE", tier: "Professional", delivery: "Embedded React module" },
     route: "/studio-showroom#fence",
     cta: "Design a Fence",
   },
   {
     id: "grass",
-    index: "06",
+    index: "08",
     name: "Artificial Grass Board",
     tag: "Configurator",
     eyebrow: "Any silhouette. Any size.",
     headline: "Turf, drawn free-hand.",
     description:
-      "Polygon and spline turf drawing with automatic square-foot takeoff, product selection and the contractor cost model behind a passcode.",
+      "Polygon and spline turf drawing for patios and full yards of any size, with automatic square-foot takeoff per area and a product selector that re-prices every region as the specification changes. A passcode-gated contractor view exposes the Florida general-contractor cost model behind the retail figure.",
+    capabilities: [
+      "Polygon and spline areas with per-area takeoff",
+      "Multi-region drawing with independent products",
+      "Live retail pricing per square foot",
+      "Passcode-gated contractor cost model",
+      "Infill, base and labour broken out",
+    ],
+    license: { module: "WL-TURF", tier: "Professional", delivery: "Embedded React module" },
     route: "/wonderlands-studio",
     cta: "Open the Grass Board",
   },
   {
     id: "studio",
-    index: "07",
-    name: "Wonderlands Studio",
-    tag: "Configurator",
+    index: "09",
+    name: "Configuration Studio",
+    tag: "Platform",
     eyebrow: "The master instrument.",
-    headline: "The whole outdoor world, configured.",
+    headline: "Every category, one running total.",
     description:
-      "Every category, every option, one running total — the full studio surface mounted inside this page.",
+      "The full configuration platform that hosts the other modules: category navigation, product catalogue, option engine, unit-priced trades and a single running total across the whole build. Work autosaves in real time to local storage, so a reload returns the configuration and viewport exactly as they were left.",
+    capabilities: [
+      "Fourteen product categories in one surface",
+      "Unit-priced trades alongside catalogue products",
+      "Real-time autosave and viewport restoration",
+      "Single running total across the whole build",
+      "Handoff into the quote and document engines",
+    ],
+    license: { module: "WL-STUDIO", tier: "Platform", delivery: "Full application" },
     route: "/studio",
     cta: "Enter the Studio",
   },
   {
     id: "search",
-    index: "08",
-    name: "Advanced Search",
-    tag: "Navigation",
+    index: "10",
+    name: "Catalog Search Engine",
+    tag: "Search",
     eyebrow: "The whole catalog, one field.",
     headline: "Find it by name, or by number.",
     description:
-      "Catalog-wide search with filters, category routing and inline results. Both the full and slim variants are live below — type into either.",
+      "A catalogue-wide search index over products, categories, multipliers and specifications, with filter chips, category routing and inline results. Two variants ship from the same engine: the full field used on the main surface and a slim field used inside the studio chrome.",
+    capabilities: [
+      "Single index across products, trades and specifications",
+      "Filter chips with category-scoped routing",
+      "Inline results with direct deep links",
+      "Full and slim presentation variants",
+      "Query state cached between sessions",
+    ],
+    license: { module: "WL-SEARCH", tier: "Professional", delivery: "Embedded React module" },
     route: "/",
     cta: "Search the Catalog",
   },
   {
-    id: "cart",
-    index: "09",
-    name: "Configuration & Cart",
-    tag: "Commerce",
-    eyebrow: "Everything, summed.",
-    headline: "One running total, always visible.",
-    description:
-      "The studio price widget with editable shopping list and feature-level removal, plus the compact mini cart used in headers.",
-    route: "/checkout",
-    cta: "View Checkout",
-  },
-  {
     id: "features",
-    index: "10",
-    name: "Dynamic Feature Engine",
+    index: "11",
+    name: "Option Engine",
     tag: "Configurator",
     eyebrow: "Category-aware options.",
     headline: "Pools and saunas ask different questions.",
     description:
-      "The option engine renders carousels, toggles and counters from each product's feature config. Pool options and sauna options are shown side by side, both live.",
-    route: "/studio",
+      "A declarative option engine: each product type carries a feature configuration, and the renderer builds the correct carousels, toggles and counters from it — no per-product UI code. Business rules live in the configuration, so restrictions such as finish exclusivity or minimum deck pricing are enforced everywhere the engine is mounted.",
+    capabilities: [
+      "Declarative feature configs per product type",
+      "Carousels, toggles and counters generated automatically",
+      "Business rules and restrictions enforced centrally",
+      "Selections priced into the running total",
+      "Two product types shown side by side below",
+    ],
+    license: { module: "WL-OPTIONS", tier: "Professional", delivery: "Embedded React module" },
+    route: "/wonderlands-studio",
     cta: "Configure a Product",
   },
   {
     id: "calculators",
-    index: "11",
-    name: "Calculators",
+    index: "12",
+    name: "Engineering Calculators",
     tag: "Calculator",
-    eyebrow: "Volume. Heat. Chemistry.",
+    eyebrow: "Volume. Heat. Area.",
     headline: "The numbers behind the water.",
     description:
-      "Volume by shape and depth profile, heater sizing by target temperature rise, and the inline square-foot and linear-foot estimators used inside search.",
+      "The calculation suite: water volume by shape and depth profile, heater capacity sized from surface area and target temperature rise, and the inline square-foot and linear-foot estimators used for screen, fence, paver and lanai takeoffs. Every result can be pushed back into a configuration rather than copied by hand.",
+    capabilities: [
+      "Volume and turnover by shape and depth profile",
+      "Heater sizing by temperature rise and surface area",
+      "Inline square-foot and linear-foot estimators",
+      "Results write back into the active configuration",
+      "Unit handling and rounding rules built in",
+    ],
+    license: { module: "WL-CALC", tier: "Standard", delivery: "Embedded React module" },
     route: "/pool-calculator",
     cta: "Run the Numbers",
   },
   {
-    id: "financing",
-    index: "12",
-    name: "Financing & Checkout",
-    tag: "Commerce",
-    eyebrow: "Terms, plainly presented.",
-    headline: "From cart to signature.",
-    description:
-      "Monthly payment scenarios by term and rate on a live demonstration total, exactly as they appear at checkout.",
-    route: "/checkout",
-    cta: "View Checkout",
-  },
-  {
     id: "quote",
     index: "13",
-    name: "Quote & Survey Tool",
-    tag: "Documents",
-    eyebrow: "Intake to proposal.",
+    name: "Survey & Proposal Engine",
+    tag: "Document engine",
+    eyebrow: "Intake to signed proposal.",
     headline: "One survey becomes the document.",
     description:
-      "Guided site survey that becomes an itemized, printable proposal with overrides and a per-customer quote gallery. Open it here with a demonstration product.",
+      "A guided site survey that compiles into an itemised, print-ready proposal: every configured component and feature is summed, empty sections are suppressed, and authorised users can override wording or pricing behind a passcode. Saving opens the print dialog directly, and each customer keeps a gallery of previous proposals.",
+    capabilities: [
+      "Guided intake with required contact capture",
+      "Itemised component and feature summation",
+      "Passcode-gated text and price overrides",
+      "Direct print output plus PDF and invoice handoff",
+      "Per-customer proposal gallery and history",
+    ],
+    license: { module: "WL-PROPOSAL", tier: "Enterprise", delivery: "Embedded React module" },
     route: "/quote",
-    cta: "Build a Quote",
-  },
-  {
-    id: "media",
-    index: "14",
-    name: "Product Media Gallery",
-    tag: "Presentation",
-    eyebrow: "Consistent framing.",
-    headline: "Every product, shown the same way.",
-    description:
-      "The image and video gallery used on every product surface, with keyboard-friendly navigation and a fixed media frame.",
-    route: "/",
-    cta: "Browse Products",
-  },
-  {
-    id: "sauna",
-    index: "15",
-    name: "Sauna Catalog & Sales Pricing",
-    tag: "Catalog",
-    eyebrow: "Retail and internal.",
-    headline: "Two views of the same cabin.",
-    description:
-      "The live sauna catalog with turnkey retail pricing, plus the passcode-protected internal cost breakdown built for the sales team.",
-    route: "/studio",
-    cta: "Browse Saunas",
-  },
-  {
-    id: "landscaping",
-    index: "16",
-    name: "Landscaping Designer",
-    tag: "Catalog",
-    eyebrow: "Verdure, specified.",
-    headline: "Planting, priced by area.",
-    description:
-      "The full planting catalog — palms, shrubs and groundcover — sized and priced by area, ready to attach to any design.",
-    route: "/landscaping",
-    cta: "Design the Grounds",
-  },
-  {
-    id: "pools",
-    index: "17",
-    name: "Pool Catalog",
-    tag: "Catalog",
-    eyebrow: "The collection.",
-    headline: "Fourteen disciplines, one water line.",
-    description:
-      "The live Wonderlands pool collection with configurable cards, running totals and direct handoff into the quote tool.",
-    route: "/",
-    cta: "See the Collection",
+    cta: "Build a Proposal",
   },
 ];
 
@@ -434,16 +512,9 @@ const ToolsGallery2 = () => {
   const [heater, setHeater] = React.useState("");
   const [inlineResult, setInlineResult] = React.useState("");
   const [quoteOpen, setQuoteOpen] = React.useState(false);
-  const [saunaPricingOpen, setSaunaPricingOpen] = React.useState(false);
-
-  const media = React.useMemo(
-    () => [
-      { type: "image" as const, url: heroPool, alt: "Wonderlands pool with sun deck" },
-      { type: "image" as const, url: maximaPool, alt: "Maxima fiberglass pool" },
-      { type: "image" as const, url: poolHeater, alt: "Pool heater unit" },
-    ],
-    []
-  );
+  const [importOpen, setImportOpen] = React.useState(false);
+  const [signatureOpen, setSignatureOpen] = React.useState(false);
+  const [signature, setSignature] = React.useState("");
 
   React.useEffect(() => {
     let frame = 0;
@@ -527,7 +598,7 @@ const ToolsGallery2 = () => {
           <div className="flex items-center gap-3 sm:gap-4">
             <img src={logo} alt="Wonderlands World" className="h-8 w-auto sm:h-9" loading="eager" decoding="async" />
             <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-muted-foreground sm:text-[11px]">
-              Tools — Live widgets
+              Software — Licensing edition
             </span>
           </div>
           <Link
@@ -540,15 +611,16 @@ const ToolsGallery2 = () => {
 
         <div className="relative z-10 mx-auto w-full max-w-[1500px] px-5 py-10 sm:px-8">
           <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground sm:text-[11px]">
-            Seventeen instruments
+            Thirteen licensable modules
           </p>
           <h1 className="mt-5 max-w-5xl font-serif text-[clamp(2.3rem,8vw,6.5rem)] font-light leading-[0.95] tracking-tight">
             Not screenshots.
-            <span className="block italic text-primary">The tools themselves.</span>
+            <span className="block italic text-primary">The software itself.</span>
           </h1>
           <p className="mt-7 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
-            Every panel on this page is the real, running widget — draw on the boards, configure a pool, size a heater,
-            price a fence. Page-scale tools load on demand so the set stays fast.
+            Design, drafting, permitting and proposal software for the outdoor construction trade — CAD engines,
+            code-aware configurators, calculators and document generators. Every module below is the production
+            build, running live: draw on the boards, import a survey, sign a sheet, price a structure.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-4 sm:gap-6">
             <Cta to="/studio" label="Enter the Studio" />
@@ -634,7 +706,68 @@ const ToolsGallery2 = () => {
         </Launcher>
       </Stage>
 
-      {/* 04 — enclosure */}
+      {/* 04 — survey & CAD import */}
+      <Stage meta={meta("import")}>
+        <div className="space-y-6">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Import a survey or plan set into the site geometry loaded above. PDF, JPG and PNG arrive as a
+            calibratable underlay; DXF and SVG arrive as editable polygons.
+          </p>
+          <Button
+            className="rounded-none px-7 py-6 text-[10px] uppercase tracking-[0.28em]"
+            onClick={() => setImportOpen(true)}
+          >
+            Import a survey
+          </Button>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Current site geometry — {sitePlan.shapes.length} shape{sitePlan.shapes.length === 1 ? "" : "s"} ·
+            underlay {sitePlan.underlay ? "loaded" : "none"}
+          </p>
+        </div>
+        <React.Suspense fallback={null}>
+          {importOpen && (
+            <BlueprintImportDialog
+              open={importOpen}
+              onOpenChange={setImportOpen}
+              site={sitePlan}
+              onApply={setSitePlan}
+            />
+          )}
+        </React.Suspense>
+      </Stage>
+
+      {/* 05 — electronic signature */}
+      <Stage meta={meta("signature")} dark>
+        <div className="space-y-6">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Draw, type or upload a signature. The module returns a transparent PNG ready to embed in a sheet.
+          </p>
+          <Button
+            className="rounded-none px-7 py-6 text-[10px] uppercase tracking-[0.28em]"
+            onClick={() => setSignatureOpen(true)}
+          >
+            Sign a document
+          </Button>
+          <div className="border border-foreground/12 bg-muted/30 p-6">
+            <p className="mb-4 font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+              Applied signature
+            </p>
+            {signature ? (
+              <img src={signature} alt="Applied electronic signature" className="h-24 w-auto" />
+            ) : (
+              <p className="text-sm text-muted-foreground">No signature applied yet.</p>
+            )}
+          </div>
+        </div>
+        <SignaturePad
+          open={signatureOpen}
+          onOpenChange={setSignatureOpen}
+          title="Electronic signature — demonstration"
+          onApply={setSignature}
+        />
+      </Stage>
+
+      {/* 06 — enclosure */}
       <Stage meta={meta("enclosure")} dark>
         <React.Suspense fallback={<Loading label="Loading enclosure studio" />}>
           <div className="space-y-8">
@@ -645,7 +778,7 @@ const ToolsGallery2 = () => {
         </React.Suspense>
       </Stage>
 
-      {/* 05 — fence */}
+      {/* 07 — fence */}
       <Stage meta={meta("fence")}>
         <React.Suspense fallback={<Loading label="Loading fence studio" />}>
           <div className="space-y-8">
@@ -656,7 +789,7 @@ const ToolsGallery2 = () => {
         </React.Suspense>
       </Stage>
 
-      {/* 06 — grass */}
+      {/* 08 — grass */}
       <Stage meta={meta("grass")} dark>
         <React.Suspense fallback={<Loading label="Loading grass board" />}>
           <div className="space-y-8">
@@ -672,7 +805,7 @@ const ToolsGallery2 = () => {
         </React.Suspense>
       </Stage>
 
-      {/* 07 — studio */}
+      {/* 09 — studio */}
       <Stage meta={meta("studio")} contain>
         <Launcher
           title="Wonderlands Studio"
@@ -682,7 +815,7 @@ const ToolsGallery2 = () => {
         </Launcher>
       </Stage>
 
-      {/* 08 — search */}
+      {/* 10 — search */}
       <Stage meta={meta("search")} dark>
         <div className="space-y-8">
           <div>
@@ -697,30 +830,7 @@ const ToolsGallery2 = () => {
         </div>
       </Stage>
 
-      {/* 09 — cart */}
-      <Stage meta={meta("cart")}>
-        <div className="grid gap-8 md:grid-cols-2">
-          <div>
-            <p className="mb-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Studio cart widget</p>
-            <StudioCartWidget
-              currentPrice={68500}
-              currentName="Wonderlands Aurora 14x28"
-              currentCategory="Pool"
-              currentExtras={[
-                { name: "Salt system", price: 2400, key: "tools2-salt" },
-                { name: "LED lighting", price: 1200, key: "tools2-led" },
-              ]}
-              onQuote={() => setQuoteOpen(true)}
-            />
-          </div>
-          <div>
-            <p className="mb-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Mini cart</p>
-            <MiniCart onViewFullCart={() => undefined} />
-          </div>
-        </div>
-      </Stage>
-
-      {/* 10 — feature engine */}
+      {/* 11 — option engine */}
       <Stage meta={meta("features")} dark>
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
@@ -734,7 +844,7 @@ const ToolsGallery2 = () => {
         </div>
       </Stage>
 
-      {/* 11 — calculators */}
+      {/* 12 — calculators */}
       <Stage meta={meta("calculators")}>
         <div className="space-y-8">
           <PoolCalculator />
@@ -753,14 +863,7 @@ const ToolsGallery2 = () => {
         </div>
       </Stage>
 
-      {/* 12 — financing */}
-      <Stage meta={meta("financing")} dark>
-        <div className="max-w-xl">
-          <FinancingOptions totalPrice={68500} productName="Wonderlands Aurora 14x28" productId="tools2-demo" />
-        </div>
-      </Stage>
-
-      {/* 13 — quote tool */}
+      {/* 13 — proposal engine */}
       <Stage meta={meta("quote")}>
         <div className="flex flex-col items-start gap-4">
           <p className="text-sm text-muted-foreground">
@@ -782,61 +885,19 @@ const ToolsGallery2 = () => {
         </React.Suspense>
       </Stage>
 
-      {/* 14 — media */}
-      <Stage meta={meta("media")} dark>
-        <div className="max-w-2xl">
-          <ProductMediaGallery media={media} productName="Wonderlands Aurora" />
-        </div>
-      </Stage>
-
-      {/* 15 — sauna */}
-      <Stage meta={meta("sauna")}>
-        <div className="space-y-8">
-          <Button
-            variant="outline"
-            className="rounded-none px-7 py-6 text-[10px] uppercase tracking-[0.28em]"
-            onClick={() => setSaunaPricingOpen(true)}
-          >
-            Open sales pricing (passcode)
-          </Button>
-          <React.Suspense fallback={<Loading label="Loading sauna catalog" />}>
-            <SaunaSection />
-          </React.Suspense>
-        </div>
-        <React.Suspense fallback={null}>
-          {saunaPricingOpen && (
-            <SaunaSalesPricingDialog
-              open={saunaPricingOpen}
-              onOpenChange={setSaunaPricingOpen}
-              name="Almost Heaven Grandview"
-              unitCost={9995}
-              capacity="4 person"
-              optionsRetail={1800}
-            />
-          )}
-        </React.Suspense>
-      </Stage>
-
-      {/* 16 — landscaping */}
-      <Stage meta={meta("landscaping")} dark contain>
-        <React.Suspense fallback={<Loading label="Loading landscaping" />}>
-          <LandscapingSection />
-        </React.Suspense>
-      </Stage>
-
-      {/* 17 — pool catalog */}
-      <Stage meta={meta("pools")} contain>
-        <React.Suspense fallback={<Loading label="Loading pool catalog" />}>
-          <PoolCatalog />
-        </React.Suspense>
-      </Stage>
 
       <footer className="relative overflow-hidden border-t border-border/60 bg-secondary/40 py-20 text-center">
         <div className="pointer-events-none absolute inset-0 tl-grid opacity-50" />
         <div className="relative z-10 px-5">
-          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground sm:text-[11px]">End of the set</p>
+          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground sm:text-[11px]">
+            Licensing — Wonderlands Software
+          </p>
           <p className="mx-auto mt-5 max-w-2xl font-serif text-[clamp(1.5rem,4vw,2.5rem)] font-light">
-            Seventeen instruments, all of them live.
+            Thirteen modules, licensed individually or as one platform.
+          </p>
+          <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Every module above is the production build, embeddable as a React module or deployed as a full
+            application. Standard, Professional, Enterprise and Platform tiers are available per module.
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-4">
             <Cta to="/studio" label="Enter the Studio" />
