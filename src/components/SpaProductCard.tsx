@@ -417,7 +417,7 @@ const SpaProductCard = ({
         </div>
         
         {/* Image Edit Button - Only visible for admins */}
-        {isAdmin && isEditable && <Button size="sm" variant="secondary" className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" onClick={e => {
+        {isAdmin && isEditable && <Button size="sm" variant="secondary" className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 rounded-none" onClick={e => {
         e.stopPropagation();
         setShowImageEditor(true);
       }}>
@@ -694,14 +694,14 @@ const SpaProductCard = ({
                   Spa Jets Quantity
                 </h4>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({
+                  <Button className="rounded-none" size="sm" variant="outline" onClick={() => setExtras(prev => ({
               ...prev,
               jetQuantity: Math.max(1, prev.jetQuantity - 1)
             }))}>
                     -
                   </Button>
                   <span className="font-semibold">{extras.jetQuantity}</span>
-                  <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({
+                  <Button className="rounded-none" size="sm" variant="outline" onClick={() => setExtras(prev => ({
               ...prev,
               jetQuantity: prev.jetQuantity + 1
             }))}>
@@ -757,7 +757,7 @@ const SpaProductCard = ({
         {showDetails && <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
             
-            <Button variant="outline" size="sm" onClick={() => {
+            <Button className="rounded-none" variant="outline" size="sm" onClick={() => {
             // Create detailed extras breakdown for quote tool
             const extrasBreakdown = [] as Array<{
               name: string;
@@ -827,7 +827,7 @@ const SpaProductCard = ({
             });
           }} className="flex-1 instant-quote-btn transition-all duration-300 text-xs">Instant Quote</Button>
           
-          <Button onClick={handleAddToCart} variant="outline" size="icon" className="w-10 h-10">
+          <Button onClick={handleAddToCart} variant="outline" size="icon" className="w-10 h-10 rounded-none">
             <ShoppingCart className="h-4 w-4" />
           </Button>
           </div>

@@ -252,7 +252,7 @@ const TanningLedgeProductCard = ({
         </div>
         
         {/* Image Edit Button - Only visible for admins */}
-        {isAdmin && isEditable && <Button size="sm" variant="secondary" className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" onClick={e => {
+        {isAdmin && isEditable && <Button size="sm" variant="secondary" className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 rounded-none" onClick={e => {
         e.stopPropagation();
         setShowImageEditor(true);
       }}>
@@ -417,14 +417,14 @@ const TanningLedgeProductCard = ({
                     </div>
                   </label>
                   {extras.jets && <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => setExtras(prev => ({
+                      <Button className="rounded-none" variant="outline" size="sm" onClick={() => setExtras(prev => ({
                   ...prev,
                   jetQuantity: Math.max(1, prev.jetQuantity - 1)
                 }))} className="h-8 w-8 p-0">
                         -
                       </Button>
                       <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
-                      <Button variant="outline" size="sm" onClick={() => setExtras(prev => ({
+                      <Button className="rounded-none" variant="outline" size="sm" onClick={() => setExtras(prev => ({
                   ...prev,
                   jetQuantity: prev.jetQuantity + 1
                 }))} className="h-8 w-8 p-0">
@@ -438,7 +438,7 @@ const TanningLedgeProductCard = ({
             {/* Action Buttons */}
             <div className="space-y-2">
               <div className="flex gap-2">
-                <Button onClick={() => {
+                <Button className="rounded-none" onClick={() => {
               // Create extras breakdown for quote
               const extrasBreakdown = [];
 
@@ -493,7 +493,7 @@ const TanningLedgeProductCard = ({
               </div>
               
               <div className="flex gap-2">
-                <Button onClick={handleAddToCart} variant="outline" size="sm" className="flex-1">
+                <Button onClick={handleAddToCart} variant="outline" size="sm" className="flex-1 rounded-none">
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Cart
                 </Button>
@@ -528,7 +528,7 @@ const TanningLedgeProductCard = ({
                     </div>
                   </div>
                   
-                  <Button variant="outline" className="w-full" size="sm" onClick={() => {
+                  <Button variant="outline" className="w-full rounded-none" size="sm" onClick={() => {
                 const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + `amount=${calculateTotalPrice()}&` + `product=${encodeURIComponent(ledge.name)}&` + `description=${encodeURIComponent(`Complete tanning ledge configuration including ${ledge.name}`)}&` + `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` + `loan_term=48&` + `project_type=Pool%20Installation`;
                 window.open(lyonFinancialUrl, '_blank');
               }}>

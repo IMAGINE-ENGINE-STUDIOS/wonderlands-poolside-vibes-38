@@ -128,7 +128,7 @@ const ScreenEnclosureSection = () => {
                   </div>
                   
                   {/* Action Button */}
-                  <Button onClick={e => {
+                  <Button className="rounded-none" onClick={e => {
                 e.stopPropagation();
                 handleEnclosureClick(enclosure);
               }} variant="default" className="w-full hover:scale-105 transition-all duration-300" size="sm">
@@ -228,11 +228,11 @@ const ScreenEnclosureSection = () => {
                   </div>
                   
                   <div className="flex gap-3">
-                    <Button onClick={() => handleAddToCart(selectedEnclosure, squareFootage)} disabled={!squareFootage || squareFootage <= 0} variant="default" className="flex-1">
+                    <Button className="rounded-none" onClick={() => handleAddToCart(selectedEnclosure, squareFootage)} disabled={!squareFootage || squareFootage <= 0} variant="default" className="flex-1">
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
                     </Button>
-                    <Button onClick={() => handleRequestQuote(selectedEnclosure)} variant="outline" className="flex-1">
+                    <Button className="rounded-none" onClick={() => handleRequestQuote(selectedEnclosure)} variant="outline" className="flex-1">
                       Get Quote
                     </Button>
                   </div>

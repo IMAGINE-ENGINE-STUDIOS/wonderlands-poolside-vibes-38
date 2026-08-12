@@ -165,7 +165,7 @@ const LinersSection = ({
                         
                         <CardContent className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 pb-3 sm:pb-4 px-3 sm:px-6">
                           {/* Action Button */}
-                          <Button onClick={e => {
+                          <Button className="rounded-none" onClick={e => {
                       e.stopPropagation();
                       handleLinerClick(liner);
                     }} variant="default" className="w-full hover:scale-105 transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5" size="sm">
@@ -255,17 +255,17 @@ const LinersSection = ({
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                    {allowSelection && !selectedLinerProp && selectedLiner && <Button onClick={() => {
+                    {allowSelection && !selectedLinerProp && selectedLiner && <Button className="rounded-none" onClick={() => {
                   onLinerSelect?.(selectedLiner as Liner);
                   setShowDetailModal(false);
                 }} variant="default" className="w-full sm:flex-1 text-sm">
                         Select Liner
                       </Button>}
-                    <Button onClick={handleAddToCart} variant="default" className="w-full sm:flex-1 text-sm">
+                    <Button onClick={handleAddToCart} variant="default" className="w-full sm:flex-1 text-sm rounded-none">
                       <ShoppingCart className="mr-2 h-4 w-4" />
                       Add to Cart
                     </Button>
-                    <Button onClick={() => handleRequestQuote(selectedLiner)} variant="gradient" className="w-full sm:flex-1 text-sm">
+                    <Button className="rounded-none" onClick={() => handleRequestQuote(selectedLiner)} variant="gradient" className="w-full sm:flex-1 text-sm">
                       Get Quote
                     </Button>
                   </div>

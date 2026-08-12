@@ -129,7 +129,7 @@ const PoolFinishesSection = () => {
                       <span className="text-lg font-bold text-primary">
                         +${finish.price.toLocaleString()}
                       </span>
-                      <Button variant="outline" size="sm">
+                      <Button className="rounded-none" variant="outline" size="sm">
                         View Details
                       </Button>
                     </div>
@@ -184,7 +184,7 @@ const PoolFinishesSection = () => {
                     </div>
                     
                     <div className="flex gap-3">
-                      <Button 
+                      <Button className="rounded-none" 
                         onClick={() => handleAddToCart(selectedFinish)}
                         variant="outline"
                         className="flex-1"
@@ -192,7 +192,7 @@ const PoolFinishesSection = () => {
                         <ShoppingCart className="h-4 w-4 mr-2" />
                         Add to Cart
                       </Button>
-                      <Button 
+                      <Button className="rounded-none" 
                         onClick={() => handleRequestQuote(selectedFinish)}
                         variant="gradient"
                         className="flex-1"

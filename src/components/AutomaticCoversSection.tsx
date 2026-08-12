@@ -208,7 +208,7 @@ const AutomaticCoversSection = () => {
                   </div>
                   
                   {/* Action Button */}
-                  <Button onClick={() => handleRequestQuote(cover)} className="w-full instant-quote-btn transition-all duration-300" size="lg">Instant Quote with Installation</Button>
+                  <Button className="rounded-none" onClick={() => handleRequestQuote(cover)} className="w-full instant-quote-btn transition-all duration-300" size="lg">Instant Quote with Installation</Button>
               </CardContent>
             </Card>)}
           </ProductScrollRow>
@@ -289,7 +289,7 @@ const AutomaticCoversSection = () => {
                 <p className="text-foreground/80 mb-6">
                   An automatic pool cover is more than just protection – it's an investment that pays for itself through reduced operating costs, water savings, and extended equipment life.
                 </p>
-                <Button variant="gradient" size="lg" className="hover:scale-105 transition-transform duration-300">
+                <Button variant="gradient" size="lg" className="hover:scale-105 transition-transform duration-300 rounded-none">
                   Calculate Your Savings
                 </Button>
               </CardContent>

@@ -76,7 +76,7 @@ const EditableSection: React.FC<EditableSectionProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 rounded-none"
               onClick={() => onMove('up')}
               title="Move Section Up"
             >
@@ -89,7 +89,7 @@ const EditableSection: React.FC<EditableSectionProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 rounded-none"
               onClick={() => onMove('down')}
               title="Move Section Down"
             >
@@ -102,7 +102,7 @@ const EditableSection: React.FC<EditableSectionProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 rounded-none"
               onClick={onEdit}
               title="Edit Section"
             >
@@ -115,7 +115,7 @@ const EditableSection: React.FC<EditableSectionProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 rounded-none"
               onClick={onToggleVisibility}
               title={isVisible ? "Hide Section" : "Show Section"}
             >
@@ -128,7 +128,7 @@ const EditableSection: React.FC<EditableSectionProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 rounded-none"
               onClick={onDuplicate}
               title="Duplicate Section"
             >
@@ -141,7 +141,7 @@ const EditableSection: React.FC<EditableSectionProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+              className="h-6 w-6 p-0 text-destructive hover:text-destructive rounded-none"
               onClick={onDelete}
               title="Delete Section"
             >
