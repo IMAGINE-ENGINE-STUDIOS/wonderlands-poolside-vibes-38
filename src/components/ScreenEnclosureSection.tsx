@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DollarSign, ShoppingCart, Calculator, Home, Zap, Star } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
 interface ScreenEnclosureOption {
   name: string;

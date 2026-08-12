@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import TanningLedgeProductCard from "./TanningLedgeProductCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 import { lathamTanningLedges, glimmerglassTanningLedges, tanningLedges } from "@/data/poolData";
 
 // Import GlimmerGlass images
@@ -104,7 +105,7 @@ const TanningLedgeSection = () => {
             <h3 className="text-2xl md:text-3xl font-bold mb-8 text-center text-foreground/90">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500">Latham</span> Tanning Ledges
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <ProductScrollRow className="mb-8">
               {lathamLedgesWithCategory.map((ledge) => (
                 <TanningLedgeProductCard
                   key={ledge.name}
@@ -113,7 +114,7 @@ const TanningLedgeSection = () => {
                   onRequestQuote={handleRequestQuote}
                 />
               ))}
-            </div>
+            </ProductScrollRow>
           </div>
 
           {/* GlimmerGlass Tanning Ledges Section */}
@@ -121,7 +122,7 @@ const TanningLedgeSection = () => {
             <h3 className="text-2xl md:text-3xl font-bold mb-8 text-center text-foreground/90">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">GlimmerGlass</span> Tanning Ledges
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <ProductScrollRow className="mb-8">
               {glimmerglassLedgesWithCategory.map((ledge) => (
                 <TanningLedgeProductCard
                   key={ledge.name}
@@ -130,7 +131,7 @@ const TanningLedgeSection = () => {
                   onRequestQuote={handleRequestQuote}
                 />
               ))}
-            </div>
+            </ProductScrollRow>
           </div>
         </div>
       </section>
