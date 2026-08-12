@@ -44,7 +44,7 @@ const GilmerPoolsSection = () => {
         </div>
 
         {/* Info Banner */}
-        <div className="mt-12 p-6 rounded-lg bg-gradient-to-r from-primary/10 via-teal/10 to-primary/10 border border-primary/20">
+        <div className="mt-12 p-6 rounded-none bg-gradient-to-r from-primary/10 via-teal/10 to-primary/10 border border-primary/20">
           <div className="text-center space-y-2">
             <h3 className="text-xl font-bold text-foreground">Why Choose Gilmerglass Pools?</h3>
             <p className="text-muted-foreground max-w-2xl mx-auto">

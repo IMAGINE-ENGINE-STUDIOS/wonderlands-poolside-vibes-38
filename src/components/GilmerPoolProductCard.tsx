@@ -406,14 +406,14 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
             {colorOptions.map((color) => (
               <label
                 key={color.name}
-                className={`flex items-center space-x-2 cursor-pointer p-3 rounded-lg border transition-all ${
+                className={`flex items-center space-x-2 cursor-pointer p-3 rounded-none border transition-all ${
                   extras.colorFinish === color.name
                     ? 'border-primary bg-primary/10'
                     : 'border-border hover:border-primary/50'
                 }`}
               >
                 <div 
-                  className="w-6 h-6 rounded-full border-2 border-gray-300"
+                  className="w-6 h-6 rounded-none border-2 border-gray-300"
                   style={{ backgroundColor: color.color }}
                 />
                 <div className="flex-1">
@@ -660,7 +660,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                       <button
                         key={color}
                         onClick={() => updateExtra('rockyWaterfallsColor', color)}
-                        className={`px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
+                        className={`px-3 py-2 rounded-none border text-xs font-medium transition-all ${
                           extras.rockyWaterfallsColor === color 
                             ? 'border-stone-600 bg-stone-600/10' 
                             : 'border-border hover:border-stone-600/50'
@@ -750,13 +750,13 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                         key={opt.name}
                         type="button"
                         onClick={() => updateExtra('artificialGrassColor', opt.name)}
-                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-center ${
+                        className={`p-2 border rounded-none cursor-pointer transition-all hover:shadow-md flex flex-col items-center ${
                           extras.artificialGrassColor === opt.name
                             ? 'border-green-600 bg-green-600/10'
                             : 'border-border'
                         }`}
                       >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden">
                           <img src={opt.image} alt={opt.name} className="w-full h-full object-cover" loading="lazy" />
                         </div>
                         <span className="text-xs font-medium">{opt.name}</span>

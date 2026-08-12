@@ -124,7 +124,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
             <div className="grid grid-cols-1 gap-1.5">
               {sauna.features.slice(0, 4).map((feature, index) => (
                 <div key={index} className="flex items-start gap-2">
-                  <div className="mt-1.5 h-1 w-1 rounded-full bg-foreground/60 flex-shrink-0" />
+                  <div className="mt-1.5 h-1 w-1 rounded-none bg-foreground/60 flex-shrink-0" />
                   <span className="text-xs text-muted-foreground leading-tight">{feature}</span>
                 </div>
               ))}

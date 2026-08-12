@@ -154,7 +154,7 @@ const PoolFinishesSection = () => {
                   <img loading="lazy" decoding="async" 
                     src={selectedFinish.image} 
                     alt={selectedFinish.name}
-                    className="w-full h-64 object-cover rounded-lg"
+                    className="w-full h-64 object-cover rounded-none"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <Badge variant="secondary">{selectedFinish.collection}</Badge>
@@ -173,7 +173,7 @@ const PoolFinishesSection = () => {
                     <ul className="space-y-2">
                       {selectedFinish.features?.map((feature, index) => (
                         <li key={index} className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          <div className="w-2 h-2 bg-primary rounded-none"></div>
                           <span className="text-sm">{feature}</span>
                         </li>
                       ))}
@@ -214,8 +214,8 @@ const PoolFinishesSection = () => {
 
         {/* Pool Finish Technology Section - Compact */}
         <div className="mt-12 grid md:grid-cols-3 gap-4">
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-br from-primary/5 to-coral/5 border border-primary/10">
-            <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="flex items-start gap-3 p-4 rounded-none bg-gradient-to-br from-primary/5 to-coral/5 border border-primary/10">
+            <div className="w-10 h-10 bg-primary/20 rounded-none flex items-center justify-center flex-shrink-0">
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -226,8 +226,8 @@ const PoolFinishesSection = () => {
             </div>
           </div>
           
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-br from-coral/5 to-teal/5 border border-coral/10">
-            <div className="w-10 h-10 bg-coral/20 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="flex items-start gap-3 p-4 rounded-none bg-gradient-to-br from-coral/5 to-teal/5 border border-coral/10">
+            <div className="w-10 h-10 bg-coral/20 rounded-none flex items-center justify-center flex-shrink-0">
               <Award className="h-5 w-5 text-coral" />
             </div>
             <div>
@@ -238,8 +238,8 @@ const PoolFinishesSection = () => {
             </div>
           </div>
           
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-br from-teal/5 to-primary/5 border border-teal/10">
-            <div className="w-10 h-10 bg-teal/20 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="flex items-start gap-3 p-4 rounded-none bg-gradient-to-br from-teal/5 to-primary/5 border border-teal/10">
+            <div className="w-10 h-10 bg-teal/20 rounded-none flex items-center justify-center flex-shrink-0">
               <Eye className="h-5 w-5 text-teal" />
             </div>
             <div>

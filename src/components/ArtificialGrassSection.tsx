@@ -90,7 +90,7 @@ const ArtificialGrassSection = () => {
           </DialogHeader>
           {selectedGrass && (
             <div className="space-y-4">
-              <div className="aspect-video overflow-hidden rounded-lg bg-muted">
+              <div className="aspect-video overflow-hidden rounded-none bg-muted">
                 <img loading="lazy" decoding="async"
                   src={selectedGrass.image}
                   alt={selectedGrass.name}
@@ -109,7 +109,7 @@ const ArtificialGrassSection = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-900">
+              <div className="flex items-center justify-between p-4 rounded-none bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-900">
                 <div>
                   <p className="text-xs text-muted-foreground">
                     {sqft} sq ft × ${PRICE_PER_SQFT}

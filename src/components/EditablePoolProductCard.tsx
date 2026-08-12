@@ -720,12 +720,12 @@ const EditablePoolProductCard = ({
                       {tileOptions.map((tile) => (
                         <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                           <div 
-                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                               extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
                             }`}
                             onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
                           >
-                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                            <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                               <img loading="lazy" decoding="async" 
                                 src={tile.image} 
                                 alt={tile.name}
@@ -763,12 +763,12 @@ const EditablePoolProductCard = ({
                       {finishOptions.map((finish) => (
                         <CarouselItem key={finish.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                           <div 
-                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                               extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
                             }`}
                             onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
                           >
-                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                            <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                               <img loading="lazy" decoding="async" 
                                 src={finish.image} 
                                 alt={finish.name}
@@ -806,12 +806,12 @@ const EditablePoolProductCard = ({
                       {linerOptions.map((liner) => (
                         <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                           <div 
-                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                               extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
                             }`}
                             onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
                           >
-                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                            <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                               <img loading="lazy" decoding="async" 
                                 src={liner.image} 
                                 alt={liner.name}
@@ -850,12 +850,12 @@ const EditablePoolProductCard = ({
                         {spas.map((spa: any) => (
                           <CarouselItem key={spa.model} className="pl-1 basis-1/2 sm:basis-1/3">
                             <div 
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                                 extras.spaModel === spa.model ? 'border-primary bg-primary/10' : 'border-border'
                               }`}
                               onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))}
                             >
-                              <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-20 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                 <img loading="lazy" decoding="async" 
                                   src={spa.image} 
                                   alt={spa.model}
@@ -885,12 +885,12 @@ const EditablePoolProductCard = ({
                         {tanningLedges.map((ledge: any) => (
                           <CarouselItem key={ledge.name} className="pl-1 basis-1/2 sm:basis-1/3">
                             <div 
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                                 extras.tanningLedgeModel === ledge.name ? 'border-primary bg-primary/10' : 'border-border'
                               }`}
                               onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))}
                             >
-                              <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-20 rounded-none mb-2 overflow-hidden flex-shrink-0">
                                 <img loading="lazy" decoding="async" 
                                   src={ledge.image} 
                                   alt={ledge.name}
@@ -930,7 +930,7 @@ const EditablePoolProductCard = ({
                       <div className="space-y-1">
                         <label className="text-sm font-medium">Quality</label>
                         <select
-                          className="w-full border rounded-md bg-background px-3 py-2 text-sm"
+                          className="w-full border rounded-none bg-background px-3 py-2 text-sm"
                           value={extras.screenEnclosureQuality}
                           onChange={(e) => setExtras(prev => ({ ...prev, screenEnclosureQuality: e.target.value as 'standard' | 'deluxe' | 'premium' }))}
                         >
@@ -940,7 +940,7 @@ const EditablePoolProductCard = ({
                         </select>
                       </div>
                       <div className="flex items-end">
-                        <div className="w-full bg-muted/50 border rounded-md p-3">
+                        <div className="w-full bg-muted/50 border rounded-none p-3">
                           <div className="text-xs text-muted-foreground">Calculated Price</div>
                           <div className="text-lg font-semibold text-primary">${calculateScreenEnclosurePrice().toLocaleString()}</div>
                         </div>
@@ -996,7 +996,7 @@ function Grid({ pattern }: { pattern?: 'cols' | 'rows' }) {
   return (
     <span 
       aria-hidden 
-      className="inline-block h-4 w-4 rounded-sm border border-border relative overflow-hidden"
+      className="inline-block h-4 w-4 rounded-none border border-border relative overflow-hidden"
     >
       <span className="absolute inset-0 grid grid-cols-2">
         <span className="border-r border-border"></span>

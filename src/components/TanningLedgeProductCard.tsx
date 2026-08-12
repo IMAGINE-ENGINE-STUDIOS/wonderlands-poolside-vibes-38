@@ -325,11 +325,11 @@ const TanningLedgeProductCard = ({
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {finishOptions.map(finish => <CarouselItem key={finish.name} className="pl-1 basis-1/2">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-foreground/60 bg-foreground/5' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                      <div className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-foreground/60 bg-foreground/5' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   finish: finish.name
                 }))}>
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                           <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -350,11 +350,11 @@ const TanningLedgeProductCard = ({
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {paverOptions.map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/2">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-foreground/60 bg-foreground/5' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                      <div className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-foreground/60 bg-foreground/5' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   paverOption: paver.name
                 }))}>
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
                           <img loading="lazy" decoding="async" src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -383,7 +383,7 @@ const TanningLedgeProductCard = ({
               <h4 className="font-semibold text-foreground">Additional Features</h4>
               
               <div className="grid grid-cols-1 gap-3">
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                   <Checkbox checked={extras.heater} onCheckedChange={() => toggleExtra('heater')} className="data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
                   <div className="flex items-center space-x-1">
                     <Thermometer size={16} className="text-muted-foreground" />
@@ -400,7 +400,7 @@ const TanningLedgeProductCard = ({
                       {ledgeHeaters.map(heater => <button key={heater.name} onClick={() => setExtras(prev => ({
                   ...prev,
                   heaterModel: heater.name
-                }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.heaterModel === heater.name ? 'border-foreground/60 bg-foreground/5 text-foreground' : 'border-border hover:border-foreground/40'}`}>
+                }))} className={`p-2 text-xs rounded-none border transition-all flex items-center gap-2 ${extras.heaterModel === heater.name ? 'border-foreground/60 bg-foreground/5 text-foreground' : 'border-border hover:border-foreground/40'}`}>
                           <img loading="lazy" decoding="async" src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
                           <div className="flex-1 text-left">
                             <div>{heater.name}</div>
@@ -411,7 +411,7 @@ const TanningLedgeProductCard = ({
                     </div>
                   </div>}
                 
-                <div className="flex items-center justify-between p-2 border rounded-lg">
+                <div className="flex items-center justify-between p-2 border rounded-none">
                   <label className="flex items-center space-x-2 cursor-pointer flex-1">
                     <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} />
                     <div className="flex items-center space-x-1">
@@ -571,7 +571,7 @@ const TanningLedgeProductCard = ({
                       className="pl-1 basis-1/2"
                     >
                       <div
-                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-foreground/60 bg-foreground/5" : "border-border"}`}
+                        className={`p-2 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-foreground/60 bg-foreground/5" : "border-border"}`}
                         onClick={() => {
                           setExtras((prev) => ({
                             ...prev,
@@ -580,7 +580,7 @@ const TanningLedgeProductCard = ({
                           setShowDetails(true);
                         }}
                       >
-                        <div className="w-full h-12 rounded-md mb-1 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-12 rounded-none mb-1 overflow-hidden flex-shrink-0">
                           <img
                             src={finish.image}
                             alt={finish.name}
@@ -600,7 +600,7 @@ const TanningLedgeProductCard = ({
             
             {/* Expand Arrow */}
             <div 
-              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-none transition-all group"
               onClick={() => setShowDetails(true)}
               onMouseEnter={() => setShowDetails(true)}
             >

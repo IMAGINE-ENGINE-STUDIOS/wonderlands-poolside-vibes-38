@@ -129,7 +129,7 @@ const AppianPaversSection = () => {
 
             {selectedPaver && (
               <div className="space-y-6">
-                <div className="aspect-video rounded-lg overflow-hidden">
+                <div className="aspect-video rounded-none overflow-hidden">
                   <img loading="lazy" decoding="async"
                     src={selectedPaver.image}
                     alt={selectedPaver.name}

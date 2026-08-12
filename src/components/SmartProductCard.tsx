@@ -296,7 +296,7 @@ const SmartProductCard = ({
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <span className={`w-3 h-3 rounded-full ${getCategoryColor(category)}`} />
+              <span className={`w-3 h-3 rounded-none ${getCategoryColor(category)}`} />
               {name} - Configuration Options
             </DialogTitle>
           </DialogHeader>
@@ -324,7 +324,7 @@ const SmartProductCard = ({
 
             <Separator />
             {/* Price Summary */}
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-muted rounded-none">
               <div>
                 <h4 className="font-semibold">Total Price</h4>
                 <p className="text-sm text-muted-foreground">

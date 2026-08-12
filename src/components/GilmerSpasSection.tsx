@@ -39,8 +39,8 @@ const GilmerSpasSection = () => {
 
           {/* Features Section */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary/5 to-teal/5">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="text-center p-6 rounded-none bg-gradient-to-br from-primary/5 to-teal/5">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-none bg-primary/10 flex items-center justify-center">
                 <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -51,8 +51,8 @@ const GilmerSpasSection = () => {
               </p>
             </div>
 
-            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-coral/5 to-primary/5">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-coral/10 flex items-center justify-center">
+            <div className="text-center p-6 rounded-none bg-gradient-to-br from-coral/5 to-primary/5">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-none bg-coral/10 flex items-center justify-center">
                 <svg className="w-8 h-8 text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                 </svg>
@@ -63,8 +63,8 @@ const GilmerSpasSection = () => {
               </p>
             </div>
 
-            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-teal/5 to-coral/5">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-teal/10 flex items-center justify-center">
+            <div className="text-center p-6 rounded-none bg-gradient-to-br from-teal/5 to-coral/5">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-none bg-teal/10 flex items-center justify-center">
                 <svg className="w-8 h-8 text-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>

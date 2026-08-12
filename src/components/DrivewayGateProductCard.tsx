@@ -141,7 +141,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
           </DialogHeader>
           
           <div className="space-y-6">
-            <div className="aspect-[4/3] overflow-hidden rounded-lg">
+            <div className="aspect-[4/3] overflow-hidden rounded-none">
               <img loading="lazy" decoding="async"
                 src={gate.image}
                 alt={gate.model}
@@ -177,7 +177,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
                 </Select>
               </div>
 
-              <div className="flex items-start space-x-2 p-4 border rounded-lg">
+              <div className="flex items-start space-x-2 p-4 border rounded-none">
                 <Checkbox
                   id="opener"
                   checked={includeOpener}
