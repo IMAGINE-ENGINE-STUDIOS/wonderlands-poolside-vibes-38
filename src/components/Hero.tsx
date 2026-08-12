@@ -20,8 +20,6 @@ const Hero = () => {
         playsInline
         preload="auto"
       />
-      {/* Legibility overlay */}
-      <div className="absolute inset-0 bg-background/40" />
 
       {/* Centered logo + search engine */}
       <div className="absolute inset-0 z-10 flex items-center justify-center">
