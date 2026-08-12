@@ -240,6 +240,37 @@ function buildSeamlessTile(img: HTMLImageElement): HTMLCanvasElement | null {
   return tile;
 }
 
+/** Cache of seamless tiles pre-rendered at the exact on-screen pixel size. */
+const scaledTileCache = new Map<string, HTMLCanvasElement>();
+function getScaledTile(id: string, tile: HTMLCanvasElement, px: number): HTMLCanvasElement | null {
+  const key = `${id}:${px}`;
+  const hit = scaledTileCache.get(key);
+  if (hit) return hit;
+  const out = document.createElement('canvas');
+  out.width = px;
+  out.height = px;
+  const octx = out.getContext('2d');
+  if (!octx) return null;
+  octx.imageSmoothingEnabled = true;
+  octx.imageSmoothingQuality = 'high';
+  // step down in halves for clean minification (avoids aliasing artifacts)
+  let src: HTMLCanvasElement = tile;
+  while (src.width > px * 2) {
+    const half = document.createElement('canvas');
+    half.width = Math.max(px, Math.round(src.width / 2));
+    half.height = half.width;
+    const hctx = half.getContext('2d');
+    if (!hctx) break;
+    hctx.imageSmoothingQuality = 'high';
+    hctx.drawImage(src, 0, 0, half.width, half.height);
+    src = half;
+  }
+  octx.drawImage(src, 0, 0, px, px);
+  if (scaledTileCache.size > 40) scaledTileCache.clear();
+  scaledTileCache.set(key, out);
+  return out;
+}
+
 
 
 const GrassDrawingBoard: React.FC<Props> = ({
