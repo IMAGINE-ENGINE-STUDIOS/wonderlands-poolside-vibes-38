@@ -787,7 +787,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
 
         {/* Add to Cart Button */}
         <div className="flex gap-2">
-          <Button 
+          <Button className="rounded-none" 
             onClick={() => setShowQuoteTool(true)} 
             className="flex-1 instant-quote-btn transition-all duration-300"
           >
@@ -799,7 +799,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
             onClick={handleAddToCart}
             variant="outline"
             size="icon"
-            className="w-10 h-10"
+            className="w-10 h-10 rounded-none"
           >
             <ShoppingCart className="h-5 w-5" />
           </Button>

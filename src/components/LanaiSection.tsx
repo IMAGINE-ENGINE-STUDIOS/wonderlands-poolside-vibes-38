@@ -239,14 +239,14 @@ const LanaiSection = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button 
+                  <Button className="rounded-none" 
                     onClick={() => toggleDetails(lanai)}
                     className="flex-1"
                     variant={showDetails === lanai.id ? "secondary" : "default"}
                   >
                     {showDetails === lanai.id ? 'Hide Details' : 'Customize'}
                   </Button>
-                  <Button 
+                  <Button className="rounded-none" 
                     onClick={() => openQuote(lanai)}
                     variant="outline"
                     className="flex-1"
@@ -397,7 +397,7 @@ const LanaiSection = () => {
                     {/* Add to Cart Button */}
                     <Button 
                       onClick={handleAddToCart}
-                      className="w-full"
+                      className="w-full rounded-none"
                       disabled={!squareFootage}
                     >
                       Add to Cart - ${calculatePrice().toLocaleString()}

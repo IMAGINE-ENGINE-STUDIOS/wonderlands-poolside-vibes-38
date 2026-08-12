@@ -416,7 +416,7 @@ const EditablePoolProductCard = ({
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="cursor-pointer"
+                  className="cursor-pointer rounded-none"
                   asChild
                 >
                   <span>
@@ -438,7 +438,7 @@ const EditablePoolProductCard = ({
             <Button
               size="sm"
               variant="secondary"
-              className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
+              className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 rounded-none"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditing(!isEditing);
@@ -565,11 +565,11 @@ const EditablePoolProductCard = ({
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button onClick={handleSave} disabled={isLoading} className="flex-1">
+              <Button onClick={handleSave} disabled={isLoading} className="flex-1 rounded-none">
                 <Save className="h-4 w-4 mr-2" />
                 {isLoading ? 'Saving...' : 'Save Changes'}
               </Button>
-              <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+              <Button className="rounded-none" variant="outline" onClick={handleCancel} disabled={isLoading}>
                 <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
@@ -953,7 +953,7 @@ const EditablePoolProductCard = ({
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-2">
-              <Button 
+              <Button className="rounded-none" 
                 variant="outline" 
                 onClick={() => onViewDetails?.(editedPool)} 
                 className="flex-1"
@@ -965,7 +965,7 @@ const EditablePoolProductCard = ({
               
               <Button 
                 onClick={handleAddToCart}
-                className="flex-1"
+                className="flex-1 rounded-none"
               >
                 <ShoppingCart className="h-4 w-4 mr-1" />
                 Add to Cart
@@ -973,7 +973,7 @@ const EditablePoolProductCard = ({
             </div>
 
             <div className="flex gap-2">
-              <Button 
+              <Button className="rounded-none" 
                 variant="secondary" 
                 onClick={() => onRequestQuote?.(editedPool, extras)}
                 className="flex-1"

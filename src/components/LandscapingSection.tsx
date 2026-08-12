@@ -228,7 +228,7 @@ const LandscapingSection = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                          className="h-7 text-xs text-muted-foreground hover:text-destructive rounded-none"
                           onClick={() => setQuoteItems({})}
                         >
                           Clear all
@@ -258,7 +258,7 @@ const LandscapingSection = () => {
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-7 w-7"
+                                className="h-7 w-7 rounded-none"
                                 onClick={() =>
                                   setQuoteItems((prev) => {
                                     const next = { ...prev };
@@ -276,7 +276,7 @@ const LandscapingSection = () => {
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-7 w-7"
+                                className="h-7 w-7 rounded-none"
                                 onClick={() =>
                                   setQuoteItems((prev) => ({
                                     ...prev,
@@ -290,7 +290,7 @@ const LandscapingSection = () => {
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                              className="h-7 w-7 text-muted-foreground hover:text-destructive rounded-none"
                               onClick={() =>
                                 setQuoteItems((prev) => {
                                   const next = { ...prev };
@@ -355,7 +355,7 @@ const LandscapingSection = () => {
                           onChange={(e) => setPasscode(e.target.value)}
                           className="sm:max-w-xs"
                         />
-                        <Button
+                        <Button className="rounded-none"
                           variant="outline"
                           size="sm"
                           onClick={() => {
@@ -386,7 +386,7 @@ const LandscapingSection = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 text-xs"
+                            className="h-7 text-xs rounded-none"
                             onClick={() => {
                               setIsAdmin(false);
                               setOverrideRate("");
@@ -440,7 +440,7 @@ const LandscapingSection = () => {
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Button
+                      <Button className="rounded-none"
                         size="lg"
                         variant="outline"
                         disabled={total <= 0}
@@ -558,7 +558,7 @@ const LandscapingSection = () => {
                       </Button>
                       <Button
                         size="lg"
-                        className="bg-emerald-700 hover:bg-emerald-800"
+                        className="bg-emerald-700 hover:bg-emerald-800 rounded-none"
                         disabled={total <= 0}
                         onClick={() => {
                           if (!custName || !custEmail) {
@@ -672,7 +672,7 @@ const LandscapingSection = () => {
                       <p className="text-lg font-bold text-emerald-700">
                         {formatPrice(plant.minPrice)}
                       </p>
-                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs">
+                      <Button size="sm" variant="outline" className="w-full mt-2 text-xs rounded-none">
                         {variantCount > 1 ? "View Options" : "View Sizes"}
                       </Button>
                     </div>
@@ -765,7 +765,7 @@ const LandscapingSection = () => {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-none"
                             onClick={() => adjustQty(key, -1)}
                           >
                             <Minus className="h-3 w-3" />
@@ -774,14 +774,14 @@ const LandscapingSection = () => {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-none"
                             onClick={() => adjustQty(key, 1)}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <Button
+                          <Button className="rounded-none"
                             size="sm"
                             onClick={() => {
                               const quantity = Math.max(1, qty[key] || 1);
@@ -806,7 +806,7 @@ const LandscapingSection = () => {
                             <FileText className="h-3.5 w-3.5 mr-1" />
                             Quote
                           </Button>
-                          <Button
+                          <Button className="rounded-none"
                             size="sm"
                             variant="outline"
                             onClick={() => handleAdd(selected, activeVariant, opt)}

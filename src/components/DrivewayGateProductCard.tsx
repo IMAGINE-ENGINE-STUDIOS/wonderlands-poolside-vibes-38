@@ -101,14 +101,14 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 text-xs"
+              className="flex-1 text-xs rounded-none"
               onClick={() => setShowDetails(true)}
             >
               View Details
             </Button>
             <Button
               size="sm"
-              className="flex-1 text-xs"
+              className="flex-1 text-xs rounded-none"
               onClick={() => setShowDetails(true)}
             >
               Configure
@@ -116,7 +116,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
           </div>
           <Button
             size="sm"
-            className="w-full gap-2 instant-quote-btn transition-all duration-300 text-xs"
+            className="w-full gap-2 instant-quote-btn transition-all duration-300 text-xs rounded-none"
             onClick={() => setShowQuoteTool(true)}
           >
             <FileText className="h-3 w-3" />
@@ -214,7 +214,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
             </div>
 
             <Button
-              className="w-full"
+              className="w-full rounded-none"
               size="lg"
               onClick={handleAddToCart}
             >

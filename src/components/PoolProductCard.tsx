@@ -753,7 +753,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           <Button
             size="sm"
             variant="secondary"
-            className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
+            className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 rounded-none"
             onClick={(e) => {
               e.stopPropagation();
               setShowImageEditor(true);
@@ -1268,7 +1268,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </label>
                   {extras.jets && (
                     <div className="flex items-center space-x-2">
-                      <Button
+                      <Button className="rounded-none"
                         variant="outline"
                         size="sm"
                         onClick={() =>
@@ -1282,7 +1282,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         -
                       </Button>
                       <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
-                      <Button
+                      <Button className="rounded-none"
                         variant="outline"
                         size="sm"
                         onClick={() =>
@@ -1822,7 +1822,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             {/* Action Buttons */}
             <div className="space-y-2">
               <div className="flex gap-2">
-                <Button
+                <Button className="rounded-none"
                   onClick={() => {
                     // Create detailed extras breakdown for quote tool
                     const extrasBreakdown = [];

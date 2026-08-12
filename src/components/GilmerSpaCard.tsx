@@ -471,12 +471,12 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
         {showDetails &&
         <div className="space-y-2 pt-2">
             <Button
-            className="w-full instant-quote-btn transition-all duration-300"
+            className="w-full instant-quote-btn transition-all duration-300 rounded-none"
             onClick={handleRequestQuote}>
             
               Instant Quote
             </Button>
-            <Button variant="outline" className="w-full" onClick={handleImageClick}>
+            <Button variant="outline" className="w-full rounded-none" onClick={handleImageClick}>
               Hide Details
             </Button>
           </div>

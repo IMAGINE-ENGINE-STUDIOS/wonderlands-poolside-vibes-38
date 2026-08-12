@@ -177,7 +177,7 @@ const SmartProductCard = ({
             <Button
               size="sm"
               variant="secondary"
-              className="absolute top-3 right-3 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
+              className="absolute top-3 right-3 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 rounded-none"
               onClick={() => onEdit(id)}
             >
               <Edit className="h-3 w-3" />
@@ -259,7 +259,7 @@ const SmartProductCard = ({
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-2 flex-wrap">
-            <Button 
+            <Button className="rounded-none" 
               onClick={() => setShowOptions(true)}
               variant="outline"
               className="flex-1 min-w-[120px]"
@@ -271,13 +271,13 @@ const SmartProductCard = ({
             <Button 
               onClick={handleAddToCart}
               variant="default"
-              className="flex-1 min-w-[120px]"
+              className="flex-1 min-w-[120px] rounded-none"
               size="sm"
             >
               <ShoppingCart className="h-4 w-4 mr-1" />
               Add to Cart
             </Button>
-            <Button
+            <Button className="rounded-none"
               onClick={() => setShowQuoteTool(true)}
               className="w-full gap-2 instant-quote-btn transition-all duration-300"
               size="sm"
@@ -345,13 +345,13 @@ const SmartProductCard = ({
             <div className="flex gap-3">
               <Button 
                 variant="outline" 
-                className="flex-1"
+                className="flex-1 rounded-none"
                 onClick={() => setShowOptions(false)}
               >
                 Close
               </Button>
               <Button 
-                className="flex-1"
+                className="flex-1 rounded-none"
                 onClick={() => {
                   handleAddToCart();
                   setShowOptions(false);

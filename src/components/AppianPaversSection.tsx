@@ -102,7 +102,7 @@ const AppianPaversSection = () => {
                   </div>
                 </div>
                 
-                <Button 
+                <Button className="rounded-none" 
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRequestQuote(paver);
@@ -175,14 +175,14 @@ const AppianPaversSection = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button 
+                  <Button className="rounded-none" 
                     onClick={() => handleRequestQuote(selectedPaver)}
                     className="flex-1 bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90"
                   >
                     <Calculator className="h-4 w-4 mr-2" />
                     Get Custom Quote
                   </Button>
-                  <Button 
+                  <Button className="rounded-none" 
                     variant="outline" 
                     onClick={() => setShowDetailModal(false)}
                     className="flex-1"

@@ -183,7 +183,7 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                   <Separator />
                   
                   {/* Action Button */}
-                  <Button 
+                  <Button className="rounded-none" 
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddToCart(spa);
@@ -252,7 +252,7 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                   
                   <div className="flex gap-3">
                     {allowSelection && !selectedSpaProp && selectedSpa && (
-                      <Button 
+                      <Button className="rounded-none" 
                         onClick={() => {
                           onSpaSelect?.(selectedSpa!);
                           setShowDetailModal(false);
@@ -263,7 +263,7 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                         Select Spa
                       </Button>
                     )}
-                    <Button 
+                    <Button className="rounded-none" 
                       onClick={() => handleAddToCart(selectedSpa)}
                       variant="outline"
                       className="flex-1"
@@ -271,7 +271,7 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
                     </Button>
-                    <Button 
+                    <Button className="rounded-none" 
                       onClick={() => handleRequestQuote(selectedSpa)}
                       variant="gradient"
                       className="flex-1"

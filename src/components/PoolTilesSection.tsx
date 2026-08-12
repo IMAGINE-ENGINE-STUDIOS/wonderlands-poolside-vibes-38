@@ -120,7 +120,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                   <Separator />
                   
                   {/* Action Button */}
-                  <Button 
+                  <Button className="rounded-none" 
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddToCart(tile);
@@ -170,7 +170,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                   
                    <div className="flex gap-3">
                      {allowSelection && !selectedTileProp && selectedTile && (
-                       <Button 
+                       <Button className="rounded-none" 
                          onClick={() => {
                            onTileSelect?.(selectedTile!);
                            setShowDetailModal(false);
@@ -181,7 +181,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                          Select Tile
                        </Button>
                      )}
-                <Button 
+                <Button className="rounded-none" 
                   onClick={() => handleAddToCart(selectedTile)}
                   variant="default"
                   className="flex-1"
@@ -189,7 +189,7 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Add to Cart
                 </Button>
-                <Button 
+                <Button className="rounded-none" 
                   onClick={() => {
                     const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
                       `amount=${selectedTile.price}&` +
