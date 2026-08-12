@@ -20,6 +20,30 @@ const APPIAN_PRICE = 15;
 const CATALINA_PRICE = 20;
 const CATALINA_GRANA_PRICE = 22;
 
+const keyFeatures: Record<'appian' | 'catalina-grana' | 'catalina', string[]> = {
+  appian: [
+    'Multiple style options',
+    'Slip-resistant surface texture',
+    'Freeze-thaw resistant',
+    'Easy maintenance and cleaning',
+    'Professional installation included',
+  ],
+  'catalina-grana': [
+    'Contemporary Grana texture patterns',
+    'Superior slip resistance',
+    'Weather-resistant finish',
+    'Low maintenance surface',
+    'Expert installation service',
+  ],
+  catalina: [
+    'Classic design patterns',
+    'Versatile styling options',
+    'Durable construction',
+    'Weather-resistant finish',
+    'Professional installation',
+  ],
+};
+
 const PaversSection = () => {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [selectedPaverType, setSelectedPaverType] = useState<any>(null);
@@ -135,89 +159,71 @@ const PaversSection = () => {
           {/* Three Collections Grid */}
           <ProductScrollRow className="mb-8">
             {/* First Card - Appian Collection */}
-            <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
-              <div className="relative w-full h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden">
-                <img loading="lazy" decoding="async" src={appianPavers[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp'} alt="Appian Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <Card className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)]">
+              <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden group/image">
+                <img loading="lazy" decoding="async" src={appianPavers[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp'} alt="Appian Collection Pavers" className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover/image:scale-[1.06]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
                 <div className="absolute top-4 left-4">
-                  <Badge className="bg-gradient-to-r from-coral to-orange text-white font-medium px-3 py-1">
+                  <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
                     Premium Collection
-                  </Badge>
-                </div>
-                <div className="absolute top-4 right-4 flex items-center gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => <Star key={i} size={14} fill="gold" className="text-yellow-500" />)}
+                  </span>
                 </div>
               </div>
 
-              <CardHeader className="pb-4">
-                <CardTitle className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
-                  Appian Collection Pavers
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  Premium concrete pavers with multiple style options. Perfect for pool decks, patios, and walkways.
-                </p>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-              <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-teal" />
-                  <span className="text-lg font-semibold text-foreground">${APPIAN_PRICE}/sq ft</span>
-                  <span className="text-sm text-muted-foreground">(All styles same price)</span>
-                </div>
-
-                <Separator />
-
-                {/* Carousel for all styles */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-foreground">Available Styles ({appianPavers.length} options)</h4>
-                  {renderPaverCarousel(appianPavers, 'appian')}
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-foreground">Key Features</h4>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>• Multiple style options</li>
-                    <li>• Slip-resistant surface texture</li>
-                    <li>• Freeze-thaw resistant</li>
-                    <li>• Easy maintenance and cleaning</li>
-                    <li>• Professional installation included</li>
-                  </ul>
-                </div>
-
-                <Separator />
-
-                {/* Surface Area Calculator */}
-                <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                  <h4 className="font-semibold text-foreground flex items-center gap-2">
-                    <Calculator className="h-4 w-4" />
-                    Quick Price Calculator
-                  </h4>
-                  <div className="space-y-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter surface area (sq ft)" 
-                      value={surfaceArea} 
-                      onChange={e => setSurfaceArea(e.target.value)} 
-                    />
-                    {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
-                      <div className="text-sm">
-                        <div className="text-green-600 font-medium">
-                          Total Cost: ${(parseFloat(surfaceArea) * APPIAN_PRICE).toLocaleString()}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Based on {surfaceArea} sq ft × ${APPIAN_PRICE}/sq ft
-                        </div>
-                      </div>
-                    )}
+              <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5">
+                <div>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                    Appian Collection Pavers
+                  </h3>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Premium concrete pavers with multiple style options. Perfect for pool decks, patios, and walkways.
+                  </p>
+                  <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+                      <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">$APPIAN_PRICE/sq ft</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Available Styles ({appianPavers.length} options)</p>
+                  {renderPaverCarousel(appianPavers, 'appian')}
+                </div>
+
+                <dl className="divide-y divide-border/60 border-y border-border/60 text-sm">
+                  {keyFeatures['appian'].map((feature) => (
+                    <div key={feature} className="py-2.5 text-foreground">
+                      {feature}
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="space-y-3">
+                  <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Quick Price Calculator</p>
+                  <Input 
+                    type="number" 
+                    placeholder="Enter surface area (sq ft)" 
+                    value={surfaceArea} 
+                    onChange={e => setSurfaceArea(e.target.value)}
+                    className="rounded-none"
+                  />
+                  {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
+                    <div className="text-sm">
+                      <div className="font-medium text-foreground">
+                        Total Cost: ${(parseFloat(surfaceArea) * APPIAN_PRICE).toLocaleString()}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                        Based on {surfaceArea} sq ft × $APPIAN_PRICE/sq ft
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <InstallationNote className="mb-2" />
                 <div className="flex gap-3">
-                  <Button onClick={() => handleRequestQuote('appian')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
-                  <Button className="rounded-none" onClick={() => {
+                  <Button onClick={() => handleRequestQuote('appian')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none text-[10px] uppercase tracking-[0.3em] bg-foreground text-background hover:bg-foreground/90" size="sm">Instant Quote</Button>
+                  <Button className="rounded-none text-[10px] uppercase tracking-[0.3em]" onClick={() => {
                     setSelectedCollection('appian');
                     setSelectedPaverType(appianPavers[0]);
                     setShowOptionsModal(true);
@@ -229,89 +235,71 @@ const PaversSection = () => {
             </Card>
 
             {/* Second Card - Catalina Grana Collection */}
-            <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
-              <div className="relative w-full h-64 bg-gradient-to-br from-teal/10 to-coral/10 overflow-hidden">
-                <img loading="lazy" decoding="async" src={catalinaGranaPavers[0]?.image || '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.webp'} alt="Catalina Grana Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <Card className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)]">
+              <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden group/image">
+                <img loading="lazy" decoding="async" src={catalinaGranaPavers[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp'} alt="Catalina Grana Collection" className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover/image:scale-[1.06]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
                 <div className="absolute top-4 left-4">
-                  <Badge className="bg-gradient-to-r from-teal to-coral text-white font-medium px-3 py-1">
+                  <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
                     Grana Collection
-                  </Badge>
-                </div>
-                <div className="absolute top-4 right-4 flex items-center gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => <Star key={i} size={14} fill="gold" className="text-yellow-500" />)}
+                  </span>
                 </div>
               </div>
 
-              <CardHeader className="pb-4">
-                <CardTitle className="text-2xl font-bold text-foreground group-hover:text-teal transition-colors">
-                  Catalina Grana Collection
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  Contemporary Grana collection with refined textures and sophisticated styling. Ideal for modern pool environments.
-                </p>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-              <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-coral" />
-                  <span className="text-lg font-semibold text-foreground">${CATALINA_GRANA_PRICE}/sq ft</span>
-                  <span className="text-sm text-muted-foreground">(All styles same price)</span>
-                </div>
-
-                <Separator />
-
-                {/* Carousel for all styles */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-foreground">Available Styles ({catalinaGranaPavers.length} options)</h4>
-                  {renderPaverCarousel(catalinaGranaPavers, 'catalina-grana')}
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-foreground">Key Features</h4>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>• Contemporary Grana texture patterns</li>
-                    <li>• Superior slip resistance</li>
-                    <li>• Weather-resistant finish</li>
-                    <li>• Low maintenance surface</li>
-                    <li>• Expert installation service</li>
-                  </ul>
-                </div>
-
-                <Separator />
-
-                {/* Surface Area Calculator */}
-                <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                  <h4 className="font-semibold text-foreground flex items-center gap-2">
-                    <Calculator className="h-4 w-4" />
-                    Quick Price Calculator
-                  </h4>
-                  <div className="space-y-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter surface area (sq ft)" 
-                      value={surfaceArea} 
-                      onChange={e => setSurfaceArea(e.target.value)} 
-                    />
-                    {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
-                      <div className="text-sm">
-                        <div className="text-green-600 font-medium">
-                          Total Cost: ${(parseFloat(surfaceArea) * CATALINA_GRANA_PRICE).toLocaleString()}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Based on {surfaceArea} sq ft × ${CATALINA_GRANA_PRICE}/sq ft
-                        </div>
-                      </div>
-                    )}
+              <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5">
+                <div>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                    Catalina Grana Collection
+                  </h3>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Contemporary Grana collection with refined textures and sophisticated styling. Ideal for modern pool environments.
+                  </p>
+                  <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+                      <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">$CATALINA_GRANA_PRICE/sq ft</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Available Styles ({catalinaGranaPavers.length} options)</p>
+                  {renderPaverCarousel(catalinaGranaPavers, 'catalina-grana')}
+                </div>
+
+                <dl className="divide-y divide-border/60 border-y border-border/60 text-sm">
+                  {keyFeatures['catalina-grana'].map((feature) => (
+                    <div key={feature} className="py-2.5 text-foreground">
+                      {feature}
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="space-y-3">
+                  <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Quick Price Calculator</p>
+                  <Input 
+                    type="number" 
+                    placeholder="Enter surface area (sq ft)" 
+                    value={surfaceArea} 
+                    onChange={e => setSurfaceArea(e.target.value)}
+                    className="rounded-none"
+                  />
+                  {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
+                    <div className="text-sm">
+                      <div className="font-medium text-foreground">
+                        Total Cost: ${(parseFloat(surfaceArea) * CATALINA_GRANA_PRICE).toLocaleString()}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                        Based on {surfaceArea} sq ft × $CATALINA_GRANA_PRICE/sq ft
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <InstallationNote className="mb-2" />
                 <div className="flex gap-3">
-                  <Button onClick={() => handleRequestQuote('catalina-grana')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
-                  <Button className="rounded-none" onClick={() => {
+                  <Button onClick={() => handleRequestQuote('catalina-grana')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none text-[10px] uppercase tracking-[0.3em] bg-foreground text-background hover:bg-foreground/90" size="sm">Instant Quote</Button>
+                  <Button className="rounded-none text-[10px] uppercase tracking-[0.3em]" onClick={() => {
                     setSelectedCollection('catalina-grana');
                     setSelectedPaverType(catalinaGranaPavers[0]);
                     setShowOptionsModal(true);
@@ -323,89 +311,71 @@ const PaversSection = () => {
             </Card>
 
             {/* Third Card - Catalina Collection */}
-            <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
-              <div className="relative w-full h-64 bg-gradient-to-br from-secondary/10 to-accent/10 overflow-hidden">
-                <img loading="lazy" decoding="async" src={catalinaPavers[0]?.image || '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.webp'} alt="Catalina Collection Pavers" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <Card className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)]">
+              <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden group/image">
+                <img loading="lazy" decoding="async" src={catalinaPavers[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp'} alt="Catalina Collection" className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover/image:scale-[1.06]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
                 <div className="absolute top-4 left-4">
-                  <Badge className="bg-gradient-to-r from-secondary to-accent text-white font-medium px-3 py-1">
+                  <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
                     Catalina Collection
-                  </Badge>
-                </div>
-                <div className="absolute top-4 right-4 flex items-center gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => <Star key={i} size={14} fill="gold" className="text-yellow-500" />)}
+                  </span>
                 </div>
               </div>
 
-              <CardHeader className="pb-4">
-                <CardTitle className="text-2xl font-bold text-foreground group-hover:text-secondary transition-colors">
-                  Catalina Collection
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  Classic Catalina collection with timeless appeal and versatile styling. Perfect for traditional and modern pool designs.
-                </p>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-accent" />
-                  <span className="text-lg font-semibold text-foreground">${CATALINA_PRICE}/sq ft</span>
-                  <span className="text-sm text-muted-foreground">(All styles same price)</span>
-                </div>
-
-                <Separator />
-
-                {/* Carousel for all styles */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-foreground">Available Styles ({catalinaPavers.length} options)</h4>
-                  {renderPaverCarousel(catalinaPavers, 'catalina')}
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-foreground">Key Features</h4>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>• Classic design patterns</li>
-                    <li>• Versatile styling options</li>
-                    <li>• Durable construction</li>
-                    <li>• Weather-resistant finish</li>
-                    <li>• Professional installation</li>
-                  </ul>
-                </div>
-
-                <Separator />
-
-                {/* Surface Area Calculator */}
-                <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                  <h4 className="font-semibold text-foreground flex items-center gap-2">
-                    <Calculator className="h-4 w-4" />
-                    Quick Price Calculator
-                  </h4>
-                  <div className="space-y-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter surface area (sq ft)" 
-                      value={surfaceArea} 
-                      onChange={e => setSurfaceArea(e.target.value)} 
-                    />
-                    {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
-                      <div className="text-sm">
-                        <div className="text-green-600 font-medium">
-                          Total Cost: ${(parseFloat(surfaceArea) * CATALINA_PRICE).toLocaleString()}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Based on {surfaceArea} sq ft × ${CATALINA_PRICE}/sq ft
-                        </div>
-                      </div>
-                    )}
+              <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5">
+                <div>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                    Catalina Collection
+                  </h3>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Classic Catalina collection with timeless appeal and versatile styling. Perfect for traditional and modern pool designs.
+                  </p>
+                  <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+                      <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">$CATALINA_PRICE/sq ft</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Available Styles ({catalinaPavers.length} options)</p>
+                  {renderPaverCarousel(catalinaPavers, 'catalina')}
+                </div>
+
+                <dl className="divide-y divide-border/60 border-y border-border/60 text-sm">
+                  {keyFeatures['catalina'].map((feature) => (
+                    <div key={feature} className="py-2.5 text-foreground">
+                      {feature}
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="space-y-3">
+                  <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Quick Price Calculator</p>
+                  <Input 
+                    type="number" 
+                    placeholder="Enter surface area (sq ft)" 
+                    value={surfaceArea} 
+                    onChange={e => setSurfaceArea(e.target.value)}
+                    className="rounded-none"
+                  />
+                  {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
+                    <div className="text-sm">
+                      <div className="font-medium text-foreground">
+                        Total Cost: ${(parseFloat(surfaceArea) * CATALINA_PRICE).toLocaleString()}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                        Based on {surfaceArea} sq ft × $CATALINA_PRICE/sq ft
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <InstallationNote className="mb-2" />
                 <div className="flex gap-3">
-                  <Button onClick={() => handleRequestQuote('catalina')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
-                  <Button className="rounded-none" onClick={() => {
+                  <Button onClick={() => handleRequestQuote('catalina')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none text-[10px] uppercase tracking-[0.3em] bg-foreground text-background hover:bg-foreground/90" size="sm">Instant Quote</Button>
+                  <Button className="rounded-none text-[10px] uppercase tracking-[0.3em]" onClick={() => {
                     setSelectedCollection('catalina');
                     setSelectedPaverType(catalinaPavers[0]);
                     setShowOptionsModal(true);

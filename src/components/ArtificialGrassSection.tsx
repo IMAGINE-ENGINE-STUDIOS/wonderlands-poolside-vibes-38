@@ -30,7 +30,7 @@ const ArtificialGrassSection = () => {
 
   return (
     <>
-      <section className="py-12 bg-gradient-to-br from-green-50/30 via-emerald-50/30 to-background">
+      <section className="py-12 bg-background">
         <div className="container mx-auto px-4">
           <EditorialSectionHeader
           eyebrow="Volume XI — Verdure"
@@ -40,21 +40,37 @@ const ArtificialGrassSection = () => {
 
           <ProductScrollRow className="mb-8">
             {artificialGrassOptions.map((grass) => (
-              <Card key={grass.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                <div className="aspect-square overflow-hidden bg-muted">
+              <Card
+                key={grass.id}
+                className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)]"
+              >
+                <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-muted">
                   <img
                     src={grass.image}
                     alt={`${grass.name} artificial grass`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
                     loading="lazy"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                      Turf
+                    </span>
+                  </div>
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="text-lg font-bold mb-1">{grass.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">${PRICE_PER_SQFT}/sq ft</p>
-                  <Button 
+                <CardContent className="p-4 sm:p-5 space-y-4">
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                    {grass.name}
+                  </h3>
+                  <div className="flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Rate</p>
+                      <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">${PRICE_PER_SQFT}<span className="text-sm text-muted-foreground">/sq ft</span></p>
+                    </div>
+                  </div>
+                  <Button
                     onClick={() => handleOpenInstantQuote(grass)}
-                    className="w-full rounded-none"
+                    className="instant-quote-btn w-full rounded-none bg-foreground text-background text-[10px] uppercase tracking-[0.3em] hover:bg-foreground/90"
                     size="sm"
                   >
                     Instant Quote

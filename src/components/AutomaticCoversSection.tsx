@@ -130,87 +130,76 @@ const AutomaticCoversSection = () => {
         />
 
           <ProductScrollRow className="mb-8">
-            {covers.map((cover, index) => <Card key={cover.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge className={`${getTypeColor(cover.type)} text-white capitalize font-medium px-3 py-1`}>
-                      <span className="flex items-center gap-1">
-                        {getTypeIcon(cover.type)}
-                        {cover.type}
-                      </span>
-                    </Badge>
-                    
-                  </div>
-                  
-                  <CardTitle className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {cover.name}
-                  </CardTitle>
-                </CardHeader>
-                
-                <InstallationNote className="mb-2" />
-                <CardContent className="space-y-4">
-                  {/* Cover Image */}
-                  <div className="aspect-video overflow-hidden rounded-lg bg-muted/30">
-                    <img loading="lazy" decoding="async" src={cover.image} alt={cover.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                  
-                  {/* Price */}
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-teal" />
-                    <span className="text-2xl font-bold text-foreground">
-                      {cover.price.toLocaleString()}
+            {covers.map((cover, index) => <Card key={cover.name} className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)]">
+                {/* Edge-to-edge image */}
+                <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden">
+                  <img loading="lazy" decoding="async" src={cover.image} alt={cover.name} className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm capitalize">
+                      {cover.type}
                     </span>
                   </div>
-                  
-                  
-                  {/* Specifications */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Material:</span>
-                      <span className="font-medium">{cover.material}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Motor:</span>
-                      <span className="font-medium">{cover.motorType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Warranty:</span>
-                      <span className="font-medium">{cover.warranty}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Installation:</span>
-                      <span className="font-medium">{cover.installation}</span>
+                </div>
+
+                <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5">
+                  <div>
+                    <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                      {cover.name}
+                    </h3>
+                    <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+                        <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
+                          ${cover.price.toLocaleString()}
+                        </p>
+                        <InstallationNote className="mt-2 !text-[9px]" />
+                      </div>
                     </div>
                   </div>
-                  
-                  <Separator />
-                  
+
+                  {/* Specifications */}
+                  <dl className="divide-y divide-border/60 border-y border-border/60 text-sm">
+                    <div className="flex items-baseline justify-between gap-4 py-2.5">
+                      <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Material</dt>
+                      <dd className="text-right text-foreground">{cover.material}</dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-4 py-2.5">
+                      <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Motor</dt>
+                      <dd className="text-right text-foreground">{cover.motorType}</dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-4 py-2.5">
+                      <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Warranty</dt>
+                      <dd className="text-right text-foreground">{cover.warranty}</dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-4 py-2.5">
+                      <dt className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Installation</dt>
+                      <dd className="text-right text-foreground">{cover.installation}</dd>
+                    </div>
+                  </dl>
+
                   {/* Features */}
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Key Features:</h4>
+                    <h4 className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Key Features</h4>
                     <ul className="space-y-1">
-                      {cover.features.map((feature, idx) => <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      {cover.features.map((feature, idx) => <li key={idx} className="text-sm text-muted-foreground">
                           {feature}
                         </li>)}
                     </ul>
                   </div>
-                  
-                  <Separator />
-                  
+
                   {/* Benefits */}
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Benefits:</h4>
+                  <div className="space-y-2 border-t border-border/60 pt-4">
+                    <h4 className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Benefits</h4>
                     <ul className="space-y-1">
-                      {cover.benefits.map((benefit, idx) => <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-teal rounded-full"></div>
+                      {cover.benefits.map((benefit, idx) => <li key={idx} className="text-sm text-muted-foreground">
                           {benefit}
                         </li>)}
                     </ul>
                   </div>
-                  
+
                   {/* Action Button */}
-                  <Button onClick={() => handleRequestQuote(cover)} className="w-full instant-quote-btn transition-all duration-300 rounded-none" size="lg">Instant Quote with Installation</Button>
+                  <Button onClick={() => handleRequestQuote(cover)} className="w-full instant-quote-btn rounded-none text-[10px] uppercase tracking-[0.3em]" size="lg">Instant Quote with Installation</Button>
               </CardContent>
             </Card>)}
           </ProductScrollRow>

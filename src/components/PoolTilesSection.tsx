@@ -71,65 +71,50 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
             {poolTiles.map((tile, index) => (
               <Card 
                 key={tile.name} 
-                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-coral/30 overflow-hidden cursor-pointer"
+                className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer"
                 onClick={() => handleTileClick(tile)}
               >
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge className="bg-gradient-to-r from-coral to-orange text-white font-medium px-3 py-1">
-                      <span className="flex items-center gap-1">
-                        <Sparkles size={16} />
-                        Premium
-                      </span>
-                    </Badge>
-                    <div className="flex items-center gap-1 text-amber-500">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} size={12} fill="currentColor" />
-                      ))}
+                <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden group/image">
+                  <img loading="lazy" decoding="async" 
+                    src={tile.image} 
+                    alt={tile.name}
+                    className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover/image:scale-[1.06]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                      Premium
+                    </span>
+                  </div>
+                </div>
+                
+                <CardContent className="p-4 sm:p-5 lg:p-7 space-y-5">
+                  <div>
+                    <h3 className="font-serif text-2xl sm:text-3xl font-light leading-[1.05] tracking-tight text-foreground">
+                      {tile.name}
+                    </h3>
+                    <p className="mt-3 text-sm text-muted-foreground line-clamp-2">
+                      {tile.description}
+                    </p>
+                    <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Price</p>
+                        <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
+                          ${tile.price.toLocaleString()}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   
-                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-coral transition-colors">
-                    {tile.name}
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  {/* Tile Preview */}
-                  <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
-                    <img loading="lazy" decoding="async" 
-                      src={tile.image} 
-                      alt={tile.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  
-                  {/* Price */}
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-coral" />
-                    <span className="text-2xl font-bold text-foreground">
-                      ${tile.price.toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  {/* Description */}
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {tile.description}
-                  </p>
-                  
-                  <Separator />
-                  
-                  {/* Action Button */}
                   <Button 
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddToCart(tile);
                     }}
                     variant="default"
-                    className="w-full hover:scale-105 transition-all duration-300 rounded-none"
+                    className="w-full rounded-none text-[10px] uppercase tracking-[0.3em] bg-foreground text-background hover:bg-foreground/90"
                     size="sm"
                   >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
                     Add to Cart
                   </Button>
                 </CardContent>

@@ -1,10 +1,7 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sparkles, Thermometer, Shield, Zap, DollarSign, ShoppingCart, Sun } from "lucide-react";
+import { Sparkles, Thermometer, Shield, Zap, ShoppingCart, Sun } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
@@ -79,16 +76,6 @@ interface SpaSectionProps {
   allowSelection?: boolean;
 }
 
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
-    case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
-    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
-    default: return 'bg-gradient-to-r from-primary to-teal';
-  }
-};
-
 const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection }: SpaSectionProps = {}) => {
   const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -119,84 +106,70 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
 
   return (
     <>
-      <section className="py-20 px-4 bg-gradient-to-br from-background to-muted/30">
+      <section className="py-20 px-4 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+            <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground mb-3">Volume IV — Water</p>
+            <h2 className="font-serif text-4xl md:text-5xl font-light tracking-tight text-foreground mb-6">
               Premium Spas
             </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Indulge in the luxury and therapeutic benefits of our premium spas. Designed for relaxation and rejuvenation, our spas offer the ultimate hydrotherapy experience.
             </p>
           </div>
 
           <ProductScrollRow className="mb-8">
             {spas.map((spa, index) => (
-              <Card 
-                key={spa.model} 
-                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer"
+              <div
+                key={spa.model}
+                className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer"
                 onClick={() => handleSpaClick(spa)}
               >
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge className={`${getCategoryColor(spa.category)} text-white capitalize font-medium px-3 py-1`}>
-                      <span className="flex items-center gap-1">
-                        <Sparkles size={16} />
-                        {spa.category}
-                      </span>
-                    </Badge>
-                    <div className="flex items-center gap-1 text-amber-500">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Sparkles key={i} size={12} fill="currentColor" />
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {spa.model}
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  {/* Spa Preview */}
-                  <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
-                    <img loading="lazy" decoding="async" 
-                      src={spa.image} 
-                      alt={spa.model}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  
-                  {/* Price */}
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-teal" />
-                    <span className="text-2xl font-bold text-foreground">
-                      ${spa.price.toLocaleString()}
+                <div className="relative w-full h-48 sm:h-56 overflow-hidden">
+                  <img loading="lazy" decoding="async"
+                    src={spa.image}
+                    alt={spa.model}
+                    className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                      {spa.category}
                     </span>
                   </div>
-                  
-                  {/* Description */}
+                </div>
+
+                <div className="p-4 sm:p-5 space-y-4">
+                  <h3 className="font-serif text-2xl font-light leading-[1.05] tracking-tight text-foreground">
+                    {spa.model}
+                  </h3>
+
+                  <div className="flex items-end justify-between gap-4 border-t border-border/60 pt-3">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+                      <p className="font-serif text-2xl font-light text-foreground">
+                        ${spa.price.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {spa.description}
                   </p>
-                  
-                  <Separator />
-                  
-                  {/* Action Button */}
-                  <Button 
+
+                  <Button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddToCart(spa);
                     }}
-                    variant="default"
-                    className="w-full hover:scale-105 transition-all duration-300 rounded-none"
+                    className="w-full rounded-none bg-foreground text-background text-[10px] uppercase tracking-[0.3em] hover:bg-foreground/90"
                     size="sm"
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     Add to Cart
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </ProductScrollRow>
         </div>
@@ -215,37 +188,37 @@ const SpaSection = ({ onSpaSelect, selectedSpa: selectedSpaProp, allowSelection 
                   <img loading="lazy" decoding="async" 
                     src={selectedSpa.image} 
                     alt={selectedSpa.model}
-                    className="w-full h-64 object-cover rounded-lg"
+                    className="w-full h-64 object-cover rounded-none"
                   />
                 </div>
                 <div className="space-y-4">
-                  <Badge className={`${getCategoryColor(selectedSpa.category)} text-white`}>
+                  <span className="inline-block bg-background/85 border border-border/70 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground">
                     {selectedSpa.category}
-                  </Badge>
+                  </span>
                   <p className="text-foreground/80">{selectedSpa.description}</p>
                   
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-teal" />
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">From</p>
+                    <span className="font-serif text-2xl font-light text-foreground">
                       ${selectedSpa.price.toLocaleString()}
                     </span>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <Thermometer className="h-4 w-4 text-orange-500" />
+                      <Thermometer className="h-4 w-4 text-muted-foreground" />
                       <span>Heater Included</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Shield className="h-4 w-4 text-blue-500" />
+                      <Shield className="h-4 w-4 text-muted-foreground" />
                       <span>Carbon Fiber Shell</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Zap className="h-4 w-4 text-yellow-500" />
+                      <Zap className="h-4 w-4 text-muted-foreground" />
                       <span>{selectedSpa.jets} Jets</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Sun className="h-4 w-4 text-yellow-500" />
+                      <Sun className="h-4 w-4 text-muted-foreground" />
                       <span>Salt Water System</span>
                     </div>
                   </div>
