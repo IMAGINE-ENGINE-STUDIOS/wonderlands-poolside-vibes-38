@@ -259,10 +259,10 @@ const SmartProductCard = ({
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-2 flex-wrap">
-            <Button className="rounded-none" 
+            <Button 
               onClick={() => setShowOptions(true)}
               variant="outline"
-              className="flex-1 min-w-[120px]"
+              className="flex-1 min-w-[120px] rounded-none"
               size="sm"
             >
               <ExternalLink className="h-4 w-4 mr-1" />
@@ -277,9 +277,9 @@ const SmartProductCard = ({
               <ShoppingCart className="h-4 w-4 mr-1" />
               Add to Cart
             </Button>
-            <Button className="rounded-none"
+            <Button 
               onClick={() => setShowQuoteTool(true)}
-              className="w-full gap-2 instant-quote-btn transition-all duration-300"
+              className="w-full gap-2 instant-quote-btn transition-all duration-300 rounded-none"
               size="sm"
             >
               <FileText className="h-4 w-4" />

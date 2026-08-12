@@ -214,7 +214,7 @@ const PaversSection = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3">
-                  <Button className="rounded-none" onClick={() => handleRequestQuote('appian')} className="flex-1 instant-quote-btn transition-all duration-300" size="sm">Instant Quote</Button>
+                  <Button onClick={() => handleRequestQuote('appian')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
                   <Button className="rounded-none" onClick={() => {
                     setSelectedCollection('appian');
                     setSelectedPaverType(appianPavers[0]);
@@ -307,7 +307,7 @@ const PaversSection = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3">
-                  <Button className="rounded-none" onClick={() => handleRequestQuote('catalina-grana')} className="flex-1 instant-quote-btn transition-all duration-300" size="sm">Instant Quote</Button>
+                  <Button onClick={() => handleRequestQuote('catalina-grana')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
                   <Button className="rounded-none" onClick={() => {
                     setSelectedCollection('catalina-grana');
                     setSelectedPaverType(catalinaGranaPavers[0]);
@@ -400,7 +400,7 @@ const PaversSection = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3">
-                  <Button className="rounded-none" onClick={() => handleRequestQuote('catalina')} className="flex-1 instant-quote-btn transition-all duration-300" size="sm">Instant Quote</Button>
+                  <Button onClick={() => handleRequestQuote('catalina')} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">Instant Quote</Button>
                   <Button className="rounded-none" onClick={() => {
                     setSelectedCollection('catalina');
                     setSelectedPaverType(catalinaPavers[0]);

@@ -417,17 +417,17 @@ const TanningLedgeProductCard = ({
                     </div>
                   </label>
                   {extras.jets && <div className="flex items-center space-x-2">
-                      <Button className="rounded-none" variant="outline" size="sm" onClick={() => setExtras(prev => ({
+                      <Button variant="outline" size="sm" onClick={() => setExtras(prev => ({
                   ...prev,
                   jetQuantity: Math.max(1, prev.jetQuantity - 1)
-                }))} className="h-8 w-8 p-0">
+                }))} className="h-8 w-8 p-0 rounded-none">
                         -
                       </Button>
                       <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
-                      <Button className="rounded-none" variant="outline" size="sm" onClick={() => setExtras(prev => ({
+                      <Button variant="outline" size="sm" onClick={() => setExtras(prev => ({
                   ...prev,
                   jetQuantity: prev.jetQuantity + 1
-                }))} className="h-8 w-8 p-0">
+                }))} className="h-8 w-8 p-0 rounded-none">
                         +
                       </Button>
                     </div>}
@@ -438,7 +438,7 @@ const TanningLedgeProductCard = ({
             {/* Action Buttons */}
             <div className="space-y-2">
               <div className="flex gap-2">
-                <Button className="rounded-none" onClick={() => {
+                <Button onClick={() => {
               // Create extras breakdown for quote
               const extrasBreakdown = [];
 
@@ -487,7 +487,7 @@ const TanningLedgeProductCard = ({
                 extrasBreakdown,
                 extrasTotal
               });
-            }} className="flex-1 instant-quote-btn transition-all duration-300" size="sm">
+            }} className="flex-1 instant-quote-btn transition-all duration-300 rounded-none" size="sm">
                   Instant Quote
                 </Button>
               </div>

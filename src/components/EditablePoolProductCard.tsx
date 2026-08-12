@@ -953,10 +953,10 @@ const EditablePoolProductCard = ({
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-2">
-              <Button className="rounded-none" 
+              <Button 
                 variant="outline" 
                 onClick={() => onViewDetails?.(editedPool)} 
-                className="flex-1"
+                className="flex-1 rounded-none"
                 disabled={!onViewDetails}
               >
                 <Star className="h-4 w-4 mr-1" />
@@ -973,10 +973,10 @@ const EditablePoolProductCard = ({
             </div>
 
             <div className="flex gap-2">
-              <Button className="rounded-none" 
+              <Button 
                 variant="secondary" 
                 onClick={() => onRequestQuote?.(editedPool, extras)}
-                className="flex-1"
+                className="flex-1 rounded-none"
                 disabled={!onRequestQuote}
               >
                 Get Quote

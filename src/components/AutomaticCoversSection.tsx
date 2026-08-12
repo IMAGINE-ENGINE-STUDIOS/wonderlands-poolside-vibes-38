@@ -208,7 +208,7 @@ const AutomaticCoversSection = () => {
                   </div>
                   
                   {/* Action Button */}
-                  <Button className="rounded-none" onClick={() => handleRequestQuote(cover)} className="w-full instant-quote-btn transition-all duration-300" size="lg">Instant Quote with Installation</Button>
+                  <Button onClick={() => handleRequestQuote(cover)} className="w-full instant-quote-btn transition-all duration-300 rounded-none" size="lg">Instant Quote with Installation</Button>
               </CardContent>
             </Card>)}
           </ProductScrollRow>

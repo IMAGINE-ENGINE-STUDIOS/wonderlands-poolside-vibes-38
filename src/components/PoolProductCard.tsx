@@ -1268,7 +1268,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </label>
                   {extras.jets && (
                     <div className="flex items-center space-x-2">
-                      <Button className="rounded-none"
+                      <Button 
                         variant="outline"
                         size="sm"
                         onClick={() =>
@@ -1277,12 +1277,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                             jetQuantity: Math.max(1, prev.jetQuantity - 1),
                           }))
                         }
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 rounded-none"
                       >
                         -
                       </Button>
                       <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
-                      <Button className="rounded-none"
+                      <Button 
                         variant="outline"
                         size="sm"
                         onClick={() =>
@@ -1291,7 +1291,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                             jetQuantity: prev.jetQuantity + 1,
                           }))
                         }
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 rounded-none"
                       >
                         +
                       </Button>
@@ -1822,7 +1822,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             {/* Action Buttons */}
             <div className="space-y-2">
               <div className="flex gap-2">
-                <Button className="rounded-none"
+                <Button 
                   onClick={() => {
                     // Create detailed extras breakdown for quote tool
                     const extrasBreakdown = [];

@@ -163,11 +163,11 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
 
             {/* Additional Features Toggle - pushed to bottom of content */}
             <div className="pt-3 border-t mt-auto">
-              <Button className="rounded-none"
+              <Button 
                 variant="outline"
                 size="sm"
                 onClick={() => setShowDetails(!showDetails)}
-                className="w-full flex items-center justify-between"
+                className="w-full flex items-center justify-between rounded-none"
               >
                 <span className="text-xs font-semibold">Additional Features</span>
                 {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -200,9 +200,9 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
           </CardContent>
 
           <CardFooter className="p-4 pt-0 flex gap-2 mt-auto">
-            <Button className="rounded-none"
+            <Button 
               onClick={() => setShowQuote(true)}
-              className="flex-1 instant-quote-btn transition-all duration-300"
+              className="flex-1 instant-quote-btn transition-all duration-300 rounded-none"
               size="sm"
             >
               Get Instant Quote
