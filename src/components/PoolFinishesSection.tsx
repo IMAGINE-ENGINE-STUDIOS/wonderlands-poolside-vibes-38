@@ -7,6 +7,7 @@ import { Palette, Sparkles, Award, Eye, ShoppingCart } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { getProductsByCategory, getProductsBySubcategory, Product } from "@/data/consolidatedProducts";
+import ProductScrollRow from "./ProductScrollRow";
 
 const PoolFinishesSection = () => {
   const [selectedFinish, setSelectedFinish] = useState<Product | null>(null);
@@ -90,11 +91,11 @@ const PoolFinishesSection = () => {
           </TabsList>
 
           <TabsContent value={activeCategory}>
-            <div className="flex gap-4 overflow-x-auto pb-4">
+            <ProductScrollRow className="mb-8">
               {filteredFinishes.map((finish, index) => (
                 <Card 
                   key={finish.id} 
-                  className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 bg-card/50 backdrop-blur-sm border border-border/50 flex-shrink-0 w-72"
+                  className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 bg-card/50 backdrop-blur-sm border border-border/50 h-full"
                   onClick={() => setSelectedFinish(finish)}
                 >
                   <div className="relative overflow-hidden rounded-t-lg">
@@ -137,7 +138,7 @@ const PoolFinishesSection = () => {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+            </ProductScrollRow>
           </TabsContent>
         </Tabs>
 

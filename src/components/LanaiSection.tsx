@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import ProductScrollRow from "./ProductScrollRow";
 import { paverTypes } from "@/data/paverData";
 import { 
   Carousel, 
@@ -209,7 +210,7 @@ const LanaiSection = () => {
         </div>
 
         {/* Lanai Options Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
+        <ProductScrollRow className="mb-16">
           {lanaiOptions.map((lanai) => (
             <Card 
               key={lanai.id}
@@ -408,7 +409,7 @@ const LanaiSection = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </ProductScrollRow>
 
         {/* Information Section */}
         <div className="bg-card border rounded-2xl p-8 shadow-lg">
