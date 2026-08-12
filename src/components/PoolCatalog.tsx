@@ -975,7 +975,7 @@ const PoolCatalog = () => {
   };
   return <>
       {/* Pool Collection Section — editorial */}
-      <section className="relative overflow-hidden border-t border-border/60 bg-secondary/20 px-2 py-14 sm:px-4 sm:py-20 lg:py-28">
+      <section className="relative overflow-hidden border-t border-border/60 bg-secondary/20 px-2 pt-8 pb-14 sm:px-4 sm:pt-10 sm:pb-20 lg:pt-12 lg:pb-28">
         {/* Quiet editorial backdrop: paper tone + hairline rules */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--secondary)/0.35)_45%,hsl(var(--background))_100%)]" />
