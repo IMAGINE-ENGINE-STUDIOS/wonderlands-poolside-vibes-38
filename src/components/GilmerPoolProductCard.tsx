@@ -352,6 +352,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
             <div className="font-serif text-3xl font-light text-foreground">
               ${getTotalPoolPrice().toLocaleString()}
             </div>
+            <InstallationNote className="mt-2 !text-[9px]" />
             {calculateExtrasTotal() > 0 && (
               <div className="text-xs text-muted-foreground">
                 + ${calculateExtrasTotal().toLocaleString()} extras

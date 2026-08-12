@@ -351,6 +351,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
                 ${getTotalPoolPrice().toLocaleString()}
               </p>
+              <InstallationNote className="mt-2 !text-[9px]" />
               {projectType === 'commercial' && (
                 <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Commercial Rate</p>
               )}

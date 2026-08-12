@@ -96,6 +96,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
                   <div className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
                     ${(sauna.price * priceMultiplier).toLocaleString()}
                   </div>
+                  <InstallationNote className="mt-2 !text-[9px]" />
                   {projectType === 'commercial' && (
                     <div className="text-xs text-amber-600 font-medium">Commercial</div>
                   )}
