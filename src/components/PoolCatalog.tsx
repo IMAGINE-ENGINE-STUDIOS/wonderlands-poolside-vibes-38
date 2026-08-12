@@ -7,6 +7,7 @@ import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import TileDetailModal from "./TileDetailModal";
 import { useShoppingCart } from "./ShoppingCartProvider";
+import ProductScrollRow from "./ProductScrollRow";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -933,21 +934,8 @@ const PoolCatalog = () => {
   const [selectedTile, setSelectedTile] = usePersistentState<any>("catalog_selectedTile", null);
   const [showTileModal, setShowTileModal] = usePersistentState("catalog_showTileModal", false);
   const [selectedExtras, setSelectedExtras] = usePersistentState<any>("catalog_selectedExtras", null);
-  const [currentPage, setCurrentPage] = usePersistentState("catalog_currentPage", 1);
-  const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
-
-  const {
-    addToCart
-  } = useShoppingCart();
-  const {
-    toast
-  } = useToast();
-
-  // Filter and paginate pools
+  // Filter pools
   const filteredPools = pools.filter(pool => pool.model !== 'Pleasant Cove');
-  const totalPages = Math.ceil(filteredPools.length / poolsPerPage);
-  const startIndex = (currentPage - 1) * poolsPerPage;
-  const paginatedPools = filteredPools.slice(startIndex, startIndex + poolsPerPage);
   const handleViewDetails = (pool: Pool) => {
     setSelectedPool(pool);
     setShowDetailModal(true);
