@@ -155,6 +155,124 @@ const rect = (x: number, y: number, w: number, h: number): GrassPoint[] => [
   { x, y: y + h },
 ];
 
+/**
+ * Turns a grass product photo into a seamless repeating tile:
+ * 1. trims the white studio border (which otherwise tiles as white grid lines)
+ * 2. insets a few percent to drop soft vignette edges
+ * 3. mirrors the crop 2x2 so opposite edges always match
+ */
+function buildSeamlessTile(img: HTMLImageElement): HTMLCanvasElement | null {
+  const iw = img.naturalWidth || img.width;
+  const ih = img.naturalHeight || img.height;
+  if (!iw || !ih) return null;
+
+  const probe = document.createElement('canvas');
+  const max = 512;
+  const s = Math.min(1, max / Math.max(iw, ih));
+  probe.width = Math.max(1, Math.round(iw * s));
+  probe.height = Math.max(1, Math.round(ih * s));
+  const pctx = probe.getContext('2d', { willReadFrequently: true });
+  if (!pctx) return null;
+  pctx.drawImage(img, 0, 0, probe.width, probe.height);
+
+  // find bounding box of non-white content
+  let x0 = 0, y0 = 0, x1 = probe.width - 1, y1 = probe.height - 1;
+  try {
+    const { data } = pctx.getImageData(0, 0, probe.width, probe.height);
+    const isContent = (px: number, py: number) => {
+      const i = (py * probe.width + px) * 4;
+      return data[i] + data[i + 1] + data[i + 2] < 720 && data[i + 3] > 8;
+    };
+    const rowHas = (py: number) => {
+      for (let px = 0; px < probe.width; px += 2) if (isContent(px, py)) return true;
+      return false;
+    };
+    const colHas = (px: number) => {
+      for (let py = 0; py < probe.height; py += 2) if (isContent(px, py)) return true;
+      return false;
+    };
+    while (y0 < y1 && !rowHas(y0)) y0++;
+    while (y1 > y0 && !rowHas(y1)) y1--;
+    while (x0 < x1 && !colHas(x0)) x0++;
+    while (x1 > x0 && !colHas(x1)) x1--;
+  } catch {
+    // cross-origin / unreadable: fall back to the full image
+  }
+
+  // map back to source pixels, then take the CENTRE core of the swatch.
+  // The product photos are studio swatches with soft, feathered blade edges that
+  // stay pale even after trimming pure white, so only the dense middle tiles cleanly.
+  const scale = 1 / s;
+  let bx = x0 * scale;
+  let by = y0 * scale;
+  let bw = (x1 - x0 + 1) * scale;
+  let bh = (y1 - y0 + 1) * scale;
+  if (bw < 16 || bh < 16) {
+    bx = 0; by = 0; bw = iw; bh = ih;
+  }
+  const core = Math.min(bw, bh) * 0.52;
+  const sx = bx + (bw - core) / 2;
+  const sy = by + (bh - core) / 2;
+
+  // square, capped quarter used for the mirrored tile
+  const q = Math.max(32, Math.min(256, Math.round(core / 2)));
+  const tile = document.createElement('canvas');
+  tile.width = q * 2;
+  tile.height = q * 2;
+  const tctx = tile.getContext('2d');
+  if (!tctx) return null;
+  tctx.imageSmoothingQuality = 'high';
+
+  // top-left quarter
+  tctx.drawImage(img, sx, sy, core, core, 0, 0, q, q);
+  // mirror horizontally, vertically and both
+  tctx.save();
+  tctx.translate(tile.width, 0);
+  tctx.scale(-1, 1);
+  tctx.drawImage(tile, 0, 0, q, q, 0, 0, q, q);
+  tctx.restore();
+  tctx.save();
+  tctx.translate(0, tile.height);
+  tctx.scale(1, -1);
+  tctx.drawImage(tile, 0, 0, tile.width, q, 0, 0, tile.width, q);
+  tctx.restore();
+
+  return tile;
+}
+
+/** Cache of seamless tiles pre-rendered at the exact on-screen pixel size. */
+const scaledTileCache = new Map<string, HTMLCanvasElement>();
+function getScaledTile(id: string, tile: HTMLCanvasElement, px: number): HTMLCanvasElement | null {
+  const key = `${id}:${px}`;
+  const hit = scaledTileCache.get(key);
+  if (hit) return hit;
+  const out = document.createElement('canvas');
+  out.width = px;
+  out.height = px;
+  const octx = out.getContext('2d');
+  if (!octx) return null;
+  octx.imageSmoothingEnabled = true;
+  octx.imageSmoothingQuality = 'high';
+  // step down in halves for clean minification (avoids aliasing artifacts)
+  let src: HTMLCanvasElement = tile;
+  while (src.width > px * 2) {
+    const half = document.createElement('canvas');
+    half.width = Math.max(px, Math.round(src.width / 2));
+    half.height = half.width;
+    const hctx = half.getContext('2d');
+    if (!hctx) break;
+    hctx.imageSmoothingQuality = 'high';
+    hctx.drawImage(src, 0, 0, half.width, half.height);
+    src = half;
+  }
+  octx.drawImage(src, 0, 0, px, px);
+  if (scaledTileCache.size > 40) scaledTileCache.clear();
+  scaledTileCache.set(key, out);
+  return out;
+}
+
+
+
 const GrassDrawingBoard: React.FC<Props> = ({
   layout,
   onChange,
@@ -173,16 +291,23 @@ const GrassDrawingBoard: React.FC<Props> = ({
   const dragRef = React.useRef<{ mode: 'point' | 'pan'; id?: string; index?: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 540 });
 
-  // Grass textures for pattern fills
-  const [textures, setTextures] = React.useState<Record<string, HTMLImageElement>>({});
+  // Grass textures for pattern fills — product photos carry a white studio border,
+  // so we trim it and mirror the crop into a seamless tile (no white seam lines).
+  const [textures, setTextures] = React.useState<Record<string, HTMLCanvasElement>>({});
   React.useEffect(() => {
     let alive = true;
     artificialGrassOptions.forEach(g => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = g.image;
       img.onload = () => {
         if (!alive) return;
-        setTextures(prev => ({ ...prev, [g.id]: img }));
+        try {
+          const tile = buildSeamlessTile(img);
+          if (tile) setTextures(prev => ({ ...prev, [g.id]: tile }));
+        } catch {
+          /* texture stays unavailable; the board falls back to a flat wash */
+        }
       };
     });
     return () => {
@@ -266,15 +391,18 @@ const GrassDrawingBoard: React.FC<Props> = ({
       if (area.closed) ctx.closePath();
 
       if (area.closed) {
-        const tex = textures[area.grassId];
-        if (tex) {
-          const pattern = ctx.createPattern(tex, 'repeat');
-          if (pattern) {
-            const scale = (PX_PER_FT * zoom * 2) / tex.width; // 2 ft texture tile
-            (pattern as CanvasPattern).setTransform?.(new DOMMatrix([scale, 0, 0, scale, ox, oy]));
-            ctx.fillStyle = pattern;
-            ctx.fill();
-          }
+        const texId = grassById(area.grassId).id;
+        const tex = textures[texId];
+        // 4 ft tile, pre-rendered at the exact on-screen pixel size so the
+        // pattern never gets hard-downscaled (which is what produced seams).
+        const tilePx = Math.max(24, Math.round(PX_PER_FT * zoom * 4 * dpr));
+        const scaled = tex ? getScaledTile(texId, tex, tilePx) : null;
+        const pattern = scaled ? ctx.createPattern(scaled, 'repeat') : null;
+        if (pattern) {
+          const k = 1 / dpr;
+          (pattern as CanvasPattern).setTransform?.(new DOMMatrix([k, 0, 0, k, ox, oy]));
+          ctx.fillStyle = pattern;
+          ctx.fill();
         } else {
           ctx.fillStyle = 'rgba(34,120,72,0.35)';
           ctx.fill();
