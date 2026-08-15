@@ -1,10 +1,13 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import usePersistentState from "@/hooks/usePersistentState";
+import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
+import FlipCart from "./FlipCart";
+import heroVideo from "@/assets/hero-beach.mp4.asset.json";
 
 /**
  * FLIP — Magazine edition.
