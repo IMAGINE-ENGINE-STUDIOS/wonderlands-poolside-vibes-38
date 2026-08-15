@@ -29,6 +29,8 @@ type Props = {
   category: ProductBookCategory;
   groups?: ProductBookOptionGroup[];
   onClose: () => void;
+  /** Rendered inside the magazine flip rather than as a full-screen overlay. */
+  inline?: boolean;
 };
 
 /** Design tool per discipline — the widget the reader is sent to. */
