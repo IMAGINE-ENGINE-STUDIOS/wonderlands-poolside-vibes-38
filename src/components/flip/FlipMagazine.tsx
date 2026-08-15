@@ -446,7 +446,7 @@ const FlipMagazine: React.FC = () => {
             {products.map((p, i) => (
               <li key={p.id}>
                 <button
-                  onClick={() => bookRef.current?.pageFlip()?.turnToPage(2 + i * 2)}
+                  onClick={() => bookRef.current?.pageFlip()?.turnToPage(at.products + i * 2)}
                   className="flex w-full items-baseline justify-between gap-4 border-t border-border/50 py-[7px] text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
                 >
                   <span className="truncate text-foreground">
