@@ -216,7 +216,7 @@ export const FlipBoardTools: React.FC<{
   return (
     <div className="flex h-full w-full flex-col overflow-hidden p-6 sm:p-8">
       <Eyebrow>Board tools</Eyebrow>
-      <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{title ?? board.label ?? "Drawing board"}</h3>
+      <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{title ?? board.name ?? "Drawing board"}</h3>
       <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
         {takeoff.areaSqFt > 0
           ? `${Math.round(takeoff.areaSqFt).toLocaleString()} sq ft · ${Math.round(takeoff.linearFt).toLocaleString()} lf drawn`
