@@ -85,6 +85,14 @@ export default {
 					from: { transform: 'translateX(0)' },
 					to: { transform: 'translateX(-50%)' }
 				},
+				'ken-burns': {
+					'0%': { transform: 'scale(1.02) translate3d(0, 0, 0)' },
+					'100%': { transform: 'scale(1.14) translate3d(0, -2%, 0)' }
+				},
+				'rule-draw': {
+					'0%': { transform: 'scaleX(0)' },
+					'100%': { transform: 'scaleX(1)' }
+				},
 				'accordion-down': {
 					from: {
 						height: '0'
