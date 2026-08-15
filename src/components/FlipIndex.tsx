@@ -84,7 +84,7 @@ export const ITEMS: Item[] = [
     label: "Screen Enclosures",
     tagline: "Open Air, Refined",
     layout: "duo",
-    images: [screenEnclosureBanner, patioFencingBanner],
+    images: [screenEnclosureBanner, screenEnclosurePremium, screenEnclosureDeluxe],
     description:
       "Aluminum superstructures engineered to Florida wind load, with self-latching doors and mansard or gable profiles. Drawn to code, priced to the panel.",
     notes: ["Florida wind-load engineered", "Self-latching pool doors", "Mansard & gable profiles"],
