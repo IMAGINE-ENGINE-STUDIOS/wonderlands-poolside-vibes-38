@@ -470,24 +470,35 @@ const FlipIndex: React.FC = () => {
         </div>
         <div className="flex items-center gap-4">
           <p className="hidden text-[10px] uppercase tracking-[0.4em] text-muted-foreground md:block">
-            {`${String(Math.min(currentPage + 1, totalPages)).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`}
+            {consoleId
+              ? "Console"
+              : `${String(Math.min(currentPage + 1, totalPages)).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`}
           </p>
-          <div className="flex items-center gap-1">
+          {consoleId ? (
             <button
-              onClick={flipPrev}
-              aria-label="Previous page"
-              className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              onClick={closeConsole}
+              className="border border-border/60 px-3 py-1.5 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
             >
-              <ChevronLeft className="h-4 w-4" />
+              Back to the book
             </button>
-            <button
-              onClick={flipNext}
-              aria-label="Next page"
-              className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={flipPrev}
+                aria-label="Previous page"
+                className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={flipNext}
+                aria-label="Next page"
+                className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -502,8 +513,12 @@ const FlipIndex: React.FC = () => {
             href={`/#${item.id}`}
             onClick={(e) => {
               e.preventDefault();
-              turnTo(idx);
-              setActiveSection(item.id);
+              if (consoleId) {
+                openConsole(item.id);
+              } else {
+                turnTo(idx);
+                setActiveSection(item.id);
+              }
             }}
             className={`shrink-0 whitespace-nowrap border-b pb-0.5 text-[9px] uppercase tracking-[0.28em] transition-colors ${
               activeIdx === idx
@@ -515,6 +530,7 @@ const FlipIndex: React.FC = () => {
           </a>
         ))}
       </nav>
+
 
       <div className="border-t border-border/50 px-2 py-8 md:px-6 md:py-12">
         <div
