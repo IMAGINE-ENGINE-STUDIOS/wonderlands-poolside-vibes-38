@@ -1,6 +1,7 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
+import { resolveProductGallery } from "@/lib/flipProductGallery";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight, Maximize2 } from "lucide-react";
 import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
@@ -23,6 +24,8 @@ export type ProductBookCategory = {
   description?: string;
   notes?: string[];
   images?: string[];
+  /** Other models of this discipline — only same-brand, same-series plates are used. */
+  siblings?: { name: string; brand?: string; image?: string }[];
 };
 
 export type ProductBookOptionGroup = { title: string; note: string; options: string[] };
@@ -418,10 +421,18 @@ export const useProductBookPages = ({
   /** Product photography for the editorial pages — model plate first, then the
       discipline's own product imagery. Finish and option swatches are deliberately
       excluded here: they belong to the feature pages, not the editorial plates. */
-  const gallery = useMemo(
-    () => Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[],
-    [entry.image, plates],
-  );
+  const gallery = useMemo(() => {
+    const own = resolveProductGallery({
+      categoryId: category.id,
+      name: entry.name,
+      brand: entry.brand,
+      image: entry.image,
+      siblings: category.siblings ?? [],
+    });
+    /* Never borrow another model's photograph: if this product has only one
+       plate, the discipline's own scene imagery is used, and nothing else. */
+    return own.length > 1 ? own : (Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[]);
+  }, [category.id, category.siblings, entry.image, entry.name, entry.brand, plates]);
 
   const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
 
