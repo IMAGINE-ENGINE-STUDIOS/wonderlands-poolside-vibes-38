@@ -1,8 +1,9 @@
 import * as React from "react";
 import { Suspense, lazy, useCallback, useMemo, useRef, useState } from "react";
 import { Maximize2, Upload, X, Loader2 } from "lucide-react";
-import { usePersistentState } from "@/hooks/usePersistentState";
 import { boardForCategory } from "./FlipEditorBoard";
+import { useFlipBoard, setFlipBoardValue, lockFlip, unlockFlip } from "./flipBoardStore";
+import { FlipBoardTools, FlipBoardCost, FlipBoardCalculators } from "./FlipBoardPanels";
 import {
   DEFAULT_PX_PER_FT,
   type SiteLayerId,
