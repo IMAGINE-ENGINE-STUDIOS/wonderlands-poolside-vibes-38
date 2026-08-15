@@ -1,12 +1,13 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
+import FlipProductBook from "./FlipProductBook";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
 
 /**
@@ -230,6 +231,24 @@ const FlipMagazine: React.FC = () => {
       </button>
     );
   };
+
+  /* -------------------------------- DOSSIER --------------------------------- */
+  const [dossier, setDossier] = useState<ConsoleEntry | null>(null);
+
+  /** Opens the product's own small book. */
+  const MoreButton: React.FC<{ entry: ConsoleEntry; tone?: "light" | "dark" }> = ({ entry, tone = "light" }) => (
+    <button
+      onClick={() => setDossier(entry)}
+      className={`inline-flex items-center justify-between gap-3 border px-4 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors ${
+        tone === "dark"
+          ? "border-white/50 text-white hover:bg-white hover:text-black"
+          : "border-border/60 text-foreground hover:bg-foreground hover:text-background"
+      }`}
+    >
+      More
+      <BookOpen className="h-3.5 w-3.5" />
+    </button>
+  );
 
 
   /* ---------------------------------- HOME ---------------------------------- */
@@ -583,6 +602,7 @@ const FlipMagazine: React.FC = () => {
               <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-white/25 pt-4">
                 <p className="font-serif text-2xl font-light">{formatEntryPrice(p) || "On request"}</p>
                 <AddButton entry={p} tone="dark" />
+                <MoreButton entry={p} tone="dark" />
               </div>
             </div>
           </div>
@@ -628,7 +648,10 @@ const FlipMagazine: React.FC = () => {
               ))}
             </ul>
             <div className="mt-auto border-t border-border/50 pt-3">
-              <AddButton entry={p} />
+              <div className="flex flex-wrap items-center gap-2">
+                <AddButton entry={p} />
+                <MoreButton entry={p} />
+              </div>
               <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
                 Price includes installation at your home address.
               </p>
@@ -1029,6 +1052,22 @@ const FlipMagazine: React.FC = () => {
       </div>
 
       <FlipCart />
+
+      {dossier && (
+        <FlipProductBook
+          entry={dossier}
+          category={{
+            id: category.id,
+            label: category.label,
+            tagline: category.tagline,
+            description: category.description,
+            notes: category.notes,
+            images: category.images,
+          }}
+          groups={groups}
+          onClose={() => setDossier(null)}
+        />
+      )}
     </section>
   );
 };
