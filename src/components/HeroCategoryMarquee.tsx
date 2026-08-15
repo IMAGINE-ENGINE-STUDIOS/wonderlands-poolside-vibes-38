@@ -356,10 +356,10 @@ const HeroCategoryMarquee: React.FC = () => {
       const isPortrait = vw < 900;
       setPortrait(isPortrait);
 
-      // Fill as much of the screen as possible while keeping a book page ratio (~1:1.38)
-      const ratio = 1.38;
-      const maxH = Math.max(420, Math.floor(vh * (isPortrait ? 0.78 : 0.9)));
-      const availableW = Math.min(vw - (isPortrait ? 32 : 64), 1900);
+      // Page aspect ratio: tall book on small screens, wide magazine spread on desktop/ultrawide
+      const ratio = isPortrait ? 1.38 : vw >= 1800 ? 1.0 : vw >= 1440 ? 1.08 : vw >= 1100 ? 1.2 : 1.32;
+      const maxH = Math.max(420, Math.floor(vh * (isPortrait ? 0.78 : 0.94)));
+      const availableW = Math.min(vw - (isPortrait ? 32 : 80), 2400);
       const wByWidth = isPortrait ? availableW : Math.floor(availableW / 2);
       const wByHeight = Math.floor(maxH / ratio);
       const w = Math.max(260, Math.min(wByWidth, wByHeight));
@@ -369,6 +369,7 @@ const HeroCategoryMarquee: React.FC = () => {
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, []);
+
 
   const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
@@ -415,9 +416,10 @@ const HeroCategoryMarquee: React.FC = () => {
             height={dims.h}
             size="fixed"
             minWidth={240}
-            maxWidth={900}
+            maxWidth={1400}
             minHeight={340}
-            maxHeight={1300}
+            maxHeight={1400}
+
             showCover
             usePortrait={portrait}
             mobileScrollSupport
