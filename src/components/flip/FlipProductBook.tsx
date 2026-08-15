@@ -10,6 +10,7 @@ import { mergeStudioGroups, type StudioGroup, type StudioOption } from "@/lib/fl
 import FlipToolWidget from "./FlipToolWidget";
 import { useFlipLocked } from "./flipBoardStore";
 import { pushSpread } from "./FlipSpread";
+import FlipCustomerLetter from "./FlipCustomerLetter";
 
 /**
  * FLIP — Product dossier.
@@ -907,6 +908,12 @@ export const useProductBookPages = ({
 
         </div>
       ),
+    });
+
+    /* the one pager — our written message to the client */
+    list.push({
+      key: "letter",
+      render: () => <FlipCustomerLetter categoryLabel={category.label} modelName={entry.name} />,
     });
 
     /* design tool — a full spread: the live board runs across both pages */
