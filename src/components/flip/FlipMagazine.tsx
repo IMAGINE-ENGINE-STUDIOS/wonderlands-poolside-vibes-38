@@ -192,7 +192,6 @@ const FlipMagazine: React.FC = () => {
   /* ------------------------------- ORDER DESK ------------------------------- */
   const cart = useOptionalShoppingCart();
   const cartItems = cart?.cartItems ?? [];
-  const entryCartId = useCallback((p: ConsoleEntry) => `flip-${categoryId}-${p.id}`, [categoryId]);
   const inCart = useCallback(
     (p: ConsoleEntry) => cartItems.some((c) => c.id === `flip-${categoryId}-${p.id}`),
     [cartItems, categoryId],
