@@ -61,6 +61,8 @@ interface Props {
   /** Grass product applied to newly drawn areas */
   activeGrassId: string;
   onActiveGrassChange?: (grassId: string) => void;
+  /** Title block rendered inside the board toolbar card */
+  header?: React.ReactNode;
 }
 
 const PX_PER_FT = 10;
@@ -720,7 +722,9 @@ const GrassDrawingBoard: React.FC<Props> = ({
   return (
     <div className="space-y-3">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/40 bg-white/60 p-2 backdrop-blur-md">
+      <div className="rounded-xl border border-white/40 bg-white/60 p-2 backdrop-blur-md">
+      {header && <div className="px-1 pt-1 pb-3">{header}</div>}
+      <div className="flex flex-wrap items-center gap-2">
         <Button type="button" size="sm" variant={tool === 'draw' ? 'default' : 'outline'} onClick={() => setTool('draw')} className="h-8">
           <PenTool className="mr-1.5 h-3.5 w-3.5" /> Draw
         </Button>

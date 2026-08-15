@@ -24,6 +24,8 @@ interface FenceDrawingBoardProps {
   onMeasure?: (linearFt: number, gateSegments: number) => void;
   /** Fence color hex for the drawn run */
   colorHex?: string;
+  /** Title block rendered inside the board toolbar */
+  header?: React.ReactNode;
 }
 
 const PX_PER_FT = 10;
@@ -33,7 +35,7 @@ const MAJOR_FT = 5;
 const dist = (a: FencePoint, b: FencePoint) => Math.hypot(a.x - b.x, a.y - b.y);
 
 /** Same drafting conventions as the 2D pool studio: 10px = 1 ft, snap to the foot grid. */
-const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827' }: FenceDrawingBoardProps) => {
+const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', header }: FenceDrawingBoardProps) => {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const [mode, setMode] = React.useState<'draw' | 'select' | 'gate'>('draw');
   const { compact, toggle: toggleDensity } = useBoardDensity();
@@ -273,6 +275,9 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827' }
 
   return (
     <div className="space-y-3">
+      {header && (
+        <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant={mode === 'draw' ? 'default' : 'outline'} onClick={() => setMode('draw')}>
           <Ruler className="h-3.5 w-3.5 mr-1" /> Draw run
