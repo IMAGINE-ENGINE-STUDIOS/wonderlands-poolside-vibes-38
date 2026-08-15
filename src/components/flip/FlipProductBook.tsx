@@ -172,7 +172,7 @@ const Leaf = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ childr
 ));
 Leaf.displayName = "DossierLeaf";
 
-const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClose }) => {
+const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClose, inline = false }) => {
   const bookRef = useRef<any>(null);
   const navigate = useNavigate();
   const cart = useOptionalShoppingCart();
