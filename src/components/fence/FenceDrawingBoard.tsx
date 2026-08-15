@@ -318,7 +318,7 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       <div ref={wrapRef} className="rounded-lg border overflow-hidden bg-card">
         <canvas
           ref={canvasRef}
-          style={{ width: size.w, height: size.h, cursor: mode === 'select' ? 'grab' : 'crosshair' }}
+          style={{ width: size.w, height: size.h, position: 'relative', cursor: mode === 'select' ? 'grab' : 'crosshair' }}
           onMouseDown={handleDown}
           onMouseMove={handleMove}
           onMouseUp={() => setDragIndex(null)}

@@ -806,7 +806,7 @@ const GrassDrawingBoard: React.FC<Props> = ({
       <div ref={wrapRef} className="overflow-hidden rounded-xl border border-white/40 bg-white/60 shadow-inner backdrop-blur-md">
         <canvas
           ref={canvasRef}
-          style={{ width: size.w, height: size.h, touchAction: 'none', cursor: tool === 'draw' ? 'crosshair' : 'default' }}
+          style={{ width: size.w, height: size.h, position: 'relative', touchAction: 'none', cursor: tool === 'draw' ? 'crosshair' : 'default' }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}

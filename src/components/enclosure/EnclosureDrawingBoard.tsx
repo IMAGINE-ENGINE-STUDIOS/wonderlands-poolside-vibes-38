@@ -921,7 +921,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         <div className="rounded-xl overflow-hidden">
           <canvas
             ref={canvasRef}
-            style={{ width: size.w, height: size.h, cursor: mode === 'select' ? 'pointer' : 'crosshair', display: 'block' }}
+            style={{ width: size.w, height: size.h, position: 'relative', cursor: mode === 'select' ? 'pointer' : 'crosshair', display: 'block' }}
             onMouseDown={handleDown}
             onMouseMove={handleMove}
             onMouseUp={() => setDragIndex(null)}
