@@ -255,6 +255,64 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
       ),
     });
 
+    /* the written piece — image led, full editorial copy */
+    list.push({
+      key: "story-image",
+      render: () => (
+        <div className="relative h-full w-full overflow-hidden">
+          <img
+            src={plateAt(1)}
+            alt={`${entry.name} in place`}
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+          <div className="relative flex h-full flex-col justify-end p-7 text-white sm:p-9">
+            <p className="text-[9px] uppercase tracking-[0.4em] opacity-75">The piece</p>
+            <p className="mt-3 max-w-sm font-serif text-xl font-light leading-snug sm:text-2xl">{story.lede}</p>
+            <div className="mt-4 h-px w-14 origin-left bg-white/60 animate-rule-draw" />
+          </div>
+        </div>
+      ),
+    });
+
+    list.push({
+      key: "story-text",
+      render: () => (
+        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+          <Eyebrow>On {category.label.toLowerCase()}</Eyebrow>
+          <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
+          <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
+            {story.body}
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {[plateAt(2), plateAt(3)].map((src, i) => (
+              <div key={`${src}-${i}`} className="relative aspect-[4/5] overflow-hidden">
+                <img
+                  src={src}
+                  alt={`${entry.name} detail ${i + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="mt-auto space-y-2 border-t border-border/50 pt-3">
+            <div>
+              <Eyebrow>Installation</Eyebrow>
+              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.craft}</p>
+            </div>
+            <div>
+              <Eyebrow>Living with it</Eyebrow>
+              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.care}</p>
+            </div>
+          </div>
+        </div>
+      ),
+    });
+
     /* dimensions & details */
     list.push({
       key: "dimensions",
