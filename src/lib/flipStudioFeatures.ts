@@ -88,12 +88,22 @@ const GELCOAT: StudioOption[] = [
   { label: "Glacier Blue", color: "#0EA5E9", price: 0, priceLabel: "Included" },
 ];
 
+/**
+ * Studio features that are quoted per square foot even though their config type
+ * is a plain selection (liners are $/sq ft of interior surface in the studio;
+ * screen-enclosure quality tiers are $/sq ft of screen area).
+ */
+const SQFT_FEATURE_IDS = new Set(["liner", "quality"]);
+
+const isSqFt = (f: FeatureConfig) => f.type === "area" || SQFT_FEATURE_IDS.has(f.id);
+
 const unitFor = (f: FeatureConfig) =>
-  f.type === "area" ? " / sq ft" : f.type === "quantity" ? " each" : "";
+  isSqFt(f) ? " / sq ft" : f.type === "quantity" ? " each" : "";
 
 /** Studio feature type -> pricing unit, so the magazine multiplies exactly as the studio does. */
 const unitKindFor = (f: FeatureConfig): StudioOption["unit"] =>
-  f.type === "area" ? "sqft" : f.type === "quantity" ? "each" : undefined;
+  isSqFt(f) ? "sqft" : f.type === "quantity" ? "each" : undefined;
+
 
 const buildItems = (f: FeatureConfig, ctx: StudioContext, prefix = ""): StudioOption[] => {
   const out: StudioOption[] = [];
