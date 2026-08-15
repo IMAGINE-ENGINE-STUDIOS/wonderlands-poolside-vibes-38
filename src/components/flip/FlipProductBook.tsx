@@ -825,7 +825,7 @@ export const useProductBookPages = ({
     }
 
     return list;
-  }, [entry, category, groups, plates, metaBits, price, tool, brandNote, added, add, navigate, portrait, story, gallery, plateAt]);
+  }, [entry, category, groups, metaBits, price, tool, brandNote, added, add, navigate, portrait, story, gallery, plateAt]);
 
   return pages;
 };
