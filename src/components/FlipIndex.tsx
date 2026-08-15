@@ -2,6 +2,8 @@ import * as React from "react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import FlipConsole from "./flip/FlipConsole";
+
 
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
