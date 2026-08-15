@@ -205,14 +205,35 @@ const OptionChapter: React.FC<{
     `flip-${categoryId}-${entry.id}-${group.title}-${o.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const inOrder = (o: StudioOption) => (cart?.cartItems ?? []).some((c) => c.id === optionId(o));
 
-  const addOption = (o: StudioOption) => {
+  /** Measurement being collected for a unit-priced option (sq ft or count). */
+  const [measure, setMeasure] = useState<{ label: string; value: string } | null>(null);
+
+  /** Exactly the Wonderlands Studio calculation: rate x measurement, or a flat price. */
+  const lineTotal = (o: StudioOption, qty: number) => (o.unit ? o.price * qty : o.price);
+
+  const unitWord = (o: StudioOption) => (o.unit === "sqft" ? "sq ft" : "units");
+
+  const addOption = (o: StudioOption, qty = 1) => {
+    const total = lineTotal(o, qty);
     cart?.addToCart({
       id: optionId(o),
-      name: `${entry.name} — ${group.title}: ${o.label}`,
-      price: o.price,
+      name: o.unit
+        ? `${entry.name} — ${group.title}: ${o.label} (${qty} ${unitWord(o)} @ ${o.priceLabel})`
+        : `${entry.name} — ${group.title}: ${o.label}`,
+      price: total,
       image: o.image ?? entry.image,
       category: categoryLabel,
     });
+    setMeasure(null);
+  };
+
+  const requestAdd = (o: StudioOption) => {
+    if (o.unit && o.price > 0) {
+      setActive(o);
+      setMeasure({ label: o.label, value: o.unit === "sqft" ? "400" : "1" });
+      return;
+    }
+    addOption(o);
   };
 
   const rows = (dense: boolean) => (
@@ -223,7 +244,7 @@ const OptionChapter: React.FC<{
           onMouseEnter={() => setActive(o)}
           onFocus={() => setActive(o)}
           onClick={() => setActive(o)}
-          className={`flex items-center gap-3 border-t border-border/50 py-2 transition-colors ${
+          className={`flex flex-wrap items-center gap-3 border-t border-border/50 py-2 transition-colors ${
             active?.label === o.label ? "bg-foreground/[0.04]" : ""
           }`}
         >
@@ -248,7 +269,7 @@ const OptionChapter: React.FC<{
             aria-label={`Add ${o.label} to the order`}
             onClick={(e) => {
               e.stopPropagation();
-              addOption(o);
+              requestAdd(o);
             }}
             className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
               inOrder(o)
@@ -258,10 +279,49 @@ const OptionChapter: React.FC<{
           >
             {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
           </button>
+
+          {/* unit-priced options are measured before they enter the estimate, exactly as in the studio */}
+          {measure?.label === o.label && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex w-full items-center gap-2 border-t border-dashed border-border/60 pt-2"
+            >
+              <label className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
+                {o.unit === "sqft" ? "Area" : "Quantity"}
+              </label>
+              <input
+                type="number"
+                min={o.unit === "sqft" ? 1 : 1}
+                step={o.unit === "sqft" ? 10 : 1}
+                value={measure.value}
+                onChange={(e) => setMeasure({ label: o.label, value: e.target.value })}
+                className="w-20 border border-border/70 bg-transparent px-2 py-1 font-serif text-[11px] outline-none focus:border-foreground"
+              />
+              <span className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground">{unitWord(o)}</span>
+              <span className="ml-auto font-serif text-[11px]">
+                ${Math.round(lineTotal(o, Math.max(0, Number(measure.value) || 0))).toLocaleString()}
+              </span>
+              <button
+                type="button"
+                onClick={() => addOption(o, Math.max(1, Number(measure.value) || 1))}
+                className="border border-foreground bg-foreground px-2 py-1 text-[9px] uppercase tracking-[0.25em] text-background"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => setMeasure(null)}
+                className="border border-border/70 px-2 py-1 text-[9px] uppercase tracking-[0.25em] text-muted-foreground"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </li>
       ))}
     </ul>
   );
+
 
   const plateArt = (contain: boolean) =>
     preview?.color && !preview.image ? (
