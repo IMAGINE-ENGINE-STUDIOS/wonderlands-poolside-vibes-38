@@ -767,6 +767,41 @@ const FlipBuilder: React.FC = () => {
                     </>
                   )}
 
+                  {selected.kind === "widget" && (
+                    <>
+                      <label className="grid gap-1">
+                        <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Widget</span>
+                        <select
+                          value={selected.widget ?? ""}
+                          onChange={(e) => patchBlock(selected.id, { widget: e.target.value })}
+                          className="border border-border/60 bg-background px-2 py-1.5 text-[11px] text-foreground"
+                        >
+                          {FLIP_WIDGETS.map((w) => (
+                            <option key={w.id} value={w.id}>
+                              {w.group} — {w.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <p className="text-[10px] leading-relaxed text-muted-foreground">
+                        {widgetMeta(selected.widget)?.note}
+                      </p>
+                      <label className="grid gap-1">
+                        <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+                          Fit — {Math.round((selected.scale ?? 0.6) * 100)}%
+                        </span>
+                        <input
+                          type="range"
+                          min={30}
+                          max={100}
+                          step={2}
+                          value={Math.round((selected.scale ?? 0.6) * 100)}
+                          onChange={(e) => patchBlock(selected.id, { scale: Number(e.target.value) / 100 })}
+                        />
+                      </label>
+                    </>
+                  )}
+
                   {selected.kind !== "rule" && (
                     <label className="grid gap-1">
                       <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Animation</span>
