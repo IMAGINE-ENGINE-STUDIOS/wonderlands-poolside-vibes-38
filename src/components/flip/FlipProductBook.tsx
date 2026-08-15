@@ -934,21 +934,36 @@ export const useProductBookPages = ({
       });
     }
 
-    /* left leaf — the live board, drawn to scale; page turning is held while drawing */
-    list.push({
-      key: "tool",
-      render: () => (
-        <div className="flex h-full w-full flex-col overflow-hidden p-4 sm:p-5">
-          <Eyebrow>Design tool</Eyebrow>
-          <h3 className="mt-1 font-serif text-xl font-light leading-tight">{tool?.name ?? "Wonderlands Studio"}</h3>
-          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
-            <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board" />
+    /* the board runs across the whole spread — left half, then right half */
+    if (portrait) {
+      list.push({
+        key: "tool",
+        render: () => (
+          <div className="flex h-full w-full flex-col overflow-hidden p-4 sm:p-5">
+            <Eyebrow>Design tool</Eyebrow>
+            <h3 className="mt-1 font-serif text-xl font-light leading-tight">{tool?.name ?? "Wonderlands Studio"}</h3>
+            <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board" />
+            </div>
           </div>
-        </div>
-      ),
-    });
+        ),
+      });
+    } else {
+      list.push({
+        key: "tool",
+        render: () => (
+          <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board-left" />
+        ),
+      });
+      list.push({
+        key: "tool-right",
+        render: () => (
+          <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board-right" />
+        ),
+      });
+    }
 
-    /* right leaf — every tool and button for that board */
+    /* facing spread — every tool and button for that board */
     list.push({
       key: "tool-tools",
       render: () => <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="tools" />,

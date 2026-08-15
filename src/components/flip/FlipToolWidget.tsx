@@ -3,7 +3,7 @@ import { Suspense, lazy, useCallback, useMemo, useRef, useState } from "react";
 import { Maximize2, Upload, X, Loader2 } from "lucide-react";
 import { boardForCategory } from "./FlipEditorBoard";
 import { useFlipBoard, setFlipBoardValue, lockFlip, unlockFlip } from "./flipBoardStore";
-import { FlipBoardTools, FlipBoardCost, FlipBoardCalculators } from "./FlipBoardPanels";
+import { FlipBoardTools, FlipBoardCost, FlipBoardCalculators, useBoardEstimate } from "./FlipBoardPanels";
 import {
   DEFAULT_PX_PER_FT,
   type SiteLayerId,
@@ -61,7 +61,7 @@ type Props = {
    *  - "cost" — the live cost of the drawing
    *  - "options" — calculators and options
    */
-  part?: "board" | "tools" | "cost" | "options";
+  part?: "board" | "board-left" | "board-right" | "tools" | "cost" | "options";
 };
 
 const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" }) => {
@@ -184,15 +184,20 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
     [site, setSite],
   );
 
+  /* the live price of the drawing — the same figure the cost leaf prints */
+  const { total: boardTotal } = useBoardEstimate(categoryId);
+  const livePrice = isSite ? estimate.total : boardTotal;
+
+
   const headerBlock = (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0">
         <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
           {(isSite ? siteReadout : readout) || "Draw on the grid — 1 ft squares"}
         </p>
-        {isSite && estimate.total > 0 && (
+        {livePrice > 0 && (
           <p className="mt-1 font-serif text-lg font-light leading-none">
-            {formatMoney(estimate.total)}
+            {formatMoney(livePrice)}
             <span className="ml-2 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
               as drawn — installed
             </span>
@@ -292,28 +297,56 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
       <FlipBoardCalculators categoryId={categoryId} />
     ) : null;
 
-  /* while the reader is drawing, the book holds still — no page turns and no
-     drag reaching the flipbook underneath */
-  const lockHandlers =
-    part === "board"
-      ? {
-          onPointerEnter: lockFlip,
-          onPointerLeave: unlockFlip,
-          onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
-          onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
-          onMouseMove: (e: React.MouseEvent) => e.stopPropagation(),
-          onClick: (e: React.MouseEvent) => e.stopPropagation(),
-          onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
-          onTouchMove: (e: React.TouchEvent) => e.stopPropagation(),
-          onTouchEnd: (e: React.TouchEvent) => e.stopPropagation(),
-        }
-      : {};
+  /* every design leaf is interactive, so the flipbook must never receive the
+     pointer: page turning is held and drags/clicks stop at the leaf */
+  const lockHandlers = {
+    onPointerEnter: lockFlip,
+    onPointerLeave: unlockFlip,
+    onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+    onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
+    onMouseMove: (e: React.MouseEvent) => e.stopPropagation(),
+    onClick: (e: React.MouseEvent) => e.stopPropagation(),
+    onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
+    onTouchMove: (e: React.TouchEvent) => e.stopPropagation(),
+    onTouchEnd: (e: React.TouchEvent) => e.stopPropagation(),
+  };
+
+  /**
+   * A drawing spread: the same live board is laid out at twice the page width on
+   * both leaves — the left leaf shows its left half, the right leaf its right
+   * half — so one continuous board runs across the gutter and both halves stay
+   * drawable, sharing one drawing through the board store.
+   */
+  const half = part === "board-left" ? "left" : part === "board-right" ? "right" : null;
+
+  const halfBody = (
+    <>
+      <div className={`absolute inset-y-0 w-[200%] ${half === "left" ? "left-0" : "-left-full"}`}>
+        <div className="flex h-full w-full flex-col p-3 sm:p-4">
+          <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
+        </div>
+      </div>
+      {/* the gutter shading, so the fold still reads like paper */}
+      <div
+        className={`pointer-events-none absolute inset-y-0 w-10 ${
+          half === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"
+        } from-foreground/10 to-transparent`}
+      />
+    </>
+  );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col" {...lockHandlers}>
-      <div className="min-h-0 flex-1 overflow-auto">
-        {panel ?? <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>}
-      </div>
+    <div
+      className={half ? "relative h-full w-full overflow-hidden" : "flex min-h-0 flex-1 flex-col"}
+      {...lockHandlers}
+    >
+      {half ? (
+        halfBody
+      ) : (
+        <div className="min-h-0 flex-1 overflow-auto">
+          {panel ?? <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>}
+        </div>
+      )}
 
 
 
