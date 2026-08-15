@@ -15,6 +15,8 @@ import {
   Eye,
   PenLine,
   RotateCcw,
+  Sparkles,
+  Columns2,
   ArrowUp,
   ArrowDown,
   X,
@@ -33,6 +35,7 @@ import {
   type PageTransition,
   type TextStyle,
 } from "./flipBuilderTypes";
+import { FLIP_WIDGETS, FlipWidgetSurface, widgetMeta } from "./flipWidgets";
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -127,6 +130,10 @@ const BlockView: React.FC<{ block: Block; tone: "paper" | "cover"; editing?: boo
     );
   }
 
+  if (block.kind === "widget") {
+    return <FlipWidgetSurface id={block.widget} scale={block.scale ?? 0.6} editing={editing} />;
+  }
+
   if (block.kind === "rule") {
     return <div className={`h-px w-full ${light ? "bg-white/40" : "bg-border"}`} />;
   }
@@ -188,6 +195,8 @@ const FlipBuilder: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [preview, setPreview] = usePersistentState<boolean>("flip.builder.preview", false);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryFamily, setGalleryFamily] = useState<string>("All");
+  const [featuresOpen, setFeaturesOpen] = useState(false);
   const [previewPage, setPreviewPage] = useState(0);
   const canvasRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<any>(null);
@@ -230,8 +239,11 @@ const FlipBuilder: React.FC = () => {
   );
 
   const addBlock = useCallback(
-    (kind: Block["kind"]) => {
+    (kind: Block["kind"], widgetId?: string) => {
       const block: Block =
+        kind === "widget"
+          ? { id: uid(), kind, x: 4, y: 8, w: 92, h: 70, widget: widgetId ?? FLIP_WIDGETS[0].id, scale: 0.6 }
+          :
         kind === "text"
           ? { id: uid(), kind, x: 10, y: 40, w: 60, h: 10, text: "New text", style: "body", align: "left", animation: "none" }
           : kind === "rule"
@@ -255,10 +267,10 @@ const FlipBuilder: React.FC = () => {
   const addPage = useCallback(
     (layoutId?: string) => {
       const preset = LAYOUTS.find((l) => l.id === layoutId) ?? LAYOUTS[LAYOUTS.length - 1];
-      const fresh = preset.build();
+      const fresh = [preset.build(), ...(preset.buildFacing ? [preset.buildFacing()] : [])];
       setDoc((d) => {
         const next = [...d.pages];
-        next.splice(index + 1, 0, fresh);
+        next.splice(index + 1, 0, ...fresh);
         return { ...d, pages: next };
       });
       setPageIndex(index + 1);
@@ -383,6 +395,12 @@ const FlipBuilder: React.FC = () => {
             className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
           >
             <LayoutTemplate className="h-3.5 w-3.5" /> Layouts
+          </button>
+          <button
+            onClick={() => setFeaturesOpen(true)}
+            className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Features
           </button>
           <button
             onClick={() => {
@@ -600,6 +618,7 @@ const FlipBuilder: React.FC = () => {
                   { kind: "image" as const, icon: ImagePlus, label: "Image" },
                   { kind: "video" as const, icon: Film, label: "Film" },
                   { kind: "rule" as const, icon: Minus, label: "Rule" },
+                  { kind: "widget" as const, icon: Sparkles, label: "Widget" },
                 ]
               ).map(({ kind, icon: Icon, label }) => (
                 <button
