@@ -432,36 +432,43 @@ const EnclosureConfigurator = ({ baseRatePerSqFt, onTotalChange, onProjectChange
       <TabsContent value="customer" className="space-y-6 mt-0">
       {/* Take-off board */}
       <section className="glass-panel rounded-2xl p-5 space-y-4">
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="quote-eyebrow">Section 01</p>
-              <h4 className="text-sm font-semibold flex items-center gap-2 mt-1">
-                <Ruler className="h-4 w-4 text-primary" /> Footprint &amp; Measurements
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                Draw the enclosure footprint at 10 px = 1 ft, then tag door bays and the house-attached wall.
-              </p>
-            </div>
-            <div className="flex items-end gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Or enter area (sq ft)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={manualArea}
-                  onChange={e => setManualArea(e.target.value)}
-                  className="w-32 h-9 glass-tile"
-                  placeholder="e.g. 620"
-                />
+          <EnclosureDrawingBoard
+            layout={layout}
+            onChange={setLayout}
+            onMeasure={handleMeasure}
+            onSnapshot={setSnapshot}
+            header={
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="quote-eyebrow">Section 01</p>
+                  <h4 className="text-sm font-semibold flex items-center gap-2 mt-1">
+                    <Ruler className="h-4 w-4 text-primary" /> Footprint &amp; Measurements
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Draw the enclosure footprint at 10 px = 1 ft, then tag door bays and the house-attached wall.
+                  </p>
+                </div>
+                <div className="flex items-end gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Or enter area (sq ft)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={manualArea}
+                      onChange={e => setManualArea(e.target.value)}
+                      className="w-32 h-9 glass-tile"
+                      placeholder="e.g. 620"
+                    />
+                  </div>
+                  <Button size="sm" variant="outline" onClick={applyManual}>
+                    Apply
+                  </Button>
+                </div>
               </div>
-              <Button size="sm" variant="outline" onClick={applyManual}>
-                Apply
-              </Button>
-            </div>
-          </div>
-          <EnclosureDrawingBoard layout={layout} onChange={setLayout} onMeasure={handleMeasure} onSnapshot={setSnapshot} />
+            }
+          />
       </section>
+
 
       {/* Structure configuration */}
       <section className="glass-panel rounded-2xl p-5 space-y-4">
