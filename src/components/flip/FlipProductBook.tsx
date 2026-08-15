@@ -432,7 +432,11 @@ export const useProductBookPages = ({
     [category.id, entry.image, entry.name, entry.brand],
   );
 
-  const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
+  /** Nth photograph of this product, or undefined — plates are never repeated. */
+  const plateAt = useCallback((i: number) => gallery[i], [gallery]);
+  /** True when the product has more photography than its single plate. */
+  const rich = gallery.length > 1;
+
 
 
 
