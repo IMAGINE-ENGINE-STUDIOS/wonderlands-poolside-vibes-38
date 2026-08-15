@@ -197,9 +197,10 @@ export const useProductBookPages = ({
 }): ProductBookPage[] => {
   /** Editorial chapters plus every additional feature offered in Wonderlands Studio. */
   const groups = useMemo(
-    () => mergeStudioGroups(category.id, editorialGroups),
-    [category.id, editorialGroups],
+    () => mergeStudioGroups(category.id, editorialGroups, { modelName: entry.name, brand: entry.brand }),
+    [category.id, editorialGroups, entry.name, entry.brand],
   );
+
   const navigate = useNavigate();
   const cart = useOptionalShoppingCart();
 
