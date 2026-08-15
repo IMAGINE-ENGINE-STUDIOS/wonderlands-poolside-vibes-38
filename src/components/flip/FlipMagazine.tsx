@@ -1,14 +1,16 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
+import usePersistentState from "@/hooks/usePersistentState";
 
 /**
  * FLIP — Magazine edition.
- * Categories do not open a panel: they open their own magazine. Every product is
- * a spread, and every option group of that product becomes its own page.
+ * Opens on a main edition page (company products + every category), then travels
+ * one category per page. Selecting a category opens its own magazine: every
+ * model gets a spread and every option group becomes a chapter page.
  */
 
 type OptionGroup = { title: string; note: string; options: string[] };
@@ -91,6 +93,8 @@ const fallbackGroups: OptionGroup[] = [
   { title: "Specification", note: "Drawn to the property", options: ["Site measurement", "Permit drawings", "Turnkey installation", "Warranty registration"] },
 ];
 
+const MAX_MODELS = 24;
+
 const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
   <p className={`text-[9px] uppercase tracking-[0.35em] text-muted-foreground ${className}`}>{children}</p>
 );
@@ -114,13 +118,18 @@ Leaf.displayName = "Leaf";
 
 type Page = { key: string; render: () => React.ReactNode; tone?: "paper" | "cover" };
 
+type Anchors = { index: number; features: number; code: number; gallery: number; estimate: number };
+
 const FlipMagazine: React.FC = () => {
   const bookRef = useRef<any>(null);
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
-  const [categoryId, setCategoryId] = useState<string>(ITEMS[0].id);
+  const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
+  const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category", ITEMS[0].id);
+  const [savedPage, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(savedPage);
+  const startPageRef = useRef(savedPage);
 
   useEffect(() => {
     const measure = () => {
@@ -130,7 +139,7 @@ const FlipMagazine: React.FC = () => {
       setPortrait(isPortrait);
       const ratio = isPortrait ? 1.38 : vw >= 1800 ? 1.02 : vw >= 1440 ? 1.1 : 1.24;
       const maxH = Math.max(420, Math.floor(vh * (isPortrait ? 0.76 : 0.86)));
-      const availableW = Math.min(vw - (isPortrait ? 32 : 80), 2400);
+      const availableW = Math.min(vw - (isPortrait ? 32 : 120), 2400);
       const wByWidth = isPortrait ? availableW : Math.floor(availableW / 2);
       const w = Math.max(260, Math.min(wByWidth, Math.floor(maxH / ratio)));
       setDims({ w, h: Math.round(w * ratio) });
@@ -140,23 +149,212 @@ const FlipMagazine: React.FC = () => {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
+  // Load the selected category edition
   useEffect(() => {
+    if (mode !== "category") return;
     let alive = true;
     setEntries(null);
-    setPage(0);
     loadCategoryEntries(categoryId)
       .then((list) => alive && setEntries(list))
       .catch(() => alive && setEntries([]));
     return () => {
       alive = false;
     };
-  }, [categoryId]);
+  }, [categoryId, mode]);
 
-  const category = ITEMS.find((i) => i.id === categoryId)!;
+  useEffect(() => {
+    setSavedPage(page);
+  }, [page, setSavedPage]);
+
+  const category = ITEMS.find((i) => i.id === categoryId) ?? ITEMS[0];
   const groups = OPTION_GROUPS[categoryId] ?? fallbackGroups;
-  const products = useMemo(() => (entries ?? []).slice(0, 8), [entries]);
+  const products = useMemo(() => (entries ?? []).slice(0, MAX_MODELS), [entries]);
 
-  const pages = useMemo<Page[]>(() => {
+  const openCategory = useCallback(
+    (id: string) => {
+      startPageRef.current = 0;
+      setPage(0);
+      setCategoryId(id);
+      setMode("category");
+    },
+    [setCategoryId, setMode],
+  );
+
+  const openHome = useCallback(() => {
+    startPageRef.current = 0;
+    setPage(0);
+    setMode("home");
+  }, [setMode]);
+
+  /* ---------------------------------- HOME ---------------------------------- */
+  const homePages = useMemo<Page[]>(() => {
+    const hero = ITEMS.slice(0, 6);
+    const list: Page[] = [];
+
+    list.push({
+      key: "home-left",
+      render: () => (
+        <div className="relative h-full w-full overflow-hidden">
+          <img
+            src={ITEMS[0].images[0]}
+            alt="Wonderlands World"
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/85" />
+          <div className="relative flex h-full flex-col justify-between p-8 text-white sm:p-10">
+            <div className="flex items-baseline justify-between gap-4">
+              <p className="text-[9px] uppercase tracking-[0.45em] opacity-80">Wonderlands World</p>
+              <p className="text-[9px] uppercase tracking-[0.45em] opacity-60">Edition No. 01</p>
+            </div>
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.4em] opacity-70">The Outdoor Annual</p>
+              <h2 className="mt-4 font-serif text-5xl font-light leading-[0.95] sm:text-7xl">FLIP</h2>
+              <div className="mt-6 h-px w-20 bg-current opacity-50" />
+              <p className="mt-6 max-w-sm text-[12px] leading-relaxed opacity-85">
+                Water, stone, shelter and verdure — one house, one composition. Every discipline drawn, priced and
+                installed turnkey at your address.
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-4 border-t border-white/25 pt-4">
+              {[
+                ["14", "Disciplines"],
+                ["Turnkey", "Installation"],
+                ["Florida", "Engineered"],
+              ].map(([a, b]) => (
+                <div key={b}>
+                  <p className="font-serif text-2xl font-light leading-none">{a}</p>
+                  <p className="mt-1 text-[8px] uppercase tracking-[0.3em] opacity-70">{b}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ),
+    });
+
+    list.push({
+      key: "home-right",
+      render: () => (
+        <div className="flex h-full w-full flex-col p-8 sm:p-10">
+          <div className="flex items-baseline justify-between gap-3">
+            <Eyebrow>The Collection</Eyebrow>
+            <Eyebrow className="hidden sm:block">Index</Eyebrow>
+          </div>
+          <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">All Categories</h3>
+
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            {hero.map((it) => (
+              <button
+                key={it.id}
+                onClick={() => openCategory(it.id)}
+                className="group relative aspect-[4/5] overflow-hidden"
+              >
+                <img
+                  src={it.images[0]}
+                  alt={it.label}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent" />
+                <span className="absolute inset-x-2 bottom-2 text-left text-[8px] uppercase tracking-[0.25em] text-white">
+                  {it.label}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <ul className="mt-5 min-h-0 flex-1 overflow-hidden">
+            {ITEMS.map((it, i) => (
+              <li key={it.id}>
+                <button
+                  onClick={() => openCategory(it.id)}
+                  className="flex w-full items-baseline justify-between gap-4 border-t border-border/50 py-[7px] text-left transition-colors hover:text-foreground"
+                >
+                  <span className="truncate text-[11px] uppercase tracking-[0.2em] text-foreground">
+                    {String(i + 1).padStart(2, "0")} — {it.label}
+                  </span>
+                  <span className="shrink-0 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+                    {it.tagline}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+            Turn the page to travel the disciplines
+          </p>
+        </div>
+      ),
+    });
+
+    ITEMS.forEach((it, i) => {
+      list.push({
+        key: `home-cat-${it.id}`,
+        render: () => (
+          <div className="flex h-full w-full flex-col p-7 sm:p-9">
+            <div className="flex items-baseline justify-between gap-3">
+              <Eyebrow>
+                {String(i + 1).padStart(2, "0")} — {it.tagline}
+              </Eyebrow>
+              <Eyebrow className="hidden sm:block">Wonderlands World</Eyebrow>
+            </div>
+            <div className="relative mt-3 min-h-0 flex-1 overflow-hidden">
+              <img
+                src={it.images[0]}
+                alt={it.label}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
+            </div>
+            <h3 className="mt-4 font-serif text-3xl font-light leading-tight sm:text-4xl">{it.label}</h3>
+            <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">{it.description}</p>
+            <ul className="mt-3 space-y-1.5">
+              {it.notes.map((n) => (
+                <li
+                  key={n}
+                  className="flex items-start gap-2 border-t border-border/50 pt-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+                >
+                  <span className="mt-[5px] h-px w-3 shrink-0 bg-foreground/40" />
+                  {n}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => openCategory(it.id)}
+              className="mt-4 inline-flex w-full items-center justify-between border border-foreground bg-foreground px-4 py-2.5 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
+            >
+              Open the {it.label} edition
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ),
+      });
+    });
+
+    if (list.length % 2 !== 0) {
+      list.push({
+        key: "home-colophon",
+        render: () => (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-10 text-center">
+            <Eyebrow>Colophon</Eyebrow>
+            <p className="font-serif text-2xl font-light">Wonderlands World</p>
+            <p className="max-w-xs text-[11px] leading-relaxed text-muted-foreground">
+              One outdoor world — water, stone, shelter, verdure. Delivered turnkey.
+            </p>
+          </div>
+        ),
+      });
+    }
+    return list;
+  }, [openCategory]);
+
+  /* -------------------------------- CATEGORY -------------------------------- */
+  const { pages: categoryPages, anchors } = useMemo<{ pages: Page[]; anchors: Anchors }>(() => {
     const list: Page[] = [];
 
     list.push({
@@ -194,26 +392,30 @@ const FlipMagazine: React.FC = () => {
         <div className="flex h-full w-full flex-col p-8 sm:p-10">
           <Eyebrow>Contents</Eyebrow>
           <h3 className="mt-2 font-serif text-3xl font-light leading-tight">{category.label}</h3>
-          <ul className="mt-6 min-h-0 flex-1 overflow-hidden">
+          <ul className="mt-5 min-h-0 flex-1 overflow-hidden">
             {products.map((p, i) => (
-              <li
-                key={p.id}
-                className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
-              >
-                <span className="truncate text-foreground">
-                  {String(i + 1).padStart(2, "0")} — {p.name}
-                </span>
-                <span className="shrink-0">{formatEntryPrice(p)}</span>
+              <li key={p.id}>
+                <button
+                  onClick={() => bookRef.current?.pageFlip()?.turnToPage(2 + i * 2)}
+                  className="flex w-full items-baseline justify-between gap-4 border-t border-border/50 py-[7px] text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
+                >
+                  <span className="truncate text-foreground">
+                    {String(i + 1).padStart(2, "0")} — {p.name}
+                  </span>
+                  <span className="shrink-0">{formatEntryPrice(p)}</span>
+                </button>
               </li>
             ))}
             {!products.length && <li className="pt-6 text-[11px] text-muted-foreground">Composing pages…</li>}
           </ul>
-          <p className="mt-6 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-            Each model is followed by its option chapters
+          <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+            {products.length} models · option chapters follow the collection
           </p>
         </div>
       ),
     });
+
+    const galleryAt = list.length;
 
     products.forEach((p, idx) => {
       const number = String(idx + 1).padStart(2, "0");
@@ -245,9 +447,7 @@ const FlipMagazine: React.FC = () => {
         key: `${p.id}-spec`,
         render: () => (
           <div className="flex h-full w-full flex-col p-8 sm:p-10">
-            <Eyebrow>
-              {number} — Specification
-            </Eyebrow>
+            <Eyebrow>{number} — Specification</Eyebrow>
             <h3 className="mt-2 font-serif text-3xl font-light leading-tight">{p.name}</h3>
             <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4">
               <div>
@@ -271,46 +471,93 @@ const FlipMagazine: React.FC = () => {
               ))}
             </ul>
             <p className="mt-auto border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
-              Price includes installation at your home address. The following pages carry each option chapter for this
-              model.
+              Price includes installation at your home address.
             </p>
           </div>
         ),
       });
+    });
 
-      groups.forEach((g, gi) => {
-        list.push({
-          key: `${p.id}-opt-${gi}`,
-          render: () => (
-            <div className="flex h-full w-full flex-col p-8 sm:p-10">
-              <div className="flex items-baseline justify-between gap-3">
-                <Eyebrow>
-                  {number}.{gi + 1} — Option
-                </Eyebrow>
-                <Eyebrow className="hidden sm:block">{p.name}</Eyebrow>
-              </div>
-              <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">{g.title}</h3>
-              <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{g.note}</p>
-              <ul className="mt-6 min-h-0 flex-1">
-                {g.options.map((o, oi) => (
-                  <li
-                    key={o}
-                    className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2.5 text-[12px] text-foreground"
-                  >
-                    <span>{o}</span>
-                    <span className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                      {String(oi + 1).padStart(2, "0")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                Selected in the studio — configured, priced, installed
-              </p>
+    const featuresAt = list.length;
+
+    groups.forEach((g, gi) => {
+      list.push({
+        key: `opt-${gi}`,
+        render: () => (
+          <div className="flex h-full w-full flex-col p-8 sm:p-10">
+            <div className="flex items-baseline justify-between gap-3">
+              <Eyebrow>Chapter {String(gi + 1).padStart(2, "0")} — Options</Eyebrow>
+              <Eyebrow className="hidden sm:block">{category.label}</Eyebrow>
             </div>
-          ),
-        });
+            <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">{g.title}</h3>
+            <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{g.note}</p>
+            <ul className="mt-6 min-h-0 flex-1">
+              {g.options.map((o, oi) => (
+                <li
+                  key={o}
+                  className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2.5 text-[12px] text-foreground"
+                >
+                  <span>{o}</span>
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                    {String(oi + 1).padStart(2, "0")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+              Selected in the studio — configured, priced, installed
+            </p>
+          </div>
+        ),
       });
+    });
+
+    const estimateAt = list.length;
+
+    list.push({
+      key: "estimate",
+      render: () => (
+        <div className="flex h-full w-full flex-col p-8 sm:p-10">
+          <Eyebrow>Estimate</Eyebrow>
+          <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">
+            Your {category.label} figure
+          </h3>
+          <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
+            Draw the property, choose the model and the option chapters, and the studio returns a complete turnkey
+            figure — permit drawings, installation and warranty included.
+          </p>
+          <div className="mt-6 grid gap-2">
+            {[
+              ["From", products.length ? formatEntryPrice(products[0]) || "On request" : "On request"],
+              ["Models in edition", String(products.length)],
+              ["Option chapters", String(groups.length)],
+            ].map(([k, v]) => (
+              <div key={k} className="flex items-baseline justify-between border-t border-border/50 pt-2">
+                <span className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">{k}</span>
+                <span className="font-serif text-xl font-light">{v}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-auto grid gap-2">
+            <a
+              href="/studio"
+              className="inline-flex items-center justify-between border border-foreground bg-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
+            >
+              Open the studio
+              <ChevronRight className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href="https://calendly.com/wonderlandsworlds/30min"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-between border border-border px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+            >
+              Book a consultation
+              <ChevronRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+        </div>
+      ),
     });
 
     list.push({
@@ -322,13 +569,18 @@ const FlipMagazine: React.FC = () => {
           <p className="font-serif text-3xl font-light leading-snug">{category.label}</p>
           <div className="h-px w-12 bg-current opacity-40" />
           <p className="max-w-xs text-[11px] leading-relaxed opacity-70">
-            Turn back for another discipline, or open the full collection to configure yours.
+            Return to the index for another discipline, or open the studio to configure yours.
           </p>
+          <button
+            onClick={openHome}
+            className="mt-2 border border-current px-4 py-2 text-[9px] uppercase tracking-[0.3em]"
+          >
+            Back to the index
+          </button>
         </div>
       ),
     });
 
-    // react-pageflip needs an even leaf count for clean spreads
     if (list.length % 2 !== 0) {
       list.splice(list.length - 1, 0, {
         key: "colophon",
@@ -337,18 +589,24 @@ const FlipMagazine: React.FC = () => {
             <Eyebrow>Colophon</Eyebrow>
             <p className="font-serif text-2xl font-light">Wonderlands World</p>
             <p className="max-w-xs text-[11px] leading-relaxed text-muted-foreground">
-              One outdoor world — water, stone, shelter, verdure. Delivered turnkey.
+              {category.tagline} — drawn, priced and installed turnkey.
             </p>
           </div>
         ),
       });
     }
 
-    return list;
-  }, [category, products, groups]);
+    return {
+      pages: list,
+      anchors: { index: 1, gallery: galleryAt, code: galleryAt + 1, features: featuresAt, estimate: estimateAt },
+    };
+  }, [category, products, groups, openHome]);
+
+  const pages = mode === "home" ? homePages : categoryPages;
 
   const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
+  const goTo = useCallback((n: number) => bookRef.current?.pageFlip()?.turnToPage(n), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -361,19 +619,36 @@ const FlipMagazine: React.FC = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [flipPrev, flipNext]);
 
+  const rail: { id: keyof Anchors | "home"; label: string; icon: React.ElementType }[] = [
+    { id: "index", label: "Index", icon: LayoutList },
+    { id: "features", label: "Features", icon: Sparkles },
+    { id: "code", label: "Code", icon: Ruler },
+    { id: "gallery", label: "Gallery", icon: Images },
+    { id: "estimate", label: "Estimate", icon: Calculator },
+  ];
+
+  const loading = mode === "category" && !entries;
+
   return (
     <section aria-label="FLIP Magazine edition" className="relative bg-background">
       <div className="flex flex-wrap items-baseline justify-between gap-3 px-6 py-5 md:px-10">
         <div className="flex items-baseline gap-3">
-          <p className="font-serif text-xl font-light leading-none tracking-tight text-foreground">FLIP</p>
+          <button
+            onClick={openHome}
+            className="font-serif text-xl font-light leading-none tracking-tight text-foreground"
+          >
+            FLIP
+          </button>
           <span className="hidden h-px w-8 bg-foreground/30 sm:block" />
-          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Magazine Edition</p>
+          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+            {mode === "home" ? "The Outdoor Annual" : category.label}
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <p className="hidden text-[10px] uppercase tracking-[0.4em] text-muted-foreground md:block">
             {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
               onClick={flipPrev}
               aria-label="Previous page"
@@ -396,12 +671,22 @@ const FlipMagazine: React.FC = () => {
         aria-label="Magazine editions"
         className="flex gap-x-5 gap-y-2 overflow-x-auto border-y border-border/50 px-6 py-3 md:flex-wrap md:justify-center md:overflow-visible md:px-10"
       >
+        <button
+          onClick={openHome}
+          className={`shrink-0 whitespace-nowrap border-b pb-0.5 text-[9px] uppercase tracking-[0.28em] transition-colors ${
+            mode === "home"
+              ? "border-foreground text-foreground"
+              : "border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+          }`}
+        >
+          Index
+        </button>
         {ITEMS.map((item) => (
           <button
             key={item.id}
-            onClick={() => setCategoryId(item.id)}
+            onClick={() => openCategory(item.id)}
             className={`shrink-0 whitespace-nowrap border-b pb-0.5 text-[9px] uppercase tracking-[0.28em] transition-colors ${
-              categoryId === item.id
+              mode === "category" && categoryId === item.id
                 ? "border-foreground text-foreground"
                 : "border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground"
             }`}
@@ -411,9 +696,36 @@ const FlipMagazine: React.FC = () => {
         ))}
       </nav>
 
-      <div className="px-2 py-8 md:px-6 md:py-12">
+      <div className="relative px-2 py-8 md:px-6 md:py-12">
+        {mode === "category" && (
+          <div className="pointer-events-none absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 md:block">
+            <div className="pointer-events-auto flex flex-col gap-1 rounded-full border border-border/50 bg-background/50 p-2 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]">
+              {rail.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => goTo(anchors[id as keyof Anchors])}
+                  title={label}
+                  aria-label={label}
+                  className="group flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+                >
+                  <Icon className="h-[15px] w-[15px]" />
+                </button>
+              ))}
+              <span className="mx-auto my-1 h-px w-4 bg-border" />
+              <button
+                onClick={openHome}
+                title="Back to the index"
+                aria-label="Back to the index"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronLeft className="h-[15px] w-[15px]" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mx-auto flex justify-center" style={{ perspective: "3000px", minHeight: dims.h }}>
-          {!entries ? (
+          {loading ? (
             <div
               className="flex items-center justify-center border border-border/60"
               style={{ width: portrait ? dims.w : dims.w * 2, height: dims.h }}
@@ -422,7 +734,7 @@ const FlipMagazine: React.FC = () => {
             </div>
           ) : (
             <HTMLFlipBook
-              key={`${categoryId}-${pages.length}-${dims.w}`}
+              key={`${mode}-${categoryId}-${pages.length}-${dims.w}`}
               ref={bookRef}
               width={dims.w}
               height={dims.h}
@@ -431,13 +743,13 @@ const FlipMagazine: React.FC = () => {
               maxWidth={1400}
               minHeight={340}
               maxHeight={1400}
-              showCover
+              showCover={false}
               usePortrait={portrait}
               mobileScrollSupport
               drawShadow
               flippingTime={880}
               maxShadowOpacity={0.5}
-              startPage={0}
+              startPage={Math.min(startPageRef.current, Math.max(pages.length - 1, 0))}
               startZIndex={0}
               autoSize={false}
               clickEventForward={false}
@@ -458,7 +770,9 @@ const FlipMagazine: React.FC = () => {
           )}
         </div>
         <p className="mt-8 text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-          Every model is a spread — every option chapter its own page
+          {mode === "home"
+            ? "One page per discipline — open any edition to see every model"
+            : "Every model is a spread — every option chapter its own page"}
         </p>
       </div>
     </section>
