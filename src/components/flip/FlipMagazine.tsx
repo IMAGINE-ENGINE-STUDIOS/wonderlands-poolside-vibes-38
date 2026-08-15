@@ -1009,14 +1009,23 @@ const FlipMagazine: React.FC = () => {
             </>
           )}
         </nav>
-        {dossier && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={closeDossier}
-            className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+            onClick={openBoard}
+            title={`Editor Board — ${boardMeta.name}`}
+            className="inline-flex items-center gap-2 border border-primary/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
           >
-            <ChevronLeft className="h-3.5 w-3.5" /> Back to {category.label}
+            <PenTool className="h-3.5 w-3.5" /> Editor Board
           </button>
-        )}
+          {dossier && (
+            <button
+              onClick={closeDossier}
+              className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" /> Back to {category.label}
+            </button>
+          )}
+        </div>
       </div>
 
 
