@@ -57,6 +57,8 @@ interface Props {
   /** PNG data-URL of the drawn footprint, or null when nothing is drawn */
   onSnapshot?: (dataUrl: string | null) => void;
   frameColorHex?: string;
+  /** Title block rendered inside the board toolbar card */
+  header?: React.ReactNode;
 }
 
 const PX_PER_FT = 10;
@@ -208,7 +210,7 @@ export function addDoorToLongestWall(layout: EnclosureLayout, doorTypeId: string
 }
 
 /** Top-view enclosure footprint board. Same drafting conventions as the 2D pool studio: 10px = 1 ft. */
-const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameColorHex }: Props) => {
+const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameColorHex, header }: Props) => {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const wrapRef = React.useRef<HTMLDivElement | null>(null);
   const [mode, setMode] = React.useState<'draw' | 'select' | 'door' | 'house'>('draw');
@@ -811,7 +813,9 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2 rounded-xl glass-tile p-2">
+      <div className="rounded-xl glass-tile p-2">
+      {header && <div className="px-1 pt-1 pb-3">{header}</div>}
+      <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} onClick={() => { setMode('draw'); setSelection(null); }}>
           <Ruler className="h-3.5 w-3.5 mr-1" /> Draw footprint
         </Button>
@@ -843,6 +847,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           </>
         )}
         <BoardDensityToggle compact={compact} onToggle={toggleDensity} className="ml-auto" />
+      </div>
       </div>
 
       {/* Glass door carousel — pick a model, then click a wall to drop it in */}

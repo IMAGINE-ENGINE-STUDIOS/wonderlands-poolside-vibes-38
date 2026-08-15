@@ -159,6 +159,8 @@ interface Props {
   height?: number;
   /** Opens the import dialog from the board toolbar */
   onRequestImport?: () => void;
+  /** Title block rendered inside the board toolbar */
+  header?: React.ReactNode;
 }
 
 /**
@@ -168,7 +170,7 @@ interface Props {
  * grid as a calibratable underlay so an existing blueprint can be traced and
  * then edited like native geometry.
  */
-export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport }) => {
+export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const imgRef = React.useRef<HTMLImageElement | null>(null);
   const [imgReady, setImgReady] = React.useState(0);
@@ -615,6 +617,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     <div className="space-y-3">
       {!readOnly && (
         <div className="space-y-2">
+          {header && (
+            <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex flex-wrap gap-1.5">
               {SITE_LAYERS.map(l => (

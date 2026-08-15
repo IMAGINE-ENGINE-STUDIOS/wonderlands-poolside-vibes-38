@@ -170,6 +170,16 @@ const GrassConfigurator: React.FC<Props> = ({ initialGrassName, onTotalChange })
                 onSnapshot={setSnapshot}
                 activeGrassId={activeGrassId}
                 onActiveGrassChange={setActiveGrassId}
+                header={
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Leaf className="h-4 w-4 text-primary" /> Turf Design Board
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Draw every turf area — any size, straight or curved — and the plan quotes itself.
+                    </p>
+                  </div>
+                }
               />
               {takeoff.areas.length > 0 && (
                 <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
