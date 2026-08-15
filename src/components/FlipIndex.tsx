@@ -360,7 +360,9 @@ const FlipIndex: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 588 });
+  const [consoleId, setConsoleId] = useState<string | null>(null);
   const syncingRef = useRef(false);
+
 
   useEffect(() => {
     const measure = () => {
