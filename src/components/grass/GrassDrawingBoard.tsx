@@ -284,6 +284,8 @@ const GrassDrawingBoard: React.FC<Props> = ({
   onSnapshot,
   activeGrassId,
   onActiveGrassChange,
+  header,
+
 }) => {
   const wrapRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
