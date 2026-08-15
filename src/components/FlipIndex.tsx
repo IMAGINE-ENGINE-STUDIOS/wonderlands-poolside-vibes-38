@@ -208,14 +208,15 @@ const ExploreButton: React.FC<{ item: Item }> = ({ item }) => (
     href={`/#${item.id}`}
     onClick={(e) => {
       e.preventDefault();
-      goToSection(item.id);
+      window.dispatchEvent(new CustomEvent("flip:open-console", { detail: item.id }));
     }}
     className="group/btn mt-auto inline-flex w-full items-center justify-between border border-foreground bg-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
   >
-    Explore {item.label}
+    Open {item.label}
     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
   </a>
 );
+
 
 
 const Frame: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "" }) => (
