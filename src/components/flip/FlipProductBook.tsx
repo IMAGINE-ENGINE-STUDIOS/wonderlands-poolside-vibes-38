@@ -376,41 +376,59 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups: editorialGr
       ),
     });
 
-    /* option chapters — one illustrated page each */
+    /* option chapters — one illustrated page each, long lists continue on facing pages */
+    const PER_PAGE = 9;
     groups.forEach((g, i) => {
-      list.push({
-        key: `group-${g.title}`,
-        render: () => (
-          <div className="flex h-full w-full flex-col p-7 sm:p-9">
-            <Eyebrow>{String(i + 3).padStart(2, "0")} — {g.title}</Eyebrow>
-            <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{g.note}</h3>
-            <div className="relative mt-4 h-[26%] overflow-hidden">
-              <img
-                src={plateAt(i + 1)}
-                alt={`${g.title} — ${category.label}`}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-              <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
-                {g.title} — {entry.name}
+      const chunks: string[][] = [];
+      for (let c = 0; c < g.options.length; c += PER_PAGE) chunks.push(g.options.slice(c, c + PER_PAGE));
+      chunks.forEach((chunk, ci) => {
+        list.push({
+          key: `group-${g.title}-${ci}`,
+          render: () => (
+            <div className="flex h-full w-full flex-col p-7 sm:p-9">
+              <Eyebrow>
+                {String(i + 3).padStart(2, "0")} — {g.title}
+                {chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ""}
+              </Eyebrow>
+              {ci === 0 ? (
+                <>
+                  <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{g.note}</h3>
+                  <div className="relative mt-4 h-[26%] overflow-hidden">
+                    <img
+                      src={plateAt(i + 1)}
+                      alt={`${g.title} — ${category.label}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+                    <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
+                      {g.title} — {entry.name}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <h3 className="mt-2 font-serif text-xl font-light leading-tight text-muted-foreground">
+                  {g.title} — continued
+                </h3>
+              )}
+              <ul className="mt-4 min-h-0 flex-1 space-y-0 overflow-hidden">
+                {chunk.map((o, oi) => (
+                  <li key={o} className="flex items-baseline gap-3 border-t border-border/50 py-2">
+                    <span className="font-serif text-xs text-muted-foreground">
+                      {String(ci * PER_PAGE + oi + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-[11px] uppercase tracking-[0.18em]">{o}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+                Selections are confirmed on the survey visit and priced into your estimate — every option above is
+                installed by our own crews.
               </p>
             </div>
-            <ul className="mt-4 min-h-0 flex-1 space-y-0 overflow-hidden">
-              {g.options.map((o, oi) => (
-                <li key={o} className="flex items-baseline gap-3 border-t border-border/50 py-2">
-                  <span className="font-serif text-xs text-muted-foreground">{String(oi + 1).padStart(2, "0")}</span>
-                  <span className="text-[11px] uppercase tracking-[0.18em]">{o}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
-              Selections are confirmed on the survey visit and priced into your estimate — every option above is
-              installed by our own crews.
-            </p>
-          </div>
-        ),
+          ),
+        });
       });
     });
 
