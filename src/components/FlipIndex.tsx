@@ -449,7 +449,7 @@ const FlipIndex: React.FC = () => {
   const closeConsole = useCallback(() => {
     setConsoleId(null);
     const idx = ITEMS.findIndex((i) => i.id === consoleId);
-    if (idx >= 0) window.setTimeout(() => turnTo(idx), 30);
+    if (idx >= 0) window.setTimeout(() => turnTo(idx), 150);
   }, [consoleId, turnTo]);
 
   const totalPages = ITEMS.length + 2;
