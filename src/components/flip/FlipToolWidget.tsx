@@ -292,22 +292,55 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
       <FlipBoardCalculators categoryId={categoryId} />
     ) : null;
 
-  /* while the reader is drawing, the book holds still — no page turns and no
-     drag reaching the flipbook underneath */
-  const lockHandlers =
-    part === "board"
-      ? {
-          onPointerEnter: lockFlip,
-          onPointerLeave: unlockFlip,
-          onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
-          onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
-          onMouseMove: (e: React.MouseEvent) => e.stopPropagation(),
-          onClick: (e: React.MouseEvent) => e.stopPropagation(),
-          onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
-          onTouchMove: (e: React.TouchEvent) => e.stopPropagation(),
-          onTouchEnd: (e: React.TouchEvent) => e.stopPropagation(),
-        }
-      : {};
+  /* every design leaf is interactive, so the flipbook must never receive the
+     pointer: page turning is held and drags/clicks stop at the leaf */
+  const lockHandlers = {
+    onPointerEnter: lockFlip,
+    onPointerLeave: unlockFlip,
+    onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+    onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
+    onMouseMove: (e: React.MouseEvent) => e.stopPropagation(),
+    onClick: (e: React.MouseEvent) => e.stopPropagation(),
+    onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
+    onTouchMove: (e: React.TouchEvent) => e.stopPropagation(),
+    onTouchEnd: (e: React.TouchEvent) => e.stopPropagation(),
+  };
+
+  /**
+   * A drawing spread: the same live board is laid out at twice the page width on
+   * both leaves — the left leaf shows its left half, the right leaf its right
+   * half — so one continuous board runs across the gutter and both halves stay
+   * drawable, sharing one drawing through the board store.
+   */
+  const half = part === "board-left" ? "left" : part === "board-right" ? "right" : null;
+
+  if (half) {
+    return (
+      <div className="relative h-full w-full overflow-hidden" {...lockHandlers}>
+        <div className={`absolute inset-y-0 w-[200%] ${half === "left" ? "left-0" : "-left-full"}`}>
+          <div className="flex h-full w-full flex-col p-3 sm:p-4">
+            <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
+          </div>
+        </div>
+        {/* the gutter shading, so the fold still reads like paper */}
+        <div
+          className={`pointer-events-none absolute inset-y-0 w-10 ${
+            half === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"
+          } from-foreground/10 to-transparent`}
+        />
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf,.dxf,.svg,image/*"
+          className="hidden"
+          onChange={(e) => {
+            void handleUpload(e.target.files?.[0] ?? null);
+            e.target.value = "";
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col" {...lockHandlers}>
