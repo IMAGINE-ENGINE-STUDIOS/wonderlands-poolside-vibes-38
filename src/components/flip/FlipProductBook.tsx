@@ -910,6 +910,12 @@ export const useProductBookPages = ({
       ),
     });
 
+    /* the one pager — our written message to the client */
+    list.push({
+      key: "letter",
+      render: () => <FlipCustomerLetter categoryLabel={category.label} modelName={entry.name} />,
+    });
+
     /* design tool — a full spread: the live board runs across both pages */
     if (!portrait && list.length % 2 !== 0) {
       /* keep the board opening on a left-hand page so the spread reads as one */
