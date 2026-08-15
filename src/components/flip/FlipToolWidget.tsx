@@ -278,36 +278,43 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
   );
 
   /* the facing leaves of the spread — tools, live cost, calculators */
-  if (part === "tools")
-    return (
+  const panel =
+    part === "tools" ? (
       <FlipBoardTools
         categoryId={categoryId}
         onEnlarge={() => setFull(true)}
         onUpload={() => fileRef.current?.click()}
         onExpand={onExpand}
       />
-    );
-  if (part === "cost") return <FlipBoardCost categoryId={categoryId} />;
-  if (part === "options") return <FlipBoardCalculators categoryId={categoryId} />;
+    ) : part === "cost" ? (
+      <FlipBoardCost categoryId={categoryId} />
+    ) : part === "options" ? (
+      <FlipBoardCalculators categoryId={categoryId} />
+    ) : null;
+
+  /* while the reader is drawing, the book holds still — no page turns and no
+     drag reaching the flipbook underneath */
+  const lockHandlers =
+    part === "board"
+      ? {
+          onPointerEnter: lockFlip,
+          onPointerLeave: unlockFlip,
+          onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+          onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
+          onMouseMove: (e: React.MouseEvent) => e.stopPropagation(),
+          onClick: (e: React.MouseEvent) => e.stopPropagation(),
+          onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
+          onTouchMove: (e: React.TouchEvent) => e.stopPropagation(),
+          onTouchEnd: (e: React.TouchEvent) => e.stopPropagation(),
+        }
+      : {};
 
   return (
-    <div
-      className="flex min-h-0 flex-1 flex-col"
-      /* while the reader is drawing, the book holds still — no page turns and no
-         drag reaching the flipbook underneath */
-      onPointerEnter={lockFlip}
-      onPointerLeave={unlockFlip}
-      onMouseDown={(e) => e.stopPropagation()}
-      onMouseUp={(e) => e.stopPropagation()}
-      onMouseMove={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchMove={(e) => e.stopPropagation()}
-      onTouchEnd={(e) => e.stopPropagation()}
-    >
+    <div className="flex min-h-0 flex-1 flex-col" {...lockHandlers}>
       <div className="min-h-0 flex-1 overflow-auto">
-        <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
+        {panel ?? <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>}
       </div>
+
 
 
       <input
