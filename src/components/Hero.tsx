@@ -2,7 +2,7 @@ import * as React from "react";
 const { useState } = React;
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AdvancedSearch from "./AdvancedSearch";
-import HeroCategoryMarquee from "./HeroCategoryMarquee";
+import FlipIndex from "./FlipIndex";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
 import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
 
@@ -42,7 +42,7 @@ const Hero = () => {
     </section>
 
     {/* Editorial category index banner */}
-    <HeroCategoryMarquee />
+    <FlipIndex />
 
     <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} />
     </>;
