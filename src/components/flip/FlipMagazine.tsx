@@ -1052,6 +1052,22 @@ const FlipMagazine: React.FC = () => {
       </div>
 
       <FlipCart />
+
+      {dossier && (
+        <FlipProductBook
+          entry={dossier}
+          category={{
+            id: category.id,
+            label: category.label,
+            tagline: category.tagline,
+            description: category.description,
+            notes: category.notes,
+            images: category.images,
+          }}
+          groups={groups}
+          onClose={() => setDossier(null)}
+        />
+      )}
     </section>
   );
 };
