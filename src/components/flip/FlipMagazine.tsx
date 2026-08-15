@@ -973,10 +973,10 @@ const FlipMagazine: React.FC = () => {
 
   // Fade the new edition back in once its pages are composed.
   useEffect(() => {
-    if (loading || !fading) return;
+    if (loading || !fading || boardOpen) return;
     const t = window.setTimeout(() => setFading(false), 40);
     return () => window.clearTimeout(t);
-  }, [loading, fading, mode, categoryId, pages.length]);
+  }, [loading, fading, boardOpen, mode, categoryId, pages.length]);
 
 
   return (
