@@ -853,7 +853,7 @@ const FlipMagazine: React.FC = () => {
       anchors: { index: 1, gallery: galleryAt, code: galleryAt + 1, features: featuresAt, estimate: estimateAt },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, products, groups, openHome, cartItems, addEntry, inCart]);
+  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart]);
 
   const pages = mode === "home" ? homePages : categoryPages;
 
@@ -1028,6 +1028,8 @@ const FlipMagazine: React.FC = () => {
           </p>
         </div>
       </div>
+
+      <FlipCart />
     </section>
   );
 };
