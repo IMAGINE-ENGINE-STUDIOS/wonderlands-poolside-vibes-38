@@ -250,6 +250,18 @@ const FlipMagazine: React.FC = () => {
     </button>
   );
 
+  /** Product title that opens the model's own book in place — no screen change. */
+  const ProductTitle: React.FC<{ entry: ConsoleEntry; className?: string }> = ({ entry, className = "" }) => (
+    <button
+      onClick={() => setDossier(entry)}
+      title={`Open the ${entry.name} book`}
+      className={`block w-full text-left ${className}`}
+    >
+      <span className="border-b border-current/30 pb-0.5 transition-colors hover:border-current">{entry.name}</span>
+    </button>
+  );
+
+
 
   /* ---------------------------------- HOME ---------------------------------- */
   const homePages = useMemo<Page[]>(() => {
