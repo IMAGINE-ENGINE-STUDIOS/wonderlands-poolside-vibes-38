@@ -59,9 +59,105 @@ const BRAND_NOTES: Record<string, string> = {
   Wonderlands: "Wonderlands World builds, sets and warranties the installation in-house — one contract from survey through the final water test.",
 };
 
+/** Editorial copy per discipline — the written body of every dossier. */
+const STORIES: Record<string, { lede: string; body: string; craft: string; care: string }> = {
+  pools: {
+    lede: "A shell is a single piece of engineered composite — no seams, no joints, nothing to fail in twenty years of Florida sun.",
+    body: "The vessel arrives finished. Hand-laid layers of chopped and woven glass are bonded over a vinyl-ester barrier coat, then faced with a colour-stable gelcoat that carries the light of the water rather than absorbing it. Because the shape is moulded rather than built on site, the curves of the bench, the radius of the steps and the transition into the deep end are identical to the drawing you approve.",
+    craft: "Set on a compacted, laser-levelled base with a plumbed and vacuum-tested pit, backfilled in lifts as the water rises so the shell is supported evenly on every face.",
+    care: "Non-porous surface — no acid washing, no resurfacing cycle, and a chemical demand materially lower than plaster.",
+  },
+  spas: {
+    lede: "A warm room at the water's edge, engineered to hold temperature while the pool stays cool.",
+    body: "The spa is isolated hydraulically from the pool so it can be heated and jetted on its own circuit, then spilled over a weir wall when you want the sound of moving water. Jet placement is set around the seated body — lumbar, calf, and neck — and every port is fed by a dedicated manifold so pressure stays even across the bench.",
+    craft: "Raised bond beam or flush to deck, tiled at the waterline and finished to match the pool shell.",
+    care: "Insulated cover retains heat between sessions; automation warms the vessel before you arrive.",
+  },
+  saunas: {
+    lede: "Dry heat in solid timber — a cabin that smells of cedar the moment the door closes.",
+    body: "Staves are milled from North American cedar or thermally treated spruce, kiln-stabilised so they hold their profile through humidity swings. Benches are through-bolted to the frame rather than nailed, and every board is left unfinished inside: no sealer, no varnish, nothing to release under heat. Convection carries the heat from the stone basket up over the upper bench and back down along the wall.",
+    craft: "Pre-cut and pre-fitted, set on a paver or concrete pad with the electrical run terminated and tested on delivery day.",
+    care: "Sweep, air out, and oil the exterior every other season. The interior is meant to silver with age.",
+  },
+  pavers: {
+    lede: "The frame around the picture — the surface you actually stand on, laid to stay true.",
+    body: "Pattern is chosen for the size of the space: ashlar and French pattern quiet a large field, herringbone tightens a driveway, running bond draws the eye down a walk. Units are set on a compacted limerock base over a screeded bedding course, then locked with polymeric sand so joints resist wash-out and weed intrusion.",
+    craft: "Perimeter restrained with a soldier course or hidden edge; drainage falls set away from the house before a single unit is laid.",
+    care: "Rinse seasonally, re-sand joints as needed, and lift and reset individual units instead of cutting a slab.",
+  },
+  "artificial-grass": {
+    lede: "Permanently green, drainable, and cool enough to walk on barefoot.",
+    body: "Blades are extruded in multiple tones with a thatch layer beneath, so the lawn reads as grass rather than carpet from every angle. A perforated backing sits over a compacted, free-draining base — water leaves the surface as fast as it arrives, which matters in a summer storm season.",
+    craft: "Seams are glued and sand-infilled, then brushed against the nap so joins disappear. Perimeters are nailed or tucked to a paver edge.",
+    care: "Cross-brush twice a year and rinse. No mowing, no irrigation, no fertiliser.",
+  },
+  landscaping: {
+    lede: "Mass, height and shadow — the planting that makes the hardscape look inevitable.",
+    body: "Specimen palms and shade trees establish the ceiling; hedging sets the walls; beds of ornamental grasses and flowering shrubs carry seasonal movement at eye level. Species are selected for Florida heat, salt drift and the actual light your property receives, not for a catalogue photograph.",
+    craft: "Drip lines and spray zones are run before mulch, on a smart controller that adjusts to rainfall.",
+    care: "Seasonal prune and mulch top-up. Established beds need a fraction of the water of turf.",
+  },
+  "screen-enclosures": {
+    lede: "Open air without the insects — engineered to Florida wind load and signed by an engineer.",
+    body: "Extruded aluminium uprights are anchored into the deck and tied through a beam, with the roof profile chosen for span and shade: mansard for a soft line, gable for height, hip to follow a roofline. Screen mesh is specified by what you're keeping out — standard, no-see-um, or pet-resistant.",
+    craft: "Self-latching, self-closing pool door with a kickplate, super gutter tied into the home's drainage.",
+    care: "Rinse the frame, replace panels individually, and expect the powder coat to outlast the screen.",
+  },
+  "patio-fencing": {
+    lede: "Pool-code compliant, corrosion resistant, and quiet against a garden.",
+    body: "Powder-coated aluminium picket runs are set in core-drilled or set-in-concrete posts, raked where the grade falls so the top line stays level to the eye. Heights are specified against pool barrier code, with self-closing, self-latching gates positioned outside a child's reach.",
+    craft: "Panels cut on site to the run; posts plumbed and capped; hardware rated for salt air.",
+    care: "Rinse and inspect latch tension annually. No painting, no rust bleed.",
+  },
+  lanai: {
+    lede: "Covered living — the shaded room that extends the house into the yard.",
+    body: "Projection is drawn from how the space will actually be used: dining, lounging, or an outdoor kitchen. Insulated panel roofs cut radiant heat and quiet the rain; screen panels keep the volume light. Shingles and fascia are matched to the home so the addition reads as original.",
+    craft: "Ledger flashed into the wall, posts on footings, ceiling fans and lighting run before the ceiling closes.",
+    care: "Clean gutters seasonally; the panel system is a maintenance-free surface.",
+  },
+  "driveway-gates": {
+    lede: "The first line of the drawing — arrival, stated once and clearly.",
+    body: "Operation follows the site: swing where there's depth, slide or cantilever where there isn't. Infill sets the character — vertical picket for transparency, horizontal slat for a contemporary line, solid panel for privacy. Automation is specified with a keypad, intercom and safety loop as standard.",
+    craft: "Posts set deep in concrete with conduit pulled before the pour; operators sized to leaf weight.",
+    care: "Grease hinges, test safety reverse, and keep the track clear.",
+  },
+  covers: {
+    lede: "One key turn — safety, heat retention and a cleaner pool.",
+    body: "An automatic cover rides on a recessed or top track, sized precisely to the shell. Solid vinyl blocks light and stops debris entirely; mesh drains through; solar fabric holds heat overnight. Every system is rated to hold weight, which is the point.",
+    craft: "Track set flush at the coping, housing built into the bench or a deck lid.",
+    care: "Rinse the fabric, keep the track free of grit, and expect years of daily cycles.",
+  },
+  "tanning-ledges": {
+    lede: "The threshold between deck and depth — shallow water, full sun.",
+    body: "A graded shelf holds a few inches of water at the entry and deepens toward the bench, warm within minutes of the sun reaching it. Bubblers animate the surface, an umbrella sleeve casts shade where you'd actually sit, and the finish is matched to the shell so the shelf reads as part of the vessel.",
+    craft: "Moulded into the shell or formed with the deck, with the ledge finish and mosaic band chosen together.",
+    care: "Same non-porous surface as the shell — rinse and enjoy.",
+  },
+  finishes: {
+    lede: "Surface and light — the single decision that sets the colour of your water.",
+    body: "Grade determines depth of tone and the way the surface holds reflection: G2 reads softer and more uniform, G3 carries more mineral sparkle, and gelcoat gives a fine crystalline glint reserved for the GlimmerGlass line. Accents — waterline mosaic, step markers, a spa band — are where the eye actually lands.",
+    craft: "Samples are viewed on site, in your light, against your deck material before anything is ordered.",
+    care: "Colour-stable and non-porous; no annual resurfacing schedule.",
+  },
+  liners: {
+    lede: "The inner hue — print, border, and the water it produces.",
+    body: "Prints run from glass mosaic through porcelain and Italian stone to a single solid tone, each changing how light travels through the water. A waterline border defines the edge; a borderless liner reads as one continuous field. Material is welded to the shape of your shell rather than cut on site.",
+    craft: "Measured, welded to pattern, and set with a vacuum draw so every corner is tight.",
+    care: "Maintain water chemistry and the surface stays supple for years.",
+  },
+};
+
+const FALLBACK_STORY = {
+  lede: "Drawn to the property, priced as one contract, and installed turnkey by our own crews.",
+  body: "Every element in this catalogue is specified on a site visit, engineered where code requires it, and set by the same team that quoted it. Nothing is subcontracted away from the drawing you approve.",
+  craft: "Surveyed, permitted, installed and tested in-house.",
+  care: "Warranty registered on completion; one number to call.",
+};
+
 const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
   <p className={`text-[9px] uppercase tracking-[0.35em] text-muted-foreground ${className}`}>{children}</p>
 );
+
 
 const Leaf = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ children }, ref) => (
   <div
@@ -122,6 +218,14 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
   const plates = (category.images ?? []).filter(Boolean);
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
   const price = formatEntryPrice(entry) || "On request";
+  const story = STORIES[category.id] ?? FALLBACK_STORY;
+  /** Every image available to this dossier, model plate first. */
+  const gallery = useMemo(
+    () => Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[],
+    [entry.image, plates],
+  );
+  const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
+
 
   const pages = useMemo(() => {
     const list: { key: string; render: () => React.ReactNode }[] = [];
@@ -145,6 +249,64 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
                 {category.description ?? category.tagline ?? category.label}
               </p>
               <p className="mt-5 font-serif text-2xl font-light">{price}</p>
+            </div>
+          </div>
+        </div>
+      ),
+    });
+
+    /* the written piece — image led, full editorial copy */
+    list.push({
+      key: "story-image",
+      render: () => (
+        <div className="relative h-full w-full overflow-hidden">
+          <img
+            src={plateAt(1)}
+            alt={`${entry.name} in place`}
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+          <div className="relative flex h-full flex-col justify-end p-7 text-white sm:p-9">
+            <p className="text-[9px] uppercase tracking-[0.4em] opacity-75">The piece</p>
+            <p className="mt-3 max-w-sm font-serif text-xl font-light leading-snug sm:text-2xl">{story.lede}</p>
+            <div className="mt-4 h-px w-14 origin-left bg-white/60 animate-rule-draw" />
+          </div>
+        </div>
+      ),
+    });
+
+    list.push({
+      key: "story-text",
+      render: () => (
+        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+          <Eyebrow>On {category.label.toLowerCase()}</Eyebrow>
+          <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
+          <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
+            {story.body}
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {[plateAt(2), plateAt(3)].map((src, i) => (
+              <div key={`${src}-${i}`} className="relative aspect-[4/5] overflow-hidden">
+                <img
+                  src={src}
+                  alt={`${entry.name} detail ${i + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="mt-auto space-y-2 border-t border-border/50 pt-3">
+            <div>
+              <Eyebrow>Installation</Eyebrow>
+              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.craft}</p>
+            </div>
+            <div>
+              <Eyebrow>Living with it</Eyebrow>
+              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.care}</p>
             </div>
           </div>
         </div>
@@ -186,7 +348,7 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
         <div className="flex h-full w-full flex-col p-7 sm:p-9">
           <Eyebrow>02 — Features</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">What is included</h3>
-          <ul className="mt-5 space-y-0">
+          <ul className="mt-4 space-y-0">
             {(category.notes ?? []).concat(["Permit drawings", "Warranty registration"]).map((n) => (
               <li key={n} className="flex items-start gap-3 border-t border-border/50 py-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 <span className="mt-[7px] h-px w-4 shrink-0 bg-foreground/40" />
@@ -194,16 +356,19 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
               </li>
             ))}
           </ul>
-          {plates[0] && (
-            <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
-              <img src={plates[0]} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
-            </div>
-          )}
+          <div className="relative mt-4 min-h-0 flex-1 overflow-hidden">
+            <img src={plateAt(1)} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
+              {entry.name} — as installed
+            </p>
+          </div>
+
         </div>
       ),
     });
 
-    /* option chapters — one page each */
+    /* option chapters — one illustrated page each */
     groups.forEach((g, i) => {
       list.push({
         key: `group-${g.title}`,
@@ -211,7 +376,20 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
           <div className="flex h-full w-full flex-col p-7 sm:p-9">
             <Eyebrow>{String(i + 3).padStart(2, "0")} — {g.title}</Eyebrow>
             <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{g.note}</h3>
-            <ul className="mt-5 space-y-0">
+            <div className="relative mt-4 h-[26%] overflow-hidden">
+              <img
+                src={plateAt(i + 1)}
+                alt={`${g.title} — ${category.label}`}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+              <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
+                {g.title} — {entry.name}
+              </p>
+            </div>
+            <ul className="mt-4 min-h-0 flex-1 space-y-0 overflow-hidden">
               {g.options.map((o, oi) => (
                 <li key={o} className="flex items-baseline gap-3 border-t border-border/50 py-2">
                   <span className="font-serif text-xs text-muted-foreground">{String(oi + 1).padStart(2, "0")}</span>
@@ -219,13 +397,50 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
                 </li>
               ))}
             </ul>
-            <p className="mt-auto text-[10px] leading-relaxed text-muted-foreground">
-              Selections are confirmed on the survey visit and priced into your estimate.
+            <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+              Selections are confirmed on the survey visit and priced into your estimate — every option above is
+              installed by our own crews.
             </p>
           </div>
         ),
       });
     });
+
+    /* plates — a gallery of the discipline */
+    if (gallery.length > 1) {
+      list.push({
+        key: "plates",
+        render: () => (
+          <div className="flex h-full w-full flex-col p-7 sm:p-9">
+            <div className="flex items-baseline justify-between gap-3">
+              <Eyebrow>Plates</Eyebrow>
+              <Eyebrow className="hidden sm:block">{category.label}</Eyebrow>
+            </div>
+            <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Seen in place</h3>
+            <div className="mt-4 grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-2">
+              {[0, 1, 2, 3].map((n) => (
+                <div key={n} className="relative overflow-hidden">
+                  <img
+                    src={plateAt(n)}
+                    alt={`${category.label} plate ${n + 1}`}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
+                  />
+                  <span className="absolute bottom-1 left-2 font-serif text-[10px] text-white/85">
+                    {String(n + 1).padStart(2, "0")}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+              Photographed on completed Wonderlands installations
+            </p>
+          </div>
+        ),
+      });
+    }
+
 
     /* brand note */
     list.push({
@@ -329,7 +544,7 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
     }
 
     return list;
-  }, [entry, category, groups, plates, metaBits, price, tool, brandNote, added, add, navigate, portrait]);
+  }, [entry, category, groups, plates, metaBits, price, tool, brandNote, added, add, navigate, portrait, story, gallery, plateAt]);
 
   const total = pages.length;
 
