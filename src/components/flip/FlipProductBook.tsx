@@ -635,13 +635,21 @@ export const useProductBookPages = ({
               </li>
             ))}
           </ul>
-          <div className="relative mt-4 min-h-0 flex-1 overflow-hidden">
-            <img src={plateAt(1)} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
-              {entry.name} — as installed
-            </p>
-          </div>
+          {plateAt(1) ? (
+            <div className="relative mt-4 min-h-0 flex-1 overflow-hidden">
+              <img src={plateAt(1)} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
+                {entry.name} — as installed
+              </p>
+            </div>
+          ) : (
+            <div className="mt-auto border-t border-border/50 pt-3">
+              <Eyebrow>Installation</Eyebrow>
+              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.craft}</p>
+            </div>
+          )}
+
 
         </div>
       ),
