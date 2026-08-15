@@ -414,27 +414,26 @@ export const useProductBookPages = ({
   const tool = TOOLS[category.id];
   const brandKey = Object.keys(BRAND_NOTES).find((b) => (entry.brand ?? "").toLowerCase().includes(b.toLowerCase()));
   const brandNote = (brandKey && BRAND_NOTES[brandKey]) || BRAND_NOTES.Wonderlands;
-  const plates = (category.images ?? []).filter(Boolean);
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
   const price = formatEntryPrice(entry) || "On request";
   const story = STORIES[category.id] ?? FALLBACK_STORY;
-  /** Product photography for the editorial pages — model plate first, then the
-      discipline's own product imagery. Finish and option swatches are deliberately
-      excluded here: they belong to the feature pages, not the editorial plates. */
-  const gallery = useMemo(() => {
-    const own = resolveProductGallery({
-      categoryId: category.id,
-      name: entry.name,
-      brand: entry.brand,
-      image: entry.image,
-      siblings: category.siblings ?? [],
-    });
-    /* Never borrow another model's photograph: if this product has only one
-       plate, the discipline's own scene imagery is used, and nothing else. */
-    return own.length > 1 ? own : (Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[]);
-  }, [category.id, category.siblings, entry.image, entry.name, entry.brand, plates]);
+  /** Product photography for the editorial pages — strictly this model's own
+      plate plus verified manufacturer scene photography for its brand and
+      discipline. No sibling models, no category imagery, no finish swatches. */
+  const gallery = useMemo(
+    () =>
+      resolveProductGallery({
+        categoryId: category.id,
+        name: entry.name,
+        brand: entry.brand,
+        image: entry.image,
+        siblings: [],
+      }).filter(Boolean),
+    [category.id, entry.image, entry.name, entry.brand],
+  );
 
   const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
+
 
 
 
@@ -695,9 +694,10 @@ export const useProductBookPages = ({
           <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
             {brandNote}
           </p>
-          {plates[1] && (
+          {gallery[1] && (
             <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
-              <img src={plates[1]} alt={`${entry.brand ?? category.label} plate`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+              <img src={gallery[1]} alt={`${entry.brand ?? category.label} plate`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+
             </div>
           )}
         </div>
@@ -825,7 +825,7 @@ export const useProductBookPages = ({
     }
 
     return list;
-  }, [entry, category, groups, plates, metaBits, price, tool, brandNote, added, add, navigate, portrait, story, gallery, plateAt]);
+  }, [entry, category, groups, metaBits, price, tool, brandNote, added, add, navigate, portrait, story, gallery, plateAt]);
 
   return pages;
 };
