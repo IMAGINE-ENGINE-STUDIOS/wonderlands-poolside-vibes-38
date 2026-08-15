@@ -406,6 +406,9 @@ const FlipMagazine: React.FC = () => {
   /* -------------------------------- CATEGORY -------------------------------- */
   const { pages: categoryPages, anchors } = useMemo<{ pages: Page[]; anchors: Anchors }>(() => {
     const list: Page[] = [];
+    const at = { products: 0 };
+    const shots = [...category.images, ...products.slice(0, 8).map((p) => p.image)].filter(Boolean) as string[];
+
 
     list.push({
       key: "cover",
