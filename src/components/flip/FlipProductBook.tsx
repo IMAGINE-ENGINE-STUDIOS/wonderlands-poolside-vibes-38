@@ -319,7 +319,6 @@ const OptionChapter: React.FC<{
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-background/95 p-3 backdrop-blur-xl animate-fade-in sm:p-6">
           <div
             className="relative grid h-full w-full max-h-[94vh] max-w-[1500px] grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] overflow-hidden border border-border/60 bg-background shadow-[0_40px_120px_-40px_hsl(var(--foreground)/0.45)] md:grid-cols-2 md:grid-rows-1"
-            style={{ aspectRatio: "auto" }}
           >
             {/* left leaf — the plate, full page */}
             <div className="relative min-h-0 bg-muted">
