@@ -2,7 +2,7 @@ import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight, Maximize2 } from "lucide-react";
 import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeStudioGroups, type StudioGroup, type StudioOption } from "@/lib/flipStudioFeatures";
@@ -194,6 +194,7 @@ const OptionChapter: React.FC<{
 }> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId, fallbackImage }) => {
   const cart = useOptionalShoppingCart();
   const [active, setActive] = useState<StudioOption | null>(null);
+  const [full, setFull] = useState(false);
   const preview = active ?? chunk.find((o) => o.image) ?? null;
   const plate = preview?.image ?? fallbackImage;
 
