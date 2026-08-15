@@ -1270,9 +1270,9 @@ const FlipMagazine: React.FC = () => {
               startZIndex={0}
               autoSize={false}
               clickEventForward={false}
-              useMouseEvents
+              useMouseEvents={!flipLocked}
               swipeDistance={30}
-              showPageCorners
+              showPageCorners={!flipLocked}
               disableFlipByClick
               style={{}}
               className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"

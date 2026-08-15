@@ -8,6 +8,7 @@ import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeStudioGroups, type StudioGroup, type StudioOption } from "@/lib/flipStudioFeatures";
 import FlipToolWidget from "./FlipToolWidget";
+import { useFlipLocked } from "./flipBoardStore";
 import { pushSpread } from "./FlipSpread";
 
 /**
@@ -1085,6 +1086,9 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
     </div>
   );
 
+  /* while a board is being drawn on, page turning is suspended */
+  const flipLocked = useFlipLocked();
+
   const book = (
     <HTMLFlipBook
       ref={bookRef}
@@ -1104,10 +1108,10 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
       className="flip-dossier"
       style={{}}
       startPage={0}
-      useMouseEvents
+      useMouseEvents={!flipLocked}
       clickEventForward={false}
       swipeDistance={24}
-      showPageCorners
+      showPageCorners={!flipLocked}
       disableFlipByClick={false}
       autoSize={false}
       startZIndex={0}
