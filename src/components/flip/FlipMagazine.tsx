@@ -271,7 +271,7 @@ const FlipMagazine: React.FC = () => {
   /** Product title that opens the model's own book in place — no screen change. */
   const ProductTitle: React.FC<{ entry: ConsoleEntry; className?: string }> = ({ entry, className = "" }) => (
     <button
-      onClick={() => setDossier(entry)}
+      onClick={() => openDossier(entry)}
       title={`Open the ${entry.name} book`}
       className={`block w-full text-left ${className}`}
     >
