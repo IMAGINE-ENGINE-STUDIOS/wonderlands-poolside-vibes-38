@@ -944,6 +944,14 @@ const FlipMagazine: React.FC = () => {
 
   const loading = mode === "category" && !entries;
 
+  // Fade the new edition back in once its pages are composed.
+  useEffect(() => {
+    if (loading || !fading) return;
+    const t = window.setTimeout(() => setFading(false), 40);
+    return () => window.clearTimeout(t);
+  }, [loading, fading, mode, categoryId, pages.length]);
+
+
   return (
     <section aria-label="FLIP Magazine edition" className="relative bg-background">
       <div className="flex flex-wrap items-baseline justify-between gap-3 px-6 py-5 md:px-10">
