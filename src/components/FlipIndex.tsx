@@ -9,6 +9,8 @@ import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
 import spaBanner from "@/assets/banners/spa-banner.webp";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.webp";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
 import paversBanner from "@/assets/banners/pavers-banner.webp";
 import coversBanner from "@/assets/banners/covers-banner.webp";
 import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.webp";
@@ -82,7 +84,7 @@ export const ITEMS: Item[] = [
     label: "Screen Enclosures",
     tagline: "Open Air, Refined",
     layout: "duo",
-    images: [screenEnclosureBanner, patioFencingBanner],
+    images: [screenEnclosureBanner, screenEnclosurePremium, screenEnclosureDeluxe],
     description:
       "Aluminum superstructures engineered to Florida wind load, with self-latching doors and mansard or gable profiles. Drawn to code, priced to the panel.",
     notes: ["Florida wind-load engineered", "Self-latching pool doors", "Mansard & gable profiles"],
