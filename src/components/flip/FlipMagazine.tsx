@@ -1130,24 +1130,9 @@ const FlipMagazine: React.FC = () => {
           className={`mx-auto flex justify-center transition-opacity duration-300 ease-out ${
             fading || loading ? "opacity-0" : "opacity-100"
           }`}
-          style={{ perspective: dossier ? undefined : "3000px", minHeight: dims.h }}
+          style={{ perspective: "3000px", minHeight: dims.h }}
         >
-          {dossier ? (
-            <FlipProductBook
-              inline
-              entry={dossier}
-              category={{
-                id: category.id,
-                label: category.label,
-                tagline: category.tagline,
-                description: category.description,
-                notes: category.notes,
-                images: category.images,
-              }}
-              groups={groups}
-              onClose={closeDossier}
-            />
-          ) : loading ? (
+          {loading ? (
             <div
               className="flex items-center justify-center border border-border/60"
               style={{ width: portrait ? dims.w : dims.w * 2, height: dims.h }}
@@ -1155,7 +1140,7 @@ const FlipMagazine: React.FC = () => {
           ) : (
 
             <HTMLFlipBook
-              key={`${mode}-${categoryId}-${pages.length}-${dims.w}`}
+              key={`${mode}-${categoryId}-${dossier?.id ?? "edition"}-${pages.length}-${dims.w}`}
               ref={bookRef}
               width={dims.w}
               height={dims.h}
