@@ -470,49 +470,84 @@ export const useProductBookPages = ({
       ),
     });
 
-    /* statement spread — one photograph across both pages, data panel on the left */
-    pushSpread(
-      list,
-      {
-        key: "statement",
-        image: plateAt(1),
-        eyebrow: `${entry.brand ?? "Wonderlands World"} — ${category.label}`,
-        title: entry.name,
-        titleItalic: category.tagline ?? category.label,
-        body: story.lede,
-        stats: [
-          { value: price, label: "Turnkey investment" },
-          { value: metaBits[0] ?? category.label, label: "Dimensions" },
-          { value: "Florida", label: "Engineered & installed" },
-        ],
-        lockup: "Wonderlands World — Dossier",
-        caption: `${entry.name} — photographed on site`,
-      },
-      portrait,
-      plateAt(2),
-    );
-
-    /* the written piece — image led, full editorial copy */
-    list.push({
-      key: "story-image",
-      render: () => (
-        <div className="relative h-full w-full overflow-hidden">
-          <img
-            src={plateAt(1)}
-            alt={`${entry.name} in place`}
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-          <div className="relative flex h-full flex-col justify-end p-7 text-white sm:p-9">
-            <p className="text-[9px] uppercase tracking-[0.4em] opacity-75">The piece</p>
-            <p className="mt-3 max-w-sm font-serif text-xl font-light leading-snug sm:text-2xl">{story.lede}</p>
-            <div className="mt-4 h-px w-14 origin-left bg-white/60 animate-rule-draw" />
+    /* statement — a photographic spread only when a second plate exists;
+       single-plate products get a typographic statement page instead, so no
+       photograph is ever repeated or stretched to fill two pages. */
+    if (rich) {
+      pushSpread(
+        list,
+        {
+          key: "statement",
+          image: plateAt(1)!,
+          eyebrow: `${entry.brand ?? "Wonderlands World"} — ${category.label}`,
+          title: entry.name,
+          titleItalic: category.tagline ?? category.label,
+          body: story.lede,
+          stats: [
+            { value: price, label: "Turnkey investment" },
+            { value: metaBits[0] ?? category.label, label: "Dimensions" },
+            { value: "Florida", label: "Engineered & installed" },
+          ],
+          lockup: "Wonderlands World — Dossier",
+          caption: `${entry.name} — photographed on site`,
+        },
+        portrait,
+        plateAt(2),
+      );
+    } else {
+      list.push({
+        key: "statement-type",
+        render: () => (
+          <div className="flex h-full w-full flex-col justify-center overflow-hidden p-8 sm:p-10">
+            <Eyebrow>{entry.brand ?? "Wonderlands World"} — {category.label}</Eyebrow>
+            <h3 className="mt-3 font-serif text-3xl font-light uppercase leading-none tracking-[0.06em] sm:text-4xl">
+              {entry.name}
+            </h3>
+            <p className="mt-1 font-serif text-3xl font-light italic leading-none sm:text-4xl">
+              {category.tagline ?? category.label}
+            </p>
+            <div className="mt-5 h-px w-14 origin-left bg-foreground/50 animate-rule-draw" />
+            <p className="mt-5 max-w-[38ch] font-serif text-[13px] leading-relaxed text-foreground/85">{story.lede}</p>
+            <div className="mt-8 grid grid-cols-3 gap-4">
+              {[
+                { value: price, label: "Turnkey investment" },
+                { value: metaBits[0] ?? category.label, label: "Dimensions" },
+                { value: "Florida", label: "Engineered & installed" },
+              ].map((s) => (
+                <div key={s.label} className="border-t border-border/50 pt-2">
+                  <p className="font-serif text-lg font-light leading-none">{s.value}</p>
+                  <p className="mt-1 text-[8px] uppercase tracking-[0.28em] text-muted-foreground">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ),
-    });
+        ),
+      });
+    }
+
+    /* the written piece — image led when a second plate exists */
+    if (rich) {
+      list.push({
+        key: "story-image",
+        render: () => (
+          <div className="relative h-full w-full overflow-hidden">
+            <img
+              src={plateAt(1)}
+              alt={`${entry.name} in place`}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+            <div className="relative flex h-full flex-col justify-end p-7 text-white sm:p-9">
+              <p className="text-[9px] uppercase tracking-[0.4em] opacity-75">The piece</p>
+              <p className="mt-3 max-w-sm font-serif text-xl font-light leading-snug sm:text-2xl">{story.lede}</p>
+              <div className="mt-4 h-px w-14 origin-left bg-white/60 animate-rule-draw" />
+            </div>
+          </div>
+        ),
+      });
+    }
 
     list.push({
       key: "story-text",
@@ -523,19 +558,26 @@ export const useProductBookPages = ({
           <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
             {story.body}
           </p>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {[plateAt(2), plateAt(3)].map((src, i) => (
-              <div key={`${src}-${i}`} className="relative aspect-[4/5] overflow-hidden">
-                <img
-                  src={src}
-                  alt={`${entry.name} detail ${i + 1}`}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-105"
-                />
+          {(() => {
+            const details = [plateAt(2), plateAt(3)].filter(Boolean) as string[];
+            if (!details.length) return null;
+            return (
+              <div className={`mt-4 grid gap-2 ${details.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                {details.map((src, i) => (
+                  <div key={src} className="relative aspect-[4/5] overflow-hidden">
+                    <img
+                      src={src}
+                      alt={`${entry.name} detail ${i + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-105"
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
+
           <div className="mt-auto space-y-2 border-t border-border/50 pt-3">
             <div>
               <Eyebrow>Installation</Eyebrow>
