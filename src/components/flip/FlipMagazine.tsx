@@ -1026,15 +1026,19 @@ const FlipMagazine: React.FC = () => {
           </div>
         )}
 
-        <div className="mx-auto flex justify-center" style={{ perspective: "3000px", minHeight: dims.h }}>
+        <div
+          className={`mx-auto flex justify-center transition-opacity duration-300 ease-out ${
+            fading || loading ? "opacity-0" : "opacity-100"
+          }`}
+          style={{ perspective: "3000px", minHeight: dims.h }}
+        >
           {loading ? (
             <div
               className="flex items-center justify-center border border-border/60"
               style={{ width: portrait ? dims.w : dims.w * 2, height: dims.h }}
-            >
-              <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Composing the edition…</p>
-            </div>
+            />
           ) : (
+
             <HTMLFlipBook
               key={`${mode}-${categoryId}-${pages.length}-${dims.w}`}
               ref={bookRef}
