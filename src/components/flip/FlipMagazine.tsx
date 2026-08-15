@@ -1,9 +1,11 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
-import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
+import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
+import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
+import AdvancedSearch from "@/components/AdvancedSearch";
 import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
@@ -138,6 +140,7 @@ const FlipMagazine: React.FC = () => {
   const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category", ITEMS[0].id);
   const [savedPage, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
+  const [searchOpen, setSearchOpen] = usePersistentState<boolean>("flip.mag.search", false);
   const [page, setPage] = useState(savedPage);
   const startPageRef = useRef(savedPage);
 
@@ -159,11 +162,13 @@ const FlipMagazine: React.FC = () => {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  // Load the selected category edition
+  // Load the selected category edition — served instantly from cache when warm.
   useEffect(() => {
     if (mode !== "category") return;
     let alive = true;
-    setEntries(null);
+    const cached = getCachedCategoryEntries(categoryId);
+    setEntries(cached ?? null);
+    if (cached) return;
     loadCategoryEntries(categoryId)
       .then((list) => alive && setEntries(list))
       .catch(() => alive && setEntries([]));
@@ -171,6 +176,13 @@ const FlipMagazine: React.FC = () => {
       alive = false;
     };
   }, [categoryId, mode]);
+
+  // Warm every edition and its cover art in the background, current one first.
+  useEffect(() => {
+    preloadImages(ITEMS.flatMap((i) => i.images ?? []).slice(0, 24));
+    prefetchEditions(ITEMS.map((i) => i.id), categoryId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setSavedPage(page);
@@ -182,6 +194,14 @@ const FlipMagazine: React.FC = () => {
     [categoryId],
   );
   const products = useMemo(() => (entries ?? []).slice(0, MAX_MODELS), [entries]);
+
+  // Pages ahead of the reader: decode their plates before the flip happens.
+  useEffect(() => {
+    if (!products.length) return;
+    preloadImages(products.slice(0, 6).map((p) => p.image), true);
+    preloadImages(products.slice(6).map((p) => p.image));
+    preloadImages(groups.flatMap((g: any) => (g.items ?? []).map((o: any) => o?.image)));
+  }, [products, groups]);
 
   // Cross-fade the book while an edition is swapped in — the page never changes,
   // only the content inside the flip.
@@ -1085,7 +1105,7 @@ const FlipMagazine: React.FC = () => {
             </>
           )}
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           <button
             onClick={openBoard}
             title={`Editor Board — ${boardMeta.name}`}
@@ -1134,22 +1154,36 @@ const FlipMagazine: React.FC = () => {
         ))}
       </nav>
 
-      <div className="relative px-2 py-8 md:px-6 md:py-12">
-        {mode === "category" && (
-          <div className="pointer-events-none absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 md:block">
-            <div className="pointer-events-auto flex flex-col gap-1 rounded-full border border-border/50 bg-background/50 p-2 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]">
-              {!dossier &&
-                rail.map(({ id, label, icon: Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => goTo(anchors[id as keyof Anchors])}
-                    title={label}
-                    aria-label={label}
-                    className="group flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
-                  >
-                    <Icon className="h-[15px] w-[15px]" />
-                  </button>
-                ))}
+      <div className="relative px-2 pb-28 pt-8 md:px-6 md:py-12">
+        <div className="pointer-events-none absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 md:block">
+          <div className="pointer-events-auto flex flex-col gap-1 rounded-full border border-border/50 bg-background/50 p-2 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]">
+            <button
+              onClick={() => setSearchOpen((v) => !v)}
+              title="Search the collection"
+              aria-label="Search the collection"
+              aria-pressed={searchOpen}
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+                searchOpen
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:bg-foreground hover:text-background"
+              }`}
+            >
+              <Search className="h-[15px] w-[15px]" />
+            </button>
+            <span className="mx-auto my-1 h-px w-4 bg-border" />
+            {mode === "category" && !dossier &&
+              rail.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => goTo(anchors[id as keyof Anchors])}
+                  title={label}
+                  aria-label={label}
+                  className="group flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+                >
+                  <Icon className="h-[15px] w-[15px]" />
+                </button>
+              ))}
+            {mode === "category" && (
               <button
                 onClick={openBoard}
                 title={`Editor Board — ${boardMeta.name}`}
@@ -1158,18 +1192,23 @@ const FlipMagazine: React.FC = () => {
               >
                 <PenTool className="h-[15px] w-[15px]" />
               </button>
-              <span className="mx-auto my-1 h-px w-4 bg-border" />
-              <button
-                onClick={openHome}
-                title="Back to the index"
-                aria-label="Back to the index"
-                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
-              >
-                <ChevronLeft className="h-[15px] w-[15px]" />
-              </button>
-            </div>
+            )}
+            {mode === "category" && (
+              <>
+                <span className="mx-auto my-1 h-px w-4 bg-border" />
+                <button
+                  onClick={openHome}
+                  title="Back to the index"
+                  aria-label="Back to the index"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+                >
+                  <ChevronLeft className="h-[15px] w-[15px]" />
+                </button>
+              </>
+            )}
           </div>
-        )}
+        </div>
+
 
         <div
           className={`mx-auto flex justify-center transition-opacity duration-300 ease-out ${
@@ -1220,8 +1259,36 @@ const FlipMagazine: React.FC = () => {
             </HTMLFlipBook>
           )}
         </div>
+        {/* Wide search desk — spans the book from corner to corner. */}
+        <div className="mx-auto mt-6 w-full px-1 md:px-0" style={{ maxWidth: portrait ? dims.w : dims.w * 2 }}>
+          <div className="border border-border/60 bg-background/70 backdrop-blur-xl">
+            <button
+              onClick={() => setSearchOpen((v) => !v)}
+              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+              aria-expanded={searchOpen}
+            >
+              <span className="flex items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                <Search className="h-3.5 w-3.5" />
+                Search the collection
+              </span>
+              {searchOpen ? (
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <span className="hidden text-[9px] uppercase tracking-[0.3em] text-muted-foreground sm:block">
+                  Pools · Saunas · Enclosures · Turf
+                </span>
+              )}
+            </button>
+            {searchOpen && (
+              <div className="border-t border-border/60 px-3 pb-4 pt-3 md:px-5">
+                <AdvancedSearch variant="slim" />
+              </div>
+            )}
+          </div>
+        </div>
+
         {(
-          <div className="mt-8 flex flex-col items-center gap-3">
+          <div className="mt-6 flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={flipPrev}

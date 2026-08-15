@@ -39,7 +39,34 @@ const fromLookup = async (
     .sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
 };
 
-export async function loadCategoryEntries(categoryId: string): Promise<ConsoleEntry[]> {
+/** In-memory cache so an edition is only resolved once per session. */
+const entryCache = new Map<string, ConsoleEntry[]>();
+const inFlight = new Map<string, Promise<ConsoleEntry[]>>();
+
+export function getCachedCategoryEntries(categoryId: string): ConsoleEntry[] | undefined {
+  return entryCache.get(categoryId);
+}
+
+export function loadCategoryEntries(categoryId: string): Promise<ConsoleEntry[]> {
+  const cached = entryCache.get(categoryId);
+  if (cached) return Promise.resolve(cached);
+  const pending = inFlight.get(categoryId);
+  if (pending) return pending;
+  const task = resolveCategoryEntries(categoryId)
+    .then((list) => {
+      entryCache.set(categoryId, list);
+      inFlight.delete(categoryId);
+      return list;
+    })
+    .catch((err) => {
+      inFlight.delete(categoryId);
+      throw err;
+    });
+  inFlight.set(categoryId, task);
+  return task;
+}
+
+async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[]> {
   switch (categoryId) {
     case "pools":
       return fromLookup((c) => c === "Pool");
