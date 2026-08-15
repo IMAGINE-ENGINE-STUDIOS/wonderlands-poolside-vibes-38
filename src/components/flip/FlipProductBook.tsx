@@ -29,6 +29,8 @@ type Props = {
   category: ProductBookCategory;
   groups?: ProductBookOptionGroup[];
   onClose: () => void;
+  /** Rendered inside the magazine flip rather than as a full-screen overlay. */
+  inline?: boolean;
 };
 
 /** Design tool per discipline — the widget the reader is sent to. */
@@ -170,7 +172,7 @@ const Leaf = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ childr
 ));
 Leaf.displayName = "DossierLeaf";
 
-const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClose }) => {
+const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClose, inline = false }) => {
   const bookRef = useRef<any>(null);
   const navigate = useNavigate();
   const cart = useOptionalShoppingCart();
@@ -548,6 +550,94 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
 
   const total = pages.length;
 
+  const nav = (
+    <div className={`mt-4 flex items-center gap-4 ${inline ? "" : ""}`}>
+      <button
+        onClick={() => bookRef.current?.pageFlip?.().flipPrev()}
+        aria-label="Previous page"
+        className={`flex h-9 w-9 items-center justify-center border transition-colors ${
+          inline
+            ? "border-border/60 text-foreground hover:bg-foreground hover:text-background"
+            : "border-white/40 text-white hover:bg-white hover:text-black"
+        }`}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <p
+        className={`font-serif text-xs tracking-[0.3em] ${
+          inline ? "text-muted-foreground" : "text-white/80"
+        }`}
+      >
+        {String(page + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+      </p>
+      <button
+        onClick={() => bookRef.current?.pageFlip?.().flipNext()}
+        aria-label="Next page"
+        className={`flex h-9 w-9 items-center justify-center border transition-colors ${
+          inline
+            ? "border-border/60 text-foreground hover:bg-foreground hover:text-background"
+            : "border-white/40 text-white hover:bg-white hover:text-black"
+        }`}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
+  const book = (
+    <HTMLFlipBook
+      ref={bookRef}
+      width={dims.w}
+      height={dims.h}
+      size="fixed"
+      minWidth={240}
+      maxWidth={900}
+      minHeight={320}
+      maxHeight={1200}
+      drawShadow
+      flippingTime={700}
+      usePortrait={portrait}
+      showCover={false}
+      mobileScrollSupport
+      maxShadowOpacity={0.35}
+      className="flip-dossier"
+      style={{}}
+      startPage={0}
+      useMouseEvents
+      clickEventForward={false}
+      swipeDistance={24}
+      showPageCorners
+      disableFlipByClick={false}
+      autoSize={false}
+      startZIndex={0}
+      onFlip={(e: any) => setPage(e.data)}
+    >
+      {pages.map((p) => (
+        <Leaf key={p.key}>{p.render()}</Leaf>
+      ))}
+    </HTMLFlipBook>
+  );
+
+  /* Rendered inside the magazine — no overlay, only the book and a corner close. */
+  if (inline) {
+    return (
+      <div className="relative flex w-full flex-col items-center">
+        <button
+          onClick={onClose}
+          aria-label="Close this dossier"
+          title="Close this dossier"
+          className="absolute right-0 top-0 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground backdrop-blur-xl transition-colors hover:bg-foreground hover:text-background"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <div style={{ perspective: "3000px" }} className="flex justify-center">
+          {book}
+        </div>
+        {nav}
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-[80] flex flex-col items-center justify-center bg-black/80 p-4 backdrop-blur-md">
       <div className="mb-3 flex w-full max-w-5xl items-baseline justify-between gap-4">
@@ -562,58 +652,9 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
           Close <X className="h-3.5 w-3.5" />
         </button>
       </div>
+      {book}
+      {nav}
 
-      <HTMLFlipBook
-        ref={bookRef}
-        width={dims.w}
-        height={dims.h}
-        size="fixed"
-        minWidth={240}
-        maxWidth={900}
-        minHeight={320}
-        maxHeight={1200}
-        drawShadow
-        flippingTime={700}
-        usePortrait={portrait}
-        showCover={false}
-        mobileScrollSupport
-        maxShadowOpacity={0.35}
-        className="flip-dossier"
-        style={{}}
-        startPage={0}
-        useMouseEvents
-        clickEventForward={false}
-        swipeDistance={24}
-        showPageCorners
-        disableFlipByClick={false}
-        autoSize={false}
-        startZIndex={0}
-        onFlip={(e: any) => setPage(e.data)}
-      >
-        {pages.map((p) => (
-          <Leaf key={p.key}>{p.render()}</Leaf>
-        ))}
-      </HTMLFlipBook>
-
-      <div className="mt-4 flex items-center gap-4">
-        <button
-          onClick={() => bookRef.current?.pageFlip?.().flipPrev()}
-          aria-label="Previous page"
-          className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors hover:bg-white hover:text-black"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <p className="font-serif text-xs tracking-[0.3em] text-white/80">
-          {String(page + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-        </p>
-        <button
-          onClick={() => bookRef.current?.pageFlip?.().flipNext()}
-          aria-label="Next page"
-          className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors hover:bg-white hover:text-black"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
     </div>
   );
 };
