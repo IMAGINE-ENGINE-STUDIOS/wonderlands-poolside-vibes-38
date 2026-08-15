@@ -694,9 +694,10 @@ export const useProductBookPages = ({
           <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
             {brandNote}
           </p>
-          {plates[1] && (
+          {gallery[1] && (
             <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
-              <img src={plates[1]} alt={`${entry.brand ?? category.label} plate`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+              <img src={gallery[1]} alt={`${entry.brand ?? category.label} plate`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+
             </div>
           )}
         </div>
