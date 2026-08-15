@@ -1,12 +1,19 @@
 import * as React from "react";
-import { Suspense, lazy, useCallback, useMemo, useState } from "react";
-import { Maximize2 } from "lucide-react";
+import { Suspense, lazy, useCallback, useMemo, useRef, useState } from "react";
+import { Maximize2, Upload, X, Loader2 } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { boardForCategory } from "./FlipEditorBoard";
 import {
   DEFAULT_PX_PER_FT,
+  type SiteLayerId,
   type SitePlanData,
 } from "@/components/blueprint/SiteDrawingBoard";
+import { computeSiteEstimate, formatMoney } from "@/lib/siteEstimate";
+import {
+  fitShapesToBox,
+  guessSiteLayer,
+  importBlueprintFile,
+} from "@/lib/blueprintImport";
 import type { EnclosureLayout, EnclosureTakeoff } from "@/components/enclosure/EnclosureDrawingBoard";
 import type { FenceLayout } from "@/components/fence/FenceDrawingBoard";
 import type { GrassLayout, GrassTakeoff } from "@/components/grass/GrassDrawingBoard";
@@ -14,7 +21,8 @@ import type { GrassLayout, GrassTakeoff } from "@/components/grass/GrassDrawingB
 /**
  * The live design widget printed on a dossier page — the real drawing board for
  * the discipline (enclosure, fence, turf or site plan), not a picture of one.
- * Drawings persist per category and can be expanded to the full Editor Board.
+ * Drawings persist per category, price and dimensions are read off the drawing
+ * as it is made, and the board can be enlarged full screen with plan upload.
  */
 
 const SiteDrawingBoard = lazy(() => import("@/components/blueprint/SiteDrawingBoard"));
@@ -27,6 +35,20 @@ const emptyEnclosure: EnclosureLayout = { points: [], closed: false, features: {
 const emptyFence: FenceLayout = { points: [], closed: false, gateSegments: [] };
 const emptyGrass: GrassLayout = { areas: [] };
 
+/** The layer armed first, per discipline — a pool dossier starts on the pool. */
+const DEFAULT_LAYER: Record<string, SiteLayerId> = {
+  pools: "pool",
+  spas: "pool",
+  "tanning-ledges": "pool",
+  finishes: "pool",
+  liners: "pool",
+  pavers: "deck",
+  lanai: "patio",
+  covers: "pool",
+  "driveway-gates": "driveway",
+  landscaping: "gravel",
+};
+
 type Props = {
   categoryId: string;
   /** Expand into the full-screen Editor Board */
@@ -36,6 +58,9 @@ type Props = {
 const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
   const board = boardForCategory(categoryId);
   const [readout, setReadout] = useState<string>("");
+  const [full, setFull] = useState(false);
+  const [importing, setImporting] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [site, setSite] = usePersistentState<SitePlanData>(`flip_tool_site_${categoryId}`, emptySite);
   const [enclosure, setEnclosure] = usePersistentState<EnclosureLayout>(
@@ -60,79 +85,276 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
     setReadout(t.areaSqFt > 0 ? `${Math.round(t.areaSqFt).toLocaleString()} sq ft of turf` : "");
   }, []);
 
+  /* ---------------- pricing & dimensions, read off the site plan ---------------- */
+  const estimate = useMemo(() => computeSiteEstimate(site), [site]);
+  const siteReadout = useMemo(() => {
+    const bits: string[] = [];
+    if (estimate.poolDims) bits.push(`${estimate.poolDims.widthFt}′ × ${estimate.poolDims.lengthFt}′ pool`);
+    if (estimate.poolSqFt) bits.push(`${estimate.poolSqFt.toLocaleString()} sq ft water`);
+    if (estimate.deckSqFt) bits.push(`${estimate.deckSqFt.toLocaleString()} sq ft deck`);
+    if (estimate.fenceLinearFt) bits.push(`${estimate.fenceLinearFt.toLocaleString()} lf barrier`);
+    return bits.join(" · ");
+  }, [estimate]);
+
+  const isSite = board.kind === "site";
+
+  /* ------------------------------- plan upload ------------------------------- */
+  const handleUpload = useCallback(
+    async (file: File | null) => {
+      if (!file) return;
+      setImporting("Reading the plan…");
+      try {
+        const drawing = await importBlueprintFile(file);
+        const page = drawing.rasterPages[0];
+        let next: SitePlanData = { ...site };
+
+        if (page) {
+          next = {
+            ...next,
+            underlay: {
+              dataUrl: page.dataUrl,
+              x: 0,
+              y: 0,
+              scale: Math.min(1180 / page.widthPx, 720 / page.heightPx),
+              opacity: 0.7,
+              visible: true,
+              locked: false,
+              label: page.label || drawing.fileName,
+              naturalWidth: page.widthPx,
+              naturalHeight: page.heightPx,
+            },
+          };
+        }
+
+        if (drawing.vectorShapes.length) {
+          const fitted = fitShapesToBox(drawing.vectorShapes, { width: 1180, height: 720, padding: 40 });
+          next = {
+            ...next,
+            shapes: [
+              ...next.shapes,
+              ...fitted.shapes.map((s, i) => ({
+                id: `imp-${Date.now()}-${i}`,
+                layer: guessSiteLayer(s.sourceLayer) as SiteLayerId,
+                points: s.points,
+                closed: s.closed,
+                importedFrom: drawing.fileName,
+              })),
+            ],
+          };
+        }
+
+        setSite(next);
+        setImporting(
+          drawing.vectorShapes.length
+            ? `${drawing.vectorShapes.length} shapes imported — every vertex is editable.`
+            : "Sheet placed behind the grid — trace over it, then calibrate the scale.",
+        );
+      } catch (err) {
+        setImporting(err instanceof Error ? err.message : "That file could not be read.");
+      }
+    },
+    [site, setSite],
+  );
+
   const headerBlock = (
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-        {readout || "Draw on the grid — 1 ft squares"}
-      </p>
-      {onExpand && (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="min-w-0">
+        <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+          {(isSite ? siteReadout : readout) || "Draw on the grid — 1 ft squares"}
+        </p>
+        {isSite && estimate.total > 0 && (
+          <p className="mt-1 font-serif text-lg font-light leading-none">
+            {formatMoney(estimate.total)}
+            <span className="ml-2 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+              as drawn — installed
+            </span>
+          </p>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
         <button
-          onClick={onExpand}
+          onClick={() => setFull(true)}
           className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
         >
-          Full board <Maximize2 className="h-3 w-3" />
+          Enlarge <Maximize2 className="h-3 w-3" />
         </button>
-      )}
+        {onExpand && (
+          <button
+            onClick={onExpand}
+            className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+          >
+            Editor board
+          </button>
+        )}
+      </div>
     </div>
   );
 
-  const surface = useMemo(() => {
-    if (board.kind === "enclosure")
+  const renderBoard = useCallback(
+    (header: React.ReactNode, fullScreen?: boolean) => {
+      if (board.kind === "enclosure")
+        return (
+          <EnclosureDrawingBoard
+            layout={enclosure}
+            onChange={setEnclosure}
+            onMeasure={onEnclosureMeasure}
+            header={header}
+          />
+        );
+      if (board.kind === "fence")
+        return <FenceDrawingBoard layout={fence} onChange={setFence} onMeasure={onFenceMeasure} header={header} />;
+      if (board.kind === "grass")
+        return (
+          <GrassDrawingBoard
+            layout={grass}
+            onChange={setGrass}
+            onMeasure={onGrassMeasure}
+            activeGrassId={grassId}
+            onActiveGrassChange={setGrassId}
+            header={header}
+          />
+        );
       return (
-        <EnclosureDrawingBoard
-          layout={enclosure}
-          onChange={setEnclosure}
-          onMeasure={onEnclosureMeasure}
-          header={headerBlock}
+        <SiteDrawingBoard
+          data={site}
+          onChange={setSite}
+          header={header}
+          defaultLayer={DEFAULT_LAYER[categoryId] ?? "pool"}
+          onRequestImport={fullScreen ? () => fileRef.current?.click() : undefined}
         />
       );
-    if (board.kind === "fence")
-      return (
-        <FenceDrawingBoard layout={fence} onChange={setFence} onMeasure={onFenceMeasure} header={headerBlock} />
-      );
-    if (board.kind === "grass")
-      return (
-        <GrassDrawingBoard
-          layout={grass}
-          onChange={setGrass}
-          onMeasure={onGrassMeasure}
-          activeGrassId={grassId}
-          onActiveGrassChange={setGrassId}
-          header={headerBlock}
-        />
-      );
-    return <SiteDrawingBoard data={site} onChange={setSite} header={headerBlock} />;
-  }, [
-    headerBlock,
-    board.kind,
-    enclosure,
-    setEnclosure,
-    onEnclosureMeasure,
-    fence,
-    setFence,
-    onFenceMeasure,
-    grass,
-    setGrass,
-    onGrassMeasure,
-    grassId,
-    setGrassId,
-    site,
-    setSite,
-  ]);
+    },
+    [
+      board.kind,
+      enclosure,
+      setEnclosure,
+      onEnclosureMeasure,
+      fence,
+      setFence,
+      onFenceMeasure,
+      grass,
+      setGrass,
+      onGrassMeasure,
+      grassId,
+      setGrassId,
+      site,
+      setSite,
+      categoryId,
+    ],
+  );
+
+  const fallback = (
+    <div className="flex h-40 items-center justify-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+      Preparing the board…
+    </div>
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-auto">
-        <Suspense
-          fallback={
-            <div className="flex h-40 items-center justify-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-              Preparing the board…
-            </div>
-          }
-        >
-          {surface}
-        </Suspense>
+        <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
       </div>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf,.dxf,.svg,image/*"
+        className="hidden"
+        onChange={(e) => {
+          void handleUpload(e.target.files?.[0] ?? null);
+          e.target.value = "";
+        }}
+      />
+
+      {full && (
+        <div className="fixed inset-0 z-[120] flex flex-col bg-background animate-fade-in">
+          <div className="flex items-center justify-between gap-4 border-b border-border/60 px-5 py-3">
+            <div className="min-w-0">
+              <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+                Wonderlands World — Design board
+              </p>
+              <p className="mt-1 truncate font-serif text-xl font-light leading-none">
+                {(isSite ? siteReadout : readout) || "Draw the plan — 1 ft grid"}
+                {isSite && estimate.total > 0 ? ` — ${formatMoney(estimate.total)}` : ""}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="inline-flex items-center gap-2 border border-border px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+              >
+                {importing === "Reading the plan…" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" />
+                )}
+                Upload plan
+              </button>
+              {onExpand && (
+                <button
+                  onClick={() => {
+                    setFull(false);
+                    onExpand();
+                  }}
+                  className="border border-border px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+                >
+                  Editor board
+                </button>
+              )}
+              <button
+                onClick={() => setFull(false)}
+                aria-label="Close the board"
+                className="border border-border p-2 transition-colors hover:bg-foreground hover:text-background"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto p-4 lg:flex-row">
+            <div className="min-h-0 flex-1">
+              <Suspense fallback={fallback}>{renderBoard(null, true)}</Suspense>
+              {importing && (
+                <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{importing}</p>
+              )}
+            </div>
+
+            {isSite && (
+              <aside className="w-full shrink-0 border-t border-border/60 pt-3 lg:w-80 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+                <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Priced as drawn</p>
+                <h4 className="mt-2 font-serif text-2xl font-light leading-none">{formatMoney(estimate.total)}</h4>
+                {estimate.poolDims && (
+                  <p className="mt-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                    {estimate.poolDims.widthFt}′ × {estimate.poolDims.lengthFt}′ · {estimate.poolSqFt.toLocaleString()} sq ft
+                  </p>
+                )}
+                <ul className="mt-4">
+                  {estimate.lines.map((l) => (
+                    <li key={l.label} className="flex items-baseline justify-between gap-3 border-t border-border/50 py-2">
+                      <span className="min-w-0">
+                        <span className="block text-[10px] uppercase tracking-[0.22em]">{l.label}</span>
+                        <span className="block text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                          {l.detail}
+                        </span>
+                      </span>
+                      <span className="shrink-0 font-serif text-base font-light">{formatMoney(l.amount)}</span>
+                    </li>
+                  ))}
+                  {!estimate.lines.length && (
+                    <li className="border-t border-border/50 py-3 text-[10px] leading-relaxed text-muted-foreground">
+                      Draw the pool, deck and barrier — the estimate builds itself as you go.
+                    </li>
+                  )}
+                </ul>
+                <p className="mt-4 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
+                  All prices include delivery, installation and the product as described. Final figures are confirmed on
+                  the survey visit.
+                </p>
+              </aside>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
