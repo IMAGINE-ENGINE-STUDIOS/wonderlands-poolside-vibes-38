@@ -414,27 +414,26 @@ export const useProductBookPages = ({
   const tool = TOOLS[category.id];
   const brandKey = Object.keys(BRAND_NOTES).find((b) => (entry.brand ?? "").toLowerCase().includes(b.toLowerCase()));
   const brandNote = (brandKey && BRAND_NOTES[brandKey]) || BRAND_NOTES.Wonderlands;
-  const plates = (category.images ?? []).filter(Boolean);
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
   const price = formatEntryPrice(entry) || "On request";
   const story = STORIES[category.id] ?? FALLBACK_STORY;
-  /** Product photography for the editorial pages — model plate first, then the
-      discipline's own product imagery. Finish and option swatches are deliberately
-      excluded here: they belong to the feature pages, not the editorial plates. */
-  const gallery = useMemo(() => {
-    const own = resolveProductGallery({
-      categoryId: category.id,
-      name: entry.name,
-      brand: entry.brand,
-      image: entry.image,
-      siblings: category.siblings ?? [],
-    });
-    /* Never borrow another model's photograph: if this product has only one
-       plate, the discipline's own scene imagery is used, and nothing else. */
-    return own.length > 1 ? own : (Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[]);
-  }, [category.id, category.siblings, entry.image, entry.name, entry.brand, plates]);
+  /** Product photography for the editorial pages — strictly this model's own
+      plate plus verified manufacturer scene photography for its brand and
+      discipline. No sibling models, no category imagery, no finish swatches. */
+  const gallery = useMemo(
+    () =>
+      resolveProductGallery({
+        categoryId: category.id,
+        name: entry.name,
+        brand: entry.brand,
+        image: entry.image,
+        siblings: [],
+      }).filter(Boolean),
+    [category.id, entry.image, entry.name, entry.brand],
+  );
 
   const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
+
 
 
 
