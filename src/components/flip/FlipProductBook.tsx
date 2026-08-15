@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight } from "lucide-react";
 import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
+import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 
 /**
  * FLIP — Product dossier.
