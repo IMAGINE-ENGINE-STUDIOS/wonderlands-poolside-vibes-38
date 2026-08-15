@@ -175,7 +175,134 @@ const Leaf = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ childr
 ));
 Leaf.displayName = "DossierLeaf";
 
+/**
+ * One option chapter. Hovering (or tapping) an option previews its Wonderlands
+ * Studio image in the plate above the list, and the + control adds that option
+ * to the order.
+ */
+const OptionChapter: React.FC<{
+  group: StudioGroup;
+  chunk: StudioOption[];
+  index: number;
+  chunkIndex: number;
+  chunkCount: number;
+  perPage: number;
+  entry: ConsoleEntry;
+  categoryLabel: string;
+  categoryId: string;
+  fallbackImage?: string;
+}> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId, fallbackImage }) => {
+  const cart = useOptionalShoppingCart();
+  const [active, setActive] = useState<StudioOption | null>(null);
+  const preview = active ?? chunk.find((o) => o.image) ?? null;
+  const plate = preview?.image ?? fallbackImage;
+
+  const optionId = (o: StudioOption) =>
+    `flip-${categoryId}-${entry.id}-${group.title}-${o.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const inOrder = (o: StudioOption) => (cart?.cartItems ?? []).some((c) => c.id === optionId(o));
+
+  const addOption = (o: StudioOption) => {
+    cart?.addToCart({
+      id: optionId(o),
+      name: `${entry.name} — ${group.title}: ${o.label}`,
+      price: o.price,
+      image: o.image ?? entry.image,
+      category: categoryLabel,
+    });
+  };
+
+  return (
+    <div className="flex h-full w-full flex-col p-7 sm:p-9">
+      <Eyebrow>
+        {String(index + 3).padStart(2, "0")} — {group.title}
+        {chunkCount > 1 ? ` (${chunkIndex + 1}/${chunkCount})` : ""}
+      </Eyebrow>
+      {chunkIndex === 0 ? (
+        <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{group.note}</h3>
+      ) : (
+        <h3 className="mt-2 font-serif text-xl font-light leading-tight text-muted-foreground">
+          {group.title} — continued
+        </h3>
+      )}
+
+      {/* live preview plate — swaps to the option under the cursor */}
+      <div className="relative mt-4 h-[26%] shrink-0 overflow-hidden bg-muted">
+        {preview?.color && !preview.image ? (
+          <div className="absolute inset-0" style={{ backgroundColor: preview.color }} />
+        ) : (
+          plate && (
+            <img
+              key={plate}
+              src={plate}
+              alt={`${preview?.label ?? group.title} — ${categoryLabel}`}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full animate-fade-in object-cover"
+            />
+          )
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <p className="absolute inset-x-3 bottom-2 flex items-baseline justify-between gap-3 text-[9px] uppercase tracking-[0.3em] text-white/90">
+          <span className="truncate">{preview?.label ?? group.title}</span>
+          {preview?.priceLabel && <span className="shrink-0 opacity-80">{preview.priceLabel}</span>}
+        </p>
+      </div>
+
+      <ul className="mt-4 min-h-0 flex-1 space-y-0 overflow-hidden">
+        {chunk.map((o, oi) => (
+          <li
+            key={o.label}
+            onMouseEnter={() => setActive(o)}
+            onFocus={() => setActive(o)}
+            onClick={() => setActive(o)}
+            className={`flex items-center gap-3 border-t border-border/50 py-2 transition-colors ${
+              active?.label === o.label ? "bg-foreground/[0.04]" : ""
+            }`}
+          >
+            <span className="font-serif text-xs text-muted-foreground">
+              {String(chunkIndex * perPage + oi + 1).padStart(2, "0")}
+            </span>
+            {o.image ? (
+              <img
+                src={o.image}
+                alt={o.label}
+                loading="lazy"
+                decoding="async"
+                className="h-7 w-7 shrink-0 object-cover"
+              />
+            ) : o.color ? (
+              <span className="h-7 w-7 shrink-0 border border-border/60" style={{ backgroundColor: o.color }} />
+            ) : null}
+            <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em]">{o.label}</span>
+            <span className="shrink-0 font-serif text-[11px] text-muted-foreground">{o.priceLabel}</span>
+            <button
+              type="button"
+              aria-label={`Add ${o.label} to the order`}
+              onClick={(e) => {
+                e.stopPropagation();
+                addOption(o);
+              }}
+              className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
+                inOrder(o)
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border/70 hover:bg-foreground hover:text-background"
+              }`}
+            >
+              {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+        Hover any option to see it on the plate above, then add it with the + to carry it into your estimate — every
+        option is installed by our own crews.
+      </p>
+    </div>
+  );
+};
+
 export type ProductBookPage = { key: string; render: () => React.ReactNode };
+
 
 /**
  * The dossier pages for one model. Exported so the magazine can render them
