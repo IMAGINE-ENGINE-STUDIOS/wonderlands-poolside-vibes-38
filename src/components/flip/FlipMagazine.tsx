@@ -7,7 +7,10 @@ import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flip
 import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
-import FlipProductBook from "./FlipProductBook";
+import FlipProductBook, { useProductBookPages } from "./FlipProductBook";
+
+/** Placeholder so the dossier page hook can run unconditionally. */
+const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as any;
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
@@ -968,7 +971,7 @@ const FlipMagazine: React.FC = () => {
     portrait,
   });
 
-  const pages: { key: string; render: () => React.ReactNode; tone?: string }[] = dossier
+  const pages: { key: string; render: () => React.ReactNode; tone?: "cover" | "paper" }[] = dossier
     ? dossierPages
     : mode === "home"
       ? homePages
