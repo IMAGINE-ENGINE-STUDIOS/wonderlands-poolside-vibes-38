@@ -544,7 +544,7 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
     }
 
     return list;
-  }, [entry, category, groups, plates, metaBits, price, tool, brandNote, added, add, navigate, portrait]);
+  }, [entry, category, groups, plates, metaBits, price, tool, brandNote, added, add, navigate, portrait, story, gallery, plateAt]);
 
   const total = pages.length;
 
