@@ -478,30 +478,70 @@ export const useProductBookPages = ({
       ),
     });
 
-    /* design tool */
+    /* design tool — a full spread: the live board runs across both pages */
+    if (!portrait && list.length % 2 !== 0) {
+      /* keep the board opening on a left-hand page so the spread reads as one */
+      list.push({
+        key: "tool-lead",
+        render: () => (
+          <div className="flex h-full w-full flex-col justify-center gap-4 p-9 text-center">
+            <Eyebrow>Next</Eyebrow>
+            <p className="font-serif text-2xl font-light leading-snug">The drawing board</p>
+            <div className="mx-auto h-px w-14 bg-border" />
+            <p className="mx-auto max-w-[18rem] text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+              {tool?.name ?? "Wonderlands Studio"} — drawn to scale on the following spread
+            </p>
+          </div>
+        ),
+      });
+    }
+
     list.push({
       key: "tool",
       render: () => (
-        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+        <div className="flex h-full w-full flex-col p-5 sm:p-6">
           <Eyebrow>Design tool</Eyebrow>
-          <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{tool?.name ?? "Wonderlands Studio"}</h3>
+          <h3 className="mt-1 font-serif text-xl font-light leading-tight">{tool?.name ?? "Wonderlands Studio"}</h3>
+          {/* the real board for this discipline, live on the page */}
+          <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden">
+            <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} />
+          </div>
+        </div>
+      ),
+    });
+
+    list.push({
+      key: "tool-notes",
+      render: () => (
+        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+          <Eyebrow>{tool?.name ?? "Wonderlands Studio"}</Eyebrow>
+          <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Draw it to scale</h3>
           <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
             {tool?.note ?? "Configure the model, then carry it into your estimate."}
           </p>
-          {/* the real board for this discipline, live on the page */}
-          <div className="mt-4 flex min-h-0 flex-1 flex-col">
-            <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} />
-          </div>
-          <div className="mt-3 flex items-center justify-between gap-3">
+          <ul className="mt-5 space-y-3 border-t border-border/50 pt-5 text-[11px] leading-relaxed text-foreground/80">
+            <li>Click the grid to set corners — each square is one foot.</li>
+            <li>Double-click to close the shape and read the takeoff.</li>
+            <li>Open the full board for drafting at permit scale.</li>
+          </ul>
+          <div className="mt-auto flex flex-col gap-2">
+            {onOpenBoard && (
+              <button
+                onClick={onOpenBoard}
+                className="inline-flex items-center justify-between gap-2 border border-foreground px-3 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+              >
+                Open the full board <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+            )}
             <button
               onClick={() => navigate(tool?.to ?? "/wonderlands-studio")}
-              className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+              className="inline-flex items-center justify-between gap-2 border border-border/60 px-3 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
             >
               {tool?.name ?? "Wonderlands Studio"} <ArrowUpRight className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => navigate("/blueprint-builder")}
-              className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+              className="inline-flex items-center justify-between gap-2 border border-border/60 px-3 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
             >
               Blueprint builder <ArrowUpRight className="h-3.5 w-3.5" />
             </button>
@@ -509,6 +549,7 @@ export const useProductBookPages = ({
         </div>
       ),
     });
+
 
     /* order */
     list.push({
