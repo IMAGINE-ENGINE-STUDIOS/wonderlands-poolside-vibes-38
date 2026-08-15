@@ -848,6 +848,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         )}
         <BoardDensityToggle compact={compact} onToggle={toggleDensity} className="ml-auto" />
       </div>
+      </div>
 
       {/* Glass door carousel — pick a model, then click a wall to drop it in */}
       {mode === 'door' && (

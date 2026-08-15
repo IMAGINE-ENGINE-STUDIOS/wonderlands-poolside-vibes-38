@@ -764,6 +764,7 @@ const GrassDrawingBoard: React.FC<Props> = ({
           <BoardDensityToggle compact={compact} onToggle={toggleDensity} />
         </div>
       </div>
+      </div>
 
       {/* Turf swatch carousel — applies to new or selected areas */}
       {!compact && (
