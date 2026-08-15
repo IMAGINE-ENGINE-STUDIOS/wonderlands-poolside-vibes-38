@@ -7,7 +7,10 @@ import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flip
 import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
-import FlipProductBook from "./FlipProductBook";
+import { useProductBookPages } from "./FlipProductBook";
+
+/** Placeholder so the dossier page hook can run unconditionally. */
+const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as any;
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
@@ -948,7 +951,31 @@ const FlipMagazine: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart]);
 
-  const pages = mode === "home" ? homePages : categoryPages;
+  /* Dossier pages are composed here and rendered in this same flipbook —
+     opening "More" never spawns a second book. */
+  const dossierCategory = useMemo(
+    () => ({
+      id: category.id,
+      label: category.label,
+      tagline: category.tagline,
+      description: category.description,
+      notes: category.notes,
+      images: category.images,
+    }),
+    [category],
+  );
+  const dossierPages = useProductBookPages({
+    entry: dossier ?? EMPTY_DOSSIER_ENTRY,
+    category: dossierCategory,
+    groups,
+    portrait,
+  });
+
+  const pages: { key: string; render: () => React.ReactNode; tone?: "cover" | "paper" }[] = dossier
+    ? dossierPages
+    : mode === "home"
+      ? homePages
+      : categoryPages;
 
   const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
@@ -1103,24 +1130,9 @@ const FlipMagazine: React.FC = () => {
           className={`mx-auto flex justify-center transition-opacity duration-300 ease-out ${
             fading || loading ? "opacity-0" : "opacity-100"
           }`}
-          style={{ perspective: dossier ? undefined : "3000px", minHeight: dims.h }}
+          style={{ perspective: "3000px", minHeight: dims.h }}
         >
-          {dossier ? (
-            <FlipProductBook
-              inline
-              entry={dossier}
-              category={{
-                id: category.id,
-                label: category.label,
-                tagline: category.tagline,
-                description: category.description,
-                notes: category.notes,
-                images: category.images,
-              }}
-              groups={groups}
-              onClose={closeDossier}
-            />
-          ) : loading ? (
+          {loading ? (
             <div
               className="flex items-center justify-center border border-border/60"
               style={{ width: portrait ? dims.w : dims.w * 2, height: dims.h }}
@@ -1128,7 +1140,7 @@ const FlipMagazine: React.FC = () => {
           ) : (
 
             <HTMLFlipBook
-              key={`${mode}-${categoryId}-${pages.length}-${dims.w}`}
+              key={`${mode}-${categoryId}-${dossier?.id ?? "edition"}-${pages.length}-${dims.w}`}
               ref={bookRef}
               width={dims.w}
               height={dims.h}
@@ -1163,7 +1175,7 @@ const FlipMagazine: React.FC = () => {
             </HTMLFlipBook>
           )}
         </div>
-        {!dossier && (
+        {(
           <div className="mt-8 flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-3">
               <button
@@ -1185,9 +1197,11 @@ const FlipMagazine: React.FC = () => {
               {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
             </p>
             <p className="max-w-md text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-              {mode === "home"
-                ? "One page per discipline — open any edition to see every model"
-                : "Every model is a spread — every option chapter its own page"}
+              {dossier
+                ? `${dossier.name} — dossier · close to return to ${category.label}`
+                : mode === "home"
+                  ? "One page per discipline — open any edition to see every model"
+                  : "Every model is a spread — every option chapter its own page"}
             </p>
           </div>
         )}
