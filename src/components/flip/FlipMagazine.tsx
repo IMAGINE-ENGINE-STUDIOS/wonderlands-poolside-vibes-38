@@ -9,6 +9,7 @@ import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
 import FlipProductBook from "./FlipProductBook";
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
+import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
 
 /**
