@@ -81,6 +81,7 @@ const FlipDossierEdition: React.FC = () => {
       description: category.description,
       notes: category.notes,
       images: category.images,
+      siblings: (entries ?? []).map((e) => ({ name: e.name, brand: e.brand, image: e.image })),
     },
     portrait,
   });
