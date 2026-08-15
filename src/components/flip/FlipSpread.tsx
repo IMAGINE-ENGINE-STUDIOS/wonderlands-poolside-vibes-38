@@ -32,22 +32,26 @@ export type SpreadOptions = {
 
 type PageLike = { key: string; tone?: string; render: () => React.ReactNode };
 
-/** Half of the photograph, positioned so both pages form one image. */
+/**
+ * Half of the photograph. The image is laid out at twice the page width and
+ * cropped with object-cover, so the two pages form one continuous photograph
+ * without ever stretching or squashing the original proportions.
+ */
 const Half: React.FC<{ image: string; side: "left" | "right"; children?: React.ReactNode }> = ({
   image,
   side,
   children,
 }) => (
   <div className="relative h-full w-full overflow-hidden bg-black">
-    <div
-      className="absolute inset-0 animate-ken-burns"
-      style={{
-        backgroundImage: `url(${image})`,
-        backgroundSize: "200% 100%",
-        backgroundPosition: side === "left" ? "left center" : "right center",
-        backgroundRepeat: "no-repeat",
-      }}
-    />
+    <div className={`absolute inset-y-0 w-[200%] ${side === "left" ? "left-0" : "-left-full"}`}>
+      <img
+        src={image}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover animate-ken-burns"
+      />
+    </div>
     {/* gutter shading so the fold reads like paper */}
     <div
       className={`pointer-events-none absolute inset-y-0 w-16 ${
@@ -57,6 +61,7 @@ const Half: React.FC<{ image: string; side: "left" | "right"; children?: React.R
     <div className="relative h-full w-full text-white">{children}</div>
   </div>
 );
+
 
 const Panel: React.FC<{ o: SpreadOptions }> = ({ o }) => (
   <div
