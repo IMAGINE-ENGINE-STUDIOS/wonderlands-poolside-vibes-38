@@ -365,7 +365,7 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
       ),
     });
 
-    /* option chapters — one page each */
+    /* option chapters — one illustrated page each */
     groups.forEach((g, i) => {
       list.push({
         key: `group-${g.title}`,
@@ -373,7 +373,20 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
           <div className="flex h-full w-full flex-col p-7 sm:p-9">
             <Eyebrow>{String(i + 3).padStart(2, "0")} — {g.title}</Eyebrow>
             <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{g.note}</h3>
-            <ul className="mt-5 space-y-0">
+            <div className="relative mt-4 h-[26%] overflow-hidden">
+              <img
+                src={plateAt(i + 1)}
+                alt={`${g.title} — ${category.label}`}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+              <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
+                {g.title} — {entry.name}
+              </p>
+            </div>
+            <ul className="mt-4 min-h-0 flex-1 space-y-0 overflow-hidden">
               {g.options.map((o, oi) => (
                 <li key={o} className="flex items-baseline gap-3 border-t border-border/50 py-2">
                   <span className="font-serif text-xs text-muted-foreground">{String(oi + 1).padStart(2, "0")}</span>
@@ -381,13 +394,50 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
                 </li>
               ))}
             </ul>
-            <p className="mt-auto text-[10px] leading-relaxed text-muted-foreground">
-              Selections are confirmed on the survey visit and priced into your estimate.
+            <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+              Selections are confirmed on the survey visit and priced into your estimate — every option above is
+              installed by our own crews.
             </p>
           </div>
         ),
       });
     });
+
+    /* plates — a gallery of the discipline */
+    if (gallery.length > 1) {
+      list.push({
+        key: "plates",
+        render: () => (
+          <div className="flex h-full w-full flex-col p-7 sm:p-9">
+            <div className="flex items-baseline justify-between gap-3">
+              <Eyebrow>Plates</Eyebrow>
+              <Eyebrow className="hidden sm:block">{category.label}</Eyebrow>
+            </div>
+            <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Seen in place</h3>
+            <div className="mt-4 grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-2">
+              {[0, 1, 2, 3].map((n) => (
+                <div key={n} className="relative overflow-hidden">
+                  <img
+                    src={plateAt(n)}
+                    alt={`${category.label} plate ${n + 1}`}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
+                  />
+                  <span className="absolute bottom-1 left-2 font-serif text-[10px] text-white/85">
+                    {String(n + 1).padStart(2, "0")}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+              Photographed on completed Wonderlands installations
+            </p>
+          </div>
+        ),
+      });
+    }
+
 
     /* brand note */
     list.push({
