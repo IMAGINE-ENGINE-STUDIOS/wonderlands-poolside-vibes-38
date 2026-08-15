@@ -674,7 +674,7 @@ export const useProductBookPages = ({
               entry={entry}
               categoryLabel={category.label}
               categoryId={category.id}
-              fallbackImage={plateAt(i + 1)}
+              fallbackImage={entry.image}
             />
           ),
         });
