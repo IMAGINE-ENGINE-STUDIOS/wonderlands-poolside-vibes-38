@@ -367,6 +367,7 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
         style={{}}
         startPage={0}
         useMouseEvents
+        clickEventForward={false}
         swipeDistance={24}
         showPageCorners
         disableFlipByClick={false}
