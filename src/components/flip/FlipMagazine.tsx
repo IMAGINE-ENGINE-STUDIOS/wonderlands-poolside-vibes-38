@@ -948,7 +948,31 @@ const FlipMagazine: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart]);
 
-  const pages = mode === "home" ? homePages : categoryPages;
+  /* Dossier pages are composed here and rendered in this same flipbook —
+     opening "More" never spawns a second book. */
+  const dossierCategory = useMemo(
+    () => ({
+      id: category.id,
+      label: category.label,
+      tagline: category.tagline,
+      description: category.description,
+      notes: category.notes,
+      images: category.images,
+    }),
+    [category],
+  );
+  const dossierPages = useProductBookPages({
+    entry: dossier ?? EMPTY_DOSSIER_ENTRY,
+    category: dossierCategory,
+    groups,
+    portrait,
+  });
+
+  const pages: { key: string; render: () => React.ReactNode; tone?: string }[] = dossier
+    ? dossierPages
+    : mode === "home"
+      ? homePages
+      : categoryPages;
 
   const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
