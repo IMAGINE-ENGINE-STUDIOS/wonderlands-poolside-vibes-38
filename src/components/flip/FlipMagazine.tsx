@@ -189,6 +189,50 @@ const FlipMagazine: React.FC = () => {
     setMode("home");
   }, [setMode]);
 
+  /* ------------------------------- ORDER DESK ------------------------------- */
+  const cart = useOptionalShoppingCart();
+  const cartItems = cart?.cartItems ?? [];
+  const entryCartId = useCallback((p: ConsoleEntry) => `flip-${categoryId}-${p.id}`, [categoryId]);
+  const inCart = useCallback(
+    (p: ConsoleEntry) => cartItems.some((c) => c.id === `flip-${categoryId}-${p.id}`),
+    [cartItems, categoryId],
+  );
+  const addEntry = useCallback(
+    (p: ConsoleEntry) => {
+      if (!cart) return;
+      cart.addToCart({
+        id: `flip-${categoryId}-${p.id}`,
+        name: p.name,
+        price: p.price ?? 0,
+        image: p.image,
+        category: category.label,
+      });
+      cart.setIsCartOpen?.(false);
+    },
+    [cart, categoryId, category.label],
+  );
+
+  /** Editorial add-to-order control used across the magazine pages. */
+  const AddButton: React.FC<{ entry: ConsoleEntry; tone?: "light" | "dark" }> = ({ entry, tone = "light" }) => {
+    const added = inCart(entry);
+    return (
+      <button
+        onClick={() => addEntry(entry)}
+        className={`inline-flex items-center justify-between gap-3 border px-4 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors ${
+          tone === "dark"
+            ? "border-white/70 text-white hover:bg-white hover:text-black"
+            : added
+              ? "border-foreground bg-foreground text-background"
+              : "border-foreground text-foreground hover:bg-foreground hover:text-background"
+        }`}
+      >
+        {added ? "In your order" : "Add to the order"}
+        {added ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+      </button>
+    );
+  };
+
+
   /* ---------------------------------- HOME ---------------------------------- */
   const homePages = useMemo<Page[]>(() => {
     const hero = ITEMS.slice(0, 6);
