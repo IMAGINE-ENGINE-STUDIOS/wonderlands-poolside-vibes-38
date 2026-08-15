@@ -174,21 +174,35 @@ const FlipMagazine: React.FC = () => {
   const groups = OPTION_GROUPS[categoryId] ?? fallbackGroups;
   const products = useMemo(() => (entries ?? []).slice(0, MAX_MODELS), [entries]);
 
-  const openCategory = useCallback(
-    (id: string) => {
+  // Cross-fade the book while an edition is swapped in — the page never changes,
+  // only the content inside the flip.
+  const [fading, setFading] = useState(false);
+  const swapTimer = useRef<number | null>(null);
+  const swap = useCallback((apply: () => void) => {
+    setFading(true);
+    if (swapTimer.current) window.clearTimeout(swapTimer.current);
+    swapTimer.current = window.setTimeout(() => {
       startPageRef.current = 0;
       setPage(0);
-      setCategoryId(id);
-      setMode("category");
+      apply();
+    }, 220);
+  }, []);
+  useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
+
+  const openCategory = useCallback(
+    (id: string) => {
+      swap(() => {
+        setCategoryId(id);
+        setMode("category");
+      });
     },
-    [setCategoryId, setMode],
+    [swap, setCategoryId, setMode],
   );
 
   const openHome = useCallback(() => {
-    startPageRef.current = 0;
-    setPage(0);
-    setMode("home");
-  }, [setMode]);
+    swap(() => setMode("home"));
+  }, [swap, setMode]);
+
 
   /* ------------------------------- ORDER DESK ------------------------------- */
   const cart = useOptionalShoppingCart();
