@@ -152,6 +152,7 @@ const FlipDossierEdition: React.FC = () => {
               swipeDistance={30}
               showPageCorners
               disableFlipByClick
+              style={{}}
               className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
               onFlip={(e: any) => setPage(e.data as number)}
             >
