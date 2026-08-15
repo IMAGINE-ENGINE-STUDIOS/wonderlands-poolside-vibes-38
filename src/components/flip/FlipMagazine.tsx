@@ -1198,11 +1198,7 @@ const FlipMagazine: React.FC = () => {
               {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
             </p>
             <p className="max-w-md text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-              {dossier
-                ? `${dossier.name} — dossier · close to return to ${category.label}`
-                : mode === "home"
-                  ? "One page per discipline — open any edition to see every model"
-                  : "Every model is a spread — every option chapter its own page"}
+              All prices include delivery, installation and the product as described.
             </p>
           </div>
         )}
