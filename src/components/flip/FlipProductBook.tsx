@@ -432,7 +432,11 @@ export const useProductBookPages = ({
     [category.id, entry.image, entry.name, entry.brand],
   );
 
-  const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
+  /** Nth photograph of this product, or undefined — plates are never repeated. */
+  const plateAt = useCallback((i: number) => gallery[i], [gallery]);
+  /** True when the product has more photography than its single plate. */
+  const rich = gallery.length > 1;
+
 
 
 
@@ -466,49 +470,84 @@ export const useProductBookPages = ({
       ),
     });
 
-    /* statement spread — one photograph across both pages, data panel on the left */
-    pushSpread(
-      list,
-      {
-        key: "statement",
-        image: plateAt(1),
-        eyebrow: `${entry.brand ?? "Wonderlands World"} — ${category.label}`,
-        title: entry.name,
-        titleItalic: category.tagline ?? category.label,
-        body: story.lede,
-        stats: [
-          { value: price, label: "Turnkey investment" },
-          { value: metaBits[0] ?? category.label, label: "Dimensions" },
-          { value: "Florida", label: "Engineered & installed" },
-        ],
-        lockup: "Wonderlands World — Dossier",
-        caption: `${entry.name} — photographed on site`,
-      },
-      portrait,
-      plateAt(2),
-    );
-
-    /* the written piece — image led, full editorial copy */
-    list.push({
-      key: "story-image",
-      render: () => (
-        <div className="relative h-full w-full overflow-hidden">
-          <img
-            src={plateAt(1)}
-            alt={`${entry.name} in place`}
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-          <div className="relative flex h-full flex-col justify-end p-7 text-white sm:p-9">
-            <p className="text-[9px] uppercase tracking-[0.4em] opacity-75">The piece</p>
-            <p className="mt-3 max-w-sm font-serif text-xl font-light leading-snug sm:text-2xl">{story.lede}</p>
-            <div className="mt-4 h-px w-14 origin-left bg-white/60 animate-rule-draw" />
+    /* statement — a photographic spread only when a second plate exists;
+       single-plate products get a typographic statement page instead, so no
+       photograph is ever repeated or stretched to fill two pages. */
+    if (rich) {
+      pushSpread(
+        list,
+        {
+          key: "statement",
+          image: plateAt(1)!,
+          eyebrow: `${entry.brand ?? "Wonderlands World"} — ${category.label}`,
+          title: entry.name,
+          titleItalic: category.tagline ?? category.label,
+          body: story.lede,
+          stats: [
+            { value: price, label: "Turnkey investment" },
+            { value: metaBits[0] ?? category.label, label: "Dimensions" },
+            { value: "Florida", label: "Engineered & installed" },
+          ],
+          lockup: "Wonderlands World — Dossier",
+          caption: `${entry.name} — photographed on site`,
+        },
+        portrait,
+        plateAt(2),
+      );
+    } else {
+      list.push({
+        key: "statement-type",
+        render: () => (
+          <div className="flex h-full w-full flex-col justify-center overflow-hidden p-8 sm:p-10">
+            <Eyebrow>{entry.brand ?? "Wonderlands World"} — {category.label}</Eyebrow>
+            <h3 className="mt-3 font-serif text-3xl font-light uppercase leading-none tracking-[0.06em] sm:text-4xl">
+              {entry.name}
+            </h3>
+            <p className="mt-1 font-serif text-3xl font-light italic leading-none sm:text-4xl">
+              {category.tagline ?? category.label}
+            </p>
+            <div className="mt-5 h-px w-14 origin-left bg-foreground/50 animate-rule-draw" />
+            <p className="mt-5 max-w-[38ch] font-serif text-[13px] leading-relaxed text-foreground/85">{story.lede}</p>
+            <div className="mt-8 grid grid-cols-3 gap-4">
+              {[
+                { value: price, label: "Turnkey investment" },
+                { value: metaBits[0] ?? category.label, label: "Dimensions" },
+                { value: "Florida", label: "Engineered & installed" },
+              ].map((s) => (
+                <div key={s.label} className="border-t border-border/50 pt-2">
+                  <p className="font-serif text-lg font-light leading-none">{s.value}</p>
+                  <p className="mt-1 text-[8px] uppercase tracking-[0.28em] text-muted-foreground">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ),
-    });
+        ),
+      });
+    }
+
+    /* the written piece — image led when a second plate exists */
+    if (rich) {
+      list.push({
+        key: "story-image",
+        render: () => (
+          <div className="relative h-full w-full overflow-hidden">
+            <img
+              src={plateAt(1)}
+              alt={`${entry.name} in place`}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+            <div className="relative flex h-full flex-col justify-end p-7 text-white sm:p-9">
+              <p className="text-[9px] uppercase tracking-[0.4em] opacity-75">The piece</p>
+              <p className="mt-3 max-w-sm font-serif text-xl font-light leading-snug sm:text-2xl">{story.lede}</p>
+              <div className="mt-4 h-px w-14 origin-left bg-white/60 animate-rule-draw" />
+            </div>
+          </div>
+        ),
+      });
+    }
 
     list.push({
       key: "story-text",
@@ -519,19 +558,26 @@ export const useProductBookPages = ({
           <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
             {story.body}
           </p>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {[plateAt(2), plateAt(3)].map((src, i) => (
-              <div key={`${src}-${i}`} className="relative aspect-[4/5] overflow-hidden">
-                <img
-                  src={src}
-                  alt={`${entry.name} detail ${i + 1}`}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-105"
-                />
+          {(() => {
+            const details = [plateAt(2), plateAt(3)].filter(Boolean) as string[];
+            if (!details.length) return null;
+            return (
+              <div className={`mt-4 grid gap-2 ${details.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                {details.map((src, i) => (
+                  <div key={src} className="relative aspect-[4/5] overflow-hidden">
+                    <img
+                      src={src}
+                      alt={`${entry.name} detail ${i + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-105"
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
+
           <div className="mt-auto space-y-2 border-t border-border/50 pt-3">
             <div>
               <Eyebrow>Installation</Eyebrow>
@@ -589,13 +635,21 @@ export const useProductBookPages = ({
               </li>
             ))}
           </ul>
-          <div className="relative mt-4 min-h-0 flex-1 overflow-hidden">
-            <img src={plateAt(1)} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
-              {entry.name} — as installed
-            </p>
-          </div>
+          {plateAt(1) ? (
+            <div className="relative mt-4 min-h-0 flex-1 overflow-hidden">
+              <img src={plateAt(1)} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
+                {entry.name} — as installed
+              </p>
+            </div>
+          ) : (
+            <div className="mt-auto border-t border-border/50 pt-3">
+              <Eyebrow>Installation</Eyebrow>
+              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.craft}</p>
+            </div>
+          )}
+
 
         </div>
       ),
@@ -620,7 +674,7 @@ export const useProductBookPages = ({
               entry={entry}
               categoryLabel={category.label}
               categoryId={category.id}
-              fallbackImage={plateAt(i + 1)}
+              fallbackImage={entry.image}
             />
           ),
         });
@@ -629,13 +683,14 @@ export const useProductBookPages = ({
 
 
 
-    /* portfolio spread — full imagery carried over the gutter */
-    if (gallery.length > 1) {
+    /* portfolio spread — only when two unused plates exist, so the spread never
+       repeats a photograph already printed nor stretches one to fill two pages */
+    if (gallery.length > 3) {
       pushSpread(
         list,
         {
           key: "portfolio",
-          image: plateAt(2),
+          image: plateAt(2)!,
           eyebrow: "Portfolio",
           title: "Seen in place",
           titleItalic: category.label,
@@ -648,8 +703,9 @@ export const useProductBookPages = ({
       );
     }
 
-    /* plates — a gallery of the discipline */
-    if (gallery.length > 1) {
+    /* plates — a grid, only when there are four distinct photographs to print */
+    if (gallery.length >= 4) {
+      const gridPlates = gallery.slice(gallery.length - 4);
       list.push({
         key: "plates",
         render: () => (
@@ -660,10 +716,10 @@ export const useProductBookPages = ({
             </div>
             <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Seen in place</h3>
             <div className="mt-4 grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-2">
-              {[0, 1, 2, 3].map((n) => (
-                <div key={n} className="relative overflow-hidden">
+              {gridPlates.map((src, n) => (
+                <div key={src} className="relative overflow-hidden">
                   <img
-                    src={plateAt(n)}
+                    src={src}
                     alt={`${category.label} plate ${n + 1}`}
                     loading="lazy"
                     decoding="async"
@@ -684,6 +740,7 @@ export const useProductBookPages = ({
     }
 
 
+
     /* brand note */
     list.push({
       key: "brand",
@@ -694,12 +751,12 @@ export const useProductBookPages = ({
           <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
             {brandNote}
           </p>
-          {gallery[1] && (
-            <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
-              <img src={gallery[1]} alt={`${entry.brand ?? category.label} plate`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+          <div className="mt-auto border-t border-border/50 pt-3">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+              {entry.brand ?? "Wonderlands World"} — supplied, set and warrantied through Wonderlands World
+            </p>
+          </div>
 
-            </div>
-          )}
         </div>
       ),
     });
