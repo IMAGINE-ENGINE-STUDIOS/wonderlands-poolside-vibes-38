@@ -2,7 +2,7 @@ import * as React from "react";
 const { useState } = React;
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AdvancedSearch from "./AdvancedSearch";
-import FlipIndex from "./FlipIndex";
+import FlipMagazine from "./flip/FlipMagazine";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
 import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
 
@@ -41,8 +41,8 @@ const Hero = () => {
       </div>
     </section>
 
-    {/* Editorial category index banner */}
-    <FlipIndex />
+    {/* FLIP V4 — The Outdoor Annual */}
+    <FlipMagazine />
 
     <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} />
     </>;
