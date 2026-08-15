@@ -15,6 +15,8 @@ import {
   Eye,
   PenLine,
   RotateCcw,
+  Sparkles,
+  Columns2,
   ArrowUp,
   ArrowDown,
   X,
@@ -33,6 +35,7 @@ import {
   type PageTransition,
   type TextStyle,
 } from "./flipBuilderTypes";
+import { FLIP_WIDGETS, FlipWidgetSurface, widgetMeta } from "./flipWidgets";
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -67,6 +70,10 @@ const ANIMATION_CLASS: Record<BlockAnimation, string> = {
   rise: "fb-rise",
   ken: "animate-ken-burns",
 };
+
+const FAMILIES = ["All", "Covers", "Editorial", "Imagery", "Data", "Spreads", "Widgets"] as const;
+
+const WIDGET_GROUPS = Array.from(new Set(FLIP_WIDGETS.map((w) => w.group)));
 
 const TRANSITIONS: { id: PageTransition; label: string }[] = [
   { id: "flip", label: "Page turn" },
@@ -125,6 +132,10 @@ const BlockView: React.FC<{ block: Block; tone: "paper" | "cover"; editing?: boo
         <span className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Film</span>
       </div>
     );
+  }
+
+  if (block.kind === "widget") {
+    return <FlipWidgetSurface id={block.widget} scale={block.scale ?? 0.6} editing={editing} />;
   }
 
   if (block.kind === "rule") {
@@ -188,6 +199,8 @@ const FlipBuilder: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [preview, setPreview] = usePersistentState<boolean>("flip.builder.preview", false);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryFamily, setGalleryFamily] = useState<string>("All");
+  const [featuresOpen, setFeaturesOpen] = useState(false);
   const [previewPage, setPreviewPage] = useState(0);
   const canvasRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<any>(null);
@@ -230,8 +243,11 @@ const FlipBuilder: React.FC = () => {
   );
 
   const addBlock = useCallback(
-    (kind: Block["kind"]) => {
+    (kind: Block["kind"], widgetId?: string) => {
       const block: Block =
+        kind === "widget"
+          ? { id: uid(), kind, x: 4, y: 8, w: 92, h: 70, widget: widgetId ?? FLIP_WIDGETS[0].id, scale: 0.6 }
+          :
         kind === "text"
           ? { id: uid(), kind, x: 10, y: 40, w: 60, h: 10, text: "New text", style: "body", align: "left", animation: "none" }
           : kind === "rule"
@@ -255,10 +271,10 @@ const FlipBuilder: React.FC = () => {
   const addPage = useCallback(
     (layoutId?: string) => {
       const preset = LAYOUTS.find((l) => l.id === layoutId) ?? LAYOUTS[LAYOUTS.length - 1];
-      const fresh = preset.build();
+      const fresh = [preset.build(), ...(preset.buildFacing ? [preset.buildFacing()] : [])];
       setDoc((d) => {
         const next = [...d.pages];
-        next.splice(index + 1, 0, fresh);
+        next.splice(index + 1, 0, ...fresh);
         return { ...d, pages: next };
       });
       setPageIndex(index + 1);
@@ -383,6 +399,12 @@ const FlipBuilder: React.FC = () => {
             className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
           >
             <LayoutTemplate className="h-3.5 w-3.5" /> Layouts
+          </button>
+          <button
+            onClick={() => setFeaturesOpen(true)}
+            className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Features
           </button>
           <button
             onClick={() => {
@@ -600,6 +622,7 @@ const FlipBuilder: React.FC = () => {
                   { kind: "image" as const, icon: ImagePlus, label: "Image" },
                   { kind: "video" as const, icon: Film, label: "Film" },
                   { kind: "rule" as const, icon: Minus, label: "Rule" },
+                  { kind: "widget" as const, icon: Sparkles, label: "Widget" },
                 ]
               ).map(({ kind, icon: Icon, label }) => (
                 <button
@@ -614,7 +637,7 @@ const FlipBuilder: React.FC = () => {
           </div>
 
           {/* Inspector */}
-          <aside className="border-t border-border/60 px-4 py-5 lg:border-l lg:border-t-0">
+          <aside className="min-w-0 overflow-hidden border-t border-border/60 px-4 py-5 lg:border-l lg:border-t-0">
             <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Page</p>
             <div className="mt-3 grid gap-3">
               <label className="grid gap-1">
@@ -748,6 +771,41 @@ const FlipBuilder: React.FC = () => {
                     </>
                   )}
 
+                  {selected.kind === "widget" && (
+                    <>
+                      <label className="grid gap-1">
+                        <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Widget</span>
+                        <select
+                          value={selected.widget ?? ""}
+                          onChange={(e) => patchBlock(selected.id, { widget: e.target.value })}
+                          className="border border-border/60 bg-background px-2 py-1.5 text-[11px] text-foreground"
+                        >
+                          {FLIP_WIDGETS.map((w) => (
+                            <option key={w.id} value={w.id}>
+                              {w.group} — {w.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <p className="text-[10px] leading-relaxed text-muted-foreground">
+                        {widgetMeta(selected.widget)?.note}
+                      </p>
+                      <label className="grid gap-1">
+                        <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+                          Fit — {Math.round((selected.scale ?? 0.6) * 100)}%
+                        </span>
+                        <input
+                          type="range"
+                          min={30}
+                          max={100}
+                          step={2}
+                          value={Math.round((selected.scale ?? 0.6) * 100)}
+                          onChange={(e) => patchBlock(selected.id, { scale: Number(e.target.value) / 100 })}
+                        />
+                      </label>
+                    </>
+                  )}
+
                   {selected.kind !== "rule" && (
                     <label className="grid gap-1">
                       <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Animation</span>
@@ -781,22 +839,41 @@ const FlipBuilder: React.FC = () => {
       {/* Layout gallery */}
       {galleryOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6">
-          <div className="max-h-[88vh] w-full max-w-4xl overflow-y-auto border border-border/60 bg-background">
-            <div className="sticky top-0 flex items-center justify-between border-b border-border/60 bg-background px-5 py-4">
-              <div>
-                <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Layout gallery</p>
-                <p className="mt-1 font-serif text-2xl font-light text-foreground">Add a page</p>
+          <div className="max-h-[88vh] w-full max-w-5xl overflow-y-auto border border-border/60 bg-background">
+            <div className="sticky top-0 z-10 border-b border-border/60 bg-background px-5 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                    Layout gallery — {LAYOUTS.length} formats
+                  </p>
+                  <p className="mt-1 font-serif text-2xl font-light text-foreground">Add a page</p>
+                </div>
+                <button
+                  onClick={() => setGalleryOpen(false)}
+                  aria-label="Close the layout gallery"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <button
-                onClick={() => setGalleryOpen(false)}
-                aria-label="Close the layout gallery"
-                className="flex h-9 w-9 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {FAMILIES.map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setGalleryFamily(f)}
+                    className={`border px-3 py-1.5 text-[9px] uppercase tracking-[0.28em] transition-colors ${
+                      galleryFamily === f
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border/60 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
-              {LAYOUTS.map((l) => (
+              {LAYOUTS.filter((l) => galleryFamily === "All" || l.family === galleryFamily).map((l) => (
                 <button
                   key={l.id}
                   onClick={() => addPage(l.id)}
@@ -804,14 +881,20 @@ const FlipBuilder: React.FC = () => {
                 >
                   <div className="relative h-40 overflow-hidden border-b border-border/40">
                     <div
-                      className="pointer-events-none absolute left-0 top-0 origin-top-left"
+                      className="pointer-events-none absolute left-0 top-0 flex origin-top-left"
                       style={{ width: 400, height: 533, transform: "scale(0.55)" }}
                     >
                       <PageView page={l.build()} editing />
                     </div>
+                    {l.buildFacing && (
+                      <span className="absolute right-2 top-2 inline-flex items-center gap-1 border border-border/60 bg-background/85 px-1.5 py-1 text-[8px] uppercase tracking-[0.24em] text-foreground backdrop-blur">
+                        <Columns2 className="h-3 w-3" /> Spread
+                      </span>
+                    )}
                   </div>
                   <div className="px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-[0.28em] text-foreground">{l.name}</p>
+                    <p className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground">{l.family}</p>
+                    <p className="mt-1 text-[10px] uppercase tracking-[0.28em] text-foreground">{l.name}</p>
                     <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{l.note}</p>
                   </div>
                 </button>
@@ -820,6 +903,57 @@ const FlipBuilder: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Features — every Wonderlands widget, placed on the current page */}
+      {featuresOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6">
+          <div className="max-h-[88vh] w-full max-w-4xl overflow-y-auto border border-border/60 bg-background">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-border/60 bg-background px-5 py-4">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                  Features — {FLIP_WIDGETS.length} Wonderlands widgets
+                </p>
+                <p className="mt-1 font-serif text-2xl font-light text-foreground">Place a live widget</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Every board, configurator, calculator and application, running on the leaf.
+                </p>
+              </div>
+              <button
+                onClick={() => setFeaturesOpen(false)}
+                aria-label="Close the features gallery"
+                className="flex h-9 w-9 shrink-0 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-5">
+              {WIDGET_GROUPS.map((g) => (
+                <div key={g} className="mb-6 last:mb-0">
+                  <p className="border-b border-border/50 pb-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                    {g}
+                  </p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {FLIP_WIDGETS.filter((w) => w.group === g).map((w) => (
+                      <button
+                        key={w.id}
+                        onClick={() => {
+                          addBlock("widget", w.id);
+                          setFeaturesOpen(false);
+                        }}
+                        className="border border-border/60 px-4 py-3 text-left transition-colors hover:border-foreground"
+                      >
+                        <p className="text-[10px] uppercase tracking-[0.28em] text-foreground">{w.label}</p>
+                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{w.note}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
     </section>
   );
 };
