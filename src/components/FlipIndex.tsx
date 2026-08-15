@@ -204,14 +204,19 @@ const Notes: React.FC<{ notes: string[] }> = ({ notes }) => (
 );
 
 const ExploreButton: React.FC<{ item: Item }> = ({ item }) => (
-  <button
-    onClick={() => goToSection(item.id)}
+  <a
+    href={`/#${item.id}`}
+    onClick={(e) => {
+      e.preventDefault();
+      goToSection(item.id);
+    }}
     className="group/btn mt-auto inline-flex w-full items-center justify-between border border-foreground bg-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
   >
     Explore {item.label}
     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
-  </button>
+  </a>
 );
+
 
 const Frame: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "" }) => (
   <div className={`group relative overflow-hidden ${className}`}>
@@ -343,11 +348,18 @@ const BackFace: React.FC = () => (
   </div>
 );
 
-const HeroCategoryMarquee: React.FC = () => {
+const setActiveSection = (id: string) => {
+  if (window.location.hash.replace("#", "") === id) return;
+  window.history.replaceState(null, "", `#${id}`);
+  window.dispatchEvent(new Event("hashchange"));
+};
+
+const FlipIndex: React.FC = () => {
   const bookRef = useRef<any>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 588 });
+  const syncingRef = useRef(false);
 
   useEffect(() => {
     const measure = () => {
@@ -370,18 +382,60 @@ const HeroCategoryMarquee: React.FC = () => {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-
   const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
 
+  const turnTo = useCallback((idx: number) => {
+    const flip = bookRef.current?.pageFlip();
+    if (!flip) return;
+    syncingRef.current = true;
+    flip.turnToPage(idx + 1);
+    window.setTimeout(() => {
+      syncingRef.current = false;
+    }, 60);
+  }, []);
+
+  // Section hash → FLIP page (open the book on whichever category is active)
+  useEffect(() => {
+    const sync = () => {
+      if (syncingRef.current) return;
+      const id = window.location.hash.replace("#", "");
+      const idx = ITEMS.findIndex((i) => i.id === id);
+      if (idx >= 0) turnTo(idx);
+    };
+    const t = window.setTimeout(sync, 300);
+    window.addEventListener("hashchange", sync);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener("hashchange", sync);
+    };
+  }, [turnTo]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "ArrowLeft") flipPrev();
+      if (e.key === "ArrowRight") flipNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flipPrev, flipNext]);
+
   const totalPages = ITEMS.length + 2;
+  const activeIdx = currentPage >= 1 && currentPage <= ITEMS.length ? currentPage - 1 : -1;
 
   return (
-    <section aria-label="Product categories" className="relative border-y border-border/60 bg-background">
-      <div className="flex items-baseline justify-between px-6 py-5 md:px-10">
-        <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
-          The Index — Fourteen Disciplines
-        </p>
+    <section id="flip" aria-label="FLIP — category index" className="relative border-y border-border/60 bg-background">
+      <div className="flex flex-wrap items-baseline justify-between gap-3 px-6 py-5 md:px-10">
+        <div className="flex items-baseline gap-3">
+          <p className="font-serif text-xl font-light leading-none tracking-tight text-foreground">FLIP</p>
+          <span className="hidden h-px w-8 bg-foreground/30 sm:block" />
+          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+            The Index — Fourteen Disciplines
+          </p>
+        </div>
         <div className="flex items-center gap-4">
           <p className="hidden text-[10px] uppercase tracking-[0.4em] text-muted-foreground md:block">
             {`${String(Math.min(currentPage + 1, totalPages)).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`}
@@ -405,6 +459,31 @@ const HeroCategoryMarquee: React.FC = () => {
         </div>
       </div>
 
+      {/* Category rail — every category reachable as a real link */}
+      <nav
+        aria-label="Category index"
+        className="flex gap-x-5 gap-y-2 overflow-x-auto border-t border-border/50 px-6 py-3 md:flex-wrap md:justify-center md:overflow-visible md:px-10"
+      >
+        {ITEMS.map((item, idx) => (
+          <a
+            key={item.id}
+            href={`/#${item.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              turnTo(idx);
+              setActiveSection(item.id);
+            }}
+            className={`shrink-0 whitespace-nowrap border-b pb-0.5 text-[9px] uppercase tracking-[0.28em] transition-colors ${
+              activeIdx === idx
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+            }`}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
       <div className="border-t border-border/50 px-2 py-8 md:px-6 md:py-12">
         <div
           className="mx-auto flex justify-center"
@@ -419,7 +498,6 @@ const HeroCategoryMarquee: React.FC = () => {
             maxWidth={1400}
             minHeight={340}
             maxHeight={1400}
-
             showCover
             usePortrait={portrait}
             mobileScrollSupport
@@ -436,7 +514,18 @@ const HeroCategoryMarquee: React.FC = () => {
             disableFlipByClick
             style={{}}
             className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
-            onFlip={(e: any) => setCurrentPage(e.data)}
+            onFlip={(e: any) => {
+              const page = e.data as number;
+              setCurrentPage(page);
+              const item = ITEMS[page - 1];
+              if (item) {
+                syncingRef.current = true;
+                setActiveSection(item.id);
+                window.setTimeout(() => {
+                  syncingRef.current = false;
+                }, 60);
+              }
+            }}
           >
             <BookPage tone="cover">
               <CoverFace />
@@ -452,11 +541,12 @@ const HeroCategoryMarquee: React.FC = () => {
           </HTMLFlipBook>
         </div>
         <p className="mt-8 text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-          Drag a corner or use the arrows to turn the page
+          Turn the page — every spread opens its collection below
         </p>
       </div>
     </section>
   );
 };
 
-export default HeroCategoryMarquee;
+export default FlipIndex;
+
