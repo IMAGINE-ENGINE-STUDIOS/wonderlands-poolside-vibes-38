@@ -61,7 +61,7 @@ type Props = {
    *  - "cost" — the live cost of the drawing
    *  - "options" — calculators and options
    */
-  part?: "board" | "tools" | "cost" | "options";
+  part?: "board" | "board-left" | "board-right" | "tools" | "cost" | "options";
 };
 
 const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" }) => {
