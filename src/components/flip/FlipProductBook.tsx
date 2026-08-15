@@ -173,7 +173,12 @@ const Leaf = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ childr
 ));
 Leaf.displayName = "DossierLeaf";
 
-const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClose, inline = false }) => {
+const FlipProductBook: React.FC<Props> = ({ entry, category, groups: editorialGroups = [], onClose, inline = false }) => {
+  /** Editorial chapters plus every additional feature offered in Wonderlands Studio. */
+  const groups = useMemo(
+    () => mergeStudioGroups(category.id, editorialGroups),
+    [category.id, editorialGroups],
+  );
   const bookRef = useRef<any>(null);
   const navigate = useNavigate();
   const cart = useOptionalShoppingCart();
