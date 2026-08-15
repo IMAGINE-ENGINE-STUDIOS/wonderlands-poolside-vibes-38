@@ -774,12 +774,14 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         }}
         className="mx-auto block rounded-md border border-border bg-white"
         style={{
-          /* keep the drawing square: the bitmap is CANVAS_W x CANVAS_H, so the
-             element must always be laid out at that exact aspect ratio */
+          /* the bitmap is CANVAS_W x CANVAS_H, so the element must always be laid
+             out at that exact ratio — otherwise the drawing shears */
           aspectRatio: `${CANVAS_W} / ${CANVAS_H}`,
-          ...(height
-            ? { height, width: 'auto', maxWidth: '100%' }
-            : { width: '100%', height: 'auto' }),
+          width: '100%',
+          height: 'auto',
+          /* a requested height becomes a width cap so the ratio is never broken */
+          maxWidth: height ? Math.round((height * CANVAS_W) / CANVAS_H) : undefined,
+
           cursor: readOnly
             ? 'default'
             : mode === 'select'
