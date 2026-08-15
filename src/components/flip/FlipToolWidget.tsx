@@ -277,11 +277,38 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
     </div>
   );
 
+  /* the facing leaves of the spread — tools, live cost, calculators */
+  if (part === "tools")
+    return (
+      <FlipBoardTools
+        categoryId={categoryId}
+        onEnlarge={() => setFull(true)}
+        onUpload={() => fileRef.current?.click()}
+        onExpand={onExpand}
+      />
+    );
+  if (part === "cost") return <FlipBoardCost categoryId={categoryId} />;
+  if (part === "options") return <FlipBoardCalculators categoryId={categoryId} />;
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div
+      className="flex min-h-0 flex-1 flex-col"
+      /* while the reader is drawing, the book holds still — no page turns and no
+         drag reaching the flipbook underneath */
+      onPointerEnter={lockFlip}
+      onPointerLeave={unlockFlip}
+      onMouseDown={(e) => e.stopPropagation()}
+      onMouseUp={(e) => e.stopPropagation()}
+      onMouseMove={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+    >
       <div className="min-h-0 flex-1 overflow-auto">
         <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
       </div>
+
 
       <input
         ref={fileRef}
