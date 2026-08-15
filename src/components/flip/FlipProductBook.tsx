@@ -751,12 +751,12 @@ export const useProductBookPages = ({
           <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
             {brandNote}
           </p>
-          {gallery[1] && (
-            <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
-              <img src={gallery[1]} alt={`${entry.brand ?? category.label} plate`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+          <div className="mt-auto border-t border-border/50 pt-3">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+              {entry.brand ?? "Wonderlands World"} — supplied, set and warrantied through Wonderlands World
+            </p>
+          </div>
 
-            </div>
-          )}
         </div>
       ),
     });
