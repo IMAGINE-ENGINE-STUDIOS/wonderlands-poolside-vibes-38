@@ -1,9 +1,11 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
-import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
+import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
+import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
+import AdvancedSearch from "@/components/AdvancedSearch";
 import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
