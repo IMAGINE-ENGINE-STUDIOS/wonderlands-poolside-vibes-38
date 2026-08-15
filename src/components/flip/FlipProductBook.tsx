@@ -314,18 +314,32 @@ const OptionChapter: React.FC<{
         carry it into your estimate — every option is installed by our own crews.
       </p>
 
-      {/* full-spread study — image on one leaf, the options on the other */}
+      {/* full-spread study — the whole book: one leaf is the photograph, the facing leaf the options */}
       {full && (
-        <div className="fixed inset-0 z-[70] flex bg-background/95 backdrop-blur-xl animate-fade-in">
-          <div className="grid h-full w-full grid-cols-1 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-            <div className="relative min-h-[45vh] bg-muted md:min-h-0">{plateArt(true)}</div>
-            <div className="flex min-h-0 flex-col border-t border-border/60 p-6 md:border-l md:border-t-0 md:p-8">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-background/95 p-3 backdrop-blur-xl animate-fade-in sm:p-6">
+          <div
+            className="relative grid h-full w-full max-h-[94vh] max-w-[1500px] grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] overflow-hidden border border-border/60 bg-background shadow-[0_40px_120px_-40px_hsl(var(--foreground)/0.45)] md:grid-cols-2 md:grid-rows-1"
+          >
+            {/* left leaf — the plate, full page */}
+            <div className="relative min-h-0 bg-muted">
+              {plateArt(true)}
+              <p className="absolute inset-x-4 bottom-3 flex items-baseline justify-between gap-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                <span className="truncate">{preview?.label ?? group.title}</span>
+                <span className="shrink-0 opacity-70">{categoryLabel}</span>
+              </p>
+            </div>
+
+            {/* the gutter */}
+            <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-px -translate-x-1/2 bg-border/70 md:block" />
+
+            {/* right leaf — the options, full page */}
+            <div className="flex min-h-0 flex-col border-t border-border/60 p-6 md:border-l-0 md:border-t-0 md:p-9">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <Eyebrow>
                     {entry.name} — {group.title}
                   </Eyebrow>
-                  <h3 className="mt-2 truncate font-serif text-3xl font-light leading-tight">
+                  <h3 className="mt-2 truncate font-serif text-3xl font-light leading-tight sm:text-4xl">
                     {preview?.label ?? group.title}
                   </h3>
                   {preview?.priceLabel && (
@@ -344,12 +358,14 @@ const OptionChapter: React.FC<{
               <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">{group.note}</p>
               <div className="mt-5 flex min-h-0 flex-1 flex-col">{rows(false)}</div>
               <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
-                Select any option to study it at full size, then add it with the + to carry it into your estimate.
+                Select any option to study it at full size on the facing page, then add it with the + to carry it into
+                your estimate.
               </p>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };
@@ -399,13 +415,13 @@ export const useProductBookPages = ({
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
   const price = formatEntryPrice(entry) || "On request";
   const story = STORIES[category.id] ?? FALLBACK_STORY;
-  /** Every image available to this dossier, model plate first. */
-  const gallery = useMemo(() => {
-    /* the model plate first, then only imagery this model is actually offered in
-       (brand-filtered studio options), then the discipline plates */
-    const optionImages = groups.flatMap((g) => g.items.map((i) => i.image)).filter(Boolean) as string[];
-    return Array.from(new Set([entry.image, ...optionImages, ...plates].filter(Boolean))) as string[];
-  }, [entry.image, plates, groups]);
+  /** Product photography for the editorial pages — model plate first, then the
+      discipline's own product imagery. Finish and option swatches are deliberately
+      excluded here: they belong to the feature pages, not the editorial plates. */
+  const gallery = useMemo(
+    () => Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[],
+    [entry.image, plates],
+  );
 
   const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
 
