@@ -375,23 +375,40 @@ const OptionChapter: React.FC<{
         </h3>
       )}
 
-      {/* live preview plate — swaps to the option under the cursor */}
-      <div className="relative mt-4 aspect-[5/4] max-h-[46%] w-full shrink-0 overflow-hidden bg-muted">
-        {plateArt(true)}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
-        <p className="absolute inset-x-3 bottom-2 flex items-baseline justify-between gap-3 pr-10 text-[9px] uppercase tracking-[0.3em] text-white/90">
-          <span className="truncate">{preview?.label ?? group.title}</span>
-          {preview?.priceLabel && <span className="shrink-0 opacity-80">{preview.priceLabel}</span>}
-        </p>
-        <button
-          type="button"
-          onClick={() => setFull(true)}
-          aria-label="Open this option full screen"
-          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center border border-white/50 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black"
-        >
-          <Maximize2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
+      {/* live preview plate — swaps to the option under the cursor. Chapters with no
+          photography use a typographic head instead, so no empty frame is printed. */}
+      {plate || preview?.color ? (
+        <div className="relative mt-4 aspect-[5/4] max-h-[46%] w-full shrink-0 overflow-hidden bg-muted">
+          {plateArt(true)}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+          <p className="absolute inset-x-3 bottom-2 flex items-baseline justify-between gap-3 pr-10 text-[9px] uppercase tracking-[0.3em] text-white/90">
+            <span className="truncate">{preview?.label ?? group.title}</span>
+            {preview?.priceLabel && <span className="shrink-0 opacity-80">{preview.priceLabel}</span>}
+          </p>
+          <button
+            type="button"
+            onClick={() => setFull(true)}
+            aria-label="Open this option full screen"
+            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center border border-white/50 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="mt-4 shrink-0 border-y border-border/60 py-4">
+          <p className="font-serif text-4xl font-light leading-none text-foreground/15">
+            {String(chunk.length).padStart(2, "0")}
+          </p>
+          <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+            {group.title} — {categoryLabel}
+          </p>
+          {preview?.priceLabel && (
+            <p className="mt-1 font-serif text-sm text-muted-foreground">
+              {preview.label} · {preview.priceLabel}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="mt-4 flex min-h-0 flex-1 flex-col">{rows(true)}</div>
       <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
