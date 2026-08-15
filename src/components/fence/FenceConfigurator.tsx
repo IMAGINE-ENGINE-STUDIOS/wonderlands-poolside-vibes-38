@@ -109,11 +109,18 @@ const FenceConfigurator = ({ onTotalChange }: FenceConfiguratorProps) => {
     <div className="space-y-6">
       {/* Layout drawing board */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Ruler className="h-4 w-4 text-primary" />
-          <h4 className="font-semibold">Fence Layout Board</h4>
-        </div>
-        <FenceDrawingBoard layout={layout} onChange={setLayout} onMeasure={handleMeasure} colorHex={color.hex} />
+        <FenceDrawingBoard
+          layout={layout}
+          onChange={setLayout}
+          onMeasure={handleMeasure}
+          colorHex={color.hex}
+          header={
+            <div className="flex items-center gap-2">
+              <Ruler className="h-4 w-4 text-primary" />
+              <h4 className="font-semibold">Fence Layout Board</h4>
+            </div>
+          }
+        />
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
             <Label className="text-xs">Or enter total linear feet</Label>
