@@ -10,6 +10,7 @@ import { mergeStudioGroups, type StudioGroup, type StudioOption } from "@/lib/fl
 import FlipToolWidget from "./FlipToolWidget";
 import { useFlipLocked } from "./flipBoardStore";
 import { pushSpread } from "./FlipSpread";
+import FlipCustomerLetter from "./FlipCustomerLetter";
 
 /**
  * FLIP — Product dossier.
