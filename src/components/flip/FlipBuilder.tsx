@@ -71,6 +71,10 @@ const ANIMATION_CLASS: Record<BlockAnimation, string> = {
   ken: "animate-ken-burns",
 };
 
+const FAMILIES = ["All", "Covers", "Editorial", "Imagery", "Data", "Spreads", "Widgets"] as const;
+
+const WIDGET_GROUPS = Array.from(new Set(FLIP_WIDGETS.map((w) => w.group)));
+
 const TRANSITIONS: { id: PageTransition; label: string }[] = [
   { id: "flip", label: "Page turn" },
   { id: "fade", label: "Fade in" },
