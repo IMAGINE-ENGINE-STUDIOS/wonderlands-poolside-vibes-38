@@ -644,27 +644,6 @@ const FlipMagazine: React.FC = () => {
             {mode === "home" ? "The Outdoor Annual" : category.label}
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <p className="hidden text-[10px] uppercase tracking-[0.4em] text-muted-foreground md:block">
-            {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={flipPrev}
-              aria-label="Previous page"
-              className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={flipNext}
-              aria-label="Next page"
-              className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
       </div>
 
       <nav
