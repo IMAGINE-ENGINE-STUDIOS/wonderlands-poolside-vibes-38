@@ -969,6 +969,7 @@ const FlipMagazine: React.FC = () => {
     category: dossierCategory,
     groups,
     portrait,
+    onOpenBoard: openBoard,
   });
 
   const pages: { key: string; render: () => React.ReactNode; tone?: "cover" | "paper" }[] = dossier
