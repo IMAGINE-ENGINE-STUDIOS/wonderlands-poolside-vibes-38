@@ -683,13 +683,14 @@ export const useProductBookPages = ({
 
 
 
-    /* portfolio spread — full imagery carried over the gutter */
-    if (gallery.length > 1) {
+    /* portfolio spread — only when two unused plates exist, so the spread never
+       repeats a photograph already printed nor stretches one to fill two pages */
+    if (gallery.length > 3) {
       pushSpread(
         list,
         {
           key: "portfolio",
-          image: plateAt(2),
+          image: plateAt(2)!,
           eyebrow: "Portfolio",
           title: "Seen in place",
           titleItalic: category.label,
@@ -702,8 +703,9 @@ export const useProductBookPages = ({
       );
     }
 
-    /* plates — a gallery of the discipline */
-    if (gallery.length > 1) {
+    /* plates — a grid, only when there are four distinct photographs to print */
+    if (gallery.length >= 4) {
+      const gridPlates = gallery.slice(gallery.length - 4);
       list.push({
         key: "plates",
         render: () => (
@@ -714,10 +716,10 @@ export const useProductBookPages = ({
             </div>
             <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Seen in place</h3>
             <div className="mt-4 grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-2">
-              {[0, 1, 2, 3].map((n) => (
-                <div key={n} className="relative overflow-hidden">
+              {gridPlates.map((src, n) => (
+                <div key={src} className="relative overflow-hidden">
                   <img
-                    src={plateAt(n)}
+                    src={src}
                     alt={`${category.label} plate ${n + 1}`}
                     loading="lazy"
                     decoding="async"
@@ -736,6 +738,7 @@ export const useProductBookPages = ({
         ),
       });
     }
+
 
 
     /* brand note */
