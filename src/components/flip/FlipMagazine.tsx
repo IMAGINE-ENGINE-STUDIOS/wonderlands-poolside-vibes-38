@@ -595,7 +595,7 @@ const FlipMagazine: React.FC = () => {
       body: category.description,
       stats: [
         { value: String(products.length || "—"), label: "Models in this edition" },
-        { value: formatEntryPrice(products[0]) || "On request", label: "From" },
+        { value: (products[0] ? formatEntryPrice(products[0]) : "") || "On request", label: "From" },
         { value: "Turnkey", label: "Delivered & installed" },
       ],
       lockup: "Wonderlands World — FLIP",
