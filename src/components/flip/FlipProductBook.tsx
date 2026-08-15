@@ -2,7 +2,7 @@ import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight, Maximize2 } from "lucide-react";
 import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeStudioGroups, type StudioGroup, type StudioOption } from "@/lib/flipStudioFeatures";
@@ -194,6 +194,7 @@ const OptionChapter: React.FC<{
 }> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId, fallbackImage }) => {
   const cart = useOptionalShoppingCart();
   const [active, setActive] = useState<StudioOption | null>(null);
+  const [full, setFull] = useState(false);
   const preview = active ?? chunk.find((o) => o.image) ?? null;
   const plate = preview?.image ?? fallbackImage;
 
@@ -211,6 +212,70 @@ const OptionChapter: React.FC<{
     });
   };
 
+  const rows = (dense: boolean) => (
+    <ul className={`min-h-0 flex-1 space-y-0 ${dense ? "overflow-hidden" : "overflow-y-auto"}`}>
+      {chunk.map((o, oi) => (
+        <li
+          key={o.label}
+          onMouseEnter={() => setActive(o)}
+          onFocus={() => setActive(o)}
+          onClick={() => setActive(o)}
+          className={`flex items-center gap-3 border-t border-border/50 py-2 transition-colors ${
+            active?.label === o.label ? "bg-foreground/[0.04]" : ""
+          }`}
+        >
+          <span className="font-serif text-xs text-muted-foreground">
+            {String(chunkIndex * perPage + oi + 1).padStart(2, "0")}
+          </span>
+          {o.image ? (
+            <img
+              src={o.image}
+              alt={o.label}
+              loading="lazy"
+              decoding="async"
+              className="h-7 w-7 shrink-0 object-cover"
+            />
+          ) : o.color ? (
+            <span className="h-7 w-7 shrink-0 border border-border/60" style={{ backgroundColor: o.color }} />
+          ) : null}
+          <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em]">{o.label}</span>
+          <span className="shrink-0 font-serif text-[11px] text-muted-foreground">{o.priceLabel}</span>
+          <button
+            type="button"
+            aria-label={`Add ${o.label} to the order`}
+            onClick={(e) => {
+              e.stopPropagation();
+              addOption(o);
+            }}
+            className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
+              inOrder(o)
+                ? "border-foreground bg-foreground text-background"
+                : "border-border/70 hover:bg-foreground hover:text-background"
+            }`}
+          >
+            {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+
+  const plateArt = (contain: boolean) =>
+    preview?.color && !preview.image ? (
+      <div className="absolute inset-0" style={{ backgroundColor: preview.color }} />
+    ) : (
+      plate && (
+        <img
+          key={plate}
+          src={plate}
+          alt={`${preview?.label ?? group.title} — ${categoryLabel}`}
+          loading="lazy"
+          decoding="async"
+          className={`absolute inset-0 h-full w-full animate-fade-in ${contain ? "object-contain" : "object-cover"}`}
+        />
+      )
+    );
+
   return (
     <div className="flex h-full w-full flex-col p-7 sm:p-9">
       <Eyebrow>
@@ -226,80 +291,69 @@ const OptionChapter: React.FC<{
       )}
 
       {/* live preview plate — swaps to the option under the cursor */}
-      <div className="relative mt-4 h-[26%] shrink-0 overflow-hidden bg-muted">
-        {preview?.color && !preview.image ? (
-          <div className="absolute inset-0" style={{ backgroundColor: preview.color }} />
-        ) : (
-          plate && (
-            <img
-              key={plate}
-              src={plate}
-              alt={`${preview?.label ?? group.title} — ${categoryLabel}`}
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-0 h-full w-full animate-fade-in object-cover"
-            />
-          )
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <p className="absolute inset-x-3 bottom-2 flex items-baseline justify-between gap-3 text-[9px] uppercase tracking-[0.3em] text-white/90">
+      <div className="relative mt-4 aspect-[5/4] max-h-[46%] w-full shrink-0 overflow-hidden bg-muted">
+        {plateArt(true)}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+        <p className="absolute inset-x-3 bottom-2 flex items-baseline justify-between gap-3 pr-10 text-[9px] uppercase tracking-[0.3em] text-white/90">
           <span className="truncate">{preview?.label ?? group.title}</span>
           {preview?.priceLabel && <span className="shrink-0 opacity-80">{preview.priceLabel}</span>}
         </p>
+        <button
+          type="button"
+          onClick={() => setFull(true)}
+          aria-label="Open this option full screen"
+          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center border border-white/50 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black"
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+        </button>
       </div>
 
-      <ul className="mt-4 min-h-0 flex-1 space-y-0 overflow-hidden">
-        {chunk.map((o, oi) => (
-          <li
-            key={o.label}
-            onMouseEnter={() => setActive(o)}
-            onFocus={() => setActive(o)}
-            onClick={() => setActive(o)}
-            className={`flex items-center gap-3 border-t border-border/50 py-2 transition-colors ${
-              active?.label === o.label ? "bg-foreground/[0.04]" : ""
-            }`}
-          >
-            <span className="font-serif text-xs text-muted-foreground">
-              {String(chunkIndex * perPage + oi + 1).padStart(2, "0")}
-            </span>
-            {o.image ? (
-              <img
-                src={o.image}
-                alt={o.label}
-                loading="lazy"
-                decoding="async"
-                className="h-7 w-7 shrink-0 object-cover"
-              />
-            ) : o.color ? (
-              <span className="h-7 w-7 shrink-0 border border-border/60" style={{ backgroundColor: o.color }} />
-            ) : null}
-            <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em]">{o.label}</span>
-            <span className="shrink-0 font-serif text-[11px] text-muted-foreground">{o.priceLabel}</span>
-            <button
-              type="button"
-              aria-label={`Add ${o.label} to the order`}
-              onClick={(e) => {
-                e.stopPropagation();
-                addOption(o);
-              }}
-              className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
-                inOrder(o)
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border/70 hover:bg-foreground hover:text-background"
-              }`}
-            >
-              {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-4 flex min-h-0 flex-1 flex-col">{rows(true)}</div>
       <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
-        Hover any option to see it on the plate above, then add it with the + to carry it into your estimate — every
-        option is installed by our own crews.
+        Hover any option to see it on the plate above, expand it with the corner control, then add it with the + to
+        carry it into your estimate — every option is installed by our own crews.
       </p>
+
+      {/* full-spread study — image on one leaf, the options on the other */}
+      {full && (
+        <div className="fixed inset-0 z-[70] flex bg-background/95 backdrop-blur-xl animate-fade-in">
+          <div className="grid h-full w-full grid-cols-1 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+            <div className="relative min-h-[45vh] bg-muted md:min-h-0">{plateArt(true)}</div>
+            <div className="flex min-h-0 flex-col border-t border-border/60 p-6 md:border-l md:border-t-0 md:p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <Eyebrow>
+                    {entry.name} — {group.title}
+                  </Eyebrow>
+                  <h3 className="mt-2 truncate font-serif text-3xl font-light leading-tight">
+                    {preview?.label ?? group.title}
+                  </h3>
+                  {preview?.priceLabel && (
+                    <p className="mt-1 font-serif text-lg text-muted-foreground">{preview.priceLabel}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFull(false)}
+                  aria-label="Close the full screen study"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">{group.note}</p>
+              <div className="mt-5 flex min-h-0 flex-1 flex-col">{rows(false)}</div>
+              <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+                Select any option to study it at full size, then add it with the + to carry it into your estimate.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 
 export type ProductBookPage = { key: string; render: () => React.ReactNode };
 
