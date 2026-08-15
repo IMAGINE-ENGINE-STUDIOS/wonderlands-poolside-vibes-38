@@ -216,13 +216,14 @@ const OptionChapter: React.FC<{
   entry: ConsoleEntry;
   categoryLabel: string;
   categoryId: string;
-  fallbackImage?: string;
-}> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId, fallbackImage }) => {
+}> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId }) => {
   const cart = useOptionalShoppingCart();
   const [active, setActive] = useState<StudioOption | null>(null);
   const [full, setFull] = useState(false);
   const preview = active ?? chunk.find((o) => o.image) ?? null;
-  const plate = preview?.image ?? fallbackImage;
+  /* only an option's own photography ever reaches the plate — never the product
+     shot, so a chapter with no swatches prints a typographic head instead. */
+  const plate = preview?.image;
 
   const optionId = (o: StudioOption) =>
     `flip-${categoryId}-${entry.id}-${group.title}-${o.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -823,7 +824,6 @@ export const useProductBookPages = ({
               entry={entry}
               categoryLabel={category.label}
               categoryId={category.id}
-              fallbackImage={entry.image}
             />
           ),
         });
