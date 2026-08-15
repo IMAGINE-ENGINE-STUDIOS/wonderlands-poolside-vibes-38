@@ -13,6 +13,13 @@ export type StudioOption = {
   color?: string;
   /** Collection / sub-feature note */
   note?: string;
+  /**
+   * Pricing unit, mirrored from the Wonderlands Studio feature type:
+   *  - "sqft"  — `price` is a rate per square foot (studio `area` feature)
+   *  - "each"  — `price` is a rate per unit (studio `quantity` feature)
+   *  - undefined — `price` is the exact one-off price (studio `selection`/`boolean`)
+   */
+  unit?: "sqft" | "each";
 };
 
 export type StudioGroup = {
@@ -84,9 +91,14 @@ const GELCOAT: StudioOption[] = [
 const unitFor = (f: FeatureConfig) =>
   f.type === "area" ? " / sq ft" : f.type === "quantity" ? " each" : "";
 
+/** Studio feature type -> pricing unit, so the magazine multiplies exactly as the studio does. */
+const unitKindFor = (f: FeatureConfig): StudioOption["unit"] =>
+  f.type === "area" ? "sqft" : f.type === "quantity" ? "each" : undefined;
+
 const buildItems = (f: FeatureConfig, ctx: StudioContext, prefix = ""): StudioOption[] => {
   const out: StudioOption[] = [];
   const unit = unitFor(f);
+  const unitKind = unitKindFor(f);
 
   if (f.options?.length) {
     f.options.forEach((o) => {
@@ -98,6 +110,7 @@ const buildItems = (f: FeatureConfig, ctx: StudioContext, prefix = ""): StudioOp
         label: prefix ? `${prefix}: ${name}` : name,
         price,
         priceLabel: price > 0 ? `${money(price)}${unit}` : "Included",
+        unit: unitKind,
         image: o.image,
         color: o.color,
         note: ((o as any).collection ?? o.description) as string | undefined,
@@ -111,6 +124,7 @@ const buildItems = (f: FeatureConfig, ctx: StudioContext, prefix = ""): StudioOp
       label: prefix ? `${prefix}: ${f.label}` : f.label,
       price: base,
       priceLabel: base > 0 ? `${money(base)}${unit}` : "Included",
+      unit: unitKind,
       image: f.image,
       note: f.description,
     });
