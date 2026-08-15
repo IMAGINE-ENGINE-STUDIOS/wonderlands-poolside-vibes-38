@@ -7,6 +7,7 @@ import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 import FlipToolWidget from "./FlipToolWidget";
+import { pushSpread } from "./FlipSpread";
 
 /**
  * FLIP — Product dossier.
@@ -254,6 +255,28 @@ export const useProductBookPages = ({
       ),
     });
 
+    /* statement spread — one photograph across both pages, data panel on the left */
+    pushSpread(
+      list,
+      {
+        key: "statement",
+        image: plateAt(1),
+        eyebrow: `${entry.brand ?? "Wonderlands World"} — ${category.label}`,
+        title: entry.name,
+        titleItalic: category.tagline ?? category.label,
+        body: story.lede,
+        stats: [
+          { value: price, label: "Turnkey investment" },
+          { value: metaBits[0] ?? category.label, label: "Dimensions" },
+          { value: "Florida", label: "Engineered & installed" },
+        ],
+        lockup: "Wonderlands World — Dossier",
+        caption: `${entry.name} — photographed on site`,
+      },
+      portrait,
+      plateAt(2),
+    );
+
     /* the written piece — image led, full editorial copy */
     list.push({
       key: "story-image",
@@ -422,6 +445,25 @@ export const useProductBookPages = ({
         });
       });
     });
+
+    /* portfolio spread — full imagery carried over the gutter */
+    if (gallery.length > 1) {
+      pushSpread(
+        list,
+        {
+          key: "portfolio",
+          image: plateAt(2),
+          eyebrow: "Portfolio",
+          title: "Seen in place",
+          titleItalic: category.label,
+          body: story.craft,
+          lockup: "Wonderlands World",
+          caption: `${category.label} — completed compositions`,
+        },
+        portrait,
+        plateAt(3),
+      );
+    }
 
     /* plates — a gallery of the discipline */
     if (gallery.length > 1) {

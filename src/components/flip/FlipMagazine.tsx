@@ -8,6 +8,7 @@ import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
 import { useProductBookPages } from "./FlipProductBook";
+import { pushSpread } from "./FlipSpread";
 
 /** Placeholder so the dossier page hook can run unconditionally. */
 const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as any;
@@ -581,6 +582,49 @@ const FlipMagazine: React.FC = () => {
             {category.tagline} — photographed on site in Florida
           </p>
         </div>
+      ),
+    });
+
+    /* statement spread — the edition opener, image across both pages */
+    pushSpread(list, {
+      key: `statement-${category.id}`,
+      image: shots[2] ?? category.images[0],
+      eyebrow: `Wonderlands World's`,
+      title: category.label,
+      titleItalic: category.tagline,
+      body: category.description,
+      stats: [
+        { value: String(products.length || "—"), label: "Models in this edition" },
+        { value: formatEntryPrice(products[0]) || "On request", label: "From" },
+        { value: "Turnkey", label: "Delivered & installed" },
+      ],
+      lockup: "Wonderlands World — FLIP",
+      caption: `${category.label} — Florida engineered`,
+    });
+
+    /* index spread — contents set over full imagery */
+    pushSpread(list, {
+      key: `index-${category.id}`,
+      image: shots[3] ?? shots[0] ?? category.images[0],
+      eyebrow: "The Collection",
+      title: "Index",
+      titleItalic: category.label,
+      body: "Every model in this edition, priced with delivery and installation at your address.",
+      lockup: "Wonderlands World — FLIP",
+      right: () => (
+        <ul className="h-full overflow-hidden">
+          {products.slice(0, 14).map((p, i) => (
+            <li key={p.id}>
+              <button
+                onClick={() => bookRef.current?.pageFlip()?.turnToPage(at.products + i * 2)}
+                className="flex w-full items-baseline justify-between gap-4 border-t border-white/25 py-[6px] text-left text-[10px] uppercase tracking-[0.18em] text-white/80 transition-colors hover:text-white"
+              >
+                <span className="truncate">{String(i + 1).padStart(2, "0")} — {p.name}</span>
+                <span className="shrink-0 text-white/60">{formatEntryPrice(p)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       ),
     });
 
