@@ -7,7 +7,7 @@ import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flip
 import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
-import FlipProductBook, { useProductBookPages } from "./FlipProductBook";
+import { useProductBookPages } from "./FlipProductBook";
 
 /** Placeholder so the dossier page hook can run unconditionally. */
 const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as any;
