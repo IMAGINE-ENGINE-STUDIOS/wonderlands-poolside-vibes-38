@@ -159,11 +159,13 @@ const FlipMagazine: React.FC = () => {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  // Load the selected category edition
+  // Load the selected category edition — served instantly from cache when warm.
   useEffect(() => {
     if (mode !== "category") return;
     let alive = true;
-    setEntries(null);
+    const cached = getCachedCategoryEntries(categoryId);
+    setEntries(cached ?? null);
+    if (cached) return;
     loadCategoryEntries(categoryId)
       .then((list) => alive && setEntries(list))
       .catch(() => alive && setEntries([]));
@@ -171,6 +173,13 @@ const FlipMagazine: React.FC = () => {
       alive = false;
     };
   }, [categoryId, mode]);
+
+  // Warm every edition and its cover art in the background, current one first.
+  useEffect(() => {
+    preloadImages(ITEMS.flatMap((i) => i.images ?? []).slice(0, 24));
+    prefetchEditions(ITEMS.map((i) => i.id), categoryId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setSavedPage(page);
@@ -182,6 +191,14 @@ const FlipMagazine: React.FC = () => {
     [categoryId],
   );
   const products = useMemo(() => (entries ?? []).slice(0, MAX_MODELS), [entries]);
+
+  // Pages ahead of the reader: decode their plates before the flip happens.
+  useEffect(() => {
+    if (!products.length) return;
+    preloadImages(products.slice(0, 6).map((p) => p.image), true);
+    preloadImages(products.slice(6).map((p) => p.image));
+    preloadImages(groups.flatMap((g: any) => (g.items ?? []).map((o: any) => o?.image)));
+  }, [products, groups]);
 
   // Cross-fade the book while an edition is swapped in — the page never changes,
   // only the content inside the flip.
