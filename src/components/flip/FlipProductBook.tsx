@@ -346,10 +346,13 @@ export const useProductBookPages = ({
   const price = formatEntryPrice(entry) || "On request";
   const story = STORIES[category.id] ?? FALLBACK_STORY;
   /** Every image available to this dossier, model plate first. */
-  const gallery = useMemo(
-    () => Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[],
-    [entry.image, plates],
-  );
+  const gallery = useMemo(() => {
+    /* the model plate first, then only imagery this model is actually offered in
+       (brand-filtered studio options), then the discipline plates */
+    const optionImages = groups.flatMap((g) => g.items.map((i) => i.image)).filter(Boolean) as string[];
+    return Array.from(new Set([entry.image, ...optionImages, ...plates].filter(Boolean))) as string[];
+  }, [entry.image, plates, groups]);
+
   const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
 
 
