@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calcula
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
-import AdvancedSearch from "@/components/AdvancedSearch";
+import FlipSearch from "@/components/flip/FlipSearch";
 import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
@@ -224,6 +224,17 @@ const FlipMagazine: React.FC = () => {
         setDossier(null);
         setCategoryId(id);
         setMode("category");
+      });
+    },
+    [swap, setCategoryId, setMode],
+  );
+
+  const openProduct = useCallback(
+    (id: string, entry: ConsoleEntry) => {
+      swap(() => {
+        setCategoryId(id);
+        setMode("category");
+        setDossier(entry);
       });
     },
     [swap, setCategoryId, setMode],
@@ -1163,8 +1174,8 @@ const FlipMagazine: React.FC = () => {
           <div className="pointer-events-auto flex flex-col gap-1 rounded-full border border-border/50 bg-background/50 p-2 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]">
             <button
               onClick={() => setSearchOpen((v) => !v)}
-              title="Search the collection"
-              aria-label="Search the collection"
+              title="FLIP Search Engine"
+              aria-label="FLIP Search Engine"
               aria-pressed={searchOpen}
               className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
                 searchOpen
@@ -1273,7 +1284,7 @@ const FlipMagazine: React.FC = () => {
             >
               <span className="flex items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
                 <Search className="h-3.5 w-3.5" />
-                Search the collection
+                FLIP Search Engine
               </span>
               {searchOpen ? (
                 <X className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1285,7 +1296,7 @@ const FlipMagazine: React.FC = () => {
             </button>
             {searchOpen && (
               <div className="border-t border-border/60 px-3 pb-4 pt-3 md:px-5">
-                <AdvancedSearch variant="slim" />
+                <FlipSearch autoFocus onOpenCategory={openCategory} onOpenProduct={openProduct} />
               </div>
             )}
           </div>
