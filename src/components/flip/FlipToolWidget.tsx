@@ -60,13 +60,36 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
     setReadout(t.areaSqFt > 0 ? `${Math.round(t.areaSqFt).toLocaleString()} sq ft of turf` : "");
   }, []);
 
+  const headerBlock = (
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+        {readout || "Draw on the grid — 1 ft squares"}
+      </p>
+      {onExpand && (
+        <button
+          onClick={onExpand}
+          className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+        >
+          Full board <Maximize2 className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  );
+
   const surface = useMemo(() => {
     if (board.kind === "enclosure")
       return (
-        <EnclosureDrawingBoard layout={enclosure} onChange={setEnclosure} onMeasure={onEnclosureMeasure} />
+        <EnclosureDrawingBoard
+          layout={enclosure}
+          onChange={setEnclosure}
+          onMeasure={onEnclosureMeasure}
+          header={headerBlock}
+        />
       );
     if (board.kind === "fence")
-      return <FenceDrawingBoard layout={fence} onChange={setFence} onMeasure={onFenceMeasure} />;
+      return (
+        <FenceDrawingBoard layout={fence} onChange={setFence} onMeasure={onFenceMeasure} header={headerBlock} />
+      );
     if (board.kind === "grass")
       return (
         <GrassDrawingBoard
@@ -75,10 +98,12 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
           onMeasure={onGrassMeasure}
           activeGrassId={grassId}
           onActiveGrassChange={setGrassId}
+          header={headerBlock}
         />
       );
-    return <SiteDrawingBoard data={site} onChange={setSite} height={420} />;
+    return <SiteDrawingBoard data={site} onChange={setSite} height={420} header={headerBlock} />;
   }, [
+    headerBlock,
     board.kind,
     enclosure,
     setEnclosure,
@@ -97,20 +122,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-2">
-        <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-          {readout || "Draw on the grid — 1 ft squares"}
-        </p>
-        {onExpand && (
-          <button
-            onClick={onExpand}
-            className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
-          >
-            Full board <Maximize2 className="h-3 w-3" />
-          </button>
-        )}
-      </div>
-      <div className="mt-3 min-h-0 flex-1 overflow-auto">
+      <div className="min-h-0 flex-1 overflow-auto">
         <Suspense
           fallback={
             <div className="flex h-40 items-center justify-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
