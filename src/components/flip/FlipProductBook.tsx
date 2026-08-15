@@ -611,46 +611,95 @@ export const useProductBookPages = ({
 
     list.push({
       key: "story-text",
-      render: () => (
-        <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
-          <Eyebrow>On {category.label.toLowerCase()}</Eyebrow>
-          <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
-          <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
-            {story.body}
-          </p>
-          {(() => {
-            const details = [plateAt(2), plateAt(3)].filter(Boolean) as string[];
-            if (!details.length) return null;
-            return (
-              <div className={`mt-4 grid gap-2 ${details.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-                {details.map((src, i) => (
-                  <div key={src} className="relative aspect-[4/5] overflow-hidden">
+      render: () => {
+        const second = EXTRA_BODY[category.id] ?? FALLBACK_EXTRA;
+        const detail = plateAt(2) ?? plateAt(1);
+        const notes = (category.notes ?? []).slice(0, 3);
+        return (
+          <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
+            <div className="flex items-baseline justify-between gap-3">
+              <Eyebrow>On {category.label.toLowerCase()}</Eyebrow>
+              <Eyebrow className="hidden sm:block">{entry.brand ?? "Wonderlands World"}</Eyebrow>
+            </div>
+            <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
+            <p className="mt-1 font-serif text-lg font-light italic leading-snug text-muted-foreground">
+              {category.tagline ?? category.label}
+            </p>
+            <div className="mt-3 h-px w-14 origin-left bg-foreground/40 animate-rule-draw" />
+
+            {/* body — two columns of type with a detail plate, so the leaf reads full */}
+            <div className="mt-4 grid min-h-0 flex-1 gap-4 sm:grid-cols-[1.15fr_0.85fr]">
+              <div className="min-h-0 space-y-3 overflow-hidden">
+                <p className="font-serif text-[12.5px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
+                  {story.body}
+                </p>
+                <p className="font-serif text-[12.5px] leading-relaxed text-foreground/80">{second}</p>
+                <blockquote className="border-l border-foreground/40 pl-3 font-serif text-[13px] font-light italic leading-snug text-foreground">
+                  {story.lede}
+                </blockquote>
+              </div>
+
+              <div className="flex min-h-0 flex-col gap-3">
+                {detail && (
+                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
                     <img
-                      src={src}
-                      alt={`${entry.name} detail ${i + 1}`}
+                      src={detail}
+                      alt={`${entry.name} detail`}
                       loading="lazy"
                       decoding="async"
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-105"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
                     />
+                    <span className="absolute bottom-1 left-2 font-serif text-[9px] text-white/85">
+                      {entry.name}
+                    </span>
                   </div>
-                ))}
+                )}
+                <dl className="space-y-1.5">
+                  {[
+                    ["Investment", price],
+                    ["Dimensions", metaBits[0] ?? category.label],
+                    ["Delivery", "Turnkey, installed"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-baseline justify-between gap-3 border-t border-border/50 pt-1.5">
+                      <dt className="text-[8px] uppercase tracking-[0.28em] text-muted-foreground">{k}</dt>
+                      <dd className="font-serif text-[11px]">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {notes.length > 0 && (
+                  <ul className="space-y-1">
+                    {notes.map((n, i) => (
+                      <li key={n} className="flex gap-2 text-[10px] leading-relaxed text-muted-foreground">
+                        <span className="font-serif">{String(i + 1).padStart(2, "0")}</span>
+                        <span className="min-w-0">{n}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            );
-          })()}
-
-          <div className="mt-auto space-y-2 border-t border-border/50 pt-3">
-            <div>
-              <Eyebrow>Installation</Eyebrow>
-              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.craft}</p>
             </div>
-            <div>
-              <Eyebrow>Living with it</Eyebrow>
-              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.care}</p>
+
+            <div className="mt-4 grid gap-3 border-t border-border/50 pt-3 sm:grid-cols-3">
+              <div>
+                <Eyebrow>Installation</Eyebrow>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{story.craft}</p>
+              </div>
+              <div>
+                <Eyebrow>Living with it</Eyebrow>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{story.care}</p>
+              </div>
+              <div>
+                <Eyebrow>Included</Eyebrow>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">
+                  Delivery, installation and the product exactly as described — one contract, our own crews.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ),
+        );
+      },
     });
+
 
     /* dimensions & details */
     list.push({
