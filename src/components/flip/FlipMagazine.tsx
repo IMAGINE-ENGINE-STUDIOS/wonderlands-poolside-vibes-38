@@ -468,7 +468,97 @@ const FlipMagazine: React.FC = () => {
       ),
     });
 
+    /* ----------------------------- EDITOR'S LETTER ---------------------------- */
+    list.push({
+      key: "letter",
+      render: () => (
+        <div className="flex h-full w-full flex-col p-8 sm:p-10">
+          <Eyebrow>From the studio</Eyebrow>
+          <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">
+            On {category.label.toLowerCase()}
+          </h3>
+          <div className="mt-3 h-px w-16 origin-left bg-foreground/40 animate-rule-draw" />
+          <p className="mt-5 text-[13px] leading-relaxed text-foreground/90 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
+            {category.description}
+          </p>
+          <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
+            <img
+              src={shots[1] ?? category.images[0]}
+              alt={`${category.label} detail`}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+            />
+          </div>
+          <p className="mt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+            {category.tagline} — photographed on site in Florida
+          </p>
+        </div>
+      ),
+    });
+
+    /* -------------------------------- GALLERY --------------------------------- */
     const galleryAt = list.length;
+
+    list.push({
+      key: "gallery-a",
+      render: () => (
+        <div className="flex h-full w-full flex-col p-6 sm:p-8">
+          <div className="flex items-baseline justify-between gap-3">
+            <Eyebrow>Portfolio</Eyebrow>
+            <Eyebrow className="hidden sm:block">Plate I</Eyebrow>
+          </div>
+          <div className="mt-3 grid min-h-0 flex-1 grid-cols-2 grid-rows-3 gap-1.5">
+            {shots.slice(0, 6).map((src, i) => (
+              <div key={`${src}-${i}`} className={`relative overflow-hidden ${i === 0 ? "col-span-2" : ""}`}>
+                <img
+                  src={src}
+                  alt={`${category.label} plate ${i + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+            {category.label} — completed compositions
+          </p>
+        </div>
+      ),
+    });
+
+    list.push({
+      key: "gallery-b",
+      render: () => (
+        <div className="flex h-full w-full flex-col justify-between p-8 sm:p-10">
+          <div>
+            <Eyebrow>What is included</Eyebrow>
+            <h3 className="mt-2 font-serif text-3xl font-light leading-tight">Turnkey, to the last joint</h3>
+          </div>
+          <ul className="mt-5 grid gap-0">
+            {[
+              ["Survey & drawings", "Property measured, permit set drawn and submitted"],
+              ["Engineering", "Florida wind-load and pool-code compliant details"],
+              ["Installation", "Crews, cranes, base work and finish carpentry"],
+              ["Systems", "Plumbing, electric, automation, start-up and balance"],
+              ["Handover", "Walkthrough, warranty registration, care schedule"],
+            ].map(([k, v]) => (
+              <li key={k} className="border-t border-border/50 py-3">
+                <p className="text-[10px] uppercase tracking-[0.28em] text-foreground">{k}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{v}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+            Every figure in this edition includes installation at your home address.
+          </p>
+        </div>
+      ),
+    });
+
+    /* ------------------------------- COLLECTION ------------------------------- */
+    at.products = list.length;
 
     products.forEach((p, idx) => {
       const number = String(idx + 1).padStart(2, "0");
@@ -476,21 +566,25 @@ const FlipMagazine: React.FC = () => {
       list.push({
         key: `${p.id}-hero`,
         render: () => (
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full overflow-hidden">
             <img
               src={p.image}
               alt={p.name}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/25" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30" />
             <div className="relative flex h-full flex-col justify-end p-8 text-white sm:p-10">
               <p className="text-[9px] uppercase tracking-[0.4em] opacity-80">
                 {number} — {p.brand ?? category.label}
               </p>
               <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-5xl">{p.name}</h3>
               {p.meta && <p className="mt-3 max-w-sm text-[11px] leading-relaxed opacity-80">{p.meta}</p>}
+              <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-white/25 pt-4">
+                <p className="font-serif text-2xl font-light">{formatEntryPrice(p) || "On request"}</p>
+                <AddButton entry={p} tone="dark" />
+              </div>
             </div>
           </div>
         ),
@@ -512,7 +606,18 @@ const FlipMagazine: React.FC = () => {
                 <p className="mt-1 font-serif text-2xl font-light">{category.label}</p>
               </div>
             </div>
-            <ul className="mt-6 space-y-1.5">
+
+            <div className="relative mt-5 h-[34%] overflow-hidden">
+              <img
+                src={p.image}
+                alt={`${p.name} detail`}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
+              />
+            </div>
+
+            <ul className="mt-4 space-y-1.5">
               {category.notes.map((n) => (
                 <li
                   key={n}
@@ -523,13 +628,68 @@ const FlipMagazine: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <p className="mt-auto border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
-              Price includes installation at your home address.
-            </p>
+            <div className="mt-auto border-t border-border/50 pt-3">
+              <AddButton entry={p} />
+              <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                Price includes installation at your home address.
+              </p>
+            </div>
           </div>
         ),
       });
     });
+
+    /* ------------------------------- PRICE SHEET ------------------------------ */
+    if (products.length) {
+      const half = Math.ceil(products.length / 2);
+      [products.slice(0, half), products.slice(half)].forEach((chunk, ci) => {
+        if (!chunk.length) return;
+        list.push({
+          key: `price-sheet-${ci}`,
+          render: () => (
+            <div className="flex h-full w-full flex-col p-8 sm:p-10">
+              <div className="flex items-baseline justify-between gap-3">
+                <Eyebrow>Price sheet</Eyebrow>
+                <Eyebrow className="hidden sm:block">
+                  {ci + 1} / 2 — {category.label}
+                </Eyebrow>
+              </div>
+              <h3 className="mt-2 font-serif text-2xl font-light leading-tight">The collection, at a glance</h3>
+              <ul className="mt-4 min-h-0 flex-1 overflow-hidden">
+                {chunk.map((p, i) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between gap-3 border-t border-border/50 py-2"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em] text-foreground">
+                      {String(ci * half + i + 1).padStart(2, "0")} — {p.name}
+                    </span>
+                    <span className="shrink-0 font-serif text-base font-light">
+                      {formatEntryPrice(p) || "On request"}
+                    </span>
+                    <button
+                      onClick={() => addEntry(p)}
+                      aria-label={`Add ${p.name} to the order`}
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center border transition-colors ${
+                        inCart(p)
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border/60 hover:bg-foreground hover:text-background"
+                      }`}
+                    >
+                      {inCart(p) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                Installed figures — no financing shown
+              </p>
+            </div>
+          ),
+        });
+      });
+    }
+
 
     const featuresAt = list.length;
 
