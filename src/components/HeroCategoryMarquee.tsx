@@ -1,7 +1,7 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
@@ -15,55 +15,285 @@ import patioFencingBanner from "@/assets/banners/patio-fencing-banner.webp";
 import lanaiBanner from "@/assets/banners/lanai-banner.webp";
 import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
 import grassBanner from "@/assets/grass-natural-green.avif";
-import finishImg from "@/assets/finishes/sapphire-blue-g3.webp";
-import linerImg from "@/assets/finishes/ocean-blue-g3.webp";
+import sapphireFinish from "@/assets/finishes/sapphire-blue-g3.webp";
+import oceanLiner from "@/assets/finishes/ocean-blue-g3.webp";
+import aquamarineFinish from "@/assets/finishes/aquamarine-g3.webp";
+import nightSkyFinish from "@/assets/finishes/night-sky-g3.webp";
+import shaleFinish from "@/assets/finishes/shale-gray-g3.webp";
+import lagoonFinish from "@/assets/finishes/lagoon-blue-g2.webp";
 
-const ITEMS: { label: string; tagline: string; image: string }[] = [
-  { label: "Pools", tagline: "Signature Waters", image: lathamGilmerBanner },
-  { label: "Saunas", tagline: "Quiet Heat", image: saunaBanner },
-  { label: "Spas", tagline: "Private Repose", image: spaBanner },
-  { label: "Tanning Ledges", tagline: "Sun Shelves", image: tanningLedgeBanner },
-  { label: "Screen Enclosures", tagline: "Open Air, Refined", image: screenEnclosureBanner },
-  { label: "Patio Fencing", tagline: "Defined Edges", image: patioFencingBanner },
-  { label: "Lanai", tagline: "Covered Living", image: lanaiBanner },
-  { label: "Pavers", tagline: "Underfoot Detail", image: paversBanner },
-  { label: "Artificial Grass", tagline: "Effortless Green", image: grassBanner },
-  { label: "Landscaping", tagline: "Botanical Compositions", image: landscapingBanner },
-  { label: "Covers", tagline: "Quiet Protection", image: coversBanner },
-  { label: "Driveway Gates", tagline: "Arrival Statement", image: drivewayGateBanner },
-  { label: "Finishes", tagline: "Surface & Light", image: finishImg },
-  { label: "Liners", tagline: "Inner Hue", image: linerImg },
-];
+type Layout = "full" | "duo" | "editorial";
 
-const scrollToBrowse = () => {
-  document.getElementById("browse-categories")?.scrollIntoView({ behavior: "smooth", block: "start" });
+type Item = {
+  id: string;
+  label: string;
+  tagline: string;
+  layout: Layout;
+  images: string[];
+  description: string;
+  notes: string[];
 };
 
-const CategoryLeaf: React.FC<{ item: (typeof ITEMS)[number]; index: number }> = ({ item, index }) => (
+const ITEMS: Item[] = [
+  {
+    id: "pools",
+    label: "Pools",
+    tagline: "Signature Waters",
+    layout: "editorial",
+    images: [lathamGilmerBanner, sapphireFinish],
+    description:
+      "Engineered fiberglass shells and custom concrete geometries, delivered turnkey. Every vessel is drawn around the house it belongs to — sightlines, sun path, and the way water holds the sky.",
+    notes: ["Latham & Glimmerglass shells", "Turnkey installation included", "3.5x design multiplier"],
+  },
+  {
+    id: "saunas",
+    label: "Saunas",
+    tagline: "Quiet Heat",
+    layout: "duo",
+    images: [saunaBanner, lanaiBanner],
+    description:
+      "Nordic cedar and thermally treated spruce cabins from Almost Heaven and Harvia. Barrel, cabin, and panoramic models — wired, set, and heated on delivery day.",
+    notes: ["Cedar & spruce cabins", "Electric or wood heaters", "Indoor and outdoor models"],
+  },
+  {
+    id: "spas",
+    label: "Spas",
+    tagline: "Private Repose",
+    layout: "editorial",
+    images: [spaBanner, lagoonFinish],
+    description:
+      "Integrated spillover spas and standalone vessels with programmable jets, LED spectrum, and dedicated heating — a warm room at the edge of the water.",
+    notes: ["Spillover or standalone", "Programmable hydrotherapy", "4x design multiplier"],
+  },
+  {
+    id: "tanning-ledges",
+    label: "Tanning Ledges",
+    tagline: "Sun Shelves",
+    layout: "full",
+    images: [tanningLedgeBanner],
+    description:
+      "Shallow sun shelves at nine inches — a threshold between deck and depth, detailed with bubblers and in-water seating.",
+    notes: ["9in shelf depth", "Bubblers & umbrella sleeves", "Matched finish to shell"],
+  },
+  {
+    id: "screen-enclosures",
+    label: "Screen Enclosures",
+    tagline: "Open Air, Refined",
+    layout: "duo",
+    images: [screenEnclosureBanner, patioFencingBanner],
+    description:
+      "Aluminum superstructures engineered to Florida wind load, with self-latching doors and mansard or gable profiles. Drawn to code, priced to the panel.",
+    notes: ["Florida wind-load engineered", "Self-latching pool doors", "Mansard & gable profiles"],
+  },
+  {
+    id: "patio-fencing",
+    label: "Patio Fencing",
+    tagline: "Defined Edges",
+    layout: "editorial",
+    images: [patioFencingBanner, screenEnclosureBanner],
+    description:
+      "Powder-coated aluminum fencing in 4ft and 5ft heights — pool-code compliant, corrosion resistant, and quiet against a garden.",
+    notes: ["4ft & 5ft heights", "Pool-code compliant", "Self-closing gates"],
+  },
+  {
+    id: "lanai",
+    label: "Lanai",
+    tagline: "Covered Living",
+    layout: "full",
+    images: [lanaiBanner],
+    description:
+      "Roofed outdoor rooms with insulated panels, fans, and lighting — the shaded companion to the pool deck.",
+    notes: ["Insulated roof panels", "Integrated lighting & fans", "Custom spans"],
+  },
+  {
+    id: "pavers",
+    label: "Pavers",
+    tagline: "Underfoot Detail",
+    layout: "duo",
+    images: [paversBanner, grassBanner],
+    description:
+      "Travertine, porcelain, and Coralina fields laid on compacted base with a defined coping edge. The deck is the frame of the picture.",
+    notes: ["Travertine & porcelain", "Coralina at $25/sqft", "Coping edge detailing"],
+  },
+  {
+    id: "artificial-grass",
+    label: "Artificial Grass",
+    tagline: "Effortless Green",
+    layout: "editorial",
+    images: [grassBanner, landscapingBanner],
+    description:
+      "High-density turf with drainage base and hidden seams — permanently green, drawn to any patio geometry in the studio.",
+    notes: ["$25/sqft installed", "Drainage base system", "Drawing board layout"],
+  },
+  {
+    id: "landscaping",
+    label: "Landscaping",
+    tagline: "Botanical Compositions",
+    layout: "duo",
+    images: [landscapingBanner, grassBanner],
+    description:
+      "Palms, specimen trees, ornamental grasses and beds composed as a planting plan — mass, height, and shadow scheduled by season.",
+    notes: ["Specimen palms & trees", "Ornamental grasses", "Planting plans"],
+  },
+  {
+    id: "covers",
+    label: "Covers",
+    tagline: "Quiet Protection",
+    layout: "full",
+    images: [coversBanner],
+    description:
+      "Automatic covers recessed into the deck — safety, heat retention, and evaporation control on a single key turn.",
+    notes: ["Recessed track systems", "Safety rated", "Heat retention"],
+  },
+  {
+    id: "driveway-gates",
+    label: "Driveway Gates",
+    tagline: "Arrival Statement",
+    layout: "editorial",
+    images: [drivewayGateBanner, patioFencingBanner],
+    description:
+      "Swing and slide gates in aluminum or steel with automation, keypads, and intercom — the first line of the property's drawing.",
+    notes: ["Swing & slide", "Automation and keypads", "Custom infill patterns"],
+  },
+  {
+    id: "finishes",
+    label: "Finishes",
+    tagline: "Surface & Light",
+    layout: "duo",
+    images: [sapphireFinish, aquamarineFinish],
+    description:
+      "Interior finishes chosen for how they carry light — from pale pearl to deep night sky. The same water reads differently on every surface.",
+    notes: ["G2 & G3 finish grades", "Gelcoat for Glimmerglass", "Sample-matched palettes"],
+  },
+  {
+    id: "liners",
+    label: "Liners",
+    tagline: "Inner Hue",
+    layout: "duo",
+    images: [oceanLiner, nightSkyFinish, shaleFinish],
+    description:
+      "Printed liners with waterline borders and mosaic bands — a complete change of tone without touching the shell.",
+    notes: ["Waterline borders", "Mosaic band options", "Shell-safe installation"],
+  },
+];
+
+const goToSection = (id: string) => {
+  if (window.location.hash.replace("#", "") === id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    window.location.hash = id;
+  }
+  window.setTimeout(() => {
+    document.querySelector("main")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 120);
+};
+
+const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
+  <p className={`text-[9px] uppercase tracking-[0.35em] text-muted-foreground ${className}`}>{children}</p>
+);
+
+const Notes: React.FC<{ notes: string[] }> = ({ notes }) => (
+  <ul className="mt-4 space-y-1.5">
+    {notes.map((n) => (
+      <li key={n} className="flex items-start gap-2 border-t border-border/50 pt-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        <span className="mt-[5px] h-px w-3 shrink-0 bg-foreground/40" />
+        {n}
+      </li>
+    ))}
+  </ul>
+);
+
+const ExploreButton: React.FC<{ item: Item }> = ({ item }) => (
   <button
-    onClick={scrollToBrowse}
-    className="group relative flex h-full w-full flex-col bg-background px-7 py-7 text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground"
+    onClick={() => goToSection(item.id)}
+    className="group/btn mt-auto inline-flex w-full items-center justify-between border border-foreground bg-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
   >
-    <div className="relative mb-5 aspect-[4/5] w-full overflow-hidden">
-      <img
-        src={item.image}
-        alt={item.label}
-        loading="lazy"
-        decoding="async"
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
-    </div>
-    <p className="mb-2 text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-      {String(index + 1).padStart(2, "0")} — {item.tagline}
-    </p>
-    <h3 className="font-serif text-2xl font-light leading-tight text-foreground">{item.label}</h3>
-    <div className="mt-3 h-px w-6 bg-foreground/30 transition-all duration-500 group-hover:w-14" />
-    <span className="mt-auto pt-5 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-      Wonderlands World
-    </span>
+    Explore {item.label}
+    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
   </button>
 );
+
+const Frame: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "" }) => (
+  <div className={`group relative overflow-hidden ${className}`}>
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+  </div>
+);
+
+const CategoryLeaf: React.FC<{ item: Item; index: number }> = ({ item, index }) => {
+  const number = String(index + 1).padStart(2, "0");
+  return (
+    <div className="flex h-full w-full flex-col bg-background px-6 py-6 text-left sm:px-8 sm:py-8">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <Eyebrow>
+          {number} — {item.tagline}
+        </Eyebrow>
+        <Eyebrow className="hidden sm:block">Wonderlands World</Eyebrow>
+      </div>
+
+      {item.layout === "full" && (
+        <>
+          <Frame src={item.images[0]} alt={item.label} className="mb-5 min-h-0 flex-1" />
+          <h3 className="font-serif text-3xl font-light leading-tight text-foreground sm:text-4xl">{item.label}</h3>
+          <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground sm:text-[13px]">{item.description}</p>
+          <Notes notes={item.notes} />
+        </>
+      )}
+
+      {item.layout === "duo" && (
+        <>
+          <div className="mb-4 grid min-h-0 flex-1 grid-cols-2 gap-2">
+            <Frame src={item.images[0]} alt={item.label} className="h-full" />
+            <div className="grid h-full grid-rows-2 gap-2">
+              <Frame src={item.images[1] ?? item.images[0]} alt={item.label} className="h-full" />
+              {item.images[2] ? (
+                <Frame src={item.images[2]} alt={item.label} className="h-full" />
+              ) : (
+                <div className="flex h-full flex-col justify-end border border-border/60 p-3">
+                  <Eyebrow>Volume</Eyebrow>
+                  <p className="font-serif text-4xl font-light leading-none text-foreground">{number}</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <h3 className="font-serif text-3xl font-light leading-tight text-foreground sm:text-4xl">{item.label}</h3>
+          <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground sm:text-[13px]">{item.description}</p>
+          <Notes notes={item.notes} />
+        </>
+      )}
+
+      {item.layout === "editorial" && (
+        <>
+          <Frame src={item.images[0]} alt={item.label} className="mb-4 min-h-0 flex-[1.4]" />
+          <h3 className="font-serif text-3xl font-light leading-tight text-foreground sm:text-4xl">{item.label}</h3>
+          <div className="mt-3 grid grid-cols-[1fr_auto] gap-4">
+            <p className="text-[12px] leading-relaxed text-muted-foreground sm:text-[13px]">{item.description}</p>
+            <div className="relative h-20 w-20 shrink-0 overflow-hidden sm:h-24 sm:w-24">
+              <img
+                src={item.images[1] ?? item.images[0]}
+                alt={`${item.label} detail`}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+          </div>
+          <Notes notes={item.notes} />
+        </>
+      )}
+
+      <div className="mt-5 flex flex-col">
+        <ExploreButton item={item} />
+      </div>
+    </div>
+  );
+};
 
 const BookPage = forwardRef<HTMLDivElement, { children: React.ReactNode; tone?: "paper" | "cover" }>(
   ({ children, tone = "paper" }, ref) => (
@@ -90,19 +320,26 @@ BookPage.displayName = "BookPage";
 const CoverFace: React.FC = () => (
   <div className="flex h-full w-full flex-col items-center justify-center gap-6 px-10 text-center">
     <p className="text-[9px] uppercase tracking-[0.45em] opacity-70">Wonderlands World</p>
-    <h3 className="font-serif text-4xl font-light leading-tight">The Index</h3>
+    <h3 className="font-serif text-5xl font-light leading-tight md:text-6xl">The Index</h3>
     <div className="h-px w-12 bg-current opacity-40" />
     <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">Fourteen Disciplines</p>
+    <p className="mt-4 max-w-xs text-[11px] leading-relaxed opacity-60">
+      A complete catalogue of the Wonderlands outdoor world — water, stone, shelter, surface and verdure, drawn as one
+      continuous project.
+    </p>
   </div>
 );
 
 const BackFace: React.FC = () => (
   <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-10 text-center">
     <p className="text-[9px] uppercase tracking-[0.45em] opacity-70">Volume I</p>
-    <p className="font-serif text-2xl font-light leading-snug">
+    <p className="font-serif text-3xl font-light leading-snug">
       One outdoor world — water, stone, shelter, verdure.
     </p>
     <div className="h-px w-12 bg-current opacity-40" />
+    <p className="max-w-xs text-[11px] leading-relaxed opacity-60">
+      Every discipline in this index is delivered turnkey, with installation at your home address included.
+    </p>
   </div>
 );
 
@@ -110,18 +347,23 @@ const HeroCategoryMarquee: React.FC = () => {
   const bookRef = useRef<any>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [portrait, setPortrait] = useState(false);
-  const [dims, setDims] = useState({ w: 400, h: 560 });
+  const [dims, setDims] = useState({ w: 420, h: 588 });
 
   useEffect(() => {
     const measure = () => {
       const vw = window.innerWidth;
+      const vh = window.innerHeight;
       const isPortrait = vw < 900;
       setPortrait(isPortrait);
-      const available = Math.min(vw - 48, 1120);
-      const w = isPortrait
-        ? Math.min(available, 420)
-        : Math.min(Math.floor(available / 2), 460);
-      setDims({ w, h: Math.round(w * 1.4) });
+
+      // Fill as much of the screen as possible while keeping a book page ratio (~1:1.38)
+      const ratio = 1.38;
+      const maxH = Math.max(420, Math.floor(vh * (isPortrait ? 0.78 : 0.9)));
+      const availableW = Math.min(vw - (isPortrait ? 32 : 64), 1900);
+      const wByWidth = isPortrait ? availableW : Math.floor(availableW / 2);
+      const wByHeight = Math.floor(maxH / ratio);
+      const w = Math.max(260, Math.min(wByWidth, wByHeight));
+      setDims({ w, h: Math.round(w * ratio) });
     };
     measure();
     window.addEventListener("resize", measure);
@@ -162,10 +404,10 @@ const HeroCategoryMarquee: React.FC = () => {
         </div>
       </div>
 
-      <div className="border-t border-border/50 px-4 py-10 md:px-10">
+      <div className="border-t border-border/50 px-2 py-8 md:px-6 md:py-12">
         <div
           className="mx-auto flex justify-center"
-          style={{ perspective: "2400px", minHeight: dims.h }}
+          style={{ perspective: "3000px", minHeight: dims.h }}
         >
           <HTMLFlipBook
             ref={bookRef}
@@ -173,9 +415,9 @@ const HeroCategoryMarquee: React.FC = () => {
             height={dims.h}
             size="fixed"
             minWidth={240}
-            maxWidth={520}
+            maxWidth={900}
             minHeight={340}
-            maxHeight={760}
+            maxHeight={1300}
             showCover
             usePortrait={portrait}
             mobileScrollSupport
@@ -189,9 +431,9 @@ const HeroCategoryMarquee: React.FC = () => {
             useMouseEvents
             swipeDistance={30}
             showPageCorners
-            disableFlipByClick={false}
+            disableFlipByClick
             style={{}}
-            className="shadow-[0_40px_90px_-30px_rgba(0,0,0,0.55)]"
+            className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
             onFlip={(e: any) => setCurrentPage(e.data)}
           >
             <BookPage tone="cover">
