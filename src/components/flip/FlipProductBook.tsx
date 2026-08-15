@@ -399,13 +399,13 @@ export const useProductBookPages = ({
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
   const price = formatEntryPrice(entry) || "On request";
   const story = STORIES[category.id] ?? FALLBACK_STORY;
-  /** Every image available to this dossier, model plate first. */
-  const gallery = useMemo(() => {
-    /* the model plate first, then only imagery this model is actually offered in
-       (brand-filtered studio options), then the discipline plates */
-    const optionImages = groups.flatMap((g) => g.items.map((i) => i.image)).filter(Boolean) as string[];
-    return Array.from(new Set([entry.image, ...optionImages, ...plates].filter(Boolean))) as string[];
-  }, [entry.image, plates, groups]);
+  /** Product photography for the editorial pages — model plate first, then the
+      discipline's own product imagery. Finish and option swatches are deliberately
+      excluded here: they belong to the feature pages, not the editorial plates. */
+  const gallery = useMemo(
+    () => Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[],
+    [entry.image, plates],
+  );
 
   const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
 

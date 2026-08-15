@@ -1024,9 +1024,13 @@ const FlipMagazine: React.FC = () => {
       tagline: category.tagline,
       description: category.description,
       notes: category.notes,
-      images: category.images,
+      /* product photography only — the model plates of this discipline, so the
+         dossier's editorial pages never fall back to finish swatches */
+      images: Array.from(
+        new Set([...(products ?? []).map((p) => p.image), ...(category.images ?? [])].filter(Boolean)),
+      ) as string[],
     }),
-    [category],
+    [category, products],
   );
   const dossierPages = useProductBookPages({
     entry: dossier ?? EMPTY_DOSSIER_ENTRY,
