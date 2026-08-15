@@ -314,39 +314,34 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
    */
   const half = part === "board-left" ? "left" : part === "board-right" ? "right" : null;
 
-  if (half) {
-    return (
-      <div className="relative h-full w-full overflow-hidden" {...lockHandlers}>
-        <div className={`absolute inset-y-0 w-[200%] ${half === "left" ? "left-0" : "-left-full"}`}>
-          <div className="flex h-full w-full flex-col p-3 sm:p-4">
-            <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
-          </div>
+  const halfBody = (
+    <>
+      <div className={`absolute inset-y-0 w-[200%] ${half === "left" ? "left-0" : "-left-full"}`}>
+        <div className="flex h-full w-full flex-col p-3 sm:p-4">
+          <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
         </div>
-        {/* the gutter shading, so the fold still reads like paper */}
-        <div
-          className={`pointer-events-none absolute inset-y-0 w-10 ${
-            half === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"
-          } from-foreground/10 to-transparent`}
-        />
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf,.dxf,.svg,image/*"
-          className="hidden"
-          onChange={(e) => {
-            void handleUpload(e.target.files?.[0] ?? null);
-            e.target.value = "";
-          }}
-        />
       </div>
-    );
-  }
+      {/* the gutter shading, so the fold still reads like paper */}
+      <div
+        className={`pointer-events-none absolute inset-y-0 w-10 ${
+          half === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"
+        } from-foreground/10 to-transparent`}
+      />
+    </>
+  );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col" {...lockHandlers}>
-      <div className="min-h-0 flex-1 overflow-auto">
-        {panel ?? <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>}
-      </div>
+    <div
+      className={half ? "relative h-full w-full overflow-hidden" : "flex min-h-0 flex-1 flex-col"}
+      {...lockHandlers}
+    >
+      {half ? (
+        halfBody
+      ) : (
+        <div className="min-h-0 flex-1 overflow-auto">
+          {panel ?? <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>}
+        </div>
+      )}
 
 
 
