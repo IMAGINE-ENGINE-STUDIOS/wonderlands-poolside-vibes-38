@@ -626,7 +626,7 @@ const FlipMagazine: React.FC = () => {
         render: () => (
           <div className="flex h-full w-full flex-col p-8 sm:p-10">
             <Eyebrow>{number} — Specification</Eyebrow>
-            <h3 className="mt-2 font-serif text-3xl font-light leading-tight">{p.name}</h3>
+            <ProductTitle entry={p} className="mt-2 font-serif text-3xl font-light leading-tight" />
             <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4">
               <div>
                 <Eyebrow>Investment</Eyebrow>
