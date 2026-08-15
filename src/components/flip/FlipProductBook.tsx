@@ -484,27 +484,24 @@ export const useProductBookPages = ({
           <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
             {tool?.note ?? "Configure the model, then carry it into your estimate."}
           </p>
-          <div className="relative mt-5 h-[40%] overflow-hidden">
-            <img src={plates[0] ?? entry.image} alt="Design tool" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-black/35" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <button
-                onClick={() => navigate(tool?.to ?? "/wonderlands-studio")}
-                className="inline-flex items-center gap-2 border border-white/70 px-4 py-2.5 text-[9px] uppercase tracking-[0.3em] text-white transition-colors hover:bg-white hover:text-black"
-              >
-                Open the tool <ArrowUpRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
+          {/* the real board for this discipline, live on the page */}
+          <div className="mt-4 flex min-h-0 flex-1 flex-col">
+            <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} />
           </div>
-          <button
-            onClick={() => navigate("/blueprint-builder")}
-            className="mt-4 inline-flex items-center justify-between border border-border/60 px-4 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
-          >
-            Blueprint builder <ArrowUpRight className="h-3.5 w-3.5" />
-          </button>
-          <p className="mt-auto text-[10px] leading-relaxed text-muted-foreground">
-            Every drawing is saved to your session and can be attached to a quote.
-          </p>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <button
+              onClick={() => navigate(tool?.to ?? "/wonderlands-studio")}
+              className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+            >
+              {tool?.name ?? "Wonderlands Studio"} <ArrowUpRight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => navigate("/blueprint-builder")}
+              className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+            >
+              Blueprint builder <ArrowUpRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       ),
     });

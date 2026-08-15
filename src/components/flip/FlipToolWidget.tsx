@@ -48,8 +48,8 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
 
   const onEnclosureMeasure = useCallback((t: EnclosureTakeoff) => {
     setReadout(
-      t.footprintSqFt > 0
-        ? `${Math.round(t.footprintSqFt).toLocaleString()} sq ft footprint · ${Math.round(t.perimeterFt)} lf perimeter`
+      t.areaSqFt > 0
+        ? `${Math.round(t.areaSqFt).toLocaleString()} sq ft footprint · ${Math.round(t.perimeterFt)} lf perimeter`
         : "",
     );
   }, []);
@@ -57,7 +57,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
     setReadout(linearFt > 0 ? `${Math.round(linearFt).toLocaleString()} linear ft · ${gates} gate${gates === 1 ? "" : "s"}` : "");
   }, []);
   const onGrassMeasure = useCallback((t: GrassTakeoff) => {
-    setReadout(t.totalSqFt > 0 ? `${Math.round(t.totalSqFt).toLocaleString()} sq ft of turf` : "");
+    setReadout(t.areaSqFt > 0 ? `${Math.round(t.areaSqFt).toLocaleString()} sq ft of turf` : "");
   }, []);
 
   const surface = useMemo(() => {
