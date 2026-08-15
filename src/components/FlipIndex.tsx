@@ -2,6 +2,8 @@ import * as React from "react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import FlipConsole from "./flip/FlipConsole";
+
 
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
@@ -208,14 +210,15 @@ const ExploreButton: React.FC<{ item: Item }> = ({ item }) => (
     href={`/#${item.id}`}
     onClick={(e) => {
       e.preventDefault();
-      goToSection(item.id);
+      window.dispatchEvent(new CustomEvent("flip:open-console", { detail: item.id }));
     }}
     className="group/btn mt-auto inline-flex w-full items-center justify-between border border-foreground bg-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
   >
-    Explore {item.label}
+    Open {item.label}
     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
   </a>
 );
+
 
 
 const Frame: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className = "" }) => (
@@ -359,7 +362,9 @@ const FlipIndex: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 588 });
+  const [consoleId, setConsoleId] = useState<string | null>(null);
   const syncingRef = useRef(false);
+
 
   useEffect(() => {
     const measure = () => {
@@ -411,8 +416,21 @@ const FlipIndex: React.FC = () => {
     };
   }, [turnTo]);
 
-  // Keyboard navigation
+  // Explore buttons inside the book open the in-place console
   useEffect(() => {
+    const onOpen = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      if (!id) return;
+      setConsoleId(id);
+      setActiveSection(id);
+    };
+    window.addEventListener("flip:open-console", onOpen as EventListener);
+    return () => window.removeEventListener("flip:open-console", onOpen as EventListener);
+  }, []);
+
+  // Keyboard navigation (book only — console handles its own keys)
+  useEffect(() => {
+    if (consoleId) return;
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
@@ -421,10 +439,26 @@ const FlipIndex: React.FC = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [flipPrev, flipNext]);
+  }, [flipPrev, flipNext, consoleId]);
+
+  const openConsole = useCallback((id: string) => {
+    setConsoleId(id);
+    setActiveSection(id);
+  }, []);
+
+  const closeConsole = useCallback(() => {
+    setConsoleId(null);
+    const idx = ITEMS.findIndex((i) => i.id === consoleId);
+    if (idx >= 0) window.setTimeout(() => turnTo(idx), 150);
+  }, [consoleId, turnTo]);
 
   const totalPages = ITEMS.length + 2;
-  const activeIdx = currentPage >= 1 && currentPage <= ITEMS.length ? currentPage - 1 : -1;
+  const activeIdx = consoleId
+    ? ITEMS.findIndex((i) => i.id === consoleId)
+    : currentPage >= 1 && currentPage <= ITEMS.length
+      ? currentPage - 1
+      : -1;
+
 
   return (
     <section id="flip" aria-label="FLIP — category index" className="relative border-y border-border/60 bg-background">
@@ -438,24 +472,35 @@ const FlipIndex: React.FC = () => {
         </div>
         <div className="flex items-center gap-4">
           <p className="hidden text-[10px] uppercase tracking-[0.4em] text-muted-foreground md:block">
-            {`${String(Math.min(currentPage + 1, totalPages)).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`}
+            {consoleId
+              ? "Console"
+              : `${String(Math.min(currentPage + 1, totalPages)).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`}
           </p>
-          <div className="flex items-center gap-1">
+          {consoleId ? (
             <button
-              onClick={flipPrev}
-              aria-label="Previous page"
-              className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              onClick={closeConsole}
+              className="border border-border/60 px-3 py-1.5 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
             >
-              <ChevronLeft className="h-4 w-4" />
+              Back to the book
             </button>
-            <button
-              onClick={flipNext}
-              aria-label="Next page"
-              className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={flipPrev}
+                aria-label="Previous page"
+                className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={flipNext}
+                aria-label="Next page"
+                className="flex h-8 w-8 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -470,8 +515,12 @@ const FlipIndex: React.FC = () => {
             href={`/#${item.id}`}
             onClick={(e) => {
               e.preventDefault();
-              turnTo(idx);
-              setActiveSection(item.id);
+              if (consoleId) {
+                openConsole(item.id);
+              } else {
+                turnTo(idx);
+                setActiveSection(item.id);
+              }
             }}
             className={`shrink-0 whitespace-nowrap border-b pb-0.5 text-[9px] uppercase tracking-[0.28em] transition-colors ${
               activeIdx === idx
@@ -484,66 +533,85 @@ const FlipIndex: React.FC = () => {
         ))}
       </nav>
 
+
       <div className="border-t border-border/50 px-2 py-8 md:px-6 md:py-12">
         <div
           className="mx-auto flex justify-center"
           style={{ perspective: "3000px", minHeight: dims.h }}
         >
-          <HTMLFlipBook
-            ref={bookRef}
-            width={dims.w}
-            height={dims.h}
-            size="fixed"
-            minWidth={240}
-            maxWidth={1400}
-            minHeight={340}
-            maxHeight={1400}
-            showCover
-            usePortrait={portrait}
-            mobileScrollSupport
-            drawShadow
-            flippingTime={900}
-            maxShadowOpacity={0.5}
-            startPage={0}
-            startZIndex={0}
-            autoSize={false}
-            clickEventForward={false}
-            useMouseEvents
-            swipeDistance={30}
-            showPageCorners
-            disableFlipByClick
-            style={{}}
-            className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
-            onFlip={(e: any) => {
-              const page = e.data as number;
-              setCurrentPage(page);
-              const item = ITEMS[page - 1];
-              if (item) {
-                syncingRef.current = true;
-                setActiveSection(item.id);
-                window.setTimeout(() => {
-                  syncingRef.current = false;
-                }, 60);
-              }
-            }}
-          >
-            <BookPage tone="cover">
-              <CoverFace />
-            </BookPage>
-            {ITEMS.map((item, idx) => (
-              <BookPage key={item.label}>
-                <CategoryLeaf item={item} index={idx} />
+          {consoleId ? (
+            <FlipConsole
+              categories={ITEMS.map((i) => ({ id: i.id, label: i.label, tagline: i.tagline }))}
+              activeId={consoleId}
+              width={portrait ? dims.w : dims.w * 2}
+              height={dims.h}
+              onSelect={openConsole}
+              onClose={closeConsole}
+              onOpenSection={(id) => {
+                setConsoleId(null);
+                goToSection(id);
+              }}
+            />
+          ) : (
+            <HTMLFlipBook
+              ref={bookRef}
+              width={dims.w}
+              height={dims.h}
+              size="fixed"
+              minWidth={240}
+              maxWidth={1400}
+              minHeight={340}
+              maxHeight={1400}
+              showCover
+              usePortrait={portrait}
+              mobileScrollSupport
+              drawShadow
+              flippingTime={900}
+              maxShadowOpacity={0.5}
+              startPage={0}
+              startZIndex={0}
+              autoSize={false}
+              clickEventForward={false}
+              useMouseEvents
+              swipeDistance={30}
+              showPageCorners
+              disableFlipByClick
+              style={{}}
+              className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
+              onFlip={(e: any) => {
+                const page = e.data as number;
+                setCurrentPage(page);
+                const item = ITEMS[page - 1];
+                if (item) {
+                  syncingRef.current = true;
+                  setActiveSection(item.id);
+                  window.setTimeout(() => {
+                    syncingRef.current = false;
+                  }, 60);
+                }
+              }}
+            >
+              <BookPage tone="cover">
+                <CoverFace />
               </BookPage>
-            ))}
-            <BookPage tone="cover">
-              <BackFace />
-            </BookPage>
-          </HTMLFlipBook>
+              {ITEMS.map((item, idx) => (
+                <BookPage key={item.label}>
+                  <CategoryLeaf item={item} index={idx} />
+                </BookPage>
+              ))}
+              <BookPage tone="cover">
+                <BackFace />
+              </BookPage>
+            </HTMLFlipBook>
+          )}
         </div>
         <p className="mt-8 text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-          Turn the page — every spread opens its collection below
+          {consoleId
+            ? "Browse the collection inside FLIP — use the rail or arrows to move between disciplines"
+            : "Turn the page — every spread opens its collection right here in FLIP"}
         </p>
       </div>
+
     </section>
   );
 };
