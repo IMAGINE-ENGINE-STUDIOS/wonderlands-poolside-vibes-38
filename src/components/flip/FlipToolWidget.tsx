@@ -101,7 +101,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
           header={headerBlock}
         />
       );
-    return <SiteDrawingBoard data={site} onChange={setSite} height={420} header={headerBlock} />;
+    return <SiteDrawingBoard data={site} onChange={setSite} header={headerBlock} />;
   }, [
     headerBlock,
     board.kind,
