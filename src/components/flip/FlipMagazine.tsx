@@ -1,13 +1,14 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
-import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import usePersistentState from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
 import FlipProductBook from "./FlipProductBook";
+import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
 
 /**
@@ -256,6 +257,24 @@ const FlipMagazine: React.FC = () => {
   /** Opens a model's book inside the same flip, with the editorial cross-fade. */
   const openDossier = useCallback((p: ConsoleEntry) => swap(() => setDossier(p)), [swap]);
   const closeDossier = useCallback(() => swap(() => setDossier(null)), [swap]);
+
+  /* ------------------------------ EDITOR BOARD ------------------------------ */
+  // The design board takes over the page: the flip fades out while a wireframe
+  // is traced from the corners, then the board rises in its place.
+  const [boardOpen, setBoardOpen] = useState(false);
+  const boardTimer = useRef<number | null>(null);
+  const openBoard = useCallback(() => {
+    setFading(true);
+    if (boardTimer.current) window.clearTimeout(boardTimer.current);
+    boardTimer.current = window.setTimeout(() => setBoardOpen(true), 320);
+  }, []);
+  const closeBoard = useCallback(() => {
+    if (boardTimer.current) window.clearTimeout(boardTimer.current);
+    setBoardOpen(false);
+    setFading(false);
+  }, []);
+  useEffect(() => () => { if (boardTimer.current) window.clearTimeout(boardTimer.current); }, []);
+  const boardMeta = boardForCategory(categoryId);
 
   /** Opens the product's own small book. */
   const MoreButton: React.FC<{ entry: ConsoleEntry; tone?: "light" | "dark" }> = ({ entry, tone = "light" }) => (
@@ -954,10 +973,10 @@ const FlipMagazine: React.FC = () => {
 
   // Fade the new edition back in once its pages are composed.
   useEffect(() => {
-    if (loading || !fading) return;
+    if (loading || !fading || boardOpen) return;
     const t = window.setTimeout(() => setFading(false), 40);
     return () => window.clearTimeout(t);
-  }, [loading, fading, mode, categoryId, pages.length]);
+  }, [loading, fading, boardOpen, mode, categoryId, pages.length]);
 
 
   return (
@@ -990,14 +1009,23 @@ const FlipMagazine: React.FC = () => {
             </>
           )}
         </nav>
-        {dossier && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={closeDossier}
-            className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+            onClick={openBoard}
+            title={`Editor Board — ${boardMeta.name}`}
+            className="inline-flex items-center gap-2 border border-primary/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
           >
-            <ChevronLeft className="h-3.5 w-3.5" /> Back to {category.label}
+            <PenTool className="h-3.5 w-3.5" /> Editor Board
           </button>
-        )}
+          {dossier && (
+            <button
+              onClick={closeDossier}
+              className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" /> Back to {category.label}
+            </button>
+          )}
+        </div>
       </div>
 
 
@@ -1031,20 +1059,29 @@ const FlipMagazine: React.FC = () => {
       </nav>
 
       <div className="relative px-2 py-8 md:px-6 md:py-12">
-        {mode === "category" && !dossier && (
+        {mode === "category" && (
           <div className="pointer-events-none absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 md:block">
             <div className="pointer-events-auto flex flex-col gap-1 rounded-full border border-border/50 bg-background/50 p-2 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]">
-              {rail.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => goTo(anchors[id as keyof Anchors])}
-                  title={label}
-                  aria-label={label}
-                  className="group flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
-                >
-                  <Icon className="h-[15px] w-[15px]" />
-                </button>
-              ))}
+              {!dossier &&
+                rail.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => goTo(anchors[id as keyof Anchors])}
+                    title={label}
+                    aria-label={label}
+                    className="group flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+                  >
+                    <Icon className="h-[15px] w-[15px]" />
+                  </button>
+                ))}
+              <button
+                onClick={openBoard}
+                title={`Editor Board — ${boardMeta.name}`}
+                aria-label="Open the editor board"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+              >
+                <PenTool className="h-[15px] w-[15px]" />
+              </button>
               <span className="mx-auto my-1 h-px w-4 bg-border" />
               <button
                 onClick={openHome}
@@ -1154,6 +1191,15 @@ const FlipMagazine: React.FC = () => {
 
       <FlipCart />
 
+      {boardOpen && (
+        <FlipEditorBoard
+          categoryId={categoryId}
+          categoryLabel={category.label}
+          productName={dossier?.name}
+          productPrice={dossier?.price ?? undefined}
+          onClose={closeBoard}
+        />
+      )}
     </section>
   );
 };

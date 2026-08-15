@@ -565,3 +565,33 @@
     .tl-sweep::after, .tl-scanline::before { animation: none !important; opacity: 0 !important; }
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* FLIP → Editor Board: wireframe trace hand-off                       */
+/* ------------------------------------------------------------------ */
+@layer utilities {
+  @keyframes eb-trace {
+    from { stroke-dashoffset: var(--eb-len, 2400); }
+    to { stroke-dashoffset: 0; }
+  }
+  .eb-trace {
+    stroke-dasharray: var(--eb-len, 2400);
+    animation: eb-trace 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  @keyframes eb-grid-in {
+    from { opacity: 0; transform: scale(1.04); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .eb-grid-in { animation: eb-grid-in 900ms ease-out forwards; }
+
+  @keyframes eb-rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .eb-rise { animation: eb-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eb-trace, .eb-grid-in, .eb-rise { animation: none !important; }
+  }
+}
