@@ -218,6 +218,14 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
   const plates = (category.images ?? []).filter(Boolean);
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
   const price = formatEntryPrice(entry) || "On request";
+  const story = STORIES[category.id] ?? FALLBACK_STORY;
+  /** Every image available to this dossier, model plate first. */
+  const gallery = useMemo(
+    () => Array.from(new Set([entry.image, ...plates].filter(Boolean))) as string[],
+    [entry.image, plates],
+  );
+  const plateAt = useCallback((i: number) => gallery[i % Math.max(gallery.length, 1)] ?? entry.image, [gallery, entry.image]);
+
 
   const pages = useMemo(() => {
     const list: { key: string; render: () => React.ReactNode }[] = [];
