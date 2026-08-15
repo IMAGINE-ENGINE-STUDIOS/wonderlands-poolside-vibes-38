@@ -835,22 +835,41 @@ const FlipBuilder: React.FC = () => {
       {/* Layout gallery */}
       {galleryOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6">
-          <div className="max-h-[88vh] w-full max-w-4xl overflow-y-auto border border-border/60 bg-background">
-            <div className="sticky top-0 flex items-center justify-between border-b border-border/60 bg-background px-5 py-4">
-              <div>
-                <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Layout gallery</p>
-                <p className="mt-1 font-serif text-2xl font-light text-foreground">Add a page</p>
+          <div className="max-h-[88vh] w-full max-w-5xl overflow-y-auto border border-border/60 bg-background">
+            <div className="sticky top-0 z-10 border-b border-border/60 bg-background px-5 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                    Layout gallery — {LAYOUTS.length} formats
+                  </p>
+                  <p className="mt-1 font-serif text-2xl font-light text-foreground">Add a page</p>
+                </div>
+                <button
+                  onClick={() => setGalleryOpen(false)}
+                  aria-label="Close the layout gallery"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <button
-                onClick={() => setGalleryOpen(false)}
-                aria-label="Close the layout gallery"
-                className="flex h-9 w-9 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {FAMILIES.map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setGalleryFamily(f)}
+                    className={`border px-3 py-1.5 text-[9px] uppercase tracking-[0.28em] transition-colors ${
+                      galleryFamily === f
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border/60 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
-              {LAYOUTS.map((l) => (
+              {LAYOUTS.filter((l) => galleryFamily === "All" || l.family === galleryFamily).map((l) => (
                 <button
                   key={l.id}
                   onClick={() => addPage(l.id)}
@@ -858,14 +877,20 @@ const FlipBuilder: React.FC = () => {
                 >
                   <div className="relative h-40 overflow-hidden border-b border-border/40">
                     <div
-                      className="pointer-events-none absolute left-0 top-0 origin-top-left"
+                      className="pointer-events-none absolute left-0 top-0 flex origin-top-left"
                       style={{ width: 400, height: 533, transform: "scale(0.55)" }}
                     >
                       <PageView page={l.build()} editing />
                     </div>
+                    {l.buildFacing && (
+                      <span className="absolute right-2 top-2 inline-flex items-center gap-1 border border-border/60 bg-background/85 px-1.5 py-1 text-[8px] uppercase tracking-[0.24em] text-foreground backdrop-blur">
+                        <Columns2 className="h-3 w-3" /> Spread
+                      </span>
+                    )}
                   </div>
                   <div className="px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-[0.28em] text-foreground">{l.name}</p>
+                    <p className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground">{l.family}</p>
+                    <p className="mt-1 text-[10px] uppercase tracking-[0.28em] text-foreground">{l.name}</p>
                     <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{l.note}</p>
                   </div>
                 </button>
@@ -874,6 +899,57 @@ const FlipBuilder: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Features — every Wonderlands widget, placed on the current page */}
+      {featuresOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6">
+          <div className="max-h-[88vh] w-full max-w-4xl overflow-y-auto border border-border/60 bg-background">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-border/60 bg-background px-5 py-4">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                  Features — {FLIP_WIDGETS.length} Wonderlands widgets
+                </p>
+                <p className="mt-1 font-serif text-2xl font-light text-foreground">Place a live widget</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Every board, configurator, calculator and application, running on the leaf.
+                </p>
+              </div>
+              <button
+                onClick={() => setFeaturesOpen(false)}
+                aria-label="Close the features gallery"
+                className="flex h-9 w-9 shrink-0 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-5">
+              {WIDGET_GROUPS.map((g) => (
+                <div key={g} className="mb-6 last:mb-0">
+                  <p className="border-b border-border/50 pb-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                    {g}
+                  </p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {FLIP_WIDGETS.filter((w) => w.group === g).map((w) => (
+                      <button
+                        key={w.id}
+                        onClick={() => {
+                          addBlock("widget", w.id);
+                          setFeaturesOpen(false);
+                        }}
+                        className="border border-border/60 px-4 py-3 text-left transition-colors hover:border-foreground"
+                      >
+                        <p className="text-[10px] uppercase tracking-[0.28em] text-foreground">{w.label}</p>
+                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{w.note}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
     </section>
   );
 };
