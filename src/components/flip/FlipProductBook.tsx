@@ -155,6 +155,27 @@ const STORIES: Record<string, { lede: string; body: string; craft: string; care:
   },
 };
 
+/** A second written paragraph per discipline, so the description leaf reads as an article. */
+const EXTRA_BODY: Record<string, string> = {
+  pools: "Depth is drawn around use rather than convention: a wide shallow end for standing and conversation, a graded floor for swimming, benches set where the sun falls in the afternoon. Coping, waterline tile and deck are specified as one detail so the transition from lawn to water reads as a single line, and the equipment pad is planned early — pump, filter and heater sited where you will never hear them from the bench.",
+  spas: "Because the spa runs on its own circuit, it can be held at temperature through the winter while the pool sits cool, then blended back through the spillover in a single tap. Seating is moulded to the body, the bench height set so shoulders stay under water, and the LED spectrum tuned low enough to keep the night sky visible.",
+  saunas: "Heat is a schedule, not a switch: thirty to forty minutes to bring the stones up, then hours of stable convection. Glass is chosen for how much of the garden you want in the room — a porthole, a full door, or a panoramic gable end. Electrical is sized to the heater and terminated on delivery day, so the first session happens the afternoon the cabin lands.",
+  pavers: "Colour is read in daylight and again wet, because a paver darkens as it takes water. Borders and soldier courses are used to break a large field into rooms, and cuts are kept off the sightlines — full units at the pool edge, cuts hidden against the house. Levels are set to fall away from the slab before anything is laid.",
+  "artificial-grass": "Pile height and density are matched to the traffic: a shorter, denser blade for a play lawn, a longer profile for a garden lawn read from the terrace. Infill weight keeps the blade standing and the surface cool, and the base is graded so a summer downpour is gone in minutes rather than pooling at the edges.",
+  landscaping: "Planting is drawn in three layers — canopy, hedge and understorey — so the garden holds shape in every season and screens what you would rather not see. Species are grouped by water demand, which keeps irrigation zones honest and the long-term maintenance low.",
+  "screen-enclosures": "Span dictates the section: the wider the room, the heavier the upright and the beam that carries it. Anchors are set into the deck to an engineered schedule, fasteners are stainless, and every panel is sized so a single screen can be replaced without disturbing the frame. Drawings are sealed for permit before fabrication begins.",
+  "patio-fencing": "Powder-coated aluminium is used because it does not rust in salt air and does not need painting. Panel heights of four and five feet cover both garden and pool-code applications, posts are set in concrete footings, and every gate is self-closing and self-latching with the latch above reach of a child.",
+  lanai: "Insulated roof panels keep the ceiling cool enough to sit under at midday, and the projection is set from the sun path rather than a standard depth. Fans, downlights and outlets are run inside the structure, so nothing is surface-mounted after the fact.",
+  "driveway-gates": "Operation is chosen from the geometry of the drive — swing where there is room to arc, slide where there is not. Automation carries safety edges, photo eyes and a battery backup, with keypad, intercom or app entry specified to how the household actually arrives.",
+  covers: "The cover is sized to the shell rather than the deck, so the fabric lands on the coping every time. Track systems are recessed where the design allows, and the drive is rated to hold a load — the same detail that makes the cover a safety layer, not only a heat blanket.",
+  "tanning-ledges": "Nine inches is the working depth: enough to cool the body, shallow enough for a chair to sit level. Bubblers are plumbed on their own line so they can run without the main returns, and an umbrella sleeve is cast into the shelf at the drawing stage rather than drilled later.",
+  finishes: "Grade changes everything about the water: a fine pebble reads deep and still, a glass bead throws light, a quartz surface holds an even tone from end to end. Accent and waterline are selected against the coping and deck in daylight, not from a chip under fluorescent light.",
+  liners: "Pattern scale matters more than colour — a small mosaic quiets a large pool, a bold stone print carries a compact one. Material is welded to the measured shape of the shell, so corners are tight and the print stays aligned along the waterline.",
+};
+
+const FALLBACK_EXTRA =
+  "Specification happens on site: measurements, levels, access and the way you intend to use the space. From there the drawing, the permit set and the price are produced together, so what you approve is what is built — no allowances, no revisions at invoice time.";
+
 const FALLBACK_STORY = {
   lede: "Drawn to the property, priced as one contract, and installed turnkey by our own crews.",
   body: "Every element in this catalogue is specified on a site visit, engineered where code requires it, and set by the same team that quoted it. Nothing is subcontracted away from the drawing you approve.",
