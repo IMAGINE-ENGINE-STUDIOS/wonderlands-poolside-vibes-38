@@ -414,8 +414,21 @@ const FlipIndex: React.FC = () => {
     };
   }, [turnTo]);
 
-  // Keyboard navigation
+  // Explore buttons inside the book open the in-place console
   useEffect(() => {
+    const onOpen = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      if (!id) return;
+      setConsoleId(id);
+      setActiveSection(id);
+    };
+    window.addEventListener("flip:open-console", onOpen as EventListener);
+    return () => window.removeEventListener("flip:open-console", onOpen as EventListener);
+  }, []);
+
+  // Keyboard navigation (book only — console handles its own keys)
+  useEffect(() => {
+    if (consoleId) return;
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
@@ -424,10 +437,26 @@ const FlipIndex: React.FC = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [flipPrev, flipNext]);
+  }, [flipPrev, flipNext, consoleId]);
+
+  const openConsole = useCallback((id: string) => {
+    setConsoleId(id);
+    setActiveSection(id);
+  }, []);
+
+  const closeConsole = useCallback(() => {
+    setConsoleId(null);
+    const idx = ITEMS.findIndex((i) => i.id === consoleId);
+    if (idx >= 0) window.setTimeout(() => turnTo(idx), 30);
+  }, [consoleId, turnTo]);
 
   const totalPages = ITEMS.length + 2;
-  const activeIdx = currentPage >= 1 && currentPage <= ITEMS.length ? currentPage - 1 : -1;
+  const activeIdx = consoleId
+    ? ITEMS.findIndex((i) => i.id === consoleId)
+    : currentPage >= 1 && currentPage <= ITEMS.length
+      ? currentPage - 1
+      : -1;
+
 
   return (
     <section id="flip" aria-label="FLIP — category index" className="relative border-y border-border/60 bg-background">
