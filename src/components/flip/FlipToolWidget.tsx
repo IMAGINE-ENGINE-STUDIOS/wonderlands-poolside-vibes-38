@@ -190,9 +190,9 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
         <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
           {(isSite ? siteReadout : readout) || "Draw on the grid — 1 ft squares"}
         </p>
-        {isSite && estimate.total > 0 && (
+        {livePrice > 0 && (
           <p className="mt-1 font-serif text-lg font-light leading-none">
-            {formatMoney(estimate.total)}
+            {formatMoney(livePrice)}
             <span className="ml-2 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
               as drawn — installed
             </span>
