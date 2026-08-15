@@ -695,9 +695,14 @@ const FlipMagazine: React.FC = () => {
                     key={p.id}
                     className="flex items-center justify-between gap-3 border-t border-border/50 py-2"
                   >
-                    <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em] text-foreground">
+                    <button
+                      onClick={() => setDossier(p)}
+                      title={`Open the ${p.name} book`}
+                      className="min-w-0 flex-1 truncate text-left text-[11px] uppercase tracking-[0.18em] text-foreground underline decoration-border/70 underline-offset-4 transition-colors hover:decoration-foreground"
+                    >
                       {String(ci * half + i + 1).padStart(2, "0")} — {p.name}
-                    </span>
+                    </button>
+
                     <span className="shrink-0 font-serif text-base font-light">
                       {formatEntryPrice(p) || "On request"}
                     </span>
