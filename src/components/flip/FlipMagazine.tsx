@@ -751,6 +751,45 @@ const FlipMagazine: React.FC = () => {
               </div>
             ))}
           </div>
+
+          <div className="mt-6 border-t border-border/50 pt-3">
+            <Eyebrow>Your order</Eyebrow>
+            {cartItems.length ? (
+              <>
+                <ul className="mt-2 max-h-40 overflow-hidden">
+                  {cartItems.slice(0, 5).map((c) => (
+                    <li
+                      key={c.id}
+                      className="flex items-baseline justify-between gap-3 border-t border-border/40 py-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+                    >
+                      <span className="truncate text-foreground">{c.name}</span>
+                      <span className="shrink-0">
+                        {(c.price * c.quantity).toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                          maximumFractionDigits: 0,
+                        })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-2 flex items-baseline justify-between border-t border-foreground/30 pt-2">
+                  <span className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Order total</span>
+                  <span className="font-serif text-2xl font-light">
+                    {(cart?.getCartTotal() ?? 0).toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                      maximumFractionDigits: 0,
+                    })}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                Add models from the collection pages — they collect here and in the order desk.
+              </p>
+            )}
+          </div>
           <div className="mt-auto grid gap-2">
             <a
               href="/studio"
