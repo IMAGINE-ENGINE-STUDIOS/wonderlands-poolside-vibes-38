@@ -416,9 +416,10 @@ const HeroCategoryMarquee: React.FC = () => {
             height={dims.h}
             size="fixed"
             minWidth={240}
-            maxWidth={900}
+            maxWidth={1400}
             minHeight={340}
-            maxHeight={1300}
+            maxHeight={1400}
+
             showCover
             usePortrait={portrait}
             mobileScrollSupport
