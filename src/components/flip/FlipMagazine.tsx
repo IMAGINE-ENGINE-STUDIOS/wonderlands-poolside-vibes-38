@@ -1037,9 +1037,8 @@ const FlipMagazine: React.FC = () => {
       notes: category.notes,
       /* product photography only — the model plates of this discipline, so the
          dossier's editorial pages never fall back to finish swatches */
-      images: Array.from(
-        new Set([...(products ?? []).map((p) => p.image), ...(category.images ?? [])].filter(Boolean)),
-      ) as string[],
+      images: (category.images ?? []).filter(Boolean) as string[],
+      siblings: (products ?? []).map((p) => ({ name: p.name, brand: p.brand, image: p.image })),
     }),
     [category, products],
   );
