@@ -1,10 +1,13 @@
-import { useState } from "react";
+import usePersistentState from "@/hooks/usePersistentState";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import FlipIndex from "@/components/FlipIndex";
 import FlipMagazine from "@/components/flip/FlipMagazine";
+import FlipConsoleEdition from "@/components/flip/FlipConsoleEdition";
+import FlipDossierEdition from "@/components/flip/FlipDossierEdition";
+import FlipBuilder from "@/components/flip/FlipBuilder";
 
-type VersionId = "v1" | "v2";
+type VersionId = "v1" | "v2" | "v3" | "v4" | "builder";
 
 const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[] = [
   {
@@ -17,14 +20,35 @@ const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[]
   {
     id: "v2",
     label: "V2",
-    title: "Magazine Edition",
+    title: "Category Console",
     blurb:
-      "Each category becomes its own magazine. Cover, contents, a spread per model, and every option chapter printed as its own page.",
+      "The category browser on its own: rail, search and a magazine product grid loaded in place over the spread.",
+  },
+  {
+    id: "v3",
+    label: "V3",
+    title: "Product Dossier",
+    blurb:
+      "The deep-dive layer alone. One model, ten leaves: plate, dimensions, option chapters, brand notes, design tool and order page.",
+  },
+  {
+    id: "v4",
+    label: "V4",
+    title: "The Outdoor Annual",
+    blurb:
+      "The full edition. Landing spread, every category, live tool widgets, cart and estimate — the version shipped to clients.",
+  },
+  {
+    id: "builder",
+    label: "Flip It",
+    title: "Flip Builder",
+    blurb:
+      "Compose your own edition. Add pages from the layout gallery, upload images and film, edit or delete text boxes, set page transitions, then read it back as a book.",
   },
 ];
 
 const FlipLab = () => {
-  const [active, setActive] = useState<VersionId>("v2");
+  const [active, setActive] = usePersistentState<VersionId>("flip.lab.version", "v4");
   const current = VERSIONS.find((v) => v.id === active)!;
 
   return (
@@ -73,7 +97,11 @@ const FlipLab = () => {
         </p>
       </section>
 
-      {active === "v1" ? <FlipIndex /> : <FlipMagazine />}
+      {active === "v1" && <FlipIndex />}
+      {active === "v2" && <FlipConsoleEdition />}
+      {active === "v3" && <FlipDossierEdition />}
+      {active === "v4" && <FlipMagazine />}
+      {active === "builder" && <FlipBuilder />}
     </main>
   );
 };
