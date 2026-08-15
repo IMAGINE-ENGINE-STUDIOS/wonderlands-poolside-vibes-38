@@ -161,6 +161,8 @@ interface Props {
   onRequestImport?: () => void;
   /** Title block rendered inside the board toolbar */
   header?: React.ReactNode;
+  /** Layer armed for drawing when the board first mounts */
+  defaultLayer?: SiteLayerId;
 }
 
 /**
@@ -170,11 +172,11 @@ interface Props {
  * grid as a calibratable underlay so an existing blueprint can be traced and
  * then edited like native geometry.
  */
-export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header }) => {
+export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const imgRef = React.useRef<HTMLImageElement | null>(null);
   const [imgReady, setImgReady] = React.useState(0);
-  const [layer, setLayer] = React.useState<SiteLayerId>('property');
+  const [layer, setLayer] = React.useState<SiteLayerId>(defaultLayer ?? 'property');
   const [mode, setMode] = React.useState<Mode>('draw');
   const [draft, setDraft] = React.useState<{ x: number; y: number }[]>([]);
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
