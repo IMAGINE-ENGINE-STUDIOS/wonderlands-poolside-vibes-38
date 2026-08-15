@@ -807,17 +807,19 @@ const FlipMagazine: React.FC = () => {
 
     /* ------------------------------- PRICE SHEET ------------------------------ */
     if (products.length) {
-      const half = Math.ceil(products.length / 2);
-      [products.slice(0, half), products.slice(half)].forEach((chunk, ci) => {
+      const PER_PRICE_PAGE = 12;
+      const priceChunks: typeof products[] = [];
+      for (let c = 0; c < products.length; c += PER_PRICE_PAGE) priceChunks.push(products.slice(c, c + PER_PRICE_PAGE));
+      priceChunks.forEach((chunk, ci) => {
         if (!chunk.length) return;
         list.push({
           key: `price-sheet-${ci}`,
           render: () => (
-            <div className="flex h-full w-full flex-col p-8 sm:p-10">
+            <div className="flex h-full w-full flex-col overflow-hidden p-8 sm:p-10">
               <div className="flex items-baseline justify-between gap-3">
                 <Eyebrow>Price sheet</Eyebrow>
                 <Eyebrow className="hidden sm:block">
-                  {ci + 1} / 2 — {category.label}
+                  {ci + 1} / {priceChunks.length} — {category.label}
                 </Eyebrow>
               </div>
               <h3 className="mt-2 font-serif text-2xl font-light leading-tight">The collection, at a glance</h3>
@@ -832,7 +834,7 @@ const FlipMagazine: React.FC = () => {
                       title={`Open the ${p.name} book`}
                       className="min-w-0 flex-1 truncate text-left text-[11px] uppercase tracking-[0.18em] text-foreground underline decoration-border/70 underline-offset-4 transition-colors hover:decoration-foreground"
                     >
-                      {String(ci * half + i + 1).padStart(2, "0")} — {p.name}
+                      {String(ci * PER_PRICE_PAGE + i + 1).padStart(2, "0")} — {p.name}
                     </button>
 
                     <span className="shrink-0 font-serif text-base font-light">
@@ -860,6 +862,7 @@ const FlipMagazine: React.FC = () => {
         });
       });
     }
+
 
 
     const featuresAt = list.length;
