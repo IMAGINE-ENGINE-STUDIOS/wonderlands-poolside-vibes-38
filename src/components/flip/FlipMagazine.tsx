@@ -1175,7 +1175,7 @@ const FlipMagazine: React.FC = () => {
             </HTMLFlipBook>
           )}
         </div>
-        {!dossier && (
+        {(
           <div className="mt-8 flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-3">
               <button
@@ -1197,9 +1197,11 @@ const FlipMagazine: React.FC = () => {
               {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
             </p>
             <p className="max-w-md text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-              {mode === "home"
-                ? "One page per discipline — open any edition to see every model"
-                : "Every model is a spread — every option chapter its own page"}
+              {dossier
+                ? `${dossier.name} — dossier · close to return to ${category.label}`
+                : mode === "home"
+                  ? "One page per discipline — open any edition to see every model"
+                  : "Every model is a spread — every option chapter its own page"}
             </p>
           </div>
         )}
