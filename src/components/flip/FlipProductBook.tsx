@@ -280,7 +280,7 @@ const OptionChapter: React.FC<{
     );
 
   return (
-    <div className="flex h-full w-full flex-col p-7 sm:p-9">
+    <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
       <Eyebrow>
         {String(index + 3).padStart(2, "0")} — {group.title}
         {chunkCount > 1 ? ` (${chunkIndex + 1}/${chunkCount})` : ""}
@@ -513,7 +513,7 @@ export const useProductBookPages = ({
     list.push({
       key: "story-text",
       render: () => (
-        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+        <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
           <Eyebrow>On {category.label.toLowerCase()}</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
           <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
@@ -550,7 +550,7 @@ export const useProductBookPages = ({
     list.push({
       key: "dimensions",
       render: () => (
-        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+        <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
           <Eyebrow>01 — Dimensions & details</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
           <dl className="mt-5 space-y-0">
@@ -578,7 +578,7 @@ export const useProductBookPages = ({
     list.push({
       key: "features",
       render: () => (
-        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+        <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
           <Eyebrow>02 — Features</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">What is included</h3>
           <ul className="mt-4 space-y-0">
@@ -653,7 +653,7 @@ export const useProductBookPages = ({
       list.push({
         key: "plates",
         render: () => (
-          <div className="flex h-full w-full flex-col p-7 sm:p-9">
+          <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
             <div className="flex items-baseline justify-between gap-3">
               <Eyebrow>Plates</Eyebrow>
               <Eyebrow className="hidden sm:block">{category.label}</Eyebrow>
@@ -688,7 +688,7 @@ export const useProductBookPages = ({
     list.push({
       key: "brand",
       render: () => (
-        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+        <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
           <Eyebrow>The maker</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.brand ?? "Wonderlands World"}</h3>
           <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
@@ -725,7 +725,7 @@ export const useProductBookPages = ({
     list.push({
       key: "tool",
       render: () => (
-        <div className="flex h-full w-full flex-col p-5 sm:p-6">
+        <div className="flex h-full w-full flex-col overflow-hidden p-5 sm:p-6">
           <Eyebrow>Design tool</Eyebrow>
           <h3 className="mt-1 font-serif text-xl font-light leading-tight">{tool?.name ?? "Wonderlands Studio"}</h3>
           {/* the real board for this discipline, live on the page */}
@@ -739,7 +739,7 @@ export const useProductBookPages = ({
     list.push({
       key: "tool-notes",
       render: () => (
-        <div className="flex h-full w-full flex-col p-7 sm:p-9">
+        <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
           <Eyebrow>{tool?.name ?? "Wonderlands Studio"}</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Draw it to scale</h3>
           <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">

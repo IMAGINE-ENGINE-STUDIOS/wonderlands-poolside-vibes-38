@@ -807,17 +807,19 @@ const FlipMagazine: React.FC = () => {
 
     /* ------------------------------- PRICE SHEET ------------------------------ */
     if (products.length) {
-      const half = Math.ceil(products.length / 2);
-      [products.slice(0, half), products.slice(half)].forEach((chunk, ci) => {
+      const PER_PRICE_PAGE = 12;
+      const priceChunks: typeof products[] = [];
+      for (let c = 0; c < products.length; c += PER_PRICE_PAGE) priceChunks.push(products.slice(c, c + PER_PRICE_PAGE));
+      priceChunks.forEach((chunk, ci) => {
         if (!chunk.length) return;
         list.push({
           key: `price-sheet-${ci}`,
           render: () => (
-            <div className="flex h-full w-full flex-col p-8 sm:p-10">
+            <div className="flex h-full w-full flex-col overflow-hidden p-8 sm:p-10">
               <div className="flex items-baseline justify-between gap-3">
                 <Eyebrow>Price sheet</Eyebrow>
                 <Eyebrow className="hidden sm:block">
-                  {ci + 1} / 2 — {category.label}
+                  {ci + 1} / {priceChunks.length} — {category.label}
                 </Eyebrow>
               </div>
               <h3 className="mt-2 font-serif text-2xl font-light leading-tight">The collection, at a glance</h3>
@@ -832,7 +834,7 @@ const FlipMagazine: React.FC = () => {
                       title={`Open the ${p.name} book`}
                       className="min-w-0 flex-1 truncate text-left text-[11px] uppercase tracking-[0.18em] text-foreground underline decoration-border/70 underline-offset-4 transition-colors hover:decoration-foreground"
                     >
-                      {String(ci * half + i + 1).padStart(2, "0")} — {p.name}
+                      {String(ci * PER_PRICE_PAGE + i + 1).padStart(2, "0")} — {p.name}
                     </button>
 
                     <span className="shrink-0 font-serif text-base font-light">
@@ -862,39 +864,50 @@ const FlipMagazine: React.FC = () => {
     }
 
 
+
     const featuresAt = list.length;
 
+    /* options — chunked so a list can never run past the page margin */
+    const PER_OPT_PAGE = 10;
     groups.forEach((g, gi) => {
-      list.push({
-        key: `opt-${gi}`,
-        render: () => (
-          <div className="flex h-full w-full flex-col p-8 sm:p-10">
-            <div className="flex items-baseline justify-between gap-3">
-              <Eyebrow>Chapter {String(gi + 1).padStart(2, "0")} — Options</Eyebrow>
-              <Eyebrow className="hidden sm:block">{category.label}</Eyebrow>
+      const chunks: string[][] = [];
+      for (let c = 0; c < g.options.length; c += PER_OPT_PAGE) chunks.push(g.options.slice(c, c + PER_OPT_PAGE));
+      chunks.forEach((chunk, ci) => {
+        list.push({
+          key: `opt-${gi}-${ci}`,
+          render: () => (
+            <div className="flex h-full w-full flex-col overflow-hidden p-8 sm:p-10">
+              <div className="flex items-baseline justify-between gap-3">
+                <Eyebrow>
+                  Chapter {String(gi + 1).padStart(2, "0")} — Options
+                  {chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ""}
+                </Eyebrow>
+                <Eyebrow className="hidden sm:block">{category.label}</Eyebrow>
+              </div>
+              <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">{g.title}</h3>
+              <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{g.note}</p>
+              <ul className="mt-6 min-h-0 flex-1 overflow-hidden">
+                {chunk.map((o, oi) => (
+                  <li
+                    key={o}
+                    className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2.5 text-[12px] text-foreground"
+                  >
+                    <span className="min-w-0 flex-1 truncate">{o}</span>
+                    <span className="shrink-0 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                      {String(ci * PER_OPT_PAGE + oi + 1).padStart(2, "0")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                Selected in the studio — configured, priced, installed
+              </p>
             </div>
-            <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">{g.title}</h3>
-            <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{g.note}</p>
-            <ul className="mt-6 min-h-0 flex-1">
-              {g.options.map((o, oi) => (
-                <li
-                  key={o}
-                  className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2.5 text-[12px] text-foreground"
-                >
-                  <span>{o}</span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                    {String(oi + 1).padStart(2, "0")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-              Selected in the studio — configured, priced, installed
-            </p>
-          </div>
-        ),
+          ),
+        });
       });
     });
+
 
     const estimateAt = list.length;
 
