@@ -391,7 +391,16 @@ const FlipMagazine: React.FC = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
             </div>
-            <h3 className="mt-4 font-serif text-3xl font-light leading-tight sm:text-4xl">{it.label}</h3>
+            <button
+              onClick={() => openCategory(it.id)}
+              title={`Open the ${it.label} edition`}
+              className="mt-4 block text-left font-serif text-3xl font-light leading-tight sm:text-4xl"
+            >
+              <span className="border-b border-border/60 pb-0.5 transition-colors hover:border-foreground">
+                {it.label}
+              </span>
+            </button>
+
             <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">{it.description}</p>
             <ul className="mt-3 space-y-1.5">
               {it.notes.map((n) => (
