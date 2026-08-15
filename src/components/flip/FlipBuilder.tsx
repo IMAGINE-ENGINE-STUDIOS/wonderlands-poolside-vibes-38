@@ -637,7 +637,7 @@ const FlipBuilder: React.FC = () => {
           </div>
 
           {/* Inspector */}
-          <aside className="border-t border-border/60 px-4 py-5 lg:border-l lg:border-t-0">
+          <aside className="min-w-0 overflow-hidden border-t border-border/60 px-4 py-5 lg:border-l lg:border-t-0">
             <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Page</p>
             <div className="mt-3 grid gap-3">
               <label className="grid gap-1">
