@@ -258,6 +258,24 @@ const FlipMagazine: React.FC = () => {
   const openDossier = useCallback((p: ConsoleEntry) => swap(() => setDossier(p)), [swap]);
   const closeDossier = useCallback(() => swap(() => setDossier(null)), [swap]);
 
+  /* ------------------------------ EDITOR BOARD ------------------------------ */
+  // The design board takes over the page: the flip fades out while a wireframe
+  // is traced from the corners, then the board rises in its place.
+  const [boardOpen, setBoardOpen] = useState(false);
+  const boardTimer = useRef<number | null>(null);
+  const openBoard = useCallback(() => {
+    setFading(true);
+    if (boardTimer.current) window.clearTimeout(boardTimer.current);
+    boardTimer.current = window.setTimeout(() => setBoardOpen(true), 320);
+  }, []);
+  const closeBoard = useCallback(() => {
+    if (boardTimer.current) window.clearTimeout(boardTimer.current);
+    setBoardOpen(false);
+    setFading(false);
+  }, []);
+  useEffect(() => () => { if (boardTimer.current) window.clearTimeout(boardTimer.current); }, []);
+  const boardMeta = boardForCategory(categoryId);
+
   /** Opens the product's own small book. */
   const MoreButton: React.FC<{ entry: ConsoleEntry; tone?: "light" | "dark" }> = ({ entry, tone = "light" }) => (
     <button
