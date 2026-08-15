@@ -155,6 +155,27 @@ const STORIES: Record<string, { lede: string; body: string; craft: string; care:
   },
 };
 
+/** A second written paragraph per discipline, so the description leaf reads as an article. */
+const EXTRA_BODY: Record<string, string> = {
+  pools: "Depth is drawn around use rather than convention: a wide shallow end for standing and conversation, a graded floor for swimming, benches set where the sun falls in the afternoon. Coping, waterline tile and deck are specified as one detail so the transition from lawn to water reads as a single line, and the equipment pad is planned early — pump, filter and heater sited where you will never hear them from the bench.",
+  spas: "Because the spa runs on its own circuit, it can be held at temperature through the winter while the pool sits cool, then blended back through the spillover in a single tap. Seating is moulded to the body, the bench height set so shoulders stay under water, and the LED spectrum tuned low enough to keep the night sky visible.",
+  saunas: "Heat is a schedule, not a switch: thirty to forty minutes to bring the stones up, then hours of stable convection. Glass is chosen for how much of the garden you want in the room — a porthole, a full door, or a panoramic gable end. Electrical is sized to the heater and terminated on delivery day, so the first session happens the afternoon the cabin lands.",
+  pavers: "Colour is read in daylight and again wet, because a paver darkens as it takes water. Borders and soldier courses are used to break a large field into rooms, and cuts are kept off the sightlines — full units at the pool edge, cuts hidden against the house. Levels are set to fall away from the slab before anything is laid.",
+  "artificial-grass": "Pile height and density are matched to the traffic: a shorter, denser blade for a play lawn, a longer profile for a garden lawn read from the terrace. Infill weight keeps the blade standing and the surface cool, and the base is graded so a summer downpour is gone in minutes rather than pooling at the edges.",
+  landscaping: "Planting is drawn in three layers — canopy, hedge and understorey — so the garden holds shape in every season and screens what you would rather not see. Species are grouped by water demand, which keeps irrigation zones honest and the long-term maintenance low.",
+  "screen-enclosures": "Span dictates the section: the wider the room, the heavier the upright and the beam that carries it. Anchors are set into the deck to an engineered schedule, fasteners are stainless, and every panel is sized so a single screen can be replaced without disturbing the frame. Drawings are sealed for permit before fabrication begins.",
+  "patio-fencing": "Powder-coated aluminium is used because it does not rust in salt air and does not need painting. Panel heights of four and five feet cover both garden and pool-code applications, posts are set in concrete footings, and every gate is self-closing and self-latching with the latch above reach of a child.",
+  lanai: "Insulated roof panels keep the ceiling cool enough to sit under at midday, and the projection is set from the sun path rather than a standard depth. Fans, downlights and outlets are run inside the structure, so nothing is surface-mounted after the fact.",
+  "driveway-gates": "Operation is chosen from the geometry of the drive — swing where there is room to arc, slide where there is not. Automation carries safety edges, photo eyes and a battery backup, with keypad, intercom or app entry specified to how the household actually arrives.",
+  covers: "The cover is sized to the shell rather than the deck, so the fabric lands on the coping every time. Track systems are recessed where the design allows, and the drive is rated to hold a load — the same detail that makes the cover a safety layer, not only a heat blanket.",
+  "tanning-ledges": "Nine inches is the working depth: enough to cool the body, shallow enough for a chair to sit level. Bubblers are plumbed on their own line so they can run without the main returns, and an umbrella sleeve is cast into the shelf at the drawing stage rather than drilled later.",
+  finishes: "Grade changes everything about the water: a fine pebble reads deep and still, a glass bead throws light, a quartz surface holds an even tone from end to end. Accent and waterline are selected against the coping and deck in daylight, not from a chip under fluorescent light.",
+  liners: "Pattern scale matters more than colour — a small mosaic quiets a large pool, a bold stone print carries a compact one. Material is welded to the measured shape of the shell, so corners are tight and the print stays aligned along the waterline.",
+};
+
+const FALLBACK_EXTRA =
+  "Specification happens on site: measurements, levels, access and the way you intend to use the space. From there the drawing, the permit set and the price are produced together, so what you approve is what is built — no allowances, no revisions at invoice time.";
+
 const FALLBACK_STORY = {
   lede: "Drawn to the property, priced as one contract, and installed turnkey by our own crews.",
   body: "Every element in this catalogue is specified on a site visit, engineered where code requires it, and set by the same team that quoted it. Nothing is subcontracted away from the drawing you approve.",
@@ -205,14 +226,35 @@ const OptionChapter: React.FC<{
     `flip-${categoryId}-${entry.id}-${group.title}-${o.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const inOrder = (o: StudioOption) => (cart?.cartItems ?? []).some((c) => c.id === optionId(o));
 
-  const addOption = (o: StudioOption) => {
+  /** Measurement being collected for a unit-priced option (sq ft or count). */
+  const [measure, setMeasure] = useState<{ label: string; value: string } | null>(null);
+
+  /** Exactly the Wonderlands Studio calculation: rate x measurement, or a flat price. */
+  const lineTotal = (o: StudioOption, qty: number) => (o.unit ? o.price * qty : o.price);
+
+  const unitWord = (o: StudioOption) => (o.unit === "sqft" ? "sq ft" : "units");
+
+  const addOption = (o: StudioOption, qty = 1) => {
+    const total = lineTotal(o, qty);
     cart?.addToCart({
       id: optionId(o),
-      name: `${entry.name} — ${group.title}: ${o.label}`,
-      price: o.price,
+      name: o.unit
+        ? `${entry.name} — ${group.title}: ${o.label} (${qty} ${unitWord(o)} @ ${o.priceLabel})`
+        : `${entry.name} — ${group.title}: ${o.label}`,
+      price: total,
       image: o.image ?? entry.image,
       category: categoryLabel,
     });
+    setMeasure(null);
+  };
+
+  const requestAdd = (o: StudioOption) => {
+    if (o.unit && o.price > 0) {
+      setActive(o);
+      setMeasure({ label: o.label, value: o.unit === "sqft" ? "400" : "1" });
+      return;
+    }
+    addOption(o);
   };
 
   const rows = (dense: boolean) => (
@@ -223,7 +265,7 @@ const OptionChapter: React.FC<{
           onMouseEnter={() => setActive(o)}
           onFocus={() => setActive(o)}
           onClick={() => setActive(o)}
-          className={`flex items-center gap-3 border-t border-border/50 py-2 transition-colors ${
+          className={`flex flex-wrap items-center gap-3 border-t border-border/50 py-2 transition-colors ${
             active?.label === o.label ? "bg-foreground/[0.04]" : ""
           }`}
         >
@@ -248,7 +290,7 @@ const OptionChapter: React.FC<{
             aria-label={`Add ${o.label} to the order`}
             onClick={(e) => {
               e.stopPropagation();
-              addOption(o);
+              requestAdd(o);
             }}
             className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
               inOrder(o)
@@ -258,10 +300,49 @@ const OptionChapter: React.FC<{
           >
             {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
           </button>
+
+          {/* unit-priced options are measured before they enter the estimate, exactly as in the studio */}
+          {measure?.label === o.label && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex w-full items-center gap-2 border-t border-dashed border-border/60 pt-2"
+            >
+              <label className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
+                {o.unit === "sqft" ? "Area" : "Quantity"}
+              </label>
+              <input
+                type="number"
+                min={o.unit === "sqft" ? 1 : 1}
+                step={o.unit === "sqft" ? 10 : 1}
+                value={measure.value}
+                onChange={(e) => setMeasure({ label: o.label, value: e.target.value })}
+                className="w-20 border border-border/70 bg-transparent px-2 py-1 font-serif text-[11px] outline-none focus:border-foreground"
+              />
+              <span className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground">{unitWord(o)}</span>
+              <span className="ml-auto font-serif text-[11px]">
+                ${Math.round(lineTotal(o, Math.max(0, Number(measure.value) || 0))).toLocaleString()}
+              </span>
+              <button
+                type="button"
+                onClick={() => addOption(o, Math.max(1, Number(measure.value) || 1))}
+                className="border border-foreground bg-foreground px-2 py-1 text-[9px] uppercase tracking-[0.25em] text-background"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => setMeasure(null)}
+                className="border border-border/70 px-2 py-1 text-[9px] uppercase tracking-[0.25em] text-muted-foreground"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </li>
       ))}
     </ul>
   );
+
 
   const plateArt = (contain: boolean) =>
     preview?.color && !preview.image ? (
@@ -551,46 +632,95 @@ export const useProductBookPages = ({
 
     list.push({
       key: "story-text",
-      render: () => (
-        <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
-          <Eyebrow>On {category.label.toLowerCase()}</Eyebrow>
-          <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
-          <p className="mt-4 font-serif text-[13px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
-            {story.body}
-          </p>
-          {(() => {
-            const details = [plateAt(2), plateAt(3)].filter(Boolean) as string[];
-            if (!details.length) return null;
-            return (
-              <div className={`mt-4 grid gap-2 ${details.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-                {details.map((src, i) => (
-                  <div key={src} className="relative aspect-[4/5] overflow-hidden">
+      render: () => {
+        const second = EXTRA_BODY[category.id] ?? FALLBACK_EXTRA;
+        const detail = plateAt(2) ?? plateAt(1);
+        const notes = (category.notes ?? []).slice(0, 3);
+        return (
+          <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
+            <div className="flex items-baseline justify-between gap-3">
+              <Eyebrow>On {category.label.toLowerCase()}</Eyebrow>
+              <Eyebrow className="hidden sm:block">{entry.brand ?? "Wonderlands World"}</Eyebrow>
+            </div>
+            <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
+            <p className="mt-1 font-serif text-lg font-light italic leading-snug text-muted-foreground">
+              {category.tagline ?? category.label}
+            </p>
+            <div className="mt-3 h-px w-14 origin-left bg-foreground/40 animate-rule-draw" />
+
+            {/* body — two columns of type with a detail plate, so the leaf reads full */}
+            <div className="mt-4 grid min-h-0 flex-1 gap-4 sm:grid-cols-[1.15fr_0.85fr]">
+              <div className="min-h-0 space-y-3 overflow-hidden">
+                <p className="font-serif text-[12.5px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
+                  {story.body}
+                </p>
+                <p className="font-serif text-[12.5px] leading-relaxed text-foreground/80">{second}</p>
+                <blockquote className="border-l border-foreground/40 pl-3 font-serif text-[13px] font-light italic leading-snug text-foreground">
+                  {story.lede}
+                </blockquote>
+              </div>
+
+              <div className="flex min-h-0 flex-col gap-3">
+                {detail && (
+                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
                     <img
-                      src={src}
-                      alt={`${entry.name} detail ${i + 1}`}
+                      src={detail}
+                      alt={`${entry.name} detail`}
                       loading="lazy"
                       decoding="async"
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] hover:scale-105"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
                     />
+                    <span className="absolute bottom-1 left-2 font-serif text-[9px] text-white/85">
+                      {entry.name}
+                    </span>
                   </div>
-                ))}
+                )}
+                <dl className="space-y-1.5">
+                  {[
+                    ["Investment", price],
+                    ["Dimensions", metaBits[0] ?? category.label],
+                    ["Delivery", "Turnkey, installed"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-baseline justify-between gap-3 border-t border-border/50 pt-1.5">
+                      <dt className="text-[8px] uppercase tracking-[0.28em] text-muted-foreground">{k}</dt>
+                      <dd className="font-serif text-[11px]">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {notes.length > 0 && (
+                  <ul className="space-y-1">
+                    {notes.map((n, i) => (
+                      <li key={n} className="flex gap-2 text-[10px] leading-relaxed text-muted-foreground">
+                        <span className="font-serif">{String(i + 1).padStart(2, "0")}</span>
+                        <span className="min-w-0">{n}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            );
-          })()}
-
-          <div className="mt-auto space-y-2 border-t border-border/50 pt-3">
-            <div>
-              <Eyebrow>Installation</Eyebrow>
-              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.craft}</p>
             </div>
-            <div>
-              <Eyebrow>Living with it</Eyebrow>
-              <p className="mt-1 text-[11px] leading-relaxed text-foreground/80">{story.care}</p>
+
+            <div className="mt-4 grid gap-3 border-t border-border/50 pt-3 sm:grid-cols-3">
+              <div>
+                <Eyebrow>Installation</Eyebrow>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{story.craft}</p>
+              </div>
+              <div>
+                <Eyebrow>Living with it</Eyebrow>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{story.care}</p>
+              </div>
+              <div>
+                <Eyebrow>Included</Eyebrow>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">
+                  Delivery, installation and the product exactly as described — one contract, our own crews.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ),
+        );
+      },
     });
+
 
     /* dimensions & details */
     list.push({
