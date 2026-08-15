@@ -249,10 +249,14 @@ const FlipMagazine: React.FC = () => {
   /* -------------------------------- DOSSIER --------------------------------- */
   const [dossier, setDossier] = useState<ConsoleEntry | null>(null);
 
+  /** Opens a model's book inside the same flip, with the editorial cross-fade. */
+  const openDossier = useCallback((p: ConsoleEntry) => swap(() => setDossier(p)), [swap]);
+  const closeDossier = useCallback(() => swap(() => setDossier(null)), [swap]);
+
   /** Opens the product's own small book. */
   const MoreButton: React.FC<{ entry: ConsoleEntry; tone?: "light" | "dark" }> = ({ entry, tone = "light" }) => (
     <button
-      onClick={() => setDossier(entry)}
+      onClick={() => openDossier(entry)}
       className={`inline-flex items-center justify-between gap-3 border px-4 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors ${
         tone === "dark"
           ? "border-white/50 text-white hover:bg-white hover:text-black"
