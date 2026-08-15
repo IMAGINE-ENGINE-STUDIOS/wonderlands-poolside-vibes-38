@@ -153,6 +153,16 @@ const buildItems = (f: FeatureConfig, ctx: StudioContext, prefix = ""): StudioOp
  */
 const cache = new Map<string, StudioGroup[]>();
 
+/** Equipment fitted on every pool and spa we install — never an extra. */
+const STANDARD_INCLUSIONS: StudioOption[] = [
+  { label: "Salt water system", price: 0, priceLabel: "Included", note: "Fitted as standard on every pool" },
+  { label: "Pentair pool equipment package", price: 0, priceLabel: "Included" },
+  { label: "LED colour light", price: 0, priceLabel: "Included" },
+  { label: "Delivery, installation and start-up", price: 0, priceLabel: "Included" },
+];
+
+const POOL_LIKE = new Set(["pools", "spas", "tanning-ledges", "finishes", "liners"]);
+
 export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = {}): StudioGroup[] => {
   const key = `${categoryId}|${ctx.modelName ?? ""}|${ctx.brand ?? ""}`;
   const cached = cache.get(key);
@@ -160,6 +170,15 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
 
   const productType = CATEGORY_TO_PRODUCT[categoryId];
   const groups: StudioGroup[] = [];
+
+  if (POOL_LIKE.has(categoryId)) {
+    groups.push({
+      title: "Included as standard",
+      note: "Every pool leaves our yard salt-ready — these are never charged as additional features",
+      items: STANDARD_INCLUSIONS,
+      options: STANDARD_INCLUSIONS.map((i) => i.label),
+    });
+  }
 
   if (isGlimmerGlass(ctx) && (categoryId === "pools" || categoryId === "spas" || categoryId === "finishes")) {
     groups.push({
@@ -172,7 +191,9 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
 
   if (productType) {
     getProductFeatures(productType).forEach((f) => {
-      const items = buildItems(f, ctx);
+      const items = buildItems(f, ctx).filter(
+        (i) => !(POOL_LIKE.has(categoryId) && /salt/i.test(i.label)),
+      );
       if (!items.length) return;
       groups.push({
         title: f.label,
@@ -187,6 +208,9 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
   return groups;
 };
 
+const norm = (s: string) =>
+  s.toLowerCase().replace(/—.*$/, "").replace(/\([^)]*\)/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+
 /** Editorial chapters first, then every remaining studio feature. */
 export const mergeStudioGroups = (
   categoryId: string,
@@ -195,11 +219,39 @@ export const mergeStudioGroups = (
 ): StudioGroup[] => {
   const studio = getStudioFeatureGroups(categoryId, ctx);
   const seen = new Set(studio.map((g) => g.title.toLowerCase()));
+
+  /** Every priced studio option, so editorial lists quote the same numbers. */
+  const priced = new Map<string, StudioOption>();
+  studio.forEach((g) =>
+    g.items.forEach((i) => {
+      const k = norm(i.label);
+      if (k && !priced.has(k)) priced.set(k, i);
+    }),
+  );
+  const match = (label: string) => {
+    const k = norm(label);
+    if (!k) return undefined;
+    const exact = priced.get(k);
+    if (exact) return exact;
+    for (const [pk, item] of priced) {
+      if (pk.length > 3 && (k.includes(pk) || pk.includes(k))) return item;
+    }
+    return undefined;
+  };
+
   const extra: StudioGroup[] = editorial
     .filter((g) => !seen.has(g.title.toLowerCase()))
     .map((g) => ({
       ...g,
-      items: g.options.map((label) => ({ label, price: 0, priceLabel: "Specified on survey" })),
+      items: g.options.map((label) => {
+        if (POOL_LIKE.has(categoryId) && /salt/i.test(label)) {
+          return { label, price: 0, priceLabel: "Included" } as StudioOption;
+        }
+        const hit = match(label);
+        return hit
+          ? { ...hit, label, image: hit.image, note: hit.note }
+          : ({ label, price: 0, priceLabel: "Included" } as StudioOption);
+      }),
     }));
   return [...studio, ...extra];
 };
