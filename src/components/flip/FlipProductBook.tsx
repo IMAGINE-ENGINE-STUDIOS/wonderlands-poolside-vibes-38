@@ -348,7 +348,7 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
         <div className="flex h-full w-full flex-col p-7 sm:p-9">
           <Eyebrow>02 — Features</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">What is included</h3>
-          <ul className="mt-5 space-y-0">
+          <ul className="mt-4 space-y-0">
             {(category.notes ?? []).concat(["Permit drawings", "Warranty registration"]).map((n) => (
               <li key={n} className="flex items-start gap-3 border-t border-border/50 py-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 <span className="mt-[7px] h-px w-4 shrink-0 bg-foreground/40" />
@@ -356,11 +356,14 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
               </li>
             ))}
           </ul>
-          {plates[0] && (
-            <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
-              <img src={plates[0]} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
-            </div>
-          )}
+          <div className="relative mt-4 min-h-0 flex-1 overflow-hidden">
+            <img src={plateAt(1)} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
+              {entry.name} — as installed
+            </p>
+          </div>
+
         </div>
       ),
     });
