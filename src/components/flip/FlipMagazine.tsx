@@ -1105,7 +1105,7 @@ const FlipMagazine: React.FC = () => {
             </>
           )}
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
           <button
             onClick={openBoard}
             title={`Editor Board — ${boardMeta.name}`}
@@ -1154,7 +1154,7 @@ const FlipMagazine: React.FC = () => {
         ))}
       </nav>
 
-      <div className="relative px-2 py-8 md:px-6 md:py-12">
+      <div className="relative px-2 pb-28 pt-8 md:px-6 md:py-12">
         <div className="pointer-events-none absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 md:block">
           <div className="pointer-events-auto flex flex-col gap-1 rounded-full border border-border/50 bg-background/50 p-2 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]">
             <button
