@@ -963,7 +963,7 @@ const FlipMagazine: React.FC = () => {
   return (
     <section aria-label="FLIP Magazine edition" className="relative bg-background">
       <div className="flex flex-wrap items-baseline justify-between gap-3 px-6 py-5 md:px-10">
-        <div className="flex items-baseline gap-3">
+        <nav aria-label="Where you are" className="flex flex-wrap items-baseline gap-3">
           <button
             onClick={openHome}
             className="font-serif text-xl font-light leading-none tracking-tight text-foreground"
@@ -971,11 +971,35 @@ const FlipMagazine: React.FC = () => {
             FLIP
           </button>
           <span className="hidden h-px w-8 bg-foreground/30 sm:block" />
-          <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
-            {mode === "home" ? "The Outdoor Annual" : category.label}
-          </p>
-        </div>
+          {mode === "home" ? (
+            <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">The Outdoor Annual</p>
+          ) : (
+            <button
+              onClick={() => (dossier ? closeDossier() : undefined)}
+              className={`text-[10px] uppercase tracking-[0.4em] transition-colors ${
+                dossier ? "text-muted-foreground hover:text-foreground" : "text-foreground"
+              }`}
+            >
+              {category.label}
+            </button>
+          )}
+          {dossier && (
+            <>
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+              <p className="text-[10px] uppercase tracking-[0.4em] text-foreground">{dossier.name}</p>
+            </>
+          )}
+        </nav>
+        {dossier && (
+          <button
+            onClick={closeDossier}
+            className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" /> Back to {category.label}
+          </button>
+        )}
       </div>
+
 
       <nav
         aria-label="Magazine editions"
