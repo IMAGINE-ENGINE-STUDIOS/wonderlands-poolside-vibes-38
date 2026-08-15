@@ -36,7 +36,7 @@ type Item = {
   notes: string[];
 };
 
-const ITEMS: Item[] = [
+export const ITEMS: Item[] = [
   {
     id: "pools",
     label: "Pools",
