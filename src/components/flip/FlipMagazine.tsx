@@ -1191,6 +1191,15 @@ const FlipMagazine: React.FC = () => {
 
       <FlipCart />
 
+      {boardOpen && (
+        <FlipEditorBoard
+          categoryId={categoryId}
+          categoryLabel={category.label}
+          productName={dossier?.name}
+          productPrice={dossier?.price ?? undefined}
+          onClose={closeBoard}
+        />
+      )}
     </section>
   );
 };
