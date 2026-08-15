@@ -8,6 +8,7 @@ import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeStudioGroups, type StudioGroup, type StudioOption } from "@/lib/flipStudioFeatures";
 import FlipToolWidget from "./FlipToolWidget";
+import { useFlipLocked } from "./flipBoardStore";
 import { pushSpread } from "./FlipSpread";
 
 /**
@@ -909,52 +910,49 @@ export const useProductBookPages = ({
       });
     }
 
+    /* left leaf — the live board, drawn to scale; page turning is held while drawing */
     list.push({
       key: "tool",
       render: () => (
-        <div className="flex h-full w-full flex-col overflow-hidden p-5 sm:p-6">
+        <div className="flex h-full w-full flex-col overflow-hidden p-4 sm:p-5">
           <Eyebrow>Design tool</Eyebrow>
           <h3 className="mt-1 font-serif text-xl font-light leading-tight">{tool?.name ?? "Wonderlands Studio"}</h3>
-          {/* the real board for this discipline, live on the page */}
-          <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden">
-            <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} />
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
+            <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board" />
           </div>
         </div>
       ),
     });
 
+    /* right leaf — every tool and button for that board */
     list.push({
-      key: "tool-notes",
+      key: "tool-tools",
+      render: () => <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="tools" />,
+    });
+
+    /* following spread — live cost of the drawing, then calculators and options */
+    list.push({
+      key: "tool-cost",
+      render: () => <FlipToolWidget categoryId={category.id} part="cost" />,
+    });
+
+    list.push({
+      key: "tool-options",
       render: () => (
-        <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
-          <Eyebrow>{tool?.name ?? "Wonderlands Studio"}</Eyebrow>
-          <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Draw it to scale</h3>
-          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-            {tool?.note ?? "Configure the model, then carry it into your estimate."}
-          </p>
-          <ul className="mt-5 space-y-3 border-t border-border/50 pt-5 text-[11px] leading-relaxed text-foreground/80">
-            <li>Click the grid to set corners — each square is one foot.</li>
-            <li>Double-click to close the shape and read the takeoff.</li>
-            <li>Open the full board for drafting at permit scale.</li>
-          </ul>
-          <div className="mt-auto flex flex-col gap-2">
-            {onOpenBoard && (
-              <button
-                onClick={onOpenBoard}
-                className="inline-flex items-center justify-between gap-2 border border-foreground px-3 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
-              >
-                Open the full board <ArrowUpRight className="h-3.5 w-3.5" />
-              </button>
-            )}
+        <div className="flex h-full w-full flex-col overflow-hidden">
+          <div className="min-h-0 flex-1">
+            <FlipToolWidget categoryId={category.id} part="options" />
+          </div>
+          <div className="flex flex-col gap-2 px-6 pb-6 sm:px-8">
             <button
               onClick={() => navigate(tool?.to ?? "/wonderlands-studio")}
-              className="inline-flex items-center justify-between gap-2 border border-border/60 px-3 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+              className="inline-flex items-center justify-between gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
             >
               {tool?.name ?? "Wonderlands Studio"} <ArrowUpRight className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => navigate("/blueprint-builder")}
-              className="inline-flex items-center justify-between gap-2 border border-border/60 px-3 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+              className="inline-flex items-center justify-between gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
             >
               Blueprint builder <ArrowUpRight className="h-3.5 w-3.5" />
             </button>
@@ -962,6 +960,7 @@ export const useProductBookPages = ({
         </div>
       ),
     });
+
 
 
     /* order */
@@ -1087,6 +1086,9 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
     </div>
   );
 
+  /* while a board is being drawn on, page turning is suspended */
+  const flipLocked = useFlipLocked();
+
   const book = (
     <HTMLFlipBook
       ref={bookRef}
@@ -1106,10 +1108,10 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
       className="flip-dossier"
       style={{}}
       startPage={0}
-      useMouseEvents
+      useMouseEvents={!flipLocked}
       clickEventForward={false}
       swipeDistance={24}
-      showPageCorners
+      showPageCorners={!flipLocked}
       disableFlipByClick={false}
       autoSize={false}
       startZIndex={0}

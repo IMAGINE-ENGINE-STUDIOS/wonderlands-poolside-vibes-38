@@ -1,8 +1,9 @@
 import * as React from "react";
 import { Suspense, lazy, useCallback, useMemo, useRef, useState } from "react";
 import { Maximize2, Upload, X, Loader2 } from "lucide-react";
-import { usePersistentState } from "@/hooks/usePersistentState";
 import { boardForCategory } from "./FlipEditorBoard";
+import { useFlipBoard, setFlipBoardValue, lockFlip, unlockFlip } from "./flipBoardStore";
+import { FlipBoardTools, FlipBoardCost, FlipBoardCalculators } from "./FlipBoardPanels";
 import {
   DEFAULT_PX_PER_FT,
   type SiteLayerId,
@@ -53,23 +54,50 @@ type Props = {
   categoryId: string;
   /** Expand into the full-screen Editor Board */
   onExpand?: () => void;
+  /**
+   * Which leaf of the design spread this is:
+   *  - "board" (default) — the live drawing board
+   *  - "tools" — every button and tool for the board
+   *  - "cost" — the live cost of the drawing
+   *  - "options" — calculators and options
+   */
+  part?: "board" | "tools" | "cost" | "options";
 };
 
-const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
+const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" }) => {
   const board = boardForCategory(categoryId);
   const [readout, setReadout] = useState<string>("");
   const [full, setFull] = useState(false);
   const [importing, setImporting] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [site, setSite] = usePersistentState<SitePlanData>(`flip_tool_site_${categoryId}`, emptySite);
-  const [enclosure, setEnclosure] = usePersistentState<EnclosureLayout>(
-    `flip_tool_enclosure_${categoryId}`,
-    emptyEnclosure,
+  /* one shared drawing per discipline, so board, cost sheet and calculators agree */
+  const shared = useFlipBoard(categoryId);
+  const site = shared.site;
+  const enclosure = shared.enclosure;
+  const fence = shared.fence;
+  const grass = shared.grass;
+  const grassId = shared.grassId;
+  const setSite = useCallback(
+    (next: SitePlanData) => setFlipBoardValue(categoryId, { site: next }),
+    [categoryId],
   );
-  const [fence, setFence] = usePersistentState<FenceLayout>(`flip_tool_fence_${categoryId}`, emptyFence);
-  const [grass, setGrass] = usePersistentState<GrassLayout>(`flip_tool_grass_${categoryId}`, emptyGrass);
-  const [grassId, setGrassId] = usePersistentState<string>(`flip_tool_grass_active_${categoryId}`, "");
+  const setEnclosure = useCallback(
+    (next: EnclosureLayout) => setFlipBoardValue(categoryId, { enclosure: next }),
+    [categoryId],
+  );
+  const setFence = useCallback(
+    (next: FenceLayout) => setFlipBoardValue(categoryId, { fence: next }),
+    [categoryId],
+  );
+  const setGrass = useCallback(
+    (next: GrassLayout) => setFlipBoardValue(categoryId, { grass: next }),
+    [categoryId],
+  );
+  const setGrassId = useCallback(
+    (next: string) => setFlipBoardValue(categoryId, { grassId: next }),
+    [categoryId],
+  );
 
   const onEnclosureMeasure = useCallback((t: EnclosureTakeoff) => {
     setReadout(
@@ -249,11 +277,45 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand }) => {
     </div>
   );
 
+  /* the facing leaves of the spread — tools, live cost, calculators */
+  const panel =
+    part === "tools" ? (
+      <FlipBoardTools
+        categoryId={categoryId}
+        onEnlarge={() => setFull(true)}
+        onUpload={() => fileRef.current?.click()}
+        onExpand={onExpand}
+      />
+    ) : part === "cost" ? (
+      <FlipBoardCost categoryId={categoryId} />
+    ) : part === "options" ? (
+      <FlipBoardCalculators categoryId={categoryId} />
+    ) : null;
+
+  /* while the reader is drawing, the book holds still — no page turns and no
+     drag reaching the flipbook underneath */
+  const lockHandlers =
+    part === "board"
+      ? {
+          onPointerEnter: lockFlip,
+          onPointerLeave: unlockFlip,
+          onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+          onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
+          onMouseMove: (e: React.MouseEvent) => e.stopPropagation(),
+          onClick: (e: React.MouseEvent) => e.stopPropagation(),
+          onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
+          onTouchMove: (e: React.TouchEvent) => e.stopPropagation(),
+          onTouchEnd: (e: React.TouchEvent) => e.stopPropagation(),
+        }
+      : {};
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col" {...lockHandlers}>
       <div className="min-h-0 flex-1 overflow-auto">
-        <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
+        {panel ?? <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>}
       </div>
+
+
 
       <input
         ref={fileRef}

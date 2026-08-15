@@ -781,6 +781,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
           aspectRatio: `${CANVAS_W} / ${CANVAS_H}`,
           width: '100%',
           height: 'auto',
+          /* react-pageflip forces `position:absolute` on every canvas inside the
+             flipbook; declared inline so the board stays in the page flow */
+          position: 'relative',
           /* a requested height becomes a width cap so the ratio is never broken */
           maxWidth: height ? Math.round((height * CANVAS_W) / CANVAS_H) : undefined,
 

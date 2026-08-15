@@ -1,6 +1,7 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
+import { useFlipLocked } from "./flipBoardStore";
 import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
@@ -142,6 +143,8 @@ const FlipMagazine: React.FC = () => {
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
   const [searchOpen, setSearchOpen] = usePersistentState<boolean>("flip.mag.search", false);
   const [page, setPage] = useState(savedPage);
+  /* held while the reader draws on a board spread, so the book never turns under them */
+  const flipLocked = useFlipLocked();
   const startPageRef = useRef(savedPage);
 
   useEffect(() => {
@@ -1270,9 +1273,9 @@ const FlipMagazine: React.FC = () => {
               startZIndex={0}
               autoSize={false}
               clickEventForward={false}
-              useMouseEvents
+              useMouseEvents={!flipLocked}
               swipeDistance={30}
-              showPageCorners
+              showPageCorners={!flipLocked}
               disableFlipByClick
               style={{}}
               className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
