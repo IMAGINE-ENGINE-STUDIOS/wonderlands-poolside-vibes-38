@@ -242,11 +242,14 @@ const FlipMagazine: React.FC = () => {
       key: "home-left",
       render: () => (
         <div className="relative h-full w-full overflow-hidden">
-          <img
-            src={ITEMS[0].images[0]}
-            alt="Wonderlands World"
-            loading="lazy"
-            decoding="async"
+          <video
+            src={heroVideo.url}
+            poster={ITEMS[0].images[0]}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/85" />
