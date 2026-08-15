@@ -559,6 +559,43 @@ export const useProductBookPages = ({
     return list;
   }, [entry, category, groups, plates, metaBits, price, tool, brandNote, added, add, navigate, portrait, story, gallery, plateAt]);
 
+  return pages;
+};
+
+const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClose, inline = false }) => {
+  const bookRef = useRef<any>(null);
+  const [page, setPage] = useState(0);
+  const [portrait, setPortrait] = useState(false);
+  const [dims, setDims] = useState({ w: 360, h: 480 });
+  const pages = useProductBookPages({ entry, category, groups, portrait });
+
+  useEffect(() => {
+    const measure = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isPortrait = vw < 820;
+      setPortrait(isPortrait);
+      const maxH = Math.max(380, Math.floor(vh * (isPortrait ? 0.66 : 0.74)));
+      const availableW = Math.min(vw - (isPortrait ? 40 : 160), 1400);
+      const wByWidth = isPortrait ? availableW : availableW / 2;
+      const w = Math.floor(Math.min(wByWidth, maxH / 1.3));
+      setDims({ w: Math.max(260, w), h: Math.floor(Math.max(260, w) * 1.3) });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") bookRef.current?.pageFlip?.().flipNext();
+      if (e.key === "ArrowLeft") bookRef.current?.pageFlip?.().flipPrev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const total = pages.length;
 
   const nav = (
