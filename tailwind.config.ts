@@ -85,6 +85,14 @@ export default {
 					from: { transform: 'translateX(0)' },
 					to: { transform: 'translateX(-50%)' }
 				},
+				'ken-burns': {
+					'0%': { transform: 'scale(1.02) translate3d(0, 0, 0)' },
+					'100%': { transform: 'scale(1.14) translate3d(0, -2%, 0)' }
+				},
+				'rule-draw': {
+					'0%': { transform: 'scaleX(0)' },
+					'100%': { transform: 'scaleX(1)' }
+				},
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -161,7 +169,9 @@ export default {
 				'fade-in-up': 'fade-in-up 0.8s ease-out',
 				'scale-in': 'scale-in 0.6s ease-out',
 				'gradient-shift': 'gradient-shift 3s ease-in-out infinite',
-				'fly-to-top': 'fly-to-top 0.6s ease-in-out forwards'
+				'fly-to-top': 'fly-to-top 0.6s ease-in-out forwards',
+				'ken-burns': 'ken-burns 20s ease-in-out infinite alternate',
+				'rule-draw': 'rule-draw 1.2s ease-out forwards'
 			}
 		}
 	},
