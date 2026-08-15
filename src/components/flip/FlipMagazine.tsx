@@ -192,6 +192,7 @@ const FlipMagazine: React.FC = () => {
   const openCategory = useCallback(
     (id: string) => {
       swap(() => {
+        setDossier(null);
         setCategoryId(id);
         setMode("category");
       });
@@ -200,7 +201,10 @@ const FlipMagazine: React.FC = () => {
   );
 
   const openHome = useCallback(() => {
-    swap(() => setMode("home"));
+    swap(() => {
+      setDossier(null);
+      setMode("home");
+    });
   }, [swap, setMode]);
 
 
