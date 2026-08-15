@@ -890,12 +890,9 @@ export const LAYOUTS: LayoutPreset[] = [
 ];
 
 
+const preset = (id: string) => LAYOUTS.find((l) => l.id === id) ?? LAYOUTS[0];
+
 export const starterDoc = (): BuilderDoc => ({
   title: "Untitled Flip",
-  pages: [
-    LAYOUTS[0].build(),
-    LAYOUTS[2].build(),
-    LAYOUTS[3].build(),
-    LAYOUTS[6].build(),
-  ],
+  pages: [preset("cover").build(), preset("index").build(), preset("plate-duo").build(), preset("price-sheet").build()],
 });
