@@ -174,21 +174,35 @@ const FlipMagazine: React.FC = () => {
   const groups = OPTION_GROUPS[categoryId] ?? fallbackGroups;
   const products = useMemo(() => (entries ?? []).slice(0, MAX_MODELS), [entries]);
 
-  const openCategory = useCallback(
-    (id: string) => {
+  // Cross-fade the book while an edition is swapped in — the page never changes,
+  // only the content inside the flip.
+  const [fading, setFading] = useState(false);
+  const swapTimer = useRef<number | null>(null);
+  const swap = useCallback((apply: () => void) => {
+    setFading(true);
+    if (swapTimer.current) window.clearTimeout(swapTimer.current);
+    swapTimer.current = window.setTimeout(() => {
       startPageRef.current = 0;
       setPage(0);
-      setCategoryId(id);
-      setMode("category");
+      apply();
+    }, 220);
+  }, []);
+  useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
+
+  const openCategory = useCallback(
+    (id: string) => {
+      swap(() => {
+        setCategoryId(id);
+        setMode("category");
+      });
     },
-    [setCategoryId, setMode],
+    [swap, setCategoryId, setMode],
   );
 
   const openHome = useCallback(() => {
-    startPageRef.current = 0;
-    setPage(0);
-    setMode("home");
-  }, [setMode]);
+    swap(() => setMode("home"));
+  }, [swap, setMode]);
+
 
   /* ------------------------------- ORDER DESK ------------------------------- */
   const cart = useOptionalShoppingCart();
@@ -249,6 +263,18 @@ const FlipMagazine: React.FC = () => {
       <BookOpen className="h-3.5 w-3.5" />
     </button>
   );
+
+  /** Product title that opens the model's own book in place — no screen change. */
+  const ProductTitle: React.FC<{ entry: ConsoleEntry; className?: string }> = ({ entry, className = "" }) => (
+    <button
+      onClick={() => setDossier(entry)}
+      title={`Open the ${entry.name} book`}
+      className={`block w-full text-left ${className}`}
+    >
+      <span className="border-b border-current/30 pb-0.5 transition-colors hover:border-current">{entry.name}</span>
+    </button>
+  );
+
 
 
   /* ---------------------------------- HOME ---------------------------------- */
@@ -379,7 +405,16 @@ const FlipMagazine: React.FC = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
             </div>
-            <h3 className="mt-4 font-serif text-3xl font-light leading-tight sm:text-4xl">{it.label}</h3>
+            <button
+              onClick={() => openCategory(it.id)}
+              title={`Open the ${it.label} edition`}
+              className="mt-4 block text-left font-serif text-3xl font-light leading-tight sm:text-4xl"
+            >
+              <span className="border-b border-border/60 pb-0.5 transition-colors hover:border-foreground">
+                {it.label}
+              </span>
+            </button>
+
             <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">{it.description}</p>
             <ul className="mt-3 space-y-1.5">
               {it.notes.map((n) => (
@@ -597,7 +632,7 @@ const FlipMagazine: React.FC = () => {
               <p className="text-[9px] uppercase tracking-[0.4em] opacity-80">
                 {number} — {p.brand ?? category.label}
               </p>
-              <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-5xl">{p.name}</h3>
+              <ProductTitle entry={p} className="mt-2 font-serif text-3xl font-light leading-tight sm:text-5xl" />
               {p.meta && <p className="mt-3 max-w-sm text-[11px] leading-relaxed opacity-80">{p.meta}</p>}
               <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-white/25 pt-4">
                 <p className="font-serif text-2xl font-light">{formatEntryPrice(p) || "On request"}</p>
@@ -614,7 +649,7 @@ const FlipMagazine: React.FC = () => {
         render: () => (
           <div className="flex h-full w-full flex-col p-8 sm:p-10">
             <Eyebrow>{number} — Specification</Eyebrow>
-            <h3 className="mt-2 font-serif text-3xl font-light leading-tight">{p.name}</h3>
+            <ProductTitle entry={p} className="mt-2 font-serif text-3xl font-light leading-tight" />
             <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4">
               <div>
                 <Eyebrow>Investment</Eyebrow>
@@ -683,9 +718,14 @@ const FlipMagazine: React.FC = () => {
                     key={p.id}
                     className="flex items-center justify-between gap-3 border-t border-border/50 py-2"
                   >
-                    <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em] text-foreground">
+                    <button
+                      onClick={() => setDossier(p)}
+                      title={`Open the ${p.name} book`}
+                      className="min-w-0 flex-1 truncate text-left text-[11px] uppercase tracking-[0.18em] text-foreground underline decoration-border/70 underline-offset-4 transition-colors hover:decoration-foreground"
+                    >
                       {String(ci * half + i + 1).padStart(2, "0")} — {p.name}
-                    </span>
+                    </button>
+
                     <span className="shrink-0 font-serif text-base font-light">
                       {formatEntryPrice(p) || "On request"}
                     </span>
@@ -904,6 +944,14 @@ const FlipMagazine: React.FC = () => {
 
   const loading = mode === "category" && !entries;
 
+  // Fade the new edition back in once its pages are composed.
+  useEffect(() => {
+    if (loading || !fading) return;
+    const t = window.setTimeout(() => setFading(false), 40);
+    return () => window.clearTimeout(t);
+  }, [loading, fading, mode, categoryId, pages.length]);
+
+
   return (
     <section aria-label="FLIP Magazine edition" className="relative bg-background">
       <div className="flex flex-wrap items-baseline justify-between gap-3 px-6 py-5 md:px-10">
@@ -978,15 +1026,19 @@ const FlipMagazine: React.FC = () => {
           </div>
         )}
 
-        <div className="mx-auto flex justify-center" style={{ perspective: "3000px", minHeight: dims.h }}>
+        <div
+          className={`mx-auto flex justify-center transition-opacity duration-300 ease-out ${
+            fading || loading ? "opacity-0" : "opacity-100"
+          }`}
+          style={{ perspective: "3000px", minHeight: dims.h }}
+        >
           {loading ? (
             <div
               className="flex items-center justify-center border border-border/60"
               style={{ width: portrait ? dims.w : dims.w * 2, height: dims.h }}
-            >
-              <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Composing the edition…</p>
-            </div>
+            />
           ) : (
+
             <HTMLFlipBook
               key={`${mode}-${categoryId}-${pages.length}-${dims.w}`}
               ref={bookRef}
