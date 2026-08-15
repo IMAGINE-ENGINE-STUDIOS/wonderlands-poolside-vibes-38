@@ -169,7 +169,9 @@ export default {
 				'fade-in-up': 'fade-in-up 0.8s ease-out',
 				'scale-in': 'scale-in 0.6s ease-out',
 				'gradient-shift': 'gradient-shift 3s ease-in-out infinite',
-				'fly-to-top': 'fly-to-top 0.6s ease-in-out forwards'
+				'fly-to-top': 'fly-to-top 0.6s ease-in-out forwards',
+				'ken-burns': 'ken-burns 20s ease-in-out infinite alternate',
+				'rule-draw': 'rule-draw 1.2s ease-out forwards'
 			}
 		}
 	},
