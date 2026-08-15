@@ -184,6 +184,11 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
     [site, setSite],
   );
 
+  /* the live price of the drawing — the same figure the cost leaf prints */
+  const { total: boardTotal } = useBoardEstimate(categoryId);
+  const livePrice = isSite ? estimate.total : boardTotal;
+
+
   const headerBlock = (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0">
