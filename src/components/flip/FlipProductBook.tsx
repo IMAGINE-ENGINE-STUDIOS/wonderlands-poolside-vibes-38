@@ -417,7 +417,7 @@ export const useProductBookPages = ({
       });
     });
 
-    });
+
 
     /* portfolio spread — full imagery carried over the gutter */
     if (gallery.length > 1) {
