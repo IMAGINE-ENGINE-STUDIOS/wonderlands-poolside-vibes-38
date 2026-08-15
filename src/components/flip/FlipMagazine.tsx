@@ -140,6 +140,7 @@ const FlipMagazine: React.FC = () => {
   const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category", ITEMS[0].id);
   const [savedPage, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
+  const [searchOpen, setSearchOpen] = usePersistentState<boolean>("flip.mag.search", false);
   const [page, setPage] = useState(savedPage);
   const startPageRef = useRef(savedPage);
 
@@ -1258,8 +1259,36 @@ const FlipMagazine: React.FC = () => {
             </HTMLFlipBook>
           )}
         </div>
+        {/* Wide search desk — spans the book from corner to corner. */}
+        <div className="mx-auto mt-6 w-full px-1 md:px-0" style={{ maxWidth: portrait ? dims.w : dims.w * 2 }}>
+          <div className="border border-border/60 bg-background/70 backdrop-blur-xl">
+            <button
+              onClick={() => setSearchOpen((v) => !v)}
+              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+              aria-expanded={searchOpen}
+            >
+              <span className="flex items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                <Search className="h-3.5 w-3.5" />
+                Search the collection
+              </span>
+              {searchOpen ? (
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <span className="hidden text-[9px] uppercase tracking-[0.3em] text-muted-foreground sm:block">
+                  Pools · Saunas · Enclosures · Turf
+                </span>
+              )}
+            </button>
+            {searchOpen && (
+              <div className="border-t border-border/60 px-3 pb-4 pt-3 md:px-5">
+                <AdvancedSearch variant="slim" />
+              </div>
+            )}
+          </div>
+        </div>
+
         {(
-          <div className="mt-8 flex flex-col items-center gap-3">
+          <div className="mt-6 flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={flipPrev}
