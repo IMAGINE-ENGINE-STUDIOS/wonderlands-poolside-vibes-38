@@ -609,7 +609,7 @@ const FlipMagazine: React.FC = () => {
               <p className="text-[9px] uppercase tracking-[0.4em] opacity-80">
                 {number} — {p.brand ?? category.label}
               </p>
-              <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-5xl">{p.name}</h3>
+              <ProductTitle entry={p} className="mt-2 font-serif text-3xl font-light leading-tight sm:text-5xl" />
               {p.meta && <p className="mt-3 max-w-sm text-[11px] leading-relaxed opacity-80">{p.meta}</p>}
               <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-white/25 pt-4">
                 <p className="font-serif text-2xl font-light">{formatEntryPrice(p) || "On request"}</p>
