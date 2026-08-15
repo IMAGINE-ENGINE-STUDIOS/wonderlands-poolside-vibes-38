@@ -650,59 +650,9 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
           Close <X className="h-3.5 w-3.5" />
         </button>
       </div>
+      {book}
+      {nav}
 
-
-      <HTMLFlipBook
-        ref={bookRef}
-        width={dims.w}
-        height={dims.h}
-        size="fixed"
-        minWidth={240}
-        maxWidth={900}
-        minHeight={320}
-        maxHeight={1200}
-        drawShadow
-        flippingTime={700}
-        usePortrait={portrait}
-        showCover={false}
-        mobileScrollSupport
-        maxShadowOpacity={0.35}
-        className="flip-dossier"
-        style={{}}
-        startPage={0}
-        useMouseEvents
-        clickEventForward={false}
-        swipeDistance={24}
-        showPageCorners
-        disableFlipByClick={false}
-        autoSize={false}
-        startZIndex={0}
-        onFlip={(e: any) => setPage(e.data)}
-      >
-        {pages.map((p) => (
-          <Leaf key={p.key}>{p.render()}</Leaf>
-        ))}
-      </HTMLFlipBook>
-
-      <div className="mt-4 flex items-center gap-4">
-        <button
-          onClick={() => bookRef.current?.pageFlip?.().flipPrev()}
-          aria-label="Previous page"
-          className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors hover:bg-white hover:text-black"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <p className="font-serif text-xs tracking-[0.3em] text-white/80">
-          {String(page + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-        </p>
-        <button
-          onClick={() => bookRef.current?.pageFlip?.().flipNext()}
-          aria-label="Next page"
-          className="flex h-9 w-9 items-center justify-center border border-white/40 text-white transition-colors hover:bg-white hover:text-black"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
     </div>
   );
 };
