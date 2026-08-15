@@ -172,7 +172,10 @@ const FlipMagazine: React.FC = () => {
   }, [page, setSavedPage]);
 
   const category = ITEMS.find((i) => i.id === categoryId) ?? ITEMS[0];
-  const groups = OPTION_GROUPS[categoryId] ?? fallbackGroups;
+  const groups = useMemo(
+    () => mergeStudioGroups(categoryId, OPTION_GROUPS[categoryId] ?? fallbackGroups),
+    [categoryId],
+  );
   const products = useMemo(() => (entries ?? []).slice(0, MAX_MODELS), [entries]);
 
   // Cross-fade the book while an edition is swapped in — the page never changes,
