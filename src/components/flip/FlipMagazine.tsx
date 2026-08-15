@@ -1062,9 +1062,24 @@ const FlipMagazine: React.FC = () => {
           className={`mx-auto flex justify-center transition-opacity duration-300 ease-out ${
             fading || loading ? "opacity-0" : "opacity-100"
           }`}
-          style={{ perspective: "3000px", minHeight: dims.h }}
+          style={{ perspective: dossier ? undefined : "3000px", minHeight: dims.h }}
         >
-          {loading ? (
+          {dossier ? (
+            <FlipProductBook
+              inline
+              entry={dossier}
+              category={{
+                id: category.id,
+                label: category.label,
+                tagline: category.tagline,
+                description: category.description,
+                notes: category.notes,
+                images: category.images,
+              }}
+              groups={groups}
+              onClose={closeDossier}
+            />
+          ) : loading ? (
             <div
               className="flex items-center justify-center border border-border/60"
               style={{ width: portrait ? dims.w : dims.w * 2, height: dims.h }}
@@ -1107,51 +1122,38 @@ const FlipMagazine: React.FC = () => {
             </HTMLFlipBook>
           )}
         </div>
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={flipPrev}
-              aria-label="Previous page"
-              className="flex h-10 w-10 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={flipNext}
-              aria-label="Next page"
-              className="flex h-10 w-10 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+        {!dossier && (
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={flipPrev}
+                aria-label="Previous page"
+                className="flex h-10 w-10 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={flipNext}
+                aria-label="Next page"
+                className="flex h-10 w-10 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-center text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+              {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
+            </p>
+            <p className="max-w-md text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+              {mode === "home"
+                ? "One page per discipline — open any edition to see every model"
+                : "Every model is a spread — every option chapter its own page"}
+            </p>
           </div>
-          <p className="text-center text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
-            {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
-          </p>
-          <p className="max-w-md text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-            {mode === "home"
-              ? "One page per discipline — open any edition to see every model"
-              : "Every model is a spread — every option chapter its own page"}
-          </p>
-        </div>
+        )}
       </div>
 
       <FlipCart />
 
-      {dossier && (
-        <FlipProductBook
-          entry={dossier}
-          category={{
-            id: category.id,
-            label: category.label,
-            tagline: category.tagline,
-            description: category.description,
-            notes: category.notes,
-            images: category.images,
-          }}
-          groups={groups}
-          onClose={() => setDossier(null)}
-        />
-      )}
     </section>
   );
 };
