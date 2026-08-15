@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight } from "lucide-
 import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
+import FlipToolWidget from "./FlipToolWidget";
 
 /**
  * FLIP — Product dossier.
@@ -184,11 +185,14 @@ export const useProductBookPages = ({
   category,
   groups: editorialGroups = [],
   portrait = false,
+  onOpenBoard,
 }: {
   entry: ConsoleEntry;
   category: ProductBookCategory;
   groups?: ProductBookOptionGroup[];
   portrait?: boolean;
+  /** Expand the on-page board into the full-screen Editor Board */
+  onOpenBoard?: () => void;
 }): ProductBookPage[] => {
   /** Editorial chapters plus every additional feature offered in Wonderlands Studio. */
   const groups = useMemo(
