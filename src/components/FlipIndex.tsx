@@ -537,61 +537,79 @@ const FlipIndex: React.FC = () => {
           className="mx-auto flex justify-center"
           style={{ perspective: "3000px", minHeight: dims.h }}
         >
-          <HTMLFlipBook
-            ref={bookRef}
-            width={dims.w}
-            height={dims.h}
-            size="fixed"
-            minWidth={240}
-            maxWidth={1400}
-            minHeight={340}
-            maxHeight={1400}
-            showCover
-            usePortrait={portrait}
-            mobileScrollSupport
-            drawShadow
-            flippingTime={900}
-            maxShadowOpacity={0.5}
-            startPage={0}
-            startZIndex={0}
-            autoSize={false}
-            clickEventForward={false}
-            useMouseEvents
-            swipeDistance={30}
-            showPageCorners
-            disableFlipByClick
-            style={{}}
-            className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
-            onFlip={(e: any) => {
-              const page = e.data as number;
-              setCurrentPage(page);
-              const item = ITEMS[page - 1];
-              if (item) {
-                syncingRef.current = true;
-                setActiveSection(item.id);
-                window.setTimeout(() => {
-                  syncingRef.current = false;
-                }, 60);
-              }
-            }}
-          >
-            <BookPage tone="cover">
-              <CoverFace />
-            </BookPage>
-            {ITEMS.map((item, idx) => (
-              <BookPage key={item.label}>
-                <CategoryLeaf item={item} index={idx} />
+          {consoleId ? (
+            <FlipConsole
+              categories={ITEMS.map((i) => ({ id: i.id, label: i.label, tagline: i.tagline }))}
+              activeId={consoleId}
+              width={portrait ? dims.w : dims.w * 2}
+              height={dims.h}
+              onSelect={openConsole}
+              onClose={closeConsole}
+              onOpenSection={(id) => {
+                setConsoleId(null);
+                goToSection(id);
+              }}
+            />
+          ) : (
+            <HTMLFlipBook
+              ref={bookRef}
+              width={dims.w}
+              height={dims.h}
+              size="fixed"
+              minWidth={240}
+              maxWidth={1400}
+              minHeight={340}
+              maxHeight={1400}
+              showCover
+              usePortrait={portrait}
+              mobileScrollSupport
+              drawShadow
+              flippingTime={900}
+              maxShadowOpacity={0.5}
+              startPage={0}
+              startZIndex={0}
+              autoSize={false}
+              clickEventForward={false}
+              useMouseEvents
+              swipeDistance={30}
+              showPageCorners
+              disableFlipByClick
+              style={{}}
+              className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
+              onFlip={(e: any) => {
+                const page = e.data as number;
+                setCurrentPage(page);
+                const item = ITEMS[page - 1];
+                if (item) {
+                  syncingRef.current = true;
+                  setActiveSection(item.id);
+                  window.setTimeout(() => {
+                    syncingRef.current = false;
+                  }, 60);
+                }
+              }}
+            >
+              <BookPage tone="cover">
+                <CoverFace />
               </BookPage>
-            ))}
-            <BookPage tone="cover">
-              <BackFace />
-            </BookPage>
-          </HTMLFlipBook>
+              {ITEMS.map((item, idx) => (
+                <BookPage key={item.label}>
+                  <CategoryLeaf item={item} index={idx} />
+                </BookPage>
+              ))}
+              <BookPage tone="cover">
+                <BackFace />
+              </BookPage>
+            </HTMLFlipBook>
+          )}
         </div>
         <p className="mt-8 text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-          Turn the page — every spread opens its collection below
+          {consoleId
+            ? "Browse the collection inside FLIP — use the rail or arrows to move between disciplines"
+            : "Turn the page — every spread opens its collection right here in FLIP"}
         </p>
       </div>
+
     </section>
   );
 };
