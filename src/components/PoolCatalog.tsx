@@ -31,6 +31,7 @@ import axiom14DeluxeSpecs from "@/assets/pools/axiom-14-deluxe-specs.webp";
 import axiom14DeluxeGallery1 from "@/assets/pools/axiom-14-deluxe-gallery-1.webp";
 import axiom16Main from "@/assets/pools/axiom-16-main.webp";
 import axiom16Specs from "@/assets/pools/axiom-16-specs.webp";
+import capeCod12Image from "@/assets/latham-cape-cod-12.jpg";
 
 // Data loaded successfully
 
@@ -386,7 +387,7 @@ const pools: Pool[] = [
   model: "Cape Cod 12",
   price: 55125,
   category: 'standard',
-  image: "/lovable-uploads/wonderlands-logo.webp",
+  image: capeCod12Image,
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
