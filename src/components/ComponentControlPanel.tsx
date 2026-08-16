@@ -205,7 +205,7 @@ export function ComponentControlPanel({
   const availableTextures = getAvailableTextures();
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 w-80 bg-background/98 backdrop-blur-md border border-border rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
+    <div className="fixed left-4 top-1/2 -translate-y-1/2 w-80 glass-panel rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">
