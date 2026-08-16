@@ -21,6 +21,8 @@ const SILENCE_MS = 1200;
 const SPEECH_LEVEL = 0.045;
 /** Breath between her last word and the microphone reopening. */
 const REARM_MS = 300;
+/** Grace given to the free browser engine before we record the turn instead. */
+const FREE_ENGINE_MS = 1200;
 
 const probePermission = async (): Promise<MicPermission> => {
   try {
@@ -51,6 +53,8 @@ export function useVoiceSession({ onPhrase, busy = false, language }: Options) {
   const [handsFree, setHandsFree] = React.useState(false);
   const [armed, setArmed] = React.useState(false);
   const [permissionError, setPermissionError] = React.useState<string | null>(null);
+  /* Some browsers expose SpeechRecognition but never actually start it. */
+  const [freeEngineStalled, setFreeEngineStalled] = React.useState(false);
 
   const voice = useVoiceInput();
   const phraseRef = React.useRef(onPhrase);
@@ -61,7 +65,7 @@ export function useVoiceSession({ onPhrase, busy = false, language }: Options) {
     onTranscript: (text) => void phraseRef.current(text),
   });
 
-  const freePath = voice.isSupported;
+  const freePath = voice.isSupported && !freeEngineStalled;
 
   /* ------------------------------- permission ------------------------------ */
 
@@ -129,6 +133,19 @@ export function useVoiceSession({ onPhrase, busy = false, language }: Options) {
     setArmed(true);
     beginListening();
   }, [permission, requestPermission, beginListening]);
+
+  /* Watchdog: if the free engine never opens, fall back to recording the turn
+     so the guest is never left talking to a microphone that isn't listening. */
+  React.useEffect(() => {
+    if (!armed || !freePath || voice.isListening) return;
+    const t = window.setTimeout(() => setFreeEngineStalled(true), FREE_ENGINE_MS);
+    return () => window.clearTimeout(t);
+  }, [armed, freePath, voice.isListening]);
+
+  React.useEffect(() => {
+    if (!armed || !freeEngineStalled || recorder.isRecording || recorder.isTranscribing) return;
+    void recorder.start();
+  }, [armed, freeEngineStalled, recorder.isRecording, recorder.isTranscribing, recorder.start]);
 
   const stop = React.useCallback(() => {
     setArmed(false);
