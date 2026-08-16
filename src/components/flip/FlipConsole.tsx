@@ -199,8 +199,29 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-                {visible.map((e) => (
-                  <article key={e.id} className="group flex flex-col border border-border/60">
+                {visible.map((e) => {
+                  const clickable = Boolean(onSelectEntry);
+                  const isActive = activeEntryId === e.id;
+                  return (
+                  <article
+                    key={e.id}
+                    onClick={clickable ? () => onSelectEntry!(e, activeId) : undefined}
+                    role={clickable ? "button" : undefined}
+                    tabIndex={clickable ? 0 : undefined}
+                    onKeyDown={
+                      clickable
+                        ? (ev) => {
+                            if (ev.key === "Enter" || ev.key === " ") {
+                              ev.preventDefault();
+                              onSelectEntry!(e, activeId);
+                            }
+                          }
+                        : undefined
+                    }
+                    className={`group flex flex-col border transition-colors ${
+                      isActive ? "border-foreground bg-foreground/[0.04]" : "border-border/60"
+                    } ${clickable ? "cursor-pointer hover:border-foreground" : ""}`}
+                  >
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                       <img
                         src={e.image}
@@ -209,6 +230,11 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
                         decoding="async"
                         className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
+                      {clickable && (
+                        <span className="absolute bottom-0 left-0 right-0 bg-background/70 py-1 text-center text-[8px] uppercase tracking-[0.3em] text-foreground opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100">
+                          {isActive ? "Configuring" : "Configure"}
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-1 flex-col gap-1 p-3">
                       {e.brand && (
@@ -231,7 +257,9 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
                       )}
                     </div>
                   </article>
-                ))}
+                  );
+                })}
+
               </div>
             )}
           </div>
