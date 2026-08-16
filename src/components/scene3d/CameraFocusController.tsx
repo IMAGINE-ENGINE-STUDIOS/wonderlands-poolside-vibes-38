@@ -25,7 +25,7 @@ interface CameraFocusControllerProps {
 export function CameraFocusController({
   request,
   controlsRef,
-  durationMs = 650
+  durationMs = 1100
 }: CameraFocusControllerProps) {
   const { camera, invalidate } = useThree();
   const rafRef = useRef<number | null>(null);
@@ -37,18 +37,29 @@ export function CameraFocusController({
 
     const controls = controlsRef.current;
     const targetPoint = new THREE.Vector3(...request.position);
-    const distance = Math.max(6, request.distance ?? 14);
 
     // Preserve current orbit direction, just re-center and normalize distance.
     const currentTarget: THREE.Vector3 = controls?.target
       ? controls.target.clone()
       : new THREE.Vector3(0, 0, 0);
     const dir = camera.position.clone().sub(currentTarget);
+    const currentDistance = dir.length();
     if (dir.lengthSq() < 0.0001) dir.set(1, 1, 1);
     dir.normalize();
-    // Keep a pleasant elevation so assets are never viewed edge-on.
-    if (dir.y < 0.25) dir.y = 0.35;
-    dir.normalize();
+    // Only nudge the elevation if the view is almost edge-on, so the angle
+    // never snaps noticeably.
+    if (dir.y < 0.12) {
+      dir.y = 0.12;
+      dir.normalize();
+    }
+
+    // Blend toward the requested distance instead of forcing it — avoids
+    // abrupt zoom jumps when the user is already framed well.
+    const requested = Math.max(6, request.distance ?? 14);
+    const distance = currentDistance > 0.01
+      ? THREE.MathUtils.clamp(currentDistance * 0.55 + requested * 0.45, requested * 0.75, Math.max(requested * 1.6, currentDistance))
+      : requested;
+
 
     const startPos = camera.position.clone();
     const endPos = targetPoint.clone().add(dir.multiplyScalar(distance));

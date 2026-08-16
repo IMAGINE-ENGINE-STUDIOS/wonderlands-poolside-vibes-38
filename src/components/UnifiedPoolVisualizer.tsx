@@ -169,67 +169,66 @@ function SelectionZoomController({
     const width = poolDimensions?.width || 15;
     const length = poolDimensions?.length || 30;
     const poolSize = Math.max(width, length);
-    
-    // Target positions for each component - closer zoom for details
-    const zoomConfigs: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
-      pool: { 
-        position: [poolSize * 0.8, poolSize * 0.6, poolSize * 0.8], 
-        target: [0, -2, 0] 
-      },
-      deck: { 
-        position: [poolSize * 1.0, poolSize * 0.5, poolSize * 1.0], 
-        target: [0, 0, 0] 
-      },
-      coping: { 
-        position: [poolSize * 0.6, poolSize * 0.4, poolSize * 0.6], 
-        target: [0, 0.5, 0] 
-      },
-      waterline: { 
-        position: [poolSize * 0.5, poolSize * 0.3, poolSize * 0.5], 
-        target: [0, -0.5, 0] 
-      }
+
+    // Distance + look-at height per component. The viewing angle the user
+    // already chose is preserved — we only re-center and adjust distance so
+    // the move never feels abrupt.
+    const zoomConfigs: Record<string, { distance: number; target: [number, number, number] }> = {
+      pool: { distance: poolSize * 1.25, target: [0, -2, 0] },
+      deck: { distance: poolSize * 1.5, target: [0, 0, 0] },
+      coping: { distance: Math.max(8, poolSize * 0.5), target: [0, 0.4, 0] },
+      waterline: { distance: Math.max(7, poolSize * 0.42), target: [0, -0.6, 0] }
     };
-    
+
     const config = zoomConfigs[selectedComponent];
     if (!config) return;
-    
+
     const startPosition = camera.position.clone();
     const startTarget = controls.target.clone();
-    const endPosition = new THREE.Vector3(...config.position);
     const endTarget = new THREE.Vector3(...config.target);
-    
+
+    // Preserve the current orbit direction (azimuth + elevation).
+    const dir = startPosition.clone().sub(startTarget);
+    if (dir.lengthSq() < 0.0001) dir.set(1, 0.8, 1);
+    dir.normalize();
+    if (dir.y < 0.18) { dir.y = 0.18; dir.normalize(); }
+
+    const endPosition = endTarget.clone().add(dir.multiplyScalar(config.distance));
+
     let progress = 0;
-    const duration = 800; // ms
+    const duration = 1100; // ms — slower, gentler glide
     const startTime = performance.now();
-    
+
+    const easeInOut = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
     const animate = (currentTime: number) => {
       progress = Math.min((currentTime - startTime) / duration, 1);
-      
-      // Ease out cubic for smooth deceleration
-      const eased = 1 - Math.pow(1 - progress, 3);
-      
+      const eased = easeInOut(progress);
+
       camera.position.lerpVectors(startPosition, endPosition, eased);
       controls.target.lerpVectors(startTarget, endTarget, eased);
       controls.update();
-      
+
       if (progress < 1) {
         animationRef.current = requestAnimationFrame(animate);
       }
     };
-    
+
     // Cancel any existing animation
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-    
+
     animationRef.current = requestAnimationFrame(animate);
-    
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
   }, [selectedComponent, camera, controlsRef, poolDimensions]);
+
   
   return null;
 }
