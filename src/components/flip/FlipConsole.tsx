@@ -113,13 +113,16 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
           >
             <ChevronRight className="h-4 w-4" />
           </button>
-          <button
-            onClick={onClose}
-            aria-label="Close console"
-            className="ml-1 flex h-8 w-8 items-center justify-center border border-border/60 transition-colors hover:bg-foreground hover:text-background"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          {!hideClose && (
+            <button
+              onClick={onClose}
+              aria-label="Close console"
+              className="ml-1 flex h-8 w-8 items-center justify-center border border-border/60 transition-colors hover:bg-foreground hover:text-background"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+
         </div>
       </div>
 
