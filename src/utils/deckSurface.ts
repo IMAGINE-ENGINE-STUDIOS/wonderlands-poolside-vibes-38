@@ -160,6 +160,24 @@ function pathFrom(points: Array<{ x: number; y: number }>): THREE.Path {
   return path;
 }
 
+/** Sum of the triangle areas of a flat (XZ) geometry — used to verify the hole survived. */
+function geometryArea(geom: THREE.BufferGeometry): number {
+  const pos = geom.getAttribute('position');
+  const idx = geom.getIndex();
+  if (!pos || !idx) return 0;
+  let total = 0;
+  for (let i = 0; i < idx.count; i += 3) {
+    const a = idx.getX(i);
+    const b = idx.getX(i + 1);
+    const c = idx.getX(i + 2);
+    total += Math.abs(
+      (pos.getX(b) - pos.getX(a)) * (pos.getZ(c) - pos.getZ(a)) -
+        (pos.getX(c) - pos.getX(a)) * (pos.getZ(b) - pos.getZ(a))
+    ) / 2;
+  }
+  return total;
+}
+
 /** Horizontal ring face (outer polygon with an inner hole) triangulated by THREE. */
 function ringFace(inner: P3[], outer: P3[], y: number, flip: boolean): THREE.BufferGeometry {
   const outer2D = ensureCounterClockwise(to2D(outer));
@@ -174,10 +192,20 @@ function ringFace(inner: P3[], outer: P3[], y: number, flip: boolean): THREE.Buf
   const geom = new THREE.ShapeGeometry(shape);
   // ShapeGeometry lays out in XY with uv = (x, y) → perfect 1ft x 1ft world UVs.
   geom.rotateX(-Math.PI / 2);
+
+  // If earcut silently dropped the hole, the face area equals the full outer area
+  // and pavers would cover the pool. Reject so the caller can retry with a hull.
+  const expected = area2D(outer) - area2D(inner);
+  if (geometryArea(geom) > expected * 1.15 + 0.01) {
+    geom.dispose();
+    throw new Error('deck ring hole was dropped by triangulation');
+  }
+
   if (flip) geom.rotateX(Math.PI);
   geom.translate(0, y, 0);
   return geom;
 }
+
 
 /** Vertical skirt along a boundary, UV mapped by perimeter distance (1ft grid). */
 function skirt(boundary: P3[], topY: number, bottomY: number, outward: boolean): THREE.BufferGeometry {
