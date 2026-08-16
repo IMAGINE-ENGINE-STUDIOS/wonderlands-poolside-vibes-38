@@ -42,10 +42,15 @@ class TextureCache {
       cached.lastUsed = Date.now();
       // Clone texture and preserve repeat settings
       const clonedTexture = cached.texture.clone();
+      clonedTexture.wrapS = THREE.RepeatWrapping;
+      clonedTexture.wrapT = THREE.RepeatWrapping;
+      clonedTexture.colorSpace = THREE.SRGBColorSpace;
       if (repeat) {
         clonedTexture.repeat.set(repeat.x, repeat.y);
-        clonedTexture.needsUpdate = true;
       }
+      // A clone always needs an upload flag, otherwise the material renders
+      // untextured (plain white) until some other state change forces it.
+      clonedTexture.needsUpdate = true;
       return clonedTexture;
     }
 
@@ -60,6 +65,7 @@ class TextureCache {
           texture.minFilter = THREE.LinearMipmapLinearFilter;
           texture.magFilter = THREE.LinearFilter;
           texture.anisotropy = 4; // Reasonable quality/performance balance
+          texture.colorSpace = THREE.SRGBColorSpace;
           
           if (repeat) {
             texture.repeat.set(repeat.x, repeat.y);
