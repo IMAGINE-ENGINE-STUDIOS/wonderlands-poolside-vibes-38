@@ -16,6 +16,7 @@ interface CategoryToolbarProps {
   onCategoryChange: (category: DesignCategory) => void;
   headerLeft?: React.ReactNode;
   headerRight?: React.ReactNode;
+  hideCategories?: boolean;
 }
 
 const categories: { id: DesignCategory; name: string; icon: React.ReactNode }[] = [
@@ -26,15 +27,15 @@ const categories: { id: DesignCategory; name: string; icon: React.ReactNode }[] 
   { id: 'utilities', name: 'Utilities', icon: <Wrench className="h-4 w-4" /> },
 ];
 
-export function CategoryToolbar({ activeCategory, onCategoryChange, headerLeft, headerRight }: CategoryToolbarProps) {
+export function CategoryToolbar({ activeCategory, onCategoryChange, headerLeft, headerRight, hideCategories }: CategoryToolbarProps) {
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex items-center justify-between px-4 py-1.5 bg-muted/50 border-b">
         {/* Left section: header content + categories */}
         <div className="flex items-center gap-4">
           {headerLeft}
-          {headerLeft && <div className="h-6 w-px bg-border" />}
-          <div className="flex items-center gap-1">
+          {headerLeft && !hideCategories && <div className="h-6 w-px bg-border" />}
+          <div className={cn('flex items-center gap-1', hideCategories && 'hidden')}>
             {categories.map((category) => (
               <Tooltip key={category.id}>
                 <TooltipTrigger asChild>

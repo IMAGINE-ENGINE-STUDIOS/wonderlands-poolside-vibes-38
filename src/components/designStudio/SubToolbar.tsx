@@ -26,6 +26,7 @@ interface SubToolbarProps {
   activeTool: string | null;
   onToolSelect: (tool: ToolDefinition) => void;
   stats?: PoolStats | null;
+  hideTools?: boolean;
 }
 
 const getToolsForCategory = (category: DesignCategory): ToolDefinition[] => {
@@ -45,10 +46,10 @@ const getToolsForCategory = (category: DesignCategory): ToolDefinition[] => {
   }
 };
 
-export function SubToolbar({ category, activeTool, onToolSelect, stats }: SubToolbarProps) {
+export function SubToolbar({ category, activeTool, onToolSelect, stats, hideTools }: SubToolbarProps) {
   const tools = getToolsForCategory(category);
 
-  if (category === 'terrain') {
+  if (category === 'terrain' && !hideTools) {
     return (
       <div className="flex items-center justify-center h-16 px-4 bg-background border-b text-sm text-muted-foreground">
         Use the Terrain panel on the left to manage 3D terrain, sky, and nature assets.
@@ -56,7 +57,11 @@ export function SubToolbar({ category, activeTool, onToolSelect, stats }: SubToo
     );
   }
 
-  if (tools.length === 0) {
+  if (hideTools && !stats) {
+    return null;
+  }
+
+  if (!hideTools && tools.length === 0) {
     return null;
   }
 
@@ -64,19 +69,23 @@ export function SubToolbar({ category, activeTool, onToolSelect, stats }: SubToo
     <TooltipProvider delayDuration={300}>
       <div className="bg-background border-b">
         <div className="flex items-center px-2 py-1.5">
-          <ScrollArea className="flex-1">
-            <div className="flex items-center gap-1">
-              {tools.map((tool) => (
-                <ToolButton
-                  key={tool.id}
-                  tool={tool}
-                  isActive={activeTool === tool.id}
-                  onClick={() => onToolSelect(tool)}
-                />
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          {!hideTools && (
+            <ScrollArea className="flex-1">
+              <div className="flex items-center gap-1">
+                {tools.map((tool) => (
+                  <ToolButton
+                    key={tool.id}
+                    tool={tool}
+                    isActive={activeTool === tool.id}
+                    onClick={() => onToolSelect(tool)}
+                  />
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          )}
+          {hideTools && <div className="flex-1" />}
+
           
           {/* Stats Bar */}
           {stats && (
