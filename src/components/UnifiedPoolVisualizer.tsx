@@ -21,7 +21,8 @@ import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './scene3
 import { WalkthroughController } from './scene3d/WalkthroughController';
 import { CameraFocusController, FocusRequest } from './scene3d/CameraFocusController';
 import { OrbitKeyboardControls } from './scene3d/OrbitKeyboardControls';
-import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
+import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from './scene3d/PoolDesignerHeader';
+import { FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
 import { createDepthInterpolator, createDefaultLinearAnchors, createDefaultDepthAxis, computePerimeterDepths, getPoolBounds } from './scene3d/depthUtils';
@@ -443,6 +444,48 @@ export function UnifiedPoolVisualizer({
   const DEFAULT_STEP_DEPTH = 0.9167; // 11 inches
   
   const poolDepth = scene.pool.dimensions?.depth || 8;
+
+  // Live cost inputs for the designer header — mirrors the products the user selected
+  const designerFeatureLines = useMemo(
+    () =>
+      (scene.features || []).map(f => ({
+        name: f.metadata?.name || f.type.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        price: f.metadata?.price ?? FEATURE_COSTS[f.type] ?? 0,
+      })),
+    [scene.features]
+  );
+
+  const designerBodyLines = useMemo(
+    () =>
+      (scene.additionalPools || []).map((body, i) => {
+        const pts = body.points || [];
+        let area = 0;
+        for (let j = 0; j < pts.length; j++) {
+          const k = (j + 1) % pts.length;
+          area += pts[j].x * pts[k].y - pts[k].x * pts[j].y;
+        }
+        area = Math.abs(area / 2);
+        const isSpa = body.type === 'spa' || body.featureType === 'tanning-ledge';
+        const rate = isSpa ? POOL_SHELL_PRICE_PER_SQFT * (4 / 3.5) : POOL_SHELL_PRICE_PER_SQFT;
+        const label =
+          body.featureType === 'tanning-ledge'
+            ? 'Tanning Ledge'
+            : body.featureType === 'spillover-spa'
+            ? 'Spillover Spa'
+            : body.type === 'spa'
+            ? 'Spa'
+            : `Additional Pool ${i + 1}`;
+        return {
+          name: label,
+          areaSqFt: area,
+          multiplierLabel: `$${Math.round(rate)}/sq ft`,
+          price: area * rate,
+        };
+      }),
+    [scene.additionalPools]
+  );
+
+
 
   // Create linearDepthAnchors if not set, based on product depths
   const linearDepthAnchors = useMemo(() => {
@@ -1324,6 +1367,12 @@ export function UnifiedPoolVisualizer({
             deckWidth={deckWidth}
             copingWidth={scene.deck.copingWidth || 1}
             poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
+            paverName={scene.deck.paver?.name}
+            copingName={scene.deck.coping?.name}
+            finishName={scene.pool.finish?.name}
+            waterlineName={scene.deck.waterline?.name}
+            additionalFeatures={designerFeatureLines}
+            additionalBodies={designerBodyLines}
           />
         </div>
         
@@ -1335,6 +1384,12 @@ export function UnifiedPoolVisualizer({
             deckWidth={deckWidth}
             copingWidth={scene.deck.copingWidth || 1}
             poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
+            paverName={scene.deck.paver?.name}
+            copingName={scene.deck.coping?.name}
+            finishName={scene.pool.finish?.name}
+            waterlineName={scene.deck.waterline?.name}
+            additionalFeatures={designerFeatureLines}
+            additionalBodies={designerBodyLines}
           />
         </div>
 

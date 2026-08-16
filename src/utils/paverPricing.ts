@@ -1,4 +1,4 @@
-import { paverTypes, PaverType } from '@/data/paverData';
+import { paverTypes, copingTypes, PaverType } from '@/data/paverData';
 
 // Default price per sq ft for concrete deck
 export const DEFAULT_PAVER_PRICE_PER_SQFT = 10;
@@ -72,4 +72,16 @@ export function calculateScreenEnclosureCost(
 ): number {
   const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] ?? SCREEN_ENCLOSURE_PRICING.standard;
   return area * pricePerSqFt;
+}
+
+/**
+ * Look up a coping price per sq ft by product NAME (as selected in the store/3D galleries).
+ * Falls back to the deck paver catalog, then to the default rate.
+ */
+export function getCopingPricePerSqFtByName(copingName: string | undefined | null): number {
+  if (!copingName) return 25;
+  const coping = copingTypes.find(c => c.name === copingName);
+  if (coping) return coping.basePrice;
+  const paver = paverTypes.find(p => p.name === copingName);
+  return paver?.basePrice ?? 25;
 }
