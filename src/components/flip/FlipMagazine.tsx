@@ -1540,7 +1540,10 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
                     <FlipRiffle
                       width={portrait ? dims.w : dims.w * 2}
                       height={dims.h}
-                      label="Turning to the product book"
+                      label={`Turning to ${(dossier?.name ?? riffleTarget?.name ?? category.label)}`}
+                      images={rifflePlates.images}
+                      captions={rifflePlates.captions}
+                      destination={riffleTarget?.image}
                     />
                   )}
                 </>
