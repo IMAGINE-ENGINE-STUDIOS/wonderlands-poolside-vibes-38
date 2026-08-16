@@ -88,14 +88,21 @@ export function resolveDeckBoundaries(params: {
 
   const copingOffset = copingEnabled ? Math.max(0, copingWidth) : 0;
 
+  // Tuck the deck slightly UNDER the coping band. Building the deck hole at the
+  // exact coping outer edge left a hairline void between the two slabs (they sit
+  // at different Y levels), which read as an empty gap in the 3D view.
+  const seamOverlap = copingOffset > 0.001 ? Math.min(0.08, copingOffset * 0.25) : 0;
+  const innerOffset = Math.max(0, copingOffset - seamOverlap);
+
   // Mitred offset — matches CopingGeometry EXACTLY (same helper, same miter limit),
   // so the deck hole never leaves an unpaved notch at a sharp pool tip the way the
   // rounded Minkowski offset did.
   let inner =
-    copingOffset > 0.001
-      ? sanitizeBoundary(mitredOffsetRing(pool, copingOffset, { miterLimit: 2.5 }).offset)
+    innerOffset > 0.001
+      ? sanitizeBoundary(mitredOffsetRing(pool, innerOffset, { miterLimit: 2.5 }).offset)
       : sanitizeBoundary(pool);
   if (inner.length < 3) inner = pool;
+
 
   if (!polygonContainsPolygon(inner, pool)) {
     const grown = offsetPolygonSingle(pool, Math.max(copingOffset, 0.15) + 0.05);
