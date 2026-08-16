@@ -350,28 +350,43 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
   }, []);
 
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
-  useEffect(() => () => { if (riffleTimer.current) window.clearTimeout(riffleTimer.current); }, []);
 
   const openCategory = useCallback(
     (id: string) => {
+      const target = ITEMS.find((i) => i.id === id);
+      const images = (target?.images ?? []).filter(Boolean) as string[];
+      flipMotion.play({
+        label: `Turning to ${target?.label ?? "the edition"}`,
+        images,
+        captions: images.map(() => target?.label ?? ""),
+        destination: images[0],
+      });
       swap(() => {
         setDossier(null);
         setCategoryId(id);
         setMode("category");
       });
     },
-    [swap, setCategoryId, setMode],
+    [swap, setCategoryId, setMode, flipMotion],
   );
 
   const openProduct = useCallback(
     (id: string, entry: ConsoleEntry) => {
+      const target = ITEMS.find((i) => i.id === id);
+      const images = [entry.image, ...(target?.images ?? [])].filter(Boolean) as string[];
+      flipMotion.play({
+        label: `Turning to ${entry.name}`,
+        images,
+        captions: images.map((_, i) => (i === 0 ? entry.name : target?.label ?? "")),
+        destination: entry.image,
+      });
       swap(() => {
         setCategoryId(id);
         setMode("category");
         setDossier(entry);
       });
     },
-    [swap, setCategoryId, setMode],
+    [swap, setCategoryId, setMode, flipMotion],
   );
 
   const openHome = useCallback(() => {
