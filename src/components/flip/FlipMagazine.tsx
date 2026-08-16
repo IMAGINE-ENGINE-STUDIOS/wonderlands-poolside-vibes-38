@@ -251,8 +251,10 @@ type Page = { key: string; render: () => React.ReactNode; tone?: "paper" | "cove
 
 type Anchors = { index: number; features: number; code: number; gallery: number; estimate: number };
 
-const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) => {
-  const isV5 = variant === "v5";
+const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v4" }) => {
+  const isV5 = variant === "v5" || variant === "v6";
+  const isV6 = variant === "v6";
+
   const bookRef = useRef<any>(null);
   /* V5: the corner-lift invitation, retired as soon as the reader turns a page */
   const [cornerHint, setCornerHint] = useState(isV5);
