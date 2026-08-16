@@ -602,14 +602,58 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
     });
 
     /**
-     * The Contents — a single full-leaf editorial mosaic. Every discipline gets
-     * its own plate, sized asymmetrically so the whole collection reads at once.
+     * The Contents. V6 gets the Expedition navigator (cinematic main menu);
+     * earlier editions keep the editorial mosaic.
      */
     list.push({
       key: "home-index",
-      tone: "cover",
-      render: () => <FlipIndexV6 items={ITEMS} onOpen={openCategory} />,
+      tone: isV6 ? "cover" : undefined,
+      render: () =>
+        isV6 ? (
+          <FlipIndexV6 items={ITEMS} onOpen={openCategory} />
+        ) : (
+          <div className="flex h-full w-full flex-col px-5 py-6 sm:px-8 sm:py-8">
+            <div className="flex items-baseline justify-between gap-3">
+              <Eyebrow>The Collection</Eyebrow>
+              <Eyebrow className="hidden sm:block">01 — {String(ITEMS.length).padStart(2, "0")}</Eyebrow>
+            </div>
+            <div className="mt-1 flex items-end justify-between gap-4">
+              <h3 className="font-serif text-3xl font-light leading-[0.9] sm:text-5xl">Contents</h3>
+            </div>
+            <div className="mt-4 grid min-h-0 flex-1 grid-cols-4 grid-rows-5 gap-1.5">
+              {ITEMS.map((it, idx) => (
+                <button
+                  key={it.id}
+                  onClick={() => openCategory(it.id)}
+                  title={`Open the ${it.label} edition`}
+                  className={`group relative min-h-0 overflow-hidden bg-muted text-left ring-1 ring-border/40 transition-transform duration-500 hover:z-10 hover:-translate-y-0.5 ${
+                    idx < 2 ? "col-span-2 row-span-2" : ""
+                  }`}
+                >
+                  <img
+                    src={it.images[0]}
+                    alt={it.label}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.08]"
+                  />
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10" />
+                  <span className="absolute left-2 top-1.5 font-serif text-[10px] tabular-nums text-white/70">
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <span className="absolute inset-x-2 bottom-1.5 block truncate font-serif font-light leading-tight text-white">
+                    {it.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-3 border-t border-border/50 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+              Select a plate — or turn the page to travel the disciplines
+            </p>
+          </div>
+        ),
     });
+
 
 
 
