@@ -26,7 +26,7 @@ import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
 import { createDepthInterpolator, createDefaultLinearAnchors } from './scene3d/depthUtils';
 import { TerrainEditor, TerrainAsset, AssetLibraryItem } from './scene3d/TerrainEditor';
-import { TerrainAssetsRenderer } from './scene3d/TerrainAssetsRenderer';
+import { TerrainAssetsRenderer, DEFAULT_GIZMO_SNAP, type GizmoMode, type GizmoSnapSettings } from './scene3d/TerrainAssetsRenderer';
 import { SceneObjectsPanel, SceneObjectGroup, sceneObjectIcons } from './scene3d/SceneObjectsPanel';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3, ArrowUpDown } from 'lucide-react';
@@ -391,6 +391,27 @@ export function UnifiedPoolVisualizer({
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
+
+  // Terrain asset selection + transform gizmo state
+  const [selectedTerrainAssetId, setSelectedTerrainAssetId] = useState<string | null>(null);
+  const [gizmoMode, setGizmoMode] = useState<GizmoMode>('translate');
+  const [gizmoSnap, setGizmoSnap] = useState<GizmoSnapSettings>(DEFAULT_GIZMO_SNAP);
+
+  // Gizmo keyboard shortcuts: G move, R rotate, T scale, X toggle snap, Esc deselect
+  useEffect(() => {
+    if (!selectedTerrainAssetId) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (e.key === 'g' || e.key === 'G') setGizmoMode('translate');
+      else if (e.key === 'r' || e.key === 'R') setGizmoMode('rotate');
+      else if (e.key === 't' || e.key === 'T') setGizmoMode('scale');
+      else if (e.key === 'x' || e.key === 'X') setGizmoSnap(prev => ({ ...prev, enabled: !prev.enabled }));
+      else if (e.key === 'Escape') setSelectedTerrainAssetId(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedTerrainAssetId]);
 
   // Camera focus request (used to center the camera on newly dropped assets)
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
@@ -1689,8 +1710,18 @@ export function UnifiedPoolVisualizer({
             <Asset3DRenderer key={asset.id} asset={asset} />
           ))}
 
-          {/* Terrain Assets from Terrain Editor */}
-          <TerrainAssetsRenderer assets={terrainAssets} />
+          {/* Terrain Assets from Terrain Editor - selectable with transform gizmo + snapping */}
+          <TerrainAssetsRenderer
+            assets={terrainAssets}
+            selectedAssetId={selectedTerrainAssetId}
+            onAssetClick={(id) => setSelectedTerrainAssetId(id)}
+            gizmoEnabled={!isWalkthroughMode && !isSplineEditMode}
+            gizmoMode={gizmoMode}
+            snap={gizmoSnap}
+            onAssetTransform={(id, next) => setTerrainAssets(prev =>
+              prev.map(a => (a.id === id ? { ...a, ...next } : a))
+            )}
+          />
 
           {/* Grid with Labels */}
           {showGrid && (
@@ -1835,12 +1866,21 @@ export function UnifiedPoolVisualizer({
           onTerrainAssetsChange={(next) => {
             if (next.length > terrainAssets.length) {
               const added = next[next.length - 1];
-              if (added?.position) focusOnAsset(added.position as [number, number, number]);
+              if (added) {
+                setSelectedTerrainAssetId(added.id);
+                focusOnAsset(added.position as [number, number, number]);
+              }
             }
             setTerrainAssets(next);
           }}
           assetLibrary={assetLibrary}
           onAssetLibraryChange={setAssetLibrary}
+          selectedAssetId={selectedTerrainAssetId}
+          onSelectedAssetIdChange={setSelectedTerrainAssetId}
+          gizmoMode={gizmoMode}
+          onGizmoModeChange={setGizmoMode}
+          snap={gizmoSnap}
+          onSnapChange={setGizmoSnap}
         />
 
       </div>

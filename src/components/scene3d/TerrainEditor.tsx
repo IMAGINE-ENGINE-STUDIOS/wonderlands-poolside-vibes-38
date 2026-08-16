@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Mountain, Trees, Cloud, Upload, FolderOpen, Search, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
+import { Mountain, Trees, Cloud, Upload, FolderOpen, Search, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, Move3d, RotateCw, Maximize, Magnet, Armchair, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,12 +8,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
 import { isSupported3DFile, getSupportedFormats, Model3DFormat } from './Model3DLoader';
+import type { GizmoMode, GizmoSnapSettings } from './TerrainAssetsRenderer';
 
 export interface TerrainAsset {
   id: string;
   name: string;
-  type: 'terrain' | 'skydome' | 'tree' | 'landscape' | 'custom';
+  type: 'terrain' | 'skydome' | 'tree' | 'landscape' | 'furniture' | 'object' | 'custom';
   url: string;
   format: Model3DFormat;
   position: [number, number, number];
@@ -36,32 +38,66 @@ interface TerrainEditorProps {
   onTerrainAssetsChange: (assets: TerrainAsset[]) => void;
   assetLibrary?: AssetLibraryItem[];
   onAssetLibraryChange?: (library: AssetLibraryItem[]) => void;
+  /** Selection shared with the 3D scene gizmo */
+  selectedAssetId?: string | null;
+  onSelectedAssetIdChange?: (id: string | null) => void;
+  gizmoMode?: GizmoMode;
+  onGizmoModeChange?: (mode: GizmoMode) => void;
+  snap?: GizmoSnapSettings;
+  onSnapChange?: (snap: GizmoSnapSettings) => void;
 }
 
 const DEFAULT_ASSET_LIBRARY: AssetLibraryItem[] = [
   { id: 'lib-1', name: 'American Road Intersection', category: 'Terrain', url: '/models/American_Road_Intersection.usdz', format: 'usdz' },
 ];
 
-const ASSET_CATEGORIES = ['All', 'Terrain', 'Skydome', 'Trees', 'Landscape', 'Custom'];
+const ASSET_CATEGORIES = ['All', 'Terrain', 'Skydome', 'Trees', 'Landscape', 'Furniture', 'Objects', 'Custom'];
+
+const SNAP_STEPS = [0.25, 0.5, 1, 2, 5];
+const ROTATION_STEPS = [5, 15, 30, 45, 90];
 
 export function TerrainEditor({
   terrainAssets,
   onTerrainAssetsChange,
   assetLibrary = DEFAULT_ASSET_LIBRARY,
-  onAssetLibraryChange
+  onAssetLibraryChange,
+  selectedAssetId: controlledSelectedId,
+  onSelectedAssetIdChange,
+  gizmoMode = 'translate',
+  onGizmoModeChange,
+  snap,
+  onSnapChange
 }: TerrainEditorProps) {
+  const snapSettings: GizmoSnapSettings = snap ?? {
+    enabled: true,
+    gridSnap: 1,
+    rotationSnapDeg: 15,
+    scaleSnap: 0.1,
+    snapToGround: true,
+  };
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('terrain');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
+  const selectedAssetId = controlledSelectedId !== undefined ? controlledSelectedId : internalSelectedId;
+  const setSelectedAssetId = useCallback((id: string | null) => {
+    setInternalSelectedId(id);
+    onSelectedAssetIdChange?.(id);
+  }, [onSelectedAssetIdChange]);
   const [libraryOpen, setLibraryOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingTypeRef = useRef<TerrainAsset['type']>('custom');
+  const openUploadFor = useCallback((type: TerrainAsset['type']) => {
+    pendingTypeRef.current = type;
+    fileInputRef.current?.click();
+  }, []);
   const libraryInputRef = useRef<HTMLInputElement>(null);
 
   const generateId = () => `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>, assetType: TerrainAsset['type']) => {
+  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>, forcedType?: TerrainAsset['type']) => {
+    const assetType = forcedType ?? pendingTypeRef.current;
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -123,6 +159,8 @@ export function TerrainEditor({
       'Skydome': 'skydome',
       'Trees': 'tree',
       'Landscape': 'landscape',
+      'Furniture': 'furniture',
+      'Objects': 'object',
       'Custom': 'custom'
     };
 
@@ -215,19 +253,11 @@ export function TerrainEditor({
 
   const renderUploadButton = (type: TerrainAsset['type'], label: string) => (
     <div className="space-y-2">
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept=".glb,.gltf,.obj,.fbx,.usdz"
-        multiple
-        onChange={(e) => handleFileUpload(e, type)}
-      />
       <Button
         variant="outline"
         size="sm"
         className="w-full"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => openUploadFor(type)}
       >
         <Upload className="h-4 w-4 mr-2" />
         Upload {label}
@@ -256,6 +286,14 @@ export function TerrainEditor({
 
   return (
     <div className="fixed bottom-4 right-4 z-50 w-80 bg-background/95 backdrop-blur-sm rounded-xl shadow-xl border overflow-hidden">
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept=".glb,.gltf,.obj,.fbx,.usdz"
+        multiple
+        onChange={(e) => handleFileUpload(e)}
+      />
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b bg-muted/50">
         <div className="flex items-center gap-2">
@@ -271,7 +309,7 @@ export function TerrainEditor({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-4 p-1 m-2 mr-4">
+        <TabsList className="w-full grid grid-cols-5 p-1 m-2 mr-4">
           <TabsTrigger value="terrain" className="text-xs">
             <Mountain className="h-3 w-3 mr-1" />
             Terrain
@@ -283,6 +321,10 @@ export function TerrainEditor({
           <TabsTrigger value="nature" className="text-xs">
             <Trees className="h-3 w-3 mr-1" />
             Nature
+          </TabsTrigger>
+          <TabsTrigger value="objects" className="text-xs">
+            <Armchair className="h-3 w-3 mr-1" />
+            Objects
           </TabsTrigger>
           <TabsTrigger value="library" className="text-xs">
             <FolderOpen className="h-3 w-3 mr-1" />
@@ -312,35 +354,15 @@ export function TerrainEditor({
           {/* Nature Tab */}
           <TabsContent value="nature" className="p-3 space-y-4 m-0">
             <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  fileInputRef.current?.click();
-                }}
-              >
+              <Button variant="outline" size="sm" onClick={() => openUploadFor('tree')}>
                 <Trees className="h-4 w-4 mr-1" />
                 Add Trees
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  fileInputRef.current?.click();
-                }}
-              >
+              <Button variant="outline" size="sm" onClick={() => openUploadFor('landscape')}>
                 <Mountain className="h-4 w-4 mr-1" />
                 Add Rocks
               </Button>
             </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept=".glb,.gltf,.obj,.fbx,.usdz"
-              multiple
-              onChange={(e) => handleFileUpload(e, 'landscape')}
-            />
             <div className="border-t pt-3">
               <h4 className="text-xs font-medium mb-2">Trees</h4>
               {renderAssetList('tree')}
@@ -348,6 +370,28 @@ export function TerrainEditor({
             <div className="border-t pt-3">
               <h4 className="text-xs font-medium mb-2">Landscape Elements</h4>
               {renderAssetList('landscape')}
+            </div>
+          </TabsContent>
+
+          {/* Furniture & Objects Tab */}
+          <TabsContent value="objects" className="p-3 space-y-4 m-0">
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" onClick={() => openUploadFor('furniture')}>
+                <Armchair className="h-4 w-4 mr-1" />
+                Add Furniture
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => openUploadFor('object')}>
+                <Box className="h-4 w-4 mr-1" />
+                Add Objects
+              </Button>
+            </div>
+            <div className="border-t pt-3">
+              <h4 className="text-xs font-medium mb-2">Furniture</h4>
+              {renderAssetList('furniture')}
+            </div>
+            <div className="border-t pt-3">
+              <h4 className="text-xs font-medium mb-2">Objects & Decor</h4>
+              {renderAssetList('object')}
             </div>
           </TabsContent>
 
@@ -422,6 +466,8 @@ export function TerrainEditor({
                         {item.category === 'Terrain' && <Mountain className="h-4 w-4" />}
                         {item.category === 'Skydome' && <Cloud className="h-4 w-4" />}
                         {item.category === 'Trees' && <Trees className="h-4 w-4" />}
+                        {item.category === 'Furniture' && <Armchair className="h-4 w-4" />}
+                        {item.category === 'Objects' && <Box className="h-4 w-4" />}
                         {(item.category === 'Landscape' || item.category === 'Custom') && <FolderOpen className="h-4 w-4" />}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -443,7 +489,113 @@ export function TerrainEditor({
         {selectedAsset && (
           <div className="border-t p-3 bg-muted/30">
             <h4 className="text-xs font-medium mb-2">Asset Properties: {selectedAsset.name}</h4>
+
+            {/* Gizmo mode */}
+            <div className="space-y-2 mb-3">
+              <Label className="text-xs">Gizmo</Label>
+              <div className="grid grid-cols-3 gap-1">
+                {([
+                  { mode: 'translate' as GizmoMode, label: 'Move', Icon: Move3d },
+                  { mode: 'rotate' as GizmoMode, label: 'Rotate', Icon: RotateCw },
+                  { mode: 'scale' as GizmoMode, label: 'Scale', Icon: Maximize },
+                ]).map(({ mode, label, Icon }) => (
+                  <Button
+                    key={mode}
+                    variant={gizmoMode === mode ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => onGizmoModeChange?.(mode)}
+                  >
+                    <Icon className="h-3 w-3 mr-1" />
+                    {label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Snapping */}
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-2">
+                  <Magnet className="h-3 w-3 text-primary" />
+                  <Label className="text-xs">Snap</Label>
+                </div>
+                <Switch
+                  checked={snapSettings.enabled}
+                  onCheckedChange={(v) => onSnapChange?.({ ...snapSettings, enabled: v })}
+                />
+              </div>
+
+              {snapSettings.enabled && (
+                <div className="space-y-2 rounded-lg border p-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase text-muted-foreground">Grid step (ft)</Label>
+                    <div className="flex gap-1">
+                      {SNAP_STEPS.map(step => (
+                        <Button
+                          key={step}
+                          variant={snapSettings.gridSnap === step ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-6 flex-1 px-0 text-[10px]"
+                          onClick={() => onSnapChange?.({ ...snapSettings, gridSnap: step })}
+                        >
+                          {step}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase text-muted-foreground">Rotation step (°)</Label>
+                    <div className="flex gap-1">
+                      {ROTATION_STEPS.map(step => (
+                        <Button
+                          key={step}
+                          variant={snapSettings.rotationSnapDeg === step ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-6 flex-1 px-0 text-[10px]"
+                          onClick={() => onSnapChange?.({ ...snapSettings, rotationSnapDeg: step })}
+                        >
+                          {step}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] uppercase text-muted-foreground">Keep on ground</Label>
+                    <Switch
+                      checked={snapSettings.snapToGround}
+                      onCheckedChange={(v) => onSnapChange?.({ ...snapSettings, snapToGround: v })}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-[10px]"
+                  onClick={() => updateAsset(selectedAsset.id, {
+                    position: [
+                      Math.round(selectedAsset.position[0] / snapSettings.gridSnap) * snapSettings.gridSnap,
+                      snapSettings.snapToGround ? 0 : selectedAsset.position[1],
+                      Math.round(selectedAsset.position[2] / snapSettings.gridSnap) * snapSettings.gridSnap,
+                    ],
+                  })}
+                >
+                  Snap to grid
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-[10px]"
+                  onClick={() => updateAsset(selectedAsset.id, { position: [0, 0, 0], rotation: [0, 0, 0] })}
+                >
+                  Reset transform
+                </Button>
+              </div>
+            </div>
+
             <div className="space-y-3">
+
               <div className="space-y-1">
                 <Label className="text-xs">Scale</Label>
                 <Slider
