@@ -31,6 +31,8 @@ import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet }
 import { UnifiedPoolVisualizer } from './UnifiedPoolVisualizer';
 import { poolBuilderToScene, buildTextureLibrary } from './scene3d/PoolBuilderConverter';
 import { TextureBuilder, type TextureConfig } from './TextureBuilder';
+import { computeNetPaverArea, isNonPaverSurface } from '@/utils/paverAreaLogic';
+
 interface Point {
   x: number;
   y: number;
