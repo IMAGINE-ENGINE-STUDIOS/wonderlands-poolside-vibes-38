@@ -779,12 +779,43 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
               >
                 <Ruler className="mr-1 h-3.5 w-3.5" /> Calibrate
               </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={addVertexAfterSelected}
+                disabled={!selected || selectedVertex === null}
+                title="Add a point after the selected one (or Alt-click a line to insert)"
+              >
+                <Plus className="mr-1 h-3.5 w-3.5" /> Point
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={selectedShapeCurved ? 'default' : 'outline'}
+                onClick={toggleSelectedCurve}
+                disabled={!selected}
+                title="Toggle curvature on the selected point (or the whole shape)"
+              >
+                <Spline className="mr-1 h-3.5 w-3.5" /> {selectedShapeCurved ? 'Curved' : 'Straight'}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => selected && selectedVertex !== null && removeVertexFrom(selected, selectedVertex)}
+                disabled={!selected || selectedVertex === null}
+                title="Remove the selected point"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </Button>
               <Button type="button" size="sm" variant="outline" onClick={() => setDraft(p => p.slice(0, -1))} disabled={!draft.length}>
                 <Undo2 className="h-3.5 w-3.5" />
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={deleteSelected} disabled={!selected}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
+
               <Button type="button" size="sm" variant="outline" onClick={() => setShowGrid(g => !g)}>
                 <Grid3X3 className="h-3.5 w-3.5" />
               </Button>
