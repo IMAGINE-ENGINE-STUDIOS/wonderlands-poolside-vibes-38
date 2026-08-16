@@ -2,7 +2,7 @@ import * as React from "react";
 import { Suspense, lazy, useCallback, useMemo, useRef, useState } from "react";
 import { Maximize2, Upload, X, Loader2 } from "lucide-react";
 import { boardForCategory } from "./FlipEditorBoard";
-import { useFlipBoard, setFlipBoardValue, lockFlip, unlockFlip } from "./flipBoardStore";
+import { useFlipBoard, setFlipBoardValue, useFlipLock } from "./flipBoardStore";
 import { FlipBoardTools, FlipBoardCost, FlipBoardCalculators, useBoardEstimate } from "./FlipBoardPanels";
 import {
   DEFAULT_PX_PER_FT,
@@ -299,9 +299,10 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
 
   /* every design leaf is interactive, so the flipbook must never receive the
      pointer: page turning is held and drags/clicks stop at the leaf */
+  const { lock, unlock } = useFlipLock();
   const lockHandlers = {
-    onPointerEnter: lockFlip,
-    onPointerLeave: unlockFlip,
+    onPointerEnter: lock,
+    onPointerLeave: unlock,
     onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
     onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
     onMouseMove: (e: React.MouseEvent) => e.stopPropagation(),
