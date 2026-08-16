@@ -125,13 +125,13 @@ const QuotationTool = () => {
 
   const configuratorRef = React.useRef<HTMLDivElement | null>(null);
 
-  const handleSelectEntry = (selected: ConsoleEntry, categoryId: string) => {
+  const handleSelectEntry = React.useCallback((selected: ConsoleEntry, categoryId: string) => {
     setEntry(selected);
     setEntryCategory(categoryId);
     requestAnimationFrame(() =>
       configuratorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
     );
-  };
+  }, []);
 
   const toCartItem = (p: ConfiguredProduct) => ({
     id: p.id,
@@ -167,10 +167,16 @@ const QuotationTool = () => {
 
 
 
-  const handleQuote = (p: ConfiguredProduct) => {
+  const handleQuote = React.useCallback((p: ConfiguredProduct) => {
     setProduct(p);
     setQuoteOpen(true);
-  };
+  }, []);
+
+  const noop = React.useCallback(() => undefined, []);
+  const openSection = React.useCallback(
+    (id: string) => navigate(`/wonderlands-studio?category=${id}`),
+    [navigate],
+  );
 
   const quoteExtras = React.useMemo(() => {
     if (!product) return undefined;
@@ -246,12 +252,12 @@ const QuotationTool = () => {
                 width={dims.w}
                 height={dims.h}
                 onSelect={setActiveCategory}
-                onClose={() => undefined}
+                onClose={noop}
                 hideClose
                 onSelectEntry={handleSelectEntry}
                 activeEntryId={entry?.id}
                 footerLabel="Open in Wonderlands Studio"
-                onOpenSection={(id) => navigate(`/wonderlands-studio?category=${id}`)}
+                onOpenSection={openSection}
               />
             </div>
 
