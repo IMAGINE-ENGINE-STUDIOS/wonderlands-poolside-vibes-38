@@ -279,20 +279,33 @@ export function WalkthroughController({
       const moveX = right.x * direction.current.x + cameraDirection.x * (-direction.current.z);
       const moveZ = right.z * direction.current.x + cameraDirection.z * (-direction.current.z);
       
-      velocity.current.x = moveX * moveSpeed;
-      velocity.current.z = moveZ * moveSpeed;
+      const speed = moveSpeed * (keys.current.sprint ? 2 : 1);
+      velocity.current.x = moveX * speed;
+      velocity.current.z = moveZ * speed;
     } else {
       // Decelerate
       velocity.current.x *= 0.9;
       velocity.current.z *= 0.9;
     }
 
-    // Apply velocity (ground movement only, no jumping)
+    // Horizontal movement
     camera.position.x += velocity.current.x * delta;
     camera.position.z += velocity.current.z * delta;
 
-    // Keep camera at ground level
-    camera.position.y = groundLevel + playerHeight;
+    // Vertical movement - gravity + jumping
+    const floorY = groundLevel + playerHeight;
+    if (!isGrounded.current || verticalVelocity.current !== 0) {
+      verticalVelocity.current -= GRAVITY * delta;
+      camera.position.y += verticalVelocity.current * delta;
+      if (camera.position.y <= floorY) {
+        camera.position.y = floorY;
+        verticalVelocity.current = 0;
+        isGrounded.current = true;
+      }
+    } else {
+      camera.position.y = floorY;
+    }
+
 
     // Boundary limits (keep within reasonable area)
     const boundary = 100;
