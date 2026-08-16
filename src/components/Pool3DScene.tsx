@@ -20,10 +20,8 @@ import grassTexture from '@/assets/grass-texture.avif';
 import { resolveDeckBoundaries, sanitizeBoundary } from '@/utils/deckSurface';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
-import { generateCurvedPoolPoints, normalize2DTo3D, generateOffsetCurve } from '@/utils/curveUtils';
+import { generateCurvedPoolPoints, generateOffsetCurve } from '@/utils/curveUtils';
 import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
-import { validateAndRepairPolygon, ensureCounterClockwise } from '@/utils/shapeValidation';
-import { Model3DLoader } from './scene3d/Model3DLoader';
 
 interface Point {
   x: number;
