@@ -21,6 +21,7 @@ const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as 
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
+import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
 
 /**
  * FLIP — Magazine edition.
@@ -129,7 +130,7 @@ const pageTagLabel = (key: string): string => {
   if (k.startsWith("price-sheet")) return "Price Sheet";
   if (k.startsWith("opt-")) return "Options";
   if (k.startsWith("estimate")) return "Estimate";
-  if (k.startsWith("colophon")) return "Colophon";
+  if (k.includes("memoir")) return "Our Promise";
   if (k.endsWith("-hero")) return "Plate";
   if (k.endsWith("-spec")) return "Specification";
   if (k.includes("board") || k.includes("tool")) return "Drawing Board";
@@ -139,6 +140,69 @@ const pageTagLabel = (key: string): string => {
   if (k.includes("brand")) return "Brand";
   return "Edition";
 };
+
+/**
+ * The Service Memoir — the house's word to its clients. Replaces the old
+ * "colophon" leaf with something worth reading: how a Wonderlands project is
+ * carried from first drawing to first swim.
+ */
+const ServiceMemoir: React.FC<{ discipline?: string }> = ({ discipline }) => (
+  <div className="relative flex h-full w-full flex-col overflow-hidden px-8 py-8 sm:px-10">
+    <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+    <div className="flex items-center justify-between gap-4">
+      <img
+        src={wonderlandsLogo}
+        alt="Wonderlands World"
+        loading="lazy"
+        decoding="async"
+        className="h-9 w-auto sm:h-11"
+      />
+      <p className="text-[8px] uppercase tracking-[0.4em] text-muted-foreground">
+        {discipline ? `${discipline} — Our Promise` : "Our Promise"}
+      </p>
+    </div>
+
+    <h3 className="mt-6 font-serif text-3xl font-light leading-[1.05] sm:text-4xl">
+      We do not sell products.
+      <br />
+      We deliver a finished world.
+    </h3>
+    <div className="mt-4 h-px w-16 bg-foreground/30" />
+
+    <p className="mt-5 max-w-md text-[11.5px] leading-[1.85] text-muted-foreground">
+      Every Wonderlands project begins the same way: someone stands in their own backyard and imagines
+      something better. Our work is to make that picture real — drawn to the inch, priced to the dollar,
+      and built by our own crews. One contract, one accountable house, no chain of strangers.
+    </p>
+    <p className="mt-3 max-w-md text-[11.5px] leading-[1.85] text-muted-foreground">
+      {discipline
+        ? `Your ${discipline.toLowerCase()} is engineered for Florida — permits filed, inspections met, warranties in writing.`
+        : "Water, stone, shelter and verdure are engineered together — permits filed, inspections met, warranties in writing."}{" "}
+      You watch it happen from a live plan, and the number you approved is the number you pay.
+    </p>
+
+    <ul className="mt-6 grid gap-px overflow-hidden border-t border-border/60">
+      {[
+        ["Drawn first", "You see the plan, the dimensions and the price before a shovel moves."],
+        ["Built by us", "Our own crews and named brands — Latham, Belgard, Pentair, Harvia."],
+        ["Turnkey", "Delivery, installation and cleanup included in every quoted figure."],
+        ["Kept for life", "Written warranties, real service, one phone number after handover."],
+      ].map(([t, d]) => (
+        <li key={t} className="flex gap-4 border-b border-border/60 py-2.5">
+          <span className="w-24 shrink-0 text-[9px] uppercase tracking-[0.28em] text-foreground">{t}</span>
+          <span className="min-w-0 flex-1 text-[10.5px] leading-relaxed text-muted-foreground">{d}</span>
+        </li>
+      ))}
+    </ul>
+
+    <div className="mt-auto pt-5">
+      <p className="font-serif text-lg font-light italic">Wonderlands World</p>
+      <p className="mt-1 text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
+        Designed, engineered and installed in Florida
+      </p>
+    </div>
+  </div>
+);
 
 const PageTag: React.FC<{ label: string; side: "left" | "right"; tone: "paper" | "cover" }> = ({
   label,
@@ -463,8 +527,22 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/85" />
           <div className="relative flex h-full flex-col justify-between p-8 text-white sm:p-10">
-            <div className="flex items-baseline justify-between gap-4">
-              <p className="text-[9px] uppercase tracking-[0.45em] opacity-80">Wonderlands World</p>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={wonderlandsLogo}
+                  alt="Wonderlands World"
+                  loading="eager"
+                  decoding="async"
+                  className="h-10 w-auto drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)] sm:h-14"
+                />
+                <span className="hidden h-8 w-px bg-white/30 sm:block" />
+                <p className="hidden text-[9px] uppercase leading-[1.6] tracking-[0.4em] opacity-80 sm:block">
+                  Wonderlands
+                  <br />
+                  World
+                </p>
+              </div>
               <p className="text-[9px] uppercase tracking-[0.45em] opacity-60">Edition No. 01</p>
             </div>
             <div>
@@ -633,16 +711,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
 
     if (list.length % 2 !== 0) {
       list.push({
-        key: "home-colophon",
-        render: () => (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-10 text-center">
-            <Eyebrow>Colophon</Eyebrow>
-            <p className="font-serif text-2xl font-light">Wonderlands World</p>
-            <p className="max-w-xs text-[11px] leading-relaxed text-muted-foreground">
-              One outdoor world — water, stone, shelter, verdure. Delivered turnkey.
-            </p>
-          </div>
-        ),
+        key: "home-memoir",
+        render: () => <ServiceMemoir />,
       });
     }
     return list;
@@ -1143,16 +1213,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
 
     if (list.length % 2 !== 0) {
       list.splice(list.length - 1, 0, {
-        key: "colophon",
-        render: () => (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-10 text-center">
-            <Eyebrow>Colophon</Eyebrow>
-            <p className="font-serif text-2xl font-light">Wonderlands World</p>
-            <p className="max-w-xs text-[11px] leading-relaxed text-muted-foreground">
-              {category.tagline} — drawn, priced and installed turnkey.
-            </p>
-          </div>
-        ),
+        key: "memoir",
+        render: () => <ServiceMemoir discipline={category.label} />,
       });
     }
 
@@ -1461,6 +1523,15 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
                     activePage={page}
                     onGo={goTo}
                     height={dims.h}
+                    storageKey={`flip.v5.tabs.${dossier ? "dossier" : mode}`}
+                  />
+                  <FlipPageTabs
+                    items={tabItems}
+                    activePage={page}
+                    onGo={goTo}
+                    height={dims.h}
+                    side="left"
+                    variant="trail"
                     storageKey={`flip.v5.tabs.${dossier ? "dossier" : mode}`}
                   />
                   <FlipCornerHint visible={cornerHint && !flipLocked} onFlip={flipNext} />
