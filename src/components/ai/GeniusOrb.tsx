@@ -313,7 +313,7 @@ export const GeniusOrb: React.FC = () => {
             <button
               onClick={() => {
                 stop();
-                if (voice.isListening) voice.stopListening();
+                mic.stop();
                 setOpen(false);
               }}
               aria-label="Close Genius"
@@ -352,33 +352,34 @@ export const GeniusOrb: React.FC = () => {
               </p>
             )}
 
-            {voice.isListening && (
-              <p className="text-[11px] uppercase tracking-[0.2em] text-primary">
-                Listening… {voice.interimTranscript && <span className="normal-case tracking-normal text-muted-foreground">“{voice.interimTranscript}”</span>}
-              </p>
-            )}
-
-            {recorder.isRecording && (
+            {mic.listening && (
               <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-primary">
-                Recording…
+                Listening…
                 <span className="h-1 w-24 overflow-hidden rounded-full bg-primary/15">
                   <span
                     className="block h-full bg-primary transition-[width] duration-100"
-                    style={{ width: `${Math.min(100, Math.round(recorder.level * 320))}%` }}
+                    style={{ width: `${Math.min(100, Math.round(mic.level * 320))}%` }}
                   />
                 </span>
+                {mic.partial && (
+                  <span className="normal-case tracking-normal text-muted-foreground">“{mic.partial}”</span>
+                )}
               </p>
             )}
 
-            {recorder.isTranscribing && (
+            {mic.phase === 'transcribing' && (
               <p className="flex items-center gap-2 text-[12px] text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" /> Writing down what you said…
               </p>
             )}
 
-            {(voice.error || recorder.error) && (
-              <p className="text-[11px] text-muted-foreground">{voice.error || recorder.error}</p>
+            {mic.permission !== 'granted' && mic.permission !== 'denied' && (
+              <p className="text-[11px] text-muted-foreground">
+                Genius needs your microphone to listen — press “Allow mic” and talk to her.
+              </p>
             )}
+
+            {mic.error && <p className="text-[11px] text-muted-foreground">{mic.error}</p>}
 
             {!genius.turns.length && (
               <div className="flex flex-wrap gap-1.5 pt-0.5">
