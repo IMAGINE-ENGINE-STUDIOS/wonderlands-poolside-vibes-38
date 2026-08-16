@@ -12,6 +12,7 @@ import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
 import FlipSearch from "@/components/flip/FlipSearch";
 import usePersistentState from "@/hooks/usePersistentState";
 import { setNarratorContext } from "@/lib/narratorStore";
+import { toggleGenius } from "@/lib/geniusPanelStore";
 import { setFlipManifest, setFlipControls } from "@/lib/flipPageRegistry";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
