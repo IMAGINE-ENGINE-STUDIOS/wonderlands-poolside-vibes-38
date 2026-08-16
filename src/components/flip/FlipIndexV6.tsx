@@ -154,11 +154,11 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
       <div className="relative z-10 flex h-full flex-col justify-between pl-10 pr-4 pt-5 sm:pl-14 sm:pr-8 sm:pt-7">
         <div className="flex items-start justify-between gap-4 text-white">
           <div>
-            <p className="flex items-center gap-2 text-[8px] uppercase tracking-[0.45em] text-white/70 sm:text-[9px]">
+            <p className="flex items-center gap-2 whitespace-nowrap text-[8px] uppercase leading-relaxed tracking-[0.32em] text-white/70 sm:text-[9px] sm:tracking-[0.45em]">
               <Compass className="h-3 w-3" />
               Wonderlands World — The Expedition
             </p>
-            <p className="mt-1 text-[8px] uppercase tracking-[0.3em] text-white/45 sm:text-[9px]">
+            <p className="mt-1 text-[8px] uppercase leading-relaxed tracking-[0.22em] text-white/45 sm:text-[9px] sm:tracking-[0.3em]">
               {count} disciplines · drawn, priced, installed turnkey
             </p>
           </div>
@@ -248,7 +248,7 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
               </button>
             ))}
           </div>
-          <p className="mt-1 text-[8px] uppercase tracking-[0.3em] text-white/45 sm:text-[9px]">
+          <p className="mt-1 text-[8px] uppercase leading-relaxed tracking-[0.22em] text-white/45 sm:text-[9px] sm:tracking-[0.3em]">
             Drag the deck · arrows or scroll to travel · click a plate twice to enter
           </p>
         </div>
