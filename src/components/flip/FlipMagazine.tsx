@@ -868,14 +868,11 @@ const FlipMagazine: React.FC = () => {
               ))}
             </ul>
             <div className="mt-auto border-t border-border/50 pt-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <AddButton entry={p} />
-                <MoreButton entry={p} />
-              </div>
-              <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+              <p className="text-[10px] leading-relaxed text-muted-foreground">
                 Price includes installation at your home address.
               </p>
             </div>
+
           </div>
         ),
       });
