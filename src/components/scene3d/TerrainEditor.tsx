@@ -87,11 +87,17 @@ export function TerrainEditor({
   }, [onSelectedAssetIdChange]);
   const [libraryOpen, setLibraryOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingTypeRef = useRef<TerrainAsset['type']>('custom');
+  const openUploadFor = useCallback((type: TerrainAsset['type']) => {
+    pendingTypeRef.current = type;
+    fileInputRef.current?.click();
+  }, []);
   const libraryInputRef = useRef<HTMLInputElement>(null);
 
   const generateId = () => `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>, assetType: TerrainAsset['type']) => {
+  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>, forcedType?: TerrainAsset['type']) => {
+    const assetType = forcedType ?? pendingTypeRef.current;
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -247,19 +253,11 @@ export function TerrainEditor({
 
   const renderUploadButton = (type: TerrainAsset['type'], label: string) => (
     <div className="space-y-2">
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept=".glb,.gltf,.obj,.fbx,.usdz"
-        multiple
-        onChange={(e) => handleFileUpload(e, type)}
-      />
       <Button
         variant="outline"
         size="sm"
         className="w-full"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => openUploadFor(type)}
       >
         <Upload className="h-4 w-4 mr-2" />
         Upload {label}
@@ -288,6 +286,14 @@ export function TerrainEditor({
 
   return (
     <div className="fixed bottom-4 right-4 z-50 w-80 bg-background/95 backdrop-blur-sm rounded-xl shadow-xl border overflow-hidden">
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept=".glb,.gltf,.obj,.fbx,.usdz"
+        multiple
+        onChange={(e) => handleFileUpload(e)}
+      />
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b bg-muted/50">
         <div className="flex items-center gap-2">
@@ -303,7 +309,7 @@ export function TerrainEditor({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-4 p-1 m-2 mr-4">
+        <TabsList className="w-full grid grid-cols-5 p-1 m-2 mr-4">
           <TabsTrigger value="terrain" className="text-xs">
             <Mountain className="h-3 w-3 mr-1" />
             Terrain
@@ -315,6 +321,10 @@ export function TerrainEditor({
           <TabsTrigger value="nature" className="text-xs">
             <Trees className="h-3 w-3 mr-1" />
             Nature
+          </TabsTrigger>
+          <TabsTrigger value="objects" className="text-xs">
+            <Armchair className="h-3 w-3 mr-1" />
+            Objects
           </TabsTrigger>
           <TabsTrigger value="library" className="text-xs">
             <FolderOpen className="h-3 w-3 mr-1" />
@@ -344,35 +354,15 @@ export function TerrainEditor({
           {/* Nature Tab */}
           <TabsContent value="nature" className="p-3 space-y-4 m-0">
             <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  fileInputRef.current?.click();
-                }}
-              >
+              <Button variant="outline" size="sm" onClick={() => openUploadFor('tree')}>
                 <Trees className="h-4 w-4 mr-1" />
                 Add Trees
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  fileInputRef.current?.click();
-                }}
-              >
+              <Button variant="outline" size="sm" onClick={() => openUploadFor('landscape')}>
                 <Mountain className="h-4 w-4 mr-1" />
                 Add Rocks
               </Button>
             </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept=".glb,.gltf,.obj,.fbx,.usdz"
-              multiple
-              onChange={(e) => handleFileUpload(e, 'landscape')}
-            />
             <div className="border-t pt-3">
               <h4 className="text-xs font-medium mb-2">Trees</h4>
               {renderAssetList('tree')}
@@ -380,6 +370,28 @@ export function TerrainEditor({
             <div className="border-t pt-3">
               <h4 className="text-xs font-medium mb-2">Landscape Elements</h4>
               {renderAssetList('landscape')}
+            </div>
+          </TabsContent>
+
+          {/* Furniture & Objects Tab */}
+          <TabsContent value="objects" className="p-3 space-y-4 m-0">
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" onClick={() => openUploadFor('furniture')}>
+                <Armchair className="h-4 w-4 mr-1" />
+                Add Furniture
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => openUploadFor('object')}>
+                <Box className="h-4 w-4 mr-1" />
+                Add Objects
+              </Button>
+            </div>
+            <div className="border-t pt-3">
+              <h4 className="text-xs font-medium mb-2">Furniture</h4>
+              {renderAssetList('furniture')}
+            </div>
+            <div className="border-t pt-3">
+              <h4 className="text-xs font-medium mb-2">Objects & Decor</h4>
+              {renderAssetList('object')}
             </div>
           </TabsContent>
 
