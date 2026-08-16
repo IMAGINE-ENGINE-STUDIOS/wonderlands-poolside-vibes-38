@@ -752,8 +752,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                   {l.label}
                 </button>
               ))}
-            </div>
-            <div className="ml-auto flex items-center gap-1.5">
+    </div>
+  );
+
+  const toolButtons = (
+            <div className={menuSide ? 'flex flex-wrap items-center gap-1.5' : 'ml-auto flex items-center gap-1.5'}>
+
               {onRequestImport ? (
                 <Button type="button" size="sm" variant="outline" onClick={onRequestImport}>
                   <ImageIcon className="mr-1 h-3.5 w-3.5" /> Import plan
