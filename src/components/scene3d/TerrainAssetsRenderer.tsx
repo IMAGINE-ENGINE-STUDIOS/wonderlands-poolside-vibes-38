@@ -68,9 +68,7 @@ function SelectedAssetGizmo({
       translationSnap={snap.enabled ? snap.gridSnap : null}
       rotationSnap={snap.enabled ? (snap.rotationSnapDeg * Math.PI) / 180 : null}
       scaleSnap={snap.enabled ? snap.scaleSnap : null}
-      showY={mode !== 'translate' || !snap.snapToGround}
       onMouseUp={commit}
-      onObjectChange={commit}
     />
   );
 }
