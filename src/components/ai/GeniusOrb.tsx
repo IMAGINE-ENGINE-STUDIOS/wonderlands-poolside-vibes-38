@@ -21,6 +21,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useNarrator } from '@/hooks/useNarrator';
 import { useGenius } from '@/hooks/useGenius';
+import type { GeniusCartAdapter } from '@/lib/geniusCartCommands';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useOptionalShoppingCart } from '@/components/ShoppingCartProvider';
 import { safeGeniusPath } from '@/lib/geniusAccess';
@@ -64,13 +65,14 @@ export const GeniusOrb: React.FC = () => {
   }, []);
   const [draft, setDraft] = React.useState('');
   const { context, script, actions, isLoading, isSpeaking, muted, setMuted, narrate, stop, replay } = useNarrator();
-  const genius = useGenius();
   const voice = useVoiceInput();
   const inRouter = useInRouterContext();
   const routerNavigate = inRouter ? useNavigate() : null;
   const cart = useOptionalShoppingCart();
   const readKey = React.useRef<string | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  /* Hands-free: the microphone stays armed between phrases. */
+  const [handsFree, setHandsFree] = React.useState(false);
 
   const go = React.useCallback(
     (to: string) => {
@@ -80,6 +82,50 @@ export const GeniusOrb: React.FC = () => {
     },
     [routerNavigate],
   );
+
+  /* The selection, as Genius can act on it out loud. */
+  const cartAdapter = React.useMemo<GeniusCartAdapter | null>(() => {
+    if (!cart) return null;
+    const items = cart.cartItems.map((i) => ({
+      id: i.id,
+      name: i.name,
+      price: i.price ?? 0,
+      quantity: i.quantity,
+    }));
+    return {
+      items,
+      total: cart.getCartTotal(),
+      add: () => {
+        if (!context?.product) return 'Open a product page and I will add it to your selection.';
+        cart.addToCart({
+          id: `genius-${context.key}`,
+          name: context.product,
+          price: context.price ?? 0,
+          image: '/placeholder.svg',
+          category: context.category || 'Other',
+        });
+        return `${context.product} is in your selection — delivery and installation included.`;
+      },
+      remove: (name) => {
+        const needle = name.toLowerCase();
+        const found = items.find((i) => i.name.toLowerCase().includes(needle));
+        if (!found) return `I cannot find ${name} in your selection.`;
+        cart.removeFromCart(found.id);
+        return `${found.name} removed from your selection.`;
+      },
+      clear: () => {
+        cart.clearCart();
+        return 'Your selection is empty again — a clean sheet.';
+      },
+      checkout: () => {
+        if (!items.length) return 'There is nothing to check out yet. Say "add this" on anything you like.';
+        go('/checkout');
+        return 'Taking you to checkout, where financing lives.';
+      },
+    };
+  }, [cart, cart?.cartItems, context, go]);
+
+  const genius = useGenius({ context, cart: cartAdapter });
 
   /* Listen mode: every new leaf is read aloud without being asked. */
   React.useEffect(() => {
@@ -94,10 +140,6 @@ export const GeniusOrb: React.FC = () => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [genius.turns, genius.isThinking, script]);
 
-  const cartSummary = React.useMemo(() => {
-    if (!cart?.cartItems?.length) return undefined;
-    return cart.cartItems.map((i) => `${i.name} ($${(i.price ?? 0).toLocaleString()})`).join(', ');
-  }, [cart?.cartItems]);
 
 
   const speakReply = React.useCallback(
@@ -142,20 +184,22 @@ export const GeniusOrb: React.FC = () => {
       setDraft('');
       setOpen(true);
       stop();
-      const reply = await genius.ask(text, cartSummary);
+      const reply = await genius.ask(text);
       if (reply) speakReply(reply);
     },
-    [genius, cartSummary, speakReply, stop],
+    [genius, speakReply, stop],
   );
 
-  /* Real-time talking: a finished phrase is sent to Genius immediately. */
+  /* Real-time talking: every finished phrase is sent to Genius immediately, and
+     in hands-free mode the microphone re-arms itself so it is a conversation. */
   React.useEffect(() => {
-    if (voice.transcript && !voice.isListening) {
-      const said = voice.transcript;
-      voice.resetTranscript();
-      void send(said);
-    }
-  }, [voice.transcript, voice.isListening, voice.resetTranscript, send]);
+    if (!voice.transcript || voice.isListening) return;
+    const said = voice.transcript;
+    voice.resetTranscript();
+    void send(said).then(() => {
+      if (handsFree) window.setTimeout(() => voice.startListening(), 900);
+    });
+  }, [voice.transcript, voice.isListening, voice.resetTranscript, voice.startListening, send, handsFree]);
 
   const runAction = (action: NarratorAction) => {
     switch (action.type) {
@@ -320,9 +364,10 @@ export const GeniusOrb: React.FC = () => {
                 {[
                   'Read me this spread',
                   'What does this cost installed?',
-                  'Show the concrete pools',
-                  'Compare the finishes',
-                  'Open the drawing board',
+                  'Make the pool 16 by 32',
+                  'Add this to my selection',
+                  'Book a consultation',
+                  "What's in my selection?",
                 ].map((q) => (
                   <button
                     key={q}
@@ -362,17 +407,38 @@ export const GeniusOrb: React.FC = () => {
             className="flex items-center gap-1.5 border-t border-border/50 px-3 py-2.5"
           >
             {voice.isSupported && (
-              <button
-                type="button"
-                onClick={() => (voice.isListening ? voice.stopListening() : voice.startListening())}
-                aria-label={voice.isListening ? 'Stop talking to Genius' : 'Talk to Genius'}
-                className={cn(
-                  'rounded-full border border-primary/30 p-2 text-primary transition-colors hover:bg-primary/10',
-                  voice.isListening && 'animate-pulse bg-primary/15',
-                )}
-              >
-                {voice.isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => (voice.isListening ? voice.stopListening() : voice.startListening())}
+                  aria-label={voice.isListening ? 'Stop talking to Genius' : 'Talk to Genius'}
+                  className={cn(
+                    'rounded-full border border-primary/30 p-2 text-primary transition-colors hover:bg-primary/10',
+                    voice.isListening && 'animate-pulse bg-primary/15',
+                  )}
+                >
+                  {voice.isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !handsFree;
+                    setHandsFree(next);
+                    if (next && !voice.isListening) voice.startListening();
+                    if (!next && voice.isListening) voice.stopListening();
+                  }}
+                  aria-label={handsFree ? 'Leave hands-free conversation' : 'Talk hands-free with Genius'}
+                  aria-pressed={handsFree}
+                  className={cn(
+                    'rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.16em] transition-colors',
+                    handsFree
+                      ? 'border-primary/50 bg-primary/15 text-foreground'
+                      : 'border-border/50 text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  Live
+                </button>
+              </>
             )}
             <input
               value={draft}

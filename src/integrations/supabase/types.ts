@@ -1297,6 +1297,54 @@ export type Database = {
           },
         ]
       }
+      genius_appointments: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          preferred_at: string | null
+          source: string
+          status: string
+          timezone: string | null
+          topic: string | null
+          updated_at: string
+          whatsapp_optin: boolean
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          preferred_at?: string | null
+          source?: string
+          status?: string
+          timezone?: string | null
+          topic?: string | null
+          updated_at?: string
+          whatsapp_optin?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          preferred_at?: string | null
+          source?: string
+          status?: string
+          timezone?: string | null
+          topic?: string | null
+          updated_at?: string
+          whatsapp_optin?: boolean
+        }
+        Relationships: []
+      }
       installer_licenses: {
         Row: {
           created_at: string

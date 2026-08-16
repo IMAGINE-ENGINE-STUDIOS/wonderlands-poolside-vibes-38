@@ -10,6 +10,7 @@ import {
   type SitePlanData,
 } from "@/components/blueprint/SiteDrawingBoard";
 import { computeSiteEstimate, formatMoney } from "@/lib/siteEstimate";
+import { registerGeniusDesignAgent, resizeSitePlanPool } from "@/lib/geniusDesignBus";
 import { buildProductSitePlan } from "@/lib/productSitePlan";
 import {
   fitShapesToBox,
@@ -141,6 +142,49 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   }, [estimate]);
 
   const isSite = board.kind === "site";
+
+  /* ---------------- Genius may design this board out loud ---------------- */
+  const siteRef = React.useRef(site);
+  siteRef.current = site;
+  const estimateRef = React.useRef(estimate);
+  estimateRef.current = estimate;
+  const readoutRef = React.useRef(siteReadout);
+  readoutRef.current = siteReadout;
+
+  React.useEffect(() => {
+    if (part !== "board" && part !== "board-left") return;
+    return registerGeniusDesignAgent({
+      id: boardId,
+      label: modelName ? `${modelName} plan` : `${categoryId} board`,
+      kind: board.kind as "site" | "enclosure" | "fence" | "grass",
+      describe: () => {
+        const total = estimateRef.current.total;
+        const dims = readoutRef.current;
+        if (!dims) return "The board is still blank — tell me a size, or draw the shape and I will price it.";
+        return `${dims}${total ? ` — ${formatMoney(total)} installed` : ""}.`;
+      },
+      resize: (widthFt, lengthFt) => {
+        if (board.kind !== "site") return null;
+        const next = resizeSitePlanPool(siteRef.current, widthFt, lengthFt);
+        if (!next) return "There is no pool shape on this board yet — say redraw it and I will start from the model.";
+        setFlipBoardValue(boardId, { site: next });
+        return `Drawn at ${widthFt}′ × ${lengthFt}′. The cost sheet on the facing leaf follows the drawing.`;
+      },
+      clear: () => {
+        if (board.kind !== "site") return null;
+        setFlipBoardValue(boardId, { site: { shapes: [], pxPerFt: siteRef.current.pxPerFt } });
+        return "Board cleared. Give me a size and I will draw it again.";
+      },
+      reset: () => {
+        if (board.kind !== "site") return null;
+        const seeded = buildProductSitePlan({ categoryId, modelName, meta: modelMeta });
+        if (!seeded) return "There is no published drawing for this one — draw it and I will price it.";
+        setFlipBoardValue(boardId, { site: seeded });
+        return `${modelName ?? "The plan"} is back at its published dimensions.`;
+      },
+    });
+  }, [board.kind, boardId, categoryId, modelName, modelMeta, part]);
+
 
   /* ------------------------------- plan upload ------------------------------- */
   const handleUpload = useCallback(
