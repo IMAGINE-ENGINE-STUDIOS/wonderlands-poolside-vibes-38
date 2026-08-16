@@ -907,6 +907,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         onDoubleClick={handleDouble}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
+        onContextMenu={e => e.preventDefault()}
+
         onMouseUp={endDrag}
         onMouseLeave={() => {
           endDrag();
