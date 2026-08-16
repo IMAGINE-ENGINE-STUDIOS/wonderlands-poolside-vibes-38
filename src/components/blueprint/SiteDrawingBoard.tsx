@@ -941,8 +941,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         }}
 
       />
+  );
 
-      {!readOnly && (
+  const footNote = !readOnly ? (
         <p className="text-[11px] text-muted-foreground">
           {mode === 'calibrate'
             ? 'Click two points with a known distance on the imported sheet, then type the real length in feet to set the scale.'
@@ -955,7 +956,47 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
           {areas.imperviousPct}%) &middot; {areas.fenceLinearFt} LF barrier.
           {selectedShape ? ` Selected: ${layerMeta(selectedShape.layer).label}${selectedShape.importedFrom ? ` (imported from ${selectedShape.importedFrom})` : ''}.` : ''}
         </p>
+  ) : null;
+
+  /* FLIP dossier layout — the drawing keeps the page, every control lives in a
+     menu column on the right and nothing is tagged across the header. */
+  if (menuSide) {
+    return (
+      <div className="flex h-full min-h-0 gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {header}
+          {canvasEl}
+          {underlayBar}
+          {footNote}
+        </div>
+        {!readOnly && (
+          <aside className="flex w-44 shrink-0 flex-col gap-2 overflow-y-auto rounded-xl border border-border/60 bg-background/60 p-2 backdrop-blur-md sm:w-52">
+            <p className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Elements</p>
+            {layerTags}
+            <p className="mt-1 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Tools</p>
+            {toolButtons}
+          </aside>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {!readOnly && (
+        <div className="space-y-2">
+          {header && (
+            <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {layerTags}
+            {toolButtons}
+          </div>
+          {underlayBar}
+        </div>
       )}
+      {canvasEl}
+      {footNote}
     </div>
   );
 };
