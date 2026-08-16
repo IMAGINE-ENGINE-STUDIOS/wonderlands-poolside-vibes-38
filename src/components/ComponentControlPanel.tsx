@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -61,7 +61,6 @@ export function ComponentControlPanel({
   isNightMode = false
 }: ComponentControlPanelProps) {
   // Animation state for texture panel fade effect
-  const [isTextureGridVisible, setIsTextureGridVisible] = useState(true);
 
   if (!selectedComponent) return null;
 
