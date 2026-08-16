@@ -445,7 +445,6 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
 
   /* ---------------------------------- HOME ---------------------------------- */
   const homePages = useMemo<Page[]>(() => {
-    const hero = ITEMS.slice(0, 6);
     const list: Page[] = [];
 
     list.push({
