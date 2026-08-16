@@ -727,15 +727,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     onChange({ ...data, underlay: { ...underlay, ...patch } });
   };
 
-  return (
-    <div className="space-y-3">
-      {!readOnly && (
-        <div className="space-y-2">
-          {header && (
-            <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
-          )}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex flex-wrap gap-1.5">
+  const layerTags = (
+    <div className={menuSide ? 'flex flex-col gap-1.5' : 'flex flex-wrap gap-1.5'}>
+
               {SITE_LAYERS.map(l => (
                 <button
                   key={l.id}
