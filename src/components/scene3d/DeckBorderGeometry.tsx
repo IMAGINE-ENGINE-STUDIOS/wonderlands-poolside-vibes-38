@@ -31,31 +31,49 @@ export const DeckBorderGeometry = ({
 }: DeckBorderGeometryProps) => {
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
-  
+  const offsetX = textureOffset[0];
+  const offsetY = textureOffset[1];
+
   useEffect(() => {
     if (!textureUrl || textureUrl === '' || textureUrl === 'undefined') {
       setTexture(null);
       return;
     }
-    
+
+    let cancelled = false;
+
     // Match pool wall texture loading exactly
     const repeatX = 1.0 / textureScale;
     const repeatY = 1.0 / textureScale;
-    
+
     textureCache.loadTexture(textureUrl, { x: repeatX, y: repeatY })
       .then((loadedTexture) => {
+        // Guard against out-of-order responses re-applying a stale paver.
+        if (cancelled) {
+          loadedTexture.dispose();
+          return;
+        }
         loadedTexture.userData.url = textureUrl;
-        loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
+        loadedTexture.offset.set(offsetX, offsetY);
         loadedTexture.wrapS = THREE.RepeatWrapping;
         loadedTexture.wrapT = THREE.RepeatWrapping;
         loadedTexture.needsUpdate = true;
-        setTexture(loadedTexture);
+        setTexture((prev) => {
+          if (prev && prev !== loadedTexture) prev.dispose();
+          return loadedTexture;
+        });
       })
       .catch((error) => {
+        if (cancelled) return;
         console.error('DeckBorderGeometry: Failed to load texture:', error);
-        setTexture(null);
       });
-  }, [textureUrl, textureOffset, textureScale]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [textureUrl, offsetX, offsetY, textureScale]);
+
   
   const geometry = useMemo(() => {
     const boundaries = resolveDeckBoundaries({
