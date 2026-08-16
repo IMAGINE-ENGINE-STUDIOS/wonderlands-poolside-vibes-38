@@ -120,20 +120,14 @@ export function useNarrator() {
 
       setIsLoading(true);
       try {
-        /* A reading recorded by an earlier guest is reused word for word. */
-        const saved = await loadSavedReading(key);
-        if (saved) {
-          const data = { script: saved, actions: [] as NarratorAction[] };
-          cacheScript(key, data);
-          setScript(saved);
-          setActions([]);
-          if (opts?.withVoice !== false) void speak(saved, key);
-          return;
-        }
         /* Text is written locally by the house copywriter — no paid text calls. */
         const manifest = getFlipManifest();
         const page = manifest ? manifest.pages[manifest.current] ?? null : null;
-        const data = generateFlipPitch({ context: ctx, branch: opts?.branch, manifest, page });
+        const local = generateFlipPitch({ context: ctx, branch: opts?.branch, manifest, page });
+        /* A reading recorded by an earlier guest is reused word for word so the
+           voice clip in the library still matches the transcript. */
+        const saved = await loadSavedReading(key);
+        const data = saved ? { ...local, script: saved } : local;
         cacheScript(key, data);
         historyRef.current = [...historyRef.current, ctx.title].slice(-4);
         setScript(data.script);
