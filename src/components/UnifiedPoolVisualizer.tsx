@@ -1765,22 +1765,38 @@ export function UnifiedPoolVisualizer({
         {/* Asset Manager - Visible in fullscreen with Pool Assets */}
         <AssetManager 
           assets={assets3D}
-          onAddAsset={(asset) => setAssets3D([...assets3D, asset])}
+          onAddAsset={(asset) => {
+            setAssets3D([...assets3D, asset]);
+            focusOnAsset(asset.position);
+          }}
           onRemoveAsset={(id) => setAssets3D(assets3D.filter(a => a.id !== id))}
           stairs={poolStairs}
-          onStairsChange={setPoolStairs}
+          onStairsChange={(next) => {
+            if (next.length > poolStairs.length) focusOnPoolAsset();
+            setPoolStairs(next);
+          }}
           chairs={poolChairs}
-          onChairsChange={setPoolChairs}
+          onChairsChange={(next) => {
+            if (next.length > poolChairs.length) focusOnPoolAsset();
+            setPoolChairs(next);
+          }}
           contourSeating={contourSeating}
-          onContourSeatingChange={setContourSeating}
+          onContourSeatingChange={(next) => {
+            if (next.length > contourSeating.length) focusOnPoolAsset();
+            setContourSeating(next);
+          }}
           lights={poolLights}
-          onLightsChange={handlePoolLightsChange}
+          onLightsChange={(next) => {
+            if (next.length > poolLights.length) focusOnPoolAsset();
+            handlePoolLightsChange(next);
+          }}
           selectedAssetId={selectedPoolAssetId}
           onSelectAsset={setSelectedPoolAssetId}
           poolFinishTexture={linerTextureUrl}
           isNightMode={isNightMode}
           availableFinishes={textureLibrary.finishes}
         />
+
 
         {/* Terrain Editor */}
         <TerrainEditor
