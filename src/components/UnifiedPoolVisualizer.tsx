@@ -390,6 +390,15 @@ export function UnifiedPoolVisualizer({
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
 
+  // Camera focus request (used to center the camera on newly dropped assets)
+  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
+  const focusTokenRef = useRef(0);
+  const focusOn = useCallback((position: [number, number, number], distance?: number) => {
+    focusTokenRef.current += 1;
+    setFocusRequest({ position, distance, token: focusTokenRef.current });
+  }, []);
+
+
   const FLORIDA_STEP_HEIGHT = 0.625; // 7.5 inches
   const DEFAULT_STEP_DEPTH = 0.9167; // 11 inches
   
