@@ -25,6 +25,7 @@ import { getProductsByCompatiblePool } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles } from '@/data/poolData';
 
 // Import finish images
+import poolHeaterImage from '@/assets/pool-heater.webp';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.webp';
@@ -630,7 +631,7 @@ const EditablePoolProductCard = ({
                  <div className="flex items-center gap-2">
                   <Thermometer className="h-4 w-4 text-orange-500" />
                   <img loading="lazy" decoding="async" 
-                    src="/src/assets/pool-heater.webp"
+                    src={poolHeaterImage}
                     alt="Pool Heater"
                     className="w-4 h-4 object-cover rounded"
                     onError={(e) => {
