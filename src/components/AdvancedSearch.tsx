@@ -69,9 +69,11 @@ interface SearchResult {
 
 interface AdvancedSearchProps {
   variant?: 'default' | 'slim';
+  /** Query pushed in from outside (Genius, deep links). Runs the search on change. */
+  externalQuery?: string;
 }
 
-const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
+const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchProps) => {
   const isSlim = variant === 'slim';
   const [searchQuery, setSearchQuery] = usePersistentState(`search_query_${variant}`, '');
   const [lastQuery, setLastQuery] = useState('');
