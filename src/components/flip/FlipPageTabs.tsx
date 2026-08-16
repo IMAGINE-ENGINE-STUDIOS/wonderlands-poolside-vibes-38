@@ -4,8 +4,16 @@ import usePersistentState from "@/hooks/usePersistentState";
 /**
  * Hanging page tabs — index tabs that live OUTSIDE the book on its outer border,
  * the way a ring binder or a legal exhibit set is tabbed. Each tab jumps the
- * reader to that page. Colours are programmatic HSL, so the label text is always
- * computed to contrast its own tab, whatever colour is chosen.
+ * reader to that page.
+ *
+ * Two rails:
+ *  - `index` (right border): a focus window of five tabs that travels with the
+ *    reader, the neighbours fading out so the eye is never crowded.
+ *  - `trail` (left border): the chapters already passed, kept as a quiet
+ *    breadcrumb of the journey so far.
+ *
+ * Colours are programmatic HSL, so the label text is always computed to
+ * contrast its own tab, whatever colour is chosen.
  */
 
 export type PageTabItem = { label: string; page: number };
@@ -22,7 +30,8 @@ export const TAB_PALETTE: Array<[number, number, number]> = [
   [0, 0, 16], // graphite
 ];
 
-const hslString = ([h, s, l]: [number, number, number]) => `hsl(${h} ${s}% ${l}%)`;
+const hslString = ([h, s, l]: [number, number, number], alpha = 1) =>
+  `hsl(${h} ${s}% ${l}% / ${alpha})`;
 
 /**
  * Relative luminance of an HSL colour, used to pick black or white text.
@@ -56,6 +65,9 @@ export function contrastTextForHsl([h, s, l]: [number, number, number]): string 
 const hashLabel = (label: string) =>
   Math.abs([...label].reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7));
 
+/** How many tabs stay lit around the reader's position. */
+const FOCUS_RADIUS = 2; // 2 above + active + 2 below = a focus of five
+
 const FlipPageTabs: React.FC<{
   items: PageTabItem[];
   activePage: number;
@@ -63,7 +75,17 @@ const FlipPageTabs: React.FC<{
   height: number;
   side?: "left" | "right";
   storageKey?: string;
-}> = ({ items, activePage, onGo, height, side = "right", storageKey = "flip.tabs.colors" }) => {
+  /** `index` = travelling focus rail, `trail` = chapters already passed. */
+  variant?: "index" | "trail";
+}> = ({
+  items,
+  activePage,
+  onGo,
+  height,
+  side = "right",
+  storageKey = "flip.tabs.colors",
+  variant = "index",
+}) => {
   const [colors, setColors] = usePersistentState<Record<string, number>>(storageKey, {});
 
   /** Collapse repeated chapter names to one tab, keeping the first page of each. */
@@ -72,11 +94,34 @@ const FlipPageTabs: React.FC<{
     items.forEach((it) => {
       if (!out.some((o) => o.label === it.label)) out.push(it);
     });
-    const maxTabs = Math.max(3, Math.floor((height - 8) / 34));
-    return out.slice(0, maxTabs);
-  }, [items, height]);
+    return out;
+  }, [items]);
 
-  if (!tabs.length) return null;
+  /** Index of the chapter the reader is currently inside. */
+  const activeIdx = useMemo(() => {
+    let found = 0;
+    tabs.forEach((t, i) => {
+      if (t.page <= activePage) found = i;
+    });
+    return found;
+  }, [tabs, activePage]);
+
+  /** The travelling focus window — five tabs, clamped to the ends of the book. */
+  const window = useMemo(() => {
+    if (variant === "trail") {
+      // The road behind: the last few chapters already passed, newest nearest.
+      const passed = tabs.slice(0, activeIdx).slice(-4).reverse();
+      return passed.map((t) => ({ ...t, idx: tabs.indexOf(t) }));
+    }
+    const span = FOCUS_RADIUS * 2 + 1;
+    const fitByHeight = Math.max(3, Math.floor((height - 12) / 38));
+    const size = Math.min(span, fitByHeight, tabs.length);
+    let start = activeIdx - Math.floor(size / 2);
+    start = Math.max(0, Math.min(start, tabs.length - size));
+    return tabs.slice(start, start + size).map((t, i) => ({ ...t, idx: start + i }));
+  }, [tabs, activeIdx, height, variant]);
+
+  if (!window.length) return null;
 
   const cycle = (label: string) =>
     setColors((prev) => ({
@@ -86,18 +131,22 @@ const FlipPageTabs: React.FC<{
 
   return (
     <div
-      aria-label="Page tabs"
-      className={`pointer-events-none absolute top-0 hidden h-full flex-col justify-start gap-1.5 py-1 md:flex ${
-        side === "right" ? "left-full items-start pl-0" : "right-full items-end pr-0"
-      }`}
+      aria-label={variant === "trail" ? "Chapters already read" : "Page tabs"}
+      className={`pointer-events-none absolute top-0 hidden h-full flex-col justify-center gap-2 py-2 md:flex ${
+        side === "right" ? "left-full items-start pl-1.5" : "right-full items-end pr-1.5"
+      } ${variant === "trail" ? "justify-start pt-3 lg:flex" : ""}`}
       style={{ height }}
     >
-      {tabs.map((tab, i) => {
+      {window.map((tab) => {
         const idx = colors[tab.label] ?? hashLabel(tab.label) % TAB_PALETTE.length;
         const hsl = TAB_PALETTE[idx % TAB_PALETTE.length];
-        const bg = hslString(hsl);
         const fg = contrastTextForHsl(hsl);
-        const isActive = activePage === tab.page || activePage === tab.page + 1;
+        const isActive = variant === "index" && tab.idx === activeIdx;
+        const distance = variant === "trail" ? 1 : Math.abs(tab.idx - activeIdx);
+        // Focus falloff — the further from the reader, the quieter the tab.
+        const opacity = variant === "trail" ? 0.42 : [1, 0.62, 0.32][Math.min(distance, 2)];
+        const scale = variant === "trail" ? 0.9 : [1, 0.95, 0.9][Math.min(distance, 2)];
+
         return (
           <button
             key={`${tab.label}-${tab.page}`}
@@ -109,20 +158,34 @@ const FlipPageTabs: React.FC<{
               onGo(tab.page);
             }}
             title={`${tab.label} — page ${tab.page + 1} (shift-click to recolour)`}
-            className={`pointer-events-auto animate-flip-tab-in max-w-[168px] truncate px-2.5 py-1.5 text-[8px] uppercase tracking-[0.28em] shadow-[6px_6px_18px_-10px_rgba(0,0,0,0.6)] transition-transform duration-300 ${
+            className={`pointer-events-auto animate-flip-tab-in group flex max-w-[120px] items-center gap-2 border px-2.5 py-2 backdrop-blur-xl transition-all duration-500 ease-out hover:!opacity-100 sm:max-w-[150px] lg:max-w-[190px] ${
               side === "right"
-                ? "rounded-r-[3px] hover:translate-x-1"
-                : "rounded-l-[3px] hover:-translate-x-1"
-            } ${isActive ? (side === "right" ? "translate-x-1.5" : "-translate-x-1.5") : ""}`}
+                ? "rounded-r-full border-l-0 hover:translate-x-1.5"
+                : "rounded-l-full border-r-0 hover:-translate-x-1.5"
+            }`}
             style={{
-              background: bg,
-              color: fg,
-              animationDelay: `${i * 45}ms`,
-              outline: isActive ? `1px solid ${fg}` : "none",
-              outlineOffset: "-3px",
+              opacity,
+              transform: `scale(${scale}) translateX(${
+                isActive ? (side === "right" ? "6px" : "-6px") : "0px"
+              })`,
+              background: `linear-gradient(${side === "right" ? "90deg" : "270deg"}, ${hslString(
+                hsl,
+                isActive ? 0.72 : 0.4
+              )}, ${hslString(hsl, isActive ? 0.4 : 0.16)})`,
+              borderColor: hslString(hsl, isActive ? 0.85 : 0.35),
+              color: isActive ? fg : hslString(hsl, 1),
+              boxShadow: isActive
+                ? `0 14px 34px -14px ${hslString(hsl, 0.75)}, inset 0 1px 0 hsl(0 0% 100% / 0.35)`
+                : "inset 0 1px 0 hsl(0 0% 100% / 0.2)",
             }}
           >
-            {tab.label}
+            <span
+              className="h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{ background: hslString(hsl, 1), boxShadow: `0 0 10px ${hslString(hsl, 0.9)}` }}
+            />
+            <span className="truncate text-[8px] uppercase tracking-[0.3em] sm:text-[9px]">
+              {tab.label}
+            </span>
           </button>
         );
       })}
