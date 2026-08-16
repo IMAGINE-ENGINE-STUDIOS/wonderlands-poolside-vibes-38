@@ -53,9 +53,18 @@ export interface SiteShape {
   layer: SiteLayerId;
   points: { x: number; y: number }[];
   closed: boolean;
+  /** Per-point curvature flags — true renders that vertex as a smooth spline handle */
+  curves?: boolean[];
   /** Set when the shape came from an imported PDF/DXF/SVG plan */
   importedFrom?: string;
 }
+
+/** Curve-aware outline used for rendering and all measurements. */
+export const siteShapeOutline = (shape: SiteShape) =>
+  hasAnyCurve(shape.curves)
+    ? samplePath(shape.points, shape.closed, normalizeFlags(shape.curves, shape.points.length))
+    : shape.points;
+
 
 /** Imported raster plan placed behind the drawing, used to trace over */
 export interface SiteUnderlay {
