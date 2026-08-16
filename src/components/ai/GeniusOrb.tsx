@@ -56,7 +56,12 @@ export const GeniusOrb: React.FC = () => {
   /* Genius is on by default — the panel restores open unless the guest closed it. */
   const [open, setOpenState] = React.useState<boolean>(() => isGeniusOpen());
   const setOpen = React.useCallback((next: boolean) => setGeniusOpen(next), []);
-  React.useEffect(() => subscribeGeniusPanel(setOpenState), []);
+  React.useEffect(() => {
+    const unsubscribe = subscribeGeniusPanel(setOpenState);
+    return () => {
+      unsubscribe();
+    };
+  }, []);
   const [draft, setDraft] = React.useState('');
   const { context, script, actions, isLoading, isSpeaking, muted, setMuted, narrate, stop, replay } = useNarrator();
   const genius = useGenius();
