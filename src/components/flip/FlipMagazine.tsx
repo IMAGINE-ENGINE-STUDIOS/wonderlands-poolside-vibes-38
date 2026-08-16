@@ -141,6 +141,69 @@ const pageTagLabel = (key: string): string => {
   return "Edition";
 };
 
+/**
+ * The Service Memoir — the house's word to its clients. Replaces the old
+ * "colophon" leaf with something worth reading: how a Wonderlands project is
+ * carried from first drawing to first swim.
+ */
+const ServiceMemoir: React.FC<{ discipline?: string }> = ({ discipline }) => (
+  <div className="relative flex h-full w-full flex-col overflow-hidden px-8 py-8 sm:px-10">
+    <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+    <div className="flex items-center justify-between gap-4">
+      <img
+        src={wonderlandsLogo}
+        alt="Wonderlands World"
+        loading="lazy"
+        decoding="async"
+        className="h-9 w-auto sm:h-11"
+      />
+      <p className="text-[8px] uppercase tracking-[0.4em] text-muted-foreground">
+        {discipline ? `${discipline} — Our Promise` : "Our Promise"}
+      </p>
+    </div>
+
+    <h3 className="mt-6 font-serif text-3xl font-light leading-[1.05] sm:text-4xl">
+      We do not sell products.
+      <br />
+      We deliver a finished world.
+    </h3>
+    <div className="mt-4 h-px w-16 bg-foreground/30" />
+
+    <p className="mt-5 max-w-md text-[11.5px] leading-[1.85] text-muted-foreground">
+      Every Wonderlands project begins the same way: someone stands in their own backyard and imagines
+      something better. Our work is to make that picture real — drawn to the inch, priced to the dollar,
+      and built by our own crews. One contract, one accountable house, no chain of strangers.
+    </p>
+    <p className="mt-3 max-w-md text-[11.5px] leading-[1.85] text-muted-foreground">
+      {discipline
+        ? `Your ${discipline.toLowerCase()} is engineered for Florida — permits filed, inspections met, warranties in writing.`
+        : "Water, stone, shelter and verdure are engineered together — permits filed, inspections met, warranties in writing."}{" "}
+      You watch it happen from a live plan, and the number you approved is the number you pay.
+    </p>
+
+    <ul className="mt-6 grid gap-px overflow-hidden border-t border-border/60">
+      {[
+        ["Drawn first", "You see the plan, the dimensions and the price before a shovel moves."],
+        ["Built by us", "Our own crews and named brands — Latham, Belgard, Pentair, Harvia."],
+        ["Turnkey", "Delivery, installation and cleanup included in every quoted figure."],
+        ["Kept for life", "Written warranties, real service, one phone number after handover."],
+      ].map(([t, d]) => (
+        <li key={t} className="flex gap-4 border-b border-border/60 py-2.5">
+          <span className="w-24 shrink-0 text-[9px] uppercase tracking-[0.28em] text-foreground">{t}</span>
+          <span className="min-w-0 flex-1 text-[10.5px] leading-relaxed text-muted-foreground">{d}</span>
+        </li>
+      ))}
+    </ul>
+
+    <div className="mt-auto pt-5">
+      <p className="font-serif text-lg font-light italic">Wonderlands World</p>
+      <p className="mt-1 text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
+        Designed, engineered and installed in Florida
+      </p>
+    </div>
+  </div>
+);
+
 const PageTag: React.FC<{ label: string; side: "left" | "right"; tone: "paper" | "cover" }> = ({
   label,
   side,
