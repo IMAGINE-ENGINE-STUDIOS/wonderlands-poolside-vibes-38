@@ -1317,11 +1317,20 @@ const FlipMagazine: React.FC = () => {
 
 
         <div
-          className={`mx-auto flex justify-center transition-opacity duration-300 ease-out ${
-            fading || loading ? "opacity-0" : "opacity-100"
-          }`}
-          style={{ perspective: "3000px", minHeight: dims.h }}
+          className="mx-auto flex justify-center will-change-[opacity,transform]"
+          style={{
+            perspective: "3000px",
+            minHeight: dims.h,
+            opacity: fading || loading ? 0 : 1,
+            transform: fading || loading ? "scale(0.985) translateY(6px)" : "scale(1) translateY(0)",
+            filter: fading || loading ? "blur(6px)" : "blur(0px)",
+            transition:
+              fading || loading
+                ? "opacity 400ms cubic-bezier(0.4,0,1,1), transform 400ms cubic-bezier(0.4,0,1,1), filter 400ms ease-in"
+                : "opacity 900ms cubic-bezier(0.16,1,0.3,1), transform 900ms cubic-bezier(0.16,1,0.3,1), filter 700ms ease-out",
+          }}
         >
+
           {loading ? (
             <div
               className="flex items-center justify-center border border-border/60"
