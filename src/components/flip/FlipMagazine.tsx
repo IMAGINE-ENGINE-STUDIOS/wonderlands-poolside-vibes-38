@@ -57,7 +57,7 @@ const OPTION_GROUPS: Record<string, OptionGroup[]> = {
   ],
   pavers: [
     { title: "Field Pattern", note: "Laid on compacted base", options: ["Ashlar", "French pattern", "Running bond", "Herringbone", "Modular mix"] },
-    { title: "Edge & Coping", note: "The defined perimeter", options: ["Bullnose coping", "Square edge coping", "Soldier course border", "Contrast banding"] },
+    { title: "Edge & Coping", note: "The defined perimeter", options: ["Squared edge coping — standard", "Bullnose coping — Belgard & coping specified as bullnose", "Soldier course border", "Contrast banding"] },
     { title: "Base System", note: "Underfoot for decades", options: ["Compacted limerock base", "Polymeric sand joints", "Drainage channel", "Sealer application"] },
   ],
   "artificial-grass": [
