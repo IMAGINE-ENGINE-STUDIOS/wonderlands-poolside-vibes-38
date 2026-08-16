@@ -112,22 +112,71 @@ const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
   <p className={`text-[9px] uppercase tracking-[0.35em] text-muted-foreground ${className}`}>{children}</p>
 );
 
-const Leaf = forwardRef<HTMLDivElement, { children: React.ReactNode; tone?: "paper" | "cover" }>(
-  ({ children, tone = "paper" }, ref) => (
-    <div
-      ref={ref}
-      className={
-        tone === "cover"
-          ? "h-full w-full overflow-hidden bg-foreground text-background"
-          : "h-full w-full overflow-hidden bg-background text-foreground"
-      }
-      style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.06)" }}
-    >
-      {children}
-    </div>
-  ),
+/** Human page name derived from the page key — used for the edge tags. */
+const pageTagLabel = (key: string): string => {
+  const k = key.toLowerCase();
+  if (k.startsWith("home-cat-")) return "Discipline";
+  if (k.startsWith("home")) return "Index";
+  if (k === "cover" || k === "back") return "Edition";
+  if (k.startsWith("contents")) return "Contents";
+  if (k.startsWith("letter")) return "Letter";
+  if (k.startsWith("statement")) return "Statement";
+  if (k.startsWith("index-")) return "Collection";
+  if (k.startsWith("gallery")) return "Portfolio";
+  if (k.startsWith("price-sheet")) return "Price Sheet";
+  if (k.startsWith("opt-")) return "Options";
+  if (k.startsWith("estimate")) return "Estimate";
+  if (k.startsWith("colophon")) return "Colophon";
+  if (k.endsWith("-hero")) return "Plate";
+  if (k.endsWith("-spec")) return "Specification";
+  if (k.includes("board") || k.includes("tool")) return "Drawing Board";
+  if (k.includes("story")) return "Story";
+  if (k.includes("order")) return "Order";
+  if (k.includes("dimension")) return "Dimensions";
+  if (k.includes("brand")) return "Brand";
+  return "Edition";
+};
+
+const PageTag: React.FC<{ label: string; side: "left" | "right"; tone: "paper" | "cover" }> = ({
+  label,
+  side,
+  tone,
+}) => (
+  <span
+    aria-hidden
+    className={`pointer-events-none absolute top-1/2 z-20 -translate-y-1/2 whitespace-nowrap text-[8px] uppercase tracking-[0.32em] ${
+      tone === "cover" ? "text-background/60" : "text-muted-foreground/70"
+    } ${side === "left" ? "left-0" : "right-0"}`}
+    style={{
+      writingMode: "vertical-rl",
+      transform: side === "left" ? "translateY(-50%) rotate(180deg)" : "translateY(-50%)",
+      transformOrigin: "center",
+      padding: "0 3px",
+    }}
+  >
+    {label}
+  </span>
 );
+
+const Leaf = forwardRef<
+  HTMLDivElement,
+  { children: React.ReactNode; tone?: "paper" | "cover"; tag?: string; side?: "left" | "right" }
+>(({ children, tone = "paper", tag, side = "right" }, ref) => (
+  <div
+    ref={ref}
+    className={
+      tone === "cover"
+        ? "relative h-full w-full overflow-hidden bg-foreground text-background"
+        : "relative h-full w-full overflow-hidden bg-background text-foreground"
+    }
+    style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.06)" }}
+  >
+    {children}
+    {tag && <PageTag label={tag} side={side} tone={tone} />}
+  </div>
+));
 Leaf.displayName = "Leaf";
+
 
 type Page = { key: string; render: () => React.ReactNode; tone?: "paper" | "cover" };
 
@@ -1281,8 +1330,13 @@ const FlipMagazine: React.FC = () => {
               className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
               onFlip={(e: any) => setPage(e.data as number)}
             >
-              {pages.map((p) => (
-                <Leaf key={p.key} tone={p.tone}>
+              {pages.map((p, i) => (
+                <Leaf
+                  key={p.key}
+                  tone={p.tone}
+                  tag={pageTagLabel(p.key)}
+                  side={portrait ? "right" : i % 2 === 0 ? "left" : "right"}
+                >
                   {p.render()}
                 </Leaf>
               ))}
