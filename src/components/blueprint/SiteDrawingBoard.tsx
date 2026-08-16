@@ -193,6 +193,11 @@ interface Props {
   header?: React.ReactNode;
   /** Layer armed for drawing when the board first mounts */
   defaultLayer?: SiteLayerId;
+  /**
+   * Puts every control in a menu column on the right of the canvas instead of a
+   * tag strip above it — used on the FLIP dossier boards.
+   */
+  menuSide?: boolean;
 }
 
 /**
@@ -202,7 +207,7 @@ interface Props {
  * grid as a calibratable underlay so an existing blueprint can be traced and
  * then edited like native geometry.
  */
-export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer }) => {
+export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer, menuSide }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const imgRef = React.useRef<HTMLImageElement | null>(null);
   const [imgReady, setImgReady] = React.useState(0);
