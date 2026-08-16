@@ -1538,6 +1538,19 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ varia
             >
               <Search className="h-[15px] w-[15px]" />
             </button>
+            {/* Genius lives in the rail — she reads the open spread by default */}
+            <button
+              onClick={toggleGenius}
+              title="Genius — she reads this spread aloud"
+              aria-label="Genius"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+            >
+              <span
+                aria-hidden
+                className="absolute inset-0 rounded-full bg-primary/15 blur-[6px]"
+              />
+              <Sparkles className="relative h-[15px] w-[15px]" />
+            </button>
             <span className="mx-auto my-1 h-px w-4 bg-border" />
             {mode === "category" && !dossier &&
               rail.map(({ id, label, icon: Icon }) => (
