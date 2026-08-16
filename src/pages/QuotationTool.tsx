@@ -245,10 +245,80 @@ const QuotationTool = () => {
           </aside>
         </div>
 
+        {/* Chapter III — the calculators, as in the showroom */}
+        <div className="mt-14">
+          <QuoteCalculators />
+        </div>
+
         <p className="mt-10 text-center text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
           All prices include delivery, installation and the product as described.
         </p>
       </main>
+
+      {/* FLIP Search Engine — results open the piece in the configurator */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/70 px-4 py-10 backdrop-blur-xl">
+          <div className="w-full max-w-2xl border border-foreground/15 bg-background/90 backdrop-blur-2xl">
+            <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+              <p className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
+                FLIP Search Engine
+              </p>
+              <button
+                onClick={() => setSearchOpen(false)}
+                aria-label="Close search"
+                className="flex h-7 w-7 items-center justify-center border border-border/60 text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <React.Suspense fallback={<Loader2 className="mx-auto my-8 h-4 w-4 animate-spin" />}>
+                <FlipSearch
+                  autoFocus
+                  onOpenCategory={(id) => {
+                    setActiveCategory(id);
+                    setSearchOpen(false);
+                  }}
+                  onOpenProduct={(categoryId, found) => {
+                    setActiveCategory(categoryId);
+                    handleSelectEntry(found, categoryId);
+                    setSearchOpen(false);
+                  }}
+                />
+              </React.Suspense>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Design board — the 2D site studio, as in the FLIP */}
+      {boardOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 px-2 py-6 backdrop-blur-xl md:px-6">
+          <div className="w-full max-w-[1240px] border border-foreground/15 bg-background/95">
+            <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+              <p className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
+                Design board — {entry?.name ?? "Wonderlands"}
+              </p>
+              <button
+                onClick={() => setBoardOpen(false)}
+                aria-label="Close design board"
+                className="flex h-7 w-7 items-center justify-center border border-border/60 text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="max-h-[82vh] overflow-y-auto p-3 md:p-5">
+              <React.Suspense fallback={<Loader2 className="mx-auto my-10 h-4 w-4 animate-spin" />}>
+                <StudioSitePlanner
+                  modelName={entry?.name}
+                  meta={entry?.meta}
+                  categoryId={entryCategory}
+                />
+              </React.Suspense>
+            </div>
+          </div>
+        </div>
+      )}
 
       <SurveyQuoteTool
         pool={null}
@@ -266,6 +336,7 @@ const QuotationTool = () => {
             : undefined
         }
       />
+
 
       <Footer />
     </div>
