@@ -1832,10 +1832,17 @@ export function UnifiedPoolVisualizer({
         {/* Terrain Editor */}
         <TerrainEditor
           terrainAssets={terrainAssets}
-          onTerrainAssetsChange={setTerrainAssets}
+          onTerrainAssetsChange={(next) => {
+            if (next.length > terrainAssets.length) {
+              const added = next[next.length - 1];
+              if (added?.position) focusOnAsset(added.position as [number, number, number]);
+            }
+            setTerrainAssets(next);
+          }}
           assetLibrary={assetLibrary}
           onAssetLibraryChange={setAssetLibrary}
         />
+
       </div>
     </div>
   );
