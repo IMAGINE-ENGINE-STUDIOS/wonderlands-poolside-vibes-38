@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
 import { useThree } from '@react-three/fiber';
-import { generateOffsetCurve } from '@/utils/curveUtils';
+import { resolveDeckBoundaries, buildDeckRingGeometry } from '@/utils/deckSurface';
 
 interface DeckGeometryProps {
   poolPoints: Array<{ x: number; z: number }>;
