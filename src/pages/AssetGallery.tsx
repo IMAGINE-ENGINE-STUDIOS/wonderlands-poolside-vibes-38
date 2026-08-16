@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
 import { ITEMS } from "@/components/FlipIndex";
 import AssetGalleryConsole from "@/components/gallery/AssetGalleryConsole";
 import usePersistentState from "@/hooks/usePersistentState";
@@ -21,6 +20,16 @@ const AssetGallery: React.FC = () => {
   );
 
   useEffect(() => {
+    document.title = "Asset Gallery | Wonderlands World Products & Features";
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc)
+      desc.setAttribute(
+        "content",
+        "Browse every Wonderlands World product and additional feature — pools, spas, saunas, pavers, enclosures, finishes and all upgrade options with pricing.",
+      );
+  }, []);
+
+  useEffect(() => {
     const measure = () => {
       const w = Math.max(300, Math.min(window.innerWidth - 40, 1440));
       setDims({ w, h: Math.round(Math.max(520, window.innerHeight * 0.84)) });
@@ -36,15 +45,6 @@ const AssetGallery: React.FC = () => {
 
   return (
     <main className="min-h-screen bg-background px-3 py-8 md:px-8 md:py-12">
-      <Helmet>
-        <title>Asset Gallery | Wonderlands World Products & Features</title>
-        <meta
-          name="description"
-          content="Browse every Wonderlands World product and additional feature — pools, spas, saunas, pavers, enclosures, finishes and all upgrade options with pricing."
-        />
-        <link rel="canonical" href="https://www.wonderlandsworld.com/asset-gallery" />
-      </Helmet>
-
       <div className="mx-auto" style={{ maxWidth: dims.w }}>
         <header className="mb-6 text-center">
           <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
