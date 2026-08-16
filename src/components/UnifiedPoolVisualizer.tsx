@@ -1755,9 +1755,22 @@ export function UnifiedPoolVisualizer({
             playerHeight={5.5}
             moveSpeed={10}
           />
-          
+
+          {/* Auto-center camera on newly dropped assets */}
+          {!isWalkthroughMode && (
+            <CameraFocusController request={focusRequest} controlsRef={controlsRef} />
+          )}
+
+          {/* Keyboard fly controls: WASD / arrows, Q-E or PageUp-Dn for height, Shift to sprint */}
+          <OrbitKeyboardControls
+            enabled={!isWalkthroughMode && !isSplineEditMode}
+            controlsRef={controlsRef}
+            moveSpeed={18}
+          />
+
           {/* OrbitControls - Free camera with right-click + scroll, locks on asset drag */}
           {!isWalkthroughMode && (
+
             <OrbitControls
               ref={controlsRef}
               makeDefault
