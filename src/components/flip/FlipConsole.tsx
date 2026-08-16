@@ -276,7 +276,7 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
               onClick={() => onOpenSection(activeId)}
               className="group/btn inline-flex items-center gap-3 border border-foreground bg-foreground px-4 py-2.5 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
             >
-              Open full collection
+              {footerLabel ?? "Open full collection"}
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>
