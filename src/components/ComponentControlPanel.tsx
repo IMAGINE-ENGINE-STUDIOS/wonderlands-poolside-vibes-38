@@ -7,9 +7,18 @@ import { Scene3D, TextureConfig, PoolLightConfig } from './scene3d/types';
 import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
 import { PoolLightControls } from './scene3d/PoolLightControls';
+import {
+  buildCatalogTextureLibrary,
+  dedupeTextures,
+  groupTextures,
+  type CatalogTextureConfig,
+} from '@/data/textureLibrary';
 
 // Component order for auto-advance after texture selection
 const COMPONENT_ORDER: Array<'pool' | 'deck' | 'coping' | 'waterline'> = ['pool', 'coping', 'waterline', 'deck'];
+
+/** Catalog-backed fallback so every gallery matches Wonderlands Studio. */
+const CATALOG_LIBRARY = buildCatalogTextureLibrary();
 
 interface ComponentControlPanelProps {
   selectedComponent: 'pool' | 'deck' | 'coping' | 'waterline' | null;
