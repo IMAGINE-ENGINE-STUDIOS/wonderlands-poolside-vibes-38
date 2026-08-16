@@ -257,12 +257,31 @@ export function buildDeckRingGeometry(
   }
 
   const parts: THREE.BufferGeometry[] = [];
-  try {
-    parts.push(ringFace(inner, outer, topY, false));
-    parts.push(ringFace(inner, outer, bottomY, true));
-  } catch (e) {
-    console.warn('deckSurface: ring face triangulation failed, using skirts only', e);
+  // Candidate holes, from most accurate to most forgiving. A slightly larger hole
+  // is always preferable to a dropped hole (which would pave over the water).
+  const holeCandidates: P3[][] = [inner, makeSimple(inner), to3D(calculateConvexHull(to2D(inner)))];
+  let usedInner = inner;
+  let built = false;
+
+  for (const candidate of holeCandidates) {
+    if (!candidate || candidate.length < 3) continue;
+    try {
+      const top = ringFace(candidate, outer, topY, false);
+      const bottom = ringFace(candidate, outer, bottomY, true);
+      parts.push(top, bottom);
+      usedInner = candidate;
+      built = true;
+      break;
+    } catch {
+      // try the next, safer hole
+    }
   }
+
+  if (!built) {
+    console.warn('deckSurface: ring face triangulation failed, using skirts only');
+  }
+  inner = usedInner;
+
   parts.push(skirt(outer, topY, bottomY, true));
   parts.push(skirt(inner, topY, bottomY, false));
 
