@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { toast } from 'sonner';
+import { generateFlipPitch } from '@/lib/flipPitchGenerator';
+import { getFlipManifest } from '@/lib/flipPageRegistry';
 import {
   cacheAudio,
   cacheScript,
@@ -103,38 +105,15 @@ export function useNarrator() {
 
       setIsLoading(true);
       try {
-        const res = await fetch(`${FUNCTIONS_BASE}/narrate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ANON}` },
-          body: JSON.stringify({
-            scope: ctx.scope,
-            title: opts?.branch ? `${ctx.title} — ${opts.branch}` : ctx.title,
-            category: ctx.category,
-            product: ctx.product,
-            price: ctx.price,
-            features: ctx.features,
-            route: ctx.route,
-            history: historyRef.current,
-          }),
-        });
-
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}) as { error?: string });
-          if (res.status !== 402 && res.status !== 429) {
-            setScript('');
-          }
-          toast.error(body.error || 'The narrator is unavailable right now.');
-          return;
-        }
-
-        const data = (await res.json()) as NarratorScript;
+        /* Text is written locally by the house copywriter — no paid text calls. */
+        const manifest = getFlipManifest();
+        const page = manifest ? manifest.pages[manifest.current] ?? null : null;
+        const data = generateFlipPitch({ context: ctx, branch: opts?.branch, manifest, page });
         cacheScript(key, data);
         historyRef.current = [...historyRef.current, ctx.title].slice(-4);
         setScript(data.script);
         setActions(data.actions ?? []);
         if (opts?.withVoice !== false) void speak(data.script, key);
-      } catch {
-        toast.error('The narrator could not be reached.');
       } finally {
         setIsLoading(false);
       }
