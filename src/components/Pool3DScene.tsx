@@ -866,7 +866,7 @@ const GrassTerrainFallback: React.FC<{ poolPoints: Point[]; copingWidth?: number
 };
 
 // Legacy alias for backwards compatibility
-const GrassTerrain = Terrain3DModel;
+const GrassTerrain = GrassTerrainFallback;
 
 const PoolFeatures: React.FC<{ features: PoolFeature[] }> = ({ features }) => {
   return (
@@ -1336,6 +1336,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           }}>
             <DeckBorderGeometry
               poolPoints={poolCurve3D}
+              outerPoints={normalizedHardscapePoints}
               deckWidth={localDeckWidth}
               copingWidth={localCopingWidth}
               borderHeight={0.25} // 3 inches

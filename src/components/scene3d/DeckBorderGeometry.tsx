@@ -80,8 +80,8 @@ export const DeckBorderGeometry = ({
   return (
     <mesh key={texture?.uuid || 'no-deck-texture'} geometry={geometry} castShadow receiveShadow>
       <meshPhongMaterial
-        map={texture}
-        color="#ffffff"
+        map={texture || null}
+        color={texture ? '#ffffff' : '#d9d4cc'}
         shininess={40}
         side={THREE.DoubleSide}
       />
