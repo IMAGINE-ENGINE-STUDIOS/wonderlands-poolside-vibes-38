@@ -22,8 +22,8 @@ import { cn } from '@/lib/utils';
 import { useNarrator } from '@/hooks/useNarrator';
 import { useGenius } from '@/hooks/useGenius';
 import type { GeniusCartAdapter } from '@/lib/geniusCartCommands';
-import { useVoiceInput } from '@/hooks/useVoiceInput';
-import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { useVoiceSession } from '@/hooks/useVoiceSession';
+import { playGeniusVoice, stopGeniusVoice } from '@/lib/geniusVoiceChannel';
 import { useOptionalShoppingCart } from '@/components/ShoppingCartProvider';
 import { safeGeniusPath } from '@/lib/geniusAccess';
 import { getFlipControls, turnToPageNumber } from '@/lib/flipPageRegistry';
@@ -66,20 +66,13 @@ export const GeniusOrb: React.FC = () => {
   }, []);
   const [draft, setDraft] = React.useState('');
   const { context, script, actions, isLoading, isSpeaking, muted, setMuted, narrate, stop, replay } = useNarrator();
-  const voice = useVoiceInput();
   const inRouter = useInRouterContext();
   const routerNavigate = inRouter ? useNavigate() : null;
   const cart = useOptionalShoppingCart();
   const readKey = React.useRef<string | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
-  /* Hands-free (LIVE): the microphone stays armed between phrases. */
-  const [handsFree, setHandsFree] = React.useState(false);
-  /* LIVE turns — and browsers with no free recognition — are recorded and
-     transcribed by Genius; plain dictation stays on the free browser engine. */
+  /* Every spoken turn arrives through the voice session below. */
   const sendRef = React.useRef<(t: string) => void>(() => undefined);
-  const recorder = useVoiceRecorder({
-    onTranscript: (text) => sendRef.current(text),
-  });
 
   const go = React.useCallback(
     (to: string) => {
@@ -174,9 +167,7 @@ export const GeniusOrb: React.FC = () => {
         });
         if (!res.ok) return;
         const url = URL.createObjectURL(await res.blob());
-        const audio = new Audio(url);
-        audio.volume = 0.55;
-        void audio.play();
+        await playGeniusVoice(url);
       } catch {
         /* voice is a bonus — the transcript still reads */
       }
@@ -197,56 +188,17 @@ export const GeniusOrb: React.FC = () => {
     [genius, speakReply, stop],
   );
 
-  /* Real-time talking: every finished phrase is sent to Genius immediately, and
-     in hands-free mode the microphone re-arms itself so it is a conversation. */
-  React.useEffect(() => {
-    if (!voice.transcript || voice.isListening) return;
-    const said = voice.transcript;
-    voice.resetTranscript();
-    void send(said).then(() => {
-      if (handsFree && voice.isSupported) window.setTimeout(() => voice.startListening(), 900);
-    });
-  }, [voice.transcript, voice.isListening, voice.isSupported, voice.resetTranscript, voice.startListening, send, handsFree]);
-
   React.useEffect(() => {
     sendRef.current = (text: string) => {
       void send(text);
     };
   }, [send]);
 
-  /* LIVE without a browser engine: record a turn, end it on silence, transcribe
-     it, then re-arm — the only place transcription is ever paid for. */
-  const speechSeen = React.useRef(false);
-  const quietSince = React.useRef<number | null>(null);
-  const liveRecording = handsFree && !voice.isSupported;
-
-  React.useEffect(() => {
-    if (!liveRecording) return;
-    if (recorder.isRecording || recorder.isTranscribing || genius.isThinking || isSpeaking) return;
-    speechSeen.current = false;
-    quietSince.current = null;
-    const t = window.setTimeout(() => void recorder.start(), 400);
-    return () => window.clearTimeout(t);
-  }, [liveRecording, recorder.isRecording, recorder.isTranscribing, recorder.start, genius.isThinking, isSpeaking]);
-
-  React.useEffect(() => {
-    if (!liveRecording || !recorder.isRecording) return;
-    if (recorder.level > 0.045) {
-      speechSeen.current = true;
-      quietSince.current = null;
-      return;
-    }
-    if (!speechSeen.current) return;
-    if (quietSince.current === null) quietSince.current = Date.now();
-    else if (Date.now() - quietSince.current > 1200) {
-      quietSince.current = null;
-      void recorder.stop();
-    }
-  }, [liveRecording, recorder.isRecording, recorder.level, recorder.stop]);
-
-  React.useEffect(() => {
-    if (!handsFree && recorder.isRecording) recorder.cancel();
-  }, [handsFree, recorder.isRecording, recorder.cancel]);
+  /* The microphone: permission, press-to-talk, and the hands-free loop. */
+  const mic = useVoiceSession({
+    onPhrase: (text) => sendRef.current(text),
+    busy: genius.isThinking,
+  });
 
   const runAction = (action: NarratorAction) => {
     switch (action.type) {
