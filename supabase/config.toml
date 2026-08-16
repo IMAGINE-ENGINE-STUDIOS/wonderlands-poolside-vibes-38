@@ -50,3 +50,12 @@ verify_jwt = false
 
 [functions.analyze-survey]
 verify_jwt = false
+
+[functions.narrate]
+verify_jwt = false
+
+[functions.narrate-voice]
+verify_jwt = false
+
+[functions.genius]
+verify_jwt = false
