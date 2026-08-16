@@ -24,7 +24,7 @@ import { OrbitKeyboardControls } from './scene3d/OrbitKeyboardControls';
 import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
-import { createDepthInterpolator, createDefaultLinearAnchors } from './scene3d/depthUtils';
+import { createDepthInterpolator, createDefaultLinearAnchors, createDefaultDepthAxis, computePerimeterDepths, getPoolBounds } from './scene3d/depthUtils';
 import { TerrainEditor, TerrainAsset, AssetLibraryItem } from './scene3d/TerrainEditor';
 import { TerrainAssetsRenderer, DEFAULT_GIZMO_SNAP, type GizmoMode, type GizmoSnapSettings } from './scene3d/TerrainAssetsRenderer';
 import { SceneObjectsPanel, SceneObjectGroup, sceneObjectIcons } from './scene3d/SceneObjectsPanel';
@@ -452,14 +452,36 @@ export function UnifiedPoolVisualizer({
     return createDefaultLinearAnchors(poolShallowDepth, poolDeepDepth);
   }, [scene.pool.linearDepthAnchors, poolShallowDepth, poolDeepDepth]);
 
-  // Create getFloorDepthAt function using linear depth anchors
+  // Depth axis: the direction the profile runs across the pool (movable / rotatable)
+  const depthAxis = useMemo(() => {
+    return scene.pool.depthAxis ?? createDefaultDepthAxis(scene.pool.points, scene.pool.dimensions);
+  }, [scene.pool.depthAxis, scene.pool.points, scene.pool.dimensions]);
+
+  // Create getFloorDepthAt function using linear depth anchors along the depth axis
   const getFloorDepthAt = useMemo(() => {
     return createDepthInterpolator(
       linearDepthAnchors,
       scene.pool.points,
-      scene.pool.dimensions
+      scene.pool.dimensions,
+      depthAxis
     );
-  }, [linearDepthAnchors, scene.pool.points, scene.pool.dimensions]);
+  }, [linearDepthAnchors, scene.pool.points, scene.pool.dimensions, depthAxis]);
+
+  // Perimeter depths driven live by the profile + axis so the 3D bottom always
+  // matches the tool (zero-entry, lagoon, sport bottoms, diagonal slopes...).
+  const resolvedPerimeterDepthPoints = useMemo(() => {
+    if (!scene.pool.points || scene.pool.points.length < 3) {
+      return scene.pool.perimeterDepthPoints;
+    }
+    const bounds = getPoolBounds(scene.pool.points);
+    const normalized = scene.pool.points.map((p, i) => ({
+      x: p.x - bounds.centerX,
+      z: p.y - bounds.centerZ,
+      id: `perimeter-depth-${i}`,
+      type: 'smooth' as const,
+    }));
+    return computePerimeterDepths(normalized, linearDepthAnchors, depthAxis);
+  }, [scene.pool.points, scene.pool.perimeterDepthPoints, linearDepthAnchors, depthAxis]);
 
   // Update parent when scene changes
   useEffect(() => {
@@ -975,6 +997,16 @@ export function UnifiedPoolVisualizer({
     });
   };
 
+  const handleDepthAxisChange = (axis: { start: { x: number; z: number }; end: { x: number; z: number } }) => {
+    setScene({
+      ...scene,
+      pool: {
+        ...scene.pool,
+        depthAxis: axis
+      }
+    });
+  };
+
   const toggleFullscreen = async () => {
     // For mobile, toggle fullscreen and rotate screen to landscape
     if (isMobile) {
@@ -1457,7 +1489,11 @@ export function UnifiedPoolVisualizer({
             onSelectAnchor={setSelectedSplinePointId}
             poolShallowDepth={poolShallowDepth}
             poolDeepDepth={poolDeepDepth}
-            perimeterDepthPoints={scene.pool.perimeterDepthPoints || []}
+            poolPoints={scene.pool.points}
+            poolDimensions={scene.pool.dimensions}
+            depthAxis={depthAxis}
+            onDepthAxisChange={handleDepthAxisChange}
+            perimeterDepthPoints={resolvedPerimeterDepthPoints || []}
             onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
           />
 
@@ -1711,7 +1747,7 @@ export function UnifiedPoolVisualizer({
               enablePoolSplineEdit={enablePoolSplineEdit}
               enableDeckSplineEdit={enableDeckSplineEdit}
               enableFloorDepthSplineEdit={enableFloorDepthSplineEdit || (isSplineEditMode && selectedSplineComponent === 'pool-floor')}
-              perimeterDepthPoints={scene.pool.perimeterDepthPoints}
+              perimeterDepthPoints={resolvedPerimeterDepthPoints}
               onPoolPointsChange={handlePoolPointsChange}
               onDeckPointsChange={handleDeckPointsChange}
               onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
