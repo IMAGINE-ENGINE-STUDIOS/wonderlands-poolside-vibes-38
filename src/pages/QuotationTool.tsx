@@ -32,6 +32,22 @@ const StudioSitePlanner = React.lazy(() =>
 
 const CONSOLE_CATEGORIES = ITEMS.map((i) => ({ id: i.id, label: i.label, tagline: i.tagline }));
 
+const toCartItem = (p: ConfiguredProduct) => ({
+  id: p.id,
+  name: p.name,
+  price: p.basePrice,
+  image: p.image,
+  category: p.category,
+  extras: p.extras.map(({ name, price, key, quantity, selectedOption, options }) => ({
+    name,
+    price,
+    key,
+    quantity,
+    selectedOption,
+    options,
+  })),
+});
+
 const AUTO_ADD_SECONDS = 10;
 
 /** Ticks in isolation so the console and configurator never re-render with it. */
@@ -132,22 +148,6 @@ const QuotationTool = () => {
       configuratorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
     );
   }, []);
-
-  const toCartItem = (p: ConfiguredProduct) => ({
-    id: p.id,
-    name: p.name,
-    price: p.basePrice,
-    image: p.image,
-    category: p.category,
-    extras: p.extras.map(({ name, price, key, quantity, selectedOption, options }) => ({
-      name,
-      price,
-      key,
-      quantity,
-      selectedOption,
-      options,
-    })),
-  });
 
   /* The shopping list adds the piece by itself 10 seconds after it is
      selected — unless the reader leaves the page or moves to another piece.
