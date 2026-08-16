@@ -116,6 +116,26 @@ export function ComponentControlPanel({
     onSceneChange(updated);
   };
 
+  const patchTexture = (patch: Partial<TextureConfig>) => {
+    const updated: Scene3D = {
+      ...scene,
+      pool: { ...scene.pool },
+      deck: { ...scene.deck },
+    };
+
+    if (selectedComponent === 'pool') {
+      updated.pool.finish = { ...updated.pool.finish, ...patch };
+    } else if (selectedComponent === 'deck') {
+      updated.deck.paver = { ...updated.deck.paver, ...patch };
+    } else if (selectedComponent === 'coping') {
+      updated.deck.coping = { ...updated.deck.coping, ...patch };
+    } else if (selectedComponent === 'waterline' && updated.deck.waterline) {
+      updated.deck.waterline = { ...updated.deck.waterline, ...patch };
+    }
+
+    onSceneChange(updated);
+  };
+
   const getCurrentTexture = () => {
     switch (selectedComponent) {
       case 'pool': return scene.pool.finish;
@@ -225,6 +245,77 @@ export function ComponentControlPanel({
                 step={0.1}
                 className="w-full"
               />
+            </div>
+          )}
+
+          {/* Texture Rotation */}
+          {currentTexture && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Texture Rotation</Label>
+                <span className="text-xs text-muted-foreground">{Math.round(currentTexture.rotation || 0)}°</span>
+              </div>
+              <Slider
+                value={[currentTexture.rotation || 0]}
+                onValueChange={(value) => patchTexture({ rotation: value[0] })}
+                min={0}
+                max={360}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex gap-1">
+                {[0, 45, 90, 135].map((deg) => (
+                  <Button
+                    key={deg}
+                    type="button"
+                    size="sm"
+                    variant={Math.round(currentTexture.rotation || 0) === deg ? 'default' : 'outline'}
+                    className="h-6 px-2 text-[10px] flex-1"
+                    onClick={() => patchTexture({ rotation: deg })}
+                  >
+                    {deg}°
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Texture Offset */}
+          {currentTexture && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Offset X</Label>
+                <span className="text-xs text-muted-foreground">{(currentTexture.offset?.[0] || 0).toFixed(2)}</span>
+              </div>
+              <Slider
+                value={[currentTexture.offset?.[0] || 0]}
+                onValueChange={(value) => patchTexture({ offset: [value[0], currentTexture.offset?.[1] || 0] })}
+                min={-1}
+                max={1}
+                step={0.01}
+                className="w-full"
+              />
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Offset Y</Label>
+                <span className="text-xs text-muted-foreground">{(currentTexture.offset?.[1] || 0).toFixed(2)}</span>
+              </div>
+              <Slider
+                value={[currentTexture.offset?.[1] || 0]}
+                onValueChange={(value) => patchTexture({ offset: [currentTexture.offset?.[0] || 0, value[0]] })}
+                min={-1}
+                max={1}
+                step={0.01}
+                className="w-full"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 w-full text-xs"
+                onClick={() => patchTexture({ scale: 1.8, rotation: 0, offset: [0, 0] })}
+              >
+                Reset texture transform
+              </Button>
             </div>
           )}
         </div>

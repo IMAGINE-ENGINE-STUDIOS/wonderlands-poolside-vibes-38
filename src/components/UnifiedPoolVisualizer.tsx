@@ -1530,6 +1530,22 @@ export function UnifiedPoolVisualizer({
                   fov: 50
                 }}
                 frameloop={isWalkthroughMode ? "always" : "demand"} // Always render during walkthrough for smooth movement
+                onDoubleClick={(e) => {
+                  // Double-clicking empty space (or anything that isn't the
+                  // selected asset) dismisses the transform gizmo.
+                  const hitAsset = (e as any).intersections?.some((i: any) => {
+                    let o: any = i.object;
+                    while (o) {
+                      if (o.name === 'terrain-assets') return true;
+                      o = o.parent;
+                    }
+                    return false;
+                  });
+                  if (!hitAsset) setSelectedTerrainAssetId(null);
+                }}
+                onPointerMissed={(e) => {
+                  if ((e as MouseEvent).detail >= 2) setSelectedTerrainAssetId(null);
+                }}
               >
           {/* Force re-render on state changes */}
           <SceneInvalidator scene={scene} isNightMode={isNightMode} sunPosition={sunPosition} />
@@ -1662,6 +1678,10 @@ export function UnifiedPoolVisualizer({
               copingTextureOffset={scene.deck.coping.offset || [0, 0]}
               waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
               linerTextureOffset={scene.pool.finish.offset || [0, 0]}
+              paverTextureRotation={scene.deck.paver.rotation || 0}
+              copingTextureRotation={scene.deck.coping.rotation || 0}
+              waterlineTextureRotation={scene.deck.waterline?.rotation || 0}
+              linerTextureRotation={scene.pool.finish.rotation || 0}
               poolPosition={[0, 0, 0]}
               copingHeight={scene.deck.copingHeight || 2 / 12}
               deckHeight={scene.deck.deckHeight || 2 / 12}

@@ -40,12 +40,15 @@ export interface TextureConfig {
   url: string;
   name: string;
   scale?: number;
+  /** Texture rotation in degrees */
+  rotation?: number;
   offset?: [number, number];
   repeat?: [number, number];
   roughness?: number;
   metalness?: number;
   color?: string;
 }
+
 
 export type FeatureType = 
   | 'stairs' 

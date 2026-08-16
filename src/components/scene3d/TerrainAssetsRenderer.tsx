@@ -75,12 +75,10 @@ function SelectedAssetGizmo({
 
 function TerrainAssetItem({
   asset,
-  isSelected,
   onAssetClick,
   registerRef,
 }: {
   asset: TerrainAsset;
-  isSelected: boolean;
   onAssetClick?: (id: string) => void;
   registerRef: (id: string, obj: THREE.Group | null) => void;
 }) {
@@ -117,13 +115,6 @@ function TerrainAssetItem({
           onError={(error) => console.error(`Failed to load ${asset.name}:`, error)}
         />
       </Suspense>
-      {/* Selection footprint ring */}
-      {isSelected && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-          <ringGeometry args={[1.1, 1.3, 48]} />
-          <meshBasicMaterial color="#22d3ee" transparent opacity={0.85} side={THREE.DoubleSide} />
-        </mesh>
-      )}
     </group>
   );
 }
@@ -156,7 +147,6 @@ export function TerrainAssetsRenderer({
         <TerrainAssetItem
           key={asset.id}
           asset={asset}
-          isSelected={asset.id === selectedAssetId}
           onAssetClick={onAssetClick}
           registerRef={registerRef}
         />
