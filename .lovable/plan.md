@@ -1,73 +1,37 @@
-# Wonderlands Narrator — Realistic AI Reading Assistant
+# Voice-to-voice Genius: press, talk, get answers out loud
 
-## Goal
-Add a tiny, organic-feeling corner narrator that reads every page like a human sales designer would: explanatory, entertaining, and option-rich. Users can listen or read, then act through branching choices, add-to-cart, or navigation.
+Today the Genius panel has a small microphone icon and a "Live" toggle. Talking works only partially: the microphone is armed with no permission request of its own, spoken answers are played through a throwaway audio element that can talk over the page narration, and the hands-free loop only re-arms itself reliably on browsers without a built-in speech engine.
 
-## What we will build
+This turns it into a real conversation: one obvious button, a clear permission moment, and a continuous listen → answer aloud → listen again loop with proper interruption.
 
-### 1. The reading/voice model
-- Use **OpenAI `gpt-4o-mini-tts`** through the Lovable AI Gateway `/v1/audio/speech`.
-- It is the most realistic voice option available without a separate provider account; billed through existing Lovable AI credits.
-- Stream PCM audio via SSE so playback starts immediately.
-- Voice persona: warm, professional, luxury sales designer named "Sarah".
-- Fallback to **Google `gemini-2.5-pro-tts`** if the user wants a more expressive, story-like tone.
+## What the guest gets
 
-### 2. The UI reading pattern
-- A persistent **glassmorphic orb** in the bottom-right corner.
-- Subtle organic motion: random micro-translation + breathing scale, like a living assistant waiting to be invited.
-- Clicking the orb opens a minimal panel that shows:
-  - Live transcript of what is being read.
-  - Playback controls (play/pause, mute, replay).
-  - Context-aware action chips.
-- The panel is small and non-blocking; it does not cover the FLIP book or product page.
+1. **One prominent Talk button** in the Genius panel (replacing the small mic icon as the primary control), with the "Live" toggle kept beside it for hands-free.
+   - Not yet allowed: the button reads "Allow microphone". Pressing it asks the browser for permission and explains, in one line, that Genius needs the microphone to listen.
+   - Denied: the button turns into a short recovery note ("Microphone blocked — enable it in your browser's address bar"), and the typed input stays fully usable. No red error styling.
+   - Allowed: the button reads "Talk", and while listening it shows a live level meter with the words appearing as they are recognized.
+2. **Press and talk.** One press starts listening; the guest speaks; the phrase is sent to Genius the moment they stop, and the answer is spoken back at mid volume while the transcript writes itself into the panel.
+3. **Voice-to-voice (Live).** With Live on, the microphone re-arms itself after every answer, so it is a continuous conversation: ask, hear, ask again — no button presses in between.
+4. **Interrupt her.** Talking (or pressing Talk) while Genius is speaking stops her audio immediately and listens instead, so the guest is never stuck waiting out a long answer.
+5. **She stops listening to herself.** The microphone is closed while she speaks and reopens right after, so her own voice is never transcribed as a guest question.
+6. **Everything she can already do, by voice**: read the spread, explain and price any product, resize and redraw a design, add to or clear the selection, open pages and tools, and book an appointment. This plan changes only how the guest talks to her, not what she can do.
 
-### 3. Content source
-- The narrator knows where the user is:
-  - FLIP page index / category / product / additional-feature page.
-  - Main site pages (`/`, `/wonderlands-studio`, `/asset-gallery`, etc.).
-- A page-context payload is sent to the backend: route, page title, category, product name, current cart items, and user intent.
-- The backend returns a short, persuasive pitch (2–4 sentences) plus a set of actions.
+## Cost behaviour (unchanged intent)
 
-### 4. Options behavior
-Each narration can expose one or more action chips:
-- **Branch** — hear the next part of the story ("Tell me more about finishes").
-- **Add to cart** — add the current product or featured option.
-- **Navigate** — jump to the relevant FLIP page, studio, or product page.
-- **Calculate** — open the matching calculator (pool, pavers, fence, etc.).
+- Listening stays on the browser's free speech engine whenever the browser has one — no per-word charge.
+- Paid transcription runs only when the browser has no free engine, or when Live is on for a browser that needs it.
+- Answers are spoken through the existing cached voice function, so a repeated sentence reuses the recording already in the library.
 
-### 5. Backend changes
-- Extend the existing `ai-assistant` Supabase Edge Function with a `/narrate` path.
-- The function builds a page-specific prompt and returns:
-  - `script`: text to read and display.
-  - `actions`: array of labeled actions with type and payload.
-- Add a separate TTS route or reuse the same function to call `https://ai.gateway.lovable.dev/v1/audio/speech` and stream audio bytes back to the client.
-- Cache generated scripts and audio by page context to avoid re-billing on revisits.
+## Technical notes
 
-### 6. Frontend changes
-- Create `NarratorOrb.tsx` — the vibrating corner icon.
-- Create `NarratorPanel.tsx` — the transcript + actions UI.
-- Create `useNarrator.ts` — manages playback, SSE audio streaming, page context, and branching history.
-- Wire the orb into `App.tsx` so it appears globally.
-- Update `AIAssistantContext.tsx`:
-  - Add audio state and action execution.
-  - Fix the `useNavigate()` runtime error by either moving navigation into a route-aware child component or falling back to `window.location`.
+- **New hook `src/hooks/useVoiceSession.ts`** — one state machine over the two existing hooks (`useVoiceInput` for free recognition, `useVoiceRecorder` for the paid path) plus permission state. It exposes `permission` (`unknown | prompt | granted | denied`), `requestPermission()`, `phase` (`idle | listening | thinking | speaking`), `level`, `partial`, `start()`, `stop()`, and `handsFree`. Permission is read with `navigator.permissions.query({ name: 'microphone' })` where available and inferred from a one-shot `getUserMedia` probe otherwise; the probe's tracks are stopped immediately.
+- **Single audio channel** — a module-level `Audio` element (new `src/lib/geniusVoiceChannel.ts`) that `narrate` and conversation replies both play through, with `play(url)`, `stop()`, and an `isSpeaking` subscription. This removes the fire-and-forget `new Audio(...)` in `GeniusOrb.tsx` so an answer can never overlap the page narration, and lets barge-in stop playback instantly.
+- **Echo guard** — the session hook suspends recognition/recording while `isSpeaking` is true and re-arms ~300 ms after playback ends, replacing the current fixed 900 ms timer chain.
+- **Barge-in** — while she is speaking, a level threshold on a lightweight monitor stream (or a Talk press) calls `geniusVoiceChannel.stop()` and moves straight to listening.
+- **`GeniusOrb.tsx`** — the two effects that currently drive the transcript/re-arm loop and the silence detector move into the hook; the footer form gets the labelled Talk button, permission states, and the level meter. Existing chips, actions, and typed input are untouched.
+- **`useVoiceRecorder`** distinguishes a denied-permission failure from a device failure so the panel can show the right recovery line.
+- No backend changes: `narrate-voice` (cached TTS) and `transcribe-audio` (paid STT) are already deployed and used as-is.
 
-### 7. Runtime error fix
-- The current preview shows `useNavigate() may be used only in the context of a <Router>` inside `AIAssistantProvider`.
-- We will verify the provider tree; if the error persists, we will remove `useNavigate` from the provider and pass a `navigate` function from a route-aware component instead, or use `window.location.assign` for navigation actions.
+## Verification
 
-### 8. Polish & performance
-- Use the existing `usePersistentState` hook to remember mute preference and last-heard page.
-- Lazy-load the audio decoder so the orb adds no weight to initial page load.
-- Keep generated audio files in memory cache keyed by page context; do not regenerate when the user flips back and forth.
-
-## Out of scope
-- Full conversational chat overhaul (the existing AI chat stays as-is).
-- New ElevenLabs connector; we will use Lovable AI Gateway TTS.
-- Custom voice cloning.
-
-## Success criteria
-- A vibrating orb is visible on every page and opens a clean narrator panel.
-- Tapping play reads the current page aloud in a realistic voice.
-- Action chips let users branch, add to cart, navigate, or calculate.
-- The `useNavigate` runtime error is gone.
+Drive the preview with a browser script that grants the fake microphone permission, presses Talk, and checks that the panel reaches the listening state, that a reply is requested from the voice function, and that no console errors appear. Real speech recognition can't be exercised headlessly, so the send/answer path is also verified by injecting a transcript through the same code path the recognizer uses.
