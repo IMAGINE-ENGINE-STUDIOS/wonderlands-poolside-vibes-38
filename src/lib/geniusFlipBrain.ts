@@ -181,8 +181,8 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
       handled: true,
       reply: bits.join(' '),
       actions: [
-        { label: 'Add to selection', type: 'add_to_cart' },
-        ...bookChips().slice(0, 3),
+        { label: `Add ${product.name}`, type: 'add_to_cart' },
+        ...bookChips(5),
       ],
     };
   }
@@ -205,7 +205,7 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
     return {
       handled: true,
       reply: `${ack} ${route.label} it is — that one lives outside the book.`,
-      actions: [{ label: route.label, type: 'navigate', payload: route.path }, ...bookChips().slice(0, 2)],
+      actions: [{ label: route.label, type: 'navigate', payload: route.path }, ...bookChips(3)],
     };
   }
 
@@ -216,6 +216,7 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
       actions: [
         { label: 'Add this page', type: 'add_to_cart' },
         { label: 'Checkout', type: 'navigate', payload: '/checkout' },
+        ...bookChips(3),
       ],
     };
   }
@@ -224,33 +225,71 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
 }
 
 /** Standing chips for moving through the open book. */
-export function bookChips(): NarratorAction[] {
+/**
+ * Everywhere the guest can go from the open book, in the order they ask for it.
+ *
+ * Genius offers the whole shelf of the open edition — every additional-feature
+ * spread, the finishes, the price sheet, the photography, the specification and
+ * the drawing board — not just the next leaf. `limit` keeps the chip row short
+ * when a reply already carries its own leading action.
+ */
+export function bookChips(limit = 6): NarratorAction[] {
   const manifest = getFlipManifest();
   if (!manifest) {
     return [
       { label: 'Open the FLIP', type: 'navigate', payload: '/flip' },
       { label: 'All pages', type: 'navigate', payload: '/flip-pages' },
-    ];
+      { label: 'Book a designer', type: 'navigate', payload: '/schedule' },
+    ].slice(0, limit) as NarratorAction[];
   }
+
   const here = manifest.pages[manifest.current];
+  const chips: NarratorAction[] = [];
+  const seen = new Set<string>();
+  const add = (chip: NarratorAction) => {
+    const key = `${chip.type}:${chip.payload ?? chip.label}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    chips.push(chip);
+  };
+
   /* Options printed on the open spread lead — they answer the real question. */
   const view = readFlipViewport();
-  const chips: NarratorAction[] =
-    view?.options.length
-      ? view.options.slice(0, 2).map((o) => ({
-          label: o.price ? `${o.label} · ${o.price}` : o.label,
-          type: 'flip_option' as const,
-          payload: o.label,
-        }))
-      : [];
-  chips.push({ label: 'Next page', type: 'flip_next' });
-  const target =
-    manifest.pages.find((p) => p.label === 'Price Sheet') ??
-    manifest.pages.find((p) => p.label === 'Options') ??
-    manifest.pages.find((p) => p.label === 'Collection');
-  if (target && target.number !== here?.number) chips.push(pageChip(target));
-  chips.push({ label: 'Index', type: 'flip_home' });
-  return chips.slice(0, 4);
+  view?.options.slice(0, 2).forEach((o) =>
+    add({
+      label: o.price ? `${o.label} · ${o.price}` : o.label,
+      type: 'flip_option',
+      payload: o.label,
+    }),
+  );
+
+  const elsewhere = (label: string) =>
+    manifest.pages.filter((p) => p.label === label && p.number !== here?.number);
+
+  /* The whole additional-features run, named as it is printed. */
+  const optionPages = elsewhere('Options');
+  if (optionPages.length) {
+    add({
+      label: optionPages.length > 1 ? 'See all additional features' : `See ${optionPages[0].title.toLowerCase()}`,
+      type: 'flip_goto',
+      payload: String(optionPages[0].number),
+    });
+    optionPages.slice(1, 3).forEach((p) => add(pageChip(p)));
+  }
+
+  /* Then the pages a buyer asks for next, in the order they ask for them. */
+  (['Price Sheet', 'Specification', 'Portfolio', 'Estimate', 'Drawing Board', 'Collection'] as const).forEach(
+    (label) => {
+      const page = elsewhere(label)[0];
+      if (page) add(pageChip(page));
+    },
+  );
+
+  add({ label: 'Next page', type: 'flip_next' });
+  add({ label: 'Index', type: 'flip_home' });
+  add({ label: 'Book a designer', type: 'navigate', payload: '/schedule' });
+
+  return chips.slice(0, limit);
 }
 
 export default resolveGeniusRequest;

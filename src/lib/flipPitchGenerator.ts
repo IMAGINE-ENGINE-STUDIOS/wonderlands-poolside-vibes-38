@@ -124,20 +124,28 @@ export function generateActions(
     });
   });
 
-  if (context.scope === 'product' && context.product && actions.length < 4) {
-    actions.push({ label: 'Add to selection', type: 'add_to_cart' });
+  if (context.scope === 'product' && context.product) {
+    actions.push({ label: `Add ${context.product}`, type: 'add_to_cart' });
   }
 
-  if (actions.length < 4 && manifest && page) {
+  /* The rest of the open edition — additional features, price sheet, board. */
+  bookChips(6).forEach((chip) => {
+    if (actions.some((a) => a.type === chip.type && (a.payload ?? a.label) === (chip.payload ?? chip.label))) return;
+    actions.push(chip);
+  });
+
+  if (manifest && page) {
     const nextPage = manifest.pages.find((p) => p.number === page.number + 1);
-    if (nextPage) actions.push({ label: 'Turn the page', type: 'flip_next' });
+    if (nextPage && !actions.some((a) => a.type === 'flip_next')) {
+      actions.push({ label: 'Turn the page', type: 'flip_next' });
+    }
   }
 
-  if (actions.length < 4 && context.scope !== 'index') {
+  if (context.scope !== 'index' && !actions.some((a) => a.type === 'flip_home')) {
     actions.push({ label: 'Back to the index', type: 'flip_home' });
   }
 
-  return actions.slice(0, 4);
+  return actions.slice(0, 6);
 }
 
 /* --------------------------- conversational copy -------------------------- */
