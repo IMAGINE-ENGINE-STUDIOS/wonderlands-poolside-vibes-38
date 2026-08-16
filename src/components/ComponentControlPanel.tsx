@@ -232,28 +232,23 @@ export function ComponentControlPanel({
 
         <Separator />
 
-        {/* Texture Grid with fade animation */}
-        <div 
-          className={`space-y-3 transition-all duration-200 ${
-            isTextureGridVisible 
-              ? 'opacity-100 transform translate-y-0' 
-              : 'opacity-0 transform translate-y-2'
-          }`}
-        >
+        {/* Texture Grid */}
+        <div className="space-y-3">
           <Label className="text-sm font-semibold">Available Textures</Label>
           <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
-            {availableTextures.map((texture) => (
+            {availableTextures.map((texture, index) => (
               <button
-                key={texture.url}
+                key={`${texture.url}-${index}`}
+                type="button"
                 onClick={() => handleTextureChange(texture)}
-                disabled={!isTextureGridVisible}
                 className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
                   currentTexture?.url === texture.url
                     ? 'border-primary ring-2 ring-primary/20'
                     : 'border-border hover:border-primary/50'
-                } ${!isTextureGridVisible ? 'pointer-events-none' : ''}`}
+                }`}
                 title={texture.name}
               >
+
                 <img loading="lazy" decoding="async"
                   src={texture.url}
                   alt={texture.name}
