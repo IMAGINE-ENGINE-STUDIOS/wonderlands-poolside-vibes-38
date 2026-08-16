@@ -101,7 +101,7 @@ export const DeckBorderGeometry = ({
   }, [poolPoints, outerPoints, deckWidth, copingWidth, borderHeight, borderWidth, deckElevation]);
   
   return (
-    <mesh key={texture?.uuid || 'no-deck-texture'} geometry={geometry} castShadow receiveShadow>
+    <mesh key={texture?.uuid || 'no-deck-texture'} geometry={geometry} receiveShadow>
       <meshPhongMaterial
         map={texture || null}
         color={texture ? '#ffffff' : '#d9d4cc'}

@@ -93,7 +93,7 @@ export const DeckGeometry = ({
   }, [poolPoints, hardscapePoints, deckWidth, deckHeight, copingWidth, copingEnabled]);
 
   return (
-    <mesh geometry={geometry} castShadow receiveShadow>
+    <mesh geometry={geometry} receiveShadow>
       <meshStandardMaterial
         map={texture || undefined}
         color={texture ? '#ffffff' : '#d4d4d8'}
