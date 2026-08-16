@@ -246,6 +246,7 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
                   {group.items.map((item) => {
                     const isOn = selected[group.title]?.label === item.label;
                     const included = item.price === 0;
+                    const selectable = group.choice !== false;
                     return (
                       <div
                         key={`${group.title}-${item.label}`}
@@ -257,13 +258,34 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
                           isOn ? "border-foreground bg-foreground/[0.05]" : "border-border/50"
                         }`}
                       >
-                        <div className="min-w-0">
-                          <p className="truncate font-serif text-[13px] font-light text-foreground">
-                            {item.label}
-                          </p>
-                          <p className="text-[9px] uppercase tracking-[0.26em] text-muted-foreground">
-                            {item.priceLabel}
-                          </p>
+                        <div className="flex min-w-0 items-center gap-3">
+                          {(item.image || item.color) && (
+                            <span className="h-10 w-10 shrink-0 overflow-hidden border border-border/60 bg-muted">
+                              {item.image ? (
+                                <img
+                                  src={item.image}
+                                  alt={item.label}
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <span
+                                  aria-hidden
+                                  className="block h-full w-full"
+                                  style={{ background: item.color }}
+                                />
+                              )}
+                            </span>
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate font-serif text-[13px] font-light text-foreground">
+                              {item.label}
+                            </p>
+                            <p className="text-[9px] uppercase tracking-[0.26em] text-muted-foreground">
+                              {item.priceLabel}
+                            </p>
+                          </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                           {isOn && item.unit && (
@@ -275,14 +297,23 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
                               className="w-14 border border-border/60 bg-transparent py-0.5 text-center text-[10px] outline-none"
                             />
                           )}
-                          {included ? (
+                          {!selectable ? (
                             <span className="border border-border/60 px-2 py-0.5 text-[8px] uppercase tracking-[0.28em] text-muted-foreground">
                               Included
                             </span>
                           ) : (
                             <button
                               onClick={() => toggle(group.title, item)}
-                              aria-label={isOn ? `Remove ${item.label}` : `Add ${item.label}`}
+                              aria-label={isOn ? `Remove ${item.label}` : `Choose ${item.label}`}
+                              title={
+                                included
+                                  ? isOn
+                                    ? "Chosen — included"
+                                    : "Choose this included option"
+                                  : isOn
+                                    ? "Remove"
+                                    : "Add"
+                              }
                               className={`flex h-7 w-7 items-center justify-center border backdrop-blur-md transition-colors ${
                                 isOn
                                   ? "border-foreground bg-foreground text-background"
@@ -297,6 +328,7 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
                     );
                   })}
                 </div>
+
               </div>
             ))
           )}
