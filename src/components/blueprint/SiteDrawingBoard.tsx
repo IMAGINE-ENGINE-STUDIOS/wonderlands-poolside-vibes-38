@@ -193,6 +193,11 @@ interface Props {
   header?: React.ReactNode;
   /** Layer armed for drawing when the board first mounts */
   defaultLayer?: SiteLayerId;
+  /**
+   * Puts every control in a menu column on the right of the canvas instead of a
+   * tag strip above it — used on the FLIP dossier boards.
+   */
+  menuSide?: boolean;
 }
 
 /**
@@ -202,7 +207,7 @@ interface Props {
  * grid as a calibratable underlay so an existing blueprint can be traced and
  * then edited like native geometry.
  */
-export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer }) => {
+export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer, menuSide }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const imgRef = React.useRef<HTMLImageElement | null>(null);
   const [imgReady, setImgReady] = React.useState(0);
@@ -722,15 +727,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     onChange({ ...data, underlay: { ...underlay, ...patch } });
   };
 
-  return (
-    <div className="space-y-3">
-      {!readOnly && (
-        <div className="space-y-2">
-          {header && (
-            <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
-          )}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex flex-wrap gap-1.5">
+  const layerTags = (
+    <div className={menuSide ? 'flex flex-col gap-1.5' : 'flex flex-wrap gap-1.5'}>
+
               {SITE_LAYERS.map(l => (
                 <button
                   key={l.id}
@@ -753,8 +752,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                   {l.label}
                 </button>
               ))}
-            </div>
-            <div className="ml-auto flex items-center gap-1.5">
+    </div>
+  );
+
+  const toolButtons = (
+            <div className={menuSide ? 'flex flex-wrap items-center gap-1.5' : 'ml-auto flex items-center gap-1.5'}>
+
               {onRequestImport ? (
                 <Button type="button" size="sm" variant="outline" onClick={onRequestImport}>
                   <ImageIcon className="mr-1 h-3.5 w-3.5" /> Import plan
@@ -839,10 +842,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 <ZoomIn className="h-3.5 w-3.5" />
               </Button>
             </div>
-          </div>
+  );
 
-          {underlay ? (
+  const underlayBar =
+          underlay ? (
             <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-2 text-[11px]">
+
               <span className="font-medium">Underlay: {underlay.label}</span>
               <Button
                 type="button"
@@ -895,10 +900,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 Remove
               </Button>
             </div>
-          ) : null}
-        </div>
-      )}
+          ) : null;
 
+  const canvasEl = (
       <canvas
         ref={canvasRef}
         width={CANVAS_W}
@@ -937,8 +941,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         }}
 
       />
+  );
 
-      {!readOnly && (
+  const footNote = !readOnly ? (
         <p className="text-[11px] text-muted-foreground">
           {mode === 'calibrate'
             ? 'Click two points with a known distance on the imported sheet, then type the real length in feet to set the scale.'
@@ -951,7 +956,47 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
           {areas.imperviousPct}%) &middot; {areas.fenceLinearFt} LF barrier.
           {selectedShape ? ` Selected: ${layerMeta(selectedShape.layer).label}${selectedShape.importedFrom ? ` (imported from ${selectedShape.importedFrom})` : ''}.` : ''}
         </p>
+  ) : null;
+
+  /* FLIP dossier layout — the drawing keeps the page, every control lives in a
+     menu column on the right and nothing is tagged across the header. */
+  if (menuSide) {
+    return (
+      <div className="flex h-full min-h-0 gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {header}
+          {canvasEl}
+          {underlayBar}
+          {footNote}
+        </div>
+        {!readOnly && (
+          <aside className="flex w-44 shrink-0 flex-col gap-2 overflow-y-auto rounded-xl border border-border/60 bg-background/60 p-2 backdrop-blur-md sm:w-52">
+            <p className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Elements</p>
+            {layerTags}
+            <p className="mt-1 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Tools</p>
+            {toolButtons}
+          </aside>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {!readOnly && (
+        <div className="space-y-2">
+          {header && (
+            <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {layerTags}
+            {toolButtons}
+          </div>
+          {underlayBar}
+        </div>
       )}
+      {canvasEl}
+      {footNote}
     </div>
   );
 };

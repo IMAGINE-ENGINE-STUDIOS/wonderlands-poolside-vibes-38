@@ -14,6 +14,8 @@ import {
 
 const FUNCTIONS_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+/** Genius speaks at mid volume so the page is still comfortable to read. */
+const MID_VOLUME = 0.55;
 
 export interface NarratorState {
   context: NarratorContext | null;
@@ -73,6 +75,8 @@ export function useNarrator() {
         const audio = audioRef.current ?? new Audio();
         audioRef.current = audio;
         audio.src = url;
+        /* mid volume by default — Genius speaks over the page, never across it */
+        audio.volume = MID_VOLUME;
         audio.onended = () => setIsSpeaking(false);
         setIsSpeaking(true);
         await audio.play();

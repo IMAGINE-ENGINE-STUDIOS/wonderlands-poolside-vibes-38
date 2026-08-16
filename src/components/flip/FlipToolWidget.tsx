@@ -10,6 +10,7 @@ import {
   type SitePlanData,
 } from "@/components/blueprint/SiteDrawingBoard";
 import { computeSiteEstimate, formatMoney } from "@/lib/siteEstimate";
+import { buildProductSitePlan } from "@/lib/productSitePlan";
 import {
   fitShapesToBox,
   guessSiteLayer,
@@ -62,41 +63,56 @@ type Props = {
    *  - "options" — calculators and options
    */
   part?: "board" | "board-left" | "board-right" | "tools" | "cost" | "options";
+  /** The model the dossier is about — its board opens drawn to its dimensions */
+  modelName?: string;
+  /** The model's meta line, read for published dimensions ("14' x 30'") */
+  modelMeta?: string;
 };
 
-const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" }) => {
+const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board", modelName, modelMeta }) => {
   const board = boardForCategory(categoryId);
   const [readout, setReadout] = useState<string>("");
   const [full, setFull] = useState(false);
   const [importing, setImporting] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  /* one shared drawing per discipline, so board, cost sheet and calculators agree */
-  const shared = useFlipBoard(categoryId);
+  /* one shared drawing per model (or per discipline when no model is named), so
+     the board, cost sheet and calculators of that dossier all agree */
+  const boardId = modelName ? `${categoryId}__${modelName.toLowerCase().replace(/\s+/g, "-")}` : categoryId;
+  const shared = useFlipBoard(boardId);
   const site = shared.site;
   const enclosure = shared.enclosure;
   const fence = shared.fence;
   const grass = shared.grass;
   const grassId = shared.grassId;
+
+  /* the board is never blank: the product is drawn to its published dimensions
+     on the 2D studio grid the first time the dossier is opened */
+  React.useEffect(() => {
+    if (board.kind !== "site" || site.shapes.length) return;
+    const seeded = buildProductSitePlan({ categoryId, modelName, meta: modelMeta });
+    if (seeded) setFlipBoardValue(boardId, { site: seeded });
+  }, [board.kind, site.shapes.length, categoryId, modelName, modelMeta, boardId]);
+
   const setSite = useCallback(
-    (next: SitePlanData) => setFlipBoardValue(categoryId, { site: next }),
-    [categoryId],
+    (next: SitePlanData) => setFlipBoardValue(boardId, { site: next }),
+    [boardId],
   );
   const setEnclosure = useCallback(
-    (next: EnclosureLayout) => setFlipBoardValue(categoryId, { enclosure: next }),
-    [categoryId],
+    (next: EnclosureLayout) => setFlipBoardValue(boardId, { enclosure: next }),
+    [boardId],
   );
   const setFence = useCallback(
-    (next: FenceLayout) => setFlipBoardValue(categoryId, { fence: next }),
-    [categoryId],
+    (next: FenceLayout) => setFlipBoardValue(boardId, { fence: next }),
+    [boardId],
   );
   const setGrass = useCallback(
-    (next: GrassLayout) => setFlipBoardValue(categoryId, { grass: next }),
-    [categoryId],
+    (next: GrassLayout) => setFlipBoardValue(boardId, { grass: next }),
+    [boardId],
   );
   const setGrassId = useCallback(
-    (next: string) => setFlipBoardValue(categoryId, { grassId: next }),
-    [categoryId],
+    (next: string) => setFlipBoardValue(boardId, { grassId: next }),
+    [boardId],
   );
 
   const onEnclosureMeasure = useCallback((t: EnclosureTakeoff) => {
@@ -185,7 +201,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
   );
 
   /* the live price of the drawing — the same figure the cost leaf prints */
-  const { total: boardTotal } = useBoardEstimate(categoryId);
+  const { total: boardTotal } = useBoardEstimate(boardId);
   const livePrice = isSite ? estimate.total : boardTotal;
 
 
@@ -253,6 +269,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
           onChange={setSite}
           header={header}
           defaultLayer={DEFAULT_LAYER[categoryId] ?? "pool"}
+          menuSide={!fullScreen}
           onRequestImport={fullScreen ? () => fileRef.current?.click() : undefined}
         />
       );
@@ -286,15 +303,15 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" 
   const panel =
     part === "tools" ? (
       <FlipBoardTools
-        categoryId={categoryId}
+        categoryId={boardId}
         onEnlarge={() => setFull(true)}
         onUpload={() => fileRef.current?.click()}
         onExpand={onExpand}
       />
     ) : part === "cost" ? (
-      <FlipBoardCost categoryId={categoryId} />
+      <FlipBoardCost categoryId={boardId} />
     ) : part === "options" ? (
-      <FlipBoardCalculators categoryId={categoryId} />
+      <FlipBoardCalculators categoryId={boardId} />
     ) : null;
 
   /* every design leaf is interactive, so the flipbook must never receive the
