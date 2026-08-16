@@ -65,6 +65,13 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
     [categoryId, entry.name, entry.brand],
   );
 
+  const firstChoiceGroup = React.useMemo(
+    () => groups.find((g) => g.choice !== false)?.title ?? groups[0]?.title,
+    [groups],
+  );
+
+
+
   const isUnitPriced = entry.unit === "sqft" || entry.unit === "linear-ft";
   const [quantity, setQuantity] = React.useState(isUnitPriced ? 400 : 1);
   const [selected, setSelected] = React.useState<Record<string, Sel>>({});
