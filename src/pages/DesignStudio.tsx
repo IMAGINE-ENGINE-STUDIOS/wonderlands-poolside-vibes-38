@@ -371,7 +371,7 @@ const DesignStudio = () => {
   return <div className="min-h-screen bg-background flex flex-col">
       {/* Category Toolbar with integrated header elements */}
       {activeView === '2d' ? <>
-          <CategoryToolbar activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-4">
+          <CategoryToolbar hideCategories activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-4">
                 <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
                   <ArrowLeft className="w-4 h-4" />
                   Back
@@ -422,7 +422,7 @@ const DesignStudio = () => {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>} />
-          <SubToolbar category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={poolBuilderData ? {
+          <SubToolbar hideTools category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={poolBuilderData ? {
         perimeter: poolBuilderData.perimeter,
         area: poolBuilderData.area,
         corners: poolBuilderData.points?.length || 0,
