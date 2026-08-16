@@ -115,21 +115,10 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [deckHeight, setDeckHeight] = useState(2 / 12); // Default 2 inches in feet
   const [copingWidth, setCopingWidth] = useState(1.1); // Default 1.1 foot width (minimum)
 
-  // Filter finishes based on pool category
-  const getFilteredFinishes = () => {
-    const categoryFinishesMap: Record<string, string[]> = {
-      'premium': ['sapphire-blue-g3', 'aquamarine-g3', 'crystal-blue-g3', 'midnight-blue-g3', 'caribbean-blue-g3', 'diamond-sand-g3'],
-      'deluxe': ['sapphire-blue-g3', 'aquamarine-g3', 'crystal-blue-g3', 'midnight-blue-g3'],
-      'standard': ['sapphire-blue-g3', 'aquamarine-g3'],
-      'compact': ['sapphire-blue-g3']
-    };
-
-    const allowedFinishes = categoryFinishesMap[poolCategory] || categoryFinishesMap['deluxe'];
-    
-    return textureLibrary.finishes.filter(finish => 
-      allowedFinishes.some(allowed => finish.url.includes(allowed))
-    );
-  };
+  // Full catalog finishes (the previous slug filter matched no real image IDs,
+  // so the gallery came back empty). Every finish in the Studio is offered.
+  const getFilteredFinishes = () =>
+    dedupeTextures([...(textureLibrary.finishes || []), ...CATALOG_TEXTURES.finishes]);
 
   // Get current texture config based on selected category
   const getCurrentTexture = (): TextureConfig => {
