@@ -22,13 +22,20 @@ export function WalkthroughController({
   // Movement state
   const velocity = useRef(new THREE.Vector3());
   const direction = useRef(new THREE.Vector3());
+
+  // Vertical / jump state
+  const verticalVelocity = useRef(0);
+  const isGrounded = useRef(true);
+  const GRAVITY = 32; // ft/s^2
+  const JUMP_VELOCITY = 13; // ft/s -> ~2.6ft hop
   
   // Input state
   const keys = useRef({
     forward: false,
     backward: false,
     left: false,
-    right: false
+    right: false,
+    sprint: false
   });
   
   // Mouse look state
@@ -41,6 +48,7 @@ export function WalkthroughController({
   const joystickRef = useRef({ x: 0, y: 0, active: false });
   const lookTouchId = useRef<number | null>(null);
   const moveTouchId = useRef<number | null>(null);
+
 
   // Initialize camera position when enabled
   useEffect(() => {
