@@ -43,6 +43,9 @@ const QuotationTool = () => {
   const [entryCategory, setEntryCategory] = React.useState<string>(CONSOLE_CATEGORIES[0].id);
   const [product, setProduct] = React.useState<ConfiguredProduct | null>(null);
   const [quoteOpen, setQuoteOpen] = React.useState(false);
+  const [searchOpen, setSearchOpen] = usePersistentState<boolean>("quote.search.open", false);
+  const [boardOpen, setBoardOpen] = usePersistentState<boolean>("quote.board.open", false);
+
 
   const [dims, setDims] = React.useState({ w: 900, h: 620 });
   React.useEffect(() => {
