@@ -68,6 +68,7 @@ const outsetRing = (pts: { x: number; y: number }[], ft: number) => {
 /** Which layer the product itself is drawn on. */
 const PRODUCT_LAYER: Record<string, SiteLayerId> = {
   pools: "pool",
+  "concrete-pools": "pool",
   spas: "pool",
   "tanning-ledges": "pool",
   finishes: "pool",
@@ -85,6 +86,7 @@ const PRODUCT_LAYER: Record<string, SiteLayerId> = {
 
 const DEFAULT_DIMS: Record<string, Dims> = {
   pools: { widthFt: 14, lengthFt: 28 },
+  "concrete-pools": { widthFt: 16, lengthFt: 32 },
   spas: { widthFt: 7, lengthFt: 7 },
   "tanning-ledges": { widthFt: 8, lengthFt: 10 },
   saunas: { widthFt: 6, lengthFt: 8 },

@@ -6,6 +6,9 @@ import FlipConsole from "./flip/FlipConsole";
 
 
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
+import madrePerlaBanner from "@/assets/pools/madre-perla.webp";
+import pacificRidgeBanner from "@/assets/pools/pacific-ridge-new.webp";
+import wonderPalaceBanner from "@/assets/pools/wonderpalace.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
 import spaBanner from "@/assets/banners/spa-banner.webp";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.webp";
@@ -40,8 +43,18 @@ type Item = {
 
 export const ITEMS: Item[] = [
   {
+    id: "concrete-pools",
+    label: "Concrete Pools",
+    tagline: "Wonderlands Custom Shells",
+    layout: "editorial",
+    images: [madrePerlaBanner, pacificRidgeBanner, wonderPalaceBanner],
+    description:
+      "Our own collection: gunite shells poured to the property, finished in Pebble Tec, and delivered turnkey. Infinity edges, integrated spas, tanning ledges and zero-entry shallows — drawn without the limits of a mould.",
+    notes: ["Wonderlands custom concrete", "Pebble Tec interior finishes", "Integrated spas & tanning ledges"],
+  },
+  {
     id: "pools",
-    label: "Pools",
+    label: "Fiberglass Pools",
     tagline: "Signature Waters",
     layout: "editorial",
     images: [lathamGilmerBanner, sapphireFinish],

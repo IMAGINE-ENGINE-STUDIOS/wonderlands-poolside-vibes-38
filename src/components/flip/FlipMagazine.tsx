@@ -36,7 +36,16 @@ import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
 
 type OptionGroup = { title: string; note: string; options: string[] };
 
+const POOL_OPTION_GROUPS: OptionGroup[] = [
+  { title: "Interior Finish", note: "How the water carries light", options: ["Pebble Tec — Tahoe Blue", "Pebble Tec — Midnight Blue", "PebbleSheen — Caribbean Blue", "PebbleFina — Arctic White", "PebbleBrilliance — Blue Nile"] },
+  { title: "Waterline & Coping", note: "The edge detail", options: ["Glass mosaic waterline", "Porcelain waterline", "Travertine coping — squared edge or bullnose", "Porcelain coping", "Coralina coping"] },
+  { title: "Shape & Depth", note: "Drawn without a mould", options: ["Infinity edge", "Zero-entry beach shallows", "Lagoon floor", "Integrated spillover spa", "Tanning ledge with bubblers"] },
+  { title: "Water & Comfort", note: "Systems set on delivery day", options: ["Heat pump heater", "Gas heater", "Hydrotherapy jets", "Bubblers", "Rocky waterfall"] },
+  { title: "Light & Control", note: "Evening character", options: ["Color LED spectrum lighting", "Automation & app control", "Salt system — included", "Variable speed pump", "Automatic cover"] },
+];
+
 const OPTION_GROUPS: Record<string, OptionGroup[]> = {
+  "concrete-pools": POOL_OPTION_GROUPS,
   pools: [
     { title: "Interior Finish", note: "How the water carries light", options: ["Sapphire Blue G3", "Aquamarine G3", "Ocean Blue G3", "Night Sky G3", "Shale Gray G3", "Lagoon Blue G2"] },
     { title: "Waterline & Coping", note: "The edge detail", options: ["Glass mosaic waterline", "Porcelain waterline", "Travertine coping — squared edge or bullnose", "Porcelain coping", "Coralina coping"] },
@@ -277,7 +286,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ varia
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
-  const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category", ITEMS[0].id);
+  const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category.v2", ITEMS[0].id);
   const [savedPage, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
   const [searchOpen, setSearchOpen] = usePersistentState<boolean>("flip.mag.search", false);

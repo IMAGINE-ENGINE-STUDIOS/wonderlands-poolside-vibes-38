@@ -28,10 +28,11 @@ export const formatEntryPrice = (e: ConsoleEntry) => {
 
 const fromLookup = async (
   match: (category: string) => boolean,
+  matchBrand?: (brand?: string) => boolean,
 ): Promise<ConsoleEntry[]> => {
   const { getAllProducts } = await import("@/data/poolProductLookup");
   return getAllProducts()
-    .filter((p) => match(p.category))
+    .filter((p) => match(p.category) && (!matchBrand || matchBrand(p.brand)))
     .map((p, i) => ({
       id: `${p.name}-${i}`,
       name: p.name,
@@ -73,8 +74,18 @@ export function loadCategoryEntries(categoryId: string): Promise<ConsoleEntry[]>
 
 async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[]> {
   switch (categoryId) {
+    /* Wonderlands custom concrete pools — the house collection */
+    case "concrete-pools":
+      return fromLookup(
+        (c) => c === "Pool",
+        (b) => (b ?? "").toLowerCase() === "wonderlands",
+      );
+    /* Fiberglass chapter — Latham & GlimmerGlass shells */
     case "pools":
-      return fromLookup((c) => c === "Pool");
+      return fromLookup(
+        (c) => c === "Pool",
+        (b) => (b ?? "").toLowerCase() !== "wonderlands",
+      );
     case "spas":
       return fromLookup((c) => c === "Spa");
     case "tanning-ledges":
@@ -160,8 +171,21 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
       }));
     }
     case "finishes": {
-      const { poolTiles } = await import("@/data/poolData");
-      return poolTiles.map((t: any, i: number) => ({
+      const [{ poolTiles }, pebble] = await Promise.all([
+        import("@/data/poolData"),
+        import("@/data/pebbleTecFinishes"),
+      ]);
+      /* Pebble Tec leads the chapter — it is the surface of every concrete shell */
+      const pebbleEntries: ConsoleEntry[] = pebble.pebbleTecFinishes.map((f) => ({
+        id: f.id,
+        name: f.name,
+        image: f.image ?? "",
+        color: f.color,
+        brand: "Pebble Tec",
+        meta: `${f.collection} · ${f.note}`,
+        priceLabel: pebble.PEBBLE_TEC_PRICE_LABEL,
+      }));
+      const tileEntries: ConsoleEntry[] = poolTiles.map((t: any, i: number) => ({
         id: `finish-${i}`,
         name: t.name,
         image: t.image,
@@ -169,6 +193,7 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
         unit: "each" as const,
         meta: t.description,
       }));
+      return [...pebbleEntries, ...tileEntries];
     }
     case "liners": {
       const { poolLiners } = await import("@/data/poolData");
