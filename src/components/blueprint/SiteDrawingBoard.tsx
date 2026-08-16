@@ -469,10 +469,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const hitTest = (p: { x: number; y: number }): string | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
       const shape = data.shapes[i];
-      const segCount = shape.closed ? shape.points.length : shape.points.length - 1;
+      const outline = siteShapeOutline(shape);
+      const segCount = shape.closed ? outline.length : outline.length - 1;
       for (let s = 0; s < segCount; s++) {
-        const a = shape.points[s];
-        const b = shape.points[(s + 1) % shape.points.length];
+        const a = outline[s];
+        const b = outline[(s + 1) % outline.length];
         const len = Math.hypot(b.x - a.x, b.y - a.y);
         if (len === 0) continue;
         const t = Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / (len * len)));
@@ -486,12 +487,66 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const hitVertex = (p: { x: number; y: number }): { shapeId: string; index: number } | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
       const shape = data.shapes[i];
-      for (let v = 0; v < shape.points.length; v++) {
-        if (Math.hypot(shape.points[v].x - p.x, shape.points[v].y - p.y) < 8) return { shapeId: shape.id, index: v };
-      }
+      const v = hitVertexIndex(shape.points, p, 8);
+      if (v >= 0) return { shapeId: shape.id, index: v };
     }
     return null;
   };
+
+  const updateShape = (id: string, patch: (s: SiteShape) => SiteShape) => {
+    onChange({ ...data, shapes: data.shapes.map(s => (s.id === id ? patch(s) : s)) });
+  };
+
+  /** Drop a new vertex on the nearest run of a shape. */
+  const insertVertexNear = (p: { x: number; y: number }): boolean => {
+    for (let i = data.shapes.length - 1; i >= 0; i--) {
+      const shape = data.shapes[i];
+      const res = insertVertexAt(shape.points, shape.closed, p, 10, normalizeFlags(shape.curves, shape.points.length));
+      if (!res) continue;
+      updateShape(shape.id, s => ({ ...s, points: res.points, curves: res.curves }));
+      setSelected(shape.id);
+      setSelectedVertex(res.index);
+      return true;
+    }
+    return false;
+  };
+
+  const removeVertexFrom = (shapeId: string, index: number) => {
+    const shape = data.shapes.find(s => s.id === shapeId);
+    if (!shape) return;
+    const res = removeVertex(shape.points, index, shape.closed ? 3 : 2, normalizeFlags(shape.curves, shape.points.length));
+    if (!res) return;
+    updateShape(shapeId, s => ({ ...s, points: res.points, curves: res.curves, closed: res.points.length > 2 ? s.closed : false }));
+    setSelectedVertex(null);
+  };
+
+  const addVertexAfterSelected = () => {
+    const shape = data.shapes.find(s => s.id === selected);
+    if (!shape || selectedVertex === null) return;
+    const res = insertVertexAfter(shape.points, shape.closed, selectedVertex, normalizeFlags(shape.curves, shape.points.length));
+    if (!res) return;
+    updateShape(shape.id, s => ({ ...s, points: res.points, curves: res.curves }));
+    setSelectedVertex(res.index);
+  };
+
+  const toggleSelectedCurve = () => {
+    const shape = data.shapes.find(s => s.id === selected);
+    if (!shape) return;
+    if (selectedVertex === null) {
+      // No single handle picked: smooth or straighten the whole outline
+      const smooth = !hasAnyCurve(shape.curves);
+      updateShape(shape.id, s => ({ ...s, curves: s.points.map(() => smooth) }));
+      return;
+    }
+    updateShape(shape.id, s => ({ ...s, curves: toggleCurveFlag(s.curves, selectedVertex, s.points.length) }));
+  };
+
+  const selectedShapeCurved = (() => {
+    const shape = data.shapes.find(s => s.id === selected);
+    if (!shape) return false;
+    const flags = normalizeFlags(shape.curves, shape.points.length);
+    return selectedVertex !== null ? !!flags[selectedVertex] : hasAnyCurve(flags);
+  })();
 
   const commitDraft = (points: { x: number; y: number }[], closed: boolean) => {
     if (points.length < 2) return;
@@ -500,6 +555,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       layer,
       points,
       closed: closed && points.length > 2,
+      curves: points.map(() => false),
     };
     onChange({ ...data, shapes: [...data.shapes, shape] });
     setDraft([]);
@@ -512,17 +568,28 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       drag.current = { kind: 'underlay', last: raw };
       return;
     }
+    if (e.altKey || e.button === 2) {
+      const vertex = hitVertex(raw);
+      if (vertex) {
+        removeVertexFrom(vertex.shapeId, vertex.index);
+        return;
+      }
+      if (insertVertexNear({ x: snap(raw.x), y: snap(raw.y) })) return;
+    }
     if (mode !== 'select') return;
     const vertex = hitVertex(raw);
     if (vertex) {
       setSelected(vertex.shapeId);
+      setSelectedVertex(vertex.index);
       drag.current = { kind: 'vertex', ...vertex };
       return;
     }
     const shapeId = hitTest(raw);
     setSelected(shapeId);
+    setSelectedVertex(null);
     if (shapeId) drag.current = { kind: 'shape', shapeId, last: raw };
   };
+
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
