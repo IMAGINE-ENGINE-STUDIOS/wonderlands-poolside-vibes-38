@@ -9,9 +9,16 @@ import type { NarratorAction } from '@/lib/narratorStore';
 import { getFlipManifest, type FlipPageRef } from '@/lib/flipPageRegistry';
 import { readFlipViewport } from '@/lib/flipViewportReader';
 
+/** Chip copy: the destination, without repeating the edition already open. */
+function chipLabel(page: FlipPageRef): string {
+  const title = (page.title || page.label).replace(/\s*[—–-]\s*/g, ' — ');
+  const tail = title.split(' — ').pop()?.trim();
+  return tail && tail.length > 2 ? tail : title;
+}
+
 /** A chip never says a page number out loud — it says where it goes. */
 export function pageChip(page: FlipPageRef): NarratorAction {
-  return { label: page.title || page.label, type: 'flip_goto', payload: String(page.number) };
+  return { label: chipLabel(page), type: 'flip_goto', payload: String(page.number) };
 }
 
 /**
@@ -36,7 +43,8 @@ export function bookChips(limit = 6): NarratorAction[] {
   const chips: NarratorAction[] = [];
   const seen = new Set<string>();
   const add = (chip: NarratorAction) => {
-    const key = `${chip.type}:${chip.payload ?? chip.label}`;
+    /* Two leaves can print the same heading — a guest only needs one chip. */
+    const key = `${chip.type}:${chip.label.toLowerCase()}`;
     if (seen.has(key)) return;
     seen.add(key);
     chips.push(chip);
