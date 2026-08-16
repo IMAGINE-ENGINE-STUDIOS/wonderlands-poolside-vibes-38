@@ -14,6 +14,8 @@ import {
 
 const FUNCTIONS_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+/** Genius speaks at mid volume so the page is still comfortable to read. */
+const MID_VOLUME = 0.55;
 
 export interface NarratorState {
   context: NarratorContext | null;
