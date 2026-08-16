@@ -842,10 +842,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 <ZoomIn className="h-3.5 w-3.5" />
               </Button>
             </div>
-          </div>
+  );
 
-          {underlay ? (
+  const underlayBar =
+          underlay ? (
             <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-2 text-[11px]">
+
               <span className="font-medium">Underlay: {underlay.label}</span>
               <Button
                 type="button"
