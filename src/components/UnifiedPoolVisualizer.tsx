@@ -1530,6 +1530,22 @@ export function UnifiedPoolVisualizer({
                   fov: 50
                 }}
                 frameloop={isWalkthroughMode ? "always" : "demand"} // Always render during walkthrough for smooth movement
+                onDoubleClick={(e) => {
+                  // Double-clicking empty space (or anything that isn't the
+                  // selected asset) dismisses the transform gizmo.
+                  const hitAsset = (e as any).intersections?.some((i: any) => {
+                    let o: any = i.object;
+                    while (o) {
+                      if (o.name === 'terrain-assets') return true;
+                      o = o.parent;
+                    }
+                    return false;
+                  });
+                  if (!hitAsset) setSelectedTerrainAssetId(null);
+                }}
+                onPointerMissed={(e) => {
+                  if ((e as MouseEvent).detail >= 2) setSelectedTerrainAssetId(null);
+                }}
               >
           {/* Force re-render on state changes */}
           <SceneInvalidator scene={scene} isNightMode={isNightMode} sunPosition={sunPosition} />
