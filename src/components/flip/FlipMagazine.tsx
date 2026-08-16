@@ -15,6 +15,8 @@ import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
 import { useProductBookPages } from "./FlipProductBook";
 import { pushSpread } from "./FlipSpread";
+import FlipIndexV6 from "./FlipIndexV6";
+
 
 /** Placeholder so the dossier page hook can run unconditionally. */
 const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as any;
@@ -249,8 +251,10 @@ type Page = { key: string; render: () => React.ReactNode; tone?: "paper" | "cove
 
 type Anchors = { index: number; features: number; code: number; gallery: number; estimate: number };
 
-const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) => {
-  const isV5 = variant === "v5";
+const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v4" }) => {
+  const isV5 = variant === "v5" || variant === "v6";
+  const isV6 = variant === "v6";
+
   const bookRef = useRef<any>(null);
   /* V5: the corner-lift invitation, retired as soon as the reader turns a page */
   const [cornerHint, setCornerHint] = useState(isV5);
@@ -598,37 +602,32 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
     });
 
     /**
-     * The Contents — a single full-leaf editorial mosaic. Every discipline gets
-     * its own plate, sized asymmetrically so the whole collection reads at once.
+     * The Contents. V6 gets the Expedition navigator (cinematic main menu);
+     * earlier editions keep the editorial mosaic.
      */
     list.push({
       key: "home-index",
-      render: () => (
-        <div className="flex h-full w-full flex-col px-5 py-6 sm:px-8 sm:py-8">
-          <div className="flex items-baseline justify-between gap-3">
-            <Eyebrow>The Collection</Eyebrow>
-            <Eyebrow className="hidden sm:block">
-              01 — {String(ITEMS.length).padStart(2, "0")}
-            </Eyebrow>
-          </div>
-          <div className="mt-1 flex items-end justify-between gap-4">
-            <h3 className="font-serif text-3xl font-light leading-[0.9] sm:text-5xl">Contents</h3>
-            <p className="hidden max-w-[14rem] text-right text-[9px] leading-relaxed text-muted-foreground sm:block">
-              {ITEMS.length} disciplines, one composition — drawn, priced and installed turnkey.
-            </p>
-          </div>
-
-          <div className="mt-4 grid min-h-0 flex-1 grid-cols-4 grid-rows-5 gap-1.5">
-            {ITEMS.map((it, idx) => {
-              const no = String(idx + 1).padStart(2, "0");
-              const feature = idx < 2;
-              return (
+      tone: isV6 ? "cover" : undefined,
+      render: () =>
+        isV6 ? (
+          <FlipIndexV6 items={ITEMS} onOpen={openCategory} />
+        ) : (
+          <div className="flex h-full w-full flex-col px-5 py-6 sm:px-8 sm:py-8">
+            <div className="flex items-baseline justify-between gap-3">
+              <Eyebrow>The Collection</Eyebrow>
+              <Eyebrow className="hidden sm:block">01 — {String(ITEMS.length).padStart(2, "0")}</Eyebrow>
+            </div>
+            <div className="mt-1 flex items-end justify-between gap-4">
+              <h3 className="font-serif text-3xl font-light leading-[0.9] sm:text-5xl">Contents</h3>
+            </div>
+            <div className="mt-4 grid min-h-0 flex-1 grid-cols-4 grid-rows-5 gap-1.5">
+              {ITEMS.map((it, idx) => (
                 <button
                   key={it.id}
                   onClick={() => openCategory(it.id)}
                   title={`Open the ${it.label} edition`}
-                  className={`group relative min-h-0 overflow-hidden bg-muted text-left ring-1 ring-border/40 transition-[transform,box-shadow] duration-500 hover:z-10 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-18px_hsl(var(--foreground)/0.45)] ${
-                    feature ? "col-span-2 row-span-2" : ""
+                  className={`group relative min-h-0 overflow-hidden bg-muted text-left ring-1 ring-border/40 transition-transform duration-500 hover:z-10 hover:-translate-y-0.5 ${
+                    idx < 2 ? "col-span-2 row-span-2" : ""
                   }`}
                 >
                   <img
@@ -638,38 +637,24 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
                     decoding="async"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.08]"
                   />
-                  <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10 transition-opacity duration-500 group-hover:from-black/90" />
-                  <span className="absolute left-2 top-1.5 font-serif text-[10px] tabular-nums text-white/70 sm:text-[11px]">
-                    {no}
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10" />
+                  <span className="absolute left-2 top-1.5 font-serif text-[10px] tabular-nums text-white/70">
+                    {String(idx + 1).padStart(2, "0")}
                   </span>
-                  <span className="absolute inset-x-2 bottom-1.5">
-                    <span
-                      className={`block truncate font-serif font-light leading-tight text-white ${
-                        feature ? "text-xl sm:text-3xl" : "text-[11px] sm:text-sm"
-                      }`}
-                    >
-                      {it.label}
-                    </span>
-                    <span
-                      className={`mt-0.5 block truncate text-[7px] uppercase tracking-[0.28em] text-white/70 transition-all duration-500 sm:text-[8px] ${
-                        feature ? "opacity-90" : "max-h-0 opacity-0 group-hover:max-h-4 group-hover:opacity-90"
-                      }`}
-                    >
-                      {it.tagline}
-                    </span>
+                  <span className="absolute inset-x-2 bottom-1.5 block truncate font-serif font-light leading-tight text-white">
+                    {it.label}
                   </span>
-                  <span className="pointer-events-none absolute inset-0 ring-inset ring-white/0 transition-all duration-500 group-hover:ring-1 group-hover:ring-white/40" />
                 </button>
-              );
-            })}
+              ))}
+            </div>
+            <p className="mt-3 border-t border-border/50 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+              Select a plate — or turn the page to travel the disciplines
+            </p>
           </div>
-
-          <p className="mt-3 border-t border-border/50 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-            Select a plate — or turn the page to travel the disciplines
-          </p>
-        </div>
-      ),
+        ),
     });
+
+
 
 
 
@@ -736,7 +721,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
       });
     }
     return list;
-  }, [openCategory]);
+  }, [openCategory, isV6]);
 
   /* -------------------------------- CATEGORY -------------------------------- */
   const { pages: categoryPages, anchors } = useMemo<{ pages: Page[]; anchors: Anchors }>(() => {
