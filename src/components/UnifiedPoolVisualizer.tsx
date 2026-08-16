@@ -19,6 +19,8 @@ import { PoolAssetManager } from './scene3d/PoolAssetManager';
 import { PoolAssetsRenderer } from './scene3d/PoolAssetsRenderer';
 import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './scene3d/poolAssetTypes';
 import { WalkthroughController } from './scene3d/WalkthroughController';
+import { CameraFocusController, FocusRequest } from './scene3d/CameraFocusController';
+import { OrbitKeyboardControls } from './scene3d/OrbitKeyboardControls';
 import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
