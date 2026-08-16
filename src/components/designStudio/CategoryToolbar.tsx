@@ -16,6 +16,7 @@ interface CategoryToolbarProps {
   onCategoryChange: (category: DesignCategory) => void;
   headerLeft?: React.ReactNode;
   headerRight?: React.ReactNode;
+  hideCategories?: boolean;
 }
 
 const categories: { id: DesignCategory; name: string; icon: React.ReactNode }[] = [
