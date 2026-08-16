@@ -444,6 +444,48 @@ export function UnifiedPoolVisualizer({
   
   const poolDepth = scene.pool.dimensions?.depth || 8;
 
+  // Live cost inputs for the designer header — mirrors the products the user selected
+  const designerFeatureLines = useMemo(
+    () =>
+      (scene.features || []).map(f => ({
+        name: f.metadata?.name || f.type.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        price: f.metadata?.price ?? FEATURE_COSTS[f.type] ?? 0,
+      })),
+    [scene.features]
+  );
+
+  const designerBodyLines = useMemo(
+    () =>
+      (scene.additionalPools || []).map((body, i) => {
+        const pts = body.points || [];
+        let area = 0;
+        for (let j = 0; j < pts.length; j++) {
+          const k = (j + 1) % pts.length;
+          area += pts[j].x * pts[k].y - pts[k].x * pts[j].y;
+        }
+        area = Math.abs(area / 2);
+        const isSpa = body.type === 'spa' || body.featureType === 'tanning-ledge';
+        const rate = isSpa ? POOL_SHELL_PRICE_PER_SQFT * (4 / 3.5) : POOL_SHELL_PRICE_PER_SQFT;
+        const label =
+          body.featureType === 'tanning-ledge'
+            ? 'Tanning Ledge'
+            : body.featureType === 'spillover-spa'
+            ? 'Spillover Spa'
+            : body.type === 'spa'
+            ? 'Spa'
+            : `Additional Pool ${i + 1}`;
+        return {
+          name: label,
+          areaSqFt: area,
+          multiplierLabel: `$${Math.round(rate)}/sq ft`,
+          price: area * rate,
+        };
+      }),
+    [scene.additionalPools]
+  );
+
+
+
   // Create linearDepthAnchors if not set, based on product depths
   const linearDepthAnchors = useMemo(() => {
     if (scene.pool.linearDepthAnchors && scene.pool.linearDepthAnchors.length >= 2) {
