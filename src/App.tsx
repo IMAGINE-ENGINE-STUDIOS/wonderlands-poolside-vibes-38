@@ -98,7 +98,7 @@ const App = () => {
         <ScrollRestoration />
         <RightNavigation />
         <AIAssistantChat />
-        <GeniusOrb />
+        
 
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
