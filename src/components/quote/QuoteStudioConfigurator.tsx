@@ -1,7 +1,11 @@
 import * as React from "react";
 import { Plus, Minus, Check, ImageOff } from "lucide-react";
 import { getStudioFeatureGroups, type StudioOption } from "@/lib/flipStudioFeatures";
-import { formatEntryPrice, type ConsoleEntry } from "@/components/flip/flipConsoleData";
+import {
+  formatEntryPrice,
+  loadEntryGallery,
+  type ConsoleEntry,
+} from "@/components/flip/flipConsoleData";
 
 /**
  * Wonderlands Studio product configurator, composed in the FLIP V7 editorial
@@ -67,6 +71,25 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
   const [preview, setPreview] = React.useState<{ image?: string; color?: string; label: string } | null>(
     null,
   );
+
+  /* The plates of this product's own FLIP book — same resolver the dossier uses */
+  const [gallery, setGallery] = React.useState<string[]>([]);
+  const [plate, setPlate] = React.useState(0);
+  React.useEffect(() => {
+    let cancelled = false;
+    setGallery([]);
+    setPlate(0);
+    loadEntryGallery(categoryId, entry)
+      .then((list) => {
+        if (!cancelled) setGallery(list);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId, entry]);
+
+  const hero = gallery[plate] ?? entry.image;
 
   // A new product resets the configuration
   React.useEffect(() => {
@@ -171,9 +194,9 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
         <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-border/60 bg-muted md:aspect-auto md:min-h-[420px] md:border-b-0 md:border-r">
           {preview?.color ? (
             <div className="absolute inset-0" style={{ background: preview.color }} />
-          ) : preview?.image || entry.image ? (
+          ) : preview?.image || hero ? (
             <img
-              src={preview?.image || entry.image}
+              src={preview?.image || hero}
               alt={preview?.label || entry.name}
               loading="lazy"
               decoding="async"
@@ -182,6 +205,28 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <ImageOff className="h-6 w-6" />
+            </div>
+          )}
+          {gallery.length > 1 && !preview && (
+            <div className="absolute left-0 right-0 top-0 flex gap-1 overflow-x-auto bg-background/50 p-1.5 backdrop-blur-md">
+              {gallery.map((src, i) => (
+                <button
+                  key={src}
+                  onClick={() => setPlate(i)}
+                  aria-label={`Plate ${i + 1}`}
+                  className={`h-10 w-14 shrink-0 overflow-hidden border transition-colors ${
+                    i === plate ? "border-foreground" : "border-border/50 hover:border-foreground"
+                  }`}
+                >
+                  <img
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
           <div className="absolute bottom-0 left-0 right-0 border-t border-background/30 bg-background/70 px-4 py-2 backdrop-blur-md">
