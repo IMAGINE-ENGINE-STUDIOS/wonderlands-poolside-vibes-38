@@ -1,10 +1,16 @@
 import {
   measureSitePlan,
+  siteShapeOutline,
   SITE_LAYERS,
   type SitePlanData,
   type SiteLayerId,
   type SiteShape,
 } from "@/components/blueprint/SiteDrawingBoard";
+import { computeNetPaverArea, isNonPaverSurface } from "@/utils/paverAreaLogic";
+
+const layerLabel = (id: SiteLayerId) =>
+  SITE_LAYERS.find((l) => l.id === id)?.label ?? id;
+
 
 /**
  * Pricing and dimensions taken straight off the drawn site plan.
