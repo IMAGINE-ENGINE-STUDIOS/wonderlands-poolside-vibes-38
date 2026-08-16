@@ -13,6 +13,7 @@
 import type { NarratorAction, NarratorContext, NarratorScript } from '@/lib/narratorStore';
 import type { FlipManifest, FlipPageRef } from '@/lib/flipPageRegistry';
 import { readFlipViewport, type ViewportRead } from '@/lib/flipViewportReader';
+import { bookChips } from '@/lib/flipChips';
 
 /* ------------------------------- randomness ------------------------------- */
 
