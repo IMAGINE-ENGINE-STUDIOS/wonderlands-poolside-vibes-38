@@ -27,6 +27,7 @@ import { safeGeniusPath } from '@/lib/geniusAccess';
 import { getFlipControls, turnToPageNumber } from '@/lib/flipPageRegistry';
 import { clickViewportOption } from '@/lib/flipViewportReader';
 import type { NarratorAction } from '@/lib/narratorStore';
+import { isGeniusOpen, setGeniusOpen, subscribeGeniusPanel } from '@/lib/geniusPanelStore';
 import { toast } from 'sonner';
 
 const ACTION_ICON: Record<NarratorAction['type'], React.ComponentType<{ className?: string }>> = {
@@ -52,7 +53,15 @@ const ACTION_ICON: Record<NarratorAction['type'], React.ComponentType<{ classNam
  * guest destination. Staff surfaces are never reachable through her.
  */
 export const GeniusOrb: React.FC = () => {
-  const [open, setOpen] = React.useState(false);
+  /* Genius is on by default — the panel restores open unless the guest closed it. */
+  const [open, setOpenState] = React.useState<boolean>(() => isGeniusOpen());
+  const setOpen = React.useCallback((next: boolean) => setGeniusOpen(next), []);
+  React.useEffect(() => {
+    const unsubscribe = subscribeGeniusPanel(setOpenState);
+    return () => {
+      unsubscribe();
+    };
+  }, []);
   const [draft, setDraft] = React.useState('');
   const { context, script, actions, isLoading, isSpeaking, muted, setMuted, narrate, stop, replay } = useNarrator();
   const genius = useGenius();
@@ -234,9 +243,13 @@ export const GeniusOrb: React.FC = () => {
         <aside
           role="dialog"
           aria-label="Genius"
-          className="fixed bottom-24 right-5 z-[9998] w-[min(92vw,22rem)] overflow-hidden rounded-2xl border border-primary/25 bg-background/80 shadow-2xl backdrop-blur-2xl"
+          className="fixed bottom-24 right-5 z-[9998] w-[min(94vw,23.5rem)] overflow-hidden rounded-[1.75rem] border border-primary/25 bg-gradient-to-b from-background/85 via-background/70 to-background/85 shadow-[0_40px_120px_-40px_hsl(var(--primary)/0.55)] backdrop-blur-2xl ring-1 ring-inset ring-foreground/5"
         >
-          <header className="flex items-center gap-2 border-b border-border/50 px-4 py-3">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent"
+          />
+          <header className="flex items-center gap-2 border-b border-border/40 bg-foreground/[0.02] px-4 py-3">
             <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 to-teal/20">
               <Sparkles className={cn('h-3.5 w-3.5 text-primary', isSpeaking && 'animate-pulse')} />
             </span>
@@ -300,6 +313,26 @@ export const GeniusOrb: React.FC = () => {
               <p className="text-[11px] uppercase tracking-[0.2em] text-primary">
                 Listening… {voice.interimTranscript && <span className="normal-case tracking-normal text-muted-foreground">“{voice.interimTranscript}”</span>}
               </p>
+            )}
+
+            {!genius.turns.length && (
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {[
+                  'Read me this spread',
+                  'What does this cost installed?',
+                  'Show the concrete pools',
+                  'Compare the finishes',
+                  'Open the drawing board',
+                ].map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => void send(q)}
+                    className="rounded-full border border-border/50 bg-foreground/[0.03] px-2.5 py-1 text-[10px] tracking-[0.08em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             )}
 
             {chips.length > 0 && (

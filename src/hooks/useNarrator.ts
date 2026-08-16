@@ -14,6 +14,21 @@ import {
   type NarratorScript,
 } from '@/lib/narratorStore';
 
+/** Readings already recorded for this page, shared across every guest. */
+async function loadSavedReading(key: string): Promise<string | null> {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data } = await supabase
+      .from('narration_cache')
+      .select('script')
+      .eq('cache_key', key)
+      .maybeSingle();
+    return data?.script ?? null;
+  } catch {
+    return null;
+  }
+}
+
 const FUNCTIONS_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 /** Genius speaks at mid volume so the page is still comfortable to read. */
@@ -67,7 +82,7 @@ export function useNarrator() {
           const res = await fetch(`${FUNCTIONS_BASE}/narrate-voice`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ANON}` },
-            body: JSON.stringify({ text }),
+            body: JSON.stringify({ text, key }),
           });
           if (!res.ok) return; // voice is a bonus — the transcript still reads
           const blob = await res.blob();
@@ -108,7 +123,11 @@ export function useNarrator() {
         /* Text is written locally by the house copywriter — no paid text calls. */
         const manifest = getFlipManifest();
         const page = manifest ? manifest.pages[manifest.current] ?? null : null;
-        const data = generateFlipPitch({ context: ctx, branch: opts?.branch, manifest, page });
+        const local = generateFlipPitch({ context: ctx, branch: opts?.branch, manifest, page });
+        /* A reading recorded by an earlier guest is reused word for word so the
+           voice clip in the library still matches the transcript. */
+        const saved = await loadSavedReading(key);
+        const data = saved ? { ...local, script: saved } : local;
         cacheScript(key, data);
         historyRef.current = [...historyRef.current, ctx.title].slice(-4);
         setScript(data.script);
