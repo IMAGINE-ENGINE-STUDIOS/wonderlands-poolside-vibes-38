@@ -75,29 +75,37 @@ export function resolveDeckBoundaries(params: {
   if (!poolCurve || poolCurve.length < 3) return null;
 
   const copingOffset = copingEnabled ? Math.max(0, copingWidth) : 0;
-  let inner = sanitizeBoundary(generateOffsetCurve(poolCurve, copingOffset));
+  let inner = makeSimple(sanitizeBoundary(generateOffsetCurve(poolCurve, copingOffset)));
 
   // HARD RULE: the deck hole must always fully contain the pool opening, otherwise
   // pavers would be drawn on top of the water surface.
   if (!polygonContainsPolygon(inner, poolCurve)) {
-    const grown = sanitizeBoundary(
-      generateOffsetCurve(poolCurve, Math.max(copingOffset, 0.25) + 0.1)
+    const grown = makeSimple(
+      sanitizeBoundary(generateOffsetCurve(poolCurve, Math.max(copingOffset, 0.25) + 0.1))
     );
-    inner = polygonContainsPolygon(grown, poolCurve) ? grown : sanitizeBoundary(poolCurve);
+    inner = polygonContainsPolygon(grown, poolCurve)
+      ? grown
+      : makeSimple(sanitizeBoundary(poolCurve));
   }
 
-  const innerArea = Math.abs(calculatePolygonArea(to2D(inner)));
+  // Final guarantee: a hole that still isn't simple would be dropped by the
+  // triangulator, so fall back to the convex hull of the pool opening.
+  if (hasSelfIntersections(to2D(inner))) {
+    inner = to3D(calculateConvexHull(to2D(generateOffsetCurve(poolCurve, copingOffset))));
+  }
+
+  const innerArea = area2D(inner);
 
   const fallbackOuter = () =>
-    sanitizeBoundary(
-      generateOffsetCurve(poolCurve, copingOffset + Math.max(minDeckWidth, deckWidth))
+    makeSimple(
+      sanitizeBoundary(generateOffsetCurve(poolCurve, copingOffset + Math.max(minDeckWidth, deckWidth)))
     );
 
   let outer: P3[] | null = null;
 
   if (hardscapePoints && hardscapePoints.length >= 3) {
-    const candidate = sanitizeBoundary(hardscapePoints);
-    const candidateArea = Math.abs(calculatePolygonArea(to2D(candidate)));
+    const candidate = makeSimple(sanitizeBoundary(hardscapePoints));
+    const candidateArea = area2D(candidate);
     // Only trust the 2D hardscape outline when it genuinely encloses the coping edge
     // AND geometrically wraps around it (a shifted/offset outline would pave the water).
     if (
@@ -112,15 +120,13 @@ export function resolveDeckBoundaries(params: {
   if (!outer) outer = fallbackOuter();
 
   // Absolute safety net: outer must enclose inner, otherwise the ring is degenerate.
-  if (
-    Math.abs(calculatePolygonArea(to2D(outer))) <= innerArea ||
-    !polygonContainsPolygon(outer, inner)
-  ) {
-    outer = sanitizeBoundary(generateOffsetCurve(inner, Math.max(minDeckWidth, deckWidth)));
+  if (area2D(outer) <= innerArea || !polygonContainsPolygon(outer, inner)) {
+    outer = makeSimple(sanitizeBoundary(generateOffsetCurve(inner, Math.max(minDeckWidth, deckWidth))));
   }
 
   return { inner, outer };
 }
+
 
 /** Standard ray-casting point-in-polygon test (XZ plane). */
 export function pointInPolygon(point: P3, polygon: P3[]): boolean {
