@@ -237,6 +237,10 @@ const OptionChapter: React.FC<{
 
   const unitWord = (o: StudioOption) => (o.unit === "sqft" ? "sq ft" : "units");
 
+  /** Fitted as standard: no cost, already part of the product — never an add. */
+  const isIncluded = (o: StudioOption) =>
+    o.price === 0 && /included/i.test(o.priceLabel ?? "");
+
   const addOption = (o: StudioOption, qty = 1) => {
     const total = lineTotal(o, qty);
     cart?.addToCart({
