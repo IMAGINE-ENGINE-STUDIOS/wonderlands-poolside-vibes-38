@@ -109,7 +109,7 @@ const FlipPageTabs: React.FC<{
               onGo(tab.page);
             }}
             title={`${tab.label} — page ${tab.page + 1} (shift-click to recolour)`}
-            className={`pointer-events-auto animate-flip-tab-in whitespace-nowrap px-2.5 py-1.5 text-[8px] uppercase tracking-[0.28em] shadow-[6px_6px_18px_-10px_rgba(0,0,0,0.6)] transition-transform duration-300 ${
+            className={`pointer-events-auto animate-flip-tab-in max-w-[168px] truncate px-2.5 py-1.5 text-[8px] uppercase tracking-[0.28em] shadow-[6px_6px_18px_-10px_rgba(0,0,0,0.6)] transition-transform duration-300 ${
               side === "right"
                 ? "rounded-r-[3px] hover:translate-x-1"
                 : "rounded-l-[3px] hover:-translate-x-1"

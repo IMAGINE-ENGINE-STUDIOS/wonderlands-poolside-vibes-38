@@ -213,7 +213,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
       setPortrait(isPortrait);
       const ratio = isPortrait ? 1.38 : vw >= 1800 ? 1.02 : vw >= 1440 ? 1.1 : 1.24;
       const maxH = Math.max(420, Math.floor(vh * (isPortrait ? 0.76 : 0.86)));
-      const availableW = Math.min(vw - (isPortrait ? 32 : 120), 2400);
+      // V5 hangs chapter tabs off the outer border — reserve that gutter.
+      const chrome = isPortrait ? 32 : 120 + (isV5 ? 190 : 0);
+      const availableW = Math.min(vw - chrome, 2400);
       const wByWidth = isPortrait ? availableW : Math.floor(availableW / 2);
       const w = Math.max(260, Math.min(wByWidth, Math.floor(maxH / ratio)));
       setDims({ w, h: Math.round(w * ratio) });
@@ -221,7 +223,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, []);
+  }, [isV5]);
 
   // Load the selected category edition — served instantly from cache when warm.
   useEffect(() => {
