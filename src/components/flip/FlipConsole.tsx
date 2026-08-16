@@ -32,7 +32,12 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
   onSelect,
   onClose,
   onOpenSection,
+  onSelectEntry,
+  activeEntryId,
+  hideClose,
+  footerLabel,
 }) => {
+
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
   const [query, setQuery] = useState("");
 
