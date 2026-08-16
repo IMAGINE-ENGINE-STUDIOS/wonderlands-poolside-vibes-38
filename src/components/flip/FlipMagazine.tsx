@@ -1370,6 +1370,22 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
               className="relative"
               style={{ width: portrait ? dims.w : dims.w * 2, height: dims.h }}
             >
+              {/* Side arrows — left/right of the book */}
+              <button
+                onClick={flipPrev}
+                aria-label="Previous page"
+                className="absolute left-0 top-1/2 z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground shadow-lg backdrop-blur-md transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={flipNext}
+                aria-label="Next page"
+                className="absolute right-0 top-1/2 z-20 flex h-10 w-10 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground shadow-lg backdrop-blur-md transition-colors hover:bg-foreground hover:text-background"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+
             <HTMLFlipBook
               key={`${mode}-${categoryId}-${dossier?.id ?? "edition"}-${pages.length}-${dims.w}`}
               ref={bookRef}
