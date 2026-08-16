@@ -1424,6 +1424,7 @@ export function UnifiedPoolVisualizer({
             {texturesReady && (
               <R3FCanvas
                 shadows
+                dpr={[1, 1.5]} // Cap pixel ratio: HiDPI screens were rendering 2-4x the pixels
                 gl={{ 
                   preserveDrawingBuffer: false, // Changed to false for better memory
                   antialias: true,
@@ -1431,6 +1432,7 @@ export function UnifiedPoolVisualizer({
                   powerPreference: "high-performance",
                   failIfMajorPerformanceCaveat: false // Don't fail on slower devices
                 }}
+
                 onCreated={({ gl, scene }) => {
                   console.log('✅ WebGL Context Created');
                   
