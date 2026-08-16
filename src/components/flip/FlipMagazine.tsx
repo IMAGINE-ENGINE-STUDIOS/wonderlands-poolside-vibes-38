@@ -1330,8 +1330,13 @@ const FlipMagazine: React.FC = () => {
               className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
               onFlip={(e: any) => setPage(e.data as number)}
             >
-              {pages.map((p) => (
-                <Leaf key={p.key} tone={p.tone}>
+              {pages.map((p, i) => (
+                <Leaf
+                  key={p.key}
+                  tone={p.tone}
+                  tag={pageTagLabel(p.key)}
+                  side={portrait ? "right" : i % 2 === 0 ? "left" : "right"}
+                >
                   {p.render()}
                 </Leaf>
               ))}
