@@ -18,6 +18,8 @@ import { DeckBorderGeometry } from './scene3d/DeckBorderGeometry';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 import { resolveDeckBoundaries, sanitizeBoundary } from '@/utils/deckSurface';
+import { mitredOffsetRing } from '@/utils/polygonGeometry';
+
 import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, generateOffsetCurve } from '@/utils/curveUtils';
