@@ -1806,6 +1806,39 @@ export type Database = {
           },
         ]
       }
+      narration_cache: {
+        Row: {
+          audio_path: string | null
+          cache_key: string
+          created_at: string
+          id: string
+          plays: number
+          script: string
+          updated_at: string
+          voice: string
+        }
+        Insert: {
+          audio_path?: string | null
+          cache_key: string
+          created_at?: string
+          id?: string
+          plays?: number
+          script: string
+          updated_at?: string
+          voice?: string
+        }
+        Update: {
+          audio_path?: string | null
+          cache_key?: string
+          created_at?: string
+          id?: string
+          plays?: number
+          script?: string
+          updated_at?: string
+          voice?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
