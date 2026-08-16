@@ -470,19 +470,13 @@ export function mitredOffsetRing(
       offset.push({ x: p.x + bx * dist * scale, z: p.z + bz * dist * scale });
       sourceIndex.push(i);
     } else {
-      // Bevel the tip: one offset vertex per incident edge, clipped back to the
-      // miter limit so the band keeps its width without shooting a spike.
-      const capped = miterLimit;
+      // Bevel the tip: one offset vertex per incident edge, each exactly |dist|
+      // perpendicular from its own edge. The tip is cut square instead of shooting
+      // a spike, and the band width stays constant along both edges.
       base.push({ ...p }, { ...p });
       offset.push(
-        {
-          x: p.x + (nPrev.x + bx * (capped - 1)) * dist,
-          z: p.z + (nPrev.z + bz * (capped - 1)) * dist,
-        },
-        {
-          x: p.x + (nNext.x + bx * (capped - 1)) * dist,
-          z: p.z + (nNext.z + bz * (capped - 1)) * dist,
-        }
+        { x: p.x + nPrev.x * dist, z: p.z + nPrev.z * dist },
+        { x: p.x + nNext.x * dist, z: p.z + nNext.z * dist }
       );
       sourceIndex.push(i, i);
     }
