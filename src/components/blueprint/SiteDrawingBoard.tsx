@@ -209,6 +209,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const [draft, setDraft] = React.useState<{ x: number; y: number }[]>([]);
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
+  const [selectedVertex, setSelectedVertex] = React.useState<number | null>(null);
+
   const [showGrid, setShowGrid] = React.useState(true);
   const [calibration, setCalibration] = React.useState<{ x: number; y: number }[]>([]);
   const drag = React.useRef<
