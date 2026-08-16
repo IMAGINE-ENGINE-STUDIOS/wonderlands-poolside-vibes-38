@@ -23,7 +23,7 @@ import { useNarrator } from '@/hooks/useNarrator';
 import { useGenius } from '@/hooks/useGenius';
 import type { GeniusCartAdapter } from '@/lib/geniusCartCommands';
 import { useVoiceSession } from '@/hooks/useVoiceSession';
-import { playGeniusVoice, stopGeniusVoice } from '@/lib/geniusVoiceChannel';
+import { playGeniusVoice } from '@/lib/geniusVoiceChannel';
 import { useOptionalShoppingCart } from '@/components/ShoppingCartProvider';
 import { safeGeniusPath } from '@/lib/geniusAccess';
 import { getFlipControls, turnToPageNumber } from '@/lib/flipPageRegistry';
