@@ -12,6 +12,8 @@ import QuoteStudioConfigurator, {
 import QuoteCalculators from "@/components/quote/QuoteCalculators";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { toast } from "@/hooks/use-toast";
+
 import { useNavigate } from "react-router-dom";
 import { Calendar, Search, PenTool, X, Loader2 } from "lucide-react";
 
