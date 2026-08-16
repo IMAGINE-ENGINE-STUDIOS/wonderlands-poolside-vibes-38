@@ -237,6 +237,10 @@ const OptionChapter: React.FC<{
 
   const unitWord = (o: StudioOption) => (o.unit === "sqft" ? "sq ft" : "units");
 
+  /** Fitted as standard: no cost, already part of the product — never an add. */
+  const isIncluded = (o: StudioOption) =>
+    o.price === 0 && /included/i.test(o.priceLabel ?? "");
+
   const addOption = (o: StudioOption, qty = 1) => {
     const total = lineTotal(o, qty);
     cart?.addToCart({
@@ -288,21 +292,32 @@ const OptionChapter: React.FC<{
           ) : null}
           <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em]">{o.label}</span>
           <span className="shrink-0 font-serif text-[11px] text-muted-foreground">{o.priceLabel}</span>
-          <button
-            type="button"
-            aria-label={`Add ${o.label} to the order`}
-            onClick={(e) => {
-              e.stopPropagation();
-              requestAdd(o);
-            }}
-            className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
-              inOrder(o)
-                ? "border-foreground bg-foreground text-background"
-                : "border-border/70 hover:bg-foreground hover:text-background"
-            }`}
-          >
-            {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-          </button>
+          {isIncluded(o) ? (
+            /* fitted as standard — nothing to add, so the row is marked, not offered */
+            <span
+              title="Included as standard"
+              className="flex h-6 shrink-0 items-center gap-1 border border-foreground/30 bg-foreground/[0.06] px-2 text-[8px] uppercase tracking-[0.25em] text-muted-foreground"
+            >
+              <Check className="h-3 w-3" />
+              Standard
+            </span>
+          ) : (
+            <button
+              type="button"
+              aria-label={`Add ${o.label} to the order`}
+              onClick={(e) => {
+                e.stopPropagation();
+                requestAdd(o);
+              }}
+              className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
+                inOrder(o)
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border/70 hover:bg-foreground hover:text-background"
+              }`}
+            >
+              {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+            </button>
+          )}
 
           {/* unit-priced options are measured before they enter the estimate, exactly as in the studio */}
           {measure?.label === o.label && (
