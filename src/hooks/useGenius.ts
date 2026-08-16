@@ -132,7 +132,11 @@ export function useGenius(options?: GeniusOptions) {
         ]);
       }
 
-      /* 5 — the book, the catalog and the pages */
+      /* 5 — the showroom, when its widgets are on screen */
+      const showroom = resolveShowroomRequest(text);
+      if (showroom.handled) return settle(showroom.reply, showroom.actions);
+
+      /* 6 — the book, the catalog and the pages */
       const resolution = resolveGeniusRequest(text);
       if (resolution.handled) return settle(resolution.reply, resolution.actions);
 
