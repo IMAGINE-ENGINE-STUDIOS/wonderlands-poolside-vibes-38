@@ -1609,7 +1609,9 @@ export function UnifiedPoolVisualizer({
               selectedSplinePointId={selectedSplinePointId}
               onSelectSplinePoint={setSelectedSplinePointId}
               showWireframe={showWireframe}
+              showGrid={showGrid}
               showRulers={showWireframe} 
+
               showDebugBoundaries={showDebugBoundaries}
               onDebugBoundariesChange={setShowDebugBoundaries}
             />
