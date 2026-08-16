@@ -429,43 +429,39 @@ export const GeniusOrb: React.FC = () => {
           >
             <button
               type="button"
-              onClick={() => {
-                if (voice.isSupported) {
-                  voice.isListening ? voice.stopListening() : voice.startListening();
-                  return;
-                }
-                recorder.isRecording ? void recorder.stop() : void recorder.start();
-              }}
-              disabled={recorder.isTranscribing}
+              onClick={() => (mic.permission === 'granted' ? mic.toggle() : void mic.requestPermission())}
+              disabled={mic.phase === 'transcribing' || mic.permission === 'denied'}
               aria-label={
-                voice.isListening || recorder.isRecording ? 'Stop talking to Genius' : 'Talk to Genius'
+                mic.permission === 'denied'
+                  ? 'Microphone blocked'
+                  : mic.permission !== 'granted'
+                    ? 'Allow the microphone so Genius can listen'
+                    : mic.listening
+                      ? 'Stop talking to Genius'
+                      : 'Talk to Genius'
               }
               className={cn(
-                'rounded-full border border-primary/30 p-2 text-primary transition-colors hover:bg-primary/10 disabled:opacity-50',
-                (voice.isListening || recorder.isRecording) && 'animate-pulse bg-primary/15',
+                'inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/30 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/10 disabled:opacity-50',
+                mic.listening && 'animate-pulse bg-primary/15 text-foreground',
               )}
             >
-              {voice.isListening || recorder.isRecording ? (
-                <MicOff className="h-3.5 w-3.5" />
-              ) : (
-                <Mic className="h-3.5 w-3.5" />
-              )}
+              {mic.listening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+              {mic.permission === 'denied'
+                ? 'Blocked'
+                : mic.permission !== 'granted'
+                  ? 'Allow mic'
+                  : mic.listening
+                    ? 'Stop'
+                    : 'Talk'}
             </button>
             <button
               type="button"
-              onClick={() => {
-                const next = !handsFree;
-                setHandsFree(next);
-                if (voice.isSupported) {
-                  if (next && !voice.isListening) voice.startListening();
-                  if (!next && voice.isListening) voice.stopListening();
-                }
-              }}
-              aria-label={handsFree ? 'Leave hands-free conversation' : 'Talk hands-free with Genius'}
-              aria-pressed={handsFree}
+              onClick={() => void mic.setHandsFree(!mic.handsFree)}
+              aria-label={mic.handsFree ? 'Leave hands-free conversation' : 'Talk hands-free with Genius'}
+              aria-pressed={mic.handsFree}
               className={cn(
-                'rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.16em] transition-colors',
-                handsFree
+                'shrink-0 rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.16em] transition-colors',
+                mic.handsFree
                   ? 'border-primary/50 bg-primary/15 text-foreground'
                   : 'border-border/50 text-muted-foreground hover:text-foreground',
               )}
