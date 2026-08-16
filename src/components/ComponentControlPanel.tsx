@@ -17,6 +17,12 @@ import {
 } from '@/data/textureLibrary';
 
 // Component order for auto-advance after texture selection
+import {
+  COPING_EDGE_PROFILES,
+  DEFAULT_COPING_EDGE_PROFILE,
+  copingSupportsBullnose,
+} from '@/data/copingEdgeProfiles';
+
 const COMPONENT_ORDER: Array<'pool' | 'deck' | 'coping' | 'waterline'> = ['pool', 'coping', 'waterline', 'deck'];
 
 /** Catalog-backed fallback so every gallery matches Wonderlands Studio. */
