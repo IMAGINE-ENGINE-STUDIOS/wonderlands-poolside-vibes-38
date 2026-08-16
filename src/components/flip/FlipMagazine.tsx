@@ -812,6 +812,7 @@ const FlipMagazine: React.FC = () => {
               className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30" />
+            <OpenBookMedallion entry={p} />
             <div className="relative flex h-full flex-col justify-end p-8 text-white sm:p-10">
               <p className="text-[9px] uppercase tracking-[0.4em] opacity-80">
                 {number} — {p.brand ?? category.label}
@@ -821,9 +822,9 @@ const FlipMagazine: React.FC = () => {
               <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-white/25 pt-4">
                 <p className="font-serif text-2xl font-light">{formatEntryPrice(p) || "On request"}</p>
                 <AddButton entry={p} tone="dark" />
-                <MoreButton entry={p} tone="dark" />
               </div>
             </div>
+
           </div>
         ),
       });
