@@ -262,12 +262,15 @@ const FlipMagazine: React.FC = () => {
   const swap = useCallback((apply: () => void) => {
     setFading(true);
     if (swapTimer.current) window.clearTimeout(swapTimer.current);
+    // Swap only after the fade-out has fully completed, so the reader never
+    // catches the edition changing mid-dissolve.
     swapTimer.current = window.setTimeout(() => {
       startPageRef.current = 0;
       setPage(0);
       apply();
-    }, 220);
+    }, 420);
   }, []);
+
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
 
   const openCategory = useCallback(
