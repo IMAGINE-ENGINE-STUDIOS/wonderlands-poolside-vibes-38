@@ -1,10 +1,16 @@
 import {
   measureSitePlan,
+  siteShapeOutline,
   SITE_LAYERS,
   type SitePlanData,
   type SiteLayerId,
   type SiteShape,
 } from "@/components/blueprint/SiteDrawingBoard";
+import { computeNetPaverArea, isNonPaverSurface } from "@/utils/paverAreaLogic";
+
+const layerLabel = (id: SiteLayerId) =>
+  SITE_LAYERS.find((l) => l.id === id)?.label ?? id;
+
 
 /**
  * Pricing and dimensions taken straight off the drawn site plan.
@@ -48,9 +54,28 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
   const areas = measureSitePlan(data);
   const lines: SiteEstimateLine[] = [];
 
+  // Surfaces that need nothing underneath them are cut out of the paved layers.
+  const exclusionPolygons = data.shapes
+    .filter((s) => isNonPaverSurface(s.layer) || isNonPaverSurface(layerLabel(s.layer)))
+    .map((s) => siteShapeOutline(s).map((p) => ({ x: p.x, y: p.y })));
+
+  const netPaved = (layer: SiteLayerId) =>
+    computeNetPaverArea({
+      deckPolygons: data.shapes
+        .filter((s) => s.layer === layer)
+        .map((s) => siteShapeOutline(s).map((p) => ({ x: p.x, y: p.y }))),
+      exclusionPolygons,
+      pxPerFt: data.pxPerFt || 1,
+    });
+
+  const pavedLayers: SiteLayerId[] = ['deck', 'patio', 'driveway'];
+  const netByLayer = new Map<SiteLayerId, number>(
+    pavedLayers.map((l) => [l, netPaved(l)])
+  );
+
   SITE_LAYERS.forEach((l) => {
     const rate = SITE_RATES[l.id];
-    const sqFt = Math.round(areas.byLayer[l.id] ?? 0);
+    const sqFt = Math.round(netByLayer.get(l.id) ?? areas.byLayer[l.id] ?? 0);
     if (!rate || sqFt <= 0) return;
     lines.push({
       label: l.label,
@@ -58,6 +83,7 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       amount: sqFt * rate,
     });
   });
+
 
   if (areas.fenceLinearFt > 0) {
     lines.push({

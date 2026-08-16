@@ -31,6 +31,8 @@ import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet }
 import { UnifiedPoolVisualizer } from './UnifiedPoolVisualizer';
 import { poolBuilderToScene, buildTextureLibrary } from './scene3d/PoolBuilderConverter';
 import { TextureBuilder, type TextureConfig } from './TextureBuilder';
+import { computeNetPaverArea, isNonPaverSurface } from '@/utils/paverAreaLogic';
+
 interface Point {
   x: number;
   y: number;
@@ -1554,19 +1556,39 @@ export function PoolBuilder({
   };
 
   // Calculate hardscape area
+  // Billable paver deck = drawn deck area minus every surface that needs nothing
+  // underneath it (pool, spa, tanning ledge, grass/greenland, bushes, planters,
+  // gravel, sand, dirt, beach, lagoon, lake, ponds and other water features).
   const calculateHardscapeArea = useCallback(() => {
     if (hardscapePoints.length < 3) return 0;
-    let area = 0;
-    for (let i = 0; i < hardscapePoints.length; i++) {
-      const current = hardscapePoints[i];
-      const next = hardscapePoints[(i + 1) % hardscapePoints.length];
-      area += current.x * next.y - next.x * current.y;
-    }
-    const sqPixels = Math.abs(area / 2);
-    const hardscapeAreaSqFt = sqPixels / (scale * scale);
-    const poolAreaSqFt = parseFloat(calculateArea());
-    return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
-  }, [hardscapePoints, scale, points]);
+
+    const exclusions: { x: number; y: number }[][] = [];
+    if (points.length >= 3) exclusions.push(points.map(p => ({ x: p.x, y: p.y })));
+    additionalPools.forEach(pool => {
+      if (pool.points && pool.points.length >= 3) {
+        exclusions.push(pool.points.map(p => ({ x: p.x, y: p.y })));
+      }
+    });
+    // Circular/organic footprints (grass regions, planters, ponds, gravel beds…)
+    features.forEach(f => {
+      if (!isNonPaverSurface(f.type)) return;
+      const r = f.radius ?? 0;
+      if (r <= 0) return;
+      const ring: { x: number; y: number }[] = [];
+      for (let i = 0; i < 24; i++) {
+        const a = (i / 24) * Math.PI * 2;
+        ring.push({ x: f.x + Math.cos(a) * r, y: f.y + Math.sin(a) * r });
+      }
+      exclusions.push(ring);
+    });
+
+    return computeNetPaverArea({
+      deckPolygons: [hardscapePoints.map(p => ({ x: p.x, y: p.y }))],
+      exclusionPolygons: exclusions,
+      pxPerFt: scale,
+    });
+  }, [hardscapePoints, scale, points, additionalPools, features]);
+
 
   // Shift-constrain: force a perfectly straight segment from the last placed point,
   // snapped to the nearest 15° direction so any direction the user aims stays straight.
