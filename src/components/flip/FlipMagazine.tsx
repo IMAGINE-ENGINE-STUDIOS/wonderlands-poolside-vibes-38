@@ -459,18 +459,18 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
     return { images, captions };
   }, [entries, category]);
 
-  /** Opens a model's book inside the same flip, with the editorial cross-fade. */
+  /** Opens a model's book inside the same flip, with the page-flip trans motion. */
   const openDossier = useCallback(
     (p: ConsoleEntry) => {
-      if (isV5) {
-        setRiffleTarget(p);
-        setRiffling(true);
-        if (riffleTimer.current) window.clearTimeout(riffleTimer.current);
-        riffleTimer.current = window.setTimeout(() => setRiffling(false), 1250);
-      }
+      flipMotion.play({
+        label: `Turning to ${p.name}`,
+        images: [p.image, ...rifflePlates.images].filter(Boolean) as string[],
+        captions: [p.name, ...rifflePlates.captions],
+        destination: p.image,
+      });
       swap(() => setDossier(p));
     },
-    [swap, isV5],
+    [swap, flipMotion, rifflePlates],
   );
   const closeDossier = useCallback(() => swap(() => setDossier(null)), [swap]);
 
