@@ -7,7 +7,7 @@ import FlipConsoleEdition from "@/components/flip/FlipConsoleEdition";
 import FlipDossierEdition from "@/components/flip/FlipDossierEdition";
 import FlipBuilder from "@/components/flip/FlipBuilder";
 
-type VersionId = "v1" | "v2" | "v3" | "v4" | "v5" | "builder";
+type VersionId = "v1" | "v2" | "v3" | "v4" | "v5" | "v6" | "builder";
 
 const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[] = [
   {
