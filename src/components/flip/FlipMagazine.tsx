@@ -382,6 +382,29 @@ const FlipMagazine: React.FC = () => {
     </button>
   );
 
+  /**
+   * Centred medallion over a product plate — the single, unmistakable invitation
+   * to open that model's book. Used once per product, on the image page only.
+   */
+  const OpenBookMedallion: React.FC<{ entry: ConsoleEntry }> = ({ entry }) => (
+    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+      <button
+        onClick={() => openDossier(entry)}
+        title={`Open the ${entry.name} book`}
+        aria-label={`Open the ${entry.name} book`}
+        className="group pointer-events-auto relative flex h-28 w-28 flex-col items-center justify-center rounded-full border border-primary-foreground/40 bg-primary-foreground/10 text-primary-foreground backdrop-blur-md transition-all duration-500 ease-out hover:h-32 hover:w-32 hover:border-primary-foreground/80 hover:bg-primary-foreground hover:text-primary sm:h-32 sm:w-32 sm:hover:h-36 sm:hover:w-36"
+        style={{ boxShadow: "0 18px 50px -18px rgba(0,0,0,0.65)" }}
+      >
+        <span className="absolute inset-0 rounded-full border border-primary-foreground/30 animate-ping opacity-40 [animation-duration:2.8s]" />
+        <span className="absolute inset-[7px] rounded-full border border-primary-foreground/20 transition-colors group-hover:border-primary/25" />
+        <BookOpen className="h-5 w-5 transition-transform duration-500 group-hover:scale-110" />
+        <span className="mt-2 text-[8px] uppercase tracking-[0.32em]">Open</span>
+        <span className="text-[8px] uppercase tracking-[0.32em] opacity-70">the book</span>
+      </button>
+    </div>
+  );
+
+
   /** Product title that opens the model's own book in place — no screen change. */
   const ProductTitle: React.FC<{ entry: ConsoleEntry; className?: string }> = ({ entry, className = "" }) => (
     <button
@@ -789,6 +812,7 @@ const FlipMagazine: React.FC = () => {
               className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30" />
+            <OpenBookMedallion entry={p} />
             <div className="relative flex h-full flex-col justify-end p-8 text-white sm:p-10">
               <p className="text-[9px] uppercase tracking-[0.4em] opacity-80">
                 {number} — {p.brand ?? category.label}
@@ -798,9 +822,9 @@ const FlipMagazine: React.FC = () => {
               <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-white/25 pt-4">
                 <p className="font-serif text-2xl font-light">{formatEntryPrice(p) || "On request"}</p>
                 <AddButton entry={p} tone="dark" />
-                <MoreButton entry={p} tone="dark" />
               </div>
             </div>
+
           </div>
         ),
       });
@@ -844,14 +868,11 @@ const FlipMagazine: React.FC = () => {
               ))}
             </ul>
             <div className="mt-auto border-t border-border/50 pt-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <AddButton entry={p} />
-                <MoreButton entry={p} />
-              </div>
-              <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+              <p className="text-[10px] leading-relaxed text-muted-foreground">
                 Price includes installation at your home address.
               </p>
             </div>
+
           </div>
         ),
       });
