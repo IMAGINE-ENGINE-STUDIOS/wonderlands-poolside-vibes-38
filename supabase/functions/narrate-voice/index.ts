@@ -62,7 +62,6 @@ serve(async (req) => {
     if (admin && path) {
       const { data: existing } = await admin.storage.from(BUCKET).download(path);
       if (existing) {
-        await admin.rpc as unknown; // no-op placeholder removed below
         const bytes = new Uint8Array(await existing.arrayBuffer());
         const { data: row } = await admin
           .from("narration_cache")
