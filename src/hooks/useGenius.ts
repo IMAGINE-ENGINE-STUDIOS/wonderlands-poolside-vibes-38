@@ -1,11 +1,7 @@
 import * as React from 'react';
-import { toast } from 'sonner';
 import { getNarratorContext, type NarratorAction } from '@/lib/narratorStore';
-import { geniusRouteMap } from '@/lib/geniusAccess';
-import { getAllProducts } from '@/data/poolProductLookup';
-
-const FUNCTIONS_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
-const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+import { resolveGeniusRequest, bookChips } from '@/lib/geniusFlipBrain';
+import { flipManifestDigest } from '@/lib/flipPageRegistry';
 
 export interface GeniusTurn {
   id: string;
@@ -13,71 +9,40 @@ export interface GeniusTurn {
   content: string;
 }
 
-/** Catalog digest, built once — Genius reads real names, categories and prices. */
-let catalogDigest: string | null = null;
-function getCatalogDigest() {
-  if (catalogDigest) return catalogDigest;
-  catalogDigest = getAllProducts()
-    .map((p) => {
-      const bits = [p.name, p.category, p.price ? `$${p.price.toLocaleString()}` : ''];
-      if (p.dimensions) bits.push(p.dimensions);
-      if (p.depth) bits.push(p.depth);
-      return bits.filter(Boolean).join(' — ');
-    })
-    .join('\n');
-  return catalogDigest;
-}
-
 /**
- * Genius — the Wonderlands conversational guide. Holds the conversation, keeps
- * the page context attached, and hands back spoken replies plus action chips.
+ * Genius — the Wonderlands guide, focused on the FLIP book.
+ *
+ * All of her language is composed locally (see `geniusFlipBrain` and
+ * `flipPitchGenerator`): she reads the live page registry, the product catalog
+ * and the open edition, then turns pages, opens editions and answers in house
+ * voice. No paid text service is used — the voice is the only billed step.
  */
 export function useGenius() {
   const [turns, setTurns] = React.useState<GeniusTurn[]>([]);
   const [actions, setActions] = React.useState<NarratorAction[]>([]);
   const [isThinking, setIsThinking] = React.useState(false);
-  const turnsRef = React.useRef<GeniusTurn[]>([]);
-  turnsRef.current = turns;
 
   const ask = React.useCallback(
-    async (message: string, cartSummary?: string): Promise<string | null> => {
+    async (message: string, _cartSummary?: string): Promise<string | null> => {
       const text = message.trim();
       if (!text || isThinking) return null;
 
-      const userTurn: GeniusTurn = { id: `u-${Date.now()}`, role: 'user', content: text };
-      setTurns((prev) => [...prev, userTurn]);
+      setTurns((prev) => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
       setActions([]);
       setIsThinking(true);
 
-      try {
-        const res = await fetch(`${FUNCTIONS_BASE}/genius`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ANON}` },
-          body: JSON.stringify({
-            messages: [...turnsRef.current, userTurn].map(({ role, content }) => ({ role, content })),
-            context: getNarratorContext() ?? { route: window.location.pathname },
-            routes: geniusRouteMap(),
-            catalog: getCatalogDigest(),
-            cart: cartSummary,
-          }),
-        });
+      /* Resolution is instant and local — the pause is only for a human rhythm. */
+      const resolution = resolveGeniusRequest(text);
+      const ctx = getNarratorContext();
+      const reply =
+        resolution.handled || !ctx
+          ? resolution.reply
+          : `${resolution.reply} You are reading ${ctx.title} right now.`;
 
-        if (!res.ok) {
-          const body = (await res.json().catch(() => ({}))) as { error?: string };
-          toast.error(body.error || 'Genius is unavailable right now.');
-          return null;
-        }
-
-        const data = (await res.json()) as { reply: string; actions?: NarratorAction[] };
-        setTurns((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: data.reply }]);
-        setActions(data.actions ?? []);
-        return data.reply;
-      } catch {
-        toast.error('Genius could not be reached.');
-        return null;
-      } finally {
-        setIsThinking(false);
-      }
+      setTurns((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: reply }]);
+      setActions(resolution.actions.length ? resolution.actions : bookChips());
+      setIsThinking(false);
+      return reply;
     },
     [isThinking],
   );
@@ -87,7 +52,10 @@ export function useGenius() {
     setActions([]);
   }, []);
 
-  return { turns, actions, isThinking, ask, reset };
+  /** The open book, as Genius sees it — handy for debugging and for chips. */
+  const bookDigest = React.useCallback(() => flipManifestDigest(), []);
+
+  return { turns, actions, isThinking, ask, reset, bookDigest };
 }
 
 export default useGenius;
