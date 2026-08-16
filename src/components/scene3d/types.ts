@@ -1,4 +1,5 @@
 // Types for the unified 3D scene system
+import type { CopingEdgeProfileId } from '@/data/copingEdgeProfiles';
 
 export type PointType = 'linear' | 'curve' | 'smooth' | 'corner';
 
