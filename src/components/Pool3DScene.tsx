@@ -17,6 +17,7 @@ import { CopingGeometry } from './scene3d/CopingGeometry';
 import { DeckBorderGeometry } from './scene3d/DeckBorderGeometry';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
+import { resolveDeckBoundaries, sanitizeBoundary } from '@/utils/deckSurface';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, normalize2DTo3D, generateOffsetCurve } from '@/utils/curveUtils';
@@ -703,164 +704,77 @@ const Terrain3DModel: React.FC<{ poolPoints: Point[]; copingWidth?: number; pool
 };
 
 // Fallback Grass Terrain Component with Pool/Deck Cutout
-const GrassTerrainFallback: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number]; hardscapePoints?: HardscapePoint[]; deckWidth?: number }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0], hardscapePoints, deckWidth = 3 }) => {
+// Receives the SAME normalized curves used by the deck so the grass cutout can never
+// be larger than the paved area (no empty terrain crops).
+const GrassTerrainFallback: React.FC<{
+  poolCurve3D?: Array<{ x: number; z: number }>;
+  hardscapeCurve3D?: Array<{ x: number; z: number }>;
+  copingWidth?: number;
+  copingEnabled?: boolean;
+  poolPosition?: [number, number, number];
+  deckWidth?: number;
+}> = ({ poolCurve3D = [], hardscapeCurve3D, copingWidth = 1.0, copingEnabled = true, poolPosition = [0, 0, 0], deckWidth = 3 }) => {
   const texture = useTexture(grassTexture);
-  
+
   const terrainGeometry = useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(200, 200);
-    
-    // Create terrain shape (10000ft x 10000ft centered at origin)
+
     const terrainShape = new THREE.Shape();
     terrainShape.moveTo(-5000, -5000);
     terrainShape.lineTo(5000, -5000);
     terrainShape.lineTo(5000, 5000);
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
-    
-    // Create hole that encompasses the entire deck area (or pool + coping if no deck)
-    // This ensures no grass renders inside pool OR deck area
+
     try {
-      // Priority: Use hardscape/deck points if available, otherwise fallback to pool + coping offset
-      if (hardscapePoints && hardscapePoints.length >= 3) {
-        // USE DECK BOUNDARY as the terrain cutout
-        const deckCurve2D = hardscapePoints.map(p => ({ x: p.x, y: p.y }));
-        const smoothDeckCurve = generateCurvedPoolPoints(deckCurve2D, 30, 0.3);
-        
-        if (smoothDeckCurve.length >= 3) {
-          // Normalize coordinates (center at origin like pool)
-          const minX = Math.min(...smoothDeckCurve.map(p => p.x));
-          const maxX = Math.max(...smoothDeckCurve.map(p => p.x));
-          const minY = Math.min(...smoothDeckCurve.map(p => p.y));
-          const maxY = Math.max(...smoothDeckCurve.map(p => p.y));
-          const centerX = (minX + maxX) / 2;
-          const centerY = (minY + maxY) / 2;
-          
-          // Need to match the same centering as pool walls
-          const poolMinX = Math.min(...poolPoints.map(p => p.x));
-          const poolMaxX = Math.max(...poolPoints.map(p => p.x));
-          const poolMinY = Math.min(...poolPoints.map(p => p.y));
-          const poolMaxY = Math.max(...poolPoints.map(p => p.y));
-          const poolCenterX = (poolMinX + poolMaxX) / 2;
-          const poolCenterY = (poolMinY + poolMaxY) / 2;
-          
-          // Use pool center for normalization (deck and pool share coordinate system)
-          const normalizedDeckPoints = smoothDeckCurve.map(p => ({
-            x: p.x - poolCenterX,
-            y: p.y - poolCenterY
-          }));
-          
-          // Add small outward offset to avoid z-fighting at deck edges
-          const deck3D = normalizedDeckPoints.map(p => ({ x: p.x, z: p.y }));
-          const offsetDeck = generateOffsetCurve(deck3D, 0.15);
-          const deckHolePoints = offsetDeck.map(p => ({ x: p.x, y: p.z }));
-          
-          const validatedPoints = validateAndRepairPolygon(deckHolePoints, {
-            maxVertices: 120,
-            simplifyEpsilon: 0.3,
-            fallbackToConvexHull: true,
-            fallbackToBoundingBox: true
-          });
-          
-          const ccwPoints = ensureCounterClockwise(validatedPoints);
-          
-          if (ccwPoints.length >= 3) {
-            const deckHole = new THREE.Path();
-            deckHole.moveTo(ccwPoints[0].x, ccwPoints[0].y);
-            for (let i = 1; i < ccwPoints.length; i++) {
-              deckHole.lineTo(ccwPoints[i].x, ccwPoints[i].y);
-            }
-            deckHole.closePath();
-            terrainShape.holes.push(deckHole);
-            
-            console.log('✅ GrassTerrain: Created DECK-based hole with', ccwPoints.length, 'points');
-          }
+      const boundaries = resolveDeckBoundaries({
+        poolCurve: poolCurve3D,
+        hardscapePoints: hardscapeCurve3D,
+        copingWidth,
+        copingEnabled,
+        deckWidth: Math.max(3, deckWidth),
+        minDeckWidth: 3,
+      });
+
+      if (boundaries) {
+        // Shrink the cutout slightly INWARD so grass always tucks UNDER the deck slab.
+        // An outward cutout is what produced empty untextured rings before.
+        const inset = generateOffsetCurve(boundaries.outer, -0.2);
+        const holePoints = sanitizeBoundary(inset).map(p => ({
+          x: p.x + poolPosition[0],
+          y: p.z + poolPosition[2],
+        }));
+
+        if (holePoints.length >= 3) {
+          const hole = new THREE.Path();
+          hole.moveTo(holePoints[0].x, holePoints[0].y);
+          for (let i = 1; i < holePoints.length; i++) hole.lineTo(holePoints[i].x, holePoints[i].y);
+          hole.closePath();
+          terrainShape.holes.push(hole);
         }
-      } else if (poolPoints.length >= 3) {
-        // Fallback: Use pool + coping + deck width offset
-        const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
-        const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
-        
-        if (smoothPoolCurve.length >= 3) {
-          const minX = Math.min(...smoothPoolCurve.map(p => p.x));
-          const maxX = Math.max(...smoothPoolCurve.map(p => p.x));
-          const minY = Math.min(...smoothPoolCurve.map(p => p.y));
-          const maxY = Math.max(...smoothPoolCurve.map(p => p.y));
-          const centerX = (minX + maxX) / 2;
-          const centerY = (minY + maxY) / 2;
-          
-          const normalizedPoints3D = smoothPoolCurve.map(p => ({
-            x: p.x - centerX,
-            z: p.y - centerY
-          }));
-          
-          // Offset by coping + deck width to cover the entire paved area
-          const totalOffset = copingWidth + deckWidth + 0.1;
-          const offsetPoints = generateOffsetCurve(normalizedPoints3D, totalOffset);
-          
-          const normalizedPoints = offsetPoints.map(p => ({
-            x: p.x,
-            y: p.z
-          }));
-          
-          const validatedPoints = validateAndRepairPolygon(normalizedPoints, {
-            maxVertices: 120,
-            simplifyEpsilon: 0.3,
-            fallbackToConvexHull: true,
-            fallbackToBoundingBox: true
-          });
-          
-          const ccwPoints = ensureCounterClockwise(validatedPoints);
-          
-          if (ccwPoints.length >= 3) {
-            const poolHole = new THREE.Path();
-            poolHole.moveTo(ccwPoints[0].x, ccwPoints[0].y);
-            for (let i = 1; i < ccwPoints.length; i++) {
-              poolHole.lineTo(ccwPoints[i].x, ccwPoints[i].y);
-            }
-            poolHole.closePath();
-            terrainShape.holes.push(poolHole);
-            
-            console.log('✅ GrassTerrain: Created pool+deck offset hole with', ccwPoints.length, 'points');
-          }
-        }
-      } else {
-        console.warn('⚠️ GrassTerrain: Not enough pool points for hole, using default');
-        const poolHole = new THREE.Path();
-        poolHole.moveTo(-10, -20);
-        poolHole.lineTo(10, -20);
-        poolHole.lineTo(10, 20);
-        poolHole.lineTo(-10, 20);
-        poolHole.closePath();
-        terrainShape.holes.push(poolHole);
       }
     } catch (error) {
-      console.error('❌ GrassTerrain: Error creating terrain hole, using fallback:', error);
+      // No hole is always safer than a hole with nothing under it.
+      console.warn('GrassTerrain: cutout skipped', error);
       terrainShape.holes = [];
-      const poolHole = new THREE.Path();
-      poolHole.moveTo(-10, -20);
-      poolHole.lineTo(10, -20);
-      poolHole.lineTo(10, 20);
-      poolHole.lineTo(-10, 20);
-      poolHole.closePath();
-      terrainShape.holes.push(poolHole);
     }
-    
-    // Create geometry from shape with error handling
+
     try {
       const geometry = new THREE.ShapeGeometry(terrainShape);
       geometry.rotateX(-Math.PI / 2);
       return geometry;
     } catch (error) {
-      console.error('❌ GrassTerrain: ShapeGeometry creation failed, using simple plane:', error);
+      console.warn('GrassTerrain: ShapeGeometry failed, using plane', error);
       const geometry = new THREE.PlaneGeometry(10000, 10000);
+      geometry.rotateX(-Math.PI / 2);
       return geometry;
     }
-  }, [texture, poolPoints, hardscapePoints, copingWidth, deckWidth]);
-  
+  }, [texture, poolCurve3D, hardscapeCurve3D, copingWidth, copingEnabled, deckWidth, poolPosition]);
+
   return (
-    <mesh geometry={terrainGeometry} position={[0, -0.02, 0]} receiveShadow>
-      <meshStandardMaterial map={texture} side={THREE.DoubleSide} />
+    <mesh geometry={terrainGeometry} position={[0, -0.06, 0]} receiveShadow>
+      <meshStandardMaterial map={texture} color="#ffffff" side={THREE.DoubleSide} />
     </mesh>
   );
 };
@@ -1280,7 +1194,14 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       <hemisphereLight intensity={0.5} color="#87CEEB" groundColor="#8B7355" />
 
       {/* Grass Terrain Base - 10000ft x 10000ft with pool cutout at world origin */}
-      <GrassTerrain poolPoints={points} copingWidth={copingWidth} poolPosition={poolPosition} hardscapePoints={hardscapePoints} deckWidth={deckWidth} />
+      <GrassTerrain
+        poolCurve3D={poolCurve3D}
+        hardscapeCurve3D={normalizedHardscapePoints}
+        copingWidth={localCopingWidth}
+        copingEnabled={copingEnabled}
+        poolPosition={poolPosition}
+        deckWidth={Math.max(3, localDeckWidth)}
+      />
 
       <group position={poolPosition}>
 
