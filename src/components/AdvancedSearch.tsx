@@ -69,9 +69,11 @@ interface SearchResult {
 
 interface AdvancedSearchProps {
   variant?: 'default' | 'slim';
+  /** Query pushed in from outside (Genius, deep links). Runs the search on change. */
+  externalQuery?: string;
 }
 
-const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
+const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchProps) => {
   const isSlim = variant === 'slim';
   const [searchQuery, setSearchQuery] = usePersistentState(`search_query_${variant}`, '');
   const [lastQuery, setLastQuery] = useState('');
@@ -96,6 +98,15 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
     stopListening,
     resetTranscript,
   } = useVoiceInput();
+
+  // Query pushed in from outside (Genius): type it in and open the results
+  useEffect(() => {
+    const next = externalQuery?.trim();
+    if (!next) return;
+    setSearchQuery(next);
+    setShowResults(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalQuery]);
 
   // Handle voice transcript - update search query as user speaks
   useEffect(() => {

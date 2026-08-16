@@ -5,6 +5,7 @@ import { flipManifestDigest } from '@/lib/flipPageRegistry';
 import { runGeniusDesignCommand } from '@/lib/geniusDesignBus';
 import { runGeniusCartCommand, type GeniusCartAdapter } from '@/lib/geniusCartCommands';
 import { advanceBooking, isBookingActive, startBooking, wantsAppointment } from '@/lib/geniusBooking';
+import { resolveShowroomRequest } from '@/lib/geniusShowroom';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface GeniusTurn {
@@ -131,7 +132,11 @@ export function useGenius(options?: GeniusOptions) {
         ]);
       }
 
-      /* 5 — the book, the catalog and the pages */
+      /* 5 — the showroom, when its widgets are on screen */
+      const showroom = resolveShowroomRequest(text);
+      if (showroom.handled) return settle(showroom.reply, showroom.actions);
+
+      /* 6 — the book, the catalog and the pages */
       const resolution = resolveGeniusRequest(text);
       if (resolution.handled) return settle(resolution.reply, resolution.actions);
 
