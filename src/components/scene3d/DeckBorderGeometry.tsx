@@ -15,6 +15,8 @@ interface DeckBorderGeometryProps {
   textureUrl?: string;
   textureScale?: number;
   textureOffset?: [number, number];
+  /** Texture rotation in degrees */
+  textureRotation?: number;
 }
 
 export const DeckBorderGeometry = ({ 
@@ -27,7 +29,8 @@ export const DeckBorderGeometry = ({
   deckElevation = 0, // Default flush with ground
   textureUrl,
   textureScale = 1,
-  textureOffset = [0, 0]
+  textureOffset = [0, 0],
+  textureRotation = 0
 }: DeckBorderGeometryProps) => {
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
@@ -56,6 +59,8 @@ export const DeckBorderGeometry = ({
         loadedTexture.userData.url = textureUrl;
         loadedTexture.colorSpace = THREE.SRGBColorSpace;
         loadedTexture.offset.set(offsetX, offsetY);
+        loadedTexture.center.set(0.5, 0.5);
+        loadedTexture.rotation = (textureRotation * Math.PI) / 180;
         loadedTexture.wrapS = THREE.RepeatWrapping;
         loadedTexture.wrapT = THREE.RepeatWrapping;
         loadedTexture.needsUpdate = true;
@@ -72,7 +77,7 @@ export const DeckBorderGeometry = ({
     return () => {
       cancelled = true;
     };
-  }, [textureUrl, offsetX, offsetY, textureScale]);
+  }, [textureUrl, offsetX, offsetY, textureScale, textureRotation]);
 
   
   const geometry = useMemo(() => {
