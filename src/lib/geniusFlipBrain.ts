@@ -16,9 +16,9 @@ import {
   getFlipControls,
   getFlipManifest,
   isFlipActive,
-  type FlipPageRef,
 } from '@/lib/flipPageRegistry';
 import { geniusAck, geniusFallback } from '@/lib/flipPitchGenerator';
+import { bookChips } from '@/lib/flipChips';
 import { GENIUS_DESTINATIONS, isGeniusAllowedPath } from '@/lib/geniusAccess';
 import { readFlipViewport } from '@/lib/flipViewportReader';
 import { getAllProducts } from '@/data/poolProductLookup';
@@ -33,11 +33,6 @@ export interface GeniusResolution {
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 
 const money = (n?: number | null) => (typeof n === 'number' && n > 0 ? `$${Math.round(n).toLocaleString()}` : null);
-
-/** A chip never says a page number out loud — it says where it goes. */
-function pageChip(page: FlipPageRef): NarratorAction {
-  return { label: page.label, type: 'flip_goto', payload: String(page.number) };
-}
 
 /** Which discipline does this phrase point at? */
 function matchCategory(text: string) {
@@ -181,8 +176,8 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
       handled: true,
       reply: bits.join(' '),
       actions: [
-        { label: 'Add to selection', type: 'add_to_cart' },
-        ...bookChips().slice(0, 3),
+        { label: `Add ${product.name}`, type: 'add_to_cart' },
+        ...bookChips(5),
       ],
     };
   }
@@ -205,7 +200,7 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
     return {
       handled: true,
       reply: `${ack} ${route.label} it is — that one lives outside the book.`,
-      actions: [{ label: route.label, type: 'navigate', payload: route.path }, ...bookChips().slice(0, 2)],
+      actions: [{ label: route.label, type: 'navigate', payload: route.path }, ...bookChips(3)],
     };
   }
 
@@ -216,6 +211,7 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
       actions: [
         { label: 'Add this page', type: 'add_to_cart' },
         { label: 'Checkout', type: 'navigate', payload: '/checkout' },
+        ...bookChips(3),
       ],
     };
   }
@@ -224,33 +220,6 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
 }
 
 /** Standing chips for moving through the open book. */
-export function bookChips(): NarratorAction[] {
-  const manifest = getFlipManifest();
-  if (!manifest) {
-    return [
-      { label: 'Open the FLIP', type: 'navigate', payload: '/flip' },
-      { label: 'All pages', type: 'navigate', payload: '/flip-pages' },
-    ];
-  }
-  const here = manifest.pages[manifest.current];
-  /* Options printed on the open spread lead — they answer the real question. */
-  const view = readFlipViewport();
-  const chips: NarratorAction[] =
-    view?.options.length
-      ? view.options.slice(0, 2).map((o) => ({
-          label: o.price ? `${o.label} · ${o.price}` : o.label,
-          type: 'flip_option' as const,
-          payload: o.label,
-        }))
-      : [];
-  chips.push({ label: 'Next page', type: 'flip_next' });
-  const target =
-    manifest.pages.find((p) => p.label === 'Price Sheet') ??
-    manifest.pages.find((p) => p.label === 'Options') ??
-    manifest.pages.find((p) => p.label === 'Collection');
-  if (target && target.number !== here?.number) chips.push(pageChip(target));
-  chips.push({ label: 'Index', type: 'flip_home' });
-  return chips.slice(0, 4);
-}
-
 export default resolveGeniusRequest;
+
+export { bookChips };
