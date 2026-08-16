@@ -74,9 +74,10 @@ export const GeniusOrb: React.FC = () => {
   }, [genius.turns, genius.isThinking, script]);
 
   const cartSummary = React.useMemo(() => {
-    if (!cart?.items?.length) return undefined;
-    return cart.items.map((i) => `${i.name} ($${(i.price ?? 0).toLocaleString()})`).join(', ');
-  }, [cart?.items]);
+    if (!cart?.cartItems?.length) return undefined;
+    return cart.cartItems.map((i) => `${i.name} ($${(i.price ?? 0).toLocaleString()})`).join(', ');
+  }, [cart?.cartItems]);
+
 
   const speakReply = React.useCallback(
     (reply: string) => {
