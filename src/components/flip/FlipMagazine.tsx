@@ -256,6 +256,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
   const [cornerHint, setCornerHint] = useState(isV5);
   /* V5: page-riffle transition played while a product book is opened */
   const [riffling, setRiffling] = useState(false);
+  const [riffleTarget, setRiffleTarget] = useState<ConsoleEntry | null>(null);
   const riffleTimer = useRef<number | null>(null);
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
