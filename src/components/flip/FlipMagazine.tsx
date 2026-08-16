@@ -3,7 +3,7 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "r
 import HTMLFlipBook from "react-pageflip";
 import FlipPageTabs from "./FlipPageTabs";
 import FlipCornerHint from "./FlipCornerHint";
-import FlipRiffle from "./FlipRiffle";
+import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMotion";
 import { useFlipLocked } from "./flipBoardStore";
 import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
