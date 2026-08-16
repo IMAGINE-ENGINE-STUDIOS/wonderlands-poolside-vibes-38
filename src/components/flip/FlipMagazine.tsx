@@ -1,6 +1,9 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
+import FlipPageTabs from "./FlipPageTabs";
+import FlipCornerHint from "./FlipCornerHint";
+import FlipRiffle from "./FlipRiffle";
 import { useFlipLocked } from "./flipBoardStore";
 import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
@@ -182,8 +185,14 @@ type Page = { key: string; render: () => React.ReactNode; tone?: "paper" | "cove
 
 type Anchors = { index: number; features: number; code: number; gallery: number; estimate: number };
 
-const FlipMagazine: React.FC = () => {
+const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) => {
+  const isV5 = variant === "v5";
   const bookRef = useRef<any>(null);
+  /* V5: the corner-lift invitation, retired as soon as the reader turns a page */
+  const [cornerHint, setCornerHint] = useState(isV5);
+  /* V5: page-riffle transition played while a product book is opened */
+  const [riffling, setRiffling] = useState(false);
+  const riffleTimer = useRef<number | null>(null);
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
@@ -272,6 +281,7 @@ const FlipMagazine: React.FC = () => {
   }, []);
 
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
+  useEffect(() => () => { if (riffleTimer.current) window.clearTimeout(riffleTimer.current); }, []);
 
   const openCategory = useCallback(
     (id: string) => {
@@ -349,7 +359,17 @@ const FlipMagazine: React.FC = () => {
   const [dossier, setDossier] = useState<ConsoleEntry | null>(null);
 
   /** Opens a model's book inside the same flip, with the editorial cross-fade. */
-  const openDossier = useCallback((p: ConsoleEntry) => swap(() => setDossier(p)), [swap]);
+  const openDossier = useCallback(
+    (p: ConsoleEntry) => {
+      if (isV5) {
+        setRiffling(true);
+        if (riffleTimer.current) window.clearTimeout(riffleTimer.current);
+        riffleTimer.current = window.setTimeout(() => setRiffling(false), 1250);
+      }
+      swap(() => setDossier(p));
+    },
+    [swap, isV5],
+  );
   const closeDossier = useCallback(() => swap(() => setDossier(null)), [swap]);
 
   /* ------------------------------ EDITOR BOARD ------------------------------ */
@@ -1145,6 +1165,12 @@ const FlipMagazine: React.FC = () => {
       ? homePages
       : categoryPages;
 
+  /* V5: chapter tabs that hang off the outer border of the book */
+  const tabItems = useMemo(
+    () => pages.map((p, i) => ({ label: pageTagLabel(p.key), page: i })),
+    [pages],
+  );
+
   const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
   const goTo = useCallback((n: number) => bookRef.current?.pageFlip()?.turnToPage(n), []);
@@ -1338,6 +1364,10 @@ const FlipMagazine: React.FC = () => {
             />
           ) : (
 
+            <div
+              className="relative"
+              style={{ width: portrait ? dims.w : dims.w * 2, height: dims.h }}
+            >
             <HTMLFlipBook
               key={`${mode}-${categoryId}-${dossier?.id ?? "edition"}-${pages.length}-${dims.w}`}
               ref={bookRef}
@@ -1364,19 +1394,42 @@ const FlipMagazine: React.FC = () => {
               disableFlipByClick
               style={{}}
               className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
-              onFlip={(e: any) => setPage(e.data as number)}
+              onFlip={(e: any) => {
+                setPage(e.data as number);
+                if (cornerHint) setCornerHint(false);
+              }}
             >
               {pages.map((p, i) => (
                 <Leaf
                   key={p.key}
                   tone={p.tone}
-                  tag={pageTagLabel(p.key)}
+                  tag={isV5 ? undefined : pageTagLabel(p.key)}
                   side={portrait ? "right" : i % 2 === 0 ? "left" : "right"}
                 >
                   {p.render()}
                 </Leaf>
               ))}
             </HTMLFlipBook>
+              {isV5 && (
+                <>
+                  <FlipPageTabs
+                    items={tabItems}
+                    activePage={page}
+                    onGo={goTo}
+                    height={dims.h}
+                    storageKey={`flip.v5.tabs.${dossier ? "dossier" : mode}`}
+                  />
+                  <FlipCornerHint visible={cornerHint && !flipLocked} onFlip={flipNext} />
+                  {riffling && (
+                    <FlipRiffle
+                      width={portrait ? dims.w : dims.w * 2}
+                      height={dims.h}
+                      label="Turning to the product book"
+                    />
+                  )}
+                </>
+              )}
+            </div>
           )}
         </div>
         {/* Wide search desk — spans the book from corner to corner. */}
