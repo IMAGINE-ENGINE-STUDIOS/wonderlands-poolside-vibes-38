@@ -156,7 +156,7 @@ const StudioShowroom = () => {
   const [extrasPool, setExtrasPool] = React.useState<any>({});
   const [extrasSauna, setExtrasSauna] = React.useState<any>({});
   const [fenceLayout, setFenceLayout] = React.useState<FenceLayout>({ points: [], closed: false, gateSegments: [] });
-  const [enclosureLayout, setEnclosureLayout] = React.useState<EnclosureLayout>({ points: [], closed: false, doorSegments: [], houseSegments: [] } as EnclosureLayout);
+  const [enclosureLayout, setEnclosureLayout] = React.useState<EnclosureLayout>({ points: [], closed: false, features: {} });
   const [heater, setHeater] = React.useState<string | undefined>();
   const [quoteOpen, setQuoteOpen] = React.useState(false);
   const [quoteSeed, setQuoteSeed] = React.useState<{ name: string; price: number; type: string }>({
@@ -171,7 +171,7 @@ const StudioShowroom = () => {
   const [importedPlan, setImportedPlan] = React.useState<SitePlanData>(EMPTY_PLAN);
   const [depthOpen, setDepthOpen] = React.useState(false);
   const [anchors, setAnchors] = React.useState<LinearDepthAnchor[]>(() => createDefaultLinearAnchors(3.75, 8.5));
-  const [depthAxis, setDepthAxis] = React.useState<DepthAxis>(() => createDefaultDepthAxis(16, 40));
+  const [depthAxis, setDepthAxis] = React.useState<DepthAxis>(() => createDefaultDepthAxis([], { length: 40, width: 16 }));
   const [selectedAnchor, setSelectedAnchor] = React.useState<string | null>(null);
   const [inlineResult, setInlineResult] = React.useState('');
   const [browseActive, setBrowseActive] = React.useState('pools');
@@ -282,7 +282,7 @@ const StudioShowroom = () => {
             <FlipSearch
               onOpenCategory={(categoryId) => navigate(`/flip?category=${encodeURIComponent(categoryId)}`)}
               onOpenProduct={(categoryId, entry) =>
-                navigate(`/flip?category=${encodeURIComponent(categoryId)}&product=${encodeURIComponent(entry.id ?? entry.label)}`)
+                navigate(`/flip?category=${encodeURIComponent(categoryId)}&product=${encodeURIComponent(entry.id)}`)
               }
             />
           </React.Suspense>
