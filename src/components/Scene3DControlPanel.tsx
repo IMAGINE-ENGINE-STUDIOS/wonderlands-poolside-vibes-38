@@ -23,6 +23,14 @@ import { Scene3D, TextureConfig, TextureLibrary, TransformMode, PoolStair } from
 import { StairsControls } from './StairsControls';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileTexturePanel } from './MobileTexturePanel';
+import {
+  buildCatalogTextureLibrary,
+  dedupeTextures,
+  groupTextures,
+} from '@/data/textureLibrary';
+
+/** Catalog-backed textures so every gallery matches Wonderlands Studio. */
+const CATALOG_TEXTURES = buildCatalogTextureLibrary();
 
 interface Scene3DControlPanelProps {
   scene: Scene3D;
@@ -119,6 +127,16 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   // so the gallery came back empty). Every finish in the Studio is offered.
   const getFilteredFinishes = () =>
     dedupeTextures([...(textureLibrary.finishes || []), ...CATALOG_TEXTURES.finishes]);
+
+  /** Waterline tiles: all liners (glass, porcelain, premium border, stone) + tiles. */
+  const getWaterlineTextures = () =>
+    dedupeTextures([...(textureLibrary.waterlines || []), ...CATALOG_TEXTURES.waterlines]);
+
+  const getPaverTextures = () =>
+    dedupeTextures([...(textureLibrary.pavers || []), ...CATALOG_TEXTURES.pavers]);
+
+  const getCopingTextures = () =>
+    dedupeTextures([...(textureLibrary.coping || []), ...CATALOG_TEXTURES.coping]);
 
   // Get current texture config based on selected category
   const getCurrentTexture = (): TextureConfig => {
@@ -477,7 +495,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               />
 
               <MobileTexturePanel
-                textures={textureLibrary.pavers}
+                textures={getPaverTextures()}
                 currentTexture={scene.deck.paver}
                 textureScale={scene.deck.paver.scale || 1.8}
                 onTextureChange={(texture) => onTextureChange('deck', texture)}
@@ -490,7 +508,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               />
 
               <MobileTexturePanel
-                textures={textureLibrary.coping}
+                textures={getCopingTextures()}
                 currentTexture={scene.deck.coping}
                 textureScale={scene.deck.coping.scale || 1.8}
                 onTextureChange={(texture) => onTextureChange('coping', texture)}
@@ -503,7 +521,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               />
 
               <MobileTexturePanel
-                textures={getFilteredFinishes()}
+                textures={getWaterlineTextures()}
                 currentTexture={scene.deck.waterline || scene.pool.finish}
                 textureScale={scene.deck.waterline?.scale || 1.8}
                 onTextureChange={(texture) => onTextureChange('waterline', texture)}
@@ -632,17 +650,19 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               {/* Helper text for waterline */}
               {selectedTextureCategory === 'waterline' && (
                 <p className="text-xs text-muted-foreground">
-                  Select from premium pool liner finishes for waterline tiles
+                  Choose from the full waterline catalog: glass tiles, porcelain tiles, premium borders and Italian stone
                 </p>
               )}
 
               {/* Texture Grid */}
               <div className="grid grid-cols-3 gap-2">
-                {(selectedTextureCategory === 'finishes' 
+                {(selectedTextureCategory === 'finishes'
                   ? getFilteredFinishes()
-                  : selectedTextureCategory === 'waterline' 
-                    ? getFilteredFinishes()
-                    : textureLibrary[selectedTextureCategory]
+                  : selectedTextureCategory === 'waterline'
+                    ? getWaterlineTextures()
+                    : selectedTextureCategory === 'coping'
+                      ? getCopingTextures()
+                      : getPaverTextures()
                 )?.map((texture) => (
                   <button
                     key={texture.url}
