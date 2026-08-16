@@ -19,6 +19,8 @@ import { PoolAssetManager } from './scene3d/PoolAssetManager';
 import { PoolAssetsRenderer } from './scene3d/PoolAssetsRenderer';
 import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './scene3d/poolAssetTypes';
 import { WalkthroughController } from './scene3d/WalkthroughController';
+import { CameraFocusController, FocusRequest } from './scene3d/CameraFocusController';
+import { OrbitKeyboardControls } from './scene3d/OrbitKeyboardControls';
 import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
@@ -389,6 +391,33 @@ export function UnifiedPoolVisualizer({
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
+
+  // Camera focus request (used to center the camera on newly dropped assets)
+  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
+  const focusTokenRef = useRef(0);
+  const focusOn = useCallback((position: [number, number, number], distance?: number) => {
+    focusTokenRef.current += 1;
+    setFocusRequest({ position, distance, token: focusTokenRef.current });
+  }, []);
+  // Center on a freshly dropped 3D model
+  const focusOnAsset = useCallback((position: [number, number, number]) => {
+    focusOn(position, 16);
+  }, [focusOn]);
+  // Center on the pool (stairs / seating / lights are placed on the pool perimeter,
+  // whose geometry is normalized around the scene origin)
+  const focusOnPoolAsset = useCallback(() => {
+    const pts = scene.pool.points || [];
+    if (!pts.length) {
+      focusOn([0, 0, 0], 26);
+      return;
+    }
+    const spanX = Math.max(...pts.map(p => p.x)) - Math.min(...pts.map(p => p.x));
+    const spanZ = Math.max(...pts.map(p => p.y)) - Math.min(...pts.map(p => p.y));
+    focusOn([0, -1, 0], Math.max(18, Math.max(spanX, spanZ) * 1.2));
+  }, [focusOn, scene.pool.points]);
+
+
+
 
   const FLORIDA_STEP_HEIGHT = 0.625; // 7.5 inches
   const DEFAULT_STEP_DEPTH = 0.9167; // 11 inches
@@ -1726,9 +1755,22 @@ export function UnifiedPoolVisualizer({
             playerHeight={5.5}
             moveSpeed={10}
           />
-          
+
+          {/* Auto-center camera on newly dropped assets */}
+          {!isWalkthroughMode && (
+            <CameraFocusController request={focusRequest} controlsRef={controlsRef} />
+          )}
+
+          {/* Keyboard fly controls: WASD / arrows, Q-E or PageUp-Dn for height, Shift to sprint */}
+          <OrbitKeyboardControls
+            enabled={!isWalkthroughMode && !isSplineEditMode}
+            controlsRef={controlsRef}
+            moveSpeed={18}
+          />
+
           {/* OrbitControls - Free camera with right-click + scroll, locks on asset drag */}
           {!isWalkthroughMode && (
+
             <OrbitControls
               ref={controlsRef}
               makeDefault
@@ -1754,16 +1796,31 @@ export function UnifiedPoolVisualizer({
         {/* Asset Manager - Visible in fullscreen with Pool Assets */}
         <AssetManager 
           assets={assets3D}
-          onAddAsset={(asset) => setAssets3D([...assets3D, asset])}
+          onAddAsset={(asset) => {
+            setAssets3D([...assets3D, asset]);
+            focusOnAsset(asset.position);
+          }}
           onRemoveAsset={(id) => setAssets3D(assets3D.filter(a => a.id !== id))}
           stairs={poolStairs}
-          onStairsChange={setPoolStairs}
+          onStairsChange={(next) => {
+            if (next.length > poolStairs.length) focusOnPoolAsset();
+            setPoolStairs(next);
+          }}
           chairs={poolChairs}
-          onChairsChange={setPoolChairs}
+          onChairsChange={(next) => {
+            if (next.length > poolChairs.length) focusOnPoolAsset();
+            setPoolChairs(next);
+          }}
           contourSeating={contourSeating}
-          onContourSeatingChange={setContourSeating}
+          onContourSeatingChange={(next) => {
+            if (next.length > contourSeating.length) focusOnPoolAsset();
+            setContourSeating(next);
+          }}
           lights={poolLights}
-          onLightsChange={handlePoolLightsChange}
+          onLightsChange={(next) => {
+            if (next.length > poolLights.length) focusOnPoolAsset();
+            handlePoolLightsChange(next);
+          }}
           selectedAssetId={selectedPoolAssetId}
           onSelectAsset={setSelectedPoolAssetId}
           poolFinishTexture={linerTextureUrl}
@@ -1771,13 +1828,21 @@ export function UnifiedPoolVisualizer({
           availableFinishes={textureLibrary.finishes}
         />
 
+
         {/* Terrain Editor */}
         <TerrainEditor
           terrainAssets={terrainAssets}
-          onTerrainAssetsChange={setTerrainAssets}
+          onTerrainAssetsChange={(next) => {
+            if (next.length > terrainAssets.length) {
+              const added = next[next.length - 1];
+              if (added?.position) focusOnAsset(added.position as [number, number, number]);
+            }
+            setTerrainAssets(next);
+          }}
           assetLibrary={assetLibrary}
           onAssetLibraryChange={setAssetLibrary}
         />
+
       </div>
     </div>
   );
