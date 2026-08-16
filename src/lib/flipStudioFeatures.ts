@@ -36,6 +36,7 @@ export type StudioContext = { modelName?: string; brand?: string };
 /** FLIP category id -> Wonderlands Studio product type */
 const CATEGORY_TO_PRODUCT: Record<string, ProductType> = {
   pools: "pool",
+  "concrete-pools": "pool",
   spas: "spa",
   saunas: "sauna",
   "tanning-ledges": "tanning-ledge",
@@ -161,7 +162,7 @@ const STANDARD_INCLUSIONS: StudioOption[] = [
   { label: "Delivery, installation and start-up", price: 0, priceLabel: "Included" },
 ];
 
-const POOL_LIKE = new Set(["pools", "spas", "tanning-ledges", "finishes", "liners"]);
+const POOL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges", "finishes", "liners"]);
 
 export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = {}): StudioGroup[] => {
   const key = `${categoryId}|${ctx.modelName ?? ""}|${ctx.brand ?? ""}`;

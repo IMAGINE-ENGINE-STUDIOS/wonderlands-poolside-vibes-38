@@ -24,6 +24,7 @@ export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass";
 /** Which board serves each discipline. */
 const BOARDS: Record<string, { kind: EditorBoardKind; name: string; note: string }> = {
   pools: { kind: "site", name: "Pool Plan Board", note: "Trace the shell, deck and property on a scaled grid." },
+  "concrete-pools": { kind: "site", name: "Custom Concrete Plan Board", note: "Draw the shell freely — concrete follows the line you trace." },
   spas: { kind: "site", name: "Spa Plan Board", note: "Set the spa against the pool and read the deck area." },
   "tanning-ledges": { kind: "site", name: "Sun Shelf Board", note: "Place the ledge on plan and measure its surface." },
   saunas: { kind: "site", name: "Sauna Pad Board", note: "Lay out the pad, clearances and the walk to the cabin." },
