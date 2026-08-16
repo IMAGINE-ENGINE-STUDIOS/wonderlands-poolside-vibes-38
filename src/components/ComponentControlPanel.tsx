@@ -146,26 +146,27 @@ export function ComponentControlPanel({
     }
   };
 
-  const getAvailableTextures = (): TextureConfig[] => {
+  const getAvailableTextures = (): CatalogTextureConfig[] => {
+    // Any list handed in by a caller is merged with the catalog so no gallery
+    // can ever come back empty or partial.
     const list = (() => {
       switch (selectedComponent) {
-        case 'pool': return getFilteredFinishes();
-        case 'deck': return textureLibrary.pavers;
-        case 'coping': return textureLibrary.coping;
-        case 'waterline': return textureLibrary.waterlines || []; // dedicated waterline tiles
-        default: return [];
+        case 'pool':
+          return [...getFilteredFinishes(), ...CATALOG_LIBRARY.finishes];
+        case 'deck':
+          return [...(textureLibrary.pavers || []), ...CATALOG_LIBRARY.pavers];
+        case 'coping':
+          return [...(textureLibrary.coping || []), ...CATALOG_LIBRARY.coping];
+        case 'waterline':
+          return [...(textureLibrary.waterlines || []), ...CATALOG_LIBRARY.waterlines];
+        default:
+          return [];
       }
     })();
 
     // Duplicate URLs produced duplicate React keys, which silently dropped
     // swatches and made selections apply the wrong texture.
-    const seen = new Set<string>();
-    return (list || []).filter((t) => {
-      const url = t?.url;
-      if (!url || seen.has(url)) return false;
-      seen.add(url);
-      return true;
-    });
+    return dedupeTextures(list as CatalogTextureConfig[]);
   };
 
 
