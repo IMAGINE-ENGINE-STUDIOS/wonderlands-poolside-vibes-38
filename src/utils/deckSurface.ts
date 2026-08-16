@@ -5,12 +5,34 @@ import {
   ensureCounterClockwise,
   ensureClockwise,
   validateAndRepairPolygon,
+  hasSelfIntersections,
+  simplifyPolygon,
+  calculateConvexHull,
 } from '@/utils/shapeValidation';
 
 export type P3 = { x: number; z: number };
 
 const to2D = (pts: P3[]) => pts.map((p) => ({ x: p.x, y: p.z }));
 const to3D = (pts: Array<{ x: number; y: number }>) => pts.map((p) => ({ x: p.x, z: p.y }));
+
+const area2D = (pts: P3[]) => Math.abs(calculatePolygonArea(to2D(pts)));
+
+/**
+ * A hole polygon MUST be simple (no self-intersections) or THREE/earcut silently
+ * ignores it and fills the whole deck — which is what paved over the water.
+ */
+function makeSimple(points: P3[]): P3[] {
+  if (points.length < 3) return points;
+  if (!hasSelfIntersections(to2D(points))) return points;
+
+  const simplified = to3D(simplifyPolygon(to2D(points), 0.15));
+  if (simplified.length >= 3 && !hasSelfIntersections(to2D(simplified))) return simplified;
+
+  // Convex hull is always simple; slightly larger hole is safe (never paves water).
+  const hull = to3D(calculateConvexHull(to2D(points)));
+  return hull.length >= 3 ? hull : points;
+}
+
 
 /**
  * Sanitize a boundary polygon: repair self-intersections, drop duplicates, keep CCW order.
@@ -53,29 +75,37 @@ export function resolveDeckBoundaries(params: {
   if (!poolCurve || poolCurve.length < 3) return null;
 
   const copingOffset = copingEnabled ? Math.max(0, copingWidth) : 0;
-  let inner = sanitizeBoundary(generateOffsetCurve(poolCurve, copingOffset));
+  let inner = makeSimple(sanitizeBoundary(generateOffsetCurve(poolCurve, copingOffset)));
 
   // HARD RULE: the deck hole must always fully contain the pool opening, otherwise
   // pavers would be drawn on top of the water surface.
   if (!polygonContainsPolygon(inner, poolCurve)) {
-    const grown = sanitizeBoundary(
-      generateOffsetCurve(poolCurve, Math.max(copingOffset, 0.25) + 0.1)
+    const grown = makeSimple(
+      sanitizeBoundary(generateOffsetCurve(poolCurve, Math.max(copingOffset, 0.25) + 0.1))
     );
-    inner = polygonContainsPolygon(grown, poolCurve) ? grown : sanitizeBoundary(poolCurve);
+    inner = polygonContainsPolygon(grown, poolCurve)
+      ? grown
+      : makeSimple(sanitizeBoundary(poolCurve));
   }
 
-  const innerArea = Math.abs(calculatePolygonArea(to2D(inner)));
+  // Final guarantee: a hole that still isn't simple would be dropped by the
+  // triangulator, so fall back to the convex hull of the pool opening.
+  if (hasSelfIntersections(to2D(inner))) {
+    inner = to3D(calculateConvexHull(to2D(generateOffsetCurve(poolCurve, copingOffset))));
+  }
+
+  const innerArea = area2D(inner);
 
   const fallbackOuter = () =>
-    sanitizeBoundary(
-      generateOffsetCurve(poolCurve, copingOffset + Math.max(minDeckWidth, deckWidth))
+    makeSimple(
+      sanitizeBoundary(generateOffsetCurve(poolCurve, copingOffset + Math.max(minDeckWidth, deckWidth)))
     );
 
   let outer: P3[] | null = null;
 
   if (hardscapePoints && hardscapePoints.length >= 3) {
-    const candidate = sanitizeBoundary(hardscapePoints);
-    const candidateArea = Math.abs(calculatePolygonArea(to2D(candidate)));
+    const candidate = makeSimple(sanitizeBoundary(hardscapePoints));
+    const candidateArea = area2D(candidate);
     // Only trust the 2D hardscape outline when it genuinely encloses the coping edge
     // AND geometrically wraps around it (a shifted/offset outline would pave the water).
     if (
@@ -90,15 +120,13 @@ export function resolveDeckBoundaries(params: {
   if (!outer) outer = fallbackOuter();
 
   // Absolute safety net: outer must enclose inner, otherwise the ring is degenerate.
-  if (
-    Math.abs(calculatePolygonArea(to2D(outer))) <= innerArea ||
-    !polygonContainsPolygon(outer, inner)
-  ) {
-    outer = sanitizeBoundary(generateOffsetCurve(inner, Math.max(minDeckWidth, deckWidth)));
+  if (area2D(outer) <= innerArea || !polygonContainsPolygon(outer, inner)) {
+    outer = makeSimple(sanitizeBoundary(generateOffsetCurve(inner, Math.max(minDeckWidth, deckWidth))));
   }
 
   return { inner, outer };
 }
+
 
 /** Standard ray-casting point-in-polygon test (XZ plane). */
 export function pointInPolygon(point: P3, polygon: P3[]): boolean {
@@ -132,6 +160,24 @@ function pathFrom(points: Array<{ x: number; y: number }>): THREE.Path {
   return path;
 }
 
+/** Sum of the triangle areas of a flat (XZ) geometry — used to verify the hole survived. */
+function geometryArea(geom: THREE.BufferGeometry): number {
+  const pos = geom.getAttribute('position');
+  const idx = geom.getIndex();
+  if (!pos || !idx) return 0;
+  let total = 0;
+  for (let i = 0; i < idx.count; i += 3) {
+    const a = idx.getX(i);
+    const b = idx.getX(i + 1);
+    const c = idx.getX(i + 2);
+    total += Math.abs(
+      (pos.getX(b) - pos.getX(a)) * (pos.getZ(c) - pos.getZ(a)) -
+        (pos.getX(c) - pos.getX(a)) * (pos.getZ(b) - pos.getZ(a))
+    ) / 2;
+  }
+  return total;
+}
+
 /** Horizontal ring face (outer polygon with an inner hole) triangulated by THREE. */
 function ringFace(inner: P3[], outer: P3[], y: number, flip: boolean): THREE.BufferGeometry {
   const outer2D = ensureCounterClockwise(to2D(outer));
@@ -146,10 +192,20 @@ function ringFace(inner: P3[], outer: P3[], y: number, flip: boolean): THREE.Buf
   const geom = new THREE.ShapeGeometry(shape);
   // ShapeGeometry lays out in XY with uv = (x, y) → perfect 1ft x 1ft world UVs.
   geom.rotateX(-Math.PI / 2);
+
+  // If earcut silently dropped the hole, the face area equals the full outer area
+  // and pavers would cover the pool. Reject so the caller can retry with a hull.
+  const expected = area2D(outer) - area2D(inner);
+  if (geometryArea(geom) > expected * 1.15 + 0.01) {
+    geom.dispose();
+    throw new Error('deck ring hole was dropped by triangulation');
+  }
+
   if (flip) geom.rotateX(Math.PI);
   geom.translate(0, y, 0);
   return geom;
 }
+
 
 /** Vertical skirt along a boundary, UV mapped by perimeter distance (1ft grid). */
 function skirt(boundary: P3[], topY: number, bottomY: number, outward: boolean): THREE.BufferGeometry {
@@ -201,12 +257,31 @@ export function buildDeckRingGeometry(
   }
 
   const parts: THREE.BufferGeometry[] = [];
-  try {
-    parts.push(ringFace(inner, outer, topY, false));
-    parts.push(ringFace(inner, outer, bottomY, true));
-  } catch (e) {
-    console.warn('deckSurface: ring face triangulation failed, using skirts only', e);
+  // Candidate holes, from most accurate to most forgiving. A slightly larger hole
+  // is always preferable to a dropped hole (which would pave over the water).
+  const holeCandidates: P3[][] = [inner, makeSimple(inner), to3D(calculateConvexHull(to2D(inner)))];
+  let usedInner = inner;
+  let built = false;
+
+  for (const candidate of holeCandidates) {
+    if (!candidate || candidate.length < 3) continue;
+    try {
+      const top = ringFace(candidate, outer, topY, false);
+      const bottom = ringFace(candidate, outer, bottomY, true);
+      parts.push(top, bottom);
+      usedInner = candidate;
+      built = true;
+      break;
+    } catch {
+      // try the next, safer hole
+    }
   }
+
+  if (!built) {
+    console.warn('deckSurface: ring face triangulation failed, using skirts only');
+  }
+  inner = usedInner;
+
   parts.push(skirt(outer, topY, bottomY, true));
   parts.push(skirt(inner, topY, bottomY, false));
 
