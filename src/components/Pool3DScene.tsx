@@ -118,6 +118,8 @@ export interface Pool3DSceneProps {
   selectedSplinePointId?: string | null;
   onSelectSplinePoint?: (id: string | null) => void;
   showWireframe?: boolean;
+  showGrid?: boolean;
+
   showRulers?: boolean;
   showDebugBoundaries?: boolean;
   onDebugBoundariesChange?: (show: boolean) => void;
