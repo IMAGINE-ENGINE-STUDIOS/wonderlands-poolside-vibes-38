@@ -245,12 +245,17 @@ function skirt(boundary: P3[], topY: number, bottomY: number, outward: boolean):
 /**
  * Build a solid paved ring (top face, bottom face and both skirts) between an
  * arbitrary inner and outer boundary. Point counts do not need to match.
+ *
+ * `exclude` (normally the raw pool opening) is an ABSOLUTE guarantee: any
+ * triangle whose centroid falls inside it is discarded, so pavers can never be
+ * drawn over the water even if the triangulator drops the hole.
  */
 export function buildDeckRingGeometry(
   inner: P3[],
   outer: P3[],
   topY: number,
-  bottomY: number
+  bottomY: number,
+  exclude?: P3[]
 ): THREE.BufferGeometry {
   if (!inner || inner.length < 3 || !outer || outer.length < 3) {
     return new THREE.BufferGeometry();
@@ -260,6 +265,7 @@ export function buildDeckRingGeometry(
   // Candidate holes, from most accurate to most forgiving. A slightly larger hole
   // is always preferable to a dropped hole (which would pave over the water).
   const holeCandidates: P3[][] = [inner, makeSimple(inner), to3D(calculateConvexHull(to2D(inner)))];
+
   let usedInner = inner;
   let built = false;
 
