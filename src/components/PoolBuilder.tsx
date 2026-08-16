@@ -4974,6 +4974,14 @@ export function PoolBuilder({
       x = snapped.x;
       y = snapped.y;
 
+      // Shift held: lock the new segment to a perfectly straight line
+      const shiftStraight = e.shiftKey && splineDrawing.points.length > 0;
+      if (shiftStraight) {
+        const locked = constrainToStraightLine(splineDrawing.points[splineDrawing.points.length - 1], x, y);
+        x = locked.x;
+        y = locked.y;
+      }
+
       // During active drawing, DON'T open the point editor - just add/close points
       // The point editor is only available AFTER the pool is completed
 
@@ -4981,8 +4989,9 @@ export function PoolBuilder({
         x,
         y,
         id: Date.now().toString(),
-        curveType: splineDrawing.currentCurveType
+        curveType: shiftStraight ? ('straight' as const) : splineDrawing.currentCurveType
       };
+
 
       // Check if this is the FIRST point and it's on an existing pool area
       // Show the dialog immediately so user knows they're creating an integrated feature
