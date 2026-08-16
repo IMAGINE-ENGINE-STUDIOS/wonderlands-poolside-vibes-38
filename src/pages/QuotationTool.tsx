@@ -9,10 +9,16 @@ import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import QuoteStudioConfigurator, {
   type ConfiguredProduct,
 } from "@/components/quote/QuoteStudioConfigurator";
+import QuoteCalculators from "@/components/quote/QuoteCalculators";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useNavigate } from "react-router-dom";
-import { Calendar } from "lucide-react";
+import { Calendar, Search, PenTool, X, Loader2 } from "lucide-react";
+
+const FlipSearch = React.lazy(() => import("@/components/flip/FlipSearch"));
+const StudioSitePlanner = React.lazy(() =>
+  import("@/components/studio/StudioSitePlanner").then((m) => ({ default: m.StudioSitePlanner })),
+);
 
 /**
  * Wonderlands Quote Atelier — /quote
@@ -23,6 +29,7 @@ import { Calendar } from "lucide-react";
  */
 
 const CONSOLE_CATEGORIES = ITEMS.map((i) => ({ id: i.id, label: i.label, tagline: i.tagline }));
+
 
 const QuotationTool = () => {
   const navigate = useNavigate();
