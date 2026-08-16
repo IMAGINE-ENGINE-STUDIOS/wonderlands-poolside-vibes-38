@@ -74,151 +74,102 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
     return () => clearInterval(interval);
   }, [selectedCategory]);
 
+  /**
+   * Waterline ring: uses the SAME spline the pool wall is built from (curved,
+   * one vertex per curve segment) so the band always matches the wall shape,
+   * with a constant width measured perpendicular to the wall.
+   */
+  const wallRing = useMemo(() => {
+    if (wallCurve && wallCurve.length >= 3) return wallCurve.map(p => ({ x: p.x, z: p.z }));
+    if (poolPoints.length < 3) return [];
+
+    const curved = generateCurvedPoolPoints(
+      poolPoints.map(p => ({ x: p.x, y: p.y })),
+      30,
+      0.3
+    );
+    const xs = curved.map(p => p.x);
+    const ys = curved.map(p => p.y);
+    const centerX = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const centerY = (Math.min(...ys) + Math.max(...ys)) / 2;
+    return curved.map(p => ({ x: p.x - centerX, z: p.y - centerY }));
+  }, [wallCurve, poolPoints]);
+
   const waterlineGeometry = useMemo(() => {
-    if (poolPoints.length < 3) {
+    if (wallRing.length < 3) {
       return new THREE.BoxGeometry(1, 0.5, 0.5);
     }
 
-    const minX = Math.min(...poolPoints.map(p => p.x));
-    const maxX = Math.max(...poolPoints.map(p => p.x));
-    const minY = Math.min(...poolPoints.map(p => p.y));
-    const maxY = Math.max(...poolPoints.map(p => p.y));
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
+    // Densify so circular/curved walls carry as many polygons as needed
+    // (0.25ft max segment) for a perfectly following band.
+    const outerRing = densifyRing(wallRing, 0.25);
+    const innerRing = matchedOffsetRing(outerRing, -Math.abs(waterlineWidth));
+    const distances = ringDistances(outerRing);
+    const n = outerRing.length;
 
-    const normalizedPoints = poolPoints.map(p => ({
-      x: p.x - centerX,
-      z: p.y - centerY
-    }));
-
-    const vertices: number[] = [];
-    const indices: number[] = [];
-    const uvs: number[] = [];
-    
-    // Calculate cumulative distance for UV mapping (like pool walls)
-    let cumulativeDistance = 0;
-    const distances: number[] = [0];
-    
-    for (let i = 0; i < normalizedPoints.length; i++) {
-      const p1 = normalizedPoints[i];
-      const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
-      const segmentLength = Math.sqrt(
-        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
-      );
-      cumulativeDistance += segmentLength;
-      distances.push(cumulativeDistance);
-    }
-
-    // Waterline positioning: attached directly below coping bottom
-    const deckLevel = 1 / 36; // 0.028 ft (1 inch above water surface, coping bottom)
-    const waterlineTop = deckLevel;
+    // Attached directly below the coping bottom.
+    const waterlineTop = 1 / 36;
     const waterlineBottom = waterlineTop - waterlineHeight;
 
-    // Build geometry segment by segment using cumulative distance UV
-    for (let i = 0; i < normalizedPoints.length; i++) {
-      const p1 = normalizedPoints[i];
-      const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
-      
-      const segmentLength = Math.sqrt(
-        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
-      );
-      
-      // Calculate normal (pointing INWARD toward pool center)
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const nx = -dz / segmentLength;
-      const nz = dx / segmentLength;
+    const vertices: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
 
-      const baseIdx = vertices.length / 3;
-      
-      // Outer points (at pool boundary)
-      const outerP1 = { x: p1.x, z: p1.z };
-      const outerP2 = { x: p2.x, z: p2.z };
-      
-      // Inner points (offset inward by waterlineWidth)
-      const innerP1 = { x: p1.x + nx * waterlineWidth, z: p1.z + nz * waterlineWidth };
-      const innerP2 = { x: p2.x + nx * waterlineWidth, z: p2.z + nz * waterlineWidth };
+    const pushQuad = (
+      a: { x: number; z: number },
+      b: { x: number; z: number },
+      c: { x: number; z: number },
+      d: { x: number; z: number },
+      yTopAB: number,
+      yBottomCD: number,
+      uvSet: number[][],
+      reverse: boolean
+    ) => {
+      const base = vertices.length / 3;
+      vertices.push(a.x, yTopAB, a.z);
+      vertices.push(b.x, yTopAB, b.z);
+      vertices.push(c.x, yBottomCD, c.z);
+      vertices.push(d.x, yBottomCD, d.z);
+      uvSet.forEach(([u, v]) => uvs.push(u, v));
+      if (reverse) {
+        indices.push(base, base + 1, base + 3, base, base + 3, base + 2);
+      } else {
+        indices.push(base, base + 3, base + 1, base, base + 2, base + 3);
+      }
+    };
 
-      // UV coordinates using cumulative distance (0.5ft = 1 UV unit for squared frames)
-      const u1 = distances[i] * 2; // Multiply by 2 for 0.5ft squares
+    const vTop = waterlineHeight * 2; // 0.5ft squares
+    for (let i = 0; i < n; i++) {
+      const o1 = outerRing[i];
+      const o2 = outerRing[(i + 1) % n];
+      const i1 = innerRing[i];
+      const i2 = innerRing[(i + 1) % n];
+      const u1 = distances[i] * 2;
       const u2 = distances[i + 1] * 2;
 
-      // FRONT FACE (outer wall - visible from pool) - cumulative distance UV
-      vertices.push(outerP1.x, waterlineTop, outerP1.z);
-      vertices.push(outerP2.x, waterlineTop, outerP2.z);
-      vertices.push(outerP1.x, waterlineBottom, outerP1.z);
-      vertices.push(outerP2.x, waterlineBottom, outerP2.z);
-      
-      uvs.push(u1, waterlineHeight * 2); // Scale V for 0.5ft height squares
-      uvs.push(u2, waterlineHeight * 2);
-      uvs.push(u1, 0);
-      uvs.push(u2, 0);
-      
-      indices.push(
-        baseIdx, baseIdx + 3, baseIdx + 1,
-        baseIdx, baseIdx + 2, baseIdx + 3
-      );
-
-      // BACK FACE (inner wall) - same UV with 0.5ft scaling
-      const backBase = vertices.length / 3;
-      vertices.push(innerP1.x, waterlineTop, innerP1.z);
-      vertices.push(innerP2.x, waterlineTop, innerP2.z);
-      vertices.push(innerP1.x, waterlineBottom, innerP1.z);
-      vertices.push(innerP2.x, waterlineBottom, innerP2.z);
-      
-      uvs.push(u1, waterlineHeight * 2); // Scale V for 0.5ft height squares
-      uvs.push(u2, waterlineHeight * 2);
-      uvs.push(u1, 0);
-      uvs.push(u2, 0);
-      
-      indices.push(
-        backBase, backBase + 1, backBase + 3,
-        backBase, backBase + 3, backBase + 2
-      );
-
-      // TOP FACE - world-space UV for 1ft grid
-      const topBase = vertices.length / 3;
-      vertices.push(outerP1.x, waterlineTop, outerP1.z);
-      vertices.push(outerP2.x, waterlineTop, outerP2.z);
-      vertices.push(innerP1.x, waterlineTop, innerP1.z);
-      vertices.push(innerP2.x, waterlineTop, innerP2.z);
-      
-      uvs.push(outerP1.x, outerP1.z);
-      uvs.push(outerP2.x, outerP2.z);
-      uvs.push(innerP1.x, innerP1.z);
-      uvs.push(innerP2.x, innerP2.z);
-      
-      indices.push(
-        topBase, topBase + 2, topBase + 1,
-        topBase + 1, topBase + 2, topBase + 3
-      );
-
-      // BOTTOM FACE - world-space UV
-      const bottomBase = vertices.length / 3;
-      vertices.push(outerP1.x, waterlineBottom, outerP1.z);
-      vertices.push(outerP2.x, waterlineBottom, outerP2.z);
-      vertices.push(innerP1.x, waterlineBottom, innerP1.z);
-      vertices.push(innerP2.x, waterlineBottom, innerP2.z);
-      
-      uvs.push(outerP1.x, outerP1.z);
-      uvs.push(outerP2.x, outerP2.z);
-      uvs.push(innerP1.x, innerP1.z);
-      uvs.push(innerP2.x, innerP2.z);
-      
-      indices.push(
-        bottomBase, bottomBase + 1, bottomBase + 2,
-        bottomBase + 1, bottomBase + 3, bottomBase + 2
-      );
+      // Pool-facing wall face
+      pushQuad(o1, o2, o1, o2, waterlineTop, waterlineBottom,
+        [[u1, vTop], [u2, vTop], [u1, 0], [u2, 0]], false);
+      // Back face (inside the wall)
+      pushQuad(i1, i2, i1, i2, waterlineTop, waterlineBottom,
+        [[u1, vTop], [u2, vTop], [u1, 0], [u2, 0]], true);
+      // Top cap
+      pushQuad(o1, o2, i1, i2, waterlineTop, waterlineTop,
+        [[o1.x, o1.z], [o2.x, o2.z], [i1.x, i1.z], [i2.x, i2.z]], true);
+      // Bottom cap
+      pushQuad(o1, o2, i1, i2, waterlineBottom, waterlineBottom,
+        [[o1.x, o1.z], [o2.x, o2.z], [i1.x, i1.z], [i2.x, i2.z]], false);
     }
-    
+
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geom.setIndex(indices);
     geom.computeVertexNormals();
-    
+    geom.computeBoundingSphere();
+
     return geom;
-  }, [poolPoints, waterlineHeight, waterlineWidth]);
+  }, [wallRing, waterlineHeight, waterlineWidth]);
 
   const isSelected = selectedCategory === 'waterline';
 
