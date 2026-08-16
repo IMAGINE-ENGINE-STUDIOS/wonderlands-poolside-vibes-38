@@ -12,6 +12,8 @@ interface CopingGeometryProps {
   textureUrl?: string;
   textureScale?: number;
   textureOffset?: [number, number];
+  /** Texture rotation in degrees */
+  textureRotation?: number;
   paverTextureUrl?: string;
 }
 
@@ -22,6 +24,7 @@ export const CopingGeometry = ({
   textureUrl,
   textureScale = 1,
   textureOffset = [0, 0],
+  textureRotation = 0,
   paverTextureUrl
 }: CopingGeometryProps) => {
   
@@ -44,6 +47,8 @@ export const CopingGeometry = ({
       .then((loadedTexture) => {
         loadedTexture.userData.url = surfaceTextureUrl;
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
+        loadedTexture.center.set(0.5, 0.5);
+        loadedTexture.rotation = (textureRotation * Math.PI) / 180;
         loadedTexture.wrapS = THREE.RepeatWrapping;
         loadedTexture.wrapT = THREE.RepeatWrapping;
         loadedTexture.needsUpdate = true;
@@ -54,7 +59,7 @@ export const CopingGeometry = ({
         console.error('CopingGeometry: Failed to load texture:', error);
         setTexture(null);
       });
-  }, [surfaceTextureUrl, textureOffset, textureScale]);
+  }, [surfaceTextureUrl, textureOffset, textureScale, textureRotation]);
   
   // Post-commit invalidation: ensures render happens AFTER React commits the texture
   useTextureInvalidation(texture?.uuid);

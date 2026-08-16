@@ -22,6 +22,8 @@ interface WaterlineMeshProps {
   selectedCategory?: string | null;
   waterlineTextureScale?: number;
   waterlineTextureOffset?: [number, number];
+  /** Texture rotation in degrees */
+  waterlineTextureRotation?: number;
   copingHeight?: number;
 }
 
@@ -34,6 +36,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
   selectedCategory,
   waterlineTextureScale = 1,
   waterlineTextureOffset = [0, 0],
+  waterlineTextureRotation = 0,
   copingHeight = 2 / 12 // Default 2 inches
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
@@ -49,6 +52,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
     textureCache.loadTexture(waterlineTextureUrl, { x: 2, y: 2 }) // 2x repeat = 0.5ft squares
       .then(texture => {
         texture.offset.set(waterlineTextureOffset[0], waterlineTextureOffset[1]);
+        texture.center.set(0.5, 0.5);
+        texture.rotation = (waterlineTextureRotation * Math.PI) / 180;
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
         texture.userData.textureUrl = waterlineTextureUrl;
@@ -60,7 +65,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         console.error('Failed to load waterline texture');
         setWaterlineTexture(null);
       });
-  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureOffset]);
+  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureOffset, waterlineTextureRotation]);
 
   // Post-commit invalidation: ensures render happens AFTER React commits the texture
   useTextureInvalidation(waterlineTexture?.uuid);
