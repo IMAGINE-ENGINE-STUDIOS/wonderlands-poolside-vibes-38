@@ -9,10 +9,16 @@ import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import QuoteStudioConfigurator, {
   type ConfiguredProduct,
 } from "@/components/quote/QuoteStudioConfigurator";
+import QuoteCalculators from "@/components/quote/QuoteCalculators";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useNavigate } from "react-router-dom";
-import { Calendar } from "lucide-react";
+import { Calendar, Search, PenTool, X, Loader2 } from "lucide-react";
+
+const FlipSearch = React.lazy(() => import("@/components/flip/FlipSearch"));
+const StudioSitePlanner = React.lazy(() =>
+  import("@/components/studio/StudioSitePlanner").then((m) => ({ default: m.StudioSitePlanner })),
+);
 
 /**
  * Wonderlands Quote Atelier — /quote
@@ -23,6 +29,7 @@ import { Calendar } from "lucide-react";
  */
 
 const CONSOLE_CATEGORIES = ITEMS.map((i) => ({ id: i.id, label: i.label, tagline: i.tagline }));
+
 
 const QuotationTool = () => {
   const navigate = useNavigate();
@@ -36,6 +43,9 @@ const QuotationTool = () => {
   const [entryCategory, setEntryCategory] = React.useState<string>(CONSOLE_CATEGORIES[0].id);
   const [product, setProduct] = React.useState<ConfiguredProduct | null>(null);
   const [quoteOpen, setQuoteOpen] = React.useState(false);
+  const [searchOpen, setSearchOpen] = usePersistentState<boolean>("quote.search.open", false);
+  const [boardOpen, setBoardOpen] = usePersistentState<boolean>("quote.board.open", false);
+
 
   const [dims, setDims] = React.useState({ w: 900, h: 620 });
   React.useEffect(() => {
@@ -100,7 +110,41 @@ const QuotationTool = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
+      {/* FLIP navigation console — search engine and design board */}
+      <div className="pointer-events-none fixed left-2 top-1/2 z-40 hidden -translate-y-1/2 md:block">
+        <div className="pointer-events-auto flex flex-col gap-1 rounded-full border border-border/50 bg-background/50 p-2 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+          <button
+            onClick={() => setSearchOpen((v) => !v)}
+            title="FLIP Search Engine"
+            aria-label="FLIP Search Engine"
+            aria-pressed={searchOpen}
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+              searchOpen
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:bg-foreground hover:text-background"
+            }`}
+          >
+            <Search className="h-[15px] w-[15px]" />
+          </button>
+          <span className="mx-auto my-1 h-px w-4 bg-border" />
+          <button
+            onClick={() => setBoardOpen((v) => !v)}
+            title="Design board"
+            aria-label="Design board"
+            aria-pressed={boardOpen}
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+              boardOpen
+                ? "bg-primary text-primary-foreground"
+                : "text-primary hover:bg-primary hover:text-primary-foreground"
+            }`}
+          >
+            <PenTool className="h-[15px] w-[15px]" />
+          </button>
+        </div>
+      </div>
+
       <main className="mx-auto max-w-[1240px] px-4 py-10 md:py-14">
+
         {/* Masthead — FLIP V7 */}
         <div className="border-y border-foreground/15 py-8 text-center">
           <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
@@ -201,10 +245,80 @@ const QuotationTool = () => {
           </aside>
         </div>
 
+        {/* Chapter III — the calculators, as in the showroom */}
+        <div className="mt-14">
+          <QuoteCalculators />
+        </div>
+
         <p className="mt-10 text-center text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
           All prices include delivery, installation and the product as described.
         </p>
       </main>
+
+      {/* FLIP Search Engine — results open the piece in the configurator */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/70 px-4 py-10 backdrop-blur-xl">
+          <div className="w-full max-w-2xl border border-foreground/15 bg-background/90 backdrop-blur-2xl">
+            <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+              <p className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
+                FLIP Search Engine
+              </p>
+              <button
+                onClick={() => setSearchOpen(false)}
+                aria-label="Close search"
+                className="flex h-7 w-7 items-center justify-center border border-border/60 text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <React.Suspense fallback={<Loader2 className="mx-auto my-8 h-4 w-4 animate-spin" />}>
+                <FlipSearch
+                  autoFocus
+                  onOpenCategory={(id) => {
+                    setActiveCategory(id);
+                    setSearchOpen(false);
+                  }}
+                  onOpenProduct={(categoryId, found) => {
+                    setActiveCategory(categoryId);
+                    handleSelectEntry(found, categoryId);
+                    setSearchOpen(false);
+                  }}
+                />
+              </React.Suspense>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Design board — the 2D site studio, as in the FLIP */}
+      {boardOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 px-2 py-6 backdrop-blur-xl md:px-6">
+          <div className="w-full max-w-[1240px] border border-foreground/15 bg-background/95">
+            <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+              <p className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
+                Design board — {entry?.name ?? "Wonderlands"}
+              </p>
+              <button
+                onClick={() => setBoardOpen(false)}
+                aria-label="Close design board"
+                className="flex h-7 w-7 items-center justify-center border border-border/60 text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="max-h-[82vh] overflow-y-auto p-3 md:p-5">
+              <React.Suspense fallback={<Loader2 className="mx-auto my-10 h-4 w-4 animate-spin" />}>
+                <StudioSitePlanner
+                  modelName={entry?.name}
+                  meta={entry?.meta}
+                  categoryId={entryCategory}
+                />
+              </React.Suspense>
+            </div>
+          </div>
+        </div>
+      )}
 
       <SurveyQuoteTool
         pool={null}
@@ -222,6 +336,7 @@ const QuotationTool = () => {
             : undefined
         }
       />
+
 
       <Footer />
     </div>

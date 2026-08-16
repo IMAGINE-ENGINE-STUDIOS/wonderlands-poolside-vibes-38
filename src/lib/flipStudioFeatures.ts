@@ -28,7 +28,14 @@ export type StudioGroup = {
   /** Legacy string list (kept for existing editorial chapters) */
   options: string[];
   items: StudioOption[];
+  /**
+   * The reader chooses exactly one option of this chapter — true for every
+   * catalogue chapter (finishes, liners, tiles…), false for the turn-key
+   * inclusions list which is informational only.
+   */
+  choice?: boolean;
 };
+
 
 /** Who the model belongs to — drives which finishes are actually offered. */
 export type StudioContext = { modelName?: string; brand?: string };
@@ -181,6 +188,7 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
       note: "Permits, engineering, land work, equipment, logistics and project management to turn-key — never charged as additional features",
       items: STANDARD_INCLUSIONS,
       options: STANDARD_INCLUSIONS.map((i) => i.label),
+      choice: false,
     });
   }
 
@@ -191,12 +199,15 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
       price: 0,
       priceLabel: PEBBLE_TEC_PRICE_LABEL,
       note: f.note,
+      image: f.image,
+      color: f.color,
     }));
     groups.push({
       title: "Pebble Tec interior finish",
       note: "The surface of every Wonderlands concrete shell — priced per shell surface area",
       items: finishes,
       options: finishes.map((f) => f.label),
+      choice: true,
     });
   }
 
@@ -206,6 +217,7 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
       note: "Included with every GlimmerGlass shell — the only line finished in gelcoat",
       items: GELCOAT,
       options: GELCOAT.map((g) => g.label),
+      choice: true,
     });
   }
 
@@ -220,9 +232,11 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
         note: f.description || `${f.label} — configured in Wonderlands Studio`,
         items,
         options: items.map((i) => (i.price > 0 ? `${i.label} — ${i.priceLabel}` : i.label)),
+        choice: true,
       });
     });
   }
+
 
   cache.set(key, groups);
   return groups;
