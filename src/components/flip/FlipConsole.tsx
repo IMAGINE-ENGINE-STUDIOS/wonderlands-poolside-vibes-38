@@ -40,6 +40,9 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
 
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
   const [query, setQuery] = useState("");
+  /* The grid renders in pages — a chapter of 60 plates never mounts at once. */
+  const PAGE = 24;
+  const [shown, setShown] = useState(PAGE);
 
   const index = categories.findIndex((c) => c.id === activeId);
   const active = categories[index];
@@ -48,6 +51,7 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
     let cancelled = false;
     setEntries(null);
     setQuery("");
+    setShown(PAGE);
     loadCategoryEntries(activeId).then((list) => {
       if (!cancelled) setEntries(list);
     });
@@ -75,6 +79,10 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
         (e.brand ?? "").toLowerCase().includes(q),
     );
   }, [entries, query]);
+
+  useEffect(() => setShown(PAGE), [query]);
+
+  const page = useMemo(() => visible.slice(0, shown), [visible, shown]);
 
   const step = (dir: -1 | 1) => {
     const next = (index + dir + categories.length) % categories.length;
@@ -202,7 +210,7 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-                {visible.map((e) => {
+                {page.map((e) => {
                   const clickable = Boolean(onSelectEntry);
                   const isActive = activeEntryId === e.id;
                   return (
@@ -263,6 +271,14 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
                   );
                 })}
 
+                {visible.length > page.length && (
+                  <button
+                    onClick={() => setShown((n) => n + PAGE)}
+                    className="col-span-2 border border-border/60 py-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground transition-colors hover:bg-foreground hover:text-background md:col-span-3 xl:col-span-4"
+                  >
+                    Show more — {visible.length - page.length} remaining
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -286,4 +302,4 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
   );
 };
 
-export default FlipConsole;
+export default React.memo(FlipConsole);

@@ -32,6 +32,82 @@ const StudioSitePlanner = React.lazy(() =>
 
 const CONSOLE_CATEGORIES = ITEMS.map((i) => ({ id: i.id, label: i.label, tagline: i.tagline }));
 
+const toCartItem = (p: ConfiguredProduct) => ({
+  id: p.id,
+  name: p.name,
+  price: p.basePrice,
+  image: p.image,
+  category: p.category,
+  extras: p.extras.map(({ name, price, key, quantity, selectedOption, options }) => ({
+    name,
+    price,
+    key,
+    quantity,
+    selectedOption,
+    options,
+  })),
+});
+
+const AUTO_ADD_SECONDS = 10;
+
+/** Ticks in isolation so the console and configurator never re-render with it. */
+const AutoAddCountdown: React.FC<{
+  entryId?: string;
+  getProduct: () => ConfiguredProduct | null;
+  addedRef: React.MutableRefObject<string | null>;
+  onAdd: (p: ConfiguredProduct) => void;
+}> = ({ entryId, getProduct, addedRef, onAdd }) => {
+  const [left, setLeft] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    if (!entryId || addedRef.current === `quote-${entryId}`) {
+      setLeft(null);
+      return;
+    }
+    setLeft(AUTO_ADD_SECONDS);
+    const started = Date.now();
+    const tick = window.setInterval(() => {
+      const remaining = AUTO_ADD_SECONDS - Math.round((Date.now() - started) / 1000);
+      if (remaining > 0) {
+        setLeft(remaining);
+        return;
+      }
+      window.clearInterval(tick);
+      setLeft(null);
+      const current = getProduct();
+      if (current && addedRef.current !== current.id) {
+        onAdd(current);
+        toast({
+          title: "Added to your shopping list",
+          description: `${current.name} — as configured.`,
+        });
+      }
+    }, 1000);
+    return () => window.clearInterval(tick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryId]);
+
+  if (left === null) return null;
+  return (
+    <div className="flex items-center justify-between border border-foreground/15 bg-background/60 px-4 py-3 backdrop-blur-xl">
+      <p className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+        Adding to your list in {left}s
+      </p>
+      <button
+        onClick={() => {
+          const current = getProduct();
+          if (current) addedRef.current = current.id;
+          setLeft(null);
+        }}
+        className="text-[9px] uppercase tracking-[0.28em] text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground"
+      >
+        Not now
+      </button>
+    </div>
+  );
+};
+
+
 
 const QuotationTool = () => {
   const navigate = useNavigate();
@@ -65,34 +141,18 @@ const QuotationTool = () => {
 
   const configuratorRef = React.useRef<HTMLDivElement | null>(null);
 
-  const handleSelectEntry = (selected: ConsoleEntry, categoryId: string) => {
+  const handleSelectEntry = React.useCallback((selected: ConsoleEntry, categoryId: string) => {
     setEntry(selected);
     setEntryCategory(categoryId);
     requestAnimationFrame(() =>
       configuratorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
     );
-  };
-
-  const toCartItem = (p: ConfiguredProduct) => ({
-    id: p.id,
-    name: p.name,
-    price: p.basePrice,
-    image: p.image,
-    category: p.category,
-    extras: p.extras.map(({ name, price, key, quantity, selectedOption, options }) => ({
-      name,
-      price,
-      key,
-      quantity,
-      selectedOption,
-      options,
-    })),
-  });
+  }, []);
 
   /* The shopping list adds the piece by itself 10 seconds after it is
-     selected — unless the reader leaves the page or moves to another piece. */
-  const AUTO_ADD_SECONDS = 10;
-  const [autoIn, setAutoIn] = React.useState<number | null>(null);
+     selected — unless the reader leaves the page or moves to another piece.
+     The countdown lives in its own component so the ticking never re-renders
+     the console or the configurator. */
   const addedRef = React.useRef<string | null>(null);
   const productRef = React.useRef<ConfiguredProduct | null>(null);
   productRef.current = product;
@@ -100,45 +160,23 @@ const QuotationTool = () => {
   const handleAdd = React.useCallback(
     (p: ConfiguredProduct) => {
       addedRef.current = p.id;
-      setAutoIn(null);
       addToCart(toCartItem(p));
     },
     [addToCart],
   );
 
-  React.useEffect(() => {
-    if (!entry || addedRef.current === entry.id) {
-      setAutoIn(null);
-      return;
-    }
-    setAutoIn(AUTO_ADD_SECONDS);
-    const started = Date.now();
-    const tick = window.setInterval(() => {
-      const left = AUTO_ADD_SECONDS - Math.round((Date.now() - started) / 1000);
-      if (left > 0) {
-        setAutoIn(left);
-        return;
-      }
-      window.clearInterval(tick);
-      setAutoIn(null);
-      const current = productRef.current;
-      if (current && addedRef.current !== current.id) {
-        addedRef.current = current.id;
-        addToCart(toCartItem(current));
-        toast({
-          title: "Added to your shopping list",
-          description: `${current.name} — as configured.`,
-        });
-      }
-    }, 250);
-    return () => window.clearInterval(tick);
-  }, [entry?.id, addToCart]);
 
 
-  const handleQuote = (p: ConfiguredProduct) => {
+  const handleQuote = React.useCallback((p: ConfiguredProduct) => {
     setProduct(p);
     setQuoteOpen(true);
-  };
+  }, []);
+
+  const noop = React.useCallback(() => undefined, []);
+  const openSection = React.useCallback(
+    (id: string) => navigate(`/wonderlands-studio?category=${id}`),
+    [navigate],
+  );
 
   const quoteExtras = React.useMemo(() => {
     if (!product) return undefined;
@@ -214,12 +252,12 @@ const QuotationTool = () => {
                 width={dims.w}
                 height={dims.h}
                 onSelect={setActiveCategory}
-                onClose={() => undefined}
+                onClose={noop}
                 hideClose
                 onSelectEntry={handleSelectEntry}
                 activeEntryId={entry?.id}
                 footerLabel="Open in Wonderlands Studio"
-                onOpenSection={(id) => navigate(`/wonderlands-studio?category=${id}`)}
+                onOpenSection={openSection}
               />
             </div>
 
@@ -259,22 +297,13 @@ const QuotationTool = () => {
               onQuote={product ? () => handleQuote(product) : () => setQuoteOpen(true)}
             />
 
-            {autoIn !== null && product && (
-              <div className="flex items-center justify-between border border-foreground/15 bg-background/60 px-4 py-3 backdrop-blur-xl">
-                <p className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
-                  Adding to your list in {autoIn}s
-                </p>
-                <button
-                  onClick={() => {
-                    addedRef.current = product.id;
-                    setAutoIn(null);
-                  }}
-                  className="text-[9px] uppercase tracking-[0.28em] text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground"
-                >
-                  Not now
-                </button>
-              </div>
-            )}
+            <AutoAddCountdown
+              entryId={entry?.id}
+              getProduct={() => productRef.current}
+              addedRef={addedRef}
+              onAdd={handleAdd}
+            />
+
 
 
             <button

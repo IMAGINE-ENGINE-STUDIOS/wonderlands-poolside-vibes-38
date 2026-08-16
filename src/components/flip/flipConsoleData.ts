@@ -31,8 +31,17 @@ const fromLookup = async (
   matchBrand?: (brand?: string) => boolean,
 ): Promise<ConsoleEntry[]> => {
   const { getAllProducts } = await import("@/data/poolProductLookup");
+  /* The lookup is keyed by search alias, so the same model appears more than
+     once. The console shows each model exactly once, priced as the studio. */
+  const seen = new Set<string>();
   return getAllProducts()
     .filter((p) => match(p.category) && (!matchBrand || matchBrand(p.brand)))
+    .filter((p) => {
+      const k = `${(p.brand ?? "").toLowerCase()}|${p.name.toLowerCase()}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
     .map((p, i) => ({
       id: `${p.name}-${i}`,
       name: p.name,
@@ -44,6 +53,30 @@ const fromLookup = async (
     }))
     .sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
 };
+
+/**
+ * The photography of the product's own FLIP book — same resolver the flip
+ * dossiers use, so the console and the book never show different imagery.
+ */
+export async function loadEntryGallery(
+  categoryId: string,
+  entry: ConsoleEntry,
+): Promise<string[]> {
+  const { resolveProductGallery } = await import("@/lib/flipProductGallery");
+  const siblings = (entryCache.get(categoryId) ?? []).map((e) => ({
+    name: e.name,
+    brand: e.brand,
+    image: e.image,
+  }));
+  return resolveProductGallery({
+    categoryId,
+    name: entry.name,
+    brand: entry.brand,
+    image: entry.image,
+    siblings,
+  });
+}
+
 
 /** In-memory cache so an edition is only resolved once per session. */
 const entryCache = new Map<string, ConsoleEntry[]>();
