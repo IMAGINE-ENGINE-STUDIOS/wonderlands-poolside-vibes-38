@@ -22,6 +22,16 @@ export interface LinearDepthAnchor {
   depth: number;    // Depth in feet at this position
 }
 
+/**
+ * Direction the depth profile runs across the pool, in pool-plan feet
+ * (same coordinate space as pool points). `start` is 0% (shallow) and
+ * `end` is 100% (deep) — moving or rotating the axis re-shapes the bottom.
+ */
+export interface DepthAxis {
+  start: { x: number; z: number };
+  end: { x: number; z: number };
+}
+
 export interface PerimeterDepthPoint {
   x: number;
   z: number;
@@ -132,6 +142,7 @@ export interface Scene3D {
     depthPoints: DepthPoint[];
     perimeterDepthPoints?: PerimeterDepthPoint[];
     linearDepthAnchors?: LinearDepthAnchor[]; // Linear depth profile from shallow to deep
+    depthAxis?: DepthAxis;                    // Direction the depth profile runs (movable / rotatable)
     shape: 'rectangle' | 'kidney' | 'freeform' | 'custom';
     finish: TextureConfig;
     position: [number, number, number];
