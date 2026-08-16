@@ -13,7 +13,16 @@ interface FlipConsoleProps {
   onSelect: (id: string) => void;
   onClose: () => void;
   onOpenSection: (id: string) => void;
+  /** When provided, every product tile becomes clickable (configurator hand-off) */
+  onSelectEntry?: (entry: ConsoleEntry, categoryId: string) => void;
+  /** Entry currently open in the configurator */
+  activeEntryId?: string;
+  /** Hide the close control (embedded use) */
+  hideClose?: boolean;
+  /** Replaces the footer call to action label */
+  footerLabel?: string;
 }
+
 
 const FlipConsole: React.FC<FlipConsoleProps> = ({
   categories,
@@ -23,7 +32,12 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
   onSelect,
   onClose,
   onOpenSection,
+  onSelectEntry,
+  activeEntryId,
+  hideClose,
+  footerLabel,
 }) => {
+
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
   const [query, setQuery] = useState("");
 
@@ -99,13 +113,16 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
           >
             <ChevronRight className="h-4 w-4" />
           </button>
-          <button
-            onClick={onClose}
-            aria-label="Close console"
-            className="ml-1 flex h-8 w-8 items-center justify-center border border-border/60 transition-colors hover:bg-foreground hover:text-background"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          {!hideClose && (
+            <button
+              onClick={onClose}
+              aria-label="Close console"
+              className="ml-1 flex h-8 w-8 items-center justify-center border border-border/60 transition-colors hover:bg-foreground hover:text-background"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+
         </div>
       </div>
 
@@ -185,8 +202,29 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-                {visible.map((e) => (
-                  <article key={e.id} className="group flex flex-col border border-border/60">
+                {visible.map((e) => {
+                  const clickable = Boolean(onSelectEntry);
+                  const isActive = activeEntryId === e.id;
+                  return (
+                  <article
+                    key={e.id}
+                    onClick={clickable ? () => onSelectEntry!(e, activeId) : undefined}
+                    role={clickable ? "button" : undefined}
+                    tabIndex={clickable ? 0 : undefined}
+                    onKeyDown={
+                      clickable
+                        ? (ev) => {
+                            if (ev.key === "Enter" || ev.key === " ") {
+                              ev.preventDefault();
+                              onSelectEntry!(e, activeId);
+                            }
+                          }
+                        : undefined
+                    }
+                    className={`group flex flex-col border transition-colors ${
+                      isActive ? "border-foreground bg-foreground/[0.04]" : "border-border/60"
+                    } ${clickable ? "cursor-pointer hover:border-foreground" : ""}`}
+                  >
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                       <img
                         src={e.image}
@@ -195,6 +233,11 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
                         decoding="async"
                         className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
+                      {clickable && (
+                        <span className="absolute bottom-0 left-0 right-0 bg-background/70 py-1 text-center text-[8px] uppercase tracking-[0.3em] text-foreground opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100">
+                          {isActive ? "Configuring" : "Configure"}
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-1 flex-col gap-1 p-3">
                       {e.brand && (
@@ -217,7 +260,9 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
                       )}
                     </div>
                   </article>
-                ))}
+                  );
+                })}
+
               </div>
             )}
           </div>
@@ -231,7 +276,7 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
               onClick={() => onOpenSection(activeId)}
               className="group/btn inline-flex items-center gap-3 border border-foreground bg-foreground px-4 py-2.5 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
             >
-              Open full collection
+              {footerLabel ?? "Open full collection"}
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>

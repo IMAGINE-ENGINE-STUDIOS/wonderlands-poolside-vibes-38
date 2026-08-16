@@ -1,414 +1,227 @@
 import * as React from "react";
-const { useState } = React;
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Calculator, FileText, ExternalLink, Waves, Settings } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useToast } from "@/hooks/use-toast";
+import FlipConsole from "@/components/flip/FlipConsole";
+import { ITEMS } from "@/components/FlipIndex";
+import type { ConsoleEntry } from "@/components/flip/flipConsoleData";
+import StudioCartWidget from "@/components/StudioCartWidget";
+import SurveyQuoteTool from "@/components/SurveyQuoteTool";
+import QuoteStudioConfigurator, {
+  type ConfiguredProduct,
+} from "@/components/quote/QuoteStudioConfigurator";
+import { useShoppingCart } from "@/components/ShoppingCartProvider";
+import { usePersistentState } from "@/hooks/usePersistentState";
+import { useNavigate } from "react-router-dom";
+import { Calendar } from "lucide-react";
 
-interface QuoteData {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  poolType: string;
-  poolSize: string;
-  budget: string;
-  timeline: string;
-  additionalFeatures: string[];
-  specialRequests: string;
-}
+/**
+ * Wonderlands Quote Atelier — /quote
+ *
+ * A merge of the Wonderlands Studio (category console, clickable products,
+ * live feature configuration, studio shopping list) with the quote engine,
+ * composed in the FLIP V7 editorial language.
+ */
+
+const CONSOLE_CATEGORIES = ITEMS.map((i) => ({ id: i.id, label: i.label, tagline: i.tagline }));
 
 const QuotationTool = () => {
-  const { toast } = useToast();
-  const [quoteData, setQuoteData] = useState<QuoteData>({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    poolType: "",
-    poolSize: "",
-    budget: "",
-    timeline: "",
-    additionalFeatures: [],
-    specialRequests: ""
+  const navigate = useNavigate();
+  const { addToCart } = useShoppingCart();
+
+  const [activeCategory, setActiveCategory] = usePersistentState<string>(
+    "quote.console.category",
+    CONSOLE_CATEGORIES[0].id,
+  );
+  const [entry, setEntry] = React.useState<ConsoleEntry | null>(null);
+  const [entryCategory, setEntryCategory] = React.useState<string>(CONSOLE_CATEGORIES[0].id);
+  const [product, setProduct] = React.useState<ConfiguredProduct | null>(null);
+  const [quoteOpen, setQuoteOpen] = React.useState(false);
+
+  const [dims, setDims] = React.useState({ w: 900, h: 620 });
+  React.useEffect(() => {
+    const measure = () => {
+      const w = Math.max(300, Math.min(window.innerWidth - 48, 1180));
+      setDims({ w, h: Math.round(Math.min(w * 0.62, Math.max(480, window.innerHeight * 0.74))) });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const categoryLabel =
+    CONSOLE_CATEGORIES.find((c) => c.id === entryCategory)?.label ?? "Wonderlands";
+
+  const configuratorRef = React.useRef<HTMLDivElement | null>(null);
+
+  const handleSelectEntry = (selected: ConsoleEntry, categoryId: string) => {
+    setEntry(selected);
+    setEntryCategory(categoryId);
+    requestAnimationFrame(() =>
+      configuratorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+  };
+
+  const toCartItem = (p: ConfiguredProduct) => ({
+    id: p.id,
+    name: p.name,
+    price: p.basePrice,
+    image: p.image,
+    category: p.category,
+    extras: p.extras.map(({ name, price, key, quantity, selectedOption, options }) => ({
+      name,
+      price,
+      key,
+      quantity,
+      selectedOption,
+      options,
+    })),
   });
 
-  const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
+  const handleAdd = (p: ConfiguredProduct) => addToCart(toCartItem(p));
 
-  const poolTypes = [
-    { value: "carbon-fiber", label: "Carbon Fiber Pool", basePrice: 45000 },
-    { value: "concrete", label: "Concrete Pool", basePrice: 65000 },
-    { value: "infinity", label: "Infinity Pool", basePrice: 125000 },
-    { value: "spa-combo", label: "Pool + Spa Combo", basePrice: 85000 }
-  ];
-
-  const poolSizes = [
-    { value: "small", label: "Small (12x24)", multiplier: 0.8 },
-    { value: "medium", label: "Medium (16x32)", multiplier: 1.0 },
-    { value: "large", label: "Large (20x40)", multiplier: 1.3 },
-    { value: "extra-large", label: "Extra Large (24x48)", multiplier: 1.6 }
-  ];
-
-  const additionalFeatures = [
-    { id: "heating", name: "Pool Heating System", price: 8500 },
-    { id: "saltwater", name: "Saltwater System", price: 2500 },
-    { id: "led-lights", name: "LED Lighting Package", price: 3500 },
-    { id: "waterfall", name: "Waterfall Feature", price: 5500 },
-    { id: "screen-enclosure", name: "Screen Enclosure", price: 12000 },
-    { id: "deck-pavers", name: "Premium Deck Pavers", price: 8000 },
-    { id: "automatic-cover", name: "Automatic Pool Cover", price: 15000 }
-  ];
-
-  const calculateEstimate = () => {
-    const selectedPoolType = poolTypes.find(type => type.value === quoteData.poolType);
-    const selectedPoolSize = poolSizes.find(size => size.value === quoteData.poolSize);
-    
-    if (!selectedPoolType || !selectedPoolSize) return;
-
-    let basePrice = selectedPoolType.basePrice * selectedPoolSize.multiplier;
-    
-    // Add additional features
-    const featuresPrice = quoteData.additionalFeatures.reduce((total, featureId) => {
-      const feature = additionalFeatures.find(f => f.id === featureId);
-      return total + (feature?.price || 0);
-    }, 0);
-
-    const totalEstimate = Math.round(basePrice + featuresPrice);
-    setEstimatedPrice(totalEstimate);
+  const handleQuote = (p: ConfiguredProduct) => {
+    setProduct(p);
+    setQuoteOpen(true);
   };
 
-  const handleFeatureToggle = (featureId: string) => {
-    setQuoteData(prev => ({
-      ...prev,
-      additionalFeatures: prev.additionalFeatures.includes(featureId)
-        ? prev.additionalFeatures.filter(id => id !== featureId)
-        : [...prev.additionalFeatures, featureId]
-    }));
-  };
-
-  const handleSubmitQuote = () => {
-    if (!quoteData.name || !quoteData.email || !quoteData.poolType) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in your name, email, and pool type.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    calculateEstimate();
-    
-    toast({
-      title: "Quote Generated!",
-      description: "Your personalized pool quote has been calculated. Schedule a consultation for final pricing.",
-    });
-  };
-
-  const openUltimoTool = () => {
-    window.open("https://app.ultimo.com/pool-configurator", "_blank");
-  };
-
-  const scheduleConsultation = () => {
-    window.open("https://calendly.com/wonderlandsworlds/30min", "_blank");
-  };
+  const quoteExtras = React.useMemo(() => {
+    if (!product) return undefined;
+    return {
+      extrasBreakdown: product.extras.map((e) => ({
+        name: e.name,
+        price: e.price,
+        image: e.image ?? "",
+      })),
+      extrasTotal: product.extras.reduce((sum, e) => sum + e.price, 0),
+    };
+  }, [product]);
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      <main className="container mx-auto px-4 py-8 border-t-4 border-gradient-to-r from-primary via-coral to-teal">
-        <div className="text-center mb-8">
-          <div className="border-t-8 border-gradient-to-r from-primary via-coral to-teal w-32 mx-auto mb-6"></div>
-          <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-            Pool Quotation Tool
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Get an instant estimate for your dream pool with our advanced quotation calculator
+
+      <main className="mx-auto max-w-[1240px] px-4 py-10 md:py-14">
+        {/* Masthead — FLIP V7 */}
+        <div className="border-y border-foreground/15 py-8 text-center">
+          <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">
+            Wonderlands World — Edition No. 07
           </p>
-          <div className="border-t-8 border-gradient-to-r from-teal via-coral to-primary w-32 mx-auto mt-6"></div>
+          <h1 className="mt-4 font-serif text-4xl font-light leading-none text-foreground md:text-6xl">
+            The Quote Atelier
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+            Browse the collections, configure the piece, compose the quotation
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Quote Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Contact Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Contact Information
-                </CardTitle>
-                <CardDescription>
-                  Your details for personalized quote delivery
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    value={quoteData.name}
-                    onChange={(e) => setQuoteData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={quoteData.email}
-                    onChange={(e) => setQuoteData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="your@email.com"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={quoteData.phone}
-                    onChange={(e) => setQuoteData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={quoteData.address}
-                    onChange={(e) => setQuoteData(prev => ({ ...prev, address: e.target.value }))}
-                    placeholder="123 Main St, City, FL"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0 space-y-8">
+            {/* Category console */}
+            <div className="flex justify-center">
+              <FlipConsole
+                categories={CONSOLE_CATEGORIES}
+                activeId={activeCategory}
+                width={dims.w}
+                height={dims.h}
+                onSelect={setActiveCategory}
+                onClose={() => undefined}
+                hideClose
+                onSelectEntry={handleSelectEntry}
+                activeEntryId={entry?.id}
+                footerLabel="Open in Wonderlands Studio"
+                onOpenSection={(id) => navigate(`/wonderlands-studio?category=${id}`)}
+              />
+            </div>
 
-            {/* Pool Configuration */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Waves className="h-5 w-5" />
-                  Pool Configuration
-                </CardTitle>
-                <CardDescription>
-                  Select your preferred pool specifications
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Pool Type *</Label>
-                    <Select value={quoteData.poolType} onValueChange={(value) => setQuoteData(prev => ({ ...prev, poolType: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select pool type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {poolTypes.map(type => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label} - Starting at ${type.basePrice.toLocaleString()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Pool Size</Label>
-                    <Select value={quoteData.poolSize} onValueChange={(value) => setQuoteData(prev => ({ ...prev, poolSize: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select pool size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {poolSizes.map(size => (
-                          <SelectItem key={size.value} value={size.value}>
-                            {size.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Budget Range</Label>
-                    <Select value={quoteData.budget} onValueChange={(value) => setQuoteData(prev => ({ ...prev, budget: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select budget range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="40k-60k">$40,000 - $60,000</SelectItem>
-                        <SelectItem value="60k-80k">$60,000 - $80,000</SelectItem>
-                        <SelectItem value="80k-100k">$80,000 - $100,000</SelectItem>
-                        <SelectItem value="100k-150k">$100,000 - $150,000</SelectItem>
-                        <SelectItem value="150k+">$150,000+</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Timeline</Label>
-                    <Select value={quoteData.timeline} onValueChange={(value) => setQuoteData(prev => ({ ...prev, timeline: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="When do you want to start?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="asap">As soon as possible</SelectItem>
-                        <SelectItem value="1-3months">1-3 months</SelectItem>
-                        <SelectItem value="3-6months">3-6 months</SelectItem>
-                        <SelectItem value="6-12months">6-12 months</SelectItem>
-                        <SelectItem value="planning">Just planning ahead</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Additional Features */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Features</CardTitle>
-                <CardDescription>
-                  Select optional features to enhance your pool experience
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {additionalFeatures.map(feature => (
-                    <div
-                      key={feature.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                        quoteData.additionalFeatures.includes(feature.id)
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                      onClick={() => handleFeatureToggle(feature.id)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{feature.name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          +${feature.price.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Special Requests */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Special Requests</CardTitle>
-                <CardDescription>
-                  Any additional requirements or custom features
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  value={quoteData.specialRequests}
-                  onChange={(e) => setQuoteData(prev => ({ ...prev, specialRequests: e.target.value }))}
-                  placeholder="Describe any special requirements, unique design elements, or specific needs..."
-                  rows={4}
+            {/* Configurator */}
+            <div ref={configuratorRef}>
+              {entry ? (
+                <QuoteStudioConfigurator
+                  key={entry.id}
+                  entry={entry}
+                  categoryId={entryCategory}
+                  categoryLabel={categoryLabel}
+                  onChange={setProduct}
+                  onAdd={handleAdd}
+                  onQuote={handleQuote}
                 />
-              </CardContent>
-            </Card>
+              ) : (
+                <div className="border border-dashed border-foreground/20 bg-background/60 px-6 py-14 text-center backdrop-blur-xl">
+                  <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
+                    Chapter II
+                  </p>
+                  <p className="mx-auto mt-3 max-w-md font-serif text-2xl font-light text-foreground">
+                    Select a piece from the console above to configure it and price it here.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Quote Summary & Tools */}
-          <div className="space-y-6">
-            {/* Estimate Summary */}
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calculator className="h-5 w-5" />
-                  Quote Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {estimatedPrice ? (
-                  <div className="text-center p-6 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">Estimated Total</p>
-                    <p className="text-3xl font-bold text-primary">
-                      ${estimatedPrice.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      *Estimate includes selected features. Final price may vary.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center p-6 border-2 border-dashed border-border rounded-lg">
-                    <Calculator className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      Complete the form to see your estimate
-                    </p>
-                  </div>
-                )}
+          {/* Shopping list + quote actions */}
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <StudioCartWidget
+              currentPrice={product?.total ?? 0}
+              currentName={product?.name}
+              currentCategory={product?.category}
+              currentExtras={product?.extras}
+              onAddCurrent={product ? () => handleAdd(product) : undefined}
+              onQuote={product ? () => handleQuote(product) : () => setQuoteOpen(true)}
+            />
 
-                <Button 
-                  onClick={handleSubmitQuote} 
-                  className="w-full"
-                  size="lg"
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Generate Quote
-                </Button>
+            <button
+              onClick={() =>
+                window.open("https://calendly.com/wonderlandsworlds/30min", "_blank", "noopener")
+              }
+              className="flex w-full items-center justify-center gap-2 border border-border/60 bg-background/60 px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-foreground backdrop-blur-md transition-colors hover:bg-foreground hover:text-background"
+            >
+              <Calendar className="h-3.5 w-3.5" /> Book a designer
+            </button>
 
-                <div className="space-y-2">
-                  <Button 
-                    onClick={openUltimoTool}
-                    variant="outline" 
-                    className="w-full"
+            <div className="border border-foreground/15 bg-background/60 px-5 py-4 backdrop-blur-xl">
+              <p className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
+                The house standard
+              </p>
+              <ul className="mt-3 space-y-2">
+                {[
+                  "Turnkey — permits, engineering, land work, logistics",
+                  "Florida licensed and insured",
+                  "Delivery and installation included",
+                  "Complimentary design consultation",
+                ].map((line) => (
+                  <li
+                    key={line}
+                    className="border-t border-border/50 pt-2 text-[11px] leading-relaxed text-foreground/80"
                   >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Advanced Pool Configurator
-                  </Button>
-                  
-                  <Button 
-                    onClick={scheduleConsultation}
-                    variant="outline" 
-                    className="w-full"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Schedule Consultation
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Features */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Why Choose Wonderlands?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">✓</Badge>
-                  <span className="text-sm">Lifetime Warranty</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">✓</Badge>
-                  <span className="text-sm">Florida Licensed & Insured</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">✓</Badge>
-                  <span className="text-sm">500+ Satisfied Customers</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">✓</Badge>
-                  <span className="text-sm">Free Design Consultation</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
         </div>
+
+        <p className="mt-10 text-center text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
+          All prices include delivery, installation and the product as described.
+        </p>
       </main>
+
+      <SurveyQuoteTool
+        pool={null}
+        isOpen={quoteOpen}
+        onClose={() => setQuoteOpen(false)}
+        extras={quoteExtras}
+        customProduct={
+          product
+            ? {
+                name: product.name,
+                price: product.basePrice,
+                type: product.category,
+                image: product.image,
+              }
+            : undefined
+        }
+      />
 
       <Footer />
     </div>
