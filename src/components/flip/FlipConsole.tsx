@@ -13,7 +13,16 @@ interface FlipConsoleProps {
   onSelect: (id: string) => void;
   onClose: () => void;
   onOpenSection: (id: string) => void;
+  /** When provided, every product tile becomes clickable (configurator hand-off) */
+  onSelectEntry?: (entry: ConsoleEntry, categoryId: string) => void;
+  /** Entry currently open in the configurator */
+  activeEntryId?: string;
+  /** Hide the close control (embedded use) */
+  hideClose?: boolean;
+  /** Replaces the footer call to action label */
+  footerLabel?: string;
 }
+
 
 const FlipConsole: React.FC<FlipConsoleProps> = ({
   categories,
