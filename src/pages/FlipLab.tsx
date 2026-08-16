@@ -63,7 +63,7 @@ const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[]
 ];
 
 const FlipLab = () => {
-  const [active, setActive] = usePersistentState<VersionId>("flip.lab.version", "v5");
+  const [active, setActive] = usePersistentState<VersionId>("flip.lab.version", "v6");
   const current = VERSIONS.find((v) => v.id === active)!;
 
   return (
@@ -117,6 +117,7 @@ const FlipLab = () => {
       {active === "v3" && <FlipDossierEdition />}
       {active === "v4" && <FlipMagazine />}
       {active === "v5" && <FlipMagazine variant="v5" />}
+      {active === "v6" && <FlipMagazine variant="v6" />}
       {active === "builder" && <FlipBuilder />}
     </main>
   );
