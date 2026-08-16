@@ -14,7 +14,9 @@ import {
   Eye,
   EyeOff,
   Plus,
+  Minus,
   Spline,
+
 } from 'lucide-react';
 import {
   hitVertexIndex,
