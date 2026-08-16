@@ -3,7 +3,7 @@ const { useState } = React;
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AdvancedSearch from "./AdvancedSearch";
 import FlipMagazine from "./flip/FlipMagazine";
-import heroVideo from "@/assets/hero-beach.mp4.asset.json";
+import heroVideo from "@/assets/hero-beach-uhd.mp4.asset.json";
 import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
 
 const Hero = () => {
