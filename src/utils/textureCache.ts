@@ -23,7 +23,7 @@ class TextureCache {
   async loadTexture(url: string, repeat?: { x: number; y: number }): Promise<THREE.Texture> {
     // CRITICAL: Validate URL before attempting to load
     if (!url || url === '' || url === 'undefined' || url === 'null') {
-      const fallbackUrl = '/src/assets/finishes/sapphire-blue-g3.jpg';
+      const fallbackUrl = '/textures/finishes/sapphire-blue-g3.webp';
       const stack = new Error().stack;
       console.error('❌ TEXTURE CACHE: Invalid URL detected!', {
         receivedUrl: url,

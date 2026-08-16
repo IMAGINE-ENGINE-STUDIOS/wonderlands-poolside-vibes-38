@@ -905,11 +905,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   points,
   depthPoints,
   hardscapePoints,
-  linerTextureUrl = '/src/assets/finishes/sapphire-blue-g3.jpg',
+  linerTextureUrl = '/textures/finishes/sapphire-blue-g3.webp',
   paverTextureUrl = '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png',
   copingTextureUrl = '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp',
-  waterlineTextureUrl = '/src/assets/finishes/sapphire-blue-g3.jpg',
-  fenceTextureUrl = '/src/assets/fence-texture.webp',
+  waterlineTextureUrl = '/textures/finishes/sapphire-blue-g3.webp',
+  fenceTextureUrl = '/fence-texture.webp',
   features,
   fencePoints,
   scale = 1,
@@ -1082,7 +1082,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   // CRITICAL: Normalize empty strings to fallback URLs
   const normalizedLinerUrl = linerTextureUrl && linerTextureUrl.trim() !== '' && linerTextureUrl !== 'undefined' 
     ? linerTextureUrl 
-    : '/src/assets/finishes/sapphire-blue-g3.jpg';
+    : '/textures/finishes/sapphire-blue-g3.webp';
     
   const normalizedPaverUrl = paverTextureUrl && paverTextureUrl.trim() !== '' && paverTextureUrl !== 'undefined'
     ? paverTextureUrl 
@@ -1094,11 +1094,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     
   const normalizedWaterlineUrl = waterlineTextureUrl && waterlineTextureUrl.trim() !== '' && waterlineTextureUrl !== 'undefined'
     ? waterlineTextureUrl 
-    : '/src/assets/finishes/sapphire-blue-g3.jpg';
+    : '/textures/finishes/sapphire-blue-g3.webp';
     
   const normalizedFenceUrl = fenceTextureUrl && fenceTextureUrl.trim() !== '' && fenceTextureUrl !== 'undefined'
     ? fenceTextureUrl 
-    : '/src/assets/fence-texture.webp';
+    : '/fence-texture.webp';
 
   const [linerTexture] = useTexture([normalizedLinerUrl || '']);
   const poolDepth = poolDimensions?.depth || (depthPoints.length > 0 
