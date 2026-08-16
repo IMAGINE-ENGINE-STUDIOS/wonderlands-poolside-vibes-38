@@ -34,6 +34,7 @@ import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import ProjectTypeToggle from "@/components/ProjectTypeToggle";
 import { DynamicFeatureRenderer } from "@/components/DynamicFeatureRenderer";
 import { PoolBuilder } from "@/components/PoolBuilder";
+import StudioSitePlanner from "@/components/studio/StudioSitePlanner";
 import HeaterSizeCalculator from "@/components/HeaterSizeCalculator";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
@@ -2105,11 +2106,19 @@ const WonderlandsStudio = () => {
           <div className="flex-1 min-w-0 relative">
             {/* Pool Builder Mode - Full Screen */}
             {activeTab === 'build-a-pool' && !sceneFromBuilder ? (
-              <div className="fixed inset-0 z-50 bg-background">
-                <PoolBuilder onPoolDataChange={(data) => {
-                  setPoolBuilderData(data as any);
-                }} />
+              <div className="fixed inset-0 z-50 bg-background overflow-y-auto p-3 sm:p-6">
+                <StudioSitePlanner
+                  categoryId={activeTab === 'build-a-pool' ? 'pools' : activeTab}
+                  modelName={selectedProduct?.name}
+                  meta={selectedProduct?.dimensions}
+                  onPoolDataChange={(data) => setPoolBuilderData(data as any)}
+                  onViewIn3D={(scene, textureLibrary) => {
+                    setSceneFromBuilder(scene);
+                    setTextureLibFromBuilder(textureLibrary);
+                  }}
+                />
               </div>
+
             ) : sceneFromBuilder && textureLibFromBuilder ? (
               /* Pool Builder 3D Visualizer - Full Screen */
               <div className="fixed inset-0 z-50 bg-background">
