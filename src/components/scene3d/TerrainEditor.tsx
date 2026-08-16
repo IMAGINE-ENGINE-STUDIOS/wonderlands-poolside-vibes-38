@@ -489,7 +489,113 @@ export function TerrainEditor({
         {selectedAsset && (
           <div className="border-t p-3 bg-muted/30">
             <h4 className="text-xs font-medium mb-2">Asset Properties: {selectedAsset.name}</h4>
+
+            {/* Gizmo mode */}
+            <div className="space-y-2 mb-3">
+              <Label className="text-xs">Gizmo</Label>
+              <div className="grid grid-cols-3 gap-1">
+                {([
+                  { mode: 'translate' as GizmoMode, label: 'Move', Icon: Move3d },
+                  { mode: 'rotate' as GizmoMode, label: 'Rotate', Icon: RotateCw },
+                  { mode: 'scale' as GizmoMode, label: 'Scale', Icon: Maximize },
+                ]).map(({ mode, label, Icon }) => (
+                  <Button
+                    key={mode}
+                    variant={gizmoMode === mode ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => onGizmoModeChange?.(mode)}
+                  >
+                    <Icon className="h-3 w-3 mr-1" />
+                    {label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Snapping */}
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-2">
+                  <Magnet className="h-3 w-3 text-primary" />
+                  <Label className="text-xs">Snap</Label>
+                </div>
+                <Switch
+                  checked={snapSettings.enabled}
+                  onCheckedChange={(v) => onSnapChange?.({ ...snapSettings, enabled: v })}
+                />
+              </div>
+
+              {snapSettings.enabled && (
+                <div className="space-y-2 rounded-lg border p-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase text-muted-foreground">Grid step (ft)</Label>
+                    <div className="flex gap-1">
+                      {SNAP_STEPS.map(step => (
+                        <Button
+                          key={step}
+                          variant={snapSettings.gridSnap === step ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-6 flex-1 px-0 text-[10px]"
+                          onClick={() => onSnapChange?.({ ...snapSettings, gridSnap: step })}
+                        >
+                          {step}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase text-muted-foreground">Rotation step (°)</Label>
+                    <div className="flex gap-1">
+                      {ROTATION_STEPS.map(step => (
+                        <Button
+                          key={step}
+                          variant={snapSettings.rotationSnapDeg === step ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-6 flex-1 px-0 text-[10px]"
+                          onClick={() => onSnapChange?.({ ...snapSettings, rotationSnapDeg: step })}
+                        >
+                          {step}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] uppercase text-muted-foreground">Keep on ground</Label>
+                    <Switch
+                      checked={snapSettings.snapToGround}
+                      onCheckedChange={(v) => onSnapChange?.({ ...snapSettings, snapToGround: v })}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-[10px]"
+                  onClick={() => updateAsset(selectedAsset.id, {
+                    position: [
+                      Math.round(selectedAsset.position[0] / snapSettings.gridSnap) * snapSettings.gridSnap,
+                      snapSettings.snapToGround ? 0 : selectedAsset.position[1],
+                      Math.round(selectedAsset.position[2] / snapSettings.gridSnap) * snapSettings.gridSnap,
+                    ],
+                  })}
+                >
+                  Snap to grid
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-[10px]"
+                  onClick={() => updateAsset(selectedAsset.id, { position: [0, 0, 0], rotation: [0, 0, 0] })}
+                >
+                  Reset transform
+                </Button>
+              </div>
+            </div>
+
             <div className="space-y-3">
+
               <div className="space-y-1">
                 <Label className="text-xs">Scale</Label>
                 <Slider
