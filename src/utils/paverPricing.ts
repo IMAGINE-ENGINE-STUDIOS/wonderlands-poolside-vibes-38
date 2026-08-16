@@ -73,3 +73,16 @@ export function calculateScreenEnclosureCost(
   const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] ?? SCREEN_ENCLOSURE_PRICING.standard;
   return area * pricePerSqFt;
 }
+
+/**
+ * Look up a coping price per sq ft by product NAME (as selected in the store/3D galleries).
+ * Falls back to the deck paver catalog, then to the default rate.
+ */
+export function getCopingPricePerSqFtByName(copingName: string | undefined | null): number {
+  if (!copingName) return 25;
+  const { copingTypes } = require('@/data/paverData');
+  const coping = (copingTypes as PaverType[]).find(c => c.name === copingName);
+  if (coping) return coping.basePrice;
+  const paver = paverTypes.find(p => p.name === copingName);
+  return paver?.basePrice ?? 25;
+}
