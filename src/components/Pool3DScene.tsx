@@ -1261,6 +1261,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       }}>
         <WaterlineMesh
           poolPoints={points}
+          wallCurve={poolCurve3D}
           waterlineTextureUrl={normalizedWaterlineUrl}
           selectedCategory={selectedCategory}
           waterlineTextureScale={waterlineTextureScale}
