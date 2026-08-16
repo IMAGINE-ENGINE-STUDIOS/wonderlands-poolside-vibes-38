@@ -7,7 +7,7 @@ import FlipConsoleEdition from "@/components/flip/FlipConsoleEdition";
 import FlipDossierEdition from "@/components/flip/FlipDossierEdition";
 import FlipBuilder from "@/components/flip/FlipBuilder";
 
-type VersionId = "v1" | "v2" | "v3" | "v4" | "builder";
+type VersionId = "v1" | "v2" | "v3" | "v4" | "v5" | "builder";
 
 const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[] = [
   {
@@ -39,6 +39,13 @@ const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[]
       "The full edition. Landing spread, every category, live tool widgets, cart and estimate — the version shipped to clients.",
   },
   {
+    id: "v5",
+    label: "V5",
+    title: "The Living Edition",
+    blurb:
+      "V4 plus the reading cues: the corner lifts itself on arrival, chapter tabs hang colour-coded off the outer border, and opening a product riffles through the book to reach it.",
+  },
+  {
     id: "builder",
     label: "Flip It",
     title: "Flip Builder",
@@ -48,7 +55,7 @@ const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[]
 ];
 
 const FlipLab = () => {
-  const [active, setActive] = usePersistentState<VersionId>("flip.lab.version", "v4");
+  const [active, setActive] = usePersistentState<VersionId>("flip.lab.version", "v5");
   const current = VERSIONS.find((v) => v.id === active)!;
 
   return (
@@ -101,6 +108,7 @@ const FlipLab = () => {
       {active === "v2" && <FlipConsoleEdition />}
       {active === "v3" && <FlipDossierEdition />}
       {active === "v4" && <FlipMagazine />}
+      {active === "v5" && <FlipMagazine variant="v5" />}
       {active === "builder" && <FlipBuilder />}
     </main>
   );
