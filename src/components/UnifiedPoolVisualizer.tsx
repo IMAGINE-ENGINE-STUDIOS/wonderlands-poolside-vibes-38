@@ -25,6 +25,7 @@ import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
 import { createDepthInterpolator, createDefaultLinearAnchors } from './scene3d/depthUtils';
 import { TerrainEditor, TerrainAsset, AssetLibraryItem } from './scene3d/TerrainEditor';
 import { TerrainAssetsRenderer } from './scene3d/TerrainAssetsRenderer';
+import { SceneObjectsPanel, SceneObjectGroup, sceneObjectIcons } from './scene3d/SceneObjectsPanel';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3, ArrowUpDown } from 'lucide-react';
 import { useSceneHistory, SceneSnapshot } from '@/hooks/useSceneHistory';
@@ -451,6 +452,187 @@ export function UnifiedPoolVisualizer({
       poolLights: newLights
     });
   }, [scene, setScene]);
+
+  // ===== Scene Objects widget: flat inventory of everything in the 3D scene =====
+  const sceneObjectGroups: SceneObjectGroup[] = useMemo(() => {
+    const groups: SceneObjectGroup[] = [];
+
+    const structure = [
+      {
+        id: 'obj-pool',
+        label: 'Pool Shell',
+        detail: `${scene.pool.points?.length || 0} pts`,
+        icon: sceneObjectIcons.pool,
+        selected: selectedComponent === 'pool',
+        onSelect: () => setSelectedComponent('pool'),
+      },
+      {
+        id: 'obj-deck',
+        label: 'Deck',
+        detail: `${scene.deck.points?.length || 0} pts`,
+        icon: sceneObjectIcons.deck,
+        selected: selectedComponent === 'deck',
+        onSelect: () => setSelectedComponent('deck'),
+      },
+      {
+        id: 'obj-coping',
+        label: 'Coping',
+        detail: `${((scene.deck.copingWidth || 1) * 12).toFixed(0)}"`,
+        icon: sceneObjectIcons.coping,
+        selected: selectedComponent === 'coping',
+        onSelect: () => setSelectedComponent('coping'),
+      },
+      {
+        id: 'obj-waterline',
+        label: 'Waterline Tile',
+        icon: sceneObjectIcons.coping,
+        selected: selectedComponent === 'waterline',
+        onSelect: () => setSelectedComponent('waterline'),
+      },
+      {
+        id: 'obj-water',
+        label: 'Water Surface',
+        detail: showWater ? 'visible' : 'hidden',
+        icon: sceneObjectIcons.water,
+        onSelect: () => setShowWater(!showWater),
+      },
+    ];
+    groups.push({ key: 'structure', label: 'Structure', items: structure });
+
+    if (poolStairs.length) {
+      groups.push({
+        key: 'stairs',
+        label: 'Stairs',
+        items: poolStairs.map((s, i) => ({
+          id: s.id,
+          label: `Stairs ${i + 1}`,
+          detail: `${s.numSteps} steps`,
+          icon: sceneObjectIcons.stairs,
+          selected: selectedPoolAssetId === s.id,
+          onSelect: () => setSelectedPoolAssetId(s.id),
+          onDelete: () => setPoolStairs(prev => prev.filter(x => x.id !== s.id)),
+        })),
+      });
+    }
+
+    if (poolChairs.length) {
+      groups.push({
+        key: 'chairs',
+        label: 'Seats & Chairs',
+        items: poolChairs.map((c, i) => ({
+          id: c.id,
+          label: c.name || `Chair ${i + 1}`,
+          detail: `${c.width}×${c.depth} ft`,
+          icon: sceneObjectIcons.chair,
+          selected: selectedPoolAssetId === c.id,
+          onSelect: () => setSelectedPoolAssetId(c.id),
+          onDelete: () => setPoolChairs(prev => prev.filter(x => x.id !== c.id)),
+        })),
+      });
+    }
+
+    if (contourSeating.length) {
+      groups.push({
+        key: 'seating',
+        label: 'Contour Seating',
+        items: contourSeating.map((s, i) => ({
+          id: s.id,
+          label: `Seating ${i + 1}`,
+          detail: `${s.width} ft wide`,
+          icon: sceneObjectIcons.seating,
+          selected: selectedPoolAssetId === s.id,
+          onSelect: () => setSelectedPoolAssetId(s.id),
+          onDelete: () => setContourSeating(prev => prev.filter(x => x.id !== s.id)),
+        })),
+      });
+    }
+
+    if (poolLights.length) {
+      groups.push({
+        key: 'lights',
+        label: 'Lights',
+        items: poolLights.map((l, i) => ({
+          id: l.id,
+          label: `Light ${i + 1}`,
+          detail: l.isOn ? 'on' : 'off',
+          icon: sceneObjectIcons.light,
+          selected: selectedLightId === l.id,
+          onSelect: () => setSelectedLightId(l.id),
+          onDelete: () => handlePoolLightsChange(poolLights.filter(x => x.id !== l.id)),
+        })),
+      });
+    }
+
+    if (scene.features?.length) {
+      groups.push({
+        key: 'features',
+        label: 'Landscape & Features',
+        items: scene.features.map((f, i) => ({
+          id: f.id,
+          label: `${String(f.type).replace(/-/g, ' ')} ${i + 1}`,
+          icon: sceneObjectIcons.terrain,
+          onSelect: () => setSelectedObject(f.id),
+          selected: selectedObject === f.id,
+          onDelete: () =>
+            setScene({ ...scene, features: scene.features.filter(x => x.id !== f.id) }),
+        })),
+      });
+    }
+
+    if (terrainAssets.length) {
+      groups.push({
+        key: 'terrain',
+        label: 'Terrain Assets',
+        items: terrainAssets.map(a => ({
+          id: a.id,
+          label: a.name,
+          detail: a.type,
+          icon: sceneObjectIcons.terrain,
+          onDelete: () => setTerrainAssets(prev => prev.filter(x => x.id !== a.id)),
+        })),
+      });
+    }
+
+    if (assets3D.length) {
+      groups.push({
+        key: 'assets3d',
+        label: '3D Objects',
+        items: assets3D.map(a => ({
+          id: a.id,
+          label: a.name,
+          detail: a.type,
+          icon: sceneObjectIcons.asset,
+          selected: selectedObject === a.id,
+          onSelect: () => setSelectedObject(a.id),
+          onDelete: () => setAssets3D(prev => prev.filter(x => x.id !== a.id)),
+        })),
+      });
+    }
+
+    return groups;
+  }, [
+    scene,
+    setScene,
+    selectedComponent,
+    showWater,
+    poolStairs,
+    poolChairs,
+    contourSeating,
+    poolLights,
+    terrainAssets,
+    assets3D,
+    selectedPoolAssetId,
+    selectedLightId,
+    selectedObject,
+    setPoolStairs,
+    setPoolChairs,
+    setContourSeating,
+    setTerrainAssets,
+    setAssets3D,
+    handlePoolLightsChange,
+  ]);
+
+
   
   // Helper to safely extract texture URLs with fallbacks
   const safeGetTextureUrl = useCallback((textureConfig: TextureConfig | undefined, fallback: string): string => {
@@ -911,6 +1093,13 @@ export function UnifiedPoolVisualizer({
         >
           {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
         </button>
+
+        {/* Scene Objects Widget */}
+        <div className="absolute top-16 right-4 z-20">
+          <SceneObjectsPanel groups={sceneObjectGroups} />
+        </div>
+
+
 
         {/* Undo/Redo & Reset View Controls */}
         <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-1 md:gap-2 max-w-[calc(100%-80px)] md:max-w-none">
