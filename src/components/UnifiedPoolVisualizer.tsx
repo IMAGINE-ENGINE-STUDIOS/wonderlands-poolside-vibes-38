@@ -1662,6 +1662,10 @@ export function UnifiedPoolVisualizer({
               copingTextureOffset={scene.deck.coping.offset || [0, 0]}
               waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
               linerTextureOffset={scene.pool.finish.offset || [0, 0]}
+              paverTextureRotation={scene.deck.paver.rotation || 0}
+              copingTextureRotation={scene.deck.coping.rotation || 0}
+              waterlineTextureRotation={scene.deck.waterline?.rotation || 0}
+              linerTextureRotation={scene.pool.finish.rotation || 0}
               poolPosition={[0, 0, 0]}
               copingHeight={scene.deck.copingHeight || 2 / 12}
               deckHeight={scene.deck.deckHeight || 2 / 12}
