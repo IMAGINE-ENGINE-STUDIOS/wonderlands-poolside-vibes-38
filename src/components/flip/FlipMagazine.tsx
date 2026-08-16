@@ -37,7 +37,7 @@ type OptionGroup = { title: string; note: string; options: string[] };
 const OPTION_GROUPS: Record<string, OptionGroup[]> = {
   pools: [
     { title: "Interior Finish", note: "How the water carries light", options: ["Sapphire Blue G3", "Aquamarine G3", "Ocean Blue G3", "Night Sky G3", "Shale Gray G3", "Lagoon Blue G2"] },
-    { title: "Waterline & Coping", note: "The edge detail", options: ["Glass mosaic waterline", "Porcelain waterline", "Travertine bullnose coping", "Porcelain coping", "Coralina coping"] },
+    { title: "Waterline & Coping", note: "The edge detail", options: ["Glass mosaic waterline", "Porcelain waterline", "Travertine coping — squared edge or bullnose", "Porcelain coping", "Coralina coping"] },
     { title: "Deck & Surround", note: "The frame of the picture", options: ["Travertine pavers", "Porcelain pavers", "Coralina pavers — $25/sq ft", "Concrete deck — from $10/sq ft", "Artificial turf border"] },
     { title: "Water & Comfort", note: "Systems set on delivery day", options: ["Heat pump heater", "Gas heater", "Hydrotherapy jets", "Bubblers", "Spillover spa", "Rocky waterfall"] },
     { title: "Light & Control", note: "Evening character", options: ["Color LED spectrum lighting", "Automation & app control", "Salt system", "Variable speed pump", "Automatic cover"] },
@@ -57,7 +57,7 @@ const OPTION_GROUPS: Record<string, OptionGroup[]> = {
   ],
   pavers: [
     { title: "Field Pattern", note: "Laid on compacted base", options: ["Ashlar", "French pattern", "Running bond", "Herringbone", "Modular mix"] },
-    { title: "Edge & Coping", note: "The defined perimeter", options: ["Bullnose coping", "Square edge coping", "Soldier course border", "Contrast banding"] },
+    { title: "Edge & Coping", note: "The defined perimeter", options: ["Squared edge coping — standard", "Bullnose coping — Belgard & coping specified as bullnose", "Soldier course border", "Contrast banding"] },
     { title: "Base System", note: "Underfoot for decades", options: ["Compacted limerock base", "Polymeric sand joints", "Drainage channel", "Sealer application"] },
   ],
   "artificial-grass": [

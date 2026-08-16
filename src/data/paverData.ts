@@ -322,7 +322,7 @@ export const copingTypes: PaverType[] = [
   {
     id: 'bullnose-coping',
     name: 'Bullnose Coping',
-    description: 'Rounded edge bullnose coping for pool edges',
+    description: 'Bullnose coping — rounded, hand-finished edge; squared edge also available, both standard',
     basePrice: 20.7,
     category: 'coping',
     image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp',
@@ -336,7 +336,7 @@ export const copingTypes: PaverType[] = [
   {
     id: 'cantilever-coping',
     name: 'Cantilever Coping',
-    description: 'Modern cantilever edge design for contemporary pools',
+    description: 'Modern cantilever edge design for contemporary pools — squared edge standard',
     basePrice: 25.3,
     category: 'coping',
     image: '/lovable-uploads/d6ea993e-6b84-4fd9-b0f5-0ae906e45b0b.webp',
@@ -350,7 +350,7 @@ export const copingTypes: PaverType[] = [
   {
     id: 'natural-stone-coping',
     name: 'Natural Stone Coping',
-    description: 'Premium natural stone pool edge coping',
+    description: 'Premium natural stone pool edge coping — squared edge standard',
     basePrice: 32.2,
     category: 'coping',
     image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.webp',
@@ -364,7 +364,7 @@ export const copingTypes: PaverType[] = [
   {
     id: 'tile-coping',
     name: 'Tile Coping',
-    description: 'Ceramic or porcelain tile coping for pool edges',
+    description: 'Ceramic or porcelain tile coping for pool edges — squared edge standard',
     basePrice: 18.4,
     category: 'coping',
     image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.webp',

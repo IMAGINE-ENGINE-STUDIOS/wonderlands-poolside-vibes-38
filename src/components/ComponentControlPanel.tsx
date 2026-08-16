@@ -17,6 +17,12 @@ import {
 } from '@/data/textureLibrary';
 
 // Component order for auto-advance after texture selection
+import {
+  COPING_EDGE_PROFILES,
+  DEFAULT_COPING_EDGE_PROFILE,
+  copingSupportsBullnose,
+} from '@/data/copingEdgeProfiles';
+
 const COMPONENT_ORDER: Array<'pool' | 'deck' | 'coping' | 'waterline'> = ['pool', 'coping', 'waterline', 'deck'];
 
 /** Catalog-backed fallback so every gallery matches Wonderlands Studio. */
@@ -532,6 +538,53 @@ export function ComponentControlPanel({
                   step={0.1}
                   className="w-full"
                 />
+              </div>
+
+              {/* Edge profile — squared edge and bullnose are both standard;
+                  bullnose only where the manufacturer produces it. */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Edge Profile</Label>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Standard</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {COPING_EDGE_PROFILES.map((profile) => {
+                    const available =
+                      profile.id === 'squared' ||
+                      copingSupportsBullnose(scene.deck.coping?.name, scene.deck.coping?.name);
+                    const active =
+                      (scene.deck.copingEdgeProfile ?? DEFAULT_COPING_EDGE_PROFILE) === profile.id;
+                    return (
+                      <button
+                        key={profile.id}
+                        type="button"
+                        disabled={!available}
+                        title={
+                          available
+                            ? profile.description
+                            : 'Bullnose is available on Belgard coping and products specified as bullnose.'
+                        }
+                        onClick={() => {
+                          const updated = { ...scene };
+                          updated.deck.copingEdgeProfile = profile.id;
+                          onSceneChange(updated);
+                        }}
+                        className={`rounded-lg border px-3 py-2 text-xs backdrop-blur-md transition-colors ${
+                          active
+                            ? 'border-primary/70 bg-primary/15 text-foreground'
+                            : 'border-border/50 bg-background/40 text-muted-foreground hover:bg-background/70'
+                        } ${available ? '' : 'cursor-not-allowed opacity-40'}`}
+                      >
+                        {profile.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {copingSupportsBullnose(scene.deck.coping?.name, scene.deck.coping?.name)
+                    ? 'Squared edge or bullnose — both included, your choice.'
+                    : 'Squared edge is standard on this coping. Bullnose is offered on Belgard and coping specified as bullnose.'}
+                </p>
               </div>
             </div>
           </>

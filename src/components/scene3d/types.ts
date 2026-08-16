@@ -1,4 +1,5 @@
 // Types for the unified 3D scene system
+import type { CopingEdgeProfileId } from '@/data/copingEdgeProfiles';
 
 export type PointType = 'linear' | 'curve' | 'smooth' | 'corner';
 
@@ -161,6 +162,8 @@ export interface Scene3D {
     copingHeight?: number;
     deckHeight?: number;
     copingWidth?: number;
+    /** Squared edge (standard) or bullnose where the product offers it. */
+    copingEdgeProfile?: CopingEdgeProfileId;
     deckElevation?: number;
   };
   additionalPools?: AdditionalPool[]; // Additional water bodies (spas, tanning ledges, separate pools)
