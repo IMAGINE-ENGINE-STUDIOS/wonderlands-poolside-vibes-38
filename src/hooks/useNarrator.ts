@@ -2,7 +2,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { generateFlipPitch } from '@/lib/flipPitchGenerator';
 import { getFlipManifest } from '@/lib/flipPageRegistry';
-import { playGeniusVoice, stopGeniusVoice, subscribeGeniusVoice, GENIUS_VOLUME } from '@/lib/geniusVoiceChannel';
+import { playGeniusVoice, stopGeniusVoice, subscribeGeniusVoice } from '@/lib/geniusVoiceChannel';
 import {
   cacheAudio,
   cacheScript,
