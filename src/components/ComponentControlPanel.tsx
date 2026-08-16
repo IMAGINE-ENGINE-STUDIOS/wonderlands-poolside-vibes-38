@@ -98,8 +98,12 @@ export function ComponentControlPanel({
 
 
   const handleTextureScaleChange = (scale: number) => {
-    const updated = { ...scene };
-    
+    const updated: Scene3D = {
+      ...scene,
+      pool: { ...scene.pool },
+      deck: { ...scene.deck },
+    };
+
     if (selectedComponent === 'pool') {
       updated.pool.finish = { ...updated.pool.finish, scale };
     } else if (selectedComponent === 'deck') {
@@ -109,7 +113,7 @@ export function ComponentControlPanel({
     } else if (selectedComponent === 'waterline' && updated.deck.waterline) {
       updated.deck.waterline = { ...updated.deck.waterline, scale };
     }
-    
+
     onSceneChange(updated);
   };
 
@@ -123,15 +127,28 @@ export function ComponentControlPanel({
     }
   };
 
-  const getAvailableTextures = () => {
-    switch (selectedComponent) {
-      case 'pool': return getFilteredFinishes();
-      case 'deck': return textureLibrary.pavers;
-      case 'coping': return textureLibrary.coping;
-      case 'waterline': return textureLibrary.waterlines || []; // Waterline uses dedicated waterline tiles
-      default: return [];
-    }
+  const getAvailableTextures = (): TextureConfig[] => {
+    const list = (() => {
+      switch (selectedComponent) {
+        case 'pool': return getFilteredFinishes();
+        case 'deck': return textureLibrary.pavers;
+        case 'coping': return textureLibrary.coping;
+        case 'waterline': return textureLibrary.waterlines || []; // dedicated waterline tiles
+        default: return [];
+      }
+    })();
+
+    // Duplicate URLs produced duplicate React keys, which silently dropped
+    // swatches and made selections apply the wrong texture.
+    const seen = new Set<string>();
+    return (list || []).filter((t) => {
+      const url = t?.url;
+      if (!url || seen.has(url)) return false;
+      seen.add(url);
+      return true;
+    });
   };
+
 
   const getComponentTitle = () => {
     switch (selectedComponent) {
