@@ -381,6 +381,60 @@
   box-shadow: 0 8px 24px -14px hsl(var(--primary) / 0.5);
 }
 
+/* ============ 3D studio widgets — glassmorphic controls ============ */
+/* Elegant frosted control used by every button in the 3D toolbars/panels. */
+.glass-btn {
+  background: linear-gradient(
+    140deg,
+    hsl(var(--card) / 0.55) 0%,
+    hsl(var(--card) / 0.28) 100%
+  );
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid hsl(var(--border) / 0.5);
+  box-shadow:
+    0 1px 0 0 hsl(var(--background) / 0.3) inset,
+    0 10px 28px -18px hsl(var(--foreground) / 0.45);
+  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease,
+    border-color 200ms ease;
+}
+
+.glass-btn:hover {
+  background: linear-gradient(
+    140deg,
+    hsl(var(--card) / 0.7) 0%,
+    hsl(var(--card) / 0.4) 100%
+  );
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: 0 14px 34px -18px hsl(var(--primary) / 0.5);
+  transform: translateY(-1px);
+}
+
+.glass-btn:active {
+  transform: translateY(0);
+}
+
+.glass-btn[data-state='on'],
+.glass-btn[aria-pressed='true'],
+.glass-btn.is-active {
+  background: hsl(var(--primary) / 0.16);
+  border-color: hsl(var(--primary) / 0.6);
+  box-shadow: 0 10px 28px -16px hsl(var(--primary) / 0.6);
+}
+
+/* Frosted rail that groups glass buttons together. */
+.glass-toolbar {
+  background: linear-gradient(
+    140deg,
+    hsl(var(--card) / 0.5) 0%,
+    hsl(var(--card) / 0.26) 100%
+  );
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid hsl(var(--border) / 0.45);
+  box-shadow: 0 18px 45px -24px hsl(var(--foreground) / 0.5);
+}
+
 .quote-sheet {
   background:
     radial-gradient(120% 80% at 0% 0%, hsl(var(--primary) / 0.07), transparent 60%),
