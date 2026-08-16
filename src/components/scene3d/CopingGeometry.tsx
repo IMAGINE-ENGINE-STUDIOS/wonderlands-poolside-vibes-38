@@ -61,23 +61,23 @@ export const CopingGeometry = ({
   
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
-    
-    // Coping inner boundary = pool edge
-    const copingInnerBoundary = poolPoints;
-    
-    // Coping outer boundary = offset OUTWARD by copingWidth
-    const copingOuterBoundary = generateOffsetCurve(poolPoints, copingWidth);
-    
-    if (copingInnerBoundary.length !== copingOuterBoundary.length) {
-      console.error('⚠️ CopingGeometry: Inner and outer boundaries have different point counts!');
-      return new THREE.BufferGeometry();
-    }
-    
+
+    // Exact mitred band: sharp tips (triangular pools) get a bevel instead of a
+    // collapsed/overlapping corner, and the inner ring is expanded in lockstep so
+    // every inner vertex pairs with exactly one outer vertex.
+    const { base: copingInnerBoundary, offset: copingOuterBoundary } = mitredOffsetRing(
+      poolPoints,
+      copingWidth,
+      { miterLimit: 2.5 }
+    );
+
+    if (copingInnerBoundary.length < 3) return new THREE.BufferGeometry();
+
     const vertices: number[] = [];
     const indices: number[] = [];
     const uvs: number[] = [];
     const numPoints = copingInnerBoundary.length;
-    
+
     // Calculate cumulative distance along perimeter for 1ft x 1ft UV mapping
     const distances: number[] = [0];
     let totalDistance = 0;
@@ -92,6 +92,7 @@ export const CopingGeometry = ({
       totalDistance += segmentLength;
       distances.push(totalDistance);
     }
+
     
     // Create continuous ring geometry with 1ft x 1ft UV squares
     // Top surface - use world-space UV (x, z) for perfect 1ft grid alignment
