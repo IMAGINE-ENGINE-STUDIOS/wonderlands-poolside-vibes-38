@@ -26,7 +26,6 @@ import { MobileTexturePanel } from './MobileTexturePanel';
 import {
   buildCatalogTextureLibrary,
   dedupeTextures,
-  groupTextures,
 } from '@/data/textureLibrary';
 
 /** Catalog-backed textures so every gallery matches Wonderlands Studio. */
