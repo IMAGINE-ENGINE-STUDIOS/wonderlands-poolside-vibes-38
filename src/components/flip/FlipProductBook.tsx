@@ -7,6 +7,10 @@ import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight, Maximize2 } fr
 import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeStudioGroups, type StudioGroup, type StudioOption } from "@/lib/flipStudioFeatures";
+import { isTurnkeyScopeLine } from "@/data/turnkeyScope";
+import { getProjectPipeline } from "@/data/projectPipeline";
+import FlipProjectPipeline from "./FlipProjectPipeline";
+
 import FlipToolWidget from "./FlipToolWidget";
 import { useFlipLocked } from "./flipBoardStore";
 import { pushSpread } from "./FlipSpread";
@@ -239,7 +243,7 @@ const OptionChapter: React.FC<{
 
   /** Fitted as standard: no cost, already part of the product — never an add. */
   const isIncluded = (o: StudioOption) =>
-    o.price === 0 && /included/i.test(o.priceLabel ?? "");
+    o.price === 0 && /included/i.test(o.priceLabel ?? "") && isTurnkeyScopeLine(o.label);
 
   const addOption = (o: StudioOption, qty = 1) => {
     const total = lineTotal(o, qty);
@@ -1016,6 +1020,37 @@ export const useProductBookPages = ({
     });
 
 
+
+    /* turn-key scope and the managed project pipeline */
+    if (getProjectPipeline(category.id)) {
+      if (!portrait && list.length % 2 !== 0) {
+        list.push({
+          key: "pipeline-lead",
+          render: () => (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-9 text-center">
+              <Eyebrow>Delivery</Eyebrow>
+              <p className="font-serif text-xl font-light leading-snug">Built turn-key</p>
+              <div className="h-px w-14 bg-border" />
+              <p className="max-w-[16rem] text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                Scope and pipeline overleaf
+              </p>
+            </div>
+          ),
+        });
+      }
+      list.push({
+        key: "pipeline-scope",
+        render: () => <FlipProjectPipeline categoryId={category.id} part="scope" />,
+      });
+      list.push({
+        key: "pipeline-steps-a",
+        render: () => <FlipProjectPipeline categoryId={category.id} part="steps" half={0} />,
+      });
+      list.push({
+        key: "pipeline-steps-b",
+        render: () => <FlipProjectPipeline categoryId={category.id} part="steps" half={1} />,
+      });
+    }
 
     /* order */
     list.push({
