@@ -1,4 +1,4 @@
-import { paverTypes, PaverType } from '@/data/paverData';
+import { paverTypes, copingTypes, PaverType } from '@/data/paverData';
 
 // Default price per sq ft for concrete deck
 export const DEFAULT_PAVER_PRICE_PER_SQFT = 10;
@@ -80,8 +80,7 @@ export function calculateScreenEnclosureCost(
  */
 export function getCopingPricePerSqFtByName(copingName: string | undefined | null): number {
   if (!copingName) return 25;
-  const { copingTypes } = require('@/data/paverData');
-  const coping = (copingTypes as PaverType[]).find(c => c.name === copingName);
+  const coping = copingTypes.find(c => c.name === copingName);
   if (coping) return coping.basePrice;
   const paver = paverTypes.find(p => p.name === copingName);
   return paver?.basePrice ?? 25;
