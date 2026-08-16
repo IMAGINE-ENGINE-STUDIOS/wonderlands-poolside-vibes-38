@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import DepthProfileEditor from '@/components/poolBuilder/DepthProfileEditor';
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   MousePointer2, PenTool, Shapes, Ruler, Layers, Palette, Lightbulb,
@@ -414,29 +416,11 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                     </div>
                   ))}
                 </div>
-                <div className="bg-muted/20 rounded p-2">
-                  <svg width="100%" height="50" viewBox="0 0 200 50" className="overflow-visible">
-                    <line x1="5" y1="5" x2="195" y2="5" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.5" />
-                    {(() => {
-                      const sorted = [...props.depthPoints].sort((a, b) => a.position - b.position);
-                      let d = `M ${5 + sorted[0].position * 190},5`;
-                      sorted.forEach(dp => {
-                        d += ` L ${5 + dp.position * 190},${5 + dp.depth / 12 * 40}`;
-                      });
-                      d += ` L ${5 + sorted[sorted.length - 1].position * 190},5 Z`;
-                      return <path d={d} fill="hsl(var(--primary)/0.15)" stroke="hsl(var(--primary))" strokeWidth="1.5" />;
-                    })()}
-                    {[...props.depthPoints].sort((a, b) => a.position - b.position).map(dp => (
-                      <circle
-                        key={dp.id}
-                        cx={5 + dp.position * 190}
-                        cy={5 + dp.depth / 12 * 40}
-                        r="3"
-                        fill="hsl(var(--primary))"
-                      />
-                    ))}
-                  </svg>
-                </div>
+                <DepthProfileEditor
+                  depthPoints={props.depthPoints}
+                  setDepthPoints={props.setDepthPoints}
+                />
+
               </div>
             )}
 
