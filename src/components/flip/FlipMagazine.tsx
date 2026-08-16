@@ -256,6 +256,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
   const [cornerHint, setCornerHint] = useState(isV5);
   /* V5: page-riffle transition played while a product book is opened */
   const [riffling, setRiffling] = useState(false);
+  const [riffleTarget, setRiffleTarget] = useState<ConsoleEntry | null>(null);
   const riffleTimer = useRef<number | null>(null);
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
@@ -424,10 +425,28 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
   /* -------------------------------- DOSSIER --------------------------------- */
   const [dossier, setDossier] = useState<ConsoleEntry | null>(null);
 
+  /**
+   * Real plates used by the riffle so the turning leaves are never blank: the
+   * models of the current discipline, then the category's own imagery.
+   */
+  const rifflePlates = useMemo(() => {
+    const list = (entries ?? []).filter((e) => e.image);
+    const images = [
+      ...list.map((e) => e.image),
+      ...(category.images ?? []),
+    ].filter(Boolean) as string[];
+    const captions = [
+      ...list.map((e) => e.name),
+      ...(category.images ?? []).map(() => category.label),
+    ];
+    return { images, captions };
+  }, [entries, category]);
+
   /** Opens a model's book inside the same flip, with the editorial cross-fade. */
   const openDossier = useCallback(
     (p: ConsoleEntry) => {
       if (isV5) {
+        setRiffleTarget(p);
         setRiffling(true);
         if (riffleTimer.current) window.clearTimeout(riffleTimer.current);
         riffleTimer.current = window.setTimeout(() => setRiffling(false), 1250);
@@ -1540,7 +1559,10 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
                     <FlipRiffle
                       width={portrait ? dims.w : dims.w * 2}
                       height={dims.h}
-                      label="Turning to the product book"
+                      label={`Turning to ${(dossier?.name ?? riffleTarget?.name ?? category.label)}`}
+                      images={rifflePlates.images}
+                      captions={rifflePlates.captions}
+                      destination={riffleTarget?.image}
                     />
                   )}
                 </>
