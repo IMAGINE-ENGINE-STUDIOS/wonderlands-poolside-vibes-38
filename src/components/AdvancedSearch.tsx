@@ -99,6 +99,15 @@ const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchPr
     resetTranscript,
   } = useVoiceInput();
 
+  // Query pushed in from outside (Genius): type it in and open the results
+  useEffect(() => {
+    const next = externalQuery?.trim();
+    if (!next) return;
+    setSearchQuery(next);
+    setShowResults(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalQuery]);
+
   // Handle voice transcript - update search query as user speaks
   useEffect(() => {
     if (transcript && !isListening) {
