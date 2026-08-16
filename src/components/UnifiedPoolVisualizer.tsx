@@ -21,7 +21,8 @@ import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './scene3
 import { WalkthroughController } from './scene3d/WalkthroughController';
 import { CameraFocusController, FocusRequest } from './scene3d/CameraFocusController';
 import { OrbitKeyboardControls } from './scene3d/OrbitKeyboardControls';
-import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
+import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from './scene3d/PoolDesignerHeader';
+import { FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
 import { createDepthInterpolator, createDefaultLinearAnchors, createDefaultDepthAxis, computePerimeterDepths, getPoolBounds } from './scene3d/depthUtils';
@@ -1366,6 +1367,12 @@ export function UnifiedPoolVisualizer({
             deckWidth={deckWidth}
             copingWidth={scene.deck.copingWidth || 1}
             poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
+            paverName={scene.deck.paver?.name}
+            copingName={scene.deck.coping?.name}
+            finishName={scene.pool.finish?.name}
+            waterlineName={scene.deck.waterline?.name}
+            additionalFeatures={designerFeatureLines}
+            additionalBodies={designerBodyLines}
           />
         </div>
         
@@ -1377,6 +1384,12 @@ export function UnifiedPoolVisualizer({
             deckWidth={deckWidth}
             copingWidth={scene.deck.copingWidth || 1}
             poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
+            paverName={scene.deck.paver?.name}
+            copingName={scene.deck.coping?.name}
+            finishName={scene.pool.finish?.name}
+            waterlineName={scene.deck.waterline?.name}
+            additionalFeatures={designerFeatureLines}
+            additionalBodies={designerBodyLines}
           />
         </div>
 
