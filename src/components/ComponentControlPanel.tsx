@@ -332,39 +332,54 @@ export function ComponentControlPanel({
 
         <Separator />
 
-        {/* Texture Grid */}
+        {/* Texture Grid — grouped by Studio category */}
         <div className="space-y-3">
-          <Label className="text-sm font-semibold">Available Textures</Label>
-          <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
-            {availableTextures.map((texture, index) => (
-              <button
-                key={`${texture.url}-${index}`}
-                type="button"
-                onClick={() => handleTextureChange(texture)}
-                className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
-                  currentTexture?.url === texture.url
-                    ? 'border-primary ring-2 ring-primary/20'
-                    : 'border-border hover:border-primary/50'
-                }`}
-                title={texture.name}
-              >
-
-                <img loading="lazy" decoding="async"
-                  src={texture.url}
-                  alt={texture.name}
-                  className="w-full h-20 object-cover group-hover:scale-110 transition-transform"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                  <span className="text-white text-xs font-medium truncate">{texture.name}</span>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-semibold">Available Textures</Label>
+            <span className="text-[10px] text-muted-foreground">{availableTextures.length} options</span>
+          </div>
+          <div className="max-h-[340px] overflow-y-auto pr-1 space-y-4">
+            {groupTextures(availableTextures).map(({ group, textures }) => (
+              <div key={group} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group}
+                  </span>
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-[10px] text-muted-foreground">{textures.length}</span>
                 </div>
-                {currentTexture?.url === texture.url && (
-                  <div className="absolute top-1 right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-              </button>
+                <div className="grid grid-cols-2 gap-2">
+                  {textures.map((texture, index) => (
+                    <button
+                      key={`${texture.url}-${index}`}
+                      type="button"
+                      onClick={() => handleTextureChange(texture)}
+                      className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
+                        currentTexture?.url === texture.url
+                          ? 'border-primary ring-2 ring-primary/20'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      title={texture.name}
+                    >
+                      <img loading="lazy" decoding="async"
+                        src={texture.url}
+                        alt={texture.name}
+                        className="w-full h-20 object-cover group-hover:scale-110 transition-transform"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-1.5">
+                        <span className="text-white text-[10px] font-medium truncate">{texture.name}</span>
+                      </div>
+                      {currentTexture?.url === texture.url && (
+                        <div className="absolute top-1 right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
