@@ -86,6 +86,17 @@ export function WalkthroughController({
         case 'ArrowRight':
           keys.current.right = true;
           break;
+        case 'Space':
+          e.preventDefault();
+          if (isGrounded.current) {
+            verticalVelocity.current = JUMP_VELOCITY;
+            isGrounded.current = false;
+          }
+          break;
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          keys.current.sprint = true;
+          break;
         case 'Escape':
           onExit();
           break;
@@ -110,8 +121,13 @@ export function WalkthroughController({
         case 'ArrowRight':
           keys.current.right = false;
           break;
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          keys.current.sprint = false;
+          break;
       }
     };
+
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
