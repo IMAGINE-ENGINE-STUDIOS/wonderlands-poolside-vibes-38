@@ -2,6 +2,19 @@ import * as React from "react";
 import { Plus, Minus, Check, ImageOff } from "lucide-react";
 import { getStudioFeatureGroups, type StudioOption } from "@/lib/flipStudioFeatures";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
   formatEntryPrice,
   loadEntryGallery,
   type ConsoleEntry,
