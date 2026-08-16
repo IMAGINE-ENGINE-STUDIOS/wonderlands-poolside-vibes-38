@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getNarratorContext, type NarratorAction } from '@/lib/narratorStore';
+import { type NarratorAction } from '@/lib/narratorStore';
 import { resolveGeniusRequest, bookChips } from '@/lib/geniusFlipBrain';
 import { flipManifestDigest } from '@/lib/flipPageRegistry';
 
@@ -33,11 +33,7 @@ export function useGenius() {
 
       /* Resolution is instant and local — the pause is only for a human rhythm. */
       const resolution = resolveGeniusRequest(text);
-      const ctx = getNarratorContext();
-      const reply =
-        resolution.handled || !ctx
-          ? resolution.reply
-          : `${resolution.reply} You are reading ${ctx.title} right now.`;
+      const reply = resolution.reply;
 
       setTurns((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: reply }]);
       setActions(resolution.actions.length ? resolution.actions : bookChips());
