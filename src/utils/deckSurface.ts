@@ -316,11 +316,29 @@ export function buildDeckRingGeometry(
     part.dispose();
   }
 
+  // FINAL RULE: never any paver geometry over the pool opening.
+  // Shrink the exclusion slightly so the ring edge itself is kept intact.
+  const forbidden = exclude && exclude.length >= 3 ? sanitizeBoundary(generateOffsetCurve(exclude, -0.05)) : null;
+  let finalIndices = indices;
+  if (forbidden && forbidden.length >= 3) {
+    finalIndices = [];
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = indices[i] * 3;
+      const b = indices[i + 1] * 3;
+      const c = indices[i + 2] * 3;
+      const cx = (positions[a] + positions[b] + positions[c]) / 3;
+      const cz = (positions[a + 2] + positions[b + 2] + positions[c + 2]) / 3;
+      if (pointInPolygon({ x: cx, z: cz }, forbidden)) continue;
+      finalIndices.push(indices[i], indices[i + 1], indices[i + 2]);
+    }
+  }
+
   const geom = new THREE.BufferGeometry();
   geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geom.setIndex(indices);
+  geom.setIndex(finalIndices);
   geom.computeVertexNormals();
   geom.computeBoundingSphere();
   return geom;
+
 }
