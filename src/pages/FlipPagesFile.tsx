@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { BookOpen, Loader2, Search, ArrowRight } from 'lucide-react';
 import {
   buildFlipBookOutline,
@@ -16,6 +15,16 @@ import usePersistentState from '@/hooks/usePersistentState';
  * page listed here can be opened, read aloud, or turned to on request.
  */
 const FlipPagesFile: React.FC = () => {
+  React.useEffect(() => {
+    document.title = 'FLIP Page File — Every Page of the Wonderlands Book';
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc)
+      desc.setAttribute(
+        'content',
+        'The complete numbered file of the Wonderlands FLIP book: every edition, product book and page, from the index to the last leaf.',
+      );
+  }, []);
+
   const [outline, setOutline] = React.useState<FlipBookOutline | null>(() => getCachedFlipBookOutline());
   const [query, setQuery] = usePersistentState<string>('flip.pagefile.query', '');
 
@@ -47,14 +56,6 @@ const FlipPagesFile: React.FC = () => {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <Helmet>
-        <title>FLIP Page File — Every Page of the Wonderlands Book</title>
-        <meta
-          name="description"
-          content="The complete numbered file of the Wonderlands FLIP book: every edition, product book and page, from the index to the last leaf."
-        />
-        <link rel="canonical" href="https://wonderlandsworld.com/flip-pages" />
-      </Helmet>
 
       <header className="border-b border-border/60 px-6 py-10 sm:px-10">
         <p className="text-[9px] uppercase tracking-[0.45em] text-muted-foreground">Wonderlands World — FLIP</p>
