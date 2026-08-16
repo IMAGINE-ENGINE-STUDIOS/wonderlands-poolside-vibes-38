@@ -25,6 +25,7 @@ import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
 import { createDepthInterpolator, createDefaultLinearAnchors } from './scene3d/depthUtils';
 import { TerrainEditor, TerrainAsset, AssetLibraryItem } from './scene3d/TerrainEditor';
 import { TerrainAssetsRenderer } from './scene3d/TerrainAssetsRenderer';
+import { SceneObjectsPanel, SceneObjectGroup, sceneObjectIcons } from './scene3d/SceneObjectsPanel';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3, ArrowUpDown } from 'lucide-react';
 import { useSceneHistory, SceneSnapshot } from '@/hooks/useSceneHistory';
