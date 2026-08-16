@@ -154,14 +154,15 @@ const buildItems = (f: FeatureConfig, ctx: StudioContext, prefix = ""): StudioOp
  */
 const cache = new Map<string, StudioGroup[]>();
 
-/** Equipment fitted on every pool and spa we install — never an extra. */
-const STANDARD_INCLUSIONS: StudioOption[] = [
-  { label: "Salt water system", price: 0, priceLabel: "Included", note: "Fitted as standard on every pool" },
-  { label: "Pentair pool equipment package", price: 0, priceLabel: "Included" },
-  { label: "LED colour light", price: 0, priceLabel: "Included" },
-  { label: "Delivery, installation and start-up", price: 0, priceLabel: "Included" },
-];
+/** The turn-key scope carried on every pool, spa and tanning ledge — never an extra. */
+const STANDARD_INCLUSIONS: StudioOption[] = TURNKEY_SCOPE.map((i) => ({
+  label: i.label,
+  price: 0,
+  priceLabel: "Included",
+  note: i.note,
+}));
 
+import { TURNKEY_SCOPE } from "@/data/turnkeyScope";
 import { pebbleTecFinishes as PEBBLE_TEC, PEBBLE_TEC_PRICE_LABEL } from "@/data/pebbleTecFinishes";
 
 const POOL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges", "finishes", "liners"]);
@@ -177,7 +178,7 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
   if (POOL_LIKE.has(categoryId)) {
     groups.push({
       title: "Included as standard",
-      note: "Every pool leaves our yard salt-ready — these are never charged as additional features",
+      note: "Permits, engineering, land work, equipment, logistics and project management to turn-key — never charged as additional features",
       items: STANDARD_INCLUSIONS,
       options: STANDARD_INCLUSIONS.map((i) => i.label),
     });
