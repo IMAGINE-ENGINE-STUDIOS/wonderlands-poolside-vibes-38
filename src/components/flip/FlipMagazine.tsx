@@ -499,7 +499,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
      * Runs across two facing leaves, seven plates per page, so no category is
      * ever clipped or demoted to a footnote.
      */
-    const indexChunks: ConsoleEntry[][] = [];
+    const indexChunks: (typeof ITEMS)[] = [];
     for (let i = 0; i < ITEMS.length; i += 7) indexChunks.push(ITEMS.slice(i, i + 7));
 
     indexChunks.forEach((chunk, chunkIdx) => {
