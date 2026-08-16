@@ -5,12 +5,34 @@ import {
   ensureCounterClockwise,
   ensureClockwise,
   validateAndRepairPolygon,
+  hasSelfIntersections,
+  simplifyPolygon,
+  calculateConvexHull,
 } from '@/utils/shapeValidation';
 
 export type P3 = { x: number; z: number };
 
 const to2D = (pts: P3[]) => pts.map((p) => ({ x: p.x, y: p.z }));
 const to3D = (pts: Array<{ x: number; y: number }>) => pts.map((p) => ({ x: p.x, z: p.y }));
+
+const area2D = (pts: P3[]) => Math.abs(calculatePolygonArea(to2D(pts)));
+
+/**
+ * A hole polygon MUST be simple (no self-intersections) or THREE/earcut silently
+ * ignores it and fills the whole deck — which is what paved over the water.
+ */
+function makeSimple(points: P3[]): P3[] {
+  if (points.length < 3) return points;
+  if (!hasSelfIntersections(to2D(points))) return points;
+
+  const simplified = to3D(simplifyPolygon(to2D(points), 0.15));
+  if (simplified.length >= 3 && !hasSelfIntersections(to2D(simplified))) return simplified;
+
+  // Convex hull is always simple; slightly larger hole is safe (never paves water).
+  const hull = to3D(calculateConvexHull(to2D(points)));
+  return hull.length >= 3 ? hull : points;
+}
+
 
 /**
  * Sanitize a boundary polygon: repair self-intersections, drop duplicates, keep CCW order.
