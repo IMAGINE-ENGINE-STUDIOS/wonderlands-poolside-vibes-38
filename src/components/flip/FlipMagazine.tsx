@@ -289,7 +289,10 @@ const PRICED_LEAF = /price|product|option|feature|estimate|board|dossier|model/i
 
 type Anchors = { index: number; features: number; code: number; gallery: number; estimate: number };
 
-const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ variant = "v4" }) => {
+const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?: boolean }> = ({
+  variant = "v4",
+  hideHeader = false,
+}) => {
   const isV5 = variant === "v5" || variant === "v6" || variant === "v7";
   const isV6 = variant === "v6" || variant === "v7";
   /* V7 — The Narrated Edition: the corner narrator reads whichever leaf is open */
