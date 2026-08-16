@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useThree, ThreeEvent } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
+import { useTiledTexture } from '@/hooks/useTiledTexture';
 import { PoolStairConfig } from './poolAssetTypes';
 import { getPositionOnPerimeter, getWallPositionFromPoint } from '@/utils/poolWallMeshUtils';
 
@@ -31,14 +31,7 @@ export function DraggablePoolStair({
   const raycaster = useRef(new THREE.Raycaster());
   const mouse = useRef(new THREE.Vector2());
 
-  const texture = useTexture(stair.textureUrl);
-  
-  useEffect(() => {
-    if (texture) {
-      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(1, 1);
-    }
-  }, [texture]);
+  const texture = useTiledTexture(stair.textureUrl);
 
   const position = getPositionOnPerimeter(stair.wallPosition, poolPerimeter);
 
