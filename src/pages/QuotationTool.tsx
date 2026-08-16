@@ -32,6 +32,66 @@ const StudioSitePlanner = React.lazy(() =>
 
 const CONSOLE_CATEGORIES = ITEMS.map((i) => ({ id: i.id, label: i.label, tagline: i.tagline }));
 
+const AUTO_ADD_SECONDS = 10;
+
+/** Ticks in isolation so the console and configurator never re-render with it. */
+const AutoAddCountdown: React.FC<{
+  entryId?: string;
+  getProduct: () => ConfiguredProduct | null;
+  addedRef: React.MutableRefObject<string | null>;
+  onAdd: (p: ConfiguredProduct) => void;
+}> = ({ entryId, getProduct, addedRef, onAdd }) => {
+  const [left, setLeft] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    if (!entryId || addedRef.current === `quote-${entryId}`) {
+      setLeft(null);
+      return;
+    }
+    setLeft(AUTO_ADD_SECONDS);
+    const started = Date.now();
+    const tick = window.setInterval(() => {
+      const remaining = AUTO_ADD_SECONDS - Math.round((Date.now() - started) / 1000);
+      if (remaining > 0) {
+        setLeft(remaining);
+        return;
+      }
+      window.clearInterval(tick);
+      setLeft(null);
+      const current = getProduct();
+      if (current && addedRef.current !== current.id) {
+        onAdd(current);
+        toast({
+          title: "Added to your shopping list",
+          description: `${current.name} — as configured.`,
+        });
+      }
+    }, 1000);
+    return () => window.clearInterval(tick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryId]);
+
+  if (left === null) return null;
+  return (
+    <div className="flex items-center justify-between border border-foreground/15 bg-background/60 px-4 py-3 backdrop-blur-xl">
+      <p className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+        Adding to your list in {left}s
+      </p>
+      <button
+        onClick={() => {
+          const current = getProduct();
+          if (current) addedRef.current = current.id;
+          setLeft(null);
+        }}
+        className="text-[9px] uppercase tracking-[0.28em] text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground"
+      >
+        Not now
+      </button>
+    </div>
+  );
+};
+
+
 
 const QuotationTool = () => {
   const navigate = useNavigate();
