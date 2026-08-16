@@ -29,6 +29,11 @@ import ImageUploadOverlay, { type ImageCropSettings } from "./ImageUploadOverlay
 const poolHeaterImg = "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp";
 import fenceQuoteImage from "@/assets/fence-quote-image.webp";
 import aluminumPanelImage from "@/assets/aluminum-panel-2.webp";
+import grassLightGreen from '@/assets/grass-light-green.avif';
+import grassDarkGreen from '@/assets/grass-dark-green.avif';
+import grassNaturalGreen from '@/assets/grass-natural-green.avif';
+import grassEmerald from '@/assets/grass-emerald.avif';
+import grassOlive from '@/assets/grass-olive.avif';
 // Jets intentionally have no image in the quote
 interface Pool {
   model: string;
@@ -2164,11 +2169,11 @@ const SurveyQuoteTool = ({
                     } else if (item.name.includes('Artificial Grass')) {
                       // Artificial Grass mapping - supports 5 colors
                       const grassImages: Record<string, string> = {
-                        'Light Green': '/src/assets/grass-light-green.avif',
-                        'Dark Green': '/src/assets/grass-dark-green.avif',
-                        'Natural Green': '/src/assets/grass-natural-green.avif',
-                        'Emerald': '/src/assets/grass-emerald.avif',
-                        'Olive': '/src/assets/grass-olive.avif'
+                        'Light Green': grassLightGreen,
+                        'Dark Green': grassDarkGreen,
+                        'Natural Green': grassNaturalGreen,
+                        'Emerald': grassEmerald,
+                        'Olive': grassOlive
                       };
                       // Extract color from item name - check for each color
                       let color = 'Light Green'; // default
@@ -2178,7 +2183,7 @@ const SurveyQuoteTool = ({
                       else if (item.name.includes('Olive')) color = 'Olive';
                       else if (item.name.includes('Light Green')) color = 'Light Green';
                       
-                      itemImage = grassImages[color] || '/src/assets/grass-light-green.avif';
+                      itemImage = grassImages[color] || grassLightGreen;
                     } else {
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp';
                     }
