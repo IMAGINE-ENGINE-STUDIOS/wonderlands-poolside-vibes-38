@@ -5,6 +5,7 @@ import { flipManifestDigest } from '@/lib/flipPageRegistry';
 import { runGeniusDesignCommand } from '@/lib/geniusDesignBus';
 import { runGeniusCartCommand, type GeniusCartAdapter } from '@/lib/geniusCartCommands';
 import { advanceBooking, isBookingActive, startBooking, wantsAppointment } from '@/lib/geniusBooking';
+import { resolveShowroomRequest } from '@/lib/geniusShowroom';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface GeniusTurn {
