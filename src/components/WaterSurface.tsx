@@ -388,13 +388,13 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     <mesh
       ref={meshRef}
       geometry={waterGeometry}
-      material={waterMaterial}
       position={[0, 0.01, 0]}
       receiveShadow
     >
-      <shaderMaterial ref={materialRef} attach="material" {...waterMaterial} />
+      <primitive ref={materialRef} object={waterMaterial} attach="material" />
     </mesh>
   );
 };
+
 
 export default WaterSurface;
