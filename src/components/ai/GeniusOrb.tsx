@@ -22,8 +22,8 @@ import { cn } from '@/lib/utils';
 import { useNarrator } from '@/hooks/useNarrator';
 import { useGenius } from '@/hooks/useGenius';
 import type { GeniusCartAdapter } from '@/lib/geniusCartCommands';
-import { useVoiceInput } from '@/hooks/useVoiceInput';
-import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { useVoiceSession } from '@/hooks/useVoiceSession';
+import { playGeniusVoice } from '@/lib/geniusVoiceChannel';
 import { useOptionalShoppingCart } from '@/components/ShoppingCartProvider';
 import { safeGeniusPath } from '@/lib/geniusAccess';
 import { getFlipControls, turnToPageNumber } from '@/lib/flipPageRegistry';
@@ -66,20 +66,13 @@ export const GeniusOrb: React.FC = () => {
   }, []);
   const [draft, setDraft] = React.useState('');
   const { context, script, actions, isLoading, isSpeaking, muted, setMuted, narrate, stop, replay } = useNarrator();
-  const voice = useVoiceInput();
   const inRouter = useInRouterContext();
   const routerNavigate = inRouter ? useNavigate() : null;
   const cart = useOptionalShoppingCart();
   const readKey = React.useRef<string | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
-  /* Hands-free (LIVE): the microphone stays armed between phrases. */
-  const [handsFree, setHandsFree] = React.useState(false);
-  /* LIVE turns — and browsers with no free recognition — are recorded and
-     transcribed by Genius; plain dictation stays on the free browser engine. */
+  /* Every spoken turn arrives through the voice session below. */
   const sendRef = React.useRef<(t: string) => void>(() => undefined);
-  const recorder = useVoiceRecorder({
-    onTranscript: (text) => sendRef.current(text),
-  });
 
   const go = React.useCallback(
     (to: string) => {
@@ -174,9 +167,7 @@ export const GeniusOrb: React.FC = () => {
         });
         if (!res.ok) return;
         const url = URL.createObjectURL(await res.blob());
-        const audio = new Audio(url);
-        audio.volume = 0.55;
-        void audio.play();
+        await playGeniusVoice(url);
       } catch {
         /* voice is a bonus — the transcript still reads */
       }
@@ -197,56 +188,17 @@ export const GeniusOrb: React.FC = () => {
     [genius, speakReply, stop],
   );
 
-  /* Real-time talking: every finished phrase is sent to Genius immediately, and
-     in hands-free mode the microphone re-arms itself so it is a conversation. */
-  React.useEffect(() => {
-    if (!voice.transcript || voice.isListening) return;
-    const said = voice.transcript;
-    voice.resetTranscript();
-    void send(said).then(() => {
-      if (handsFree && voice.isSupported) window.setTimeout(() => voice.startListening(), 900);
-    });
-  }, [voice.transcript, voice.isListening, voice.isSupported, voice.resetTranscript, voice.startListening, send, handsFree]);
-
   React.useEffect(() => {
     sendRef.current = (text: string) => {
       void send(text);
     };
   }, [send]);
 
-  /* LIVE without a browser engine: record a turn, end it on silence, transcribe
-     it, then re-arm — the only place transcription is ever paid for. */
-  const speechSeen = React.useRef(false);
-  const quietSince = React.useRef<number | null>(null);
-  const liveRecording = handsFree && !voice.isSupported;
-
-  React.useEffect(() => {
-    if (!liveRecording) return;
-    if (recorder.isRecording || recorder.isTranscribing || genius.isThinking || isSpeaking) return;
-    speechSeen.current = false;
-    quietSince.current = null;
-    const t = window.setTimeout(() => void recorder.start(), 400);
-    return () => window.clearTimeout(t);
-  }, [liveRecording, recorder.isRecording, recorder.isTranscribing, recorder.start, genius.isThinking, isSpeaking]);
-
-  React.useEffect(() => {
-    if (!liveRecording || !recorder.isRecording) return;
-    if (recorder.level > 0.045) {
-      speechSeen.current = true;
-      quietSince.current = null;
-      return;
-    }
-    if (!speechSeen.current) return;
-    if (quietSince.current === null) quietSince.current = Date.now();
-    else if (Date.now() - quietSince.current > 1200) {
-      quietSince.current = null;
-      void recorder.stop();
-    }
-  }, [liveRecording, recorder.isRecording, recorder.level, recorder.stop]);
-
-  React.useEffect(() => {
-    if (!handsFree && recorder.isRecording) recorder.cancel();
-  }, [handsFree, recorder.isRecording, recorder.cancel]);
+  /* The microphone: permission, press-to-talk, and the hands-free loop. */
+  const mic = useVoiceSession({
+    onPhrase: (text) => sendRef.current(text),
+    busy: genius.isThinking,
+  });
 
   const runAction = (action: NarratorAction) => {
     switch (action.type) {
@@ -361,7 +313,7 @@ export const GeniusOrb: React.FC = () => {
             <button
               onClick={() => {
                 stop();
-                if (voice.isListening) voice.stopListening();
+                mic.stop();
                 setOpen(false);
               }}
               aria-label="Close Genius"
@@ -400,33 +352,34 @@ export const GeniusOrb: React.FC = () => {
               </p>
             )}
 
-            {voice.isListening && (
-              <p className="text-[11px] uppercase tracking-[0.2em] text-primary">
-                Listening… {voice.interimTranscript && <span className="normal-case tracking-normal text-muted-foreground">“{voice.interimTranscript}”</span>}
-              </p>
-            )}
-
-            {recorder.isRecording && (
+            {mic.listening && (
               <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-primary">
-                Recording…
+                Listening…
                 <span className="h-1 w-24 overflow-hidden rounded-full bg-primary/15">
                   <span
                     className="block h-full bg-primary transition-[width] duration-100"
-                    style={{ width: `${Math.min(100, Math.round(recorder.level * 320))}%` }}
+                    style={{ width: `${Math.min(100, Math.round(mic.level * 320))}%` }}
                   />
                 </span>
+                {mic.partial && (
+                  <span className="normal-case tracking-normal text-muted-foreground">“{mic.partial}”</span>
+                )}
               </p>
             )}
 
-            {recorder.isTranscribing && (
+            {mic.phase === 'transcribing' && (
               <p className="flex items-center gap-2 text-[12px] text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" /> Writing down what you said…
               </p>
             )}
 
-            {(voice.error || recorder.error) && (
-              <p className="text-[11px] text-muted-foreground">{voice.error || recorder.error}</p>
+            {mic.permission !== 'granted' && mic.permission !== 'denied' && (
+              <p className="text-[11px] text-muted-foreground">
+                Genius needs your microphone to listen — press “Allow mic” and talk to her.
+              </p>
             )}
+
+            {mic.error && <p className="text-[11px] text-muted-foreground">{mic.error}</p>}
 
             {!genius.turns.length && (
               <div className="flex flex-wrap gap-1.5 pt-0.5">
@@ -477,43 +430,39 @@ export const GeniusOrb: React.FC = () => {
           >
             <button
               type="button"
-              onClick={() => {
-                if (voice.isSupported) {
-                  voice.isListening ? voice.stopListening() : voice.startListening();
-                  return;
-                }
-                recorder.isRecording ? void recorder.stop() : void recorder.start();
-              }}
-              disabled={recorder.isTranscribing}
+              onClick={() => (mic.permission === 'granted' ? mic.toggle() : void mic.requestPermission())}
+              disabled={mic.phase === 'transcribing' || mic.permission === 'denied'}
               aria-label={
-                voice.isListening || recorder.isRecording ? 'Stop talking to Genius' : 'Talk to Genius'
+                mic.permission === 'denied'
+                  ? 'Microphone blocked'
+                  : mic.permission !== 'granted'
+                    ? 'Allow the microphone so Genius can listen'
+                    : mic.listening
+                      ? 'Stop talking to Genius'
+                      : 'Talk to Genius'
               }
               className={cn(
-                'rounded-full border border-primary/30 p-2 text-primary transition-colors hover:bg-primary/10 disabled:opacity-50',
-                (voice.isListening || recorder.isRecording) && 'animate-pulse bg-primary/15',
+                'inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/30 px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/10 disabled:opacity-50',
+                mic.listening && 'animate-pulse bg-primary/15 text-foreground',
               )}
             >
-              {voice.isListening || recorder.isRecording ? (
-                <MicOff className="h-3.5 w-3.5" />
-              ) : (
-                <Mic className="h-3.5 w-3.5" />
-              )}
+              {mic.listening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+              {mic.permission === 'denied'
+                ? 'Blocked'
+                : mic.permission !== 'granted'
+                  ? 'Allow mic'
+                  : mic.listening
+                    ? 'Stop'
+                    : 'Talk'}
             </button>
             <button
               type="button"
-              onClick={() => {
-                const next = !handsFree;
-                setHandsFree(next);
-                if (voice.isSupported) {
-                  if (next && !voice.isListening) voice.startListening();
-                  if (!next && voice.isListening) voice.stopListening();
-                }
-              }}
-              aria-label={handsFree ? 'Leave hands-free conversation' : 'Talk hands-free with Genius'}
-              aria-pressed={handsFree}
+              onClick={() => void mic.setHandsFree(!mic.handsFree)}
+              aria-label={mic.handsFree ? 'Leave hands-free conversation' : 'Talk hands-free with Genius'}
+              aria-pressed={mic.handsFree}
               className={cn(
-                'rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.16em] transition-colors',
-                handsFree
+                'shrink-0 rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.16em] transition-colors',
+                mic.handsFree
                   ? 'border-primary/50 bg-primary/15 text-foreground'
                   : 'border-border/50 text-muted-foreground hover:text-foreground',
               )}

@@ -110,8 +110,13 @@ export function useVoiceRecorder({ onTranscript, language }: Options = {}) {
       src.connect(processor);
       processor.connect(audioCtx.destination);
       setIsRecording(true);
-    } catch {
-      setError('Microphone access is needed to record.');
+    } catch (err) {
+      const name = (err as { name?: string })?.name ?? '';
+      setError(
+        name === 'NotAllowedError' || name === 'SecurityError'
+          ? 'Microphone blocked — enable it in your browser’s address bar to talk.'
+          : 'No microphone was found — you can still type to Genius.',
+      );
       teardown();
       setIsRecording(false);
     }

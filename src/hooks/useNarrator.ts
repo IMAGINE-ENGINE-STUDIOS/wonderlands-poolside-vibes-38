@@ -2,6 +2,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { generateFlipPitch } from '@/lib/flipPitchGenerator';
 import { getFlipManifest } from '@/lib/flipPageRegistry';
+import { playGeniusVoice, stopGeniusVoice, subscribeGeniusVoice } from '@/lib/geniusVoiceChannel';
 import {
   cacheAudio,
   cacheScript,
@@ -31,8 +32,6 @@ async function loadSavedReading(key: string): Promise<string | null> {
 
 const FUNCTIONS_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-/** Genius speaks at mid volume so the page is still comfortable to read. */
-const MID_VOLUME = 0.55;
 
 export interface NarratorState {
   context: NarratorContext | null;
@@ -50,7 +49,6 @@ export function useNarrator() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [muted, setMuted] = React.useState<boolean>(() => localStorage.getItem('wl.narrator.muted') === '1');
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const historyRef = React.useRef<string[]>([]);
 
   React.useEffect(() => {
@@ -64,13 +62,11 @@ export function useNarrator() {
     localStorage.setItem('wl.narrator.muted', muted ? '1' : '0');
   }, [muted]);
 
+  /* One voice channel for the whole app — the panel follows it. */
+  React.useEffect(() => subscribeGeniusVoice(setIsSpeaking), []);
+
   const stop = React.useCallback(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
-    setIsSpeaking(false);
+    stopGeniusVoice();
   }, []);
 
   const speak = React.useCallback(
@@ -89,16 +85,10 @@ export function useNarrator() {
           url = URL.createObjectURL(blob);
           cacheAudio(key, url);
         }
-        const audio = audioRef.current ?? new Audio();
-        audioRef.current = audio;
-        audio.src = url;
         /* mid volume by default — Genius speaks over the page, never across it */
-        audio.volume = MID_VOLUME;
-        audio.onended = () => setIsSpeaking(false);
-        setIsSpeaking(true);
-        await audio.play();
+        await playGeniusVoice(url);
       } catch {
-        setIsSpeaking(false);
+        stopGeniusVoice();
       }
     },
     [muted],
