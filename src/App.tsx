@@ -7,6 +7,7 @@ import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
 
 import RightNavigation from "@/components/RightNavigation";
 import { AIAssistantChat } from "@/components/ai/AIAssistantChat";
+import NarratorOrb from "@/components/ai/NarratorOrb";
 
 // Eager load critical components
 import Index from "./pages/Index";
@@ -96,6 +97,7 @@ const App = () => {
         <ScrollRestoration />
         <RightNavigation />
         <AIAssistantChat />
+        <NarratorOrb />
 
         <Suspense fallback={<LoadingFallback />}>
           <Routes>

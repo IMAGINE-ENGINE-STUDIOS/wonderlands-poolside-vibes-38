@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useInRouterContext, useNavigate } from 'react-router-dom';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
 import { toast } from 'sonner';
 
@@ -52,7 +52,16 @@ export function AIAssistantProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  // Guard against mounts outside a <Router> (the provider is reused in embeds).
+  const inRouter = useInRouterContext();
+  const routerNavigate = inRouter ? useNavigate() : null;
+  const navigate = useCallback(
+    (to: string) => {
+      if (routerNavigate) routerNavigate(to);
+      else window.location.assign(to);
+    },
+    [routerNavigate],
+  );
   const { addToCart } = useShoppingCart();
 
   // Load messages from localStorage on mount
