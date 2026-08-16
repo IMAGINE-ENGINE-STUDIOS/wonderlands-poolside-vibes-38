@@ -25,6 +25,7 @@ import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useOptionalShoppingCart } from '@/components/ShoppingCartProvider';
 import { safeGeniusPath } from '@/lib/geniusAccess';
 import { getFlipControls, turnToPageNumber } from '@/lib/flipPageRegistry';
+import { clickViewportOption } from '@/lib/flipViewportReader';
 import type { NarratorAction } from '@/lib/narratorStore';
 import { toast } from 'sonner';
 
@@ -39,6 +40,7 @@ const ACTION_ICON: Record<NarratorAction['type'], React.ComponentType<{ classNam
   flip_home: BookOpen,
   flip_category: BookOpen,
   flip_product: BookOpen,
+  flip_option: Sparkles,
 };
 
 /**
@@ -175,6 +177,12 @@ export const GeniusOrb: React.FC = () => {
       case 'flip_goto': {
         const page = turnToPageNumber(Number(action.payload));
         if (!page) toast.info('That page is not in the open edition.');
+        break;
+      }
+      /* Picking an option printed on the open spread */
+      case 'flip_option': {
+        const label = action.payload || action.label;
+        if (!clickViewportOption(label)) toast.info(`I cannot reach ${label} from this spread.`);
         break;
       }
       case 'flip_next':

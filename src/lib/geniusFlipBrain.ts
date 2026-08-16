@@ -20,6 +20,7 @@ import {
 } from '@/lib/flipPageRegistry';
 import { geniusAck, geniusFallback } from '@/lib/flipPitchGenerator';
 import { GENIUS_DESTINATIONS, isGeniusAllowedPath } from '@/lib/geniusAccess';
+import { readFlipViewport } from '@/lib/flipViewportReader';
 import { getAllProducts } from '@/data/poolProductLookup';
 import { ITEMS } from '@/components/FlipIndex';
 
@@ -33,8 +34,9 @@ const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace
 
 const money = (n?: number | null) => (typeof n === 'number' && n > 0 ? `$${Math.round(n).toLocaleString()}` : null);
 
+/** A chip never says a page number out loud — it says where it goes. */
 function pageChip(page: FlipPageRef): NarratorAction {
-  return { label: `Page ${page.number} — ${page.label}`, type: 'flip_goto', payload: String(page.number) };
+  return { label: page.label, type: 'flip_goto', payload: String(page.number) };
 }
 
 /** Which discipline does this phrase point at? */
@@ -231,14 +233,24 @@ export function bookChips(): NarratorAction[] {
     ];
   }
   const here = manifest.pages[manifest.current];
-  const chips: NarratorAction[] = [{ label: 'Next page', type: 'flip_next' }, { label: 'Previous page', type: 'flip_prev' }];
+  /* Options printed on the open spread lead — they answer the real question. */
+  const view = readFlipViewport();
+  const chips: NarratorAction[] =
+    view?.options.length
+      ? view.options.slice(0, 2).map((o) => ({
+          label: o.price ? `${o.label} · ${o.price}` : o.label,
+          type: 'flip_option' as const,
+          payload: o.label,
+        }))
+      : [];
+  chips.push({ label: 'Next page', type: 'flip_next' });
   const target =
     manifest.pages.find((p) => p.label === 'Price Sheet') ??
     manifest.pages.find((p) => p.label === 'Options') ??
     manifest.pages.find((p) => p.label === 'Collection');
   if (target && target.number !== here?.number) chips.push(pageChip(target));
   chips.push({ label: 'Index', type: 'flip_home' });
-  return chips;
+  return chips.slice(0, 4);
 }
 
 export default resolveGeniusRequest;

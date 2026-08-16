@@ -34,7 +34,9 @@ export interface NarratorAction {
     | 'flip_prev'
     | 'flip_home'
     | 'flip_category'
-    | 'flip_product';
+    | 'flip_product'
+    /** Pick an option printed on the open spread (payload = option label). */
+    | 'flip_option';
   payload?: string;
 }
 
