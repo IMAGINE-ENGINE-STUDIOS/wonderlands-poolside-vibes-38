@@ -258,10 +258,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
   const bookRef = useRef<any>(null);
   /* V5: the corner-lift invitation, retired as soon as the reader turns a page */
   const [cornerHint, setCornerHint] = useState(isV5);
-  /* V5: page-riffle transition played while a product book is opened */
-  const [riffling, setRiffling] = useState(false);
-  const [riffleTarget, setRiffleTarget] = useState<ConsoleEntry | null>(null);
-  const riffleTimer = useRef<number | null>(null);
+  /* Shared page-flip transition motion — played on every category / product open */
+  const flipMotion = usePageFlipTransMotion();
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
