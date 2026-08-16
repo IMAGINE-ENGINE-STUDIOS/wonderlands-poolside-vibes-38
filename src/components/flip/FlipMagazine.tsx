@@ -21,6 +21,7 @@ const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as 
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 import heroVideo from "@/assets/hero-beach.mp4.asset.json";
+import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
 
 /**
  * FLIP — Magazine edition.
@@ -129,7 +130,7 @@ const pageTagLabel = (key: string): string => {
   if (k.startsWith("price-sheet")) return "Price Sheet";
   if (k.startsWith("opt-")) return "Options";
   if (k.startsWith("estimate")) return "Estimate";
-  if (k.startsWith("colophon")) return "Colophon";
+  if (k.includes("memoir")) return "Our Promise";
   if (k.endsWith("-hero")) return "Plate";
   if (k.endsWith("-spec")) return "Specification";
   if (k.includes("board") || k.includes("tool")) return "Drawing Board";
@@ -463,8 +464,22 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/85" />
           <div className="relative flex h-full flex-col justify-between p-8 text-white sm:p-10">
-            <div className="flex items-baseline justify-between gap-4">
-              <p className="text-[9px] uppercase tracking-[0.45em] opacity-80">Wonderlands World</p>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={wonderlandsLogo}
+                  alt="Wonderlands World"
+                  loading="eager"
+                  decoding="async"
+                  className="h-10 w-auto drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)] sm:h-14"
+                />
+                <span className="hidden h-8 w-px bg-white/30 sm:block" />
+                <p className="hidden text-[9px] uppercase leading-[1.6] tracking-[0.4em] opacity-80 sm:block">
+                  Wonderlands
+                  <br />
+                  World
+                </p>
+              </div>
               <p className="text-[9px] uppercase tracking-[0.45em] opacity-60">Edition No. 01</p>
             </div>
             <div>
@@ -633,16 +648,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
 
     if (list.length % 2 !== 0) {
       list.push({
-        key: "home-colophon",
-        render: () => (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-10 text-center">
-            <Eyebrow>Colophon</Eyebrow>
-            <p className="font-serif text-2xl font-light">Wonderlands World</p>
-            <p className="max-w-xs text-[11px] leading-relaxed text-muted-foreground">
-              One outdoor world — water, stone, shelter, verdure. Delivered turnkey.
-            </p>
-          </div>
-        ),
+        key: "home-memoir",
+        render: () => <ServiceMemoir />,
       });
     }
     return list;
@@ -1143,16 +1150,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
 
     if (list.length % 2 !== 0) {
       list.splice(list.length - 1, 0, {
-        key: "colophon",
-        render: () => (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-10 text-center">
-            <Eyebrow>Colophon</Eyebrow>
-            <p className="font-serif text-2xl font-light">Wonderlands World</p>
-            <p className="max-w-xs text-[11px] leading-relaxed text-muted-foreground">
-              {category.tagline} — drawn, priced and installed turnkey.
-            </p>
-          </div>
-        ),
+        key: "memoir",
+        render: () => <ServiceMemoir discipline={category.label} />,
       });
     }
 
@@ -1461,6 +1460,15 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
                     activePage={page}
                     onGo={goTo}
                     height={dims.h}
+                    storageKey={`flip.v5.tabs.${dossier ? "dossier" : mode}`}
+                  />
+                  <FlipPageTabs
+                    items={tabItems}
+                    activePage={page}
+                    onGo={goTo}
+                    height={dims.h}
+                    side="left"
+                    variant="trail"
                     storageKey={`flip.v5.tabs.${dossier ? "dossier" : mode}`}
                   />
                   <FlipCornerHint visible={cornerHint && !flipLocked} onFlip={flipNext} />
