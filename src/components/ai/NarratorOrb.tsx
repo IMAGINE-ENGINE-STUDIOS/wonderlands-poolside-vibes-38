@@ -76,7 +76,7 @@ export const NarratorOrb: React.FC = () => {
         <button
           onClick={handleOpen}
           aria-label="Ask the Wonderlands narrator about this page"
-          className="fixed bottom-5 right-5 z-[9998] h-12 w-12 rounded-full border border-primary/40 bg-background/70 backdrop-blur-xl shadow-[0_8px_30px_hsl(var(--primary)/0.25)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="fixed bottom-24 right-5 z-[9998] h-12 w-12 rounded-full border border-primary/40 bg-background/70 backdrop-blur-xl shadow-[0_8px_30px_hsl(var(--primary)/0.25)] transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" aria-hidden />
           <span className="absolute inset-[3px] rounded-full bg-gradient-to-br from-primary/25 to-teal/20" aria-hidden />
@@ -94,7 +94,7 @@ export const NarratorOrb: React.FC = () => {
         <aside
           role="dialog"
           aria-label="Wonderlands narrator"
-          className="fixed bottom-5 right-5 z-[9998] w-[min(92vw,22rem)] overflow-hidden rounded-2xl border border-primary/25 bg-background/80 shadow-2xl backdrop-blur-2xl"
+          className="fixed bottom-24 right-5 z-[9998] w-[min(92vw,22rem)] overflow-hidden rounded-2xl border border-primary/25 bg-background/80 shadow-2xl backdrop-blur-2xl"
         >
           <header className="flex items-center gap-2 border-b border-border/50 px-4 py-3">
             <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 to-teal/20">
