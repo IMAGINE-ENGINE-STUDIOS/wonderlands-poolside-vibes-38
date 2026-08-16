@@ -75,17 +75,19 @@ export function useFlipBoard(categoryId: string): FlipBoardState {
  * Page-flip lock — while the reader is drawing, the book holds still.
  * ------------------------------------------------------------------ */
 
-let locks = 0;
+const lockOwners = new Set<object>();
 const lockSubs = new Set<() => void>();
 
-export function lockFlip() {
-  locks += 1;
-  lockSubs.forEach((fn) => fn());
+const notifyLocks = () => lockSubs.forEach((fn) => fn());
+
+export function lockFlip(owner: object) {
+  if (lockOwners.has(owner)) return;
+  lockOwners.add(owner);
+  notifyLocks();
 }
 
-export function unlockFlip() {
-  locks = Math.max(0, locks - 1);
-  lockSubs.forEach((fn) => fn());
+export function unlockFlip(owner: object) {
+  if (lockOwners.delete(owner)) notifyLocks();
 }
 
 export function useFlipLocked(): boolean {
@@ -94,7 +96,21 @@ export function useFlipLocked(): boolean {
       lockSubs.add(fn);
       return () => lockSubs.delete(fn);
     },
-    () => locks > 0,
+    () => lockOwners.size > 0,
     () => false,
+  );
+}
+
+/**
+ * Per-instance lock. Ownership is keyed on a stable token, so repeated enters
+ * can never stack and unmounting (page turned away, full screen opened) always
+ * releases the book instead of freezing it forever.
+ */
+export function useFlipLock() {
+  const owner = React.useRef({}).current;
+  React.useEffect(() => () => unlockFlip(owner), [owner]);
+  return React.useMemo(
+    () => ({ lock: () => lockFlip(owner), unlock: () => unlockFlip(owner) }),
+    [owner],
   );
 }
