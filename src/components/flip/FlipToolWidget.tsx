@@ -62,22 +62,37 @@ type Props = {
    *  - "options" — calculators and options
    */
   part?: "board" | "board-left" | "board-right" | "tools" | "cost" | "options";
+  /** The model the dossier is about — its board opens drawn to its dimensions */
+  modelName?: string;
+  /** The model's meta line, read for published dimensions ("14' x 30'") */
+  modelMeta?: string;
 };
 
-const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board" }) => {
+const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board", modelName, modelMeta }) => {
   const board = boardForCategory(categoryId);
   const [readout, setReadout] = useState<string>("");
   const [full, setFull] = useState(false);
   const [importing, setImporting] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  /* one shared drawing per discipline, so board, cost sheet and calculators agree */
-  const shared = useFlipBoard(categoryId);
+  /* one shared drawing per model (or per discipline when no model is named), so
+     the board, cost sheet and calculators of that dossier all agree */
+  const boardId = modelName ? `${categoryId}__${modelName.toLowerCase().replace(/\s+/g, "-")}` : categoryId;
+  const shared = useFlipBoard(boardId);
   const site = shared.site;
   const enclosure = shared.enclosure;
   const fence = shared.fence;
   const grass = shared.grass;
   const grassId = shared.grassId;
+
+  /* the board is never blank: the product is drawn to its published dimensions
+     on the 2D studio grid the first time the dossier is opened */
+  React.useEffect(() => {
+    if (board.kind !== "site" || site.shapes.length) return;
+    const seeded = buildProductSitePlan({ categoryId, modelName, meta: modelMeta });
+    if (seeded) setFlipBoardValue(boardId, { site: seeded });
+  }, [board.kind, site.shapes.length, categoryId, modelName, modelMeta, boardId]);
+
   const setSite = useCallback(
     (next: SitePlanData) => setFlipBoardValue(categoryId, { site: next }),
     [categoryId],
