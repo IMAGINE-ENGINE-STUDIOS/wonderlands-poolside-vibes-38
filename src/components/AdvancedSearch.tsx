@@ -40,6 +40,7 @@ import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.webp";
 import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.webp";
 import patioFencingBanner from "@/assets/banners/patio-fencing-banner.webp";
 import lanaiBanner from "@/assets/banners/lanai-banner.webp";
+import capeCod12Image from "@/assets/latham-cape-cod-12.jpg";
 
 // Section data for quick navigation dropdown
 const mainPageSections = [
@@ -190,7 +191,7 @@ const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchPr
       { id: 'pleasant-cove', name: 'Pleasant Cove', category: 'Pool', price: 47163, image: '/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.webp', keywords: ['pool', 'compact', 'cove', '11x22'] },
       { id: 'delray', name: 'Delray', category: 'Pool', price: 54513, image: '/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.webp', keywords: ['pool', 'standard', 'delray', '12x24'] },
       { id: 'key-west', name: 'Key West', category: 'Pool', price: 59150, image: '/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.webp', keywords: ['pool', 'standard', 'florida', 'key west', '13x26'] },
-      { id: 'cape-cod-12', name: 'Cape Cod 12', category: 'Pool', price: 55125, image: '/lovable-uploads/wonderlands-logo.webp', keywords: ['pool', 'standard', 'cape cod', '12x24'] },
+      { id: 'cape-cod-12', name: 'Cape Cod 12', category: 'Pool', price: 55125, image: capeCod12Image, keywords: ['pool', 'standard', 'cape cod', '12x24'] },
       { id: 'valencia', name: 'Valencia', category: 'Pool', price: 51144, image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.webp', keywords: ['pool', 'standard', 'valencia', '12x28'] },
       { id: 'vista-isle', name: 'Vista Isle', category: 'Pool', price: 64313, image: '/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.webp', keywords: ['pool', 'standard', 'vista', '13x27'] },
       
