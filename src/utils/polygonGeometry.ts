@@ -392,14 +392,99 @@ export function matchedOffsetRing(ring: Pt[], dist: number): Pt[] {
       bx /= blen;
       bz /= blen;
     }
-    // Miter scale keeps a constant perpendicular distance; clamped so razor-sharp
-    // corners never shoot spikes across the shape.
-    const cos = bx * nNext.x + bz * nNext.z;
-    const scale = Math.min(3, 1 / Math.max(0.34, Math.abs(cos)));
+    // Full miter (1/cos) keeps a constant perpendicular distance. The floor is
+    // deliberately small so razor-sharp tips still REACH the corner (a clamped
+    // miter used to leave bare wall showing past the band at pool tips).
+    const cos = Math.abs(bx * nNext.x + bz * nNext.z);
+    const scale = Math.min(10, 1 / Math.max(0.1, cos));
     out.push({ x: pts[i].x + bx * dist * scale, z: pts[i].z + bz * dist * scale });
   }
   return out;
 }
+
+/**
+ * Exact mitred band offset with a bevel fallback.
+ *
+ * Unlike `matchedOffsetRing` (strict 1:1), sharp corners that would need a miter
+ * longer than `miterLimit * |dist|` emit TWO offset vertices (a bevel). The
+ * returned `base` ring is expanded in lockstep, so `base[i]` always pairs with
+ * `offset[i]` — this is what lets coping/wall bands stay a constant width at a
+ * 30 degree triangle tip without self-overlapping slabs.
+ *
+ * `dist > 0` offsets outward, `dist < 0` inward.
+ */
+export function mitredOffsetRing(
+  ring: Pt[],
+  dist: number,
+  options: { miterLimit?: number } = {}
+): { base: Pt[]; offset: Pt[]; sourceIndex: number[] } {
+  const miterLimit = options.miterLimit ?? 2.5;
+  const pts = dedupe(ring);
+  const n = pts.length;
+  if (n < 3 || Math.abs(dist) < 1e-9) {
+    return { base: pts, offset: pts.map((p) => ({ ...p })), sourceIndex: pts.map((_, i) => i) };
+  }
+
+  const orientation = signedArea(pts) >= 0 ? 1 : -1;
+  const edgeNormals: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % n];
+    const len = Math.hypot(b.x - a.x, b.z - a.z) || 1e-9;
+    edgeNormals.push({
+      x: ((b.z - a.z) / len) * orientation,
+      z: (-(b.x - a.x) / len) * orientation,
+    });
+  }
+
+  const base: Pt[] = [];
+  const offset: Pt[] = [];
+  const sourceIndex: number[] = [];
+
+  for (let i = 0; i < n; i++) {
+    const p = pts[i];
+    const nPrev = edgeNormals[(i - 1 + n) % n];
+    const nNext = edgeNormals[i];
+
+    let bx = nPrev.x + nNext.x;
+    let bz = nPrev.z + nNext.z;
+    const blen = Math.hypot(bx, bz);
+    if (blen < 1e-6) {
+      // 180 degree reversal — always bevel.
+      base.push({ ...p }, { ...p });
+      offset.push(
+        { x: p.x + nPrev.x * dist, z: p.z + nPrev.z * dist },
+        { x: p.x + nNext.x * dist, z: p.z + nNext.z * dist }
+      );
+      sourceIndex.push(i, i);
+      continue;
+    }
+    bx /= blen;
+    bz /= blen;
+
+    const cos = Math.abs(bx * nNext.x + bz * nNext.z);
+    const scale = cos > 1e-6 ? 1 / cos : Infinity;
+
+    if (scale <= miterLimit) {
+      base.push({ ...p });
+      offset.push({ x: p.x + bx * dist * scale, z: p.z + bz * dist * scale });
+      sourceIndex.push(i);
+    } else {
+      // Bevel the tip: one offset vertex per incident edge, each exactly |dist|
+      // perpendicular from its own edge. The tip is cut square instead of shooting
+      // a spike, and the band width stays constant along both edges.
+      base.push({ ...p }, { ...p });
+      offset.push(
+        { x: p.x + nPrev.x * dist, z: p.z + nPrev.z * dist },
+        { x: p.x + nNext.x * dist, z: p.z + nNext.z * dist }
+      );
+      sourceIndex.push(i, i);
+    }
+  }
+
+  return { base, offset, sourceIndex };
+}
+
 
 /** Cumulative perimeter distance at each ring vertex (closing value appended). */
 export function ringDistances(ring: Pt[]): number[] {

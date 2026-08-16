@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
 import { useThree } from '@react-three/fiber';
-import { generateOffsetCurve } from '@/utils/curveUtils';
+import { mitredOffsetRing } from '@/utils/polygonGeometry';
 import { textureCache } from '@/utils/textureCache';
 import { useTextureInvalidation } from '@/hooks/useTextureInvalidation';
 
@@ -61,23 +61,30 @@ export const CopingGeometry = ({
   
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
-    
-    // Coping inner boundary = pool edge
-    const copingInnerBoundary = poolPoints;
-    
-    // Coping outer boundary = offset OUTWARD by copingWidth
-    const copingOuterBoundary = generateOffsetCurve(poolPoints, copingWidth);
-    
-    if (copingInnerBoundary.length !== copingOuterBoundary.length) {
-      console.error('⚠️ CopingGeometry: Inner and outer boundaries have different point counts!');
-      return new THREE.BufferGeometry();
-    }
-    
+
+    // Exact mitred band: sharp tips (triangular pools) get a bevel instead of a
+    // collapsed/overlapping corner, and the inner ring is expanded in lockstep so
+    // every inner vertex pairs with exactly one outer vertex.
+    const { base: copingInnerBoundary, offset: copingOuterBoundary } = mitredOffsetRing(
+      poolPoints,
+      copingWidth,
+      { miterLimit: 2.5 }
+    );
+
+    if (copingInnerBoundary.length < 3) return new THREE.BufferGeometry();
+
     const vertices: number[] = [];
     const indices: number[] = [];
     const uvs: number[] = [];
     const numPoints = copingInnerBoundary.length;
-    
+
+    // Vertical placement: pool walls / waterline top sit at 1/36 ft. Sinking the
+    // coping bottom slightly below that keeps faces from being coplanar (the dark
+    // z-fighting lines that showed "behind" the coping).
+    const deckLevel = 1 / 36;
+    const bottomY = deckLevel - 0.005;
+    const topY = deckLevel + copingHeight;
+
     // Calculate cumulative distance along perimeter for 1ft x 1ft UV mapping
     const distances: number[] = [0];
     let totalDistance = 0;
@@ -92,6 +99,7 @@ export const CopingGeometry = ({
       totalDistance += segmentLength;
       distances.push(totalDistance);
     }
+
     
     // Create continuous ring geometry with 1ft x 1ft UV squares
     // Top surface - use world-space UV (x, z) for perfect 1ft grid alignment
@@ -100,8 +108,8 @@ export const CopingGeometry = ({
       const outer = copingOuterBoundary[i];
       
       // Top surface vertices (at copingHeight)
-      vertices.push(inner.x, copingHeight, inner.z);
-      vertices.push(outer.x, copingHeight, outer.z);
+      vertices.push(inner.x, topY, inner.z);
+      vertices.push(outer.x, topY, outer.z);
       
       // World-space UV mapping: x = U, z = V for perfect 1ft x 1ft grid
       // This prevents distortion on curves
@@ -128,8 +136,8 @@ export const CopingGeometry = ({
       const inner = copingInnerBoundary[i];
       const outer = copingOuterBoundary[i];
       
-      vertices.push(inner.x, 0, inner.z);
-      vertices.push(outer.x, 0, outer.z);
+      vertices.push(inner.x, bottomY, inner.z);
+      vertices.push(outer.x, bottomY, outer.z);
       
       // World-space UV for bottom surface too
       uvs.push(inner.x, inner.z);
@@ -153,8 +161,8 @@ export const CopingGeometry = ({
     for (let i = 0; i < numPoints; i++) {
       const outer = copingOuterBoundary[i];
       
-      vertices.push(outer.x, copingHeight, outer.z);
-      vertices.push(outer.x, 0, outer.z);
+      vertices.push(outer.x, topY, outer.z);
+      vertices.push(outer.x, bottomY, outer.z);
       
       const uCoord = distances[i];
       uvs.push(uCoord, copingHeight);
@@ -178,8 +186,8 @@ export const CopingGeometry = ({
     for (let i = 0; i < numPoints; i++) {
       const inner = copingInnerBoundary[i];
       
-      vertices.push(inner.x, copingHeight, inner.z);
-      vertices.push(inner.x, 0, inner.z);
+      vertices.push(inner.x, topY, inner.z);
+      vertices.push(inner.x, bottomY, inner.z);
       
       const uCoord = distances[i];
       uvs.push(uCoord, copingHeight);

@@ -7,6 +7,8 @@ import {
   pointInRing,
   buildSlabGeometry,
   subtractRegions,
+  mitredOffsetRing,
+
 } from '@/utils/polygonGeometry';
 
 export type P3 = P3Base;
@@ -86,15 +88,20 @@ export function resolveDeckBoundaries(params: {
 
   const copingOffset = copingEnabled ? Math.max(0, copingWidth) : 0;
 
-  // Exact outward offset — sharp corners are rounded (never mitred inward),
-  // so the hole always fully contains the pool opening.
-  let inner = copingOffset > 0.001 ? offsetPolygonSingle(pool, copingOffset) : sanitizeBoundary(pool);
+  // Mitred offset — matches CopingGeometry EXACTLY (same helper, same miter limit),
+  // so the deck hole never leaves an unpaved notch at a sharp pool tip the way the
+  // rounded Minkowski offset did.
+  let inner =
+    copingOffset > 0.001
+      ? sanitizeBoundary(mitredOffsetRing(pool, copingOffset, { miterLimit: 2.5 }).offset)
+      : sanitizeBoundary(pool);
   if (inner.length < 3) inner = pool;
 
   if (!polygonContainsPolygon(inner, pool)) {
     const grown = offsetPolygonSingle(pool, Math.max(copingOffset, 0.15) + 0.05);
     inner = grown.length >= 3 ? grown : pool;
   }
+
 
   const innerArea = polygonArea(inner);
   const ringWidth = Math.max(minDeckWidth, deckWidth);
