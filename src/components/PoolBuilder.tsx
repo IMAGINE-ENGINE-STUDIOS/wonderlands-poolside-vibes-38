@@ -4989,7 +4989,7 @@ export function PoolBuilder({
         x,
         y,
         id: Date.now().toString(),
-        curveType: shiftStraight ? ('straight' as const) : splineDrawing.currentCurveType
+        curveType: shiftStraight ? ('linear' as const) : splineDrawing.currentCurveType
       };
 
 
