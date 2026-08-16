@@ -28,7 +28,14 @@ export type StudioGroup = {
   /** Legacy string list (kept for existing editorial chapters) */
   options: string[];
   items: StudioOption[];
+  /**
+   * The reader chooses exactly one option of this chapter — true for every
+   * catalogue chapter (finishes, liners, tiles…), false for the turn-key
+   * inclusions list which is informational only.
+   */
+  choice?: boolean;
 };
+
 
 /** Who the model belongs to — drives which finishes are actually offered. */
 export type StudioContext = { modelName?: string; brand?: string };
