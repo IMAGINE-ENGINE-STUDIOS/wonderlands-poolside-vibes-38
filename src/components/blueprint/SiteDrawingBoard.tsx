@@ -152,12 +152,14 @@ export function measureSitePlan(data: SitePlanData): SiteAreas {
 
   data.shapes.forEach(shape => {
     const meta = layerMeta(shape.layer);
+    const outline = siteShapeOutline(shape);
     if (meta.linear) {
-      fenceLinearFt += pathLength(shape.points, shape.closed) / (data.pxPerFt || 1);
+      fenceLinearFt += pathLength(outline, shape.closed) / (data.pxPerFt || 1);
       return;
     }
-    byLayer[shape.layer] += polygonArea(shape.points) / sq;
+    byLayer[shape.layer] += polygonArea(outline) / sq;
   });
+
 
   const propertySqFt = Math.round(byLayer.property);
   const imperviousSqFt = Math.round(
