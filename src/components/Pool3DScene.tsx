@@ -398,111 +398,115 @@ const PoolMesh: React.FC<{
     floorGeometry.computeVertexNormals();
 
     // === POOL WALLS GEOMETRY ===
-    // Thick walls (9 inches = 0.75 ft) extending OUTWARD from pool boundary into the ground
-    // Inner face = pool boundary (visible with liner)
-    // Outer face = pool boundary + 0.75ft outward (buried in ground)
+    // Thick walls (9 inches = 0.75 ft) extending OUTWARD from pool boundary into the ground.
+    // The outer ring is built ONCE with a shared mitred offset, so neighbouring
+    // segments share corner vertices. Previously each edge was extruded with its
+    // own normal, which made the 9in slabs cross each other at sharp corners and
+    // poke inside the water past the waterline.
     const wallThickness = 0.75; // 9 inches for better visibility
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
     const wallUVs: number[] = [];
     let perimeterDistance = 0;
-    
-    for (let i = 0; i < normalizedPoints.length; i++) {
-      const p1 = normalizedPoints[i];
-      const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
-      
+
+    const { base: innerRing, offset: outerRing } = mitredOffsetRing(
+      normalizedPoints,
+      wallThickness,
+      { miterLimit: 2.5 }
+    );
+    const ringCount = innerRing.length;
+
+    const deckLevel = 1 / 36; // 1 inch above water surface
+    const wallTopY = deckLevel; // Wall top touches deck (no gap)
+
+    for (let i = 0; i < ringCount; i++) {
+      const next = (i + 1) % ringCount;
+      const innerP1 = innerRing[i];
+      const innerP2 = innerRing[next];
+      const outerP1 = outerRing[i];
+      const outerP2 = outerRing[next];
+
       // Use perimeter-based depth calculation
-      const depth1 = getPerimeterDepth(p1.x, p1.z);
-      const depth2 = getPerimeterDepth(p2.x, p2.z);
-      
-      const wallLength = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2));
-      
-      // Calculate OUTWARD normal (pointing away from pool center into the ground)
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const outwardNx = dz / wallLength;  // Points OUTWARD (reversed from inward)
-      const outwardNz = -dx / wallLength;
-      
-      const baseIdx = wallVertices.length / 3;
-      
-      // INNER surface (at pool boundary - visible with liner texture)
-      const innerP1 = { x: p1.x, z: p1.z };
-      const innerP2 = { x: p2.x, z: p2.z };
-      
-      // OUTER surface (wallThickness outward into ground - not visible)
-      const outerP1 = { x: p1.x + outwardNx * wallThickness, z: p1.z + outwardNz * wallThickness };
-      const outerP2 = { x: p2.x + outwardNx * wallThickness, z: p2.z + outwardNz * wallThickness };
-      
-      // === INNER WALL SURFACE (textured, visible from inside pool) ===
-      // Position walls extending from deck level (y = 1/36) down to pool floor
-      // This ensures no gap between wall top and deck/coping
-      const deckLevel = 1 / 36; // 1 inch above water surface
-      const wallTopY = deckLevel; // Wall top touches deck (no gap)
-      wallVertices.push(innerP1.x, wallTopY, innerP1.z);
-      wallVertices.push(innerP2.x, wallTopY, innerP2.z);
-      wallVertices.push(innerP1.x, -depth1, innerP1.z);
-      wallVertices.push(innerP2.x, -depth2, innerP2.z);
-      
-      // Perfect UV mapping for inner surface
+      const depth1 = getPerimeterDepth(innerP1.x, innerP1.z);
+      const depth2 = getPerimeterDepth(innerP2.x, innerP2.z);
+
+      const wallLength = Math.hypot(innerP2.x - innerP1.x, innerP2.z - innerP1.z);
+      const outerLength = Math.hypot(outerP2.x - outerP1.x, outerP2.z - outerP1.z);
+      // Bevel joints have a zero-length inner edge — skip the inner face there but
+      // still close the outer/top/bottom so the shell stays watertight.
+      const hasInnerFace = wallLength > 1e-5;
+
       const avgDepth = (depth1 + depth2) / 2;
-      wallUVs.push(
-        perimeterDistance, avgDepth,
-        perimeterDistance + wallLength, avgDepth,
-        perimeterDistance, 0,
-        perimeterDistance + wallLength, 0
-      );
-      
-      perimeterDistance += wallLength;
-      
-      // Inner wall face (normals pointing INWARD so visible from inside pool)
-      wallIndices.push(
-        baseIdx, baseIdx + 3, baseIdx + 1,
-        baseIdx, baseIdx + 2, baseIdx + 3
-      );
-      
-      // === OUTER WALL SURFACE (concrete, not visible) ===
-      const outerBaseIdx = wallVertices.length / 3;
-      wallVertices.push(outerP1.x, wallTopY, outerP1.z);
-      wallVertices.push(outerP2.x, wallTopY, outerP2.z);
-      wallVertices.push(outerP1.x, -depth1, outerP1.z);
-      wallVertices.push(outerP2.x, -depth2, outerP2.z);
-      
-      wallUVs.push(0, avgDepth, wallLength, avgDepth, 0, 0, wallLength, 0);
-      
-      // Outer wall face (reversed winding)
-      wallIndices.push(
-        outerBaseIdx, outerBaseIdx + 3, outerBaseIdx + 1,
-        outerBaseIdx, outerBaseIdx + 2, outerBaseIdx + 3
-      );
-      
+
+      if (hasInnerFace) {
+        const baseIdx = wallVertices.length / 3;
+        wallVertices.push(innerP1.x, wallTopY, innerP1.z);
+        wallVertices.push(innerP2.x, wallTopY, innerP2.z);
+        wallVertices.push(innerP1.x, -depth1, innerP1.z);
+        wallVertices.push(innerP2.x, -depth2, innerP2.z);
+
+        wallUVs.push(
+          perimeterDistance, avgDepth,
+          perimeterDistance + wallLength, avgDepth,
+          perimeterDistance, 0,
+          perimeterDistance + wallLength, 0
+        );
+
+        perimeterDistance += wallLength;
+
+        // Inner wall face (normals pointing INWARD so visible from inside pool)
+        wallIndices.push(
+          baseIdx, baseIdx + 3, baseIdx + 1,
+          baseIdx, baseIdx + 2, baseIdx + 3
+        );
+      }
+
+      if (outerLength > 1e-5) {
+        // === OUTER WALL SURFACE (concrete, not visible) ===
+        const outerBaseIdx = wallVertices.length / 3;
+        wallVertices.push(outerP1.x, wallTopY, outerP1.z);
+        wallVertices.push(outerP2.x, wallTopY, outerP2.z);
+        wallVertices.push(outerP1.x, -depth1, outerP1.z);
+        wallVertices.push(outerP2.x, -depth2, outerP2.z);
+
+        wallUVs.push(0, avgDepth, outerLength, avgDepth, 0, 0, outerLength, 0);
+
+        // Outer wall face (reversed winding)
+        wallIndices.push(
+          outerBaseIdx, outerBaseIdx + 3, outerBaseIdx + 1,
+          outerBaseIdx, outerBaseIdx + 2, outerBaseIdx + 3
+        );
+      }
+
       // === TOP EDGE (connecting below coping) ===
       const topBaseIdx = wallVertices.length / 3;
       wallVertices.push(innerP1.x, wallTopY, innerP1.z);
       wallVertices.push(innerP2.x, wallTopY, innerP2.z);
       wallVertices.push(outerP1.x, wallTopY, outerP1.z);
       wallVertices.push(outerP2.x, wallTopY, outerP2.z);
-      
+
       wallUVs.push(0, 0, wallLength, 0, 0, wallThickness, wallLength, wallThickness);
-      
+
       wallIndices.push(
         topBaseIdx, topBaseIdx + 2, topBaseIdx + 3,
         topBaseIdx, topBaseIdx + 3, topBaseIdx + 1
       );
-      
+
       // === BOTTOM EDGE (connecting at floor) ===
       const bottomBaseIdx = wallVertices.length / 3;
       wallVertices.push(innerP1.x, -depth1, innerP1.z);
       wallVertices.push(innerP2.x, -depth2, innerP2.z);
       wallVertices.push(outerP1.x, -depth1, outerP1.z);
       wallVertices.push(outerP2.x, -depth2, outerP2.z);
-      
+
       wallUVs.push(0, 0, wallLength, 0, 0, wallThickness, wallLength, wallThickness);
-      
+
       wallIndices.push(
         bottomBaseIdx, bottomBaseIdx + 1, bottomBaseIdx + 3,
         bottomBaseIdx, bottomBaseIdx + 3, bottomBaseIdx + 2
       );
     }
+
     
     const poolWallsGeometry = new THREE.BufferGeometry();
     poolWallsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(wallVertices, 3));
