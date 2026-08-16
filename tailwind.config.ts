@@ -81,6 +81,22 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			keyframes: {
+				'flip-corner-lift': {
+					'0%, 8%': { transform: 'translate3d(0,0,0) rotate(0deg)', opacity: '0' },
+					'26%': { transform: 'translate3d(-12px,-12px,0) rotate(-9deg)', opacity: '1' },
+					'52%': { transform: 'translate3d(-30px,-26px,0) rotate(-17deg)', opacity: '1' },
+					'78%': { transform: 'translate3d(-10px,-9px,0) rotate(-6deg)', opacity: '0.85' },
+					'100%': { transform: 'translate3d(0,0,0) rotate(0deg)', opacity: '0' }
+				},
+				'flip-riffle': {
+					'0%': { transform: 'rotateY(0deg)', opacity: '0' },
+					'12%': { transform: 'rotateY(-18deg)', opacity: '1' },
+					'100%': { transform: 'rotateY(-176deg)', opacity: '1' }
+				},
+				'flip-tab-in': {
+					'0%': { opacity: '0', transform: 'translateX(-8px)' },
+					'100%': { opacity: '1', transform: 'translateX(0)' }
+				},
 				'hero-marquee': {
 					from: { transform: 'translateX(0)' },
 					to: { transform: 'translateX(-50%)' }
@@ -171,7 +187,10 @@ export default {
 				'gradient-shift': 'gradient-shift 3s ease-in-out infinite',
 				'fly-to-top': 'fly-to-top 0.6s ease-in-out forwards',
 				'ken-burns': 'ken-burns 20s ease-in-out infinite alternate',
-				'rule-draw': 'rule-draw 1.2s ease-out forwards'
+				'rule-draw': 'rule-draw 1.2s ease-out forwards',
+				'flip-corner-lift': 'flip-corner-lift 3.6s cubic-bezier(0.4,0,0.2,1) infinite',
+				'flip-riffle': 'flip-riffle 620ms cubic-bezier(0.55,0,0.35,1) forwards',
+				'flip-tab-in': 'flip-tab-in 400ms ease-out both'
 			}
 		}
 	},
