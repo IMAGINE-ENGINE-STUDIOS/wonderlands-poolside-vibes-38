@@ -1480,22 +1480,6 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
 
         {(
           <div className="mt-6 flex flex-col items-center gap-3">
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={flipPrev}
-                aria-label="Previous page"
-                className="flex h-10 w-10 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={flipNext}
-                aria-label="Next page"
-                className="flex h-10 w-10 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
             <p className="text-center text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
               {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
             </p>
