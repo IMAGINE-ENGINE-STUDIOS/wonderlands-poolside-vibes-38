@@ -80,8 +80,12 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
         (c) => c === "Pool",
         (b) => (b ?? "").toLowerCase() === "wonderlands",
       );
+    /* Fiberglass chapter — Latham & GlimmerGlass shells */
     case "pools":
-      return fromLookup((c) => c === "Pool");
+      return fromLookup(
+        (c) => c === "Pool",
+        (b) => (b ?? "").toLowerCase() !== "wonderlands",
+      );
     case "spas":
       return fromLookup((c) => c === "Spa");
     case "tanning-ledges":

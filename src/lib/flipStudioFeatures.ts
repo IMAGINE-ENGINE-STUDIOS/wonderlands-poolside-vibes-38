@@ -162,6 +162,8 @@ const STANDARD_INCLUSIONS: StudioOption[] = [
   { label: "Delivery, installation and start-up", price: 0, priceLabel: "Included" },
 ];
 
+import { pebbleTecFinishes as PEBBLE_TEC, PEBBLE_TEC_PRICE_LABEL } from "@/data/pebbleTecFinishes";
+
 const POOL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges", "finishes", "liners"]);
 
 export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = {}): StudioGroup[] => {
@@ -178,6 +180,22 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
       note: "Every pool leaves our yard salt-ready — these are never charged as additional features",
       items: STANDARD_INCLUSIONS,
       options: STANDARD_INCLUSIONS.map((i) => i.label),
+    });
+  }
+
+  /* Concrete shells are finished in Pebble Tec — never in a moulded gelcoat */
+  if (categoryId === "concrete-pools") {
+    const finishes: StudioOption[] = PEBBLE_TEC.map((f) => ({
+      label: `${f.name} — ${f.collection}`,
+      price: 0,
+      priceLabel: PEBBLE_TEC_PRICE_LABEL,
+      note: f.note,
+    }));
+    groups.push({
+      title: "Pebble Tec interior finish",
+      note: "The surface of every Wonderlands concrete shell — priced per shell surface area",
+      items: finishes,
+      options: finishes.map((f) => f.label),
     });
   }
 
