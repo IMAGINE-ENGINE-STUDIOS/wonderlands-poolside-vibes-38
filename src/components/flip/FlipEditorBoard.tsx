@@ -41,7 +41,9 @@ const BOARDS: Record<string, { kind: EditorBoardKind; name: string; note: string
 
 const FALLBACK = { kind: "site" as EditorBoardKind, name: "Design Board", note: "Draw the area on a scaled grid." };
 
-export const boardForCategory = (categoryId: string) => BOARDS[categoryId] ?? FALLBACK;
+/** Board ids may be model-scoped ("pools__milan") — the discipline is the stem. */
+export const boardForCategory = (categoryId: string) =>
+  BOARDS[categoryId] ?? BOARDS[categoryId.split("__")[0]] ?? FALLBACK;
 
 type Props = {
   categoryId: string;
