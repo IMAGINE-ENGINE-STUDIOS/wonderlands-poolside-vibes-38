@@ -34,6 +34,7 @@ import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import ProjectTypeToggle from "@/components/ProjectTypeToggle";
 import { DynamicFeatureRenderer } from "@/components/DynamicFeatureRenderer";
 import { PoolBuilder } from "@/components/PoolBuilder";
+import StudioSitePlanner from "@/components/studio/StudioSitePlanner";
 import HeaterSizeCalculator from "@/components/HeaterSizeCalculator";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
