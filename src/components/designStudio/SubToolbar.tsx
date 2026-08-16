@@ -26,6 +26,7 @@ interface SubToolbarProps {
   activeTool: string | null;
   onToolSelect: (tool: ToolDefinition) => void;
   stats?: PoolStats | null;
+  hideTools?: boolean;
 }
 
 const getToolsForCategory = (category: DesignCategory): ToolDefinition[] => {
