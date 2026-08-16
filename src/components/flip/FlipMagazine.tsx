@@ -547,13 +547,20 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
             </div>
             <div>
               <p className="text-[9px] uppercase tracking-[0.4em] opacity-70">The Outdoor Annual</p>
-              <h2 className="mt-4 font-serif text-5xl font-light leading-[0.95] sm:text-7xl">FLIP</h2>
+              <img
+                src={wonderlandsLogo}
+                alt="Wonderlands"
+                loading="eager"
+                decoding="async"
+                className="mt-4 h-16 w-auto drop-shadow-[0_10px_36px_rgba(0,0,0,0.6)] sm:h-24"
+              />
               <div className="mt-6 h-px w-20 bg-current opacity-50" />
               <p className="mt-6 max-w-sm text-[12px] leading-relaxed opacity-85">
                 Water, stone, shelter and verdure — one house, one composition. Every discipline drawn, priced and
                 installed turnkey at your address.
               </p>
             </div>
+
             <div className="grid grid-cols-3 gap-4 border-t border-white/25 pt-4">
               {[
                 ["14", "Disciplines"],
@@ -572,86 +579,80 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
     });
 
     /**
-     * The Contents — an editorial index that honours every discipline.
-     * Runs across two facing leaves, seven plates per page, so no category is
-     * ever clipped or demoted to a footnote.
+     * The Contents — a single full-leaf editorial mosaic. Every discipline gets
+     * its own plate, sized asymmetrically so the whole collection reads at once.
      */
-    const indexChunks: (typeof ITEMS)[] = [];
-    for (let i = 0; i < ITEMS.length; i += 7) indexChunks.push(ITEMS.slice(i, i + 7));
-
-    indexChunks.forEach((chunk, chunkIdx) => {
-      const startNo = chunkIdx * 7;
-      list.push({
-        key: `home-index-${chunkIdx}`,
-        render: () => (
-          <div className="flex h-full w-full flex-col px-8 py-8 sm:px-10">
-            <div className="flex items-baseline justify-between gap-3">
-              <Eyebrow>{chunkIdx === 0 ? "The Collection" : "The Collection — continued"}</Eyebrow>
-              <Eyebrow className="hidden sm:block">
-                {String(startNo + 1).padStart(2, "0")} — {String(startNo + chunk.length).padStart(2, "0")}
-              </Eyebrow>
-            </div>
-
-            {chunkIdx === 0 ? (
-              <>
-                <h3 className="mt-2 font-serif text-4xl font-light leading-[0.95] sm:text-5xl">Contents</h3>
-                <p className="mt-3 max-w-xs text-[10px] leading-relaxed text-muted-foreground">
-                  Fourteen disciplines, one composition. Every chapter drawn, priced and installed turnkey.
-                </p>
-              </>
-            ) : (
-              <h3 className="mt-2 font-serif text-4xl font-light leading-[0.95] text-muted-foreground sm:text-5xl">
-                Contents
-              </h3>
-            )}
-
-            <ul className="mt-5 grid min-h-0 flex-1 grid-rows-7">
-              {chunk.map((it, idx) => {
-                const no = String(startNo + idx + 1).padStart(2, "0");
-                return (
-                  <li key={it.id} className="min-h-0">
-                    <button
-                      onClick={() => openCategory(it.id)}
-                      className="group flex h-full w-full items-center gap-4 border-t border-border/50 py-2 text-left"
-                    >
-                      <span className="w-6 shrink-0 self-start pt-1 font-serif text-[11px] tabular-nums text-muted-foreground transition-colors group-hover:text-foreground">
-                        {no}
-                      </span>
-                      <span className="relative h-full w-14 shrink-0 overflow-hidden bg-muted sm:w-16">
-                        <img
-                          src={it.images[0]}
-                          alt={it.label}
-                          loading="lazy"
-                          decoding="async"
-                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] group-hover:scale-110"
-                        />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-serif text-lg font-light leading-tight text-foreground sm:text-xl">
-                          {it.label}
-                        </span>
-                        <span className="mt-0.5 block truncate text-[8px] uppercase tracking-[0.28em] text-muted-foreground">
-                          {it.tagline}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-[9px] uppercase tracking-[0.3em] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                        Open
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-
-            <p className="mt-3 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-              {chunkIdx === indexChunks.length - 1
-                ? "Turn the page to travel the disciplines"
-                : "The index continues overleaf"}
+    list.push({
+      key: "home-index",
+      render: () => (
+        <div className="flex h-full w-full flex-col px-5 py-6 sm:px-8 sm:py-8">
+          <div className="flex items-baseline justify-between gap-3">
+            <Eyebrow>The Collection</Eyebrow>
+            <Eyebrow className="hidden sm:block">
+              01 — {String(ITEMS.length).padStart(2, "0")}
+            </Eyebrow>
+          </div>
+          <div className="mt-1 flex items-end justify-between gap-4">
+            <h3 className="font-serif text-3xl font-light leading-[0.9] sm:text-5xl">Contents</h3>
+            <p className="hidden max-w-[14rem] text-right text-[9px] leading-relaxed text-muted-foreground sm:block">
+              {ITEMS.length} disciplines, one composition — drawn, priced and installed turnkey.
             </p>
           </div>
-        ),
-      });
+
+          <div className="mt-4 grid min-h-0 flex-1 grid-cols-4 grid-rows-5 gap-1.5">
+            {ITEMS.map((it, idx) => {
+              const no = String(idx + 1).padStart(2, "0");
+              const feature = idx < 2;
+              return (
+                <button
+                  key={it.id}
+                  onClick={() => openCategory(it.id)}
+                  title={`Open the ${it.label} edition`}
+                  className={`group relative min-h-0 overflow-hidden bg-muted text-left ring-1 ring-border/40 transition-[transform,box-shadow] duration-500 hover:z-10 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-18px_hsl(var(--foreground)/0.45)] ${
+                    feature ? "col-span-2 row-span-2" : ""
+                  }`}
+                >
+                  <img
+                    src={it.images[0]}
+                    alt={it.label}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.08]"
+                  />
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10 transition-opacity duration-500 group-hover:from-black/90" />
+                  <span className="absolute left-2 top-1.5 font-serif text-[10px] tabular-nums text-white/70 sm:text-[11px]">
+                    {no}
+                  </span>
+                  <span className="absolute inset-x-2 bottom-1.5">
+                    <span
+                      className={`block truncate font-serif font-light leading-tight text-white ${
+                        feature ? "text-xl sm:text-3xl" : "text-[11px] sm:text-sm"
+                      }`}
+                    >
+                      {it.label}
+                    </span>
+                    <span
+                      className={`mt-0.5 block truncate text-[7px] uppercase tracking-[0.28em] text-white/70 transition-all duration-500 sm:text-[8px] ${
+                        feature ? "opacity-90" : "max-h-0 opacity-0 group-hover:max-h-4 group-hover:opacity-90"
+                      }`}
+                    >
+                      {it.tagline}
+                    </span>
+                  </span>
+                  <span className="pointer-events-none absolute inset-0 ring-inset ring-white/0 transition-all duration-500 group-hover:ring-1 group-hover:ring-white/40" />
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="mt-3 border-t border-border/50 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+            Select a plate — or turn the page to travel the disciplines
+          </p>
+        </div>
+      ),
     });
+
+
 
 
     ITEMS.forEach((it, i) => {
