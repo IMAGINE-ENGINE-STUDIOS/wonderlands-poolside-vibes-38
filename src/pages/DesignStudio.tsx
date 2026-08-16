@@ -53,6 +53,12 @@ const finishOptions = poolFinishesData.map(finish => ({
   collection: finish.collection || 'Standard',
   description: finish.description
 }));
+
+/**
+ * Catalog-backed texture galleries (finishes, pavers, coping, waterline tiles).
+ * Built once at module scope — identical to the Wonderlands Studio catalog.
+ */
+const studioTextureLibrary = buildCatalogTextureLibrary();
 const DesignStudio = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
