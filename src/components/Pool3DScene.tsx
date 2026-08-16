@@ -1094,6 +1094,20 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     }
   }, [showDebugBoundaries, onDebugBoundariesChange]);
   
+  // Shared 2D -> 3D frame: the pool bounding-box center is the single origin so the
+  // deck outline from the 2D designer stays perfectly aligned with the pool.
+  const poolFrameCenter = useMemo(() => {
+    if (points.length < 3) return { x: 0, y: 0 };
+    const poolCurve2D = points.map(p => ({ x: p.x, y: p.y }));
+    const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
+    const xs = smoothPoolCurve.map(p => p.x);
+    const ys = smoothPoolCurve.map(p => p.y);
+    return {
+      x: (Math.min(...xs) + Math.max(...xs)) / 2,
+      y: (Math.min(...ys) + Math.max(...ys)) / 2,
+    };
+  }, [points]);
+
   // Calculate normalized pool curve for deck/coping geometry
   const poolCurve3D = useMemo(() => {
     if (points.length < 3) return [];
@@ -1102,18 +1116,16 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     const poolCurve2D = points.map(p => ({ x: p.x, y: p.y }));
     const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
     
-    // Normalize to world coordinates using shared utility
-    return normalize2DTo3D(smoothPoolCurve);
-  }, [points]);
+    return smoothPoolCurve.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y }));
+  }, [points, poolFrameCenter]);
   
-  // Calculate normalized hardscape points for exact deck sync
+  // Calculate normalized hardscape points for exact deck sync (same origin as the pool)
   const normalizedHardscapePoints = useMemo(() => {
-    if (!hardscapePoints || hardscapePoints.length < 4) return undefined;
+    if (!hardscapePoints || hardscapePoints.length < 3) return undefined;
     
-    // Convert hardscape points to 2D format and normalize
-    const hardscape2D = hardscapePoints.map(p => ({ x: p.x, y: p.y }));
-    return normalize2DTo3D(hardscape2D);
-  }, [hardscapePoints]);
+    return hardscapePoints.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y }));
+  }, [hardscapePoints, poolFrameCenter]);
+
   
   // Initialize perimeter depth points from 1D depth profile if not provided
   const perimeterDepthPoints = useMemo(() => {
