@@ -36,16 +36,9 @@ class TextureCache {
       url = fallbackUrl;
     }
 
-    console.log('🎨 Texture Cache: Loading texture', {
-      url,
-      cached: this.cache.has(url),
-      cacheSize: this.cache.size
-    });
-
     // Check cache first
     const cached = this.cache.get(url);
     if (cached) {
-      console.log('✅ Texture Cache: Hit', { url });
       cached.lastUsed = Date.now();
       // Clone texture and preserve repeat settings
       const clonedTexture = cached.texture.clone();
@@ -56,15 +49,11 @@ class TextureCache {
       return clonedTexture;
     }
 
-    // Load new texture
-    console.log('⏳ Texture Cache: Starting load', { url });
-    
+    // Load new texture    
     return new Promise((resolve, reject) => {
       this.loader.load(
         url,
         (texture) => {
-          console.log('✅ Texture Cache: Load successful', { url });
-          
           // Configure texture for optimal performance
           texture.wrapS = THREE.RepeatWrapping;
           texture.wrapT = THREE.RepeatWrapping;
@@ -91,12 +80,6 @@ class TextureCache {
           this.currentCacheSize += size;
           this.cleanupCache();
           
-          console.log(`✅ Cached new texture`, { 
-            url: url.substring(0, 50),
-            size: `${(size / 1024).toFixed(0)}KB`, 
-            repeat,
-            dimensions: `${texture.image?.width}x${texture.image?.height}`
-          });
           
           resolve(texture);
         },
