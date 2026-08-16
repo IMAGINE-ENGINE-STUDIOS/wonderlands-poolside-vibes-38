@@ -46,6 +46,14 @@ const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[]
       "V4 plus the reading cues: the corner lifts itself on arrival, chapter tabs hang colour-coded off the outer border, and opening a product riffles through the book to reach it.",
   },
   {
+    id: "v6",
+    label: "V6",
+    title: "The Expedition",
+    blurb:
+      "V5 with a new main menu: the index becomes a cinematic navigator — parallax stage, chapter rail, and a snapping plate deck driven by arrows, scroll, drag or Enter.",
+  },
+  {
+
     id: "builder",
     label: "Flip It",
     title: "Flip Builder",
