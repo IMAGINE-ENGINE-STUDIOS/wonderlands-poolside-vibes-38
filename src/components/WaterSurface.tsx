@@ -55,7 +55,6 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       return null;
     }
 
-    console.log('🌊 WaterSurface: Creating water from pool points (EXACT match with pool floor):', poolPoints.length);
     
     try {
       // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh
@@ -150,7 +149,6 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       geometry.setAttribute('depth', new THREE.BufferAttribute(depthArray, 1));
       // No rotation needed - geometry is already in correct XZ plane
       
-      console.log('✅ WaterSurface: Water geometry created with exact pool boundary match (fan triangulation)');
       return geometry;
     } catch (error) {
       console.error('❌ WaterSurface: Failed to create geometry:', error);
