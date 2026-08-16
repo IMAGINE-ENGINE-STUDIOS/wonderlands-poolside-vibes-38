@@ -1094,6 +1094,13 @@ export function UnifiedPoolVisualizer({
           {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
         </button>
 
+        {/* Scene Objects Widget */}
+        <div className="absolute top-16 right-4 z-20">
+          <SceneObjectsPanel groups={sceneObjectGroups} />
+        </div>
+
+
+
         {/* Undo/Redo & Reset View Controls */}
         <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-1 md:gap-2 max-w-[calc(100%-80px)] md:max-w-none">
           <button
