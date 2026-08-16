@@ -25,6 +25,8 @@ import {
   toggleCurveFlag,
   hasAnyCurve,
   samplePath,
+  sampleSegment,
+
   polylineLength,
   tracePolyline,
 } from '@/utils/splineEditing';
