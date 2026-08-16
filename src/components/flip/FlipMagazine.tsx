@@ -721,7 +721,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
       });
     }
     return list;
-  }, [openCategory]);
+  }, [openCategory, isV6]);
 
   /* -------------------------------- CATEGORY -------------------------------- */
   const { pages: categoryPages, anchors } = useMemo<{ pages: Page[]; anchors: Anchors }>(() => {
