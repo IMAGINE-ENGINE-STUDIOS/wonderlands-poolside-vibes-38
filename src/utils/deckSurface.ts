@@ -7,6 +7,8 @@ import {
   pointInRing,
   buildSlabGeometry,
   subtractRegions,
+  mitredOffsetRing,
+
 } from '@/utils/polygonGeometry';
 
 export type P3 = P3Base;
