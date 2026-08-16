@@ -231,22 +231,13 @@ const QuotationTool = () => {
               onQuote={product ? () => handleQuote(product) : () => setQuoteOpen(true)}
             />
 
-            {autoIn !== null && product && (
-              <div className="flex items-center justify-between border border-foreground/15 bg-background/60 px-4 py-3 backdrop-blur-xl">
-                <p className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
-                  Adding to your list in {autoIn}s
-                </p>
-                <button
-                  onClick={() => {
-                    addedRef.current = product.id;
-                    setAutoIn(null);
-                  }}
-                  className="text-[9px] uppercase tracking-[0.28em] text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground"
-                >
-                  Not now
-                </button>
-              </div>
-            )}
+            <AutoAddCountdown
+              entryId={entry?.id}
+              getProduct={() => productRef.current}
+              addedRef={addedRef}
+              onAdd={handleAdd}
+            />
+
 
 
             <button
