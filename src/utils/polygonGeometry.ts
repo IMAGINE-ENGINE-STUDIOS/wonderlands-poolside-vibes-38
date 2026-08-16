@@ -347,3 +347,67 @@ export function buildSlabGeometry(params: {
 
   return mergeGeometries(parts);
 }
+
+/**
+ * Constant-width offset that keeps a 1:1 vertex match with the source ring.
+ *
+ * Used for bands that must hug a spline wall exactly (waterline tile, trims):
+ * every source vertex gets exactly one offset vertex along the angle bisector,
+ * so the band has the same shape and the same width everywhere — including on
+ * fully curved or circular pools, where the ring already carries one vertex per
+ * curve segment.
+ *
+ * `dist > 0` moves outward, `dist < 0` moves inward (relative to the polygon).
+ */
+export function matchedOffsetRing(ring: Pt[], dist: number): Pt[] {
+  const pts = dedupe(ring);
+  const n = pts.length;
+  if (n < 3 || Math.abs(dist) < 1e-9) return pts;
+
+  // Normalize orientation so edge normals point consistently outward.
+  const orientation = signedArea(pts) >= 0 ? 1 : -1;
+
+  const edgeNormals: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % n];
+    const len = Math.hypot(b.x - a.x, b.z - a.z) || 1e-9;
+    edgeNormals.push({
+      x: ((b.z - a.z) / len) * orientation,
+      z: (-(b.x - a.x) / len) * orientation,
+    });
+  }
+
+  const out: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    const nPrev = edgeNormals[(i - 1 + n) % n];
+    const nNext = edgeNormals[i];
+    let bx = nPrev.x + nNext.x;
+    let bz = nPrev.z + nNext.z;
+    const blen = Math.hypot(bx, bz);
+    if (blen < 1e-6) {
+      bx = nNext.x;
+      bz = nNext.z;
+    } else {
+      bx /= blen;
+      bz /= blen;
+    }
+    // Miter scale keeps a constant perpendicular distance; clamped so razor-sharp
+    // corners never shoot spikes across the shape.
+    const cos = bx * nNext.x + bz * nNext.z;
+    const scale = Math.min(3, 1 / Math.max(0.34, Math.abs(cos)));
+    out.push({ x: pts[i].x + bx * dist * scale, z: pts[i].z + bz * dist * scale });
+  }
+  return out;
+}
+
+/** Cumulative perimeter distance at each ring vertex (closing value appended). */
+export function ringDistances(ring: Pt[]): number[] {
+  const d = [0];
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    d.push(d[i] + Math.hypot(b.x - a.x, b.z - a.z));
+  }
+  return d;
+}
