@@ -1,4 +1,9 @@
 // Paver and coping data with different types and color options
+// Assets are imported (never referenced by raw /src/assets string paths) so the
+// bundler resolves and fingerprints them for production.
+import glocaMirageIdeal from '@/assets/pavers/gloca-mirage-ideal.webp';
+import glocaMirageConcrete from '@/assets/pavers/gloca-mirage-concrete.webp';
+import glocaMirageChairmues from '@/assets/pavers/gloca-mirage-chairmues.webp';
 
 export interface PaverType {
   id: string;
@@ -185,7 +190,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium Gloca Mirage porcelain deck — Ideal color in 48x48 large format',
     basePrice: 26,
     category: 'paver',
-    image: '/src/assets/pavers/gloca-mirage-ideal.jpg'
+    image: glocaMirageIdeal
   },
   {
     id: 'gloca-mirage-ideal-24x48',
@@ -193,7 +198,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium Gloca Mirage porcelain deck — Ideal color in 24x48 plank format',
     basePrice: 26,
     category: 'paver',
-    image: '/src/assets/pavers/gloca-mirage-ideal.jpg'
+    image: glocaMirageIdeal
   },
   {
     id: 'gloca-mirage-concrete-48x48',
@@ -201,7 +206,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium Gloca Mirage porcelain deck — Concrete color in 48x48 large format',
     basePrice: 26,
     category: 'paver',
-    image: '/src/assets/pavers/gloca-mirage-concrete.webp'
+    image: glocaMirageConcrete
   },
   {
     id: 'gloca-mirage-concrete-24x48',
@@ -209,7 +214,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium Gloca Mirage porcelain deck — Concrete color in 24x48 plank format',
     basePrice: 26,
     category: 'paver',
-    image: '/src/assets/pavers/gloca-mirage-concrete.webp'
+    image: glocaMirageConcrete
   },
   {
     id: 'gloca-mirage-chairmues-48x48',
@@ -217,7 +222,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium Gloca Mirage porcelain deck — Chairmues dark color in 48x48 large format',
     basePrice: 26,
     category: 'paver',
-    image: '/src/assets/pavers/gloca-mirage-chairmues.webp'
+    image: glocaMirageChairmues
   },
   {
     id: 'gloca-mirage-chairmues-24x48',
@@ -225,7 +230,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium Gloca Mirage porcelain deck — Chairmues dark color in 24x48 plank format',
     basePrice: 26,
     category: 'paver',
-    image: '/src/assets/pavers/gloca-mirage-chairmues.webp'
+    image: glocaMirageChairmues
   },
   
   // Premium Travertine Collection - $22/sqft
