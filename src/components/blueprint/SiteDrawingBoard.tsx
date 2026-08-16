@@ -13,7 +13,22 @@ import {
   Move,
   Eye,
   EyeOff,
+  Plus,
+  Spline,
 } from 'lucide-react';
+import {
+  hitVertexIndex,
+  insertVertexAt,
+  insertVertexAfter,
+  removeVertex,
+  normalizeFlags,
+  toggleCurveFlag,
+  hasAnyCurve,
+  samplePath,
+  polylineLength,
+  tracePolyline,
+} from '@/utils/splineEditing';
+
 
 export type SiteLayerId =
   | 'property'
