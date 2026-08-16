@@ -958,7 +958,7 @@ export const useProductBookPages = ({
             <Eyebrow>Design tool</Eyebrow>
             <h3 className="mt-1 font-serif text-xl font-light leading-tight">{tool?.name ?? "Wonderlands Studio"}</h3>
             <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
-              <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board" />
+              <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board" modelName={entry.name} modelMeta={entry.meta} />
             </div>
           </div>
         ),
@@ -967,13 +967,13 @@ export const useProductBookPages = ({
       list.push({
         key: "tool",
         render: () => (
-          <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board-left" />
+          <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board-left" modelName={entry.name} modelMeta={entry.meta} />
         ),
       });
       list.push({
         key: "tool-right",
         render: () => (
-          <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board-right" />
+          <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="board-right" modelName={entry.name} modelMeta={entry.meta} />
         ),
       });
     }
@@ -981,13 +981,13 @@ export const useProductBookPages = ({
     /* facing spread — every tool and button for that board */
     list.push({
       key: "tool-tools",
-      render: () => <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="tools" />,
+      render: () => <FlipToolWidget categoryId={category.id} onExpand={onOpenBoard} part="tools" modelName={entry.name} modelMeta={entry.meta} />,
     });
 
     /* following spread — live cost of the drawing, then calculators and options */
     list.push({
       key: "tool-cost",
-      render: () => <FlipToolWidget categoryId={category.id} part="cost" />,
+      render: () => <FlipToolWidget categoryId={category.id} part="cost" modelName={entry.name} modelMeta={entry.meta} />,
     });
 
     list.push({
@@ -995,7 +995,7 @@ export const useProductBookPages = ({
       render: () => (
         <div className="flex h-full w-full flex-col overflow-hidden">
           <div className="min-h-0 flex-1">
-            <FlipToolWidget categoryId={category.id} part="options" />
+            <FlipToolWidget categoryId={category.id} part="options" modelName={entry.name} modelMeta={entry.meta} />
           </div>
           <div className="flex flex-col gap-2 px-6 pb-6 sm:px-8">
             <button

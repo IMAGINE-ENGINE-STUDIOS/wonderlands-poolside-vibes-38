@@ -269,6 +269,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
           onChange={setSite}
           header={header}
           defaultLayer={DEFAULT_LAYER[categoryId] ?? "pool"}
+          menuSide={!fullScreen}
           onRequestImport={fullScreen ? () => fileRef.current?.click() : undefined}
         />
       );
