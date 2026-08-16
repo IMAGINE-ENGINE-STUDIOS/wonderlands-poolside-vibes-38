@@ -262,12 +262,15 @@ const FlipMagazine: React.FC = () => {
   const swap = useCallback((apply: () => void) => {
     setFading(true);
     if (swapTimer.current) window.clearTimeout(swapTimer.current);
+    // Swap only after the fade-out has fully completed, so the reader never
+    // catches the edition changing mid-dissolve.
     swapTimer.current = window.setTimeout(() => {
       startPageRef.current = 0;
       setPage(0);
       apply();
-    }, 220);
+    }, 420);
   }, []);
+
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
 
   const openCategory = useCallback(
@@ -1168,11 +1171,14 @@ const FlipMagazine: React.FC = () => {
   const loading = mode === "category" && !entries;
 
   // Fade the new edition back in once its pages are composed.
+  // Fade the new edition back in once its pages are composed — a beat of
+  // stillness first so the dissolve reads as one continuous breath.
   useEffect(() => {
     if (loading || !fading || boardOpen) return;
-    const t = window.setTimeout(() => setFading(false), 40);
+    const t = window.setTimeout(() => setFading(false), 160);
     return () => window.clearTimeout(t);
   }, [loading, fading, boardOpen, mode, categoryId, pages.length]);
+
 
 
   return (
@@ -1311,11 +1317,20 @@ const FlipMagazine: React.FC = () => {
 
 
         <div
-          className={`mx-auto flex justify-center transition-opacity duration-300 ease-out ${
-            fading || loading ? "opacity-0" : "opacity-100"
-          }`}
-          style={{ perspective: "3000px", minHeight: dims.h }}
+          className="mx-auto flex justify-center will-change-[opacity,transform]"
+          style={{
+            perspective: "3000px",
+            minHeight: dims.h,
+            opacity: fading || loading ? 0 : 1,
+            transform: fading || loading ? "scale(0.985) translateY(6px)" : "scale(1) translateY(0)",
+            filter: fading || loading ? "blur(6px)" : "blur(0px)",
+            transition:
+              fading || loading
+                ? "opacity 400ms cubic-bezier(0.4,0,1,1), transform 400ms cubic-bezier(0.4,0,1,1), filter 400ms ease-in"
+                : "opacity 900ms cubic-bezier(0.16,1,0.3,1), transform 900ms cubic-bezier(0.16,1,0.3,1), filter 700ms ease-out",
+          }}
         >
+
           {loading ? (
             <div
               className="flex items-center justify-center border border-border/60"
