@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { useTextureInvalidation } from '@/hooks/useTextureInvalidation';
+import { generateCurvedPoolPoints } from '@/utils/curveUtils';
+import { densifyRing, matchedOffsetRing, ringDistances } from '@/utils/polygonGeometry';
 
 interface Point {
   x: number;
@@ -12,6 +14,8 @@ interface Point {
 
 interface WaterlineMeshProps {
   poolPoints: Point[];
+  /** Normalized pool wall spline (same curve the walls/coping use) — preferred source. */
+  wallCurve?: Array<{ x: number; z: number }>;
   waterlineTextureUrl?: string;
   waterlineHeight?: number;
   waterlineWidth?: number;
@@ -23,6 +27,7 @@ interface WaterlineMeshProps {
 
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
   poolPoints, 
+  wallCurve,
   waterlineTextureUrl,
   waterlineHeight = 0.5, // 0.5ft tall waterline band
   waterlineWidth = 0.5 / 12,  // 0.5 inch depth into wall (half inch)
