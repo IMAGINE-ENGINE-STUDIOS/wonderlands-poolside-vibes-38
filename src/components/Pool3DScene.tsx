@@ -668,41 +668,6 @@ const FenceMesh: React.FC<{
   );
 };
 
-// 3D Terrain Component - Uses USDZ model as default terrain
-const Terrain3DModel: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number]; hardscapePoints?: HardscapePoint[]; deckWidth?: number }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0], hardscapePoints, deckWidth }) => {
-  const [modelLoaded, setModelLoaded] = useState(false);
-  const [modelError, setModelError] = useState(false);
-  
-  const handleLoad = () => {
-    console.log('✅ Terrain USDZ model loaded successfully');
-    setModelLoaded(true);
-  };
-  
-  const handleError = (error: Error) => {
-    console.error('❌ Failed to load terrain USDZ model:', error);
-    setModelError(true);
-  };
-  
-  // If USDZ fails to load, fall back to grass texture
-  if (modelError) {
-    return <GrassTerrainFallback poolPoints={poolPoints} copingWidth={copingWidth} hardscapePoints={hardscapePoints} deckWidth={deckWidth} />;
-  }
-  
-  return (
-    <Suspense fallback={<GrassTerrainFallback poolPoints={poolPoints} copingWidth={copingWidth} hardscapePoints={hardscapePoints} deckWidth={deckWidth} />}>
-      <Model3DLoader
-        url="/models/American_Road_Intersection.usdz"
-        format="usdz"
-        position={[0, -0.05, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        scale={50}
-        onLoad={handleLoad}
-        onError={handleError}
-      />
-    </Suspense>
-  );
-};
-
 // Fallback Grass Terrain Component with Pool/Deck Cutout
 // Receives the SAME normalized curves used by the deck so the grass cutout can never
 // be larger than the paved area (no empty terrain crops).
