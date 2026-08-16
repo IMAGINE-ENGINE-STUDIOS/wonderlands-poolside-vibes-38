@@ -242,14 +242,6 @@ export function UnifiedPoolVisualizer({
   // Validate scene before using it
   const validatedScene = validateScene(initialScene);
   
-  console.log('🎬 UnifiedPoolVisualizer: Initializing with scene', {
-    poolFinish: validatedScene.pool.finish?.url,
-    paver: validatedScene.deck.paver?.url,
-    coping: validatedScene.deck.coping?.url,
-    waterline: validatedScene.deck.waterline?.url,
-    timestamp: new Date().toISOString()
-  });
-  
   // Create initial snapshot for scene history
   const initialSnapshot: SceneSnapshot = useMemo(() => ({
     scene: validatedScene,
@@ -657,14 +649,6 @@ export function UnifiedPoolVisualizer({
   const paverTextureUrl = safeGetTextureUrl(scene.deck.paver, '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png');
   const copingTextureUrl = safeGetTextureUrl(scene.deck.coping, '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp');
   const waterlineTextureUrl = safeGetTextureUrl(scene.deck.waterline, scene.pool.finish.url);
-  
-  // Log extracted texture URLs for debugging
-  console.log('🎨 UnifiedPoolVisualizer Safe Texture URLs:', {
-    liner: linerTextureUrl,
-    paver: paverTextureUrl,
-    coping: copingTextureUrl,
-    waterline: waterlineTextureUrl
-  });
   
   // Preload textures before rendering 3D scene
   useEffect(() => {
@@ -1424,6 +1408,7 @@ export function UnifiedPoolVisualizer({
             {texturesReady && (
               <R3FCanvas
                 shadows
+                dpr={[1, 1.5]} // Cap pixel ratio: HiDPI screens were rendering 2-4x the pixels
                 gl={{ 
                   preserveDrawingBuffer: false, // Changed to false for better memory
                   antialias: true,
@@ -1431,6 +1416,7 @@ export function UnifiedPoolVisualizer({
                   powerPreference: "high-performance",
                   failIfMajorPerformanceCaveat: false // Don't fail on slower devices
                 }}
+
                 onCreated={({ gl, scene }) => {
                   console.log('✅ WebGL Context Created');
                   
@@ -1444,11 +1430,6 @@ export function UnifiedPoolVisualizer({
                   gl.domElement.addEventListener('webglcontextrestored', () => {
                     console.log('✅ WebGL Context Restored');
                   });
-                  
-                  // Enable automatic garbage collection
-                  gl.dispose = () => {
-                    console.log('🧹 Cleaning up WebGL resources');
-                  };
                 }}
                 camera={{
                   position: scene.camera.position,
@@ -1609,7 +1590,9 @@ export function UnifiedPoolVisualizer({
               selectedSplinePointId={selectedSplinePointId}
               onSelectSplinePoint={setSelectedSplinePointId}
               showWireframe={showWireframe}
+              showGrid={showGrid}
               showRulers={showWireframe} 
+
               showDebugBoundaries={showDebugBoundaries}
               onDebugBoundariesChange={setShowDebugBoundaries}
             />

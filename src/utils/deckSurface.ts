@@ -53,7 +53,17 @@ export function resolveDeckBoundaries(params: {
   if (!poolCurve || poolCurve.length < 3) return null;
 
   const copingOffset = copingEnabled ? Math.max(0, copingWidth) : 0;
-  const inner = sanitizeBoundary(generateOffsetCurve(poolCurve, copingOffset));
+  let inner = sanitizeBoundary(generateOffsetCurve(poolCurve, copingOffset));
+
+  // HARD RULE: the deck hole must always fully contain the pool opening, otherwise
+  // pavers would be drawn on top of the water surface.
+  if (!polygonContainsPolygon(inner, poolCurve)) {
+    const grown = sanitizeBoundary(
+      generateOffsetCurve(poolCurve, Math.max(copingOffset, 0.25) + 0.1)
+    );
+    inner = polygonContainsPolygon(grown, poolCurve) ? grown : sanitizeBoundary(poolCurve);
+  }
+
   const innerArea = Math.abs(calculatePolygonArea(to2D(inner)));
 
   const fallbackOuter = () =>
@@ -66,21 +76,52 @@ export function resolveDeckBoundaries(params: {
   if (hardscapePoints && hardscapePoints.length >= 3) {
     const candidate = sanitizeBoundary(hardscapePoints);
     const candidateArea = Math.abs(calculatePolygonArea(to2D(candidate)));
-    // Only trust the 2D hardscape outline when it genuinely encloses the coping edge.
-    if (candidate.length >= 3 && candidateArea > innerArea * 1.02) {
+    // Only trust the 2D hardscape outline when it genuinely encloses the coping edge
+    // AND geometrically wraps around it (a shifted/offset outline would pave the water).
+    if (
+      candidate.length >= 3 &&
+      candidateArea > innerArea * 1.02 &&
+      polygonContainsPolygon(candidate, inner)
+    ) {
       outer = candidate;
     }
   }
 
   if (!outer) outer = fallbackOuter();
 
-  // Absolute safety net: outer must be larger than inner, otherwise the ring is degenerate.
-  if (Math.abs(calculatePolygonArea(to2D(outer))) <= innerArea) {
+  // Absolute safety net: outer must enclose inner, otherwise the ring is degenerate.
+  if (
+    Math.abs(calculatePolygonArea(to2D(outer))) <= innerArea ||
+    !polygonContainsPolygon(outer, inner)
+  ) {
     outer = sanitizeBoundary(generateOffsetCurve(inner, Math.max(minDeckWidth, deckWidth)));
   }
 
   return { inner, outer };
 }
+
+/** Standard ray-casting point-in-polygon test (XZ plane). */
+export function pointInPolygon(point: P3, polygon: P3[]): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].x;
+    const zi = polygon[i].z;
+    const xj = polygon[j].x;
+    const zj = polygon[j].z;
+    const intersects =
+      zi > point.z !== zj > point.z &&
+      point.x < ((xj - xi) * (point.z - zi)) / (zj - zi || 1e-9) + xi;
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+/** True when every vertex of `child` lies inside `parent`. */
+function polygonContainsPolygon(parent: P3[], child: P3[]): boolean {
+  if (!parent || parent.length < 3 || !child || child.length < 3) return false;
+  return child.every((p) => pointInPolygon(p, parent));
+}
+
 
 /** Build a closed THREE.Path from a polygon (used for shape holes). */
 function pathFrom(points: Array<{ x: number; y: number }>): THREE.Path {

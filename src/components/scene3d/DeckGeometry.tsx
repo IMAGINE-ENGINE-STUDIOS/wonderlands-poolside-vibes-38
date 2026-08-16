@@ -29,30 +29,49 @@ export const DeckGeometry = ({
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   const { invalidate } = useThree();
-  
+  const offsetX = textureOffset[0];
+  const offsetY = textureOffset[1];
+
   useEffect(() => {
     if (!textureUrl) {
       setTexture(null);
       return;
     }
-    
+
+    let cancelled = false;
     const loader = new THREE.TextureLoader();
     loader.load(
       textureUrl,
       (loadedTexture) => {
+        // A newer texture request already superseded this one — drop it so the
+        // older texture can never overwrite the user's latest selection.
+        if (cancelled) {
+          loadedTexture.dispose();
+          return;
+        }
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
         loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
         loadedTexture.repeat.set(textureScale, textureScale);
-        loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
-        setTexture(loadedTexture);
+        loadedTexture.offset.set(offsetX, offsetY);
+        loadedTexture.needsUpdate = true;
+        setTexture((prev) => {
+          if (prev && prev !== loadedTexture) prev.dispose();
+          return loadedTexture;
+        });
         invalidate(); // Force immediate re-render
       },
       undefined,
       (error) => {
+        if (cancelled) return;
         console.error('Failed to load deck texture:', error);
-        setTexture(null);
       }
     );
-  }, [textureUrl, textureScale, textureOffset, invalidate]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [textureUrl, textureScale, offsetX, offsetY, invalidate]);
+
   
   const geometry = useMemo(() => {
     const boundaries = resolveDeckBoundaries({

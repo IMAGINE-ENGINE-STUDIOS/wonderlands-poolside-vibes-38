@@ -118,6 +118,8 @@ export interface Pool3DSceneProps {
   selectedSplinePointId?: string | null;
   onSelectSplinePoint?: (id: string | null) => void;
   showWireframe?: boolean;
+  showGrid?: boolean;
+
   showRulers?: boolean;
   showDebugBoundaries?: boolean;
   onDebugBoundariesChange?: (show: boolean) => void;
@@ -933,7 +935,9 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   selectedSplinePointId,
   onSelectSplinePoint,
   showWireframe = false,
+  showGrid = false,
   showRulers = false,
+
   showDebugBoundaries: externalShowDebugBoundaries = false,
   onDebugBoundariesChange
 }) => {
@@ -1168,19 +1172,22 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
 
       <group position={poolPosition}>
 
-      <Grid
-        args={[100, 100]}
-        cellSize={1}
-        cellThickness={0.5}
-        cellColor="#9ca3af"
-        sectionSize={5}
-        sectionThickness={1}
-        sectionColor="#6b7280"
-        fadeDistance={80}
-        fadeStrength={1}
-        followCamera={false}
-        infiniteGrid={true}
-      />
+      {(showGrid || showWireframe) && (
+        <Grid
+          args={[100, 100]}
+          cellSize={1}
+          cellThickness={0.5}
+          cellColor="#9ca3af"
+          sectionSize={5}
+          sectionThickness={1}
+          sectionColor="#6b7280"
+          fadeDistance={80}
+          fadeStrength={1}
+          followCamera={false}
+          infiniteGrid={true}
+        />
+      )}
+
 
       {/* Pool Mesh */}
       <group onClick={(e) => {
