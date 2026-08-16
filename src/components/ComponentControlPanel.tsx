@@ -2,7 +2,9 @@ import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { X, Paintbrush, Move, Layers, Edit3, Lightbulb } from 'lucide-react';
+import { X, Paintbrush, Move, Layers, Edit3, Lightbulb, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Scene3D, TextureConfig, PoolLightConfig } from './scene3d/types';
 import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
@@ -203,7 +205,7 @@ export function ComponentControlPanel({
   const availableTextures = getAvailableTextures();
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 w-80 bg-background/98 backdrop-blur-md border border-border rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
+    <div className="fixed left-4 top-1/2 -translate-y-1/2 w-80 glass-panel rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">
@@ -240,149 +242,194 @@ export function ComponentControlPanel({
             </div>
           )}
 
-          {/* Texture Scale */}
-          {currentTexture && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Texture Scale</Label>
-                <span className="text-xs text-muted-foreground">{(currentTexture.scale || 1.8).toFixed(1)}x</span>
-              </div>
-              <Slider
-                value={[currentTexture.scale || 1.8]}
-                onValueChange={(value) => handleTextureScaleChange(value[0])}
-                min={0.5}
-                max={5}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-          )}
-
-          {/* Texture Rotation */}
-          {currentTexture && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Texture Rotation</Label>
-                <span className="text-xs text-muted-foreground">{Math.round(currentTexture.rotation || 0)}°</span>
-              </div>
-              <Slider
-                value={[currentTexture.rotation || 0]}
-                onValueChange={(value) => patchTexture({ rotation: value[0] })}
-                min={0}
-                max={360}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex gap-1">
-                {[0, 45, 90, 135].map((deg) => (
-                  <Button
-                    key={deg}
-                    type="button"
-                    size="sm"
-                    variant={Math.round(currentTexture.rotation || 0) === deg ? 'default' : 'outline'}
-                    className="h-6 px-2 text-[10px] flex-1"
-                    onClick={() => patchTexture({ rotation: deg })}
-                  >
-                    {deg}°
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Texture Offset */}
-          {currentTexture && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Offset X</Label>
-                <span className="text-xs text-muted-foreground">{(currentTexture.offset?.[0] || 0).toFixed(2)}</span>
-              </div>
-              <Slider
-                value={[currentTexture.offset?.[0] || 0]}
-                onValueChange={(value) => patchTexture({ offset: [value[0], currentTexture.offset?.[1] || 0] })}
-                min={-1}
-                max={1}
-                step={0.01}
-                className="w-full"
-              />
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Offset Y</Label>
-                <span className="text-xs text-muted-foreground">{(currentTexture.offset?.[1] || 0).toFixed(2)}</span>
-              </div>
-              <Slider
-                value={[currentTexture.offset?.[1] || 0]}
-                onValueChange={(value) => patchTexture({ offset: [currentTexture.offset?.[0] || 0, value[0]] })}
-                min={-1}
-                max={1}
-                step={0.01}
-                className="w-full"
-              />
+          {/* Texture picker — dropdown, grouped by Studio category */}
+          <Popover>
+            <PopoverTrigger asChild>
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 w-full text-xs"
-                onClick={() => patchTexture({ scale: 1.8, rotation: 0, offset: [0, 0] })}
+                variant="ghost"
+                className="glass-btn w-full justify-between h-10 px-3 rounded-lg"
               >
-                Reset texture transform
+                <span className="flex items-center gap-2 min-w-0">
+                  {currentTexture && (
+                    <img
+                      loading="lazy"
+                      decoding="async"
+                      src={currentTexture.url}
+                      alt=""
+                      className="h-6 w-6 rounded object-cover border border-border/60"
+                    />
+                  )}
+                  <span className="truncate text-xs font-medium">
+                    {currentTexture?.name || 'Choose a texture'}
+                  </span>
+                </span>
+                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  {availableTextures.length}
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </span>
               </Button>
-            </div>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              side="right"
+              sideOffset={10}
+              className="glass-panel w-[320px] p-3 rounded-xl border-0 z-[10000]"
+            >
+              <div className="max-h-[52vh] overflow-y-auto pr-1 space-y-4">
+                {groupTextures(availableTextures).map(({ group, textures }) => (
+                  <div key={group} className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {group}
+                      </span>
+                      <span className="h-px flex-1 bg-border" />
+                      <span className="text-[10px] text-muted-foreground">{textures.length}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {textures.map((texture, index) => (
+                        <button
+                          key={`${texture.url}-${index}`}
+                          type="button"
+                          onClick={() => handleTextureChange(texture)}
+                          className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
+                            currentTexture?.url === texture.url
+                              ? 'border-primary ring-2 ring-primary/20'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                          title={texture.name}
+                        >
+                          <img
+                            loading="lazy"
+                            decoding="async"
+                            src={texture.url}
+                            alt={texture.name}
+                            className="w-full h-20 object-cover group-hover:scale-110 transition-transform"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-1.5">
+                            <span className="text-white text-[10px] font-medium truncate">{texture.name}</span>
+                          </div>
+                          {currentTexture?.url === texture.url && (
+                            <div className="absolute top-1 right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                              <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Texture transform tool set — collapsed into a dropdown */}
+          {currentTexture && (
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="glass-btn w-full justify-between h-9 px-3 rounded-lg text-xs"
+                >
+                  <span className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+                    Texture adjustments
+                  </span>
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3 space-y-4">
+                {/* Texture Scale */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Texture Scale</Label>
+                    <span className="text-xs text-muted-foreground">{(currentTexture.scale || 1.8).toFixed(1)}x</span>
+                  </div>
+                  <Slider
+                    value={[currentTexture.scale || 1.8]}
+                    onValueChange={(value) => handleTextureScaleChange(value[0])}
+                    min={0.5}
+                    max={5}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Texture Rotation */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Texture Rotation</Label>
+                    <span className="text-xs text-muted-foreground">{Math.round(currentTexture.rotation || 0)}°</span>
+                  </div>
+                  <Slider
+                    value={[currentTexture.rotation || 0]}
+                    onValueChange={(value) => patchTexture({ rotation: value[0] })}
+                    min={0}
+                    max={360}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex gap-1">
+                    {[0, 45, 90, 135].map((deg) => (
+                      <Button
+                        key={deg}
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        aria-pressed={Math.round(currentTexture.rotation || 0) === deg}
+                        className="glass-btn h-6 px-2 text-[10px] flex-1 rounded-md"
+                        onClick={() => patchTexture({ rotation: deg })}
+                      >
+                        {deg}°
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Texture Offset */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Offset X</Label>
+                    <span className="text-xs text-muted-foreground">{(currentTexture.offset?.[0] || 0).toFixed(2)}</span>
+                  </div>
+                  <Slider
+                    value={[currentTexture.offset?.[0] || 0]}
+                    onValueChange={(value) => patchTexture({ offset: [value[0], currentTexture.offset?.[1] || 0] })}
+                    min={-1}
+                    max={1}
+                    step={0.01}
+                    className="w-full"
+                  />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Offset Y</Label>
+                    <span className="text-xs text-muted-foreground">{(currentTexture.offset?.[1] || 0).toFixed(2)}</span>
+                  </div>
+                  <Slider
+                    value={[currentTexture.offset?.[1] || 0]}
+                    onValueChange={(value) => patchTexture({ offset: [currentTexture.offset?.[0] || 0, value[0]] })}
+                    min={-1}
+                    max={1}
+                    step={0.01}
+                    className="w-full"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="glass-btn h-7 w-full text-xs rounded-md"
+                    onClick={() => patchTexture({ scale: 1.8, rotation: 0, offset: [0, 0] })}
+                  >
+                    Reset texture transform
+                  </Button>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </div>
 
-        <Separator />
-
-        {/* Texture Grid — grouped by Studio category */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-semibold">Available Textures</Label>
-            <span className="text-[10px] text-muted-foreground">{availableTextures.length} options</span>
-          </div>
-          <div className="max-h-[340px] overflow-y-auto pr-1 space-y-4">
-            {groupTextures(availableTextures).map(({ group, textures }) => (
-              <div key={group} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {group}
-                  </span>
-                  <span className="h-px flex-1 bg-border" />
-                  <span className="text-[10px] text-muted-foreground">{textures.length}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {textures.map((texture, index) => (
-                    <button
-                      key={`${texture.url}-${index}`}
-                      type="button"
-                      onClick={() => handleTextureChange(texture)}
-                      className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
-                        currentTexture?.url === texture.url
-                          ? 'border-primary ring-2 ring-primary/20'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                      title={texture.name}
-                    >
-                      <img loading="lazy" decoding="async"
-                        src={texture.url}
-                        alt={texture.name}
-                        className="w-full h-20 object-cover group-hover:scale-110 transition-transform"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-1.5">
-                        <span className="text-white text-[10px] font-medium truncate">{texture.name}</span>
-                      </div>
-                      {currentTexture?.url === texture.url && (
-                        <div className="absolute top-1 right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Component-specific controls */}
         {selectedComponent === 'deck' && (

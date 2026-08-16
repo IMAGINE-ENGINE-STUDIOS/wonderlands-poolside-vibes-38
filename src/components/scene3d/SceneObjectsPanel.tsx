@@ -74,7 +74,7 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false }: Sc
       <button
         onClick={() => setOpen(true)}
         className={cn(
-          'bg-background/80 backdrop-blur hover:bg-background p-2 rounded-lg shadow-lg transition-colors flex items-center gap-2 text-sm',
+          'glass-btn p-2 rounded-lg flex items-center gap-2 text-sm',
           className
         )}
         title="Scene objects"
@@ -89,7 +89,7 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false }: Sc
   return (
     <div
       className={cn(
-        'w-64 max-h-[60vh] flex flex-col bg-background/90 backdrop-blur border border-border rounded-xl shadow-2xl overflow-hidden',
+        'w-64 max-h-[60vh] flex flex-col glass-panel rounded-xl overflow-hidden',
         className
       )}
     >

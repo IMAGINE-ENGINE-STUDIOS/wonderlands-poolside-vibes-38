@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Hard-pin a single three.js copy. `dedupe` misses nested copies such as
+      // stats-gl/node_modules/three, and two engine instances make textures
+      // created by one instance render as plain white in the other's renderer.
+      three: path.resolve(__dirname, "./node_modules/three"),
     },
     dedupe: [
       "react",

@@ -101,7 +101,7 @@ export class Scene3DErrorBoundary extends Component<Props, State> {
         pool: {
           ...scene.pool,
           finish: {
-            url: '/src/assets/finishes/sapphire-blue-g3.jpg',
+            url: '/textures/finishes/sapphire-blue-g3.webp',
             name: 'Sapphire Blue (Fallback)',
             roughness: 0.3,
             metalness: 0.2,
@@ -128,7 +128,7 @@ export class Scene3DErrorBoundary extends Component<Props, State> {
             offset: [-0.21, 0]
           },
           waterline: {
-            url: '/src/assets/finishes/sapphire-blue-g3.jpg',
+            url: '/textures/finishes/sapphire-blue-g3.webp',
             name: 'Sapphire Blue Waterline (Fallback)',
             roughness: 0.3,
             metalness: 0.2,

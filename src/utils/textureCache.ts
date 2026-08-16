@@ -23,7 +23,7 @@ class TextureCache {
   async loadTexture(url: string, repeat?: { x: number; y: number }): Promise<THREE.Texture> {
     // CRITICAL: Validate URL before attempting to load
     if (!url || url === '' || url === 'undefined' || url === 'null') {
-      const fallbackUrl = '/src/assets/finishes/sapphire-blue-g3.jpg';
+      const fallbackUrl = '/textures/finishes/sapphire-blue-g3.webp';
       const stack = new Error().stack;
       console.error('❌ TEXTURE CACHE: Invalid URL detected!', {
         receivedUrl: url,
@@ -42,10 +42,15 @@ class TextureCache {
       cached.lastUsed = Date.now();
       // Clone texture and preserve repeat settings
       const clonedTexture = cached.texture.clone();
+      clonedTexture.wrapS = THREE.RepeatWrapping;
+      clonedTexture.wrapT = THREE.RepeatWrapping;
+      clonedTexture.colorSpace = THREE.SRGBColorSpace;
       if (repeat) {
         clonedTexture.repeat.set(repeat.x, repeat.y);
-        clonedTexture.needsUpdate = true;
       }
+      // A clone always needs an upload flag, otherwise the material renders
+      // untextured (plain white) until some other state change forces it.
+      clonedTexture.needsUpdate = true;
       return clonedTexture;
     }
 
@@ -60,6 +65,7 @@ class TextureCache {
           texture.minFilter = THREE.LinearMipmapLinearFilter;
           texture.magFilter = THREE.LinearFilter;
           texture.anisotropy = 4; // Reasonable quality/performance balance
+          texture.colorSpace = THREE.SRGBColorSpace;
           
           if (repeat) {
             texture.repeat.set(repeat.x, repeat.y);
