@@ -82,8 +82,11 @@ export const CopingGeometry = ({
     // coping bottom slightly below that keeps faces from being coplanar (the dark
     // z-fighting lines that showed "behind" the coping).
     const deckLevel = 1 / 36;
-    const bottomY = deckLevel - 0.005;
+    // Extend the coping skirt below the deck top surface (y = 0) so the two slabs
+    // physically overlap and no empty seam can be seen between them.
+    const bottomY = -0.1;
     const topY = deckLevel + copingHeight;
+
 
     // Calculate cumulative distance along perimeter for 1ft x 1ft UV mapping
     const distances: number[] = [0];
