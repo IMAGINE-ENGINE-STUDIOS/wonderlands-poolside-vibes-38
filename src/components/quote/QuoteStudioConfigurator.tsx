@@ -2,6 +2,19 @@ import * as React from "react";
 import { Plus, Minus, Check, ImageOff } from "lucide-react";
 import { getStudioFeatureGroups, type StudioOption } from "@/lib/flipStudioFeatures";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
   formatEntryPrice,
   loadEntryGallery,
   type ConsoleEntry,
@@ -64,6 +77,13 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
     () => getStudioFeatureGroups(categoryId, { modelName: entry.name, brand: entry.brand }),
     [categoryId, entry.name, entry.brand],
   );
+
+  const firstChoiceGroup = React.useMemo(
+    () => groups.find((g) => g.choice !== false)?.title ?? groups[0]?.title,
+    [groups],
+  );
+
+
 
   const isUnitPriced = entry.unit === "sqft" || entry.unit === "linear-ft";
   const [quantity, setQuantity] = React.useState(isUnitPriced ? 400 : 1);
@@ -277,106 +297,165 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
               drawing with you.
             </p>
           ) : (
-            groups.map((group) => (
-              <div key={group.title} className="border-b border-border/60 px-5 py-4">
-                <p className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
-                  {group.title}
-                </p>
-                {group.note && (
-                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/80">
-                    {group.note}
-                  </p>
-                )}
-                <div className="mt-3 space-y-1.5">
-                  {group.items.map((item) => {
-                    const isOn = selected[group.title]?.label === item.label;
-                    const included = item.price === 0;
-                    const selectable = group.choice !== false;
-                    return (
-                      <div
-                        key={`${group.title}-${item.label}`}
-                        onMouseEnter={() =>
-                          setPreview({ image: item.image, color: item.color, label: item.label })
-                        }
-                        onMouseLeave={() => setPreview(null)}
-                        className={`flex items-center justify-between gap-3 border px-3 py-2 transition-colors ${
-                          isOn ? "border-foreground bg-foreground/[0.05]" : "border-border/50"
-                        }`}
-                      >
-                        <div className="flex min-w-0 items-center gap-3">
-                          {(item.image || item.color) && (
-                            <span className="h-10 w-10 shrink-0 overflow-hidden border border-border/60 bg-muted">
-                              {item.image ? (
-                                <img
-                                  src={item.image}
-                                  alt={item.label}
-                                  loading="lazy"
-                                  decoding="async"
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <span
-                                  aria-hidden
-                                  className="block h-full w-full"
-                                  style={{ background: item.color }}
-                                />
-                              )}
-                            </span>
-                          )}
-                          <div className="min-w-0">
-                            <p className="truncate font-serif text-[13px] font-light text-foreground">
-                              {item.label}
-                            </p>
-                            <p className="text-[9px] uppercase tracking-[0.26em] text-muted-foreground">
-                              {item.priceLabel}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          {isOn && item.unit && (
-                            <input
-                              value={selected[group.title].qty}
-                              onChange={(e) => setQty(group.title, Number(e.target.value) || 1)}
-                              inputMode="numeric"
-                              aria-label={`${item.label} quantity`}
-                              className="w-14 border border-border/60 bg-transparent py-0.5 text-center text-[10px] outline-none"
-                            />
-                          )}
-                          {!selectable ? (
-                            <span className="border border-border/60 px-2 py-0.5 text-[8px] uppercase tracking-[0.28em] text-muted-foreground">
-                              Included
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => toggle(group.title, item)}
-                              aria-label={isOn ? `Remove ${item.label}` : `Choose ${item.label}`}
-                              title={
-                                included
-                                  ? isOn
-                                    ? "Chosen — included"
-                                    : "Choose this included option"
-                                  : isOn
-                                    ? "Remove"
-                                    : "Add"
-                              }
-                              className={`flex h-7 w-7 items-center justify-center border backdrop-blur-md transition-colors ${
-                                isOn
-                                  ? "border-foreground bg-foreground text-background"
-                                  : "border-primary/60 text-primary hover:bg-primary hover:text-primary-foreground"
-                              }`}
-                            >
-                              {isOn ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+            <Accordion
+              type="single"
+              collapsible
+              defaultValue={firstChoiceGroup}
+              className="divide-y divide-border/60"
+            >
+              {groups.map((group) => {
+                const selectable = group.choice !== false;
+                const chosen = selected[group.title];
+                return (
+                  <AccordionItem
+                    key={group.title}
+                    value={group.title}
+                    className="border-b-0 px-5"
+                  >
+                    <AccordionTrigger className="gap-3 py-3.5 hover:no-underline">
+                      <span className="flex min-w-0 flex-col items-start text-left">
+                        <span className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
+                          {group.title}
+                        </span>
+                        <span className="truncate font-serif text-[13px] font-light text-foreground">
+                          {chosen
+                            ? chosen.label
+                            : selectable
+                              ? `${group.items.length} options`
+                              : "Included as standard"}
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      {group.note && (
+                        <p className="mb-3 text-[10px] leading-relaxed text-muted-foreground/80">
+                          {group.note}
+                        </p>
+                      )}
 
-              </div>
-            ))
+                      {!selectable ? (
+                        <ul className="divide-y divide-border/50 border-y border-border/50">
+                          {group.items.map((item) => (
+                            <li
+                              key={`${group.title}-${item.label}`}
+                              className="flex items-baseline justify-between gap-3 py-2"
+                            >
+                              <span className="min-w-0 truncate text-[12px] text-foreground/85">
+                                {item.label}
+                              </span>
+                              <span className="shrink-0 text-[8px] uppercase tracking-[0.28em] text-muted-foreground">
+                                Included
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                          <CarouselContent className="-ml-2">
+                            {group.items.map((item) => {
+                              const isOn = chosen?.label === item.label;
+                              return (
+                                <CarouselItem
+                                  key={`${group.title}-${item.label}`}
+                                  className="basis-1/2 pl-2 sm:basis-1/3"
+                                >
+                                  <div
+                                    onClick={() => toggle(group.title, item)}
+                                    onMouseEnter={() =>
+                                      setPreview({
+                                        image: item.image,
+                                        color: item.color,
+                                        label: item.label,
+                                      })
+                                    }
+                                    onMouseLeave={() => setPreview(null)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(ev) => {
+                                      if (ev.key === "Enter" || ev.key === " ") {
+                                        ev.preventDefault();
+                                        toggle(group.title, item);
+                                      }
+                                    }}
+                                    aria-pressed={isOn}
+                                    className={`flex h-full cursor-pointer flex-col border p-2 transition-colors ${
+                                      isOn
+                                        ? "border-foreground bg-foreground/[0.05]"
+                                        : "border-border/50 hover:border-foreground"
+                                    }`}
+                                  >
+                                    {(item.image || item.color) && (
+                                      <div className="mb-2 h-16 w-full shrink-0 overflow-hidden border border-border/50 bg-muted">
+                                        {item.image ? (
+                                          <img
+                                            src={item.image}
+                                            alt={item.label}
+                                            loading="lazy"
+                                            decoding="async"
+                                            className="h-full w-full object-cover"
+                                          />
+                                        ) : (
+                                          <span
+                                            aria-hidden
+                                            className="block h-full w-full"
+                                            style={{ background: item.color }}
+                                          />
+                                        )}
+                                      </div>
+                                    )}
+                                    <p className="line-clamp-2 font-serif text-[12px] font-light leading-tight text-foreground">
+                                      {item.label}
+                                    </p>
+                                    {item.note && (
+                                      <p className="mt-0.5 line-clamp-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                                        {item.note}
+                                      </p>
+                                    )}
+                                    <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+                                      <span className="text-[9px] uppercase tracking-[0.22em] text-foreground">
+                                        {item.priceLabel}
+                                      </span>
+                                      <span
+                                        aria-hidden
+                                        className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
+                                          isOn
+                                            ? "border-foreground bg-foreground text-background"
+                                            : "border-primary/60 text-primary"
+                                        }`}
+                                      >
+                                        {isOn ? (
+                                          <Check className="h-3 w-3" />
+                                        ) : (
+                                          <Plus className="h-3 w-3" />
+                                        )}
+                                      </span>
+                                    </div>
+                                    {isOn && item.unit && (
+                                      <input
+                                        value={chosen!.qty}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onChange={(e) => setQty(group.title, Number(e.target.value) || 1)}
+                                        inputMode="numeric"
+                                        aria-label={`${item.label} ${item.unit === "sqft" ? "square feet" : "quantity"}`}
+                                        className="mt-2 w-full border border-border/60 bg-transparent py-0.5 text-center text-[10px] outline-none"
+                                      />
+                                    )}
+                                  </div>
+                                </CarouselItem>
+                              );
+                            })}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-0 h-7 w-7 border-border/60" />
+                          <CarouselNext className="right-0 h-7 w-7 border-border/60" />
+                        </Carousel>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
           )}
+
         </div>
       </div>
 
