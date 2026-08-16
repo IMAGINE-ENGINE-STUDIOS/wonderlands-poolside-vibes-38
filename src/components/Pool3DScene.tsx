@@ -933,7 +933,9 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   selectedSplinePointId,
   onSelectSplinePoint,
   showWireframe = false,
+  showGrid = false,
   showRulers = false,
+
   showDebugBoundaries: externalShowDebugBoundaries = false,
   onDebugBoundariesChange
 }) => {
