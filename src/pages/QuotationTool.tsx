@@ -12,6 +12,8 @@ import QuoteStudioConfigurator, {
 import QuoteCalculators from "@/components/quote/QuoteCalculators";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { toast } from "@/hooks/use-toast";
+
 import { useNavigate } from "react-router-dom";
 import { Calendar, Search, PenTool, X, Loader2 } from "lucide-react";
 
@@ -87,7 +89,51 @@ const QuotationTool = () => {
     })),
   });
 
-  const handleAdd = (p: ConfiguredProduct) => addToCart(toCartItem(p));
+  /* The shopping list adds the piece by itself 10 seconds after it is
+     selected — unless the reader leaves the page or moves to another piece. */
+  const AUTO_ADD_SECONDS = 10;
+  const [autoIn, setAutoIn] = React.useState<number | null>(null);
+  const addedRef = React.useRef<string | null>(null);
+  const productRef = React.useRef<ConfiguredProduct | null>(null);
+  productRef.current = product;
+
+  const handleAdd = React.useCallback(
+    (p: ConfiguredProduct) => {
+      addedRef.current = p.id;
+      setAutoIn(null);
+      addToCart(toCartItem(p));
+    },
+    [addToCart],
+  );
+
+  React.useEffect(() => {
+    if (!entry || addedRef.current === entry.id) {
+      setAutoIn(null);
+      return;
+    }
+    setAutoIn(AUTO_ADD_SECONDS);
+    const started = Date.now();
+    const tick = window.setInterval(() => {
+      const left = AUTO_ADD_SECONDS - Math.round((Date.now() - started) / 1000);
+      if (left > 0) {
+        setAutoIn(left);
+        return;
+      }
+      window.clearInterval(tick);
+      setAutoIn(null);
+      const current = productRef.current;
+      if (current && addedRef.current !== current.id) {
+        addedRef.current = current.id;
+        addToCart(toCartItem(current));
+        toast({
+          title: "Added to your shopping list",
+          description: `${current.name} — as configured.`,
+        });
+      }
+    }, 250);
+    return () => window.clearInterval(tick);
+  }, [entry?.id, addToCart]);
+
 
   const handleQuote = (p: ConfiguredProduct) => {
     setProduct(p);
@@ -212,6 +258,24 @@ const QuotationTool = () => {
               onAddCurrent={product ? () => handleAdd(product) : undefined}
               onQuote={product ? () => handleQuote(product) : () => setQuoteOpen(true)}
             />
+
+            {autoIn !== null && product && (
+              <div className="flex items-center justify-between border border-foreground/15 bg-background/60 px-4 py-3 backdrop-blur-xl">
+                <p className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+                  Adding to your list in {autoIn}s
+                </p>
+                <button
+                  onClick={() => {
+                    addedRef.current = product.id;
+                    setAutoIn(null);
+                  }}
+                  className="text-[9px] uppercase tracking-[0.28em] text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground"
+                >
+                  Not now
+                </button>
+              </div>
+            )}
+
 
             <button
               onClick={() =>
