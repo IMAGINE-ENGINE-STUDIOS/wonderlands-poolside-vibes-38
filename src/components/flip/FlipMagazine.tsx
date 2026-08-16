@@ -1171,11 +1171,14 @@ const FlipMagazine: React.FC = () => {
   const loading = mode === "category" && !entries;
 
   // Fade the new edition back in once its pages are composed.
+  // Fade the new edition back in once its pages are composed — a beat of
+  // stillness first so the dissolve reads as one continuous breath.
   useEffect(() => {
     if (loading || !fading || boardOpen) return;
-    const t = window.setTimeout(() => setFading(false), 40);
+    const t = window.setTimeout(() => setFading(false), 160);
     return () => window.clearTimeout(t);
   }, [loading, fading, boardOpen, mode, categoryId, pages.length]);
+
 
 
   return (
