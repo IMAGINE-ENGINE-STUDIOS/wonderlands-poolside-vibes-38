@@ -15,6 +15,8 @@ import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
 import { useProductBookPages } from "./FlipProductBook";
 import { pushSpread } from "./FlipSpread";
+import FlipIndexV6 from "./FlipIndexV6";
+
 
 /** Placeholder so the dossier page hook can run unconditionally. */
 const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as any;
