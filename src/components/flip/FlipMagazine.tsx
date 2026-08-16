@@ -547,13 +547,20 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" }> = ({ variant = "v4" }) =
             </div>
             <div>
               <p className="text-[9px] uppercase tracking-[0.4em] opacity-70">The Outdoor Annual</p>
-              <h2 className="mt-4 font-serif text-5xl font-light leading-[0.95] sm:text-7xl">FLIP</h2>
+              <img
+                src={wonderlandsLogo}
+                alt="Wonderlands"
+                loading="eager"
+                decoding="async"
+                className="mt-4 h-16 w-auto drop-shadow-[0_10px_36px_rgba(0,0,0,0.6)] sm:h-24"
+              />
               <div className="mt-6 h-px w-20 bg-current opacity-50" />
               <p className="mt-6 max-w-sm text-[12px] leading-relaxed opacity-85">
                 Water, stone, shelter and verdure — one house, one composition. Every discipline drawn, priced and
                 installed turnkey at your address.
               </p>
             </div>
+
             <div className="grid grid-cols-3 gap-4 border-t border-white/25 pt-4">
               {[
                 ["14", "Disciplines"],
