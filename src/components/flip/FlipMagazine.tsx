@@ -251,8 +251,15 @@ const PageTag: React.FC<{ label: string; side: "left" | "right"; tone: "paper" |
 
 const Leaf = forwardRef<
   HTMLDivElement,
-  { children: React.ReactNode; tone?: "paper" | "cover"; tag?: string; side?: "left" | "right" }
->(({ children, tone = "paper", tag, side = "right" }, ref) => (
+  {
+    children: React.ReactNode;
+    tone?: "paper" | "cover";
+    tag?: string;
+    side?: "left" | "right";
+    /** Fine print set in the foot margin of the leaf, out of the composition's way. */
+    footnote?: string;
+  }
+>(({ children, tone = "paper", tag, side = "right", footnote }, ref) => (
   <div
     ref={ref}
     className={
@@ -263,6 +270,11 @@ const Leaf = forwardRef<
     style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.06)" }}
   >
     {children}
+    {footnote && (
+      <p className="pointer-events-none absolute inset-x-6 bottom-1.5 text-center text-[6px] uppercase tracking-[0.22em] text-muted-foreground/60">
+        {footnote}
+      </p>
+    )}
     {tag && <PageTag label={tag} side={side} tone={tone} />}
   </div>
 ));
@@ -270,6 +282,10 @@ Leaf.displayName = "Leaf";
 
 
 type Page = { key: string; render: () => React.ReactNode; tone?: "paper" | "cover" };
+
+/** Set small in the foot margin of any leaf that quotes a figure. */
+const PRICE_NOTE = "All prices include delivery, installation and the product as described.";
+const PRICED_LEAF = /price|product|option|feature|estimate|board|dossier|model/i;
 
 type Anchors = { index: number; features: number; code: number; gallery: number; estimate: number };
 
@@ -1671,6 +1687,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ varia
                   tone={p.tone}
                   tag={isV5 ? undefined : pageTagLabel(p.key)}
                   side={portrait ? "right" : i % 2 === 0 ? "left" : "right"}
+                  footnote={PRICED_LEAF.test(p.key) ? PRICE_NOTE : undefined}
                 >
                   {p.render()}
                 </Leaf>
@@ -1751,9 +1768,6 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ varia
           <div className="mt-6 flex flex-col items-center gap-3">
             <p className="text-center text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
               {String(Math.min(page + 1, pages.length)).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}
-            </p>
-            <p className="max-w-md text-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-              All prices include delivery, installation and the product as described.
             </p>
           </div>
         )}
