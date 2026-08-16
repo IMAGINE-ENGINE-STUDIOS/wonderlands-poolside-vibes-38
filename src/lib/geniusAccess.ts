@@ -11,6 +11,7 @@
 export const GENIUS_DESTINATIONS: { path: string; label: string; purpose: string }[] = [
   { path: '/', label: 'Home', purpose: 'the Wonderlands World landing experience' },
   { path: '/flip', label: 'FLIP', purpose: 'the Wonderlands magazine and all product books' },
+  { path: '/flip-pages', label: 'Page File', purpose: 'the numbered file of every page in the FLIP book' },
   { path: '/studio', label: 'Studio', purpose: 'the Wonderlands Studio landing canvas' },
   { path: '/wonderlands-studio', label: 'Wonderlands Studio', purpose: 'configure pools, spas, saunas, pavers and features' },
   { path: '/design-studio', label: '3D Design Studio', purpose: 'the 3D pool and deck designer' },

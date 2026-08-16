@@ -23,7 +23,18 @@ export interface NarratorContext {
 
 export interface NarratorAction {
   label: string;
-  type: 'branch' | 'add_to_cart' | 'navigate' | 'calculate';
+  /** flip_* actions manipulate the FLIP book itself (page turns, editions). */
+  type:
+    | 'branch'
+    | 'add_to_cart'
+    | 'navigate'
+    | 'calculate'
+    | 'flip_goto'
+    | 'flip_next'
+    | 'flip_prev'
+    | 'flip_home'
+    | 'flip_category'
+    | 'flip_product';
   payload?: string;
 }
 

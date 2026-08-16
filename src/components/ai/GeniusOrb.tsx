@@ -14,6 +14,9 @@ import {
   Mic,
   MicOff,
   Send,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNarrator } from '@/hooks/useNarrator';
@@ -21,6 +24,7 @@ import { useGenius } from '@/hooks/useGenius';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useOptionalShoppingCart } from '@/components/ShoppingCartProvider';
 import { safeGeniusPath } from '@/lib/geniusAccess';
+import { getFlipControls, turnToPageNumber } from '@/lib/flipPageRegistry';
 import type { NarratorAction } from '@/lib/narratorStore';
 import { toast } from 'sonner';
 
@@ -29,6 +33,12 @@ const ACTION_ICON: Record<NarratorAction['type'], React.ComponentType<{ classNam
   add_to_cart: Plus,
   navigate: Compass,
   calculate: Calculator,
+  flip_goto: BookOpen,
+  flip_next: ChevronRight,
+  flip_prev: ChevronLeft,
+  flip_home: BookOpen,
+  flip_category: BookOpen,
+  flip_product: BookOpen,
 };
 
 /**
@@ -161,6 +171,32 @@ export const GeniusOrb: React.FC = () => {
           toast.info('Open a product page to add it to your selection.');
         }
         break;
+      /* Genius manipulating the FLIP book itself */
+      case 'flip_goto': {
+        const page = turnToPageNumber(Number(action.payload));
+        if (!page) toast.info('That page is not in the open edition.');
+        break;
+      }
+      case 'flip_next':
+        getFlipControls()?.next();
+        break;
+      case 'flip_prev':
+        getFlipControls()?.prev();
+        break;
+      case 'flip_home':
+        if (getFlipControls()) getFlipControls()!.openHome();
+        else go('/flip');
+        break;
+      case 'flip_category':
+        if (action.payload && getFlipControls()) getFlipControls()!.openCategory(action.payload);
+        else go('/flip');
+        break;
+      case 'flip_product': {
+        const [categoryId, productId] = (action.payload ?? '').split(':');
+        if (categoryId && productId && getFlipControls()) getFlipControls()!.openProduct(categoryId, productId);
+        else go('/flip');
+        break;
+      }
     }
   };
 

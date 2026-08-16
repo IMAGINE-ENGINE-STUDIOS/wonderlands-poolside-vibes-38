@@ -12,6 +12,7 @@ import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
 import FlipSearch from "@/components/flip/FlipSearch";
 import usePersistentState from "@/hooks/usePersistentState";
 import { setNarratorContext } from "@/lib/narratorStore";
+import { setFlipManifest, setFlipControls } from "@/lib/flipPageRegistry";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
 import { useProductBookPages } from "./FlipProductBook";
@@ -142,6 +143,16 @@ const pageTagLabel = (key: string): string => {
   if (k.includes("dimension")) return "Dimensions";
   if (k.includes("brand")) return "Brand";
   return "Edition";
+};
+
+/** Full readable page title used by the page file and by Genius. */
+const pageTitleFor = (key: string, categoryLabel: string, productName?: string): string => {
+  const label = pageTagLabel(key);
+  const k = key.toLowerCase();
+  if (k.startsWith("home-cat-")) return `${label} — ${key.replace("home-cat-", "").replace(/-/g, " ")}`;
+  if (k.startsWith("home")) return `The Outdoor Annual — ${label}`;
+  if (productName) return `${productName} — ${label}`;
+  return `${categoryLabel} — ${label}`;
 };
 
 /**
@@ -451,7 +462,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ varia
     if (dossier) {
       setNarratorContext({
         scope: "product",
-        key: `flip:product:${dossier.id}`,
+        key: `flip:product:${dossier.id}:p${page + 1}`,
         title: dossier.name,
         category: category.label,
         product: dossier.name,
@@ -464,7 +475,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ varia
     if (mode === "category") {
       setNarratorContext({
         scope: "category",
-        key: `flip:category:${category.id}`,
+        key: `flip:category:${category.id}:p${page + 1}`,
         title: category.label,
         category: category.label,
         features: (entries ?? []).slice(0, 10).map((e) => e.name),
@@ -474,12 +485,12 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ varia
     }
     setNarratorContext({
       scope: "index",
-      key: "flip:index",
+      key: `flip:index:p${page + 1}`,
       title: "Wonderlands — The Outdoor Annual",
       features: ITEMS.map((i) => i.label),
       route: "/flip",
     });
-  }, [isV7, dossier, mode, category, entries]);
+  }, [isV7, dossier, mode, category, entries, page]);
 
   useEffect(() => () => setNarratorContext(null), []);
 
@@ -1320,9 +1331,76 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ varia
     [pages],
   );
 
+  /* Publish the open book so Genius and the page file can read and turn it. */
+  useEffect(() => {
+    setFlipManifest({
+      scope: dossier ? "product" : mode === "home" ? "home" : "category",
+      categoryId,
+      categoryLabel: category.label,
+      productId: dossier?.id ? String(dossier.id) : undefined,
+      productName: dossier?.name,
+      current: page,
+      pages: pages.map((p, i) => ({
+        number: i + 1,
+        index: i,
+        key: p.key,
+        label: pageTagLabel(p.key),
+        title: pageTitleFor(p.key, category.label, dossier?.name),
+      })),
+    });
+  }, [pages, page, mode, categoryId, category.label, dossier]);
+
+  useEffect(() => () => setFlipManifest(null), []);
+
   const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
   const goTo = useCallback((n: number) => bookRef.current?.pageFlip()?.turnToPage(n), []);
+
+  useEffect(() => {
+    setFlipControls({
+      goTo,
+      next: flipNext,
+      prev: flipPrev,
+      openHome,
+      openCategory,
+      openProduct: (catId, productId) => {
+        const list = getCachedCategoryEntries(catId);
+        const entry = list?.find((e) => String(e.id) === String(productId));
+        if (entry) openProduct(catId, entry);
+        else openCategory(catId);
+      },
+      openSearch: (open) => setSearchOpen(open),
+    });
+    return () => setFlipControls(null);
+  }, [goTo, flipNext, flipPrev, openHome, openCategory, openProduct, setSearchOpen]);
+
+  /* Deep links from the page file: /flip?cat=pools&product=milan&page=7 */
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    if (deepLinked.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get("cat");
+    const productId = params.get("product");
+    const target = Number.parseInt(params.get("page") ?? "", 10);
+    if (!cat && !productId && !Number.isFinite(target)) {
+      deepLinked.current = true;
+      return;
+    }
+    if (cat) {
+      setCategoryId(cat);
+      setMode("category");
+    }
+    if (productId && cat) {
+      const list = getCachedCategoryEntries(cat);
+      const entry = list?.find((e) => String(e.id) === String(productId));
+      if (!entry) return; // wait for the edition to load
+      setDossier(entry);
+    }
+    deepLinked.current = true;
+    if (Number.isFinite(target) && target > 0) {
+      window.setTimeout(() => goTo(target - 1), 500);
+    }
+  }, [entries, goTo, setCategoryId, setMode]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
