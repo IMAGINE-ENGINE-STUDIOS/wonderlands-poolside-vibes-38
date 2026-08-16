@@ -1573,11 +1573,14 @@ export function UnifiedPoolVisualizer({
                 castShadow
                 shadow-mapSize-width={2048}
                 shadow-mapSize-height={2048}
-                shadow-camera-far={100}
-                shadow-camera-left={-50}
-                shadow-camera-right={50}
-                shadow-camera-top={50}
-                shadow-camera-bottom={-50}
+                shadow-camera-near={0.5}
+                shadow-camera-far={140}
+                shadow-camera-left={-28}
+                shadow-camera-right={28}
+                shadow-camera-top={28}
+                shadow-camera-bottom={-28}
+                shadow-bias={-0.0005}
+                shadow-normalBias={0.03}
               />
             </>
           )}
@@ -1592,7 +1595,18 @@ export function UnifiedPoolVisualizer({
                 intensity={0.4}
                 color="#c4d4e8"
                 castShadow
+                shadow-mapSize-width={1024}
+                shadow-mapSize-height={1024}
+                shadow-camera-near={0.5}
+                shadow-camera-far={140}
+                shadow-camera-left={-28}
+                shadow-camera-right={28}
+                shadow-camera-top={28}
+                shadow-camera-bottom={-28}
+                shadow-bias={-0.0005}
+                shadow-normalBias={0.03}
               />
+
               {/* Subtle fill light */}
               <hemisphereLight
                 intensity={0.2}
