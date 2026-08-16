@@ -92,7 +92,7 @@ export const DeckBorderGeometry = ({
     const deckTopY = deckElevation;
     const deckBottomY = Math.min(deckElevation - borderHeight, -0.05);
 
-    return buildDeckRingGeometry(boundaries.inner, boundaries.outer, deckTopY, deckBottomY);
+    return buildDeckRingGeometry(boundaries.inner, boundaries.outer, deckTopY, deckBottomY, poolPoints);
   }, [poolPoints, outerPoints, deckWidth, copingWidth, borderHeight, borderWidth, deckElevation]);
   
   return (

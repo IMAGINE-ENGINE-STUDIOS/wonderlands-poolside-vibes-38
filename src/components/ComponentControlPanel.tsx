@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -61,7 +61,6 @@ export function ComponentControlPanel({
   isNightMode = false
 }: ComponentControlPanelProps) {
   // Animation state for texture panel fade effect
-  const [isTextureGridVisible, setIsTextureGridVisible] = useState(true);
 
   if (!selectedComponent) return null;
 
@@ -72,44 +71,38 @@ export function ComponentControlPanel({
   };
 
   const handleTextureChange = (texture: TextureConfig) => {
-    // Fade out the texture grid
-    setIsTextureGridVisible(false);
-    
-    // Apply texture change and advance to next component after animation
-    setTimeout(() => {
-      const updated = { ...scene };
-      
-      if (selectedComponent === 'pool') {
-        updated.pool.finish = { ...texture };
-      } else if (selectedComponent === 'deck') {
-        updated.deck.paver = { ...texture };
-      } else if (selectedComponent === 'coping') {
-        updated.deck.coping = { ...texture };
-      } else if (selectedComponent === 'waterline') {
-        updated.deck.waterline = { ...texture };
-      }
-      
-      // Trigger scene update
-      onSceneChange(updated);
-      
-      // Auto-advance to next component
-      if (selectedComponent && onSelectComponent) {
-        const currentIndex = COMPONENT_ORDER.indexOf(selectedComponent);
-        const nextIndex = (currentIndex + 1) % COMPONENT_ORDER.length;
-        const nextComponent = COMPONENT_ORDER[nextIndex];
-        onSelectComponent(nextComponent);
-      }
-      
-      // Fade back in
-      setTimeout(() => {
-        setIsTextureGridVisible(true);
-      }, 50);
-    }, 200); // Wait for fade-out to complete
+    // Apply immediately and immutably so React/three always sees the new value.
+    // NOTE: no auto-advance — switching component after a click made it look
+    // like nothing was applied (and moved the camera away).
+    const updated: Scene3D = {
+      ...scene,
+      pool: { ...scene.pool },
+      deck: { ...scene.deck },
+    };
+
+    const next = { ...texture, scale: texture.scale ?? getCurrentTexture()?.scale ?? 1.8 };
+
+    if (selectedComponent === 'pool') {
+      updated.pool.finish = next;
+    } else if (selectedComponent === 'deck') {
+      updated.deck.paver = next;
+    } else if (selectedComponent === 'coping') {
+      updated.deck.coping = next;
+    } else if (selectedComponent === 'waterline') {
+      updated.deck.waterline = next;
+    }
+
+    onSceneChange(updated);
   };
 
+
   const handleTextureScaleChange = (scale: number) => {
-    const updated = { ...scene };
-    
+    const updated: Scene3D = {
+      ...scene,
+      pool: { ...scene.pool },
+      deck: { ...scene.deck },
+    };
+
     if (selectedComponent === 'pool') {
       updated.pool.finish = { ...updated.pool.finish, scale };
     } else if (selectedComponent === 'deck') {
@@ -119,7 +112,7 @@ export function ComponentControlPanel({
     } else if (selectedComponent === 'waterline' && updated.deck.waterline) {
       updated.deck.waterline = { ...updated.deck.waterline, scale };
     }
-    
+
     onSceneChange(updated);
   };
 
@@ -133,15 +126,28 @@ export function ComponentControlPanel({
     }
   };
 
-  const getAvailableTextures = () => {
-    switch (selectedComponent) {
-      case 'pool': return getFilteredFinishes();
-      case 'deck': return textureLibrary.pavers;
-      case 'coping': return textureLibrary.coping;
-      case 'waterline': return textureLibrary.waterlines || []; // Waterline uses dedicated waterline tiles
-      default: return [];
-    }
+  const getAvailableTextures = (): TextureConfig[] => {
+    const list = (() => {
+      switch (selectedComponent) {
+        case 'pool': return getFilteredFinishes();
+        case 'deck': return textureLibrary.pavers;
+        case 'coping': return textureLibrary.coping;
+        case 'waterline': return textureLibrary.waterlines || []; // dedicated waterline tiles
+        default: return [];
+      }
+    })();
+
+    // Duplicate URLs produced duplicate React keys, which silently dropped
+    // swatches and made selections apply the wrong texture.
+    const seen = new Set<string>();
+    return (list || []).filter((t) => {
+      const url = t?.url;
+      if (!url || seen.has(url)) return false;
+      seen.add(url);
+      return true;
+    });
   };
+
 
   const getComponentTitle = () => {
     switch (selectedComponent) {
@@ -225,28 +231,23 @@ export function ComponentControlPanel({
 
         <Separator />
 
-        {/* Texture Grid with fade animation */}
-        <div 
-          className={`space-y-3 transition-all duration-200 ${
-            isTextureGridVisible 
-              ? 'opacity-100 transform translate-y-0' 
-              : 'opacity-0 transform translate-y-2'
-          }`}
-        >
+        {/* Texture Grid */}
+        <div className="space-y-3">
           <Label className="text-sm font-semibold">Available Textures</Label>
           <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
-            {availableTextures.map((texture) => (
+            {availableTextures.map((texture, index) => (
               <button
-                key={texture.url}
+                key={`${texture.url}-${index}`}
+                type="button"
                 onClick={() => handleTextureChange(texture)}
-                disabled={!isTextureGridVisible}
                 className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
                   currentTexture?.url === texture.url
                     ? 'border-primary ring-2 ring-primary/20'
                     : 'border-border hover:border-primary/50'
-                } ${!isTextureGridVisible ? 'pointer-events-none' : ''}`}
+                }`}
                 title={texture.name}
               >
+
                 <img loading="lazy" decoding="async"
                   src={texture.url}
                   alt={texture.name}

@@ -84,7 +84,7 @@ export const DeckGeometry = ({
 
     if (!boundaries) return new THREE.BufferGeometry();
 
-    return buildDeckRingGeometry(boundaries.inner, boundaries.outer, 0, -deckHeight);
+    return buildDeckRingGeometry(boundaries.inner, boundaries.outer, 0, -deckHeight, poolPoints);
   }, [poolPoints, hardscapePoints, deckWidth, deckHeight, copingWidth, copingEnabled]);
 
   return (
