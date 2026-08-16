@@ -90,6 +90,10 @@ export interface Pool3DSceneProps {
   copingTextureOffset?: [number, number];
   waterlineTextureOffset?: [number, number];
   linerTextureOffset?: [number, number];
+  paverTextureRotation?: number;
+  copingTextureRotation?: number;
+  waterlineTextureRotation?: number;
+  linerTextureRotation?: number;
   poolPosition?: [number, number, number];
   copingHeight?: number;
   deckHeight?: number;
@@ -136,6 +140,7 @@ const PoolMesh: React.FC<{
   selectedCategory?: string | null;
   linerTextureScale?: number;
   linerTextureOffset?: [number, number];
+  linerTextureRotation?: number;
   copingHeight?: number;
   onSelectComponent?: (comp: 'pool' | 'deck' | 'coping' | 'waterline' | null) => void;
 }> = ({
@@ -146,6 +151,7 @@ const PoolMesh: React.FC<{
   selectedCategory, 
   linerTextureScale = 1.8, 
   linerTextureOffset = [0, 0],
+  linerTextureRotation = 0,
   copingHeight = 2 / 12,
   onSelectComponent,
   perimeterDepthPoints: providedPerimeterDepthPoints
@@ -179,6 +185,8 @@ const PoolMesh: React.FC<{
         .then(texture => {
           texture.userData.url = linerTextureUrl;
           texture.offset.set(linerTextureOffset?.[0] || 0, linerTextureOffset?.[1] || 0);
+          texture.center.set(0.5, 0.5);
+          texture.rotation = ((linerTextureRotation || 0) * Math.PI) / 180;
           texture.wrapS = THREE.RepeatWrapping;
           texture.wrapT = THREE.RepeatWrapping;
           texture.needsUpdate = true;
@@ -190,7 +198,7 @@ const PoolMesh: React.FC<{
           setLinerTexture(null);
         });
     }
-  }, [linerTextureUrl, linerTextureScale, linerTextureOffset]);
+  }, [linerTextureUrl, linerTextureScale, linerTextureOffset, linerTextureRotation]);
 
   // Post-commit invalidation: ensures render happens AFTER React commits the texture
   useTextureInvalidation(linerTexture?.uuid);
@@ -919,6 +927,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   copingTextureOffset = [0, 0],
   waterlineTextureOffset = [0, 0],
   linerTextureOffset = [0, 0],
+  paverTextureRotation = 0,
+  copingTextureRotation = 0,
+  waterlineTextureRotation = 0,
+  linerTextureRotation = 0,
   poolPosition = [0, 0, 0],
   copingHeight = 2 / 12,
   deckHeight = 2 / 12,
@@ -1209,6 +1221,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           poolDimensions={poolDimensions}
           linerTextureScale={linerTextureScale}
           linerTextureOffset={linerTextureOffset}
+          linerTextureRotation={linerTextureRotation}
           selectedCategory={selectedCategory}
           copingHeight={copingHeight}
           onSelectComponent={onSelectComponent}
@@ -1232,6 +1245,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
                 textureUrl={normalizedCopingUrl}
                 textureScale={copingTextureScale}
                 textureOffset={copingTextureOffset}
+                textureRotation={copingTextureRotation}
                 paverTextureUrl={normalizedPaverUrl}
               />
             </group>
@@ -1254,6 +1268,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
               textureUrl={normalizedPaverUrl}
               textureScale={paverTextureScale}
               textureOffset={paverTextureOffset}
+              textureRotation={paverTextureRotation}
             />
           </group>
         </>
@@ -1272,6 +1287,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           selectedCategory={selectedCategory}
           waterlineTextureScale={waterlineTextureScale}
           waterlineTextureOffset={waterlineTextureOffset}
+          waterlineTextureRotation={waterlineTextureRotation}
           copingHeight={copingHeight}
         />
       </group>
