@@ -13,6 +13,8 @@ interface DeckGeometryProps {
   textureUrl?: string;
   textureScale?: number;
   textureOffset?: [number, number];
+  /** Texture rotation in degrees */
+  textureRotation?: number;
 }
 
 export const DeckGeometry = ({ 
@@ -24,7 +26,8 @@ export const DeckGeometry = ({
   copingEnabled = true,
   textureUrl,
   textureScale = 1,
-  textureOffset = [0, 0]
+  textureOffset = [0, 0],
+  textureRotation = 0
 }: DeckGeometryProps) => {
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
@@ -53,6 +56,8 @@ export const DeckGeometry = ({
         loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
         loadedTexture.repeat.set(textureScale, textureScale);
         loadedTexture.offset.set(offsetX, offsetY);
+        loadedTexture.center.set(0.5, 0.5);
+        loadedTexture.rotation = (textureRotation * Math.PI) / 180;
         loadedTexture.needsUpdate = true;
         setTexture((prev) => {
           if (prev && prev !== loadedTexture) prev.dispose();
@@ -70,7 +75,7 @@ export const DeckGeometry = ({
     return () => {
       cancelled = true;
     };
-  }, [textureUrl, textureScale, offsetX, offsetY, invalidate]);
+  }, [textureUrl, textureScale, offsetX, offsetY, textureRotation, invalidate]);
 
   
   const geometry = useMemo(() => {
