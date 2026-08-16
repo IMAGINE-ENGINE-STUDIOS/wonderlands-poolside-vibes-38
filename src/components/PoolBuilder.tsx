@@ -5322,6 +5322,13 @@ export function PoolBuilder({
       const snapped = getSymmetrySnappedPosition(x, y);
       x = snapped.x;
       y = snapped.y;
+      // Shift held: preview a perfectly straight segment from the last point
+      if (e.shiftKey && splineDrawing.points.length > 0) {
+        const locked = constrainToStraightLine(splineDrawing.points[splineDrawing.points.length - 1], x, y);
+        x = locked.x;
+        y = locked.y;
+      }
+
       setCursorPos({
         x,
         y
