@@ -23,6 +23,7 @@ import { useNarrator } from '@/hooks/useNarrator';
 import { useGenius } from '@/hooks/useGenius';
 import type { GeniusCartAdapter } from '@/lib/geniusCartCommands';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { useOptionalShoppingCart } from '@/components/ShoppingCartProvider';
 import { safeGeniusPath } from '@/lib/geniusAccess';
 import { getFlipControls, turnToPageNumber } from '@/lib/flipPageRegistry';
@@ -71,8 +72,14 @@ export const GeniusOrb: React.FC = () => {
   const cart = useOptionalShoppingCart();
   const readKey = React.useRef<string | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
-  /* Hands-free: the microphone stays armed between phrases. */
+  /* Hands-free (LIVE): the microphone stays armed between phrases. */
   const [handsFree, setHandsFree] = React.useState(false);
+  /* LIVE turns — and browsers with no free recognition — are recorded and
+     transcribed by Genius; plain dictation stays on the free browser engine. */
+  const sendRef = React.useRef<(t: string) => void>(() => undefined);
+  const recorder = useVoiceRecorder({
+    onTranscript: (text) => sendRef.current(text),
+  });
 
   const go = React.useCallback(
     (to: string) => {
@@ -197,9 +204,49 @@ export const GeniusOrb: React.FC = () => {
     const said = voice.transcript;
     voice.resetTranscript();
     void send(said).then(() => {
-      if (handsFree) window.setTimeout(() => voice.startListening(), 900);
+      if (handsFree && voice.isSupported) window.setTimeout(() => voice.startListening(), 900);
     });
-  }, [voice.transcript, voice.isListening, voice.resetTranscript, voice.startListening, send, handsFree]);
+  }, [voice.transcript, voice.isListening, voice.isSupported, voice.resetTranscript, voice.startListening, send, handsFree]);
+
+  React.useEffect(() => {
+    sendRef.current = (text: string) => {
+      void send(text);
+    };
+  }, [send]);
+
+  /* LIVE without a browser engine: record a turn, end it on silence, transcribe
+     it, then re-arm — the only place transcription is ever paid for. */
+  const speechSeen = React.useRef(false);
+  const quietSince = React.useRef<number | null>(null);
+  const liveRecording = handsFree && !voice.isSupported;
+
+  React.useEffect(() => {
+    if (!liveRecording) return;
+    if (recorder.isRecording || recorder.isTranscribing || genius.isThinking || isSpeaking) return;
+    speechSeen.current = false;
+    quietSince.current = null;
+    const t = window.setTimeout(() => void recorder.start(), 400);
+    return () => window.clearTimeout(t);
+  }, [liveRecording, recorder.isRecording, recorder.isTranscribing, recorder.start, genius.isThinking, isSpeaking]);
+
+  React.useEffect(() => {
+    if (!liveRecording || !recorder.isRecording) return;
+    if (recorder.level > 0.045) {
+      speechSeen.current = true;
+      quietSince.current = null;
+      return;
+    }
+    if (!speechSeen.current) return;
+    if (quietSince.current === null) quietSince.current = Date.now();
+    else if (Date.now() - quietSince.current > 1200) {
+      quietSince.current = null;
+      void recorder.stop();
+    }
+  }, [liveRecording, recorder.isRecording, recorder.level, recorder.stop]);
+
+  React.useEffect(() => {
+    if (!handsFree && recorder.isRecording) recorder.cancel();
+  }, [handsFree, recorder.isRecording, recorder.cancel]);
 
   const runAction = (action: NarratorAction) => {
     switch (action.type) {
@@ -359,6 +406,28 @@ export const GeniusOrb: React.FC = () => {
               </p>
             )}
 
+            {recorder.isRecording && (
+              <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-primary">
+                Recording…
+                <span className="h-1 w-24 overflow-hidden rounded-full bg-primary/15">
+                  <span
+                    className="block h-full bg-primary transition-[width] duration-100"
+                    style={{ width: `${Math.min(100, Math.round(recorder.level * 320))}%` }}
+                  />
+                </span>
+              </p>
+            )}
+
+            {recorder.isTranscribing && (
+              <p className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Writing down what you said…
+              </p>
+            )}
+
+            {(voice.error || recorder.error) && (
+              <p className="text-[11px] text-muted-foreground">{voice.error || recorder.error}</p>
+            )}
+
             {!genius.turns.length && (
               <div className="flex flex-wrap gap-1.5 pt-0.5">
                 {[
@@ -406,40 +475,51 @@ export const GeniusOrb: React.FC = () => {
             }}
             className="flex items-center gap-1.5 border-t border-border/50 px-3 py-2.5"
           >
-            {voice.isSupported && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => (voice.isListening ? voice.stopListening() : voice.startListening())}
-                  aria-label={voice.isListening ? 'Stop talking to Genius' : 'Talk to Genius'}
-                  className={cn(
-                    'rounded-full border border-primary/30 p-2 text-primary transition-colors hover:bg-primary/10',
-                    voice.isListening && 'animate-pulse bg-primary/15',
-                  )}
-                >
-                  {voice.isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = !handsFree;
-                    setHandsFree(next);
-                    if (next && !voice.isListening) voice.startListening();
-                    if (!next && voice.isListening) voice.stopListening();
-                  }}
-                  aria-label={handsFree ? 'Leave hands-free conversation' : 'Talk hands-free with Genius'}
-                  aria-pressed={handsFree}
-                  className={cn(
-                    'rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.16em] transition-colors',
-                    handsFree
-                      ? 'border-primary/50 bg-primary/15 text-foreground'
-                      : 'border-border/50 text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  Live
-                </button>
-              </>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                if (voice.isSupported) {
+                  voice.isListening ? voice.stopListening() : voice.startListening();
+                  return;
+                }
+                recorder.isRecording ? void recorder.stop() : void recorder.start();
+              }}
+              disabled={recorder.isTranscribing}
+              aria-label={
+                voice.isListening || recorder.isRecording ? 'Stop talking to Genius' : 'Talk to Genius'
+              }
+              className={cn(
+                'rounded-full border border-primary/30 p-2 text-primary transition-colors hover:bg-primary/10 disabled:opacity-50',
+                (voice.isListening || recorder.isRecording) && 'animate-pulse bg-primary/15',
+              )}
+            >
+              {voice.isListening || recorder.isRecording ? (
+                <MicOff className="h-3.5 w-3.5" />
+              ) : (
+                <Mic className="h-3.5 w-3.5" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !handsFree;
+                setHandsFree(next);
+                if (voice.isSupported) {
+                  if (next && !voice.isListening) voice.startListening();
+                  if (!next && voice.isListening) voice.stopListening();
+                }
+              }}
+              aria-label={handsFree ? 'Leave hands-free conversation' : 'Talk hands-free with Genius'}
+              aria-pressed={handsFree}
+              className={cn(
+                'rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.16em] transition-colors',
+                handsFree
+                  ? 'border-primary/50 bg-primary/15 text-foreground'
+                  : 'border-border/50 text-muted-foreground hover:text-foreground',
+              )}
+            >
+              Live
+            </button>
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
