@@ -90,9 +90,9 @@ const QuotationTool = () => {
   });
 
   /* The shopping list adds the piece by itself 10 seconds after it is
-     selected — unless the reader leaves the page or moves to another piece. */
-  const AUTO_ADD_SECONDS = 10;
-  const [autoIn, setAutoIn] = React.useState<number | null>(null);
+     selected — unless the reader leaves the page or moves to another piece.
+     The countdown lives in its own component so the ticking never re-renders
+     the console or the configurator. */
   const addedRef = React.useRef<string | null>(null);
   const productRef = React.useRef<ConfiguredProduct | null>(null);
   productRef.current = product;
@@ -100,39 +100,11 @@ const QuotationTool = () => {
   const handleAdd = React.useCallback(
     (p: ConfiguredProduct) => {
       addedRef.current = p.id;
-      setAutoIn(null);
       addToCart(toCartItem(p));
     },
     [addToCart],
   );
 
-  React.useEffect(() => {
-    if (!entry || addedRef.current === entry.id) {
-      setAutoIn(null);
-      return;
-    }
-    setAutoIn(AUTO_ADD_SECONDS);
-    const started = Date.now();
-    const tick = window.setInterval(() => {
-      const left = AUTO_ADD_SECONDS - Math.round((Date.now() - started) / 1000);
-      if (left > 0) {
-        setAutoIn(left);
-        return;
-      }
-      window.clearInterval(tick);
-      setAutoIn(null);
-      const current = productRef.current;
-      if (current && addedRef.current !== current.id) {
-        addedRef.current = current.id;
-        addToCart(toCartItem(current));
-        toast({
-          title: "Added to your shopping list",
-          description: `${current.name} — as configured.`,
-        });
-      }
-    }, 250);
-    return () => window.clearInterval(tick);
-  }, [entry?.id, addToCart]);
 
 
   const handleQuote = (p: ConfiguredProduct) => {
