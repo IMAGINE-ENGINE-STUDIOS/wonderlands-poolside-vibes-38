@@ -397,6 +397,22 @@ export function UnifiedPoolVisualizer({
   const [gizmoMode, setGizmoMode] = useState<GizmoMode>('translate');
   const [gizmoSnap, setGizmoSnap] = useState<GizmoSnapSettings>(DEFAULT_GIZMO_SNAP);
 
+  // Gizmo keyboard shortcuts: G move, R rotate, T scale, X toggle snap, Esc deselect
+  useEffect(() => {
+    if (!selectedTerrainAssetId) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (e.key === 'g' || e.key === 'G') setGizmoMode('translate');
+      else if (e.key === 'r' || e.key === 'R') setGizmoMode('rotate');
+      else if (e.key === 't' || e.key === 'T') setGizmoMode('scale');
+      else if (e.key === 'x' || e.key === 'X') setGizmoSnap(prev => ({ ...prev, enabled: !prev.enabled }));
+      else if (e.key === 'Escape') setSelectedTerrainAssetId(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedTerrainAssetId]);
+
   // Camera focus request (used to center the camera on newly dropped assets)
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const focusTokenRef = useRef(0);
