@@ -3,7 +3,17 @@ import { Button } from '@/components/ui/button';
 import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
 import useBoardDensity from '@/hooks/useBoardDensity';
 import { Badge } from '@/components/ui/badge';
-import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler } from 'lucide-react';
+import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Plus, Spline, Minus } from 'lucide-react';
+import {
+  insertVertexAfter,
+  insertVertexAt,
+  normalizeFlags,
+  polylineLength,
+  removeVertex,
+  sampleSegment,
+  toggleCurveFlag,
+  tracePolyline,
+} from '@/utils/splineEditing';
 
 export interface FencePoint {
   x: number;
@@ -15,6 +25,8 @@ export interface FenceLayout {
   closed: boolean;
   /** Indices of segments flagged as gate openings */
   gateSegments: number[];
+  /** Per-post curvature handles — a flagged post curves its adjoining runs */
+  curves?: boolean[];
 }
 
 interface FenceDrawingBoardProps {
@@ -40,9 +52,11 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
   const [mode, setMode] = React.useState<'draw' | 'select' | 'gate'>('draw');
   const { compact, toggle: toggleDensity } = useBoardDensity();
   const [dragIndex, setDragIndex] = React.useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
   const [hover, setHover] = React.useState<FencePoint | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 520 });
   const wrapRef = React.useRef<HTMLDivElement | null>(null);
+
 
   React.useEffect(() => {
     const el = wrapRef.current;
@@ -54,24 +68,32 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
     return () => ro.disconnect();
   }, []);
 
+  const curves = React.useMemo(() => normalizeFlags(layout.curves, layout.points.length), [layout.curves, layout.points.length]);
+
+  /** Each run carries its sampled polyline so curved runs measure by arc length. */
   const segments = React.useMemo(() => {
     const pts = layout.points;
-    const segs: Array<{ a: FencePoint; b: FencePoint; index: number }> = [];
-    for (let i = 0; i < pts.length - 1; i++) segs.push({ a: pts[i], b: pts[i + 1], index: i });
-    if (layout.closed && pts.length > 2) segs.push({ a: pts[pts.length - 1], b: pts[0], index: pts.length - 1 });
+    const segs: Array<{ a: FencePoint; b: FencePoint; index: number; path: FencePoint[] }> = [];
+    const count = layout.closed && pts.length > 2 ? pts.length : pts.length - 1;
+    for (let i = 0; i < count; i++) {
+      const a = pts[i];
+      const b = pts[(i + 1) % pts.length];
+      segs.push({ a, b, index: i, path: sampleSegment(pts, layout.closed, curves, i) });
+    }
     return segs;
-  }, [layout]);
+  }, [layout.points, layout.closed, curves]);
 
   const measurements = React.useMemo(() => {
     let fenceFt = 0;
     let gateFt = 0;
     segments.forEach(seg => {
-      const ft = dist(seg.a, seg.b) / PX_PER_FT;
+      const ft = polylineLength(seg.path) / PX_PER_FT;
       if (layout.gateSegments.includes(seg.index)) gateFt += ft;
       else fenceFt += ft;
     });
     return { fenceFt: Math.round(fenceFt * 10) / 10, gateFt: Math.round(gateFt * 10) / 10 };
   }, [segments, layout.gateSegments]);
+
 
   React.useEffect(() => {
     onMeasure?.(measurements.fenceFt, layout.gateSegments.length);
@@ -122,43 +144,53 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       ctx.stroke();
     }
 
-    // segments
+    // segments (curved runs render as sampled polylines)
     segments.forEach(seg => {
       const isGate = layout.gateSegments.includes(seg.index);
       ctx.strokeStyle = isGate ? '#0891b2' : colorHex;
       ctx.lineWidth = isGate ? 5 : 3.5;
       ctx.setLineDash(isGate ? [8, 6] : []);
-      ctx.beginPath();
-      ctx.moveTo(seg.a.x, seg.a.y);
-      ctx.lineTo(seg.b.x, seg.b.y);
+      tracePolyline(ctx, seg.path);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // picket ticks for visual fidelity
+      const len = polylineLength(seg.path);
+
+      // picket ticks for visual fidelity, following the run
       if (!isGate) {
-        const len = dist(seg.a, seg.b);
         const step = 4; // ~4.75" picket spacing at 10px/ft
-        const ux = (seg.b.x - seg.a.x) / (len || 1);
-        const uy = (seg.b.y - seg.a.y) / (len || 1);
         ctx.strokeStyle = colorHex;
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.5;
-        for (let d = step; d < len; d += step) {
-          const px = seg.a.x + ux * d;
-          const py = seg.a.y + uy * d;
-          ctx.beginPath();
-          ctx.moveTo(px - uy * 4, py + ux * 4);
-          ctx.lineTo(px + uy * 4, py - ux * 4);
-          ctx.stroke();
+        let travelled = 0;
+        let next = step;
+        for (let i = 0; i < seg.path.length - 1; i++) {
+          const a = seg.path[i];
+          const b = seg.path[i + 1];
+          const segLen = dist(a, b) || 1;
+          const ux = (b.x - a.x) / segLen;
+          const uy = (b.y - a.y) / segLen;
+          while (next <= travelled + segLen && next < len) {
+            const d = next - travelled;
+            const px = a.x + ux * d;
+            const py = a.y + uy * d;
+            ctx.beginPath();
+            ctx.moveTo(px - uy * 4, py + ux * 4);
+            ctx.lineTo(px + uy * 4, py - ux * 4);
+            ctx.stroke();
+            next += step;
+          }
+          travelled += segLen;
         }
         ctx.globalAlpha = 1;
       }
 
-      // dimension label
-      const ft = dist(seg.a, seg.b) / PX_PER_FT;
+      // dimension label at the run's midpoint
+      const ft = len / PX_PER_FT;
       if (ft >= 1) {
-        const mx = (seg.a.x + seg.b.x) / 2;
-        const my = (seg.a.y + seg.b.y) / 2;
+        const mid = seg.path[Math.floor(seg.path.length / 2)];
+        const mx = mid.x;
+        const my = mid.y;
         const label = `${ft.toFixed(1)} ft${isGate ? ' • GATE' : ''}`;
         ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
         const w = ctx.measureText(label).width + 8;
@@ -172,6 +204,7 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
         ctx.fillText(label, mx, my - 5);
       }
     });
+
 
     // preview segment
     if (mode === 'draw' && hover && layout.points.length > 0 && !layout.closed) {
@@ -191,17 +224,21 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       ctx.fillText(`${ft.toFixed(1)} ft`, hover.x + 10, hover.y - 8);
     }
 
-    // posts
+    // posts — round = curvature handle, square = hard corner
     layout.points.forEach((p, i) => {
+      const active = i === dragIndex || i === selectedIndex;
+      const r = active ? 7 : 5;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, i === dragIndex ? 7 : 5, 0, Math.PI * 2);
-      ctx.fillStyle = i === 0 ? '#f97066' : colorHex;
+      if (curves[i]) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      else ctx.rect(p.x - r, p.y - r, r * 2, r * 2);
+      ctx.fillStyle = i === selectedIndex ? '#f59e0b' : curves[i] ? '#0891b2' : i === 0 ? '#f97066' : colorHex;
       ctx.fill();
       ctx.strokeStyle = bg;
       ctx.lineWidth = 2;
       ctx.stroke();
     });
-  }, [layout, segments, size, hover, mode, dragIndex, colorHex]);
+  }, [layout, segments, curves, size, hover, mode, dragIndex, selectedIndex, colorHex]);
+
 
   // ---- interaction ----
   const toLocal = (e: React.MouseEvent): FencePoint => {
@@ -230,11 +267,59 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
     return best;
   };
 
+  /** Gate flags are stored per segment index, so they must be re-mapped when posts change. */
+  const shiftGatesForInsert = (at: number) => layout.gateSegments.map(g => (g >= at ? g + 1 : g));
+  const shiftGatesForRemove = (at: number) =>
+    layout.gateSegments.filter(g => g !== at && g !== at - 1).map(g => (g > at ? g - 1 : g));
+
+  const insertPostNear = (p: FencePoint): boolean => {
+    const res = insertVertexAt(layout.points, layout.closed, p, 12, curves);
+    if (!res) return false;
+    onChange({ ...layout, points: res.points, curves: res.curves, gateSegments: shiftGatesForInsert(res.index) });
+    setSelectedIndex(res.index);
+    return true;
+  };
+
+  const addPostAfterSelected = () => {
+    if (selectedIndex === null) return;
+    const res = insertVertexAfter(layout.points, layout.closed, selectedIndex, curves);
+    if (!res) return;
+    onChange({ ...layout, points: res.points, curves: res.curves, gateSegments: shiftGatesForInsert(res.index) });
+    setSelectedIndex(res.index);
+  };
+
+  const removePostAt = (index: number) => {
+    const res = removeVertex(layout.points, index, layout.closed ? 3 : 2, curves);
+    if (!res) return;
+    onChange({ ...layout, points: res.points, curves: res.curves, gateSegments: shiftGatesForRemove(index) });
+    setSelectedIndex(null);
+  };
+
+  const toggleCurveOnSelected = () => {
+    if (selectedIndex === null) return;
+    onChange({ ...layout, curves: toggleCurveFlag(curves, selectedIndex, layout.points.length) });
+  };
+
   const handleDown = (e: React.MouseEvent) => {
     const p = toLocal(e);
+    if (e.altKey || e.button === 2) {
+      const idx = hitPoint(p);
+      if (idx >= 0) {
+        removePostAt(idx);
+        return;
+      }
+      if (insertPostNear(p)) return;
+    }
     if (mode === 'select') {
       const idx = hitPoint(p);
-      if (idx >= 0) setDragIndex(idx);
+      if (idx >= 0) {
+        setSelectedIndex(idx);
+        setDragIndex(idx);
+        return;
+      }
+      // clicking a run drops a new, draggable post there
+      if (insertPostNear(p)) return;
+      setSelectedIndex(null);
       return;
     }
     if (mode === 'gate') {
@@ -252,8 +337,9 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       onChange({ ...layout, closed: true });
       return;
     }
-    onChange({ ...layout, points: [...layout.points, p] });
+    onChange({ ...layout, points: [...layout.points, p], curves: normalizeFlags(curves, layout.points.length + 1) });
   };
+
 
   const handleMove = (e: React.MouseEvent) => {
     const p = toLocal(e);
@@ -288,6 +374,22 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
         <Button size="sm" variant={mode === 'gate' ? 'default' : 'outline'} onClick={() => setMode('gate')}>
           <DoorOpen className="h-3.5 w-3.5 mr-1" /> Mark gate
         </Button>
+        <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
+        <Button size="sm" variant="outline" onClick={addPostAfterSelected} disabled={selectedIndex === null} title="Add a post after the selected one (or click a run)">
+          <Plus className="h-3.5 w-3.5 mr-1" /> Add point
+        </Button>
+        <Button
+          size="sm"
+          variant={selectedIndex !== null && curves[selectedIndex] ? 'default' : 'outline'}
+          onClick={toggleCurveOnSelected}
+          disabled={selectedIndex === null}
+          title="Toggle curvature on the selected post"
+        >
+          <Spline className="h-3.5 w-3.5 mr-1" /> {selectedIndex !== null && curves[selectedIndex] ? 'Curved point' : 'Corner point'}
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => selectedIndex !== null && removePostAt(selectedIndex)} disabled={selectedIndex === null}>
+          <Minus className="h-3.5 w-3.5 mr-1" /> Remove point
+        </Button>
         <Button size="sm" variant="ghost" onClick={undo} disabled={!layout.points.length}>
           <Undo2 className="h-3.5 w-3.5 mr-1" /> Undo
         </Button>
@@ -295,11 +397,15 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
           size="sm"
           variant="ghost"
           className="text-destructive"
-          onClick={() => onChange({ points: [], closed: false, gateSegments: [] })}
+          onClick={() => {
+            onChange({ points: [], closed: false, gateSegments: [], curves: [] });
+            setSelectedIndex(null);
+          }}
           disabled={!layout.points.length}
         >
           <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
         </Button>
+
         <div className="ml-auto flex items-center gap-2">
           {!compact && (
             <>
@@ -321,11 +427,13 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
           style={{ width: size.w, height: size.h, position: 'relative', cursor: mode === 'select' ? 'grab' : 'crosshair' }}
           onMouseDown={handleDown}
           onMouseMove={handleMove}
+          onContextMenu={e => e.preventDefault()}
           onMouseUp={() => setDragIndex(null)}
           onMouseLeave={() => {
             setDragIndex(null);
             setHover(null);
           }}
+
         />
       </div>
     </div>

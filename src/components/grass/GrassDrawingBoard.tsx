@@ -13,9 +13,20 @@ import {
   CornerDownRight,
   Sparkles,
   Maximize2,
+  Plus,
+  Spline,
 } from 'lucide-react';
 import { artificialGrassOptions, getGrassPricePerSqFt } from '@/data/artificialGrassData';
 import { cn } from '@/lib/utils';
+import {
+  allCurved,
+  insertVertexAfter,
+  insertVertexAt,
+  normalizeFlags,
+  removeVertex,
+  samplePath,
+  toggleCurveFlag,
+} from '@/utils/splineEditing';
 
 export interface GrassPoint {
   x: number;
@@ -28,9 +39,12 @@ export interface GrassArea {
   closed: boolean;
   /** Curved (Catmull-Rom spline) instead of straight segments */
   spline: boolean;
+  /** Per-vertex curvature handles — a flagged point rounds both of its edges */
+  curves?: boolean[];
   /** Artificial grass product id applied to this area */
   grassId: string;
 }
+
 
 export interface GrassLayout {
   areas: GrassArea[];
@@ -73,31 +87,19 @@ const HIT_PX = 9;
 const uid = () => Math.random().toString(36).slice(2, 9);
 const grassById = (id: string) => artificialGrassOptions.find(g => g.id === id) || artificialGrassOptions[0];
 
-/** Catmull-Rom sampling for smooth organic turf edges */
+/** Curvature handles in effect for an area (legacy `spline` = every point curved) */
+function curveFlagsOf(area: GrassArea): boolean[] {
+  if (area.spline) return allCurved(area.points.length);
+  return normalizeFlags(area.curves, area.points.length);
+}
+
+/** Catmull-Rom sampling per curvature handle — straight edges stay straight */
 function sampleArea(area: GrassArea): GrassPoint[] {
   const pts = area.points;
-  if (!area.spline || pts.length < 3) return pts;
-  const out: GrassPoint[] = [];
-  const n = pts.length;
-  const last = area.closed ? n : n - 1;
-  for (let i = 0; i < last; i++) {
-    const p0 = pts[(i - 1 + n) % n];
-    const p1 = pts[i];
-    const p2 = pts[(i + 1) % n];
-    const p3 = pts[(i + 2) % n];
-    for (let t = 0; t < 12; t++) {
-      const s = t / 12;
-      const s2 = s * s;
-      const s3 = s2 * s;
-      out.push({
-        x: 0.5 * (2 * p1.x + (-p0.x + p2.x) * s + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * s2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * s3),
-        y: 0.5 * (2 * p1.y + (-p0.y + p2.y) * s + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * s2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * s3),
-      });
-    }
-  }
-  if (!area.closed) out.push(pts[n - 1]);
-  return out;
+  if (pts.length < 3) return pts;
+  return samplePath(pts, area.closed, curveFlagsOf(area));
 }
+
 
 function polygonAreaSqFt(pts: GrassPoint[]): number {
   if (pts.length < 3) return 0;
@@ -442,14 +444,18 @@ const GrassDrawingBoard: React.FC<Props> = ({
         ctx.fillText(`${ft.toFixed(1)} ft`, b.x + 8, b.y - 8);
       }
 
-      // segment dimensions (straight areas only, keeps curved plans clean)
-      if (!area.spline && area.points.length >= 2) {
+      const flags = curveFlagsOf(area);
+
+      // segment dimensions (straight runs only, keeps curved plans clean)
+      if (area.points.length >= 2) {
         ctx.font = '10px ui-monospace, monospace';
         ctx.fillStyle = 'rgba(15,23,42,0.72)';
         const last = area.closed ? area.points.length : area.points.length - 1;
         for (let i = 0; i < last; i++) {
+          const j = (i + 1) % area.points.length;
+          if (flags[i] || flags[j]) continue;
           const a = area.points[i];
-          const b = area.points[(i + 1) % area.points.length];
+          const b = area.points[j];
           const ft = Math.hypot(a.x - b.x, a.y - b.y) / PX_PER_FT;
           if (ft < 1.5) continue;
           const m = S({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
@@ -457,18 +463,22 @@ const GrassDrawingBoard: React.FC<Props> = ({
         }
       }
 
-      // vertices
+      // vertices — round handles are curvature points, squares are hard corners
       area.points.forEach((p, i) => {
         const s = S(p);
         const isSel = selection?.type === 'point' && selection.id === area.id && selection.index === i;
+        const curved = flags[i];
+        const r = isSel ? 6 : 4;
         ctx.beginPath();
-        ctx.arc(s.x, s.y, isSel ? 6 : 4, 0, Math.PI * 2);
-        ctx.fillStyle = isSel ? '#f59e0b' : '#ffffff';
+        if (curved) ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+        else ctx.rect(s.x - r, s.y - r, r * 2, r * 2);
+        ctx.fillStyle = isSel ? '#f59e0b' : curved ? '#0891b2' : '#ffffff';
         ctx.fill();
         ctx.strokeStyle = '#14532d';
         ctx.lineWidth = 1.5;
         ctx.stroke();
       });
+
 
       // area label
       if (area.closed && pts.length >= 3) {
@@ -580,6 +590,61 @@ const GrassDrawingBoard: React.FC<Props> = ({
     return null;
   };
 
+  /* --------------------------- spline point editing -------------------------- */
+  const updateArea = (id: string, fn: (a: GrassArea) => GrassArea) =>
+    patch(layout.areas.map(a => (a.id === id ? fn(a) : a)));
+
+  /** Insert a spline point on the edge nearest the cursor. Returns true when placed. */
+  const insertPointNear = (w: GrassPoint): boolean => {
+    const tolerance = (HIT_PX + 4) / view.zoom;
+    for (const area of layout.areas) {
+      if (area.points.length < 2) continue;
+      const res = insertVertexAt(area.points, area.closed, w, tolerance, curveFlagsOf(area));
+      if (!res) continue;
+      updateArea(area.id, a => ({ ...a, points: res.points, spline: false, curves: res.curves }));
+      setSelection({ type: 'point', id: area.id, index: res.index });
+      return true;
+    }
+    return false;
+  };
+
+  /** Add a point half way along the edge after the selected one. */
+  const addPointAfterSelected = () => {
+    if (selection?.type !== 'point') return;
+    const area = layout.areas.find(a => a.id === selection.id);
+    if (!area) return;
+    const res = insertVertexAfter(area.points, area.closed, selection.index, curveFlagsOf(area));
+    if (!res) return;
+    updateArea(area.id, a => ({ ...a, points: res.points, spline: false, curves: res.curves }));
+    setSelection({ type: 'point', id: area.id, index: res.index });
+  };
+
+  const removePointAt = (id: string, index: number) => {
+    const area = layout.areas.find(a => a.id === id);
+    if (!area) return;
+    const res = removeVertex(area.points, index, area.closed ? 3 : 2, curveFlagsOf(area));
+    if (!res) return;
+    updateArea(id, a => ({ ...a, points: res.points, spline: false, curves: res.curves }));
+    setSelection(null);
+  };
+
+  /** Toggle the curvature handle on the selected point. */
+  const toggleCurveOnSelected = () => {
+    if (selection?.type !== 'point') return;
+    const area = layout.areas.find(a => a.id === selection.id);
+    if (!area) return;
+    const next = toggleCurveFlag(curveFlagsOf(area), selection.index, area.points.length);
+    updateArea(area.id, a => ({ ...a, spline: false, curves: next }));
+  };
+
+  const selectedPointCurved = React.useMemo(() => {
+    if (selection?.type !== 'point') return false;
+    const area = layout.areas.find(a => a.id === selection.id);
+    return area ? curveFlagsOf(area)[selection.index] : false;
+  }, [selection, layout]);
+
+
+
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     const sx = e.clientX - r.left;
@@ -604,6 +669,16 @@ const GrassDrawingBoard: React.FC<Props> = ({
       }
     }
 
+    // Alt/right click on an existing point removes it; alt click on an edge adds one.
+    if (e.altKey || e.button === 2) {
+      const removeHit = hitPoint(w);
+      if (removeHit) {
+        removePointAt(removeHit.id, removeHit.index);
+        return;
+      }
+      if (insertPointNear(w)) return;
+    }
+
     const ptHit = hitPoint(w);
     if (ptHit) {
       setSelection({ type: 'point', id: ptHit.id, index: ptHit.index });
@@ -613,10 +688,13 @@ const GrassDrawingBoard: React.FC<Props> = ({
     }
 
     if (tool === 'select') {
+      // clicking an edge in select mode drops a new, draggable spline point there
+      if (insertPointNear(w)) return;
       const areaId = hitArea(w);
       setSelection(areaId ? { type: 'area', id: areaId } : null);
       return;
     }
+
 
     // draw mode — snap to 0.5 ft
     const snapped = { x: Math.round(w.x / (PX_PER_FT / 2)) * (PX_PER_FT / 2), y: Math.round(w.y / (PX_PER_FT / 2)) * (PX_PER_FT / 2) };
@@ -690,15 +768,12 @@ const GrassDrawingBoard: React.FC<Props> = ({
     if (!selection) return;
     if (selection.type === 'area') {
       patch(layout.areas.filter(a => a.id !== selection.id));
+      setSelection(null);
     } else {
-      patch(
-        layout.areas
-          .map(a => (a.id === selection.id ? { ...a, points: a.points.filter((_, i) => i !== selection.index) } : a))
-          .filter(a => a.points.length >= (a.closed ? 3 : 1))
-      );
+      removePointAt(selection.id, selection.index);
     }
-    setSelection(null);
   };
+
 
   const addPreset = (points: GrassPoint[], asSpline = false) => {
     const cx = size.w / 2 / view.zoom - view.ox / view.zoom;
@@ -736,6 +811,30 @@ const GrassDrawingBoard: React.FC<Props> = ({
         <Button type="button" size="sm" variant={spline ? 'default' : 'outline'} onClick={() => setSpline(s => !s)} className="h-8">
           <Waves className="mr-1.5 h-3.5 w-3.5" /> {spline ? 'Curved edges' : 'Straight edges'}
         </Button>
+        <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={addPointAfterSelected}
+          disabled={selection?.type !== 'point'}
+          className="h-8"
+          title="Add a spline point after the selected one (or click any edge)"
+        >
+          <Plus className="mr-1.5 h-3.5 w-3.5" /> Add point
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={selectedPointCurved ? 'default' : 'outline'}
+          onClick={toggleCurveOnSelected}
+          disabled={selection?.type !== 'point'}
+          className="h-8"
+          title="Toggle curvature on the selected point"
+        >
+          <Spline className="mr-1.5 h-3.5 w-3.5" /> {selectedPointCurved ? 'Curved point' : 'Corner point'}
+        </Button>
+
         <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
         <Button type="button" size="sm" variant="outline" onClick={closeCurrent} disabled={!openArea || openArea.points.length < 3} className="h-8">
           <CornerDownRight className="mr-1.5 h-3.5 w-3.5" /> Close area
@@ -813,6 +912,8 @@ const GrassDrawingBoard: React.FC<Props> = ({
           onPointerCancel={endDrag}
           onPointerLeave={() => setHover(null)}
           onDoubleClick={closeCurrent}
+          onContextMenu={e => e.preventDefault()}
+
         />
       </div>
 

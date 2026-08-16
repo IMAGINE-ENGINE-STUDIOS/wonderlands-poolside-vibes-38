@@ -13,7 +13,26 @@ import {
   Move,
   Eye,
   EyeOff,
+  Plus,
+  Minus,
+  Spline,
+
 } from 'lucide-react';
+import {
+  hitVertexIndex,
+  insertVertexAt,
+  insertVertexAfter,
+  removeVertex,
+  normalizeFlags,
+  toggleCurveFlag,
+  hasAnyCurve,
+  samplePath,
+  sampleSegment,
+
+  polylineLength,
+  tracePolyline,
+} from '@/utils/splineEditing';
+
 
 export type SiteLayerId =
   | 'property'
@@ -53,9 +72,18 @@ export interface SiteShape {
   layer: SiteLayerId;
   points: { x: number; y: number }[];
   closed: boolean;
+  /** Per-point curvature flags — true renders that vertex as a smooth spline handle */
+  curves?: boolean[];
   /** Set when the shape came from an imported PDF/DXF/SVG plan */
   importedFrom?: string;
 }
+
+/** Curve-aware outline used for rendering and all measurements. */
+export const siteShapeOutline = (shape: SiteShape) =>
+  hasAnyCurve(shape.curves)
+    ? samplePath(shape.points, shape.closed, normalizeFlags(shape.curves, shape.points.length))
+    : shape.points;
+
 
 /** Imported raster plan placed behind the drawing, used to trace over */
 export interface SiteUnderlay {
@@ -128,12 +156,14 @@ export function measureSitePlan(data: SitePlanData): SiteAreas {
 
   data.shapes.forEach(shape => {
     const meta = layerMeta(shape.layer);
+    const outline = siteShapeOutline(shape);
     if (meta.linear) {
-      fenceLinearFt += pathLength(shape.points, shape.closed) / (data.pxPerFt || 1);
+      fenceLinearFt += pathLength(outline, shape.closed) / (data.pxPerFt || 1);
       return;
     }
-    byLayer[shape.layer] += polygonArea(shape.points) / sq;
+    byLayer[shape.layer] += polygonArea(outline) / sq;
   });
+
 
   const propertySqFt = Math.round(byLayer.property);
   const imperviousSqFt = Math.round(
@@ -181,6 +211,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const [draft, setDraft] = React.useState<{ x: number; y: number }[]>([]);
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
+  const [selectedVertex, setSelectedVertex] = React.useState<number | null>(null);
+
   const [showGrid, setShowGrid] = React.useState(true);
   const [calibration, setCalibration] = React.useState<{ x: number; y: number }[]>([]);
   const drag = React.useRef<
@@ -273,9 +305,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     const renderShape = (shape: SiteShape, isDraft = false) => {
       const meta = layerMeta(shape.layer);
       if (shape.points.length === 0) return;
-      ctx.beginPath();
-      shape.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
-      if (shape.closed) ctx.closePath();
+      const flags = normalizeFlags(shape.curves, shape.points.length);
+      const outline = siteShapeOutline(shape);
+      tracePolyline(ctx, outline, shape.closed);
       if (shape.closed && !meta.linear) {
         ctx.fillStyle = meta.color + '22';
         ctx.fill();
@@ -286,19 +318,22 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // vertices
+      // vertices — round handles are curved, squares are hard corners
       const showHandles = !readOnly && (mode === 'select' ? true : isDraft);
-      shape.points.forEach(p => {
-        ctx.fillStyle = selected === shape.id && showHandles ? '#f59e0b' : '#ffffff';
+      const active = selected === shape.id && showHandles;
+      shape.points.forEach((p, i) => {
+        ctx.fillStyle = active ? (flags[i] ? '#0891b2' : '#f59e0b') : '#ffffff';
         ctx.strokeStyle = meta.color;
         ctx.lineWidth = 1.5;
+        const r = active ? 5 : 3.5;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, selected === shape.id && showHandles ? 5 : 3.5, 0, Math.PI * 2);
+        if (flags[i]) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        else ctx.rect(p.x - r, p.y - r, r * 2, r * 2);
         ctx.fill();
         ctx.stroke();
       });
 
-      // segment dimensions — offset perpendicular to the segment so text never sits on the line
+      // segment dimensions — arc length on curved runs, offset perpendicular so text never sits on the line
       ctx.font = 'bold 14px ui-monospace, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -306,14 +341,18 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       for (let i = 0; i < segCount; i++) {
         const a = shape.points[i];
         const b = shape.points[(i + 1) % shape.points.length];
-        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        const chord = Math.hypot(b.x - a.x, b.y - a.y);
+        const curved = flags[i] || flags[(i + 1) % shape.points.length];
+        const segPts = curved ? sampleSegment(shape.points, shape.closed, flags, i) : [a, b];
+        const len = curved ? polylineLength(segPts) : chord;
         const ft = len / pxPerFt;
-        if (ft < 3 || len < 1) continue;
-        const nx = -(b.y - a.y) / len;
-        const ny = (b.x - a.x) / len;
+        if (ft < 3 || chord < 1) continue;
+        const mid = segPts[Math.floor(segPts.length / 2)];
+        const nx = -(b.y - a.y) / chord;
+        const ny = (b.x - a.x) / chord;
         const off = 14;
-        const tx = (a.x + b.x) / 2 + nx * off;
-        const ty = (a.y + b.y) / 2 + ny * off;
+        const tx = mid.x + nx * off;
+        const ty = mid.y + ny * off;
         const text = `${ft.toFixed(1)}'`;
         ctx.lineWidth = 4;
         ctx.strokeStyle = 'rgba(255,255,255,0.92)';
@@ -327,7 +366,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       if (shape.closed && !meta.linear && shape.points.length > 2) {
         const cx = shape.points.reduce((s, p) => s + p.x, 0) / shape.points.length;
         const cy = shape.points.reduce((s, p) => s + p.y, 0) / shape.points.length;
-        const area = polygonArea(shape.points) / (pxPerFt * pxPerFt);
+        const area = polygonArea(outline) / (pxPerFt * pxPerFt);
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.lineWidth = 4;
@@ -348,6 +387,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.textBaseline = 'alphabetic';
 
     };
+
 
     data.shapes.forEach(s => renderShape(s));
     if (draft.length) {
@@ -433,10 +473,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const hitTest = (p: { x: number; y: number }): string | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
       const shape = data.shapes[i];
-      const segCount = shape.closed ? shape.points.length : shape.points.length - 1;
+      const outline = siteShapeOutline(shape);
+      const segCount = shape.closed ? outline.length : outline.length - 1;
       for (let s = 0; s < segCount; s++) {
-        const a = shape.points[s];
-        const b = shape.points[(s + 1) % shape.points.length];
+        const a = outline[s];
+        const b = outline[(s + 1) % outline.length];
         const len = Math.hypot(b.x - a.x, b.y - a.y);
         if (len === 0) continue;
         const t = Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / (len * len)));
@@ -450,12 +491,66 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const hitVertex = (p: { x: number; y: number }): { shapeId: string; index: number } | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
       const shape = data.shapes[i];
-      for (let v = 0; v < shape.points.length; v++) {
-        if (Math.hypot(shape.points[v].x - p.x, shape.points[v].y - p.y) < 8) return { shapeId: shape.id, index: v };
-      }
+      const v = hitVertexIndex(shape.points, p, 8);
+      if (v >= 0) return { shapeId: shape.id, index: v };
     }
     return null;
   };
+
+  const updateShape = (id: string, patch: (s: SiteShape) => SiteShape) => {
+    onChange({ ...data, shapes: data.shapes.map(s => (s.id === id ? patch(s) : s)) });
+  };
+
+  /** Drop a new vertex on the nearest run of a shape. */
+  const insertVertexNear = (p: { x: number; y: number }): boolean => {
+    for (let i = data.shapes.length - 1; i >= 0; i--) {
+      const shape = data.shapes[i];
+      const res = insertVertexAt(shape.points, shape.closed, p, 10, normalizeFlags(shape.curves, shape.points.length));
+      if (!res) continue;
+      updateShape(shape.id, s => ({ ...s, points: res.points, curves: res.curves }));
+      setSelected(shape.id);
+      setSelectedVertex(res.index);
+      return true;
+    }
+    return false;
+  };
+
+  const removeVertexFrom = (shapeId: string, index: number) => {
+    const shape = data.shapes.find(s => s.id === shapeId);
+    if (!shape) return;
+    const res = removeVertex(shape.points, index, shape.closed ? 3 : 2, normalizeFlags(shape.curves, shape.points.length));
+    if (!res) return;
+    updateShape(shapeId, s => ({ ...s, points: res.points, curves: res.curves, closed: res.points.length > 2 ? s.closed : false }));
+    setSelectedVertex(null);
+  };
+
+  const addVertexAfterSelected = () => {
+    const shape = data.shapes.find(s => s.id === selected);
+    if (!shape || selectedVertex === null) return;
+    const res = insertVertexAfter(shape.points, shape.closed, selectedVertex, normalizeFlags(shape.curves, shape.points.length));
+    if (!res) return;
+    updateShape(shape.id, s => ({ ...s, points: res.points, curves: res.curves }));
+    setSelectedVertex(res.index);
+  };
+
+  const toggleSelectedCurve = () => {
+    const shape = data.shapes.find(s => s.id === selected);
+    if (!shape) return;
+    if (selectedVertex === null) {
+      // No single handle picked: smooth or straighten the whole outline
+      const smooth = !hasAnyCurve(shape.curves);
+      updateShape(shape.id, s => ({ ...s, curves: s.points.map(() => smooth) }));
+      return;
+    }
+    updateShape(shape.id, s => ({ ...s, curves: toggleCurveFlag(s.curves, selectedVertex, s.points.length) }));
+  };
+
+  const selectedShapeCurved = (() => {
+    const shape = data.shapes.find(s => s.id === selected);
+    if (!shape) return false;
+    const flags = normalizeFlags(shape.curves, shape.points.length);
+    return selectedVertex !== null ? !!flags[selectedVertex] : hasAnyCurve(flags);
+  })();
 
   const commitDraft = (points: { x: number; y: number }[], closed: boolean) => {
     if (points.length < 2) return;
@@ -464,6 +559,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       layer,
       points,
       closed: closed && points.length > 2,
+      curves: points.map(() => false),
     };
     onChange({ ...data, shapes: [...data.shapes, shape] });
     setDraft([]);
@@ -476,17 +572,28 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       drag.current = { kind: 'underlay', last: raw };
       return;
     }
+    if (e.altKey || e.button === 2) {
+      const vertex = hitVertex(raw);
+      if (vertex) {
+        removeVertexFrom(vertex.shapeId, vertex.index);
+        return;
+      }
+      if (insertVertexNear({ x: snap(raw.x), y: snap(raw.y) })) return;
+    }
     if (mode !== 'select') return;
     const vertex = hitVertex(raw);
     if (vertex) {
       setSelected(vertex.shapeId);
+      setSelectedVertex(vertex.index);
       drag.current = { kind: 'vertex', ...vertex };
       return;
     }
     const shapeId = hitTest(raw);
     setSelected(shapeId);
+    setSelectedVertex(null);
     if (shapeId) drag.current = { kind: 'shape', shapeId, last: raw };
   };
+
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
@@ -674,12 +781,43 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
               >
                 <Ruler className="mr-1 h-3.5 w-3.5" /> Calibrate
               </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={addVertexAfterSelected}
+                disabled={!selected || selectedVertex === null}
+                title="Add a point after the selected one (or Alt-click a line to insert)"
+              >
+                <Plus className="mr-1 h-3.5 w-3.5" /> Point
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={selectedShapeCurved ? 'default' : 'outline'}
+                onClick={toggleSelectedCurve}
+                disabled={!selected}
+                title="Toggle curvature on the selected point (or the whole shape)"
+              >
+                <Spline className="mr-1 h-3.5 w-3.5" /> {selectedShapeCurved ? 'Curved' : 'Straight'}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => selected && selectedVertex !== null && removeVertexFrom(selected, selectedVertex)}
+                disabled={!selected || selectedVertex === null}
+                title="Remove the selected point"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </Button>
               <Button type="button" size="sm" variant="outline" onClick={() => setDraft(p => p.slice(0, -1))} disabled={!draft.length}>
                 <Undo2 className="h-3.5 w-3.5" />
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={deleteSelected} disabled={!selected}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
+
               <Button type="button" size="sm" variant="outline" onClick={() => setShowGrid(g => !g)}>
                 <Grid3X3 className="h-3.5 w-3.5" />
               </Button>
@@ -769,6 +907,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         onDoubleClick={handleDouble}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
+        onContextMenu={e => e.preventDefault()}
+
         onMouseUp={endDrag}
         onMouseLeave={() => {
           endDrag();

@@ -2,8 +2,19 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
 import useBoardDensity from '@/hooks/useBoardDensity';
-import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, Square, X } from 'lucide-react';
+import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, Square, X, Plus, Spline } from 'lucide-react';
 import { ENCLOSURE_DOORS, EnclosureDoorOption } from '@/data/screenEnclosureConfigurator';
+import {
+  insertVertexAfter,
+  insertVertexAt,
+  normalizeFlags,
+  polylineLength,
+  sampleSegment,
+  samplePath,
+  toggleCurveFlag,
+  tracePolyline,
+} from '@/utils/splineEditing';
+
 
 export interface EnclosurePoint {
   x: number;
@@ -27,6 +38,9 @@ export interface EnclosureLayout {
   closed: boolean;
   /** Segment index -> list of door/house bays placed along that segment. */
   features: Record<number, EnclosureFeature[]>;
+  /** Per-corner curvature handles — a flagged corner curves its adjoining runs */
+  curves?: boolean[];
+
   /** @deprecated Kept for cache migration only. */
   segmentKinds?: Record<number, EnclosureSegmentKind>;
 }
@@ -231,20 +245,56 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     return () => ro.disconnect();
   }, []);
 
-  const segments = React.useMemo(() => {
+  const curves = React.useMemo(() => normalizeFlags(layout.curves, layout.points.length), [layout.curves, layout.points.length]);
+
+  type Seg = { a: EnclosurePoint; b: EnclosurePoint; index: number; path: EnclosurePoint[]; len: number };
+
+  /** Each wall run carries its sampled polyline, so curved runs measure and draw by arc length. */
+  const segments = React.useMemo<Seg[]>(() => {
     const pts = layout.points;
-    const segs: Array<{ a: EnclosurePoint; b: EnclosurePoint; index: number }> = [];
-    for (let i = 0; i < pts.length - 1; i++) segs.push({ a: pts[i], b: pts[i + 1], index: i });
-    if (layout.closed && pts.length > 2) segs.push({ a: pts[pts.length - 1], b: pts[0], index: pts.length - 1 });
+    const segs: Seg[] = [];
+    const count = layout.closed && pts.length > 2 ? pts.length : pts.length - 1;
+    for (let i = 0; i < count; i++) {
+      const a = pts[i];
+      const b = pts[(i + 1) % pts.length];
+      const path = sampleSegment(pts, layout.closed, curves, i);
+      segs.push({ a, b, index: i, path, len: polylineLength(path) });
+    }
     return segs;
-  }, [layout]);
+  }, [layout.points, layout.closed, curves]);
 
   const featuresOf = (index: number): EnclosureFeature[] => layout.features[index] || [];
 
+  /** Polyline slice of a run between two normalized positions (arc-length based). */
+  const sliceOf = (seg: Seg, t0: number, t1: number): EnclosurePoint[] => {
+    const path = seg.path;
+    if (path.length < 2) return path.slice();
+    const d0 = t0 * seg.len;
+    const d1 = t1 * seg.len;
+    const out: EnclosurePoint[] = [];
+    let travelled = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      const a = path[i];
+      const b = path[i + 1];
+      const l = dist(a, b) || 1e-6;
+      const segStart = travelled;
+      const segEnd = travelled + l;
+      const from = Math.max(d0, segStart);
+      const to = Math.min(d1, segEnd);
+      if (to > from - 1e-9) {
+        const lerp = (d: number) => ({ x: a.x + ((b.x - a.x) * (d - segStart)) / l, y: a.y + ((b.y - a.y) * (d - segStart)) / l });
+        if (out.length === 0) out.push(lerp(from));
+        out.push(lerp(to));
+      }
+      travelled = segEnd;
+    }
+    if (out.length < 2) return [path[0], path[path.length - 1]];
+    return out;
+  };
+
   /** Split a segment into wall/door/house intervals based on its features. Overlaps are clipped. */
-  const segmentIntervals = (seg: { a: EnclosurePoint; b: EnclosurePoint; index: number }) => {
-    const len = dist(seg.a, seg.b);
-    const ft = len / PX_PER_FT;
+  const segmentIntervals = (seg: Seg) => {
+    const ft = seg.len / PX_PER_FT;
     const feats = featuresOf(seg.index)
       .map((f, featIndex) => ({ f, featIndex }))
       .filter(x => x.f.end > x.f.start)
@@ -272,6 +322,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     return intervals;
   };
 
+
   const takeoff = React.useMemo<EnclosureTakeoff>(() => {
     const pts = layout.points;
     let perimeter = 0;
@@ -280,7 +331,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     let doorFt = 0;
     let longest = 0;
     segments.forEach(seg => {
-      const ft = dist(seg.a, seg.b) / PX_PER_FT;
+      const ft = seg.len / PX_PER_FT;
       perimeter += ft;
       longest = Math.max(longest, ft);
       const intervals = segmentIntervals(seg);
@@ -292,16 +343,18 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         }
       });
     });
-    // Shoelace area (only meaningful for a closed footprint)
+    // Shoelace area over the sampled outline (curved runs included)
     let area = 0;
     if (layout.closed && pts.length > 2) {
-      for (let i = 0; i < pts.length; i++) {
-        const p = pts[i];
-        const q = pts[(i + 1) % pts.length];
+      const outline = samplePath(pts, true, curves);
+      for (let i = 0; i < outline.length; i++) {
+        const p = outline[i];
+        const q = outline[(i + 1) % outline.length];
         area += p.x * q.y - q.x * p.y;
       }
       area = Math.abs(area) / 2 / (PX_PER_FT * PX_PER_FT);
     }
+
     const xs = pts.map(p => p.x);
     const ys = pts.map(p => p.y);
     const widthFt = pts.length ? (Math.max(...xs) - Math.min(...xs)) / PX_PER_FT : 0;
@@ -317,7 +370,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       widthFt: r1(widthFt),
       depthFt: r1(depthFt),
     };
-  }, [segments, layout]);
+  }, [segments, layout, curves]);
 
   const measureRef = React.useRef(onMeasure);
   measureRef.current = onMeasure;
@@ -370,14 +423,13 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       ctx.stroke();
     }
 
-    // footprint fill
+    // footprint fill (follows curved runs)
     if (layout.closed && layout.points.length > 2) {
-      ctx.beginPath();
-      layout.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
-      ctx.closePath();
+      tracePolyline(ctx, samplePath(layout.points, true, curves), true);
       ctx.fillStyle = 'rgba(8, 145, 178, 0.08)';
       ctx.fill();
     }
+
 
     // centroid used to push labels / door swings to the outside of the footprint
     const cxAll = layout.points.length ? layout.points.reduce((s, p) => s + p.x, 0) / layout.points.length : 0;
@@ -403,9 +455,10 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       const segmentSelected = selection?.type === 'segment' && selection.segIndex === seg.index;
 
       intervals.forEach(iv => {
-        const a = { x: seg.a.x + ux * iv.t0 * lenPx, y: seg.a.y + uy * iv.t0 * lenPx };
-        const b = { x: seg.a.x + ux * iv.t1 * lenPx, y: seg.a.y + uy * iv.t1 * lenPx };
-        const ivLen = dist(a, b);
+        const slice = sliceOf(seg, iv.t0, iv.t1);
+        const a = slice[0];
+        const b = slice[slice.length - 1];
+        const ivLen = polylineLength(slice);
         const featureSelected =
           selection?.type === 'feature' && selection.segIndex === seg.index && selection.featIndex === iv.featIndex;
         const highlighted = featureSelected || (segmentSelected && iv.kind === 'wall');
@@ -413,9 +466,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         if (highlighted) {
           ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
           ctx.lineWidth = 14;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
+          tracePolyline(ctx, slice);
           ctx.stroke();
         }
 
@@ -423,9 +474,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           // architectural door: clean opening in the wall, jambs, and a swing arc
           ctx.strokeStyle = bg;
           ctx.lineWidth = 8;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
+          tracePolyline(ctx, slice);
           ctx.stroke();
 
           ctx.strokeStyle = featureSelected ? SELECT_COLOR : KIND_COLOR.door;
@@ -455,19 +504,27 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           const color = featureSelected ? SELECT_COLOR : base;
           ctx.strokeStyle = color;
           ctx.lineWidth = iv.kind === 'house' ? 6 : 3.5;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
+          tracePolyline(ctx, slice);
           ctx.stroke();
 
-          // upright ticks on screened wall intervals only
+          // upright ticks on screened wall intervals only, walked along the run
           if (iv.kind === 'wall') {
             const step = 6 * PX_PER_FT; // uprights at 6 ft o.c.
             ctx.fillStyle = color;
-            for (let d = step; d < ivLen; d += step) {
-              ctx.beginPath();
-              ctx.arc(a.x + ux * d, a.y + uy * d, 2.5, 0, Math.PI * 2);
-              ctx.fill();
+            let travelled = 0;
+            let next = step;
+            for (let i = 0; i < slice.length - 1; i++) {
+              const s0 = slice[i];
+              const s1 = slice[i + 1];
+              const l = dist(s0, s1) || 1;
+              while (next <= travelled + l && next < ivLen) {
+                const d = (next - travelled) / l;
+                ctx.beginPath();
+                ctx.arc(s0.x + (s1.x - s0.x) * d, s0.y + (s1.y - s0.y) * d, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                next += step;
+              }
+              travelled += l;
             }
           }
         }
@@ -475,8 +532,9 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         // queue one label per interval, offset outward so it never sits on the line
         const showLabel = iv.kind === 'door' ? true : iv.ft >= 3;
         if (showLabel) {
-          const mx = (a.x + b.x) / 2;
-          const my = (a.y + b.y) / 2;
+          const mid = slice[Math.floor(slice.length / 2)];
+          const mx = mid.x;
+          const my = mid.y;
           const off = iv.kind === 'door' ? 26 : 15;
           const doorName = iv.kind === 'door' ? doorById(iv.doorTypeId).widthFt : 0;
           labels.push({
@@ -492,6 +550,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           });
         }
       });
+
     });
 
     // draw labels last, skipping any that would overlap an already placed one
@@ -545,6 +604,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       ctx.fillText(`${(dist(last, hover) / PX_PER_FT).toFixed(1)} ft`, hover.x + 10, hover.y - 8);
     }
 
+    // corners — round = curvature handle, square = hard corner
     layout.points.forEach((p, i) => {
       const pointSelected = selection?.type === 'point' && selection.index === i;
       if (pointSelected) {
@@ -553,15 +613,18 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
         ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
         ctx.fill();
       }
+      const r = i === dragIndex || pointSelected ? 7 : 5;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, i === dragIndex || pointSelected ? 7 : 5, 0, Math.PI * 2);
-      ctx.fillStyle = pointSelected ? SELECT_COLOR : i === 0 ? '#f97066' : wallColor;
+      if (curves[i]) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      else ctx.rect(p.x - r, p.y - r, r * 2, r * 2);
+      ctx.fillStyle = pointSelected ? SELECT_COLOR : curves[i] ? '#0891b2' : i === 0 ? '#f97066' : wallColor;
       ctx.fill();
       ctx.strokeStyle = bg;
       ctx.lineWidth = 2;
       ctx.stroke();
     });
-  }, [layout, segments, size, hover, mode, dragIndex, frameColorHex, takeoff, selection]);
+  }, [layout, segments, curves, size, hover, mode, dragIndex, frameColorHex, takeoff, selection]);
+
 
   // ---- snapshot export (footprint plan for cart / quote) ----
   const snapshotRef = React.useRef(onSnapshot);
@@ -624,7 +687,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   const tagFeature = (segIndex: number, kind: Extract<EnclosureSegmentKind, 'door' | 'house'>, t: number) => {
     const seg = segments.find(s => s.index === segIndex);
     if (!seg) return;
-    const segFt = dist(seg.a, seg.b) / PX_PER_FT;
+    const segFt = seg.len / PX_PER_FT;
     const next: Record<number, EnclosureFeature[]> = { ...layout.features };
     let list = [...(next[segIndex] || [])];
 
@@ -699,8 +762,48 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       if (seg === index || seg === index - 1) return; // segments destroyed by the deletion
       features[seg > index ? seg - 1 : seg] = list;
     });
-    onChange({ points, closed: points.length > 2 ? layout.closed : false, features });
+    onChange({
+      points,
+      closed: points.length > 2 ? layout.closed : false,
+      features,
+      curves: curves.filter((_, i) => i !== index),
+    });
   };
+
+  /** Insert a corner, shifting the feature map for the segments that split. */
+  const insertPointAtIndex = (at: number, points: EnclosurePoint[], nextCurves: boolean[]) => {
+    const features: Record<number, EnclosureFeature[]> = {};
+    Object.entries(layout.features).forEach(([k, list]) => {
+      const seg = Number(k);
+      if (seg === at - 1) features[seg] = list; // keep the bay on the first half of the split run
+      else features[seg >= at ? seg + 1 : seg] = list;
+    });
+    onChange({ ...layout, points, curves: nextCurves, features });
+    setSelection({ type: 'point', index: at });
+  };
+
+  /** Drop a new corner on the run nearest the cursor. */
+  const insertPointNear = (p: EnclosurePoint): boolean => {
+    const res = insertVertexAt(layout.points, layout.closed, p, 12, curves);
+    if (!res) return false;
+    insertPointAtIndex(res.index, res.points, res.curves ?? curves);
+    return true;
+  };
+
+  const addPointAfterSelected = () => {
+    if (selection?.type !== 'point') return;
+    const res = insertVertexAfter(layout.points, layout.closed, selection.index, curves);
+    if (!res) return;
+    insertPointAtIndex(res.index, res.points, res.curves ?? curves);
+  };
+
+  const toggleCurveOnSelected = () => {
+    if (selection?.type !== 'point') return;
+    onChange({ ...layout, curves: toggleCurveFlag(curves, selection.index, layout.points.length) });
+  };
+
+  const selectedPointCurved = selection?.type === 'point' ? !!curves[selection.index] : false;
+
 
   const deleteSelection = () => {
     if (!selection) return;
@@ -741,9 +844,23 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
 
   const handleDown = (e: React.MouseEvent) => {
     const p = toLocal(e);
+    if (e.altKey || e.button === 2) {
+      const idx = hitPoint(p);
+      if (idx >= 0) {
+        removePoint(idx);
+        setSelection(null);
+        return;
+      }
+      if (insertPointNear(p)) return;
+    }
     if (mode === 'select') {
       const idx = selectAt(p);
-      if (idx >= 0) setDragIndex(idx);
+      if (idx >= 0) {
+        setDragIndex(idx);
+        return;
+      }
+      // clicking a wall run drops a new, draggable corner there
+      if (hitPoint(p) < 0 && insertPointNear(p)) return;
       return;
     }
     if (mode === 'door' || mode === 'house') {
@@ -756,7 +873,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       onChange({ ...layout, closed: true });
       return;
     }
-    onChange({ ...layout, points: [...layout.points, p] });
+    onChange({ ...layout, points: [...layout.points, p], curves: normalizeFlags(curves, layout.points.length + 1) });
   };
 
   const handleMove = (e: React.MouseEvent) => {
@@ -774,13 +891,14 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     Object.entries(layout.features).forEach(([k, list]) => {
       if (Number(k) < nextLen - 1) features[Number(k)] = list;
     });
-    onChange({ points: layout.points.slice(0, -1), closed: false, features });
+    onChange({ points: layout.points.slice(0, -1), closed: false, features, curves: curves.slice(0, -1) });
   };
 
   const clear = () => {
     setSelection(null);
-    onChange({ points: [], closed: false, features: {} });
+    onChange({ points: [], closed: false, features: {}, curves: [] });
   };
+
 
   const preset = (w: number, d: number) => {
     const widthPx = w * PX_PER_FT;
@@ -829,6 +947,20 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
           <Home className="h-3.5 w-3.5 mr-1" /> Tag house wall
         </Button>
         <div className="mx-1 h-5 w-px bg-border/60" />
+        <Button size="sm" variant="ghost" onClick={addPointAfterSelected} disabled={selection?.type !== 'point'} title="Add a corner after the selected one (or click a wall run)">
+          <Plus className="h-3.5 w-3.5 mr-1" /> Add point
+        </Button>
+        <Button
+          size="sm"
+          variant={selectedPointCurved ? 'default' : 'ghost'}
+          onClick={toggleCurveOnSelected}
+          disabled={selection?.type !== 'point'}
+          title="Toggle curvature on the selected corner"
+        >
+          <Spline className="h-3.5 w-3.5 mr-1" /> {selectedPointCurved ? 'Curved point' : 'Corner point'}
+        </Button>
+        <div className="mx-1 h-5 w-px bg-border/60" />
+
         <Button size="sm" variant="ghost" onClick={undo}>
           <Undo2 className="h-3.5 w-3.5 mr-1" /> Undo
         </Button>
@@ -924,6 +1056,8 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
             style={{ width: size.w, height: size.h, position: 'relative', cursor: mode === 'select' ? 'pointer' : 'crosshair', display: 'block' }}
             onMouseDown={handleDown}
             onMouseMove={handleMove}
+            onContextMenu={e => e.preventDefault()}
+
             onMouseUp={() => setDragIndex(null)}
             onMouseLeave={() => {
               setDragIndex(null);
