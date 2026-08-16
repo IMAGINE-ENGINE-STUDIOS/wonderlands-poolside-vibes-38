@@ -11,6 +11,7 @@ import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type C
 import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
 import FlipSearch from "@/components/flip/FlipSearch";
 import usePersistentState from "@/hooks/usePersistentState";
+import { setNarratorContext } from "@/lib/narratorStore";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
 import { useProductBookPages } from "./FlipProductBook";
@@ -251,9 +252,11 @@ type Page = { key: string; render: () => React.ReactNode; tone?: "paper" | "cove
 
 type Anchors = { index: number; features: number; code: number; gallery: number; estimate: number };
 
-const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v4" }) => {
-  const isV5 = variant === "v5" || variant === "v6";
-  const isV6 = variant === "v6";
+const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" }> = ({ variant = "v4" }) => {
+  const isV5 = variant === "v5" || variant === "v6" || variant === "v7";
+  const isV6 = variant === "v6" || variant === "v7";
+  /* V7 — The Narrated Edition: the corner narrator reads whichever leaf is open */
+  const isV7 = variant === "v7";
 
   const bookRef = useRef<any>(null);
   /* V5: the corner-lift invitation, retired as soon as the reader turns a page */
@@ -441,6 +444,44 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
 
   /* -------------------------------- DOSSIER --------------------------------- */
   const [dossier, setDossier] = useState<ConsoleEntry | null>(null);
+
+  /* V7: publish what the reader is looking at so the narrator can read it aloud */
+  useEffect(() => {
+    if (!isV7) return;
+    if (dossier) {
+      setNarratorContext({
+        scope: "product",
+        key: `flip:product:${dossier.id}`,
+        title: dossier.name,
+        category: category.label,
+        product: dossier.name,
+        price: dossier.price,
+        features: (entries ?? []).slice(0, 8).map((e) => e.name),
+        route: "/flip",
+      });
+      return;
+    }
+    if (mode === "category") {
+      setNarratorContext({
+        scope: "category",
+        key: `flip:category:${category.id}`,
+        title: category.label,
+        category: category.label,
+        features: (entries ?? []).slice(0, 10).map((e) => e.name),
+        route: "/flip",
+      });
+      return;
+    }
+    setNarratorContext({
+      scope: "index",
+      key: "flip:index",
+      title: "Wonderlands — The Outdoor Annual",
+      features: ITEMS.map((i) => i.label),
+      route: "/flip",
+    });
+  }, [isV7, dossier, mode, category, entries]);
+
+  useEffect(() => () => setNarratorContext(null), []);
 
   /**
    * Real plates used by the riffle so the turning leaves are never blank: the
