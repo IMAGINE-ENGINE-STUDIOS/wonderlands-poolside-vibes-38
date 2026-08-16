@@ -93,8 +93,6 @@ export const DeckGeometry = ({
   }, [poolPoints, hardscapePoints, deckWidth, deckHeight, copingWidth, copingEnabled]);
 
   return (
-    {/* Flat ground-level slab: receives shadows only. Casting would make the
-        double-sided surface shadow itself, producing diagonal acne bands. */}
     <mesh geometry={geometry} receiveShadow>
       <meshStandardMaterial
         map={texture || undefined}
