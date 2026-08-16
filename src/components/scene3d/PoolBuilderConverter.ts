@@ -1,4 +1,5 @@
 import { Scene3D, TextureLibrary, TextureConfig, PoolFeature as Scene3DPoolFeature } from './types';
+import { buildCatalogTextureLibrary } from '@/data/textureLibrary';
 
 interface Point {
   x: number;
