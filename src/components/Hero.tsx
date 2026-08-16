@@ -42,7 +42,7 @@ const Hero = () => {
     </section>
 
     {/* FLIP V4 — The Outdoor Annual */}
-    <FlipMagazine />
+    <FlipMagazine variant="v7" hideHeader />
 
     <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} />
     </>;
