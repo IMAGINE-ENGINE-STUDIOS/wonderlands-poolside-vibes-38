@@ -10,12 +10,17 @@ export type ConsoleEntry = {
   unit?: "sqft" | "linear-ft" | "each";
   meta?: string;
   brand?: string;
+  /** Flat colour swatch when there is no photograph (e.g. gelcoat) */
+  color?: string;
+  /** Pre-formatted price line ("Included", "$15 / sq ft") */
+  priceLabel?: string;
 };
 
 const money = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 export const formatEntryPrice = (e: ConsoleEntry) => {
+  if (e.priceLabel) return e.priceLabel;
   if (typeof e.price !== "number") return "";
   const suffix = e.unit === "sqft" ? " / sq ft" : e.unit === "linear-ft" ? " / linear ft" : "";
   return `${money(e.price)}${suffix}`;
