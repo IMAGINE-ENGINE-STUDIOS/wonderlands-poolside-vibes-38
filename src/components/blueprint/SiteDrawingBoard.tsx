@@ -299,9 +299,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     const renderShape = (shape: SiteShape, isDraft = false) => {
       const meta = layerMeta(shape.layer);
       if (shape.points.length === 0) return;
-      ctx.beginPath();
-      shape.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
-      if (shape.closed) ctx.closePath();
+      const flags = normalizeFlags(shape.curves, shape.points.length);
+      const outline = siteShapeOutline(shape);
+      tracePolyline(ctx, outline, shape.closed);
       if (shape.closed && !meta.linear) {
         ctx.fillStyle = meta.color + '22';
         ctx.fill();
@@ -312,19 +312,22 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // vertices
+      // vertices — round handles are curved, squares are hard corners
       const showHandles = !readOnly && (mode === 'select' ? true : isDraft);
-      shape.points.forEach(p => {
-        ctx.fillStyle = selected === shape.id && showHandles ? '#f59e0b' : '#ffffff';
+      const active = selected === shape.id && showHandles;
+      shape.points.forEach((p, i) => {
+        ctx.fillStyle = active ? (flags[i] ? '#0891b2' : '#f59e0b') : '#ffffff';
         ctx.strokeStyle = meta.color;
         ctx.lineWidth = 1.5;
+        const r = active ? 5 : 3.5;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, selected === shape.id && showHandles ? 5 : 3.5, 0, Math.PI * 2);
+        if (flags[i]) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        else ctx.rect(p.x - r, p.y - r, r * 2, r * 2);
         ctx.fill();
         ctx.stroke();
       });
 
-      // segment dimensions — offset perpendicular to the segment so text never sits on the line
+      // segment dimensions — arc length on curved runs, offset perpendicular so text never sits on the line
       ctx.font = 'bold 14px ui-monospace, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -332,14 +335,18 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       for (let i = 0; i < segCount; i++) {
         const a = shape.points[i];
         const b = shape.points[(i + 1) % shape.points.length];
-        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        const chord = Math.hypot(b.x - a.x, b.y - a.y);
+        const curved = flags[i] || flags[(i + 1) % shape.points.length];
+        const segPts = curved ? sampleSegment(shape.points, shape.closed, flags, i) : [a, b];
+        const len = curved ? polylineLength(segPts) : chord;
         const ft = len / pxPerFt;
-        if (ft < 3 || len < 1) continue;
-        const nx = -(b.y - a.y) / len;
-        const ny = (b.x - a.x) / len;
+        if (ft < 3 || chord < 1) continue;
+        const mid = segPts[Math.floor(segPts.length / 2)];
+        const nx = -(b.y - a.y) / chord;
+        const ny = (b.x - a.x) / chord;
         const off = 14;
-        const tx = (a.x + b.x) / 2 + nx * off;
-        const ty = (a.y + b.y) / 2 + ny * off;
+        const tx = mid.x + nx * off;
+        const ty = mid.y + ny * off;
         const text = `${ft.toFixed(1)}'`;
         ctx.lineWidth = 4;
         ctx.strokeStyle = 'rgba(255,255,255,0.92)';
@@ -353,7 +360,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       if (shape.closed && !meta.linear && shape.points.length > 2) {
         const cx = shape.points.reduce((s, p) => s + p.x, 0) / shape.points.length;
         const cy = shape.points.reduce((s, p) => s + p.y, 0) / shape.points.length;
-        const area = polygonArea(shape.points) / (pxPerFt * pxPerFt);
+        const area = polygonArea(outline) / (pxPerFt * pxPerFt);
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.lineWidth = 4;
@@ -374,6 +381,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.textBaseline = 'alphabetic';
 
     };
+
 
     data.shapes.forEach(s => renderShape(s));
     if (draft.length) {
