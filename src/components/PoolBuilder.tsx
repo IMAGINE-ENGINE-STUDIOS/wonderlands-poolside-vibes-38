@@ -1568,6 +1568,20 @@ export function PoolBuilder({
     return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
   }, [hardscapePoints, scale, points]);
 
+  // Shift-constrain: force a perfectly straight segment from the last placed point,
+  // snapped to the nearest 15° direction so any direction the user aims stays straight.
+  const constrainToStraightLine = useCallback((lastPt: { x: number; y: number } | undefined, x: number, y: number) => {
+    if (!lastPt) return { x, y };
+    const dx = x - lastPt.x;
+    const dy = y - lastPt.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 0.0001) return { x, y };
+    const step = Math.PI / 12; // 15 degrees
+    const angle = Math.round(Math.atan2(dy, dx) / step) * step;
+    return { x: lastPt.x + Math.cos(angle) * len, y: lastPt.y + Math.sin(angle) * len };
+  }, []);
+
+
   // Get symmetry-snapped position for a point (snaps to axis lines AND mirrored positions of existing points)
   const getSymmetrySnappedPosition = useCallback((x: number, y: number): {
     x: number;
@@ -4960,6 +4974,14 @@ export function PoolBuilder({
       x = snapped.x;
       y = snapped.y;
 
+      // Shift held: lock the new segment to a perfectly straight line
+      const shiftStraight = e.shiftKey && splineDrawing.points.length > 0;
+      if (shiftStraight) {
+        const locked = constrainToStraightLine(splineDrawing.points[splineDrawing.points.length - 1], x, y);
+        x = locked.x;
+        y = locked.y;
+      }
+
       // During active drawing, DON'T open the point editor - just add/close points
       // The point editor is only available AFTER the pool is completed
 
@@ -4967,8 +4989,9 @@ export function PoolBuilder({
         x,
         y,
         id: Date.now().toString(),
-        curveType: splineDrawing.currentCurveType
+        curveType: shiftStraight ? ('linear' as const) : splineDrawing.currentCurveType
       };
+
 
       // Check if this is the FIRST point and it's on an existing pool area
       // Show the dialog immediately so user knows they're creating an integrated feature
@@ -5299,6 +5322,13 @@ export function PoolBuilder({
       const snapped = getSymmetrySnappedPosition(x, y);
       x = snapped.x;
       y = snapped.y;
+      // Shift held: preview a perfectly straight segment from the last point
+      if (e.shiftKey && splineDrawing.points.length > 0) {
+        const locked = constrainToStraightLine(splineDrawing.points[splineDrawing.points.length - 1], x, y);
+        x = locked.x;
+        y = locked.y;
+      }
+
       setCursorPos({
         x,
         y
