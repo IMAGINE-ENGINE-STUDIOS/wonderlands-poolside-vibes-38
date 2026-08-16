@@ -3,7 +3,7 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "r
 import HTMLFlipBook from "react-pageflip";
 import FlipPageTabs from "./FlipPageTabs";
 import FlipCornerHint from "./FlipCornerHint";
-import FlipRiffle from "./FlipRiffle";
+import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMotion";
 import { useFlipLocked } from "./flipBoardStore";
 import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
@@ -258,10 +258,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
   const bookRef = useRef<any>(null);
   /* V5: the corner-lift invitation, retired as soon as the reader turns a page */
   const [cornerHint, setCornerHint] = useState(isV5);
-  /* V5: page-riffle transition played while a product book is opened */
-  const [riffling, setRiffling] = useState(false);
-  const [riffleTarget, setRiffleTarget] = useState<ConsoleEntry | null>(null);
-  const riffleTimer = useRef<number | null>(null);
+  /* Shared page-flip transition motion — played on every category / product open */
+  const flipMotion = usePageFlipTransMotion();
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
@@ -352,28 +350,43 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
   }, []);
 
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
-  useEffect(() => () => { if (riffleTimer.current) window.clearTimeout(riffleTimer.current); }, []);
 
   const openCategory = useCallback(
     (id: string) => {
+      const target = ITEMS.find((i) => i.id === id);
+      const images = (target?.images ?? []).filter(Boolean) as string[];
+      flipMotion.play({
+        label: `Turning to ${target?.label ?? "the edition"}`,
+        images,
+        captions: images.map(() => target?.label ?? ""),
+        destination: images[0],
+      });
       swap(() => {
         setDossier(null);
         setCategoryId(id);
         setMode("category");
       });
     },
-    [swap, setCategoryId, setMode],
+    [swap, setCategoryId, setMode, flipMotion],
   );
 
   const openProduct = useCallback(
     (id: string, entry: ConsoleEntry) => {
+      const target = ITEMS.find((i) => i.id === id);
+      const images = [entry.image, ...(target?.images ?? [])].filter(Boolean) as string[];
+      flipMotion.play({
+        label: `Turning to ${entry.name}`,
+        images,
+        captions: images.map((_, i) => (i === 0 ? entry.name : target?.label ?? "")),
+        destination: entry.image,
+      });
       swap(() => {
         setCategoryId(id);
         setMode("category");
         setDossier(entry);
       });
     },
-    [swap, setCategoryId, setMode],
+    [swap, setCategoryId, setMode, flipMotion],
   );
 
   const openHome = useCallback(() => {
@@ -446,18 +459,18 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
     return { images, captions };
   }, [entries, category]);
 
-  /** Opens a model's book inside the same flip, with the editorial cross-fade. */
+  /** Opens a model's book inside the same flip, with the page-flip trans motion. */
   const openDossier = useCallback(
     (p: ConsoleEntry) => {
-      if (isV5) {
-        setRiffleTarget(p);
-        setRiffling(true);
-        if (riffleTimer.current) window.clearTimeout(riffleTimer.current);
-        riffleTimer.current = window.setTimeout(() => setRiffling(false), 1250);
-      }
+      flipMotion.play({
+        label: `Turning to ${p.name}`,
+        images: [p.image, ...rifflePlates.images].filter(Boolean) as string[],
+        captions: [p.name, ...rifflePlates.captions],
+        destination: p.image,
+      });
       swap(() => setDossier(p));
     },
-    [swap, isV5],
+    [swap, flipMotion, rifflePlates],
   );
   const closeDossier = useCallback(() => swap(() => setDossier(null)), [swap]);
 
@@ -1540,17 +1553,26 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
                     storageKey={`flip.v5.tabs.${dossier ? "dossier" : mode}`}
                   />
                   <FlipCornerHint visible={cornerHint && !flipLocked} onFlip={flipNext} />
-                  {riffling && (
-                    <FlipRiffle
-                      width={portrait ? dims.w : dims.w * 2}
-                      height={dims.h}
-                      label={`Turning to ${(dossier?.name ?? riffleTarget?.name ?? category.label)}`}
-                      images={rifflePlates.images}
-                      captions={rifflePlates.captions}
-                      destination={riffleTarget?.image}
-                    />
-                  )}
                 </>
+              )}
+              {/* Shared page-flip trans motion — every category and product open */}
+              {flipMotion.active && (
+                <PageFlipTransMotion
+                  width={portrait ? dims.w : dims.w * 2}
+                  height={dims.h}
+                  label={flipMotion.payload.label ?? `Turning to ${category.label}`}
+                  images={
+                    flipMotion.payload.images?.length
+                      ? flipMotion.payload.images
+                      : rifflePlates.images
+                  }
+                  captions={
+                    flipMotion.payload.captions?.length
+                      ? flipMotion.payload.captions
+                      : rifflePlates.captions
+                  }
+                  destination={flipMotion.payload.destination}
+                />
               )}
             </div>
           )}
