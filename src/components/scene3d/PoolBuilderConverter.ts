@@ -226,133 +226,37 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
 }
 
 /**
- * Builds texture library from PoolBuilder's available textures
+ * Builds the texture library from the shared Wonderlands catalog, merged with
+ * any custom textures the user uploaded inside PoolBuilder. The catalog is the
+ * single source of truth — no hardcoded swatch lists here.
  */
 export function buildTextureLibrary(
   customTextures: CustomTexture[],
-  paverTypes: any[],
-  finishOptions: any[] = []
+  _paverTypes: any[],
+  _finishOptions: any[] = []
 ): TextureLibrary {
-  // Extract finishes (premium pool liners for both pool and waterline)
-  const finishes: TextureConfig[] = [
-    ...customTextures
-      .filter(t => t.target === 'pool' || t.target === 'water')
-      .map(t => ({
+  const toCustom = (
+    targets: string[],
+    label: string,
+    roughness: number,
+    metalness: number
+  ) =>
+    customTextures
+      .filter((t) => targets.includes(t.target))
+      .map((t) => ({
         url: t.url,
-        name: t.name || 'Custom Finish',
-        repeat: t.repeatX && t.repeatY 
-          ? [t.repeatX, t.repeatY] as [number, number]
-          : undefined,
-        roughness: 0.2,
-        metalness: 0.1
-      })),
-    ...finishOptions.map(f => ({
-      url: f.image || f.url,
-      name: f.name,
-      roughness: 0.2,
-      metalness: 0.1
-    }))
-  ];
+        name: t.name || label,
+        repeat:
+          t.repeatX && t.repeatY ? ([t.repeatX, t.repeatY] as [number, number]) : undefined,
+        roughness,
+        metalness,
+      }));
 
-  // Premium liners for pool finish and waterline
-  const premiumLiners = [
-    { url: '/textures/finishes/sapphire-blue-g3.webp', name: 'Sapphire Blue G3' },
-    { url: '/textures/finishes/aquamarine-g3.webp', name: 'Aquamarine G3' },
-    { url: '/textures/finishes/ocean-blue-g3.webp', name: 'Ocean Blue G3' },
-    { url: '/textures/finishes/coastal-bronze-g3.webp', name: 'Coastal Bronze G3' },
-    { url: '/textures/finishes/athens-pearl-white-g3.webp', name: 'Athens Pearl White G3' },
-    { url: '/textures/finishes/night-sky-g3.webp', name: 'Night Sky G3' },
-    { url: '/textures/finishes/shale-gray-g3.webp', name: 'Shale Gray G3' },
-    { url: '/textures/finishes/azure-blue-g2.webp', name: 'Azure Blue G2' },
-    { url: '/textures/finishes/lagoon-blue-g2.webp', name: 'Lagoon Blue G2' }
-  ];
-
-  // Pool tiles for waterline borders (Mountain, Carnegie, Panama from poolTilesData)
-  const poolTiles = [
-    { url: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.webp', name: 'Mountain Tile' },
-    { url: '/lovable-uploads/5bfe3308-05a6-4d01-9f62-014d86ea281c.webp', name: 'Carnegie Tile' },
-    { url: '/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.webp', name: 'Panama Tile' }
-  ];
-  
-  // Combine all finishes: premium liners + pool tiles for waterline options
-  finishes.push(...premiumLiners.map(liner => ({
-    url: liner.url,
-    name: liner.name,
-    roughness: 0.2,
-    metalness: 0.1
-  })));
-  
-  finishes.push(...poolTiles.map(tile => ({
-    url: tile.url,
-    name: tile.name,
-    roughness: 0.1,
-    metalness: 0.3
-  })));
-
-  // Extract pavers
-  const pavers: TextureConfig[] = [
-    ...customTextures
-      .filter(t => t.target === 'deck')
-      .map(t => ({
-        url: t.url,
-        name: t.name || 'Custom Paver',
-        repeat: t.repeatX && t.repeatY 
-          ? [t.repeatX, t.repeatY] as [number, number]
-          : undefined,
-        roughness: 0.8,
-        metalness: 0.0
-      })),
-    ...paverTypes.map(p => ({
-      url: p.image,
-      name: p.name,
-      roughness: 0.8,
-      metalness: 0.0
-    }))
-  ];
-
-  // Extract coping
-  const coping: TextureConfig[] = [
-    ...customTextures
-      .filter(t => t.target === 'coping')
-      .map(t => ({
-        url: t.url,
-        name: t.name || 'Custom Coping',
-        repeat: t.repeatX && t.repeatY 
-          ? [t.repeatX, t.repeatY] as [number, number]
-          : undefined,
-        roughness: 0.6,
-        metalness: 0.0
-      })),
-    ...paverTypes.map(p => ({
-      url: p.image,
-      name: p.name,
-      roughness: 0.6,
-      metalness: 0.0
-    }))
-  ];
-
-  // Waterline tiles (from poolLiners - glass and porcelain tiles)
-  const waterlines: TextureConfig[] = [
-    // Glass Tiles
-    { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.webp', name: 'Ballad', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.webp', name: 'Paradise', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.webp', name: 'Water Lilies', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.webp', name: 'Sail Boat', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.webp', name: 'Stormy', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.webp', name: 'Galant', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.webp', name: 'Melody', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.webp', name: 'Soul', roughness: 0.1, metalness: 0.3 },
-    { url: '/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.webp', name: 'Glacier', roughness: 0.1, metalness: 0.3 },
-    // Porcelain Tiles
-    { url: '/lovable-uploads/d5e74c29-95f6-4a9a-9395-a98fe4efdadd.webp', name: 'Tikal', roughness: 0.2, metalness: 0.1 },
-    { url: '/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.webp', name: 'Port Royal', roughness: 0.2, metalness: 0.1 },
-    { url: '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.webp', name: 'Alexandria', roughness: 0.2, metalness: 0.1 },
-  ];
-
-  return {
-    finishes,
-    pavers,
-    coping,
-    waterlines
-  };
+  return buildCatalogTextureLibrary({
+    finishes: toCustom(['pool', 'water'], 'Custom Finish', 0.2, 0.1),
+    pavers: toCustom(['deck'], 'Custom Paver', 0.8, 0),
+    coping: toCustom(['coping'], 'Custom Coping', 0.6, 0),
+    waterlines: toCustom(['waterline'], 'Custom Waterline', 0.1, 0.3),
+  });
 }
+
