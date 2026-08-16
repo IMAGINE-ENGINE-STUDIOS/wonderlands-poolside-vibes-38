@@ -72,40 +72,30 @@ export function ComponentControlPanel({
   };
 
   const handleTextureChange = (texture: TextureConfig) => {
-    // Fade out the texture grid
-    setIsTextureGridVisible(false);
-    
-    // Apply texture change and advance to next component after animation
-    setTimeout(() => {
-      const updated = { ...scene };
-      
-      if (selectedComponent === 'pool') {
-        updated.pool.finish = { ...texture };
-      } else if (selectedComponent === 'deck') {
-        updated.deck.paver = { ...texture };
-      } else if (selectedComponent === 'coping') {
-        updated.deck.coping = { ...texture };
-      } else if (selectedComponent === 'waterline') {
-        updated.deck.waterline = { ...texture };
-      }
-      
-      // Trigger scene update
-      onSceneChange(updated);
-      
-      // Auto-advance to next component
-      if (selectedComponent && onSelectComponent) {
-        const currentIndex = COMPONENT_ORDER.indexOf(selectedComponent);
-        const nextIndex = (currentIndex + 1) % COMPONENT_ORDER.length;
-        const nextComponent = COMPONENT_ORDER[nextIndex];
-        onSelectComponent(nextComponent);
-      }
-      
-      // Fade back in
-      setTimeout(() => {
-        setIsTextureGridVisible(true);
-      }, 50);
-    }, 200); // Wait for fade-out to complete
+    // Apply immediately and immutably so React/three always sees the new value.
+    // NOTE: no auto-advance — switching component after a click made it look
+    // like nothing was applied (and moved the camera away).
+    const updated: Scene3D = {
+      ...scene,
+      pool: { ...scene.pool },
+      deck: { ...scene.deck },
+    };
+
+    const next = { ...texture, scale: texture.scale ?? getCurrentTexture()?.scale ?? 1.8 };
+
+    if (selectedComponent === 'pool') {
+      updated.pool.finish = next;
+    } else if (selectedComponent === 'deck') {
+      updated.deck.paver = next;
+    } else if (selectedComponent === 'coping') {
+      updated.deck.coping = next;
+    } else if (selectedComponent === 'waterline') {
+      updated.deck.waterline = next;
+    }
+
+    onSceneChange(updated);
   };
+
 
   const handleTextureScaleChange = (scale: number) => {
     const updated = { ...scene };
