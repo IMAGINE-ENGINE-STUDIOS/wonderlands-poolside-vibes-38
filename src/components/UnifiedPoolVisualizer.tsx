@@ -417,18 +417,63 @@ export function UnifiedPoolVisualizer({
     onSceneChange?.(scene);
   }, [scene, onSceneChange]);
 
-  // Sync with initial scene updates
+  // Sync with incoming scene updates.
+  // IMPORTANT: only react to STRUCTURAL changes (shape / deck outline / dimensions).
+  // The parent re-creates the scene object on every render, and resetting on identity
+  // wiped every material the user picked in the component panel (the widget looked dead).
+  const sceneRef = useRef(scene);
+  sceneRef.current = scene;
+
+  const structureSignature = useMemo(
+    () =>
+      JSON.stringify({
+        p: (initialScene.pool.points || []).map((p: any) => [Math.round(p.x * 100), Math.round(p.y * 100)]),
+        dp: (initialScene.pool.depthPoints || []).map((d: any) => [d.position, d.depth]),
+        d: (initialScene.deck.points || []).map((p: any) => [Math.round(p.x * 100), Math.round(p.y * 100)]),
+        dim: initialScene.pool.dimensions,
+        f: (initialScene.features || []).map((f: any) => f.id),
+      }),
+    [initialScene]
+  );
+
+  const lastSignatureRef = useRef<string | null>(null);
+
   useEffect(() => {
+    if (lastSignatureRef.current === structureSignature) return;
+    const isFirst = lastSignatureRef.current === null;
+    lastSignatureRef.current = structureSignature;
+
+    const incoming = validateScene(initialScene);
+    const current = sceneRef.current;
+
+    // Keep the user's material selections across structural updates.
+    const merged = isFirst
+      ? incoming
+      : {
+          ...incoming,
+          pool: { ...incoming.pool, finish: current.pool.finish || incoming.pool.finish },
+          deck: {
+            ...incoming.deck,
+            paver: current.deck.paver || incoming.deck.paver,
+            coping: current.deck.coping || incoming.deck.coping,
+            waterline: current.deck.waterline || incoming.deck.waterline,
+            copingWidth: current.deck.copingWidth ?? incoming.deck.copingWidth,
+            copingHeight: current.deck.copingHeight ?? incoming.deck.copingHeight,
+            deckElevation: current.deck.deckElevation ?? incoming.deck.deckElevation,
+          },
+        };
+
     resetHistory({
-      scene: validateScene(initialScene),
+      scene: merged,
       terrainAssets: [],
       poolStairs: [],
       poolChairs: [],
       contourSeating: [],
-      poolLights: initialScene.poolLights || createDefaultPoolLights(false),
+      poolLights: merged.poolLights || createDefaultPoolLights(false),
       assets3D: [],
     });
-  }, [initialScene]);
+  }, [structureSignature, initialScene, resetHistory]);
+
   
   // Sync pool lights with night mode
   useEffect(() => {
