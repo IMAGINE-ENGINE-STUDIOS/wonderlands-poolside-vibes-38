@@ -1553,17 +1553,26 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" }> = ({ variant = "v
                     storageKey={`flip.v5.tabs.${dossier ? "dossier" : mode}`}
                   />
                   <FlipCornerHint visible={cornerHint && !flipLocked} onFlip={flipNext} />
-                  {riffling && (
-                    <FlipRiffle
-                      width={portrait ? dims.w : dims.w * 2}
-                      height={dims.h}
-                      label={`Turning to ${(dossier?.name ?? riffleTarget?.name ?? category.label)}`}
-                      images={rifflePlates.images}
-                      captions={rifflePlates.captions}
-                      destination={riffleTarget?.image}
-                    />
-                  )}
                 </>
+              )}
+              {/* Shared page-flip trans motion — every category and product open */}
+              {flipMotion.active && (
+                <PageFlipTransMotion
+                  width={portrait ? dims.w : dims.w * 2}
+                  height={dims.h}
+                  label={flipMotion.payload.label ?? `Turning to ${category.label}`}
+                  images={
+                    flipMotion.payload.images?.length
+                      ? flipMotion.payload.images
+                      : rifflePlates.images
+                  }
+                  captions={
+                    flipMotion.payload.captions?.length
+                      ? flipMotion.payload.captions
+                      : rifflePlates.captions
+                  }
+                  destination={flipMotion.payload.destination}
+                />
               )}
             </div>
           )}
