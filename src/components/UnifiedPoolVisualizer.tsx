@@ -403,19 +403,19 @@ export function UnifiedPoolVisualizer({
   const focusOnAsset = useCallback((position: [number, number, number]) => {
     focusOn(position, 16);
   }, [focusOn]);
-  // Center on the pool (stairs / seating / lights are placed on the pool perimeter)
+  // Center on the pool (stairs / seating / lights are placed on the pool perimeter,
+  // whose geometry is normalized around the scene origin)
   const focusOnPoolAsset = useCallback(() => {
     const pts = scene.pool.points || [];
     if (!pts.length) {
       focusOn([0, 0, 0], 26);
       return;
     }
-    const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
-    const cz = pts.reduce((s, p) => s + p.y, 0) / pts.length;
     const spanX = Math.max(...pts.map(p => p.x)) - Math.min(...pts.map(p => p.x));
     const spanZ = Math.max(...pts.map(p => p.y)) - Math.min(...pts.map(p => p.y));
-    focusOn([cx, -1, cz], Math.max(18, Math.max(spanX, spanZ) * 1.2));
+    focusOn([0, -1, 0], Math.max(18, Math.max(spanX, spanZ) * 1.2));
   }, [focusOn, scene.pool.points]);
+
 
 
 
