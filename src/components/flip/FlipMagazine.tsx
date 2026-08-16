@@ -1465,7 +1465,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
 
   return (
     <section aria-label="FLIP Magazine edition" className="relative bg-background">
-      <div className="flex flex-wrap items-baseline justify-between gap-3 px-6 py-5 md:px-10">
+      <div className={`flex flex-wrap items-baseline justify-between gap-3 px-6 py-5 md:px-10 ${hideHeader ? "hidden" : ""}`}>
         <nav aria-label="Where you are" className="flex flex-wrap items-baseline gap-3">
           <button
             onClick={openHome}
