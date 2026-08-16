@@ -900,10 +900,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 Remove
               </Button>
             </div>
-          ) : null}
-        </div>
-      )}
+          ) : null;
 
+  const canvasEl = (
       <canvas
         ref={canvasRef}
         width={CANVAS_W}
