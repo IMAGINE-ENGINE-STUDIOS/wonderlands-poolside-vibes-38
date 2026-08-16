@@ -29,12 +29,12 @@ const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace
 
 /** Chips that always work on this screen. */
 export function showroomChips(extra: NarratorAction[] = []): NarratorAction[] {
-  return [
-    ...extra,
+  const base: NarratorAction[] = [
     { label: 'Build a quote', type: 'branch', payload: 'Build me a quote' },
     { label: 'Design my pool', type: 'branch', payload: 'Open the site planner' },
     { label: 'What can you do here?', type: 'branch', payload: 'What can you do here?' },
-  ].slice(0, 4);
+  ];
+  return [...extra, ...base].slice(0, 4);
 }
 
 const widgetChip = (widget: ShowroomWidget): NarratorAction => ({
