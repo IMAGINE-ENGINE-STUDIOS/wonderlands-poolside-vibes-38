@@ -332,12 +332,22 @@ export function WalkthroughMobileUI({ enabled, onExit }: {
       >
         Exit Walkthrough
       </button>
+
+      {/* Jump button */}
+      <button
+        onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }))}
+        className="absolute bottom-24 right-6 pointer-events-auto bg-white/15 backdrop-blur text-white w-20 h-20 rounded-full border border-white/30 text-sm font-medium"
+      >
+        Jump
+      </button>
       
       {/* Instructions */}
       <div className="absolute bottom-4 left-4 pointer-events-none text-white/70 text-sm">
         <p>Left side: Move</p>
         <p>Right side: Look</p>
+        <p>Jump button / Space: Jump</p>
       </div>
     </div>
+
   );
 }
