@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Mountain, Trees, Cloud, Upload, FolderOpen, Search, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
+import { Mountain, Trees, Cloud, Upload, FolderOpen, Search, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, Move3d, RotateCw, Maximize, Magnet, Armchair, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,12 +8,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
 import { isSupported3DFile, getSupportedFormats, Model3DFormat } from './Model3DLoader';
+import type { GizmoMode, GizmoSnapSettings } from './TerrainAssetsRenderer';
 
 export interface TerrainAsset {
   id: string;
   name: string;
-  type: 'terrain' | 'skydome' | 'tree' | 'landscape' | 'custom';
+  type: 'terrain' | 'skydome' | 'tree' | 'landscape' | 'furniture' | 'object' | 'custom';
   url: string;
   format: Model3DFormat;
   position: [number, number, number];
@@ -36,25 +38,53 @@ interface TerrainEditorProps {
   onTerrainAssetsChange: (assets: TerrainAsset[]) => void;
   assetLibrary?: AssetLibraryItem[];
   onAssetLibraryChange?: (library: AssetLibraryItem[]) => void;
+  /** Selection shared with the 3D scene gizmo */
+  selectedAssetId?: string | null;
+  onSelectedAssetIdChange?: (id: string | null) => void;
+  gizmoMode?: GizmoMode;
+  onGizmoModeChange?: (mode: GizmoMode) => void;
+  snap?: GizmoSnapSettings;
+  onSnapChange?: (snap: GizmoSnapSettings) => void;
 }
 
 const DEFAULT_ASSET_LIBRARY: AssetLibraryItem[] = [
   { id: 'lib-1', name: 'American Road Intersection', category: 'Terrain', url: '/models/American_Road_Intersection.usdz', format: 'usdz' },
 ];
 
-const ASSET_CATEGORIES = ['All', 'Terrain', 'Skydome', 'Trees', 'Landscape', 'Custom'];
+const ASSET_CATEGORIES = ['All', 'Terrain', 'Skydome', 'Trees', 'Landscape', 'Furniture', 'Objects', 'Custom'];
+
+const SNAP_STEPS = [0.25, 0.5, 1, 2, 5];
+const ROTATION_STEPS = [5, 15, 30, 45, 90];
 
 export function TerrainEditor({
   terrainAssets,
   onTerrainAssetsChange,
   assetLibrary = DEFAULT_ASSET_LIBRARY,
-  onAssetLibraryChange
+  onAssetLibraryChange,
+  selectedAssetId: controlledSelectedId,
+  onSelectedAssetIdChange,
+  gizmoMode = 'translate',
+  onGizmoModeChange,
+  snap,
+  onSnapChange
 }: TerrainEditorProps) {
+  const snapSettings: GizmoSnapSettings = snap ?? {
+    enabled: true,
+    gridSnap: 1,
+    rotationSnapDeg: 15,
+    scaleSnap: 0.1,
+    snapToGround: true,
+  };
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('terrain');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
+  const selectedAssetId = controlledSelectedId !== undefined ? controlledSelectedId : internalSelectedId;
+  const setSelectedAssetId = useCallback((id: string | null) => {
+    setInternalSelectedId(id);
+    onSelectedAssetIdChange?.(id);
+  }, [onSelectedAssetIdChange]);
   const [libraryOpen, setLibraryOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
@@ -123,6 +153,8 @@ export function TerrainEditor({
       'Skydome': 'skydome',
       'Trees': 'tree',
       'Landscape': 'landscape',
+      'Furniture': 'furniture',
+      'Objects': 'object',
       'Custom': 'custom'
     };
 
@@ -422,6 +454,8 @@ export function TerrainEditor({
                         {item.category === 'Terrain' && <Mountain className="h-4 w-4" />}
                         {item.category === 'Skydome' && <Cloud className="h-4 w-4" />}
                         {item.category === 'Trees' && <Trees className="h-4 w-4" />}
+                        {item.category === 'Furniture' && <Armchair className="h-4 w-4" />}
+                        {item.category === 'Objects' && <Box className="h-4 w-4" />}
                         {(item.category === 'Landscape' || item.category === 'Custom') && <FolderOpen className="h-4 w-4" />}
                       </div>
                       <div className="flex-1 min-w-0">
