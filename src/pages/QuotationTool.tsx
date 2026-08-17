@@ -8,6 +8,7 @@ import StudioCartWidget from "@/components/StudioCartWidget";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import QuoteStudioConfigurator, {
   type ConfiguredProduct,
+  type ConfiguratorControls,
 } from "@/components/quote/QuoteStudioConfigurator";
 import QuoteCalculators, { disciplineForCategory } from "@/components/quote/QuoteCalculators";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
