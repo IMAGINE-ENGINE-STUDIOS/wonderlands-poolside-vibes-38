@@ -38,7 +38,7 @@ import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
 type OptionGroup = { title: string; note: string; options: string[] };
 
 const POOL_OPTION_GROUPS: OptionGroup[] = [
-  { title: "Interior Finish", note: "How the water carries light", options: ["Pebble Tec — Tahoe Blue", "Pebble Tec — Midnight Blue", "PebbleSheen — Caribbean Blue", "PebbleFina — Arctic White", "PebbleBrilliance — Blue Nile"] },
+  { title: "Interior Finish", note: "How the water carries light", options: ["Pebble Tec — Tahoe Blue", "Pebble Tec — Midnight Blue", "PebbleSheen — Blue Granite", "PebbleFina — Bella Blue", "PebbleBrilliance — Crystal Harbor"] },
   { title: "Waterline & Coping", note: "The edge detail", options: ["Glass mosaic waterline", "Porcelain waterline", "Travertine coping — squared edge or bullnose", "Porcelain coping", "Coralina coping"] },
   { title: "Shape & Depth", note: "Drawn without a mould", options: ["Infinity edge", "Zero-entry beach shallows", "Lagoon floor", "Integrated spillover spa", "Tanning ledge with bubblers"] },
   { title: "Water & Comfort", note: "Systems set on delivery day", options: ["Heat pump heater", "Gas heater", "Hydrotherapy jets", "Bubblers", "Rocky waterfall"] },
