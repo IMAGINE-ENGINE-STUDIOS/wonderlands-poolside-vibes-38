@@ -16,6 +16,7 @@ import FinancingOptions from '@/components/FinancingOptions';
 import ProductMediaGallery from '@/components/ProductMediaGallery';
 import { DynamicFeatureRenderer } from '@/components/DynamicFeatureRenderer';
 import { InlineCalculator } from '@/components/search/InlineCalculator';
+import QuoteCalculators from '@/components/quote/QuoteCalculators';
 import { SceneObjectsPanel } from '@/components/scene3d/SceneObjectsPanel';
 import FlipProjectPipeline from '@/components/flip/FlipProjectPipeline';
 import { DEFAULT_PX_PER_FT, type SitePlanData } from '@/components/blueprint/SiteDrawingBoard';
@@ -343,6 +344,10 @@ const StudioShowroom = () => {
             <InlineCalculator type="fence" onResult={setInlineResult} />
           </div>
           {inlineResult && <p className="mt-4 text-sm text-muted-foreground">Last result: {inlineResult}</p>}
+        </Frame>
+
+        <Frame section={W('flip-calculators')} active={isActive('flip-calculators')}>
+          <QuoteCalculators heading="FLIP Calculators" eyebrow="Every discipline" />
         </Frame>
 
         <Frame section={W('site-planner')} active={isActive('site-planner')}>

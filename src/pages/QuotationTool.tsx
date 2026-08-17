@@ -9,7 +9,7 @@ import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import QuoteStudioConfigurator, {
   type ConfiguredProduct,
 } from "@/components/quote/QuoteStudioConfigurator";
-import QuoteCalculators from "@/components/quote/QuoteCalculators";
+import QuoteCalculators, { disciplineForCategory } from "@/components/quote/QuoteCalculators";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { toast } from "@/hooks/use-toast";
@@ -338,10 +338,16 @@ const QuotationTool = () => {
           </aside>
         </div>
 
-        {/* Chapter III — the calculators, as in the showroom */}
-        <div className="mt-14">
-          <QuoteCalculators />
-        </div>
+        {/* Chapter III — only the calculator of the selected piece.
+            The full set lives in the Studio Showroom. */}
+        {entry && (
+          <div className="mt-14">
+            <QuoteCalculators
+              only={disciplineForCategory(entryCategory)}
+              heading={`${entry.name} — the calculator`}
+            />
+          </div>
+        )}
 
         <p className="mt-10 text-center text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
           All prices include delivery, installation and the product as described.
