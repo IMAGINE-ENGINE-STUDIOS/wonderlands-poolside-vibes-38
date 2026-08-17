@@ -8,9 +8,9 @@ INSERT INTO public.products (name, category, subcategory, price, description, im
 
 -- Outdoor Furniture
 INSERT INTO public.products (name, category, subcategory, price, description, image_url, brand, stock_quantity, is_active, features_json) VALUES
-('Paradise Poolside Lounge Set', 'furniture', 'seating', 2299, 'Premium teak lounge chairs with weather-resistant cushions', '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png', 'Paradise', 12, true, '["Teak Wood Frame", "Weather Resistant", "Adjustable Backrest", "UV Protected Fabric"]'),
+('Paradise Poolside Lounge Set', 'furniture', 'seating', 2299, 'Premium teak lounge chairs with weather-resistant cushions', '/wonderlands-branding/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png', 'Paradise', 12, true, '["Teak Wood Frame", "Weather Resistant", "Adjustable Backrest", "UV Protected Fabric"]'),
 ('Sunset Dining Collection', 'furniture', 'dining', 3499, 'Complete outdoor dining set for poolside entertaining', '/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.png', 'Sunset', 6, true, '["8-Person Capacity", "Aluminum Frame", "Tempered Glass Top", "Matching Umbrella"]'),
-('Oasis Bar Cart', 'furniture', 'accessories', 899, 'Mobile bar cart perfect for poolside cocktails', '/lovable-uploads/2ad9f663-7ae0-4ea4-8ae6-cf232b78f58e.png', 'Oasis', 18, true, '["Stainless Steel", "Locking Wheels", "Ice Bucket", "Bottle Storage"]'),
+('Oasis Bar Cart', 'furniture', 'accessories', 899, 'Mobile bar cart perfect for poolside cocktails', '/wonderlands-branding/2ad9f663-7ae0-4ea4-8ae6-cf232b78f58e.png', 'Oasis', 18, true, '["Stainless Steel", "Locking Wheels", "Ice Bucket", "Bottle Storage"]'),
 
 -- Fire Features
 INSERT INTO public.products (name, category, subcategory, price, description, image_url, brand, stock_quantity, is_active, features_json) VALUES

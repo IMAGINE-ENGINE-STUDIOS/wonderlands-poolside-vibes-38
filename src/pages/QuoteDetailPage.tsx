@@ -161,7 +161,7 @@ const QuoteDetailPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <ImageCard 
-                  src="/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.webp" 
+                  src="/wonderlands-branding/1c6556f8-0571-434d-a877-e5152aee1726.webp" 
                   alt="Wonderlands Logo" 
                   className="h-16 w-16" 
                   enableZoom={false} 

@@ -58,7 +58,7 @@ Best regards,
 The Wonderlands World Team',
   '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
   <div style="text-align: center; padding: 30px 30px 20px; border-bottom: 1px solid #e5e7eb;">
-    <img src="https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png" alt="Wonderlands World" style="height: 80px; margin-bottom: 10px;">
+    <img src="https://wonderlands-poolside-vibes-38.lovable.app/wonderlands-branding/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png" alt="Wonderlands World" style="height: 80px; margin-bottom: 10px;">
     <p style="color: #6b7280; font-size: 14px; margin: 0;">Premium Pool & Outdoor Living Solutions</p>
   </div>
   

@@ -159,7 +159,7 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   "laguna": { name: "Laguna", dimensions: "14' × 30'", depth: "3'6\" - 6'", price: 64543, image: "/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.webp", category: "Pool", brand: "Latham" },
   "laguna deluxe": { name: "Laguna Deluxe", dimensions: "14' × 35'", depth: "3'6\" - 6'", price: 74419, image: "/lovable-uploads/laguna-deluxe-pool.webp", category: "Pool", brand: "Latham" },
   "coronado": { name: "Coronado", dimensions: "16' × 32'", depth: "3'6\" - 6'", price: 78750, image: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp", category: "Pool", brand: "Latham" },
-  "synergy": { name: "Synergy", dimensions: "16' × 36'", depth: "3'6\" - 6'", price: 80763, image: "/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.webp", category: "Pool", brand: "Latham" },
+  "synergy": { name: "Synergy", dimensions: "16' × 36'", depth: "3'6\" - 6'", price: 80763, image: "/wonderlands-branding/1c6556f8-0571-434d-a877-e5152aee1726.webp", category: "Pool", brand: "Latham" },
 
   // ============================================
   // GLIMMERGLASS POOLS - Compact

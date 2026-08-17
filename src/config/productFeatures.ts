@@ -51,7 +51,7 @@ const spas: FeatureOption[] = [
     name: "Serenity",
     price: 22000,
     category: 'deluxe',
-    image: "/lovable-uploads/1412e1fb-72ec-4219-a98f-4fcffbd15095.webp",
+    image: "/wonderlands-branding/1412e1fb-72ec-4219-a98f-4fcffbd15095.webp",
     dimensions: "6' x 6' x 32\"",
     features: ["LED Lighting", "Jets", "Heater"]
   },
