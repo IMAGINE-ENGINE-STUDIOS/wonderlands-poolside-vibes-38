@@ -158,12 +158,8 @@ export const SouthBar: React.FC<SouthBarProps> = ({
   const toggleTalk = React.useCallback(() => {
     setOpen(true);
     setTab("genius");
-    if (voice.handsFree) {
-      voice.setHandsFree(false);
-      voice.stop();
-    } else {
-      void voice.setHandsFree(true);
-    }
+    /* setHandsFree(false) already closes the microphone. */
+    void voice.setHandsFree(!voice.handsFree);
   }, [voice]);
 
   /* ------------------------------ the field ------------------------------ */
