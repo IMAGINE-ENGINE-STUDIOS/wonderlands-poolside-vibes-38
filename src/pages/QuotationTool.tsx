@@ -12,6 +12,7 @@ import QuoteStudioConfigurator, {
 } from "@/components/quote/QuoteStudioConfigurator";
 import QuoteCalculators, { disciplineForCategory } from "@/components/quote/QuoteCalculators";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
+import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { toast } from "@/hooks/use-toast";
 
