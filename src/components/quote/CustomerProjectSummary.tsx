@@ -159,9 +159,20 @@ export const CustomerProjectSummary: React.FC<Props> = ({ categoryId, product })
     figures.push({ label: "Deck & hardscape", value: `${(areaSqFt - poolSqFt).toLocaleString()} sq ft` });
   if (runFt > 0) figures.push({ label: "Barrier", value: `${runFt.toLocaleString()} linear ft` });
   if (drawnTotal > 0) figures.push({ label: "Priced as drawn", value: money(drawnTotal) });
-  if (product) figures.push({ label: "Configured piece", value: money(product.total) });
-  if (listTotal > 0) figures.push({ label: "Shopping list", value: money(listTotal) });
-  if (investment > 0) figures.push({ label: "Project investment", value: money(investment) });
+  /* Every money line below is traceable: the list, what is still pending, and their sum. */
+  if (product)
+    figures.push({
+      label: pieceInList ? "Configured piece — already in the selection" : "Configured piece — pending",
+      value: money(product.total),
+    });
+  if (listTotal > 0) figures.push({ label: "The selection", value: money(listTotal) });
+  if (pendingPiece > 0) figures.push({ label: "Pending, not yet added", value: money(pendingPiece) });
+  if (investment > 0)
+    figures.push({
+      label: pendingPiece > 0 ? "Project investment — selection + pending" : "Project investment",
+      value: money(investment),
+    });
+
 
   return (
     <div className="border-b border-border/60 bg-background/60 backdrop-blur-xl">
