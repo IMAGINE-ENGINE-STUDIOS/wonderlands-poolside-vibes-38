@@ -5,15 +5,15 @@ import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import FlipConsole from "./flip/FlipConsole";
 
 
-import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
+import lathamGilmerBanner from "@/assets/banners/latham-gilmer-banner.webp";
 import madrePerlaBanner from "@/assets/pools/madre-perla.webp";
 import pacificRidgeBanner from "@/assets/pools/pacific-ridge-new.webp";
 import wonderPalaceBanner from "@/assets/pools/wonderpalace.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
 import spaBanner from "@/assets/banners/spa-banner.webp";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.webp";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
+import screenEnclosurePremium from "@/assets/enclosures/screen-enclosure-premium.webp";
+import screenEnclosureDeluxe from "@/assets/enclosures/screen-enclosure-deluxe.webp";
 import paversBanner from "@/assets/banners/pavers-banner.webp";
 import coversBanner from "@/assets/banners/covers-banner.webp";
 import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.webp";
@@ -21,7 +21,7 @@ import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.webp";
 import patioFencingBanner from "@/assets/banners/patio-fencing-banner.webp";
 import lanaiBanner from "@/assets/banners/lanai-banner.webp";
 import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
-import grassBanner from "@/assets/grass-natural-green.avif";
+import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import sapphireFinish from "@/assets/finishes/sapphire-blue-g3.webp";
 import oceanLiner from "@/assets/finishes/ocean-blue-g3.webp";
 import aquamarineFinish from "@/assets/finishes/aquamarine-g3.webp";

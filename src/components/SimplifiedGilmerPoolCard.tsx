@@ -19,8 +19,8 @@ import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu, Droplets } from 'lucide-react';
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
+import screenEnclosureDeluxe from "@/assets/enclosures/screen-enclosure-deluxe.webp";
+import screenEnclosurePremium from "@/assets/enclosures/screen-enclosure-premium.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 
 interface SimplifiedGilmerPoolCardProps {
@@ -39,9 +39,9 @@ interface SimplifiedGilmerPoolCardProps {
   };
 }
 
-import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.webp";
-import maldivesImage from "@/assets/maldiveskit-castlerock.webp";
-import serenityImage from "@/assets/serenitykit.webp";
+import sunsetGroveImage from "@/assets/pools/kits/sunset-grove-kit-pool.webp";
+import maldivesImage from "@/assets/pools/kits/maldiveskit-castlerock.webp";
+import serenityImage from "@/assets/pools/kits/serenitykit.webp";
 import InstallationNote from "@/components/InstallationNote";
 
 interface GilmerOptions {

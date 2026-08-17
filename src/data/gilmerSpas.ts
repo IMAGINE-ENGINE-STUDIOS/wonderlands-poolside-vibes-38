@@ -1,8 +1,8 @@
 // Gilmer Glass Spas Data - 2025 Georgia Pricing (Dealer Price × 4)
-import gilmerMoonlight from '@/assets/gilmer-moonlight.webp';
-import gilmerPacifica from '@/assets/gilmer-pacifica.webp';
-import gilmerPearl from '@/assets/gilmer-pearl.webp';
-import gilmerTranquility from '@/assets/gilmer-tranquility.webp';
+import gilmerMoonlight from '@/assets/pools/glimmerglass/gilmer-moonlight.webp';
+import gilmerPacifica from '@/assets/pools/glimmerglass/gilmer-pacifica.webp';
+import gilmerPearl from '@/assets/pools/glimmerglass/gilmer-pearl.webp';
+import gilmerTranquility from '@/assets/pools/glimmerglass/gilmer-tranquility.webp';
 
 export interface GilmerSpa {
   model: string;

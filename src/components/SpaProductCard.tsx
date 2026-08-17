@@ -26,8 +26,8 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.webp';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
+import screenEnclosureDeluxe from "@/assets/enclosures/screen-enclosure-deluxe.webp";
+import screenEnclosurePremium from "@/assets/enclosures/screen-enclosure-premium.webp";
 import { resolveCategoryLabel } from '@/lib/productCategories';
 interface Pool {
   model: string;

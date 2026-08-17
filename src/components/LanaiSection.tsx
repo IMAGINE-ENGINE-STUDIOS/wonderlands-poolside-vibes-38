@@ -18,9 +18,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Home, Shield, TrendingUp } from "lucide-react";
-import lanaiStandardImg from "@/assets/lanai-standard.webp";
-import lanaiDeluxeImg from "@/assets/lanai-deluxe.webp";
-import lanaiPremiumImg from "@/assets/lanai-premium.webp";
+import lanaiStandardImg from "@/assets/enclosures/lanai-standard.webp";
+import lanaiDeluxeImg from "@/assets/enclosures/lanai-deluxe.webp";
+import lanaiPremiumImg from "@/assets/enclosures/lanai-premium.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 

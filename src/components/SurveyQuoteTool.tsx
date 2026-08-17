@@ -27,13 +27,13 @@ import ImageCard from "./ImageCard";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 import ImageUploadOverlay, { type ImageCropSettings } from "./ImageUploadOverlay";
 const poolHeaterImg = "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp";
-import fenceQuoteImage from "@/assets/fence-quote-image.webp";
-import aluminumPanelImage from "@/assets/aluminum-panel-2.webp";
-import grassLightGreen from '@/assets/grass-light-green.avif';
-import grassDarkGreen from '@/assets/grass-dark-green.avif';
-import grassNaturalGreen from '@/assets/grass-natural-green.avif';
-import grassEmerald from '@/assets/grass-emerald.avif';
-import grassOlive from '@/assets/grass-olive.avif';
+import fenceQuoteImage from "@/assets/fencing/fence-quote-image.webp";
+import aluminumPanelImage from "@/assets/fencing/aluminum-panel-2.webp";
+import grassLightGreen from '@/assets/turf/grass-light-green.avif';
+import grassDarkGreen from '@/assets/turf/grass-dark-green.avif';
+import grassNaturalGreen from '@/assets/turf/grass-natural-green.avif';
+import grassEmerald from '@/assets/turf/grass-emerald.avif';
+import grassOlive from '@/assets/turf/grass-olive.avif';
 // Jets intentionally have no image in the quote
 interface Pool {
   model: string;

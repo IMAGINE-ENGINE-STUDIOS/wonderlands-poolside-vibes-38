@@ -1,8 +1,8 @@
-import grassLightGreen from '@/assets/grass-light-green.avif';
-import grassDarkGreen from '@/assets/grass-dark-green.avif';
-import grassNaturalGreen from '@/assets/grass-natural-green.avif';
-import grassEmerald from '@/assets/grass-emerald.avif';
-import grassOlive from '@/assets/grass-olive.avif';
+import grassLightGreen from '@/assets/turf/grass-light-green.avif';
+import grassDarkGreen from '@/assets/turf/grass-dark-green.avif';
+import grassNaturalGreen from '@/assets/turf/grass-natural-green.avif';
+import grassEmerald from '@/assets/turf/grass-emerald.avif';
+import grassOlive from '@/assets/turf/grass-olive.avif';
 
 export const PRICE_PER_SQFT = 25;
 

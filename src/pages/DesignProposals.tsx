@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
-import heroPool from "@/assets/hero-pool-optimized.webp";
-import maximaPool from "@/assets/maxima-pool.webp";
-import sunsetGrove from "@/assets/sunset-grove-kit-pool.webp";
-import poolBanner from "@/assets/pool-banner-2.webp";
-import poolTexture from "@/assets/pool-texture-sapphire.webp";
+import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
+import heroPool from "@/assets/hero/hero-pool-optimized.webp";
+import maximaPool from "@/assets/pools/kits/maxima-pool.webp";
+import sunsetGrove from "@/assets/pools/kits/sunset-grove-kit-pool.webp";
+import poolBanner from "@/assets/banners/pool-banner-2.webp";
+import poolTexture from "@/assets/textures/pool-texture-sapphire.webp";
 import luxuryPool from "@/assets/deck/luxury-pool.webp";
 import luxuryOutdoor from "@/assets/deck/luxury-outdoor.webp";
 import spa from "@/assets/deck/spa.webp";

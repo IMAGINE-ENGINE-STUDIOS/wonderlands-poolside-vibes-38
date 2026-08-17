@@ -1,5 +1,5 @@
 import React from "react";
-import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
+import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 /**
  * The one pager — Wonderlands World's written commitment to the customer.

@@ -3,8 +3,8 @@ const { useState } = React;
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AdvancedSearch from "./AdvancedSearch";
 import FlipMagazine from "./flip/FlipMagazine";
-import heroVideo from "@/assets/hero-beach-uhd.mp4.asset.json";
-import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
+import heroVideo from "@/assets/hero/hero-beach-uhd.mp4.asset.json";
+import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);

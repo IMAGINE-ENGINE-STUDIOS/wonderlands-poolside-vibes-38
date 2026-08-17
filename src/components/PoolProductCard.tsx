@@ -51,18 +51,18 @@ import lagoonBlueFinish from "@/assets/finishes/lagoon-blue-g2.webp";
 import azureBlueFinish from "@/assets/finishes/azure-blue-g2.webp";
 import coastalBronzeFinish from "@/assets/finishes/coastal-bronze-g3.webp";
 import shaleGrayFinish from "@/assets/finishes/shale-gray-g3.webp";
-import noCoverBlack from "@/assets/no-cover-black.webp";
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.webp";
-import screenEnclosurePremium from "@/assets/screen-enclosure-premium.webp";
+import noCoverBlack from "@/assets/covers/no-cover-black.webp";
+import screenEnclosureDeluxe from "@/assets/enclosures/screen-enclosure-deluxe.webp";
+import screenEnclosurePremium from "@/assets/enclosures/screen-enclosure-premium.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
-import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.webp";
-import maldivesImage from "@/assets/maldiveskit-castlerock.webp";
-import serenityImage from "@/assets/serenitykit.webp";
-import grassLightGreenImage from "@/assets/grass-light-green.avif";
-import grassDarkGreenImage from "@/assets/grass-dark-green.avif";
-import grassNaturalGreenImage from "@/assets/grass-natural-green.avif";
-import grassEmeraldImage from "@/assets/grass-emerald.avif";
-import grassOliveImage from "@/assets/grass-olive.avif";
+import sunsetGroveImage from "@/assets/pools/kits/sunset-grove-kit-pool.webp";
+import maldivesImage from "@/assets/pools/kits/maldiveskit-castlerock.webp";
+import serenityImage from "@/assets/pools/kits/serenitykit.webp";
+import grassLightGreenImage from "@/assets/turf/grass-light-green.avif";
+import grassDarkGreenImage from "@/assets/turf/grass-dark-green.avif";
+import grassNaturalGreenImage from "@/assets/turf/grass-natural-green.avif";
+import grassEmeraldImage from "@/assets/turf/grass-emerald.avif";
+import grassOliveImage from "@/assets/turf/grass-olive.avif";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {

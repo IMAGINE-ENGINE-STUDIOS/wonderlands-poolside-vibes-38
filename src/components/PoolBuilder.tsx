@@ -24,7 +24,7 @@ import { SplineDrawTutorial } from './poolBuilder/SplineDrawTutorial';
 import { snapToGridRelative, calculateProjectCost, getDeckPricePerSqFt, getCopingPricePerSqFt, FEATURE_COSTS as CENTRALIZED_FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { ShapeRepository } from './ShapeRepository';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
-import poolTextureSapphire from '@/assets/pool-texture-sapphire.webp';
+import poolTextureSapphire from '@/assets/textures/pool-texture-sapphire.webp';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';

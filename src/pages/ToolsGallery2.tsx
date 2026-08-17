@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import useReveal from "@/hooks/useReveal";
 
-import logo from "@/assets/wonderlands-logo.webp";
+import logo from "@/assets/brand/wonderlands-logo.webp";
 
 /* Light widgets — loaded with the page */
 import AdvancedSearch from "@/components/AdvancedSearch";
