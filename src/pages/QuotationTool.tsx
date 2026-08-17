@@ -309,7 +309,9 @@ const QuotationTool = () => {
                   onChange={setProduct}
                   onAdd={handleAdd}
                   onQuote={handleQuote}
+                  controls={controls}
                 />
+
               ) : (
                 <div className="border border-dashed border-foreground/20 bg-background/60 px-6 py-14 text-center backdrop-blur-xl">
                   <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
