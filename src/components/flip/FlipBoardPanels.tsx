@@ -432,6 +432,7 @@ export const FlipBoardTools: React.FC<{
 
 export const FlipBoardCost: React.FC<{ categoryId: string }> = ({ categoryId }) => {
   const { lines, total, perSqFt, takeoff, areaSqFt, runFt } = useBoardEstimate(categoryId);
+  const { specs, schedule } = useProjectSpecs(categoryId);
   return (
     <div className="flex h-full w-full flex-col overflow-hidden p-6 sm:p-8">
       <Eyebrow>Priced as drawn</Eyebrow>
@@ -442,24 +443,68 @@ export const FlipBoardCost: React.FC<{ categoryId: string }> = ({ categoryId }) 
         {perSqFt > 0 ? ` · $${perSqFt.toFixed(2)}/sq ft installed` : ""}
       </p>
 
-      <ul className="mt-4 min-h-0 flex-1 overflow-hidden">
-        {lines.slice(0, 9).map((l, i) => (
-          <li key={`${l.label}-${i}`} className="flex items-baseline justify-between gap-3 border-t border-border/50 py-2">
-            <span className="min-w-0">
-              <span className="block text-[10px] uppercase tracking-[0.22em]">{l.label}</span>
-              <span className="block truncate text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-                {l.detail}
+      {/* Money, then the engineering that money buys, then how it is paid */}
+      <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+        <ul>
+          {lines.map((l, i) => (
+            <li
+              key={`${l.label}-${i}`}
+              className="flex items-baseline justify-between gap-3 border-t border-border/50 py-2"
+            >
+              <span className="min-w-0">
+                <span className="block text-[10px] uppercase tracking-[0.22em]">{l.label}</span>
+                <span className="block truncate text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {l.detail}
+                </span>
               </span>
-            </span>
-            <span className="shrink-0 font-serif text-base font-light">{formatMoney(l.amount)}</span>
-          </li>
-        ))}
-        {!lines.length && (
-          <li className="border-t border-border/50 py-3 text-[10px] leading-relaxed text-muted-foreground">
-            Draw the plan on the facing page — the estimate builds itself line by line as you go.
-          </li>
+              <span className="shrink-0 font-serif text-base font-light">{formatMoney(l.amount)}</span>
+            </li>
+          ))}
+          {!lines.length && (
+            <li className="border-t border-border/50 py-3 text-[10px] leading-relaxed text-muted-foreground">
+              Draw the plan on the facing page — the estimate builds itself line by line as you go.
+            </li>
+          )}
+        </ul>
+
+        {specs.length > 0 && (
+          <div className="mt-5">
+            <Eyebrow>Project specifications</Eyebrow>
+            <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">
+              Taken off your drawing — this is the work and the material behind the number above.
+            </p>
+            <ul className="mt-2">
+              {specs.map((s) => (
+                <li key={s.label} className="border-t border-border/50 py-2">
+                  <p className="text-[10px] uppercase tracking-[0.22em]">{s.label}</p>
+                  <p className="font-serif text-sm font-light leading-snug">{s.value}</p>
+                  <p className="mt-0.5 text-[9px] leading-relaxed text-muted-foreground">{s.why}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
-      </ul>
+
+        {total > 0 && (
+          <div className="mt-5">
+            <Eyebrow>Payment schedule</Eyebrow>
+            <ul className="mt-2">
+              {schedule.map((s) => (
+                <li
+                  key={s.label}
+                  className="flex items-baseline justify-between gap-3 border-t border-border/50 py-1.5"
+                >
+                  <span className="text-[10px] uppercase tracking-[0.22em]">
+                    {s.label} <span className="text-muted-foreground">{s.pct}%</span>
+                  </span>
+                  <span className="shrink-0 font-serif text-sm font-light">{formatMoney(s.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
 
       <p className="mt-3 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
         All prices include delivery, installation and the product as described. Final figures are confirmed on the
