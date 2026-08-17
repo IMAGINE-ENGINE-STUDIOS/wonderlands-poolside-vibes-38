@@ -45,7 +45,7 @@ type Props = {
 };
 
 export const CustomerProjectSummary: React.FC<Props> = ({ categoryId, product }) => {
-  const { cartItems, cartTotal } = useShoppingCart();
+  const { cartItems } = useShoppingCart();
   const { areaSqFt, runFt, poolSqFt, total: drawnTotal } = useBoardEstimate(categoryId);
   const { specs, schedule } = useProjectSpecs(categoryId);
 
