@@ -726,7 +726,39 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
           </Row>
         )}
 
+        {/* What the client actually receives, and in what order */}
+        <Row label="Included turn-key, every project">
+          <ul className="space-y-1">
+            {TURNKEY_SCOPE.map((s) => (
+              <li key={s.label} className="text-[9px] leading-relaxed">
+                <span className="uppercase tracking-[0.2em]">{s.label}</span>
+                <span className="text-muted-foreground"> — {s.note}</span>
+              </li>
+            ))}
+          </ul>
+        </Row>
+
+        {pipeline && (
+          <Row label={`${pipeline.title} — what happens, and when`}>
+            <p className="text-[9px] leading-relaxed text-muted-foreground">{pipeline.note}</p>
+            <ol className="mt-1.5 space-y-1">
+              {pipeline.steps.map((s) => (
+                <li key={s.step} className="text-[9px] leading-relaxed">
+                  <span className="uppercase tracking-[0.2em]">
+                    {s.step}. {s.title}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    — {s.detail} ({s.duration}, {s.owner})
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </Row>
+        )}
+
         <Row label="Running total">
+
           <p className="font-serif text-2xl font-light leading-none">{formatMoney(total)}</p>
           <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
             {areaSqFt > 0 ? `${areaSqFt.toLocaleString()} sq ft` : "Draw or enter an area"}
