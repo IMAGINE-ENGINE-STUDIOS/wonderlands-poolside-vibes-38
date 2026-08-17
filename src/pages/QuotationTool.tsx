@@ -8,9 +8,11 @@ import StudioCartWidget from "@/components/StudioCartWidget";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import QuoteStudioConfigurator, {
   type ConfiguredProduct,
+  type ConfiguratorControls,
 } from "@/components/quote/QuoteStudioConfigurator";
 import QuoteCalculators, { disciplineForCategory } from "@/components/quote/QuoteCalculators";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
+import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { toast } from "@/hooks/use-toast";
 
@@ -111,7 +113,8 @@ const AutoAddCountdown: React.FC<{
 
 const QuotationTool = () => {
   const navigate = useNavigate();
-  const { addToCart } = useShoppingCart();
+  const { addToCart, cartItems, syncItemConfig } = useShoppingCart();
+
 
   const [activeCategory, setActiveCategory] = usePersistentState<string>(
     "quote.console.category",
@@ -165,12 +168,41 @@ const QuotationTool = () => {
     [addToCart],
   );
 
+  /* Live two-way sync — while a piece is open in the configurator, the copy that
+     already sits in the shopping list mirrors its base price and features, so
+     the header total, the list and the checkout can never diverge. */
+  const inCart = React.useMemo(
+    () => (product ? cartItems.some((i) => i.id === product.id) : false),
+    [cartItems, product],
+  );
+  const extrasKey = product ? JSON.stringify(product.extras) : "";
+  React.useEffect(() => {
+    if (!product || !inCart) return;
+    syncItemConfig(product.id, { price: product.basePrice, extras: product.extras });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inCart, product?.id, product?.basePrice, extrasKey]);
 
+  /* The shopping list edits the open configuration at the source */
+  const controls = React.useRef<ConfiguratorControls | null>(null);
+  const handleRemoveExtra = React.useCallback(
+    (key?: string) => controls.current?.removeExtra(key),
+    [],
+  );
+  const handleExtraQuantity = React.useCallback(
+    (key: string | undefined, quantity: number) => controls.current?.setExtraQuantity(key, quantity),
+    [],
+  );
+  const handleExtraOption = React.useCallback(
+    (key: string | undefined, name: string) => controls.current?.setExtraOption(key, name),
+    [],
+  );
 
   const handleQuote = React.useCallback((p: ConfiguredProduct) => {
     setProduct(p);
     setQuoteOpen(true);
   }, []);
+
+
 
   const noop = React.useCallback(() => undefined, []);
   const openSection = React.useCallback(
@@ -178,17 +210,22 @@ const QuotationTool = () => {
     [navigate],
   );
 
+  /* The quote is built from the open configuration AND everything else already
+     on the shopping list, so every category the reader added is quoted. */
   const quoteExtras = React.useMemo(() => {
-    if (!product) return undefined;
-    return {
-      extrasBreakdown: product.extras.map((e) => ({
-        name: e.name,
-        price: e.price,
-        image: e.image ?? "",
-      })),
-      extrasTotal: product.extras.reduce((sum, e) => sum + e.price, 0),
-    };
-  }, [product]);
+    const own = product
+      ? {
+          extrasBreakdown: product.extras.map((e) => ({
+            name: e.name,
+            price: e.price,
+            image: e.image ?? "",
+          })),
+          extrasTotal: product.extras.reduce((sum, e) => sum + e.price, 0),
+        }
+      : { extrasBreakdown: [], extrasTotal: 0 };
+    const merged = mergeCartIntoExtras(own, cartItems as any, product?.name);
+    return merged.extrasBreakdown.length ? merged : undefined;
+  }, [product, cartItems]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -272,7 +309,9 @@ const QuotationTool = () => {
                   onChange={setProduct}
                   onAdd={handleAdd}
                   onQuote={handleQuote}
+                  controls={controls}
                 />
+
               ) : (
                 <div className="border border-dashed border-foreground/20 bg-background/60 px-6 py-14 text-center backdrop-blur-xl">
                   <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
@@ -293,6 +332,9 @@ const QuotationTool = () => {
               currentName={product?.name}
               currentCategory={product?.category}
               currentExtras={product?.extras}
+              onRemoveCurrentExtra={handleRemoveExtra}
+              onCurrentExtraQuantity={handleExtraQuantity}
+              onCurrentExtraOption={handleExtraOption}
               onAddCurrent={product ? () => handleAdd(product) : undefined}
               onQuote={product ? () => handleQuote(product) : () => setQuoteOpen(true)}
             />
