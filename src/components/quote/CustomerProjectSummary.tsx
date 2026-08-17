@@ -283,8 +283,13 @@ export const CustomerProjectSummary: React.FC<Props> = ({ categoryId, product })
           <ul className="mt-2">
             {schedule.map((s) => (
               <li key={s.label} className="flex items-baseline justify-between gap-3 border-t border-border/50 py-1.5">
-                <span className="text-[11px] text-foreground/85">{s.label}</span>
-                <span className="text-[10px] text-muted-foreground">{s.amount}</span>
+                <span className="text-[11px] text-foreground/85">
+                  {s.label} — {s.pct}%
+                </span>
+                {/* Percentages apply to the guest's whole project when one is configured */}
+                <span className="text-[10px] text-muted-foreground">
+                  {money(investment > 0 ? (investment * s.pct) / 100 : s.amount)}
+                </span>
               </li>
             ))}
           </ul>
