@@ -162,24 +162,25 @@ const StudioCartWidget = ({
         </Button>
       </div>
 
-      {/* Shopping list toggle */}
+      {/* The selection — editorial toggle */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="relative w-full flex items-center justify-center gap-2 rounded-lg border border-border/40 bg-background/40 px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-background/60 hover:border-primary/30 transition-all"
+        className="relative w-full flex items-center justify-center gap-2 rounded-lg border border-foreground/12 bg-foreground/[0.03] px-3 py-2 text-[9px] uppercase tracking-[0.32em] text-muted-foreground hover:text-foreground hover:border-primary/35 transition-all"
       >
-        {open ? 'Hide Shopping List' : 'View Shopping List'}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+        {open ? 'Close the selection' : 'Read the selection'}
+        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Shopping list panel */}
       {open && (
         <div className="relative rounded-xl border border-border/40 bg-background/50 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-primary/5">
-            <span className="text-sm font-semibold flex items-center gap-2">
-              <ShoppingBag className="h-3.5 w-3.5 text-primary" />
-              Shopping List
+            <span className="flex items-center gap-2 text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
+              <ShoppingBag className="h-3 w-3 text-primary" />
+              The Selection
             </span>
+
             {cartItems.length > 0 && (
               <Button
                 variant="ghost"
