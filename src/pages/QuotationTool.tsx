@@ -518,7 +518,18 @@ const QuotationTool = () => {
 
 
       <Footer />
+
+      {/* South rail — search engine + Genius chatbox (src/components/southbar) */}
+      <SouthBar
+        contextLabel="Quote Atelier"
+        onOpenCategory={(id) => setActiveCategory(id)}
+        onOpenProduct={(categoryId, found) => {
+          setActiveCategory(categoryId);
+          handleSelectEntry(found, categoryId);
+        }}
+      />
     </div>
+
   );
 };
 
