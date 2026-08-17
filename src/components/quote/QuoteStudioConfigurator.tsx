@@ -199,6 +199,57 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
       prev[groupTitle] ? { ...prev, [groupTitle]: { ...prev[groupTitle], qty: Math.max(1, qty) } } : prev,
     );
 
+  /* Live edit handles used by the shopping list. Feature keys are the group
+     titles and option names are stored as "Group: Option". */
+  React.useEffect(() => {
+    if (!controls) return;
+    controls.current = {
+      removeExtra: (key) => {
+        if (!key) return;
+        setSelected((prev) => {
+          if (!prev[key]) return prev;
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        });
+      },
+      setExtraQuantity: (key, quantity) => {
+        if (!key) return;
+        if (quantity <= 0) {
+          setSelected((prev) => {
+            if (!prev[key]) return prev;
+            const next = { ...prev };
+            delete next[key];
+            return next;
+          });
+          return;
+        }
+        setQty(key, quantity);
+      },
+      setExtraOption: (key, optionName) => {
+        if (!key) return;
+        const group = groups.find((g) => g.title === key);
+        const label = optionName.startsWith(`${key}: `) ? optionName.slice(key.length + 2) : optionName;
+        const item = group?.items.find((i) => i.label === label);
+        if (!item) return;
+        setSelected((prev) => ({
+          ...prev,
+          [key]: {
+            label: item.label,
+            price: item.price,
+            unit: item.unit,
+            qty: prev[key]?.qty ?? (item.unit === "sqft" ? 400 : 1),
+            image: item.image,
+          },
+        }));
+      },
+    };
+    return () => {
+      controls.current = null;
+    };
+  }, [controls, groups]);
+
+
   return (
     <section className="flex flex-col border border-foreground/15 bg-background/70 backdrop-blur-xl">
       {/* Masthead */}
