@@ -5,7 +5,19 @@ import { Separator } from '@/components/ui/separator';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
 import { useNavigate } from 'react-router-dom';
 import { usePersistentState } from '@/hooks/usePersistentState';
-import { ChevronDown, Minus, Plus, Trash2, AlertTriangle, FileText, X, CreditCard, Plus as PlusIcon } from 'lucide-react';
+import {
+  ChevronDown,
+  Minus,
+  Plus,
+  Trash2,
+  AlertTriangle,
+  FileText,
+  X,
+  CreditCard,
+  Plus as PlusIcon,
+  ShoppingBag,
+  Sparkles,
+} from 'lucide-react';
 
 interface StudioCartWidgetProps {
   /** Price of the configuration currently open in the studio (not yet in the cart) */
@@ -15,7 +27,14 @@ interface StudioCartWidgetProps {
   /** Category of the configuration currently open */
   currentCategory?: string;
   /** Features/extras of the configuration currently open */
-  currentExtras?: Array<{ name: string; price: number; key?: string; quantity?: number; selectedOption?: string; options?: { name: string; price: number }[] }>;
+  currentExtras?: Array<{
+    name: string;
+    price: number;
+    key?: string;
+    quantity?: number;
+    selectedOption?: string;
+    options?: { name: string; price: number }[];
+  }>;
   /** Removes one feature from the currently open configuration */
   onRemoveCurrentExtra?: (key?: string) => void;
   /** Updates the quantity of a feature in the currently open configuration */
@@ -56,15 +75,17 @@ const StudioCartWidget = ({
     updateQuantity,
     removeExtra,
     updateExtra,
-
     clearCart,
   } = useShoppingCart();
   const navigate = useNavigate();
   const [open, setOpenState] = usePersistentState('studio_cartWidgetOpen', false);
-  const setOpen = React.useCallback((next: boolean) => {
-    setOpenState(next);
-    onListOpenChange?.(next);
-  }, [onListOpenChange, setOpenState]);
+  const setOpen = React.useCallback(
+    (next: boolean) => {
+      setOpenState(next);
+      onListOpenChange?.(next);
+    },
+    [onListOpenChange, setOpenState]
+  );
 
   // Re-sync the parent with the restored (cached) panel state after a reload.
   React.useEffect(() => {
@@ -72,13 +93,9 @@ const StudioCartWidget = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
-
-
-
   const cartTotal = getCartTotal();
   const isCurrentInCart = React.useMemo(
-    () => cartItems.some(item => item.name === currentName),
+    () => cartItems.some((item) => item.name === currentName),
     [cartItems, currentName]
   );
   const pendingPrice = isCurrentInCart ? 0 : currentPrice;
@@ -86,98 +103,122 @@ const StudioCartWidget = ({
   const duplicates = getDuplicateCategories();
   const total = money(storeTotal);
 
-  const itemTotal = (price: number, extras: { price: number }[] | undefined, quantity: number) =>
-    (price + (extras || []).reduce((sum, e) => sum + e.price, 0)) * quantity;
+  const itemTotal = (
+    price: number,
+    extras: { price: number }[] | undefined,
+    quantity: number
+  ) => (price + (extras || []).reduce((sum, e) => sum + e.price, 0)) * quantity;
+
+  const hasItems = cartItems.length > 0 || pendingPrice > 0;
 
   return (
-    <div className="border-b bg-gradient-to-r from-primary/10 to-teal/10 p-3 space-y-2">
-      <div className="text-center">
-        <div className="text-xl font-bold">
-          <span className="text-primary">{total.whole}</span>
-          <span className="text-foreground">{total.cents}</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center justify-center gap-1">
+    <div className="relative rounded-2xl border border-border/50 bg-background/45 p-4 shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.22)] backdrop-blur-2xl space-y-4 overflow-hidden">
+      {/* Ambient glass glow */}
+      <div className="pointer-events-none absolute -left-8 -top-8 h-32 w-32 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-teal/10 blur-3xl" />
+
+      {/* Header: total price */}
+      <div className="relative text-center space-y-1">
+        <div className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-medium uppercase tracking-widest text-primary">
+          <Sparkles className="h-3 w-3" />
           Total Configuration Price
-          <span className="text-muted-foreground/70">
-            ({getCartCount() + (pendingPrice > 0 ? 1 : 0)} items)
+        </div>
+        <div className="text-3xl font-bold tracking-tight">
+          <span className="text-primary drop-shadow-[0_0_12px_hsl(var(--primary)/0.45)]">
+            {total.whole}
           </span>
-          {duplicates.length > 0 && (
-            <AlertTriangle className="h-3 w-3 text-coral" />
-          )}
+          <span className="text-foreground/70">{total.cents}</span>
+        </div>
+        <p className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
+          <ShoppingBag className="h-3 w-3" />
+          {getCartCount() + (pendingPrice > 0 ? 1 : 0)} items
+          {duplicates.length > 0 && <AlertTriangle className="h-3 w-3 text-coral" />}
         </p>
       </div>
 
-      <div className="flex gap-2">
+      {/* Action buttons */}
+      <div className="relative grid grid-cols-2 gap-2">
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 text-[11px]"
           onClick={() => {
             if (pendingPrice > 0) onAddCurrent?.();
             onQuote?.();
           }}
+          className="h-9 border-border/60 bg-background/50 text-[11px] font-medium backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all"
         >
-          <FileText className="h-3 w-3 mr-1" /> Quote
+          <FileText className="h-3.5 w-3.5 mr-1.5" /> Quote
         </Button>
         <Button
           size="sm"
-          className="flex-1 text-[11px]"
           onClick={() => {
             if (pendingPrice > 0) onAddCurrent?.();
             navigate('/checkout');
           }}
+          className="h-9 bg-gradient-to-r from-primary to-teal text-[11px] font-medium text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
         >
-          <CreditCard className="h-3 w-3 mr-1" /> Checkout
+          <CreditCard className="h-3.5 w-3.5 mr-1.5" /> Checkout
         </Button>
       </div>
 
-
+      {/* Shopping list toggle */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
+        className="relative w-full flex items-center justify-center gap-2 rounded-lg border border-border/40 bg-background/40 px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-background/60 hover:border-primary/30 transition-all"
       >
         {open ? 'Hide Shopping List' : 'View Shopping List'}
-        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
       </button>
 
+      {/* Shopping list panel */}
       {open && (
-        <div className="rounded-lg border bg-popover text-popover-foreground shadow-sm overflow-hidden">
-
-          <div className="flex items-center justify-between px-3 py-2 border-b">
-            <span className="text-sm font-semibold">Shopping List</span>
+        <div className="relative rounded-xl border border-border/40 bg-background/50 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-primary/5">
+            <span className="text-sm font-semibold flex items-center gap-2">
+              <ShoppingBag className="h-3.5 w-3.5 text-primary" />
+              Shopping List
+            </span>
             {cartItems.length > 0 && (
-              <Button variant="ghost" size="sm" className="h-6 text-[11px]" onClick={clearCart}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[11px] text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                onClick={clearCart}
+              >
                 Clear all
               </Button>
             )}
           </div>
 
           {duplicates.length > 0 && (
-            <div className="flex items-start gap-2 px-3 py-2 bg-coral/10 border-b text-[11px]">
+            <div className="flex items-start gap-2 px-4 py-2.5 bg-coral/10 border-b border-coral/20 text-[11px]">
               <AlertTriangle className="h-3.5 w-3.5 text-coral shrink-0 mt-0.5" />
-              <span>
-                Multiple items selected in: <strong>{duplicates.join(', ')}</strong>
+              <span className="text-foreground/90">
+                Multiple items selected in: <strong className="text-coral">{duplicates.join(', ')}</strong>
               </span>
             </div>
           )}
 
-          <div className="max-h-80 overflow-y-auto divide-y bg-popover">
-            {cartItems.map(item => {
+          <div className="max-h-[min(60vh,420px)] overflow-y-auto custom-scrollbar divide-y divide-border/30">
+            {cartItems.map((item) => {
               const flagged = duplicates.includes(item.category || 'Other');
               return (
-                <div key={item.id} className="p-3 space-y-1.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
+                <div key={item.id} className="p-4 space-y-2 hover:bg-primary/5 transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
                       <p className="text-xs font-semibold truncate">{item.name}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-1">
                         {item.category && (
-                          <Badge variant="outline" className="text-[9px] px-1 py-0">
+                          <Badge
+                            variant="outline"
+                            className="text-[9px] px-1.5 py-0 border-border/50 bg-background/60"
+                          >
                             {item.category}
                           </Badge>
                         )}
                         {flagged && (
-                          <Badge className="text-[9px] px-1 py-0 bg-coral text-white">
+                          <Badge className="text-[9px] px-1.5 py-0 bg-coral text-primary-foreground">
                             Duplicate category
                           </Badge>
                         )}
@@ -186,32 +227,28 @@ const StudioCartWidget = ({
                     <button
                       type="button"
                       onClick={() => removeFromCart(item.id)}
-                      className="text-destructive shrink-0"
+                      className="text-muted-foreground hover:text-destructive shrink-0 rounded-md p-1 hover:bg-destructive/10 transition-colors"
                       aria-label={`Remove ${item.name}`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
+
                   {item.extras && item.extras.length > 0 && (
-                    <div className="rounded-md bg-muted/60 border p-1.5 space-y-1">
-                      <p className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                    <div className="rounded-lg border border-border/40 bg-background/60 p-2.5 space-y-2">
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-medium">
                         Features
                       </p>
                       {item.extras.map((extra, idx) => (
-                        <div
-                          key={`${item.id}-${extra.key || extra.name}-${idx}`}
-                          className="space-y-1"
-                        >
+                        <div key={`${item.id}-${extra.key || extra.name}-${idx}`} className="space-y-1.5">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-[11px] truncate">{extra.name}</span>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <span className="text-[11px] font-medium">
-                                ${extra.price.toLocaleString()}
-                              </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-[11px] font-medium">${extra.price.toLocaleString()}</span>
                               <button
                                 type="button"
                                 onClick={() => removeExtra(item.id, idx)}
-                                className="text-muted-foreground hover:text-destructive"
+                                className="text-muted-foreground hover:text-destructive rounded p-0.5 hover:bg-destructive/10 transition-colors"
                                 aria-label={`Remove ${extra.name}`}
                               >
                                 <X className="h-3 w-3" />
@@ -221,47 +258,46 @@ const StudioCartWidget = ({
                           {extra.options && extra.options.length > 1 && (
                             <select
                               value={extra.selectedOption ?? extra.name}
-                              onChange={event => {
+                              onChange={(event) => {
                                 const value = event.target.value;
-                                // If this line belongs to the configuration currently open in
-                                // the studio, change the real product so pricing recalculates.
                                 if (item.name === currentName && extra.key && onCurrentExtraOption) {
                                   onCurrentExtraOption(extra.key, value);
                                   return;
                                 }
-                                const next = extra.options?.find(option => option.name === value);
+                                const next = extra.options?.find((option) => option.name === value);
                                 if (next) updateExtra(item.id, idx, next);
                               }}
-                              className="w-full h-6 rounded border bg-background text-foreground text-[10px] px-1"
+                              className="w-full h-7 rounded-md border border-border/60 bg-background/70 text-foreground text-[10px] px-2 focus:ring-1 focus:ring-primary/50 focus:border-primary/50"
                               aria-label={`Change ${extra.name}`}
                             >
-                              {extra.options.map(option => (
+                              {extra.options.map((option) => (
                                 <option key={option.name} value={option.name}>
-                                  {option.name}{option.price > 0 ? ` — $${option.price.toLocaleString()}` : ''}
+                                  {option.name}
+                                  {option.price > 0 ? ` — $${option.price.toLocaleString()}` : ''}
                                 </option>
                               ))}
                             </select>
                           )}
                         </div>
                       ))}
-
                     </div>
                   )}
-                  <div className="flex items-center justify-between">
+
+                  <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center gap-1">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-6 w-6 p-0"
+                        className="h-7 w-7 p-0 border-border/60 bg-background/60 hover:bg-primary/10 hover:border-primary/40"
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="w-6 text-center text-xs font-medium">{item.quantity}</span>
+                      <span className="w-7 text-center text-xs font-medium">{item.quantity}</span>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-6 w-6 p-0"
+                        className="h-7 w-7 p-0 border-border/60 bg-background/60 hover:bg-primary/10 hover:border-primary/40"
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       >
                         <Plus className="h-3 w-3" />
@@ -276,30 +312,27 @@ const StudioCartWidget = ({
             })}
 
             {pendingPrice > 0 && (
-              <div className="p-3 space-y-1.5 bg-muted">
+              <div className="p-4 space-y-2 bg-primary/5 border-l-2 border-primary">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs font-semibold truncate">{currentName || 'Current configuration'}</p>
                     <div className="flex items-center gap-1 mt-0.5">
                       {currentCategory && (
-                        <Badge variant="outline" className="text-[9px] px-1 py-0">
+                        <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-border/50 bg-background/60">
                           {currentCategory}
                         </Badge>
                       )}
                       <span className="text-[9px] text-muted-foreground">Not added yet</span>
                     </div>
                   </div>
-                  <span className="text-xs font-bold shrink-0">
-                    ${pendingPrice.toLocaleString()}
-                  </span>
+                  <span className="text-xs font-bold shrink-0">${pendingPrice.toLocaleString()}</span>
                 </div>
+
                 {currentExtras.length > 0 && (
-                  <div className="rounded-md bg-background border p-1.5 space-y-1">
-                    <p className="text-[9px] uppercase tracking-wide text-muted-foreground">
-                      Features
-                    </p>
+                  <div className="rounded-lg border border-border/40 bg-background/60 p-2.5 space-y-2">
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-medium">Features</p>
                     {currentExtras.map((extra, idx) => (
-                      <div key={`${extra.key || extra.name}-${idx}`} className="space-y-1">
+                      <div key={`${extra.key || extra.name}-${idx}`} className="space-y-1.5">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-[11px] truncate">{extra.name}</span>
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -308,32 +341,28 @@ const StudioCartWidget = ({
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-5 w-5 p-0"
+                                  className="h-5 w-5 p-0 border-border/60 bg-background/60 hover:bg-primary/10"
                                   onClick={() => onCurrentExtraQuantity(extra.key, (extra.quantity || 0) - 1)}
                                 >
                                   <Minus className="h-2.5 w-2.5" />
                                 </Button>
-                                <span className="w-4 text-center text-[10px] font-medium">
-                                  {extra.quantity}
-                                </span>
+                                <span className="w-4 text-center text-[10px] font-medium">{extra.quantity}</span>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-5 w-5 p-0"
+                                  className="h-5 w-5 p-0 border-border/60 bg-background/60 hover:bg-primary/10"
                                   onClick={() => onCurrentExtraQuantity(extra.key, (extra.quantity || 0) + 1)}
                                 >
                                   <Plus className="h-2.5 w-2.5" />
                                 </Button>
                               </div>
                             )}
-                            <span className="text-[11px] font-medium">
-                              ${extra.price.toLocaleString()}
-                            </span>
+                            <span className="text-[11px] font-medium">${extra.price.toLocaleString()}</span>
                             {onRemoveCurrentExtra && (
                               <button
                                 type="button"
                                 onClick={() => onRemoveCurrentExtra(extra.key)}
-                                className="text-muted-foreground hover:text-destructive"
+                                className="text-muted-foreground hover:text-destructive rounded p-0.5 hover:bg-destructive/10 transition-colors"
                                 aria-label={`Remove ${extra.name}`}
                               >
                                 <X className="h-3 w-3" />
@@ -344,13 +373,14 @@ const StudioCartWidget = ({
                         {extra.options && extra.options.length > 1 && onCurrentExtraOption && (
                           <select
                             value={extra.selectedOption ?? extra.name}
-                            onChange={event => onCurrentExtraOption(extra.key, event.target.value)}
-                            className="w-full h-6 rounded border bg-background text-foreground text-[10px] px-1"
+                            onChange={(event) => onCurrentExtraOption(extra.key, event.target.value)}
+                            className="w-full h-7 rounded-md border border-border/60 bg-background/70 text-foreground text-[10px] px-2 focus:ring-1 focus:ring-primary/50 focus:border-primary/50"
                             aria-label={`Change ${extra.name}`}
                           >
-                            {extra.options.map(option => (
+                            {extra.options.map((option) => (
                               <option key={option.name} value={option.name}>
-                                {option.name}{option.price > 0 ? ` — $${option.price.toLocaleString()}` : ''}
+                                {option.name}
+                                {option.price > 0 ? ` — $${option.price.toLocaleString()}` : ''}
                               </option>
                             ))}
                           </select>
@@ -359,35 +389,43 @@ const StudioCartWidget = ({
                     ))}
                   </div>
                 )}
+
                 {onAddCurrent && (
-                  <Button variant="outline" size="sm" className="h-7 w-full text-[11px]" onClick={onAddCurrent}>
-                    <PlusIcon className="h-3 w-3 mr-1" /> Add to shopping list
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full text-[11px] border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
+                    onClick={onAddCurrent}
+                  >
+                    <PlusIcon className="h-3.5 w-3.5 mr-1.5" /> Add to shopping list
                   </Button>
                 )}
               </div>
             )}
 
-            {cartItems.length === 0 && pendingPrice === 0 && (
-              <p className="p-4 text-center text-xs text-muted-foreground">
-                Your shopping list is empty
-              </p>
+            {!hasItems && (
+              <div className="p-6 text-center space-y-2">
+                <ShoppingBag className="h-8 w-8 mx-auto text-muted-foreground/40" />
+                <p className="text-xs text-muted-foreground">Your shopping list is empty</p>
+              </div>
             )}
           </div>
 
-          <Separator />
+          <Separator className="bg-border/40" />
 
-          <div className="p-3 space-y-2">
+          <div className="p-4 bg-primary/5">
             <div className="flex items-center justify-between text-sm font-bold">
-              <span>CART TOTAL</span>
-              <span>
-                <span className="text-primary">{total.whole}</span>
-                <span className="text-foreground">{total.cents}</span>
+              <span className="uppercase tracking-wider text-[11px]">CART TOTAL</span>
+              <span className="text-lg">
+                <span className="text-primary drop-shadow-[0_0_12px_hsl(var(--primary)/0.35)]">
+                  {total.whole}
+                </span>
+                <span className="text-foreground/70">{total.cents}</span>
               </span>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };
