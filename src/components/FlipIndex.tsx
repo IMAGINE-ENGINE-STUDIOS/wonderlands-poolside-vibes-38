@@ -6,9 +6,9 @@ import FlipConsole from "./flip/FlipConsole";
 
 
 import lathamGilmerBanner from "@/assets/banners/latham-gilmer-banner.webp";
-import madrePerlaBanner from "@/assets/pools/madre-perla.webp";
-import pacificRidgeBanner from "@/assets/pools/pacific-ridge-new.webp";
-import wonderPalaceBanner from "@/assets/pools/wonderpalace.webp";
+import madrePerlaBanner from "@/assets/pools/wonderlands/madre-perla.webp";
+import pacificRidgeBanner from "@/assets/pools/wonderlands/pacific-ridge-new.webp";
+import wonderPalaceBanner from "@/assets/pools/wonderlands/wonderpalace.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
 import spaBanner from "@/assets/banners/spa-banner.webp";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.webp";

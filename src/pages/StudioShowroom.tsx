@@ -36,7 +36,7 @@ import BrowseCategoriesEditorial from '@/components/BrowseCategoriesEditorial';
 import saunaBanner from '@/assets/banners/sauna-banner.webp';
 
 import heroPool from '@/assets/hero/hero-pool-optimized.webp';
-import maximaPool from '@/assets/pools/concrete/maxima-pool.webp';
+import maximaPool from '@/assets/pools/wonderlands/maxima-pool.webp';
 import poolHeater from '@/assets/equipment/pool-heater.webp';
 
 import { setNarratorContext } from '@/lib/narratorStore';

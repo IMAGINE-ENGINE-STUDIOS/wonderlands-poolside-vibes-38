@@ -19,25 +19,25 @@ import { Waves, Sparkles, Flame, Plus, Sun, Droplets, Cpu } from "lucide-react";
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 
 // Import Madre Perla pool image
-import madrePerlaImage from "@/assets/pools/madre-perla.webp";
-import pacificRidgeImage from "@/assets/pools/pacific-ridge-new.webp";
-import cancunDeluxeImage from "@/assets/pools/cancun-deluxe.webp";
-import maximaImage from "@/assets/pools/concrete/maxima-pool.webp";
-import wonderPalaceImage from "@/assets/pools/wonderpalace.webp";
+import madrePerlaImage from "@/assets/pools/wonderlands/madre-perla.webp";
+import pacificRidgeImage from "@/assets/pools/wonderlands/pacific-ridge-new.webp";
+import cancunDeluxeImage from "@/assets/pools/latham/cancun-deluxe.webp";
+import maximaImage from "@/assets/pools/wonderlands/maxima-pool.webp";
+import wonderPalaceImage from "@/assets/pools/wonderlands/wonderpalace.webp";
 
 // Import Axiom 14 Deluxe images
-import axiom14DeluxeMain from "@/assets/pools/axiom-14-deluxe-main.webp";
-import axiom14DeluxeSpecs from "@/assets/pools/axiom-14-deluxe-specs.webp";
-import axiom14DeluxeGallery1 from "@/assets/pools/axiom-14-deluxe-gallery-1.webp";
-import axiom16Main from "@/assets/pools/axiom-16-main.webp";
-import axiom16Specs from "@/assets/pools/axiom-16-specs.webp";
-import capeCod12Image from "@/assets/pools/cape-cod.webp";
+import axiom14DeluxeMain from "@/assets/pools/latham/axiom-14-deluxe-main.webp";
+import axiom14DeluxeSpecs from "@/assets/pools/latham/axiom-14-deluxe-specs.webp";
+import axiom14DeluxeGallery1 from "@/assets/pools/latham/axiom-14-deluxe-gallery-1.webp";
+import axiom16Main from "@/assets/pools/latham/axiom-16-main.webp";
+import axiom16Specs from "@/assets/pools/latham/axiom-16-specs.webp";
+import capeCod12Image from "@/assets/pools/latham/cape-cod.webp";
 
 // Data loaded successfully
 
 // Pool model images - synchronized with Wonderlands Studio (with cache-busting)
 const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp?v=1";
-import enchantment917Image from "@/assets/pools/enchantment-917.webp";
+import enchantment917Image from "@/assets/pools/latham/enchantment-917.webp";
 const enchantment921Image = "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.webp?v=1";
 const enchantment924Image = "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.webp?v=1";
 const tuscan1120Image = "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp";

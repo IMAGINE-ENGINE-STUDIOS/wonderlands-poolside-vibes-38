@@ -23,12 +23,12 @@ import { cn } from '@/lib/utils';
 import productImages from '@/data/productImages';
 
 // Import Wonderlands pool images for search
-import madrePerlaImage from '@/assets/pools/madre-perla.webp';
-import maximaImage from '@/assets/pools/concrete/maxima-pool.webp';
-import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.webp';
-import wonderPalaceImage from '@/assets/pools/wonderpalace.webp';
-import cancunDeluxeImage from '@/assets/pools/cancun-deluxe.webp';
-import enchantment917SearchImage from '@/assets/pools/enchantment-917.webp';
+import madrePerlaImage from '@/assets/pools/wonderlands/madre-perla.webp';
+import maximaImage from '@/assets/pools/wonderlands/maxima-pool.webp';
+import pacificRidgeImage from '@/assets/pools/wonderlands/pacific-ridge-new.webp';
+import wonderPalaceImage from '@/assets/pools/wonderlands/wonderpalace.webp';
+import cancunDeluxeImage from '@/assets/pools/latham/cancun-deluxe.webp';
+import enchantment917SearchImage from '@/assets/pools/latham/enchantment-917.webp';
 
 // Import banner images for sections
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
@@ -40,7 +40,7 @@ import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.webp";
 import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.webp";
 import patioFencingBanner from "@/assets/banners/patio-fencing-banner.webp";
 import lanaiBanner from "@/assets/banners/lanai-banner.webp";
-import capeCod12Image from "@/assets/pools/cape-cod.webp";
+import capeCod12Image from "@/assets/pools/latham/cape-cod.webp";
 
 // Section data for quick navigation dropdown
 const mainPageSections = [

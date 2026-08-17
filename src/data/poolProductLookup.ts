@@ -3,17 +3,17 @@
 // Updated with ALL products from catalog - 3.5x/4x dealer multipliers applied
 
 // Import Wonderlands pool images
-import madrePerlaImage from '@/assets/pools/madre-perla.webp';
-import capeCod12Image from '@/assets/pools/cape-cod.webp';
-import maximaImage from '@/assets/pools/concrete/maxima-pool.webp';
-import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.webp';
-import cancunDeluxeImage from '@/assets/pools/cancun-deluxe.webp';
-import wonderPalaceImage from '@/assets/pools/wonderpalace.webp';
+import madrePerlaImage from '@/assets/pools/wonderlands/madre-perla.webp';
+import capeCod12Image from '@/assets/pools/latham/cape-cod.webp';
+import maximaImage from '@/assets/pools/wonderlands/maxima-pool.webp';
+import pacificRidgeImage from '@/assets/pools/wonderlands/pacific-ridge-new.webp';
+import cancunDeluxeImage from '@/assets/pools/latham/cancun-deluxe.webp';
+import wonderPalaceImage from '@/assets/pools/wonderlands/wonderpalace.webp';
 
 // Import Latham/Axiom pool images
-import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.webp';
-import axiom16Main from '@/assets/pools/axiom-16-main.webp';
-import enchantment917LookupImage from '@/assets/pools/enchantment-917.webp';
+import axiom14DeluxeMain from '@/assets/pools/latham/axiom-14-deluxe-main.webp';
+import axiom16Main from '@/assets/pools/latham/axiom-16-main.webp';
+import enchantment917LookupImage from '@/assets/pools/latham/enchantment-917.webp';
 
 // Import GlimmerGlass pool images
 import gilmerAloha from '@/assets/pools/glimmerglass/gilmer-aloha.webp';
