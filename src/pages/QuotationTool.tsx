@@ -20,6 +20,8 @@ import { useNavigate } from "react-router-dom";
 import { Calendar, Search, PenTool, X, Loader2 } from "lucide-react";
 // screenadjusterauto: fluid, screen-fitting widths (see src/screenadjusterauto/README.md)
 import { AutoShell, AutoSplit, AutoOverlay, AutoBoard } from "@/screenadjusterauto";
+import { SouthBar } from "@/components/southbar";
+
 
 const FlipSearch = React.lazy(() => import("@/components/flip/FlipSearch"));
 const StudioSitePlanner = React.lazy(() =>
@@ -298,7 +300,9 @@ const QuotationTool = () => {
         </div>
       </div>
 
-      <AutoShell as="main" className="py-10 md:py-14">
+      {/* pb-24: clearance for the docked SouthBar rail */}
+      <AutoShell as="main" className="py-10 pb-24 md:py-14 md:pb-28">
+
 
         {/* Masthead — FLIP V7 */}
         <div className="border-y border-foreground/15 py-8 text-center">
@@ -516,7 +520,18 @@ const QuotationTool = () => {
 
 
       <Footer />
+
+      {/* South rail — search engine + Genius chatbox (src/components/southbar) */}
+      <SouthBar
+        contextLabel="Quote Atelier"
+        onOpenCategory={(id) => setActiveCategory(id)}
+        onOpenProduct={(categoryId, found) => {
+          setActiveCategory(categoryId);
+          handleSelectEntry(found, categoryId);
+        }}
+      />
     </div>
+
   );
 };
 
