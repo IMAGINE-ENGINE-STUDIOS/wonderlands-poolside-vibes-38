@@ -378,7 +378,7 @@ const StudioCartWidget = ({
 
           <div className="p-3 space-y-2">
             <div className="flex items-center justify-between text-sm font-bold">
-              <span>Store Total</span>
+              <span>CART TOTAL</span>
               <span>
                 <span className="text-primary">{total.whole}</span>
                 <span className="text-foreground">{total.cents}</span>
