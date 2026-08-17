@@ -162,11 +162,38 @@ const QuotationTool = () => {
 
   const handleAdd = React.useCallback(
     (p: ConfiguredProduct) => {
+      /* Courtesy notice: the reader already has a piece from this category on
+         the list. They are allowed to keep both — this only makes it obvious. */
+      const sameCategory = cartItems.filter(
+        (i) => i.category === p.category && i.id !== p.id,
+      );
       addedRef.current = p.id;
       addToCart(toCartItem(p));
+      if (sameCategory.length > 0) {
+        toast({
+          title: `More than one ${p.category} on your list`,
+          description: `${sameCategory.map((i) => i.name).join(", ")} and now ${p.name}. Both stay on the list — remove either one whenever you like.`,
+        });
+      }
     },
-    [addToCart],
+    [addToCart, cartItems],
   );
+
+  /* Editing a configuration puts it on the shopping list by itself, so the
+     reader never loses the work they just did on a piece. */
+  const handleChange = React.useCallback(
+    (p: ConfiguredProduct) => {
+      setProduct(p);
+      const previous = productRef.current;
+      const edited =
+        !!previous &&
+        previous.id === p.id &&
+        (previous.total !== p.total || previous.extras.length !== p.extras.length);
+      if (edited && !cartItems.some((i) => i.id === p.id)) handleAdd(p);
+    },
+    [cartItems, handleAdd],
+  );
+
 
   /* Live two-way sync — while a piece is open in the configurator, the copy that
      already sits in the shopping list mirrors its base price and features, so
@@ -306,7 +333,7 @@ const QuotationTool = () => {
                   entry={entry}
                   categoryId={entryCategory}
                   categoryLabel={categoryLabel}
-                  onChange={setProduct}
+                  onChange={handleChange}
                   onAdd={handleAdd}
                   onQuote={handleQuote}
                   controls={controls}
