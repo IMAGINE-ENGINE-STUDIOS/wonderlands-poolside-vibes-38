@@ -20,6 +20,8 @@ import { useNavigate } from "react-router-dom";
 import { Calendar, Search, PenTool, X, Loader2 } from "lucide-react";
 // screenadjusterauto: fluid, screen-fitting widths (see src/screenadjusterauto/README.md)
 import { AutoShell, AutoSplit, AutoOverlay, AutoBoard } from "@/screenadjusterauto";
+import { SouthBar } from "@/components/southbar";
+
 
 const FlipSearch = React.lazy(() => import("@/components/flip/FlipSearch"));
 const StudioSitePlanner = React.lazy(() =>
