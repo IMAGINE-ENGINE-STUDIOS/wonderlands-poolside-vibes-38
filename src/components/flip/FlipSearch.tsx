@@ -41,8 +41,15 @@ const FlipSearch: React.FC<{
   /** Compact rail presentation instead of the wide desk. */
   compact?: boolean;
   autoFocus?: boolean;
-}> = ({ onOpenCategory, onOpenProduct, compact, autoFocus }) => {
-  const [q, setQ] = useState("");
+  /** Seeds the field — used when one shared bar owns the typing (SouthBar). */
+  initialQuery?: string;
+}> = ({ onOpenCategory, onOpenProduct, compact, autoFocus, initialQuery }) => {
+  const [q, setQ] = useState(initialQuery ?? "");
+  /* A new seed from the owning bar replaces the field. */
+  useEffect(() => {
+    if (initialQuery !== undefined) setQ(initialQuery);
+  }, [initialQuery]);
+
   const [catalogue, setCatalogue] = useState<Record<string, ConsoleEntry[]>>(() => {
     const seed: Record<string, ConsoleEntry[]> = {};
     ITEMS.forEach((i) => {
