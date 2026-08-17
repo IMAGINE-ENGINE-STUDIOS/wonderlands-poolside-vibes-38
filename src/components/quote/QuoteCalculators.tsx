@@ -19,7 +19,10 @@ export type CalculatorDiscipline = {
 };
 
 export const CALCULATOR_DISCIPLINES: CalculatorDiscipline[] = [
-  { id: "pools", index: "III.i", title: "Pool & site plan", note: "Shell, deck, barrier and water priced as drawn" },
+  /* Renamed from "Pool & site plan": the leaf now opens with the narrated
+     customer project summary, fed by the configurator, the shopping list and
+     the drawn take-off. */
+  { id: "pools", index: "III.i", title: "Customer project summary", note: "Your project, priced and explained as drawn" },
   { id: "screen-enclosures", index: "III.ii", title: "Screen enclosure", note: "Mansard or gable, Florida wind load" },
   { id: "patio-fencing", index: "III.iii", title: "Aluminium fencing", note: "Runs, gates and self-latching doors" },
   { id: "artificial-grass", index: "III.iv", title: "Artificial turf", note: "Lawn area, seams, base and infill" },
