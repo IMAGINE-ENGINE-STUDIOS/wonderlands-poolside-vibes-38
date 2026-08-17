@@ -112,7 +112,8 @@ const AutoAddCountdown: React.FC<{
 
 const QuotationTool = () => {
   const navigate = useNavigate();
-  const { addToCart } = useShoppingCart();
+  const { addToCart, cartItems, syncItemConfig } = useShoppingCart();
+
 
   const [activeCategory, setActiveCategory] = usePersistentState<string>(
     "quote.console.category",
