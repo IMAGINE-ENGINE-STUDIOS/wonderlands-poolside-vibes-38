@@ -167,12 +167,41 @@ const QuotationTool = () => {
     [addToCart],
   );
 
+  /* Live two-way sync — while a piece is open in the configurator, the copy that
+     already sits in the shopping list mirrors its base price and features, so
+     the header total, the list and the checkout can never diverge. */
+  const inCart = React.useMemo(
+    () => (product ? cartItems.some((i) => i.id === product.id) : false),
+    [cartItems, product],
+  );
+  const extrasKey = product ? JSON.stringify(product.extras) : "";
+  React.useEffect(() => {
+    if (!product || !inCart) return;
+    syncItemConfig(product.id, { price: product.basePrice, extras: product.extras });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inCart, product?.id, product?.basePrice, extrasKey]);
 
+  /* The shopping list edits the open configuration at the source */
+  const controls = React.useRef<ConfiguratorControls | null>(null);
+  const handleRemoveExtra = React.useCallback(
+    (key?: string) => controls.current?.removeExtra(key),
+    [],
+  );
+  const handleExtraQuantity = React.useCallback(
+    (key: string | undefined, quantity: number) => controls.current?.setExtraQuantity(key, quantity),
+    [],
+  );
+  const handleExtraOption = React.useCallback(
+    (key: string | undefined, name: string) => controls.current?.setExtraOption(key, name),
+    [],
+  );
 
   const handleQuote = React.useCallback((p: ConfiguredProduct) => {
     setProduct(p);
     setQuoteOpen(true);
   }, []);
+
+
 
   const noop = React.useCallback(() => undefined, []);
   const openSection = React.useCallback(
