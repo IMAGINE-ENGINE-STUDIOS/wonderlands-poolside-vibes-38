@@ -50,9 +50,14 @@ export const disciplineForCategory = (categoryId?: string): CalculatorDiscipline
 const Section: React.FC<{
   discipline: CalculatorDiscipline;
   onFullScreen: (id: string) => void;
-}> = ({ discipline: d, onFullScreen }) => {
+  /** The piece open in the configurator — feeds the narrated summary. */
+  product?: ConfiguredProduct | null;
+  /** Print the narrated customer project summary at the head of the leaf. */
+  withSummary?: boolean;
+}> = ({ discipline: d, onFullScreen, product, withSummary }) => {
   const [boardSection, setBoardSection] = React.useState(false);
   const board = boardForCategory(d.id);
+
 
   return (
     <section className="border border-foreground/15 bg-background/70 backdrop-blur-xl">
