@@ -412,7 +412,7 @@ const QuotationTool = () => {
               </ul>
             </div>
           </aside>
-        </div>
+        </AutoSplit>
 
         {/* Chapter III — only the calculator of the selected piece.
             The full set lives in the Studio Showroom. */}
@@ -464,7 +464,7 @@ const QuotationTool = () => {
                 />
               </React.Suspense>
             </div>
-          </div>
+          </AutoOverlay>
         </div>
       )}
 
@@ -493,7 +493,7 @@ const QuotationTool = () => {
                 />
               </React.Suspense>
             </div>
-          </div>
+          </AutoBoard>
         </div>
       )}
 
