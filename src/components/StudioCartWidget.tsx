@@ -117,24 +117,25 @@ const StudioCartWidget = ({
       <div className="pointer-events-none absolute -left-8 -top-8 h-32 w-32 rounded-full bg-primary/15 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-teal/10 blur-3xl" />
 
-      {/* Header: total price */}
-      <div className="relative text-center space-y-1">
-        <div className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-medium uppercase tracking-widest text-primary">
-          <Sparkles className="h-3 w-3" />
-          Total Configuration Price
-        </div>
-        <div className="text-3xl font-bold tracking-tight">
-          <span className="text-primary drop-shadow-[0_0_12px_hsl(var(--primary)/0.45)]">
+      {/* Masthead — FLIP V7 editorial: hairline rules, serif figure, no generic badges */}
+      <div className="relative border-y border-foreground/12 py-4 text-center">
+        <p className="flex items-center justify-center gap-2 text-[8px] uppercase tracking-[0.42em] text-muted-foreground">
+          <Sparkles className="h-2.5 w-2.5 text-primary" />
+          Your composition, turnkey
+        </p>
+        <div className="mt-2 font-serif text-4xl font-light leading-none tracking-tight">
+          <span className="text-foreground drop-shadow-[0_0_18px_hsl(var(--primary)/0.28)]">
             {total.whole}
           </span>
-          <span className="text-foreground/70">{total.cents}</span>
+          <span className="text-muted-foreground/70 text-2xl align-top">{total.cents}</span>
         </div>
-        <p className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
-          <ShoppingBag className="h-3 w-3" />
-          {getCartCount() + (pendingPrice > 0 ? 1 : 0)} items
-          {duplicates.length > 0 && <AlertTriangle className="h-3 w-3 text-coral" />}
+        <p className="mt-2 flex items-center justify-center gap-1.5 text-[8px] uppercase tracking-[0.32em] text-muted-foreground">
+          <ShoppingBag className="h-2.5 w-2.5" />
+          {getCartCount() + (pendingPrice > 0 ? 1 : 0)} pieces · delivered &amp; installed
+          {duplicates.length > 0 && <AlertTriangle className="h-2.5 w-2.5 text-coral" />}
         </p>
       </div>
+
 
       {/* Action buttons */}
       <div className="relative grid grid-cols-2 gap-2">
@@ -161,24 +162,25 @@ const StudioCartWidget = ({
         </Button>
       </div>
 
-      {/* Shopping list toggle */}
+      {/* The selection — editorial toggle */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="relative w-full flex items-center justify-center gap-2 rounded-lg border border-border/40 bg-background/40 px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-background/60 hover:border-primary/30 transition-all"
+        className="relative w-full flex items-center justify-center gap-2 rounded-lg border border-foreground/12 bg-foreground/[0.03] px-3 py-2 text-[9px] uppercase tracking-[0.32em] text-muted-foreground hover:text-foreground hover:border-primary/35 transition-all"
       >
-        {open ? 'Hide Shopping List' : 'View Shopping List'}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+        {open ? 'Close the selection' : 'Read the selection'}
+        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Shopping list panel */}
       {open && (
         <div className="relative rounded-xl border border-border/40 bg-background/50 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-primary/5">
-            <span className="text-sm font-semibold flex items-center gap-2">
-              <ShoppingBag className="h-3.5 w-3.5 text-primary" />
-              Shopping List
+            <span className="flex items-center gap-2 text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
+              <ShoppingBag className="h-3 w-3 text-primary" />
+              The Selection
             </span>
+
             {cartItems.length > 0 && (
               <Button
                 variant="ghost"
