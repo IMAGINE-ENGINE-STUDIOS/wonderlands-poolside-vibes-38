@@ -129,11 +129,6 @@ const StudioCartWidget = ({
           </span>
           <span className="text-muted-foreground/70 text-2xl align-top">{total.cents}</span>
         </div>
-        <p className="mt-2 flex items-center justify-center gap-1.5 text-[8px] uppercase tracking-[0.32em] text-muted-foreground">
-          <ShoppingBag className="h-2.5 w-2.5" />
-          {getCartCount() + (pendingPrice > 0 ? 1 : 0)} pieces · delivered &amp; installed
-          {duplicates.length > 0 && <AlertTriangle className="h-2.5 w-2.5 text-coral" />}
-        </p>
       </div>
 
 
@@ -425,6 +420,11 @@ const StudioCartWidget = ({
                 <span className="text-foreground/70">{total.cents}</span>
               </span>
             </div>
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-[8px] uppercase tracking-[0.32em] text-muted-foreground">
+              <ShoppingBag className="h-2.5 w-2.5" />
+              {getCartCount() + (pendingPrice > 0 ? 1 : 0)} pieces · delivered &amp; installed
+              {duplicates.length > 0 && <AlertTriangle className="h-2.5 w-2.5 text-coral" />}
+            </p>
           </div>
         </div>
       )}
