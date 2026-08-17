@@ -332,6 +332,9 @@ const QuotationTool = () => {
               currentName={product?.name}
               currentCategory={product?.category}
               currentExtras={product?.extras}
+              onRemoveCurrentExtra={handleRemoveExtra}
+              onCurrentExtraQuantity={handleExtraQuantity}
+              onCurrentExtraOption={handleExtraOption}
               onAddCurrent={product ? () => handleAdd(product) : undefined}
               onQuote={product ? () => handleQuote(product) : () => setQuoteOpen(true)}
             />
