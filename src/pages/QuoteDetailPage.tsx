@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import ImageCard from '@/components/ImageCard';
-import poolHeaterImg from '@/assets/pool-heater.webp';
+import poolHeaterImg from '@/assets/equipment/pool-heater.webp';
 import InvoiceGenerator from '@/components/InvoiceGenerator';
 import { DEFAULT_PAVER_PRICE_PER_SQFT } from "@/utils/paverPricing";
 

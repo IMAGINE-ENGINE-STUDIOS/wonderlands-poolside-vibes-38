@@ -16,7 +16,7 @@ import { DeckGeometry } from './scene3d/DeckGeometry';
 import { CopingGeometry } from './scene3d/CopingGeometry';
 import { DeckBorderGeometry } from './scene3d/DeckBorderGeometry';
 import earcut from 'earcut';
-import grassTexture from '@/assets/grass-texture.avif';
+import grassTexture from '@/assets/turf/grass-texture.avif';
 import { resolveDeckBoundaries, sanitizeBoundary } from '@/utils/deckSurface';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
 

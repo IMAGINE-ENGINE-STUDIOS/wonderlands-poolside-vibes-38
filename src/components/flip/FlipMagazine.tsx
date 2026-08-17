@@ -25,8 +25,8 @@ import FlipIndexV6 from "./FlipIndexV6";
 const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as any;
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
-import heroVideo from "@/assets/hero-beach.mp4.asset.json";
-import wonderlandsLogo from "@/assets/wonderlands-logo.webp";
+import heroVideo from "@/assets/hero/hero-beach.mp4.asset.json";
+import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 /**
  * FLIP — Magazine edition.

@@ -1,7 +1,7 @@
 // Category data used by Wonderlands Studio so every main-page category is
 // selectable in the Studio. Prices mirror the main-page sections exactly.
-import screenEnclosurePremium from '@/assets/screen-enclosure-premium.webp';
-import screenEnclosureDeluxe from '@/assets/screen-enclosure-deluxe.webp';
+import screenEnclosurePremium from '@/assets/enclosures/screen-enclosure-premium.webp';
+import screenEnclosureDeluxe from '@/assets/enclosures/screen-enclosure-deluxe.webp';
 
 export interface StudioCategoryItem {
   name: string;

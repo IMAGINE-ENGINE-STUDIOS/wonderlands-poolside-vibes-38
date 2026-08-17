@@ -25,7 +25,7 @@ import { getProductsByCompatiblePool } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles } from '@/data/poolData';
 
 // Import finish images
-import poolHeaterImage from '@/assets/pool-heater.webp';
+import poolHeaterImage from '@/assets/equipment/pool-heater.webp';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.webp';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.webp';

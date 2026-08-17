@@ -5,7 +5,7 @@ import useReveal from "@/hooks/useReveal";
 import useParallax from "@/hooks/useParallax";
 import ToolFrame from "@/components/tools/ToolFrame";
 
-import logo from "@/assets/wonderlands-logo.webp";
+import logo from "@/assets/brand/wonderlands-logo.webp";
 import shotDesigner3d from "@/assets/tools/designer-3d-ui.webp";
 import shotDesigner2d from "@/assets/tools/designer-2d-ui.webp";
 import shotBlueprint from "@/assets/tools/blueprint-ui.webp";

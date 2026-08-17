@@ -24,10 +24,10 @@ import productImages from '@/data/productImages';
 
 // Import Wonderlands pool images for search
 import madrePerlaImage from '@/assets/pools/madre-perla.webp';
-import maximaImage from '@/assets/maxima-pool.webp';
+import maximaImage from '@/assets/pools/kits/maxima-pool.webp';
 import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.webp';
 import wonderPalaceImage from '@/assets/pools/wonderpalace.webp';
-import cancunDeluxeImage from '@/assets/cancun-deluxe.webp';
+import cancunDeluxeImage from '@/assets/pools/kits/cancun-deluxe.webp';
 import enchantment917SearchImage from '@/assets/pools/enchantment-917.webp';
 
 // Import banner images for sections
@@ -40,7 +40,7 @@ import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.webp";
 import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.webp";
 import patioFencingBanner from "@/assets/banners/patio-fencing-banner.webp";
 import lanaiBanner from "@/assets/banners/lanai-banner.webp";
-import capeCod12Image from "@/assets/latham-cape-cod-12.jpg";
+import capeCod12Image from "@/assets/pools/kits/latham-cape-cod-12.jpg";
 
 // Section data for quick navigation dropdown
 const mainPageSections = [

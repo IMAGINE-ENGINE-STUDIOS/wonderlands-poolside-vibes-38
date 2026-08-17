@@ -1,6 +1,6 @@
-import lifesaverTeal from "@/assets/lifesaver-teal.webp";
-import lifesaverCoral from "@/assets/lifesaver-coral.webp";
-import lifesaverYellow from "@/assets/lifesaver-yellow.webp";
+import lifesaverTeal from "@/assets/covers/lifesaver-teal.webp";
+import lifesaverCoral from "@/assets/covers/lifesaver-coral.webp";
+import lifesaverYellow from "@/assets/covers/lifesaver-yellow.webp";
 
 const ITEMS = [
   {

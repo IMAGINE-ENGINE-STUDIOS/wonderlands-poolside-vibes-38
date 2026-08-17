@@ -7,8 +7,8 @@ import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import StudioEditorial from "@/components/StudioEditorial";
 
-import grassBanner from "@/assets/grass-natural-green.avif";
-import lathamGilmerBanner from "@/assets/latham-gilmer-banner.webp";
+import grassBanner from "@/assets/turf/grass-natural-green.avif";
+import lathamGilmerBanner from "@/assets/banners/latham-gilmer-banner.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
 import spaBanner from "@/assets/banners/spa-banner.webp";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.webp";

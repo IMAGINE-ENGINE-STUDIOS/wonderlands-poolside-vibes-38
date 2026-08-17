@@ -1,5 +1,5 @@
 import { useState } from "react";
-import aluminumFencing from "@/assets/aluminum-fencing.webp";
+import aluminumFencing from "@/assets/fencing/aluminum-fencing.webp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

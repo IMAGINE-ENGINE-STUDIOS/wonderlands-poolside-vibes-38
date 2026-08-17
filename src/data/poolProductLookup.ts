@@ -4,10 +4,10 @@
 
 // Import Wonderlands pool images
 import madrePerlaImage from '@/assets/pools/madre-perla.webp';
-import capeCod12Image from '@/assets/latham-cape-cod-12.jpg';
-import maximaImage from '@/assets/maxima-pool.webp';
+import capeCod12Image from '@/assets/pools/kits/latham-cape-cod-12.jpg';
+import maximaImage from '@/assets/pools/kits/maxima-pool.webp';
 import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.webp';
-import cancunDeluxeImage from '@/assets/cancun-deluxe.webp';
+import cancunDeluxeImage from '@/assets/pools/kits/cancun-deluxe.webp';
 import wonderPalaceImage from '@/assets/pools/wonderpalace.webp';
 
 // Import Latham/Axiom pool images
@@ -16,33 +16,33 @@ import axiom16Main from '@/assets/pools/axiom-16-main.webp';
 import enchantment917LookupImage from '@/assets/pools/enchantment-917.webp';
 
 // Import GlimmerGlass pool images
-import gilmerAloha from '@/assets/gilmer-aloha.webp';
-import gilmerAtlantis from '@/assets/gilmer-atlantis.webp';
-import gilmerBeachcomber from '@/assets/gilmer-beachcomber.webp';
-import gilmerBallagio from '@/assets/gilmer-ballagio.webp';
-import gilmerCapri from '@/assets/gilmer-capri.webp';
-import gilmerCaribbean from '@/assets/gilmer-caribbean.webp';
-import gilmerCoralCove from '@/assets/gilmer-coral-cove.webp';
-import gilmerCostaBrava from '@/assets/gilmer-costa-brava.webp';
-import gilmerEmerald from '@/assets/gilmer-emerald.webp';
-import gilmerGoldCoast from '@/assets/gilmer-gold-coast.webp';
-import gilmerGrandCayman from '@/assets/gilmer-grand-cayman.webp';
-import gilmerIslander from '@/assets/gilmer-islander.webp';
-import gilmerMajestic from '@/assets/gilmer-majestic.webp';
-import gilmerMystic from '@/assets/gilmer-mystic.webp';
-import gilmerNeptune from '@/assets/gilmer-neptune.webp';
-import gilmerNewport from '@/assets/gilmer-newport.webp';
-import gilmerPonceXL from '@/assets/gilmer-ponce-xl.webp';
-import gilmerRegalPlunge from '@/assets/gilmer-regal-plunge.webp';
-import gilmerRetreat from '@/assets/gilmer-retreat.webp';
-import gilmerRoman from '@/assets/gilmer-roman.webp';
-import gilmerSerafina from '@/assets/gilmer-serafina.webp';
-import gilmerSerenade from '@/assets/gilmer-serenade.webp';
-import gilmerSilverShore from '@/assets/gilmer-silver-shore.webp';
-import gilmerRegal from '@/assets/gilmer-regal.webp';
-import gilmerSuperior from '@/assets/gilmer-superior.webp';
-import gilmerTortola from '@/assets/gilmer-tortola.webp';
-import gilmerVision from '@/assets/gilmer-vision.webp';
+import gilmerAloha from '@/assets/pools/glimmerglass/gilmer-aloha.webp';
+import gilmerAtlantis from '@/assets/pools/glimmerglass/gilmer-atlantis.webp';
+import gilmerBeachcomber from '@/assets/pools/glimmerglass/gilmer-beachcomber.webp';
+import gilmerBallagio from '@/assets/pools/glimmerglass/gilmer-ballagio.webp';
+import gilmerCapri from '@/assets/pools/glimmerglass/gilmer-capri.webp';
+import gilmerCaribbean from '@/assets/pools/glimmerglass/gilmer-caribbean.webp';
+import gilmerCoralCove from '@/assets/pools/glimmerglass/gilmer-coral-cove.webp';
+import gilmerCostaBrava from '@/assets/pools/glimmerglass/gilmer-costa-brava.webp';
+import gilmerEmerald from '@/assets/pools/glimmerglass/gilmer-emerald.webp';
+import gilmerGoldCoast from '@/assets/pools/glimmerglass/gilmer-gold-coast.webp';
+import gilmerGrandCayman from '@/assets/pools/glimmerglass/gilmer-grand-cayman.webp';
+import gilmerIslander from '@/assets/pools/glimmerglass/gilmer-islander.webp';
+import gilmerMajestic from '@/assets/pools/glimmerglass/gilmer-majestic.webp';
+import gilmerMystic from '@/assets/pools/glimmerglass/gilmer-mystic.webp';
+import gilmerNeptune from '@/assets/pools/glimmerglass/gilmer-neptune.webp';
+import gilmerNewport from '@/assets/pools/glimmerglass/gilmer-newport.webp';
+import gilmerPonceXL from '@/assets/pools/glimmerglass/gilmer-ponce-xl.webp';
+import gilmerRegalPlunge from '@/assets/pools/glimmerglass/gilmer-regal-plunge.webp';
+import gilmerRetreat from '@/assets/pools/glimmerglass/gilmer-retreat.webp';
+import gilmerRoman from '@/assets/pools/glimmerglass/gilmer-roman.webp';
+import gilmerSerafina from '@/assets/pools/glimmerglass/gilmer-serafina.webp';
+import gilmerSerenade from '@/assets/pools/glimmerglass/gilmer-serenade.webp';
+import gilmerSilverShore from '@/assets/pools/glimmerglass/gilmer-silver-shore.webp';
+import gilmerRegal from '@/assets/pools/glimmerglass/gilmer-regal.webp';
+import gilmerSuperior from '@/assets/pools/glimmerglass/gilmer-superior.webp';
+import gilmerTortola from '@/assets/pools/glimmerglass/gilmer-tortola.webp';
+import gilmerVision from '@/assets/pools/glimmerglass/gilmer-vision.webp';
 
 // Import tanning ledge images
 import glimmerglassParadise from '@/assets/tanning-ledges/glimmerglass-paradise.webp';

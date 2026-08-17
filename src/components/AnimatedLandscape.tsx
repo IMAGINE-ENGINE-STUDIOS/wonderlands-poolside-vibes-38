@@ -2,9 +2,9 @@
 import * as React from 'react';
 const { memo, useState, useEffect } = React;
 import { OptimizedImage } from './OptimizedImage';
-import heroImage1 from '../assets/hero-carousel-1.webp';
-import heroImage2 from '../assets/hero-carousel-2.webp';
-import heroImage3 from '../assets/hero-carousel-3.webp';
+import heroImage1 from '../assets/hero/hero-carousel-1.webp';
+import heroImage2 from '../assets/hero/hero-carousel-2.webp';
+import heroImage3 from '../assets/hero/hero-carousel-3.webp';
 
 const AnimatedLandscape = memo(() => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

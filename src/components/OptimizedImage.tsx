@@ -6,7 +6,7 @@ import olympia14Webp from '@/assets/pools/olympia-14-optimized.webp';
 import enchantment921Webp from '@/assets/pools/enchantment-921-optimized.webp';
 import enchantment924Webp from '@/assets/pools/enchantment-924-optimized.webp';
 import enchantment917Webp from '@/assets/pools/enchantment-917-optimized.webp';
-import heroPoolWebp from '@/assets/hero-pool-optimized.webp';
+import heroPoolWebp from '@/assets/hero/hero-pool-optimized.webp';
 
 interface OptimizedImageProps {
   src: string;

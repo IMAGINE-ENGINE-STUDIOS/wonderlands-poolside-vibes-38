@@ -35,9 +35,9 @@ import MissionVisionValues from '@/components/MissionVisionValues';
 import BrowseCategoriesEditorial from '@/components/BrowseCategoriesEditorial';
 import saunaBanner from '@/assets/banners/sauna-banner.webp';
 
-import heroPool from '@/assets/hero-pool-optimized.webp';
-import maximaPool from '@/assets/maxima-pool.webp';
-import poolHeater from '@/assets/pool-heater.webp';
+import heroPool from '@/assets/hero/hero-pool-optimized.webp';
+import maximaPool from '@/assets/pools/kits/maxima-pool.webp';
+import poolHeater from '@/assets/equipment/pool-heater.webp';
 
 import { setNarratorContext } from '@/lib/narratorStore';
 import {
