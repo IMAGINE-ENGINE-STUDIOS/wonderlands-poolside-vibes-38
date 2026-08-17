@@ -120,6 +120,10 @@ type OptionState = {
   /** Manual override of the measured area / run, in feet */
   areaOverride: number;
   runOverride: number;
+  /** Average water depth, used for volume, heating and turnover figures */
+  avgDepthFt: number;
+  /** Desired water temperature, °F */
+  targetTempF: number;
 };
 
 const defaultOptions: OptionState = {
@@ -134,6 +138,8 @@ const defaultOptions: OptionState = {
   gateQty: 0,
   areaOverride: 0,
   runOverride: 0,
+  avgDepthFt: 4.5,
+  targetTempF: 86,
 };
 
 export function useBoardEstimate(categoryId: string) {
@@ -195,7 +201,12 @@ export function useBoardEstimate(categoryId: string) {
     };
   }, [board.kind, options, areaSqFt, runFt, takeoff.perimeterFt, takeoff.gates, state.grass, state.site]);
 
-  return { board, state, takeoff, areaSqFt, runFt, options, setOptions, ...result };
+  const poolSqFt = React.useMemo(
+    () => (board.kind === "site" ? Math.round(computeSiteEstimate(state.site).poolSqFt) : 0),
+    [board.kind, state.site],
+  );
+
+  return { board, state, takeoff, areaSqFt, runFt, poolSqFt, options, setOptions, ...result };
 }
 
 /* ------------------------------------------------------------------ *
@@ -318,8 +329,22 @@ const select =
   "w-full border border-border/60 bg-transparent px-2 py-1.5 text-[10px] uppercase tracking-[0.2em] focus:outline-none";
 
 export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categoryId }) => {
-  const { board, options, setOptions, takeoff, total, perSqFt, areaSqFt, runFt } = useBoardEstimate(categoryId);
+  const { board, options, setOptions, takeoff, total, perSqFt, areaSqFt, runFt, poolSqFt } =
+    useBoardEstimate(categoryId);
   const set = (patch: Partial<OptionState>) => setOptions((p) => ({ ...p, ...patch }));
+
+  /* water volume, heater capacity and turnover, read off the drawn shell */
+  const water = React.useMemo(() => {
+    const sqFt = poolSqFt || (board.kind === "site" ? areaSqFt : 0);
+    const depth = Math.max(0, options.avgDepthFt);
+    const gallons = Math.round(sqFt * depth * 7.48);
+    const rise = Math.max(0, options.targetTempF - 72);
+    return {
+      gallons,
+      btu: gallons ? Math.round((sqFt * Math.max(rise, 10) * 12) / 1000) * 1000 : 0,
+      gpm: gallons ? Math.round(gallons / 8 / 60) : 0,
+    };
+  }, [poolSqFt, areaSqFt, board.kind, options.avgDepthFt, options.targetTempF]);
   const stepBtn = "border border-border/60 p-1 transition-colors hover:bg-foreground hover:text-background";
 
   return (
@@ -445,13 +470,50 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
         )}
 
         {board.kind === "site" && (
-          <Row label="Rate card">
-            <ul className="space-y-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              <li>Pool shell — ${SITE_RATES.pool}/sq ft</li>
-              <li>Deck, patio, driveway — ${SITE_RATES.deck}/sq ft</li>
-              <li>Pool barrier — ${FENCE_RATE_PER_FT}/linear ft</li>
-            </ul>
-          </Row>
+          <>
+            <Row label="Water & heating">
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block">
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
+                    Avg depth ft
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    step={0.5}
+                    value={options.avgDepthFt}
+                    onChange={(e) => set({ avgDepthFt: Number(e.target.value) || 0 })}
+                    className={select}
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
+                    Target °F
+                  </span>
+                  <input
+                    type="number"
+                    min={70}
+                    max={104}
+                    value={options.targetTempF}
+                    onChange={(e) => set({ targetTempF: Number(e.target.value) || 0 })}
+                    className={select}
+                  />
+                </label>
+              </div>
+              <ul className="mt-2 space-y-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                <li>{water.gallons ? `${water.gallons.toLocaleString()} gallons of water` : "Draw the shell for a volume"}</li>
+                <li>{water.btu ? `Heater — ${water.btu.toLocaleString()} BTU recommended` : "Heater sized once drawn"}</li>
+                <li>{water.gpm ? `Pump — ${water.gpm} gpm for an 8 hr turnover` : "Turnover sized once drawn"}</li>
+              </ul>
+            </Row>
+            <Row label="Rate card">
+              <ul className="space-y-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                <li>Pool shell — ${SITE_RATES.pool}/sq ft</li>
+                <li>Deck, patio, driveway — ${SITE_RATES.deck}/sq ft</li>
+                <li>Pool barrier — ${FENCE_RATE_PER_FT}/linear ft</li>
+              </ul>
+            </Row>
+          </>
         )}
 
         {board.kind === "grass" && (
