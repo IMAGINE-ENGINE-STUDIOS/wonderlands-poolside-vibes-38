@@ -85,6 +85,7 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
   onChange,
   onAdd,
   onQuote,
+  controls,
 }) => {
   const groups = React.useMemo(
     () => getStudioFeatureGroups(categoryId, { modelName: entry.name, brand: entry.brand }),
