@@ -56,7 +56,8 @@ Deno.serve(async (req) => {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #0891b2 0%, #06b6d4 40%, #f97066 100%); padding: 32px 40px; text-align: center;">
-              <img src="https://wonderlands-poolside-vibes-38.lovable.app/images/wonderlands-logo.png" alt="Wonderlands World" width="80" height="80" style="display: block; margin: 0 auto 12px; border-radius: 50%; background: #ffffff; padding: 6px;" />
+              {/* Brand logo now lives under /logo instead of /images for cleaner public asset organization. */}
+              <img src="https://wonderlands-poolside-vibes-38.lovable.app/logo/wonderlands-logo.png" alt="Wonderlands World" width="80" height="80" style="display: block; margin: 0 auto 12px; border-radius: 50%; background: #ffffff; padding: 6px;" />
               <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff;">
                 Milestone Completed! ✅
               </h1>
