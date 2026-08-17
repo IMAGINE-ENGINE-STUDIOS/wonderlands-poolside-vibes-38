@@ -4,10 +4,10 @@
 
 // Import Wonderlands pool images
 import madrePerlaImage from '@/assets/pools/madre-perla.webp';
-import capeCod12Image from '@/assets/pools/kits/latham-cape-cod-12.jpg';
-import maximaImage from '@/assets/pools/kits/maxima-pool.webp';
+import capeCod12Image from '@/assets/pools/cape-cod.webp';
+import maximaImage from '@/assets/pools/concrete/maxima-pool.webp';
 import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.webp';
-import cancunDeluxeImage from '@/assets/pools/kits/cancun-deluxe.webp';
+import cancunDeluxeImage from '@/assets/pools/cancun-deluxe.webp';
 import wonderPalaceImage from '@/assets/pools/wonderpalace.webp';
 
 // Import Latham/Axiom pool images

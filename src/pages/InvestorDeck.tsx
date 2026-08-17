@@ -15,7 +15,7 @@ import axiomPool from "@/assets/pools/axiom-14-deluxe-main.webp";
 import lanaiDeluxe from "@/assets/enclosures/lanai-deluxe.webp";
 import screenEnclosure from "@/assets/enclosures/screen-enclosure-deluxe.webp";
 import fenceImg from "@/assets/fencing/aluminum-fencing.webp";
-import paverImg from "@/assets/pools/kits/serenitykit.webp";
+import paverImg from "@/assets/water-features/waterfalls/serenitykit.webp";
 import wonderlandsHero from "@/assets/hero/wonderlands-hero.webp";
 import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 import outdoorKitchen from "@/assets/deck/outdoor-kitchen.webp";

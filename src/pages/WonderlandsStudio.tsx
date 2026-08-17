@@ -66,9 +66,9 @@ import { landscapingPlants } from '@/data/landscapingData';
 import { drivewayGates } from '@/data/drivewayGates';
 
 // Rocky Waterfalls data
-import sunsetGroveImage from '@/assets/pools/kits/sunset-grove-kit-pool.webp';
-import maldivesImage from '@/assets/pools/kits/maldiveskit-castlerock.webp';
-import serenityImage from '@/assets/pools/kits/serenitykit.webp';
+import sunsetGroveImage from '@/assets/water-features/waterfalls/sunset-grove-kit-pool.webp';
+import maldivesImage from '@/assets/water-features/waterfalls/maldiveskit-castlerock.webp';
+import serenityImage from '@/assets/water-features/waterfalls/serenitykit.webp';
 
 const rockyWaterfallTiers = [
   { name: 'Sunset Grove', price: 17500, image: sunsetGroveImage },
