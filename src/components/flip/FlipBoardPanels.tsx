@@ -533,6 +533,9 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
   const { board, options, setOptions, takeoff, total, perSqFt, areaSqFt, runFt, poolSqFt } =
     useBoardEstimate(categoryId);
   const set = (patch: Partial<OptionState>) => setOptions((p) => ({ ...p, ...patch }));
+  /* The managed pipeline for this discipline, when there is one */
+  const pipeline = React.useMemo(() => getProjectPipeline(categoryId), [categoryId]);
+
 
   /* water volume, heater capacity and turnover, read off the drawn shell */
   const water = React.useMemo(() => {
