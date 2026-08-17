@@ -339,7 +339,7 @@ const QuotationTool = () => {
                   categoryId={entryCategory}
                   categoryLabel={categoryLabel}
                   onChange={handleChange}
-                  onAdd={handleAdd}
+                  onAdd={(p) => handleAdd(p, true)}
                   onQuote={handleQuote}
                   controls={controls}
                 />
