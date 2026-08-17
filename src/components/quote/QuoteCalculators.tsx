@@ -3,6 +3,9 @@ import { X, PenTool, Maximize2 } from "lucide-react";
 import { FlipBoardCalculators, FlipBoardCost, FlipBoardTools } from "@/components/flip/FlipBoardPanels";
 import { boardForCategory } from "@/components/flip/FlipEditorBoard";
 
+import CustomerProjectSummary from "@/components/quote/CustomerProjectSummary";
+import type { ConfiguredProduct } from "@/components/quote/QuoteStudioConfigurator";
+
 const FlipToolWidget = React.lazy(() => import("@/components/flip/FlipToolWidget"));
 
 /**
