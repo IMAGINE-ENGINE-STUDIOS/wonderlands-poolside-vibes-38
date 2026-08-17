@@ -85,6 +85,8 @@ const Section: React.FC<{
         </div>
       </header>
 
+      {withSummary && <CustomerProjectSummary categoryId={d.id} product={product} />}
+
       {boardSection && (
         <div className="grid gap-0 border-b border-border/60 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div className="min-h-[420px] border-b border-border/60 lg:border-b-0 lg:border-r">
