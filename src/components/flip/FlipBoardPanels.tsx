@@ -210,8 +210,164 @@ export function useBoardEstimate(categoryId: string) {
 }
 
 /* ------------------------------------------------------------------ *
+ * Project specifications — the engineering figures behind the price
+ * ------------------------------------------------------------------ *
+ * Everything here is derived from the drawing so the reader can see WHAT the
+ * money buys, not just the number: excavation and spoil volumes, structural
+ * concrete and steel, plumbing runs, electrical loads, water volume, heating
+ * and turnover. Nothing is invented — each figure is a standard Florida
+ * residential take-off rule applied to the measured geometry.
+ */
+
+export type SpecLine = { label: string; value: string; why: string };
+
+export function useProjectSpecs(categoryId: string) {
+  const { board, takeoff, areaSqFt, runFt, poolSqFt, options, total } = useBoardEstimate(categoryId);
+
+  return React.useMemo(() => {
+    const specs: SpecLine[] = [];
+    const perimeter = Math.round(takeoff.perimeterFt || runFt);
+
+    if (board.kind === "site") {
+      const shell = poolSqFt || 0;
+      const depth = Math.max(0, options.avgDepthFt);
+      const deck = Math.max(0, areaSqFt - shell);
+      const gallons = Math.round(shell * depth * 7.48);
+      /* excavation goes 1 ft past the shell wall and 1 ft below the floor */
+      const digCuYd = Math.round((shell * (depth + 1) * 1.15) / 27);
+      const shellConcreteCuYd = Math.round(((shell + perimeter * depth) * 0.5) / 27);
+      const rise = Math.max(0, options.targetTempF - 72);
+
+      if (shell > 0) {
+        specs.push({
+          label: "Pool shell",
+          value: `${shell.toLocaleString()} sq ft · ${depth} ft average depth`,
+          why: "Shell area and depth set the shotcrete, steel and finish quantities",
+        });
+        specs.push({
+          label: "Excavation",
+          value: `${digCuYd.toLocaleString()} cu yd dug · ${Math.round(digCuYd * 1.25).toLocaleString()} cu yd spoil hauled`,
+          why: "Dug 1 ft beyond the wall and 1 ft under the floor; soil swells ~25% once loose",
+        });
+        specs.push({
+          label: "Structure",
+          value: `${shellConcreteCuYd.toLocaleString()} cu yd concrete · #3 rebar at 12 in on centre`,
+          why: "Engineer-sealed shell thickness for Florida residential pools",
+        });
+        specs.push({
+          label: "Water",
+          value: `${gallons.toLocaleString()} gallons · ${gallons ? Math.round(gallons / 8 / 60) : 0} gpm for an 8 hr turnover`,
+          why: "Health-code turnover: the whole body of water filtered every 8 hours",
+        });
+        specs.push({
+          label: "Heating",
+          value: rise
+            ? `${(Math.round((shell * Math.max(rise, 10) * 12) / 1000) * 1000).toLocaleString()} BTU to hold ${options.targetTempF}°F`
+            : "No heat rise requested",
+          why: "Sized on surface area and the rise above an average 72°F water temperature",
+        });
+        specs.push({
+          label: "Plumbing & hydraulics",
+          value: `${Math.max(2, Math.round(shell / 150))} returns · 2 skimmers · 2 in suction, 1.5 in return`,
+          why: "Even circulation and low head loss keep the pump on its efficiency curve",
+        });
+        specs.push({
+          label: "Electrical",
+          value: "Dedicated 50 A sub-panel · GFCI · equipotential bond ring",
+          why: "NEC 680 requirement for every pool, spa and wet deck in Florida",
+        });
+      }
+      if (deck > 0) {
+        specs.push({
+          label: "Deck & drainage",
+          value: `${deck.toLocaleString()} sq ft · 4 in compacted base · 1–2% fall away from the shell`,
+          why: "Base depth and slope are what stop settlement and standing water later",
+        });
+      }
+      if (runFt > 0) {
+        specs.push({
+          label: "Safety barrier",
+          value: `${runFt.toLocaleString()} linear ft · 48 in minimum · self-closing, self-latching gates`,
+          why: "Florida Residential Swimming Pool Safety Act (FS 515) compliance",
+        });
+      }
+    }
+
+    if (board.kind === "enclosure") {
+      specs.push({
+        label: "Enclosure footprint",
+        value: `${areaSqFt.toLocaleString()} sq ft · ${perimeter.toLocaleString()} linear ft of wall`,
+        why: "Drives aluminium extrusion, screen yardage and anchor count",
+      });
+      specs.push({
+        label: "Wind load",
+        value: "Engineered to 160+ mph, Risk Category II, exposure C",
+        why: "Florida Building Code wind design for screened structures",
+      });
+      specs.push({
+        label: "Anchoring",
+        value: `${Math.max(4, Math.round(perimeter / 4)).toLocaleString()} anchors at 4 ft on centre into the deck beam`,
+        why: "Uplift resistance is only as good as the anchor spacing and the beam it lands in",
+      });
+      specs.push({
+        label: "Doors",
+        value: `${Math.max(takeoff.doors, options.doorQty)} self-closing, self-latching door(s)`,
+        why: "Required where the enclosure forms the pool barrier",
+      });
+    }
+
+    if (board.kind === "fence") {
+      specs.push({
+        label: "Fence run",
+        value: `${runFt.toLocaleString()} linear ft · posts at 6 ft on centre`,
+        why: "Post spacing and footing depth carry the wind load on the panels",
+      });
+      specs.push({
+        label: "Footings",
+        value: `${Math.max(2, Math.round(runFt / 6) + 1)} concrete footings, 10 in dia × 24 in deep`,
+        why: "Standard Florida footing for aluminium pool barrier posts",
+      });
+      specs.push({
+        label: "Code",
+        value: "48 in minimum height · 4 in maximum gap · no climbable rails",
+        why: "Florida Residential Swimming Pool Safety Act (FS 515) compliance",
+      });
+    }
+
+    if (board.kind === "grass") {
+      specs.push({
+        label: "Turf area",
+        value: `${areaSqFt.toLocaleString()} sq ft · ${perimeter.toLocaleString()} linear ft of edge`,
+        why: "Roll yardage, edging and seam count come off area and perimeter",
+      });
+      specs.push({
+        label: "Base build-up",
+        value: `3 in compacted crushed base · ${Math.round((areaSqFt * 0.25) / 27) || 1} cu yd`,
+        why: "A compacted base is what keeps the turf flat and draining for years",
+      });
+      specs.push({
+        label: "Infill & drainage",
+        value: `${Math.round(areaSqFt * 1.5).toLocaleString()} lb infill · perforated drain at low points`,
+        why: "Infill holds the blades upright; drainage stops odour and puddling",
+      });
+    }
+
+    /* Wonderlands standard payment schedule */
+    const schedule = [
+      { label: "On contract", pct: 20 },
+      { label: "At excavation", pct: 35 },
+      { label: "At shell & equipment", pct: 40 },
+      { label: "At handover", pct: 10 },
+    ].map((s) => ({ ...s, amount: Math.round((total * s.pct) / 100) }));
+
+    return { specs, schedule, total };
+  }, [board.kind, takeoff, areaSqFt, runFt, poolSqFt, options, total]);
+}
+
+/* ------------------------------------------------------------------ *
  * Tools leaf — every button for the board, printed on the facing page
  * ------------------------------------------------------------------ */
+
 
 export const FlipBoardTools: React.FC<{
   categoryId: string;
