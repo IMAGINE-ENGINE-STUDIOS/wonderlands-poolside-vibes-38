@@ -298,7 +298,9 @@ const QuotationTool = () => {
         </div>
       </div>
 
-      <AutoShell as="main" className="py-10 md:py-14">
+      {/* pb-24: clearance for the docked SouthBar rail */}
+      <AutoShell as="main" className="py-10 pb-24 md:py-14 md:pb-28">
+
 
         {/* Masthead — FLIP V7 */}
         <div className="border-y border-foreground/15 py-8 text-center">
