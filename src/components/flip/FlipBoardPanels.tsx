@@ -26,6 +26,8 @@ import {
   computeGrassEstimate,
 } from "@/data/artificialGrassConfigurator";
 import { getGrassPricePerSqFt } from "@/data/artificialGrassData";
+import { TURNKEY_SCOPE } from "@/data/turnkeyScope";
+import { getProjectPipeline } from "@/data/projectPipeline";
 
 /**
  * The facing leaves of a FLIP design spread: the board's tools, the live cost of
