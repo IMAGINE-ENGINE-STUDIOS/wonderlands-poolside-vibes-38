@@ -3,15 +3,15 @@ import { motion } from "framer-motion";
 import { Linkedin, Waves, Palmtree, Sparkles, Moon, Palette, Hammer, Droplets, Flame, Sun, Home, Leaf, BrickWall, Lock, ShieldCheck, DoorOpen, PaintBucket, Building2, UmbrellaOff, Hotel, Globe, ArrowRight, Lightbulb, ClipboardList, FileCheck, HardHat, CookingPot, Fence, TreePine, TrendingUp, DollarSign, Users, Search, Clock, AlertTriangle, Wrench, Timer, UserX } from "lucide-react";
 
 // Pool & asset images
-import olympiaPool from "@/assets/pools/olympia-12-optimized.webp";
-import bermudaPool from "@/assets/pools/bermuda.webp";
-import valenciaPool from "@/assets/pools/valencia.webp";
-import synergyPool from "@/assets/pools/synergy.webp";
-import genesisPool from "@/assets/pools/genesis.webp";
-import fijiPool from "@/assets/pools/fiji.webp";
-import geometricPool from "@/assets/pools/geometric-luxury.webp";
-import enchantmentPool from "@/assets/pools/enchantment-917-installed.webp";
-import axiomPool from "@/assets/pools/axiom-14-deluxe-main.webp";
+import olympiaPool from "@/assets/pools/latham/olympia-12-optimized.webp";
+import bermudaPool from "@/assets/pools/latham/bermuda.webp";
+import valenciaPool from "@/assets/pools/latham/valencia.webp";
+import synergyPool from "@/assets/pools/latham/synergy.webp";
+import genesisPool from "@/assets/pools/latham/genesis.webp";
+import fijiPool from "@/assets/pools/latham/fiji.webp";
+import geometricPool from "@/assets/pools/shapes/geometric-luxury.webp";
+import enchantmentPool from "@/assets/pools/latham/enchantment-917-installed.webp";
+import axiomPool from "@/assets/pools/latham/axiom-14-deluxe-main.webp";
 import lanaiDeluxe from "@/assets/enclosures/lanai-deluxe.webp";
 import screenEnclosure from "@/assets/enclosures/screen-enclosure-deluxe.webp";
 import fenceImg from "@/assets/fencing/aluminum-fencing.webp";
