@@ -62,12 +62,32 @@ export const CustomerProjectSummary: React.FC<Props> = ({ categoryId, product })
     [product],
   );
 
+  /**
+   * The selection total, computed exactly as StudioCartWidget does it:
+   * (base + every extra) × quantity. Extras were previously ignored here,
+   * which made this sheet disagree with the cart.
+   */
   const listTotal = React.useMemo(
-    () => cartItems.reduce((sum, i) => sum + i.price * (i.quantity || 1), 0),
+    () =>
+      cartItems.reduce((sum, i) => {
+        const extras = (i.extras ?? []).reduce((s, e) => s + (e.price || 0), 0);
+        return sum + ((i.price || 0) + extras) * (i.quantity || 1);
+      }, 0),
     [cartItems],
   );
 
-  const investment = (product?.total ?? 0) + listTotal;
+  /**
+   * The configured piece only counts on top of the list while it is still
+   * pending — once it is in the shopping list it is already inside listTotal,
+   * so adding it again doubled the investment.
+   */
+  const pieceInList = React.useMemo(
+    () => cartItems.some((i) => i.id === product?.id || i.name === product?.name),
+    [cartItems, product?.id, product?.name],
+  );
+  const pendingPiece = product && !pieceInList ? product.total : 0;
+  const investment = listTotal + pendingPiece;
+
 
   /* ------------------------------ the reading ------------------------------ */
 
