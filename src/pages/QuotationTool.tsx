@@ -209,17 +209,22 @@ const QuotationTool = () => {
     [navigate],
   );
 
+  /* The quote is built from the open configuration AND everything else already
+     on the shopping list, so every category the reader added is quoted. */
   const quoteExtras = React.useMemo(() => {
-    if (!product) return undefined;
-    return {
-      extrasBreakdown: product.extras.map((e) => ({
-        name: e.name,
-        price: e.price,
-        image: e.image ?? "",
-      })),
-      extrasTotal: product.extras.reduce((sum, e) => sum + e.price, 0),
-    };
-  }, [product]);
+    const own = product
+      ? {
+          extrasBreakdown: product.extras.map((e) => ({
+            name: e.name,
+            price: e.price,
+            image: e.image ?? "",
+          })),
+          extrasTotal: product.extras.reduce((sum, e) => sum + e.price, 0),
+        }
+      : { extrasBreakdown: [], extrasTotal: 0 };
+    const merged = mergeCartIntoExtras(own, cartItems as any, product?.name);
+    return merged.extrasBreakdown.length ? merged : undefined;
+  }, [product, cartItems]);
 
   return (
     <div className="min-h-screen bg-background">
