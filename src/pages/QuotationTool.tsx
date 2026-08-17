@@ -413,7 +413,9 @@ const QuotationTool = () => {
           <div className="mt-14">
             <QuoteCalculators
               only={disciplineForCategory(entryCategory)}
-              heading={`${entry.name} — the calculator`}
+              heading={`${entry.name} — customer project summary`}
+              product={product}
+              withSummary
             />
           </div>
         )}

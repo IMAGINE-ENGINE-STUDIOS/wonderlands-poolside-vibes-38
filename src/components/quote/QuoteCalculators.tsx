@@ -3,6 +3,9 @@ import { X, PenTool, Maximize2 } from "lucide-react";
 import { FlipBoardCalculators, FlipBoardCost, FlipBoardTools } from "@/components/flip/FlipBoardPanels";
 import { boardForCategory } from "@/components/flip/FlipEditorBoard";
 
+import CustomerProjectSummary from "@/components/quote/CustomerProjectSummary";
+import type { ConfiguredProduct } from "@/components/quote/QuoteStudioConfigurator";
+
 const FlipToolWidget = React.lazy(() => import("@/components/flip/FlipToolWidget"));
 
 /**
@@ -19,7 +22,10 @@ export type CalculatorDiscipline = {
 };
 
 export const CALCULATOR_DISCIPLINES: CalculatorDiscipline[] = [
-  { id: "pools", index: "III.i", title: "Pool & site plan", note: "Shell, deck, barrier and water priced as drawn" },
+  /* Renamed from "Pool & site plan": the leaf now opens with the narrated
+     customer project summary, fed by the configurator, the shopping list and
+     the drawn take-off. */
+  { id: "pools", index: "III.i", title: "Customer project summary", note: "Your project, priced and explained as drawn" },
   { id: "screen-enclosures", index: "III.ii", title: "Screen enclosure", note: "Mansard or gable, Florida wind load" },
   { id: "patio-fencing", index: "III.iii", title: "Aluminium fencing", note: "Runs, gates and self-latching doors" },
   { id: "artificial-grass", index: "III.iv", title: "Artificial turf", note: "Lawn area, seams, base and infill" },
@@ -47,9 +53,14 @@ export const disciplineForCategory = (categoryId?: string): CalculatorDiscipline
 const Section: React.FC<{
   discipline: CalculatorDiscipline;
   onFullScreen: (id: string) => void;
-}> = ({ discipline: d, onFullScreen }) => {
+  /** The piece open in the configurator — feeds the narrated summary. */
+  product?: ConfiguredProduct | null;
+  /** Print the narrated customer project summary at the head of the leaf. */
+  withSummary?: boolean;
+}> = ({ discipline: d, onFullScreen, product, withSummary }) => {
   const [boardSection, setBoardSection] = React.useState(false);
   const board = boardForCategory(d.id);
+
 
   return (
     <section className="border border-foreground/15 bg-background/70 backdrop-blur-xl">
@@ -73,6 +84,8 @@ const Section: React.FC<{
           </button>
         </div>
       </header>
+
+      {withSummary && <CustomerProjectSummary categoryId={d.id} product={product} />}
 
       {boardSection && (
         <div className="grid gap-0 border-b border-border/60 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -107,9 +120,19 @@ type Props = {
   /** Chapter heading, printed in the showroom and on the full set. */
   heading?: string;
   eyebrow?: string;
+  /** The configured piece, so the narrated summary speaks about the guest's project. */
+  product?: ConfiguredProduct | null;
+  /** Print the narrated customer project summary on the first leaf. */
+  withSummary?: boolean;
 };
 
-const QuoteCalculators: React.FC<Props> = ({ only, heading = "The Calculators", eyebrow = "Chapter III" }) => {
+const QuoteCalculators: React.FC<Props> = ({
+  only,
+  heading = "The Calculators",
+  eyebrow = "Chapter III",
+  product,
+  withSummary,
+}) => {
   const [full, setFull] = React.useState<string | null>(null);
   const disciplines = only ? [only] : CALCULATOR_DISCIPLINES;
 
@@ -134,9 +157,16 @@ const QuoteCalculators: React.FC<Props> = ({ only, heading = "The Calculators", 
         <h2 className="mt-2 font-serif text-3xl font-light text-foreground">{heading}</h2>
       </div>
 
-      {disciplines.map((d) => (
-        <Section key={d.id} discipline={d} onFullScreen={setFull} />
+      {disciplines.map((d, i) => (
+        <Section
+          key={d.id}
+          discipline={d}
+          onFullScreen={setFull}
+          product={product}
+          withSummary={withSummary && i === 0}
+        />
       ))}
+
 
       <p className="text-center text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
         All prices include delivery, installation and the product as described
