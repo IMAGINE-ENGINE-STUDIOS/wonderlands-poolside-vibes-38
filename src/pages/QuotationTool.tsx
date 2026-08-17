@@ -161,12 +161,17 @@ const QuotationTool = () => {
   productRef.current = product;
 
   const handleAdd = React.useCallback(
-    (p: ConfiguredProduct) => {
-      /* Courtesy notice: the reader already has a piece from this category on
-         the list. They are allowed to keep both — this only makes it obvious. */
+    (p: ConfiguredProduct, manual = false) => {
+      /* A second piece from a category the reader already has on the list is
+         only ever added by hand — the 10 second courtesy timer and the
+         edit-sync never duplicate a category on their own. */
       const sameCategory = cartItems.filter(
         (i) => i.category === p.category && i.id !== p.id,
       );
+      if (!manual && sameCategory.length > 0) {
+        addedRef.current = p.id; // stop the timer from trying again
+        return;
+      }
       addedRef.current = p.id;
       addToCart(toCartItem(p));
       if (sameCategory.length > 0) {
@@ -334,7 +339,7 @@ const QuotationTool = () => {
                   categoryId={entryCategory}
                   categoryLabel={categoryLabel}
                   onChange={handleChange}
-                  onAdd={handleAdd}
+                  onAdd={(p) => handleAdd(p, true)}
                   onQuote={handleQuote}
                   controls={controls}
                 />
@@ -362,7 +367,7 @@ const QuotationTool = () => {
               onRemoveCurrentExtra={handleRemoveExtra}
               onCurrentExtraQuantity={handleExtraQuantity}
               onCurrentExtraOption={handleExtraOption}
-              onAddCurrent={product ? () => handleAdd(product) : undefined}
+              onAddCurrent={product ? () => handleAdd(product, true) : undefined}
               onQuote={product ? () => handleQuote(product) : () => setQuoteOpen(true)}
             />
 
