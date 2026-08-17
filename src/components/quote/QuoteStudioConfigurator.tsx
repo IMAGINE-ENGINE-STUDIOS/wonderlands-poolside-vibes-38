@@ -51,6 +51,17 @@ export type ConfiguredProduct = {
   total: number;
 };
 
+/**
+ * Imperative handles so the shopping list can edit the configuration that is
+ * currently open (remove a feature, change its quantity or swap the option) and
+ * the price recalculates at the source instead of drifting out of sync.
+ */
+export type ConfiguratorControls = {
+  removeExtra: (key?: string) => void;
+  setExtraQuantity: (key: string | undefined, quantity: number) => void;
+  setExtraOption: (key: string | undefined, optionName: string) => void;
+};
+
 interface Props {
   entry: ConsoleEntry;
   categoryId: string;
@@ -58,6 +69,8 @@ interface Props {
   onChange: (product: ConfiguredProduct) => void;
   onAdd: (product: ConfiguredProduct) => void;
   onQuote: (product: ConfiguredProduct) => void;
+  /** Filled with the live edit handles for the open configuration */
+  controls?: React.MutableRefObject<ConfiguratorControls | null>;
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
