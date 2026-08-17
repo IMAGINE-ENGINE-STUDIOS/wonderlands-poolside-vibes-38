@@ -361,13 +361,12 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
                                 >
                                   <div
                                     onClick={() => toggle(group.title, item)}
-                                    onMouseEnter={() =>
-                                      setPreview({
-                                        image: item.image,
-                                        color: item.color,
-                                        label: item.label,
-                                      })
-                                    }
+                                    onMouseEnter={() => {
+                                      /* only swap the plate when the option has
+                                         its own photograph — never a flat colour */
+                                      if (item.image)
+                                        setPreview({ image: item.image, label: item.label });
+                                    }}
                                     onMouseLeave={() => setPreview(null)}
                                     role="button"
                                     tabIndex={0}
