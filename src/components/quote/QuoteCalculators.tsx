@@ -120,9 +120,19 @@ type Props = {
   /** Chapter heading, printed in the showroom and on the full set. */
   heading?: string;
   eyebrow?: string;
+  /** The configured piece, so the narrated summary speaks about the guest's project. */
+  product?: ConfiguredProduct | null;
+  /** Print the narrated customer project summary on the first leaf. */
+  withSummary?: boolean;
 };
 
-const QuoteCalculators: React.FC<Props> = ({ only, heading = "The Calculators", eyebrow = "Chapter III" }) => {
+const QuoteCalculators: React.FC<Props> = ({
+  only,
+  heading = "The Calculators",
+  eyebrow = "Chapter III",
+  product,
+  withSummary,
+}) => {
   const [full, setFull] = React.useState<string | null>(null);
   const disciplines = only ? [only] : CALCULATOR_DISCIPLINES;
 
@@ -147,9 +157,16 @@ const QuoteCalculators: React.FC<Props> = ({ only, heading = "The Calculators", 
         <h2 className="mt-2 font-serif text-3xl font-light text-foreground">{heading}</h2>
       </div>
 
-      {disciplines.map((d) => (
-        <Section key={d.id} discipline={d} onFullScreen={setFull} />
+      {disciplines.map((d, i) => (
+        <Section
+          key={d.id}
+          discipline={d}
+          onFullScreen={setFull}
+          product={product}
+          withSummary={withSummary && i === 0}
+        />
       ))}
+
 
       <p className="text-center text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
         All prices include delivery, installation and the product as described
