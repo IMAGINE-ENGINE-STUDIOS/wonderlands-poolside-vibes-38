@@ -18,6 +18,8 @@ import { toast } from "@/hooks/use-toast";
 
 import { useNavigate } from "react-router-dom";
 import { Calendar, Search, PenTool, X, Loader2 } from "lucide-react";
+// screenadjusterauto: fluid, screen-fitting widths (see src/screenadjusterauto/README.md)
+import { AutoShell, AutoSplit, AutoOverlay, AutoBoard } from "@/screenadjusterauto";
 
 const FlipSearch = React.lazy(() => import("@/components/flip/FlipSearch"));
 const StudioSitePlanner = React.lazy(() =>
@@ -296,7 +298,7 @@ const QuotationTool = () => {
         </div>
       </div>
 
-      <main className="mx-auto max-w-[1240px] px-4 py-10 md:py-14">
+      <AutoShell as="main" className="py-10 md:py-14">
 
         {/* Masthead — FLIP V7 */}
         <div className="border-y border-foreground/15 py-8 text-center">
@@ -311,7 +313,7 @@ const QuotationTool = () => {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <AutoSplit className="mt-10">
           <div className="min-w-0 space-y-8">
             {/* Category console */}
             <div className="flex justify-center">
@@ -428,12 +430,12 @@ const QuotationTool = () => {
         <p className="mt-10 text-center text-[8px] uppercase tracking-[0.35em] text-muted-foreground">
           All prices include delivery, installation and the product as described.
         </p>
-      </main>
+      </AutoShell>
 
       {/* FLIP Search Engine — results open the piece in the configurator */}
       {searchOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/70 px-4 py-10 backdrop-blur-xl">
-          <div className="w-full max-w-2xl border border-foreground/15 bg-background/90 backdrop-blur-2xl">
+          <AutoOverlay className="border border-foreground/15 bg-background/90 backdrop-blur-2xl">
             <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
               <p className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
                 FLIP Search Engine
@@ -469,7 +471,7 @@ const QuotationTool = () => {
       {/* Design board — the 2D site studio, as in the FLIP */}
       {boardOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 px-2 py-6 backdrop-blur-xl md:px-6">
-          <div className="w-full max-w-[1240px] border border-foreground/15 bg-background/95">
+          <AutoBoard className="border border-foreground/15 bg-background/95">
             <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
               <p className="text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
                 Design board — {entry?.name ?? "Wonderlands"}
