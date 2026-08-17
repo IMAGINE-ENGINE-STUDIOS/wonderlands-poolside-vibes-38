@@ -11,8 +11,14 @@ text-only layout instead (see `src/lib/flipProductGallery.ts`).
   (Serafina, Aloha, Atlantis, Regal, Roman, Ponce XL, ...). Moved here out of the
   loose `src/assets` root so brand imagery is no longer mixed with tool screenshots.
   GlimmerGlass has its own finish set (gelcoat is GlimmerGlass-exclusive).
-- `kits/` — packaged pool kits and one-off marketing models: Maldives/Castle Rock,
-  Serenity, Sunset Grove, Cancun Deluxe, Maxima, Latham Cape Cod 12.
+- `concrete/` — Wonderlands custom concrete (gunite) models, e.g. Maxima. Concrete is
+  the flagship pool category and the one the pool books open on.
+
+Removed: the old `kits/` folder. It mixed unrelated products, so its contents were
+re-homed — Cancun Deluxe moved to this folder, Maxima to `concrete/`, and the Castle
+Rock / Serenity / Sunset Grove "kits" to `../water-features/waterfalls/` because they
+are waterfalls, not pools. The stray `latham-cape-cod-12.jpg` was deleted and Cape Cod
+12 now imports `cape-cod.webp` from this folder.
 
 ## Flat files (root of this folder)
 

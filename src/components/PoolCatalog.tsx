@@ -21,8 +21,8 @@ import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 // Import Madre Perla pool image
 import madrePerlaImage from "@/assets/pools/madre-perla.webp";
 import pacificRidgeImage from "@/assets/pools/pacific-ridge-new.webp";
-import cancunDeluxeImage from "@/assets/pools/kits/cancun-deluxe.webp";
-import maximaImage from "@/assets/pools/kits/maxima-pool.webp";
+import cancunDeluxeImage from "@/assets/pools/cancun-deluxe.webp";
+import maximaImage from "@/assets/pools/concrete/maxima-pool.webp";
 import wonderPalaceImage from "@/assets/pools/wonderpalace.webp";
 
 // Import Axiom 14 Deluxe images
@@ -31,7 +31,7 @@ import axiom14DeluxeSpecs from "@/assets/pools/axiom-14-deluxe-specs.webp";
 import axiom14DeluxeGallery1 from "@/assets/pools/axiom-14-deluxe-gallery-1.webp";
 import axiom16Main from "@/assets/pools/axiom-16-main.webp";
 import axiom16Specs from "@/assets/pools/axiom-16-specs.webp";
-import capeCod12Image from "@/assets/pools/kits/latham-cape-cod-12.jpg";
+import capeCod12Image from "@/assets/pools/cape-cod.webp";
 
 // Data loaded successfully
 

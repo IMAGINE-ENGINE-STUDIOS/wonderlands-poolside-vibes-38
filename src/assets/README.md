@@ -36,7 +36,8 @@ in it and which modules consume it.
 | `hero/` | Landing-page hero stills, hero carousel frames and CDN hero video pointers. |
 | `landscaping/` | Vegetation / landscaping category and subcategory tiles. |
 | `pavers/` | Paver and hardscape material swatches (Belgard, Gloca, travertine, porcelain). |
-| `pools/` | All pool product photography. See `pools/README.md` for brand subfolders. |
+| `pools/` | All pool product photography. See `pools/README.md` for brand subfolders (`glimmerglass/`, `concrete/`). |
+| `water-features/` | Waterfall / water feature add-on products (`waterfalls/`). Never pool photography. |
 | `tanning-ledges/` | Tanning ledge product imagery (brand-specific). |
 | `textures/` | Tiling textures consumed by the 3D scene (water, waterline, surfaces). |
 | `tools/` | UI screenshots of Wonderlands tools (studio, blueprint, calculators) used in FLIP/showroom cards. |
