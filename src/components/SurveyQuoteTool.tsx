@@ -1414,7 +1414,7 @@ const SurveyQuoteTool = ({
               <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <ImageCard src="/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.webp" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
+                    <ImageCard src="/wonderlands-branding/1c6556f8-0571-434d-a877-e5152aee1726.webp" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
                     <div>
                       <h1 className="text-2xl font-bold">
                         {extras?.productType === 'lanai' ? 'LANAI QUOTATION' : extras?.enclosure ? 'SCREEN ENCLOSURE QUOTATION' : 'POOL QUOTATION'}

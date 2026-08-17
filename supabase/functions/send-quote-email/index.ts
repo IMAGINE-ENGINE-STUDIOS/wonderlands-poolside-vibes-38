@@ -53,7 +53,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Barrel sauna exterior (preferred)
     const barrelSaunaImage = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/barrel-sauna.webp";
     // Use the main Wonderlands logo
-    const logoUrl = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png";
+    const logoUrl = "https://wonderlands-poolside-vibes-38.lovable.app/wonderlands-branding/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png";
     
     // Barrel sauna price
     const barrelSaunaPrice = 18000;

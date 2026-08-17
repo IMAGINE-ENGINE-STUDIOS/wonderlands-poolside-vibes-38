@@ -236,7 +236,7 @@ const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchPr
       { id: 'laguna', name: 'Laguna', category: 'Pool', price: 64543, image: '/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.webp', keywords: ['pool', 'deluxe', 'laguna', '14x30'] },
       { id: 'laguna-deluxe', name: 'Laguna Deluxe', category: 'Pool', price: 74419, image: '/lovable-uploads/laguna-deluxe-pool.webp', keywords: ['pool', 'deluxe', 'laguna', '14x35'] },
       { id: 'coronado', name: 'Coronado', category: 'Pool', price: 78750, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp', keywords: ['pool', 'premium', 'coronado', '16x32'] },
-      { id: 'synergy', name: 'Synergy', category: 'Pool', price: 80763, image: '/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.webp', keywords: ['pool', 'premium', 'synergy', '16x36'] },
+      { id: 'synergy', name: 'Synergy', category: 'Pool', price: 80763, image: '/wonderlands-branding/1c6556f8-0571-434d-a877-e5152aee1726.webp', keywords: ['pool', 'premium', 'synergy', '16x36'] },
     ];
 
     // GLIMMERGLASS POOLS - Use imported data from gilmerPools (has correct image imports)
@@ -267,7 +267,7 @@ const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchPr
       { id: 'night-sky-crystal', name: 'Night Sky Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.webp', keywords: ['finish', 'crystal', 'dark', 'night', 'sky'] },
       { id: 'shale-gray-crystal', name: 'Shale Gray Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp', keywords: ['finish', 'crystal', 'gray', 'shale'] },
       { id: 'coastal-bronze-crystal', name: 'Coastal Bronze Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp', keywords: ['finish', 'crystal', 'bronze', 'coastal'] },
-      { id: 'aquamarine-crystal', name: 'Aquamarine Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/0c70745d-4bf3-4394-8fb2-da6024bf72b9.webp', keywords: ['finish', 'crystal', 'aquamarine', 'blue'] },
+      { id: 'aquamarine-crystal', name: 'Aquamarine Crystal', category: 'Finish', price: 3500, image: '/wonderlands-branding/0c70745d-4bf3-4394-8fb2-da6024bf72b9.webp', keywords: ['finish', 'crystal', 'aquamarine', 'blue'] },
       { id: 'lagoon-blue-crystal', name: 'Lagoon Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/805c3cea-4684-4e5b-acae-3405dc854aac.webp', keywords: ['finish', 'crystal', 'blue', 'lagoon'] },
       { id: 'pearl-white-crystal', name: 'Pearl White Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp', keywords: ['finish', 'crystal', 'white', 'pearl'] }
     ];

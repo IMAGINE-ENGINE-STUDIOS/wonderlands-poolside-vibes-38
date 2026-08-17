@@ -924,7 +924,7 @@ const PoolDetails = () => {
             body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
             .quote-container { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; max-width: 1000px; margin: 0 auto; }
             .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 50px 40px; text-align: center; position: relative; }
-            .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp') center/cover; opacity: 0.1; }
+            .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/wonderlands-branding/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp') center/cover; opacity: 0.1; }
             .header-content { position: relative; z-index: 2; }
             .logo { font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); letter-spacing: -1px; }
             .header-title { font-family: 'Poppins', sans-serif; font-size: 42px; font-weight: 700; margin: 20px 0 15px 0; letter-spacing: -0.5px; }
@@ -1067,7 +1067,7 @@ const PoolDetails = () => {
                 ${selectedItems.map(item => `
                   <div class="extra-item">
                     <div class="item-info">
-                      <img loading="lazy" decoding="async" src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp'}" alt="${item.name}" class="item-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp'" />
+                      <img loading="lazy" decoding="async" src="${item.image || '/wonderlands-branding/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp'}" alt="${item.name}" class="item-image" onerror="this.src='/wonderlands-branding/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp'" />
                       <div class="item-details">
                         <h4>${item.name}</h4>
                         ${item.description ? `<p>${item.description}</p>` : ''}

@@ -811,7 +811,7 @@ const pools: Pool[] = [
   model: "Synergy",
   price: 80763,
   category: 'premium',
-  image: "/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.webp",
+  image: "/wonderlands-branding/1c6556f8-0571-434d-a877-e5152aee1726.webp",
   dimensions: "16′ × 36′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,

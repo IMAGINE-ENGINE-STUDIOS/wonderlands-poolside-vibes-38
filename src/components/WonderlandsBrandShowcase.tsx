@@ -5,7 +5,7 @@ import { ArrowRight, Sparkles, Waves, Sun } from "lucide-react";
 const brandImages = [
   {
     id: 1,
-    url: "/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp",
+    url: "/wonderlands-branding/96a7bfbb-d930-451c-a0cd-1d8297bb7512.webp",
     title: "Pool Paradise",
     description: "Create your perfect backyard oasis with Wonderlands premium pool accessories and vibrant outdoor furniture."
   },
@@ -17,7 +17,7 @@ const brandImages = [
   },
   {
     id: 3,
-    url: "/lovable-uploads/2ad9f663-7ae0-4ea4-8ae6-cf232b78f58e.webp",
+    url: "/wonderlands-branding/2ad9f663-7ae0-4ea4-8ae6-cf232b78f58e.webp",
     title: "Evening Elegance",
     description: "Transform your outdoor space into an illuminated wonderland with our branded ambient lighting."
   },
