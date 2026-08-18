@@ -10,7 +10,6 @@ import {
   Play,
   Square,
   Mic,
-  MicOff,
 } from "lucide-react";
 import type { ConsoleEntry } from "@/components/flip/flipConsoleData";
 import { useGenius } from "@/hooks/useGenius";
@@ -35,13 +34,13 @@ const FlipSearch = React.lazy(() => import("@/components/flip/FlipSearch"));
  * field). They are now merged into a single bar with a single typing field and
  * all of Genius' powers on it:
  *
- *   PLAY  — reads and explains whatever screen the guest is on. The script is
- *           lifted from the rendered viewport (flipViewportReader) plus the
- *           published narrator context, so it costs nothing to write; only the
- *           voice is billed, and each script's audio is cached per session.
- *   TALK  — opens the microphone for a real-time, hands-free conversation
+ *   GENIUS LIVE — one control for the voice. Pressing it reads and explains
+ *           whatever screen the guest is on (script lifted from the rendered
+ *           viewport plus the narrator context, so the text costs nothing) and
+ *           then opens the microphone for a hands-free conversation
  *           (useVoiceSession: free browser recognition first, recorded path as
- *           fallback, with an echo guard so she never records herself).
+ *           fallback, echo guard so she never records herself). Pressing it
+ *           again stops her voice and closes the microphone.
  *   FIELD — one field for everything. Enter asks Genius; the same words also
  *           seed the catalog search, which lives in the same sheet under the
  *           "Catalog" tab, so search and conversation are one tool.
@@ -274,8 +273,8 @@ export const SouthBar: React.FC<SouthBarProps> = ({
               >
                 {genius.turns.length === 0 && !transcript && (
                   <p className="py-4 text-center text-[11px] leading-relaxed text-muted-foreground">
-                    Press play and I will explain this screen — or talk to me and ask for a
-                    price, a finish, a design change, or an appointment.
+                    Press Genius Live and I will explain this screen, then simply speak — ask me
+                    for a price, a finish, a design change, or an appointment.
                   </p>
                 )}
                 {transcript && genius.turns.length === 0 && (
