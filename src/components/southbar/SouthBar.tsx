@@ -357,56 +357,40 @@ export const SouthBar: React.FC<SouthBarProps> = ({
         <div
           className={`pointer-events-auto flex w-full max-w-[min(100%,120rem)] items-center gap-2 rounded-2xl px-3 py-2.5 shadow-[0_-10px_60px_-30px_hsl(var(--foreground)/0.45)] sm:gap-3 sm:px-4 ${glass}`}
         >
-          {/* PLAY — explain this screen */}
+          {/* ONE voice control — she explains this screen, then listens live */}
           <button
-            onClick={() => void explainScreen()}
-            aria-label={speaking ? "Stop reading this screen" : "Explain this screen"}
+            onClick={() => void toggleVoice()}
+            aria-label={
+              sessionOn ? "Stop Genius' voice and microphone" : "Genius: explain this screen and listen"
+            }
+            aria-pressed={sessionOn}
             className={`${pill} ${
-              speaking
-                ? "border-primary/50 bg-primary/15 text-foreground"
-                : "border-foreground/15 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-            }`}
-          >
-            {reading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : speaking ? (
-              <Square className="h-3 w-3 text-primary" />
-            ) : (
-              <Play className="h-3 w-3 text-primary" />
-            )}
-            <span className="hidden sm:inline">{speaking ? "Stop" : "Play"}</span>
-          </button>
-
-          {/* TALK — real-time conversation */}
-          <button
-            onClick={toggleTalk}
-            aria-label={voice.handsFree ? "Stop talking to Genius" : "Talk to Genius"}
-            aria-pressed={voice.handsFree}
-            className={`${pill} ${
-              voice.handsFree
+              sessionOn
                 ? "border-primary/60 bg-primary/15 text-foreground"
                 : "border-foreground/15 text-muted-foreground hover:border-primary/40 hover:text-foreground"
             }`}
           >
-            {voice.handsFree ? (
-              voice.listening ? (
-                <Mic className="h-3 w-3 animate-pulse text-primary" />
-              ) : (
-                <Mic className="h-3 w-3 text-primary" />
-              )
+            {reading || voice.phase === "transcribing" || genius.isThinking ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            ) : sessionOn ? (
+              <Square className="h-3 w-3 text-primary" />
             ) : (
-              <MicOff className="h-3 w-3" />
+              <Play className="h-3 w-3 text-primary" />
             )}
+            {sessionOn && voice.listening && <Mic className="h-3 w-3 animate-pulse text-primary" />}
             <span className="hidden sm:inline">
-              {voice.handsFree
-                ? voice.phase === "listening"
-                  ? "Listening"
-                  : voice.phase === "speaking"
-                    ? "Speaking"
-                    : "Live"
-                : "Talk"}
+              {!sessionOn
+                ? "Genius Live"
+                : speaking
+                  ? "Speaking"
+                  : voice.phase === "listening"
+                    ? "Listening"
+                    : voice.phase === "transcribing" || genius.isThinking
+                      ? "Thinking"
+                      : "Live"}
             </span>
           </button>
+
 
           <span className="hidden h-6 w-px bg-foreground/10 sm:block" />
 
