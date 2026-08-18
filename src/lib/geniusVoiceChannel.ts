@@ -93,6 +93,11 @@ export function speakGeniusText(text: string): boolean {
 
 /** Silence her at once — used for barge-in and when a new page opens. */
 export function stopGeniusVoice() {
+  try {
+    window.speechSynthesis?.cancel();
+  } catch {
+    /* no speech engine here */
+  }
   if (!audio) {
     emit(false);
     return;
