@@ -80,19 +80,26 @@ export function useNarrator() {
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ANON}` },
             body: JSON.stringify({ text, key }),
           });
-          if (!res.ok) return; // voice is a bonus — the transcript still reads
+          if (!res.ok) {
+            /* Recorded voice unavailable — she still reads with the browser engine. */
+            speakGeniusText(text);
+            return;
+          }
           const blob = await res.blob();
           url = URL.createObjectURL(blob);
           cacheAudio(key, url);
         }
         /* mid volume by default — Genius speaks over the page, never across it */
-        await playGeniusVoice(url);
+        const played = await playGeniusVoice(url);
+        if (!played) speakGeniusText(text);
       } catch {
         stopGeniusVoice();
+        speakGeniusText(text);
       }
     },
     [muted],
   );
+
 
   const narrate = React.useCallback(
     async (opts?: { branch?: string; withVoice?: boolean }) => {
