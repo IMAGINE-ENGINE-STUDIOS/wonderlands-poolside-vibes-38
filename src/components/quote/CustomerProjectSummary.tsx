@@ -159,19 +159,31 @@ export const CustomerProjectSummary: React.FC<Props> = ({ categoryId, product })
     figures.push({ label: "Deck & hardscape", value: `${(areaSqFt - poolSqFt).toLocaleString()} sq ft` });
   if (runFt > 0) figures.push({ label: "Barrier", value: `${runFt.toLocaleString()} linear ft` });
   if (drawnTotal > 0) figures.push({ label: "Priced as drawn", value: money(drawnTotal) });
-  /* Every money line below is traceable: the list, what is still pending, and their sum. */
-  if (product)
+
+  /**
+   * One money line per main product (pool, sauna, cold plunge, fence...) instead of
+   * three near-identical totals. Each line is the piece with its own features and
+   * quantity, so the guest can see what every category costs.
+   */
+  cartItems.forEach((item) => {
+    const extras = (item.extras ?? []).reduce((s, e) => s + (e.price || 0), 0);
+    const qty = item.quantity || 1;
     figures.push({
-      label: pieceInList ? "Configured piece — already in the selection" : "Configured piece — pending",
-      value: money(product.total),
+      label: `${item.category || "Other"} — ${item.name}${qty > 1 ? ` × ${qty}` : ""}`,
+      value: money(((item.price || 0) + extras) * qty),
     });
-  if (listTotal > 0) figures.push({ label: "The selection", value: money(listTotal) });
-  if (pendingPiece > 0) figures.push({ label: "Pending, not yet added", value: money(pendingPiece) });
-  if (investment > 0)
-    figures.push({
-      label: pendingPiece > 0 ? "Project investment — selection + pending" : "Project investment",
-      value: money(investment),
-    });
+  });
+  if (pendingPiece > 0)
+    figures.push({ label: `${product?.category ?? "Piece"} — ${product?.name} (not yet added)`, value: money(pendingPiece) });
+
+  if (investment > 0) {
+    figures.push({ label: "Project investment — turn-key", value: money(investment) });
+    /* Figures that actually help the decision rather than repeating the total. */
+    figures.push({ label: "Due at signing (20%)", value: money(investment * 0.2) });
+    if (areaSqFt > 0)
+      figures.push({ label: "Cost per sq ft, as drawn", value: `${money(investment / areaSqFt)} / sq ft` });
+  }
+
 
 
   return (
