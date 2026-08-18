@@ -83,7 +83,6 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
   categoryId,
   categoryLabel,
   onChange,
-  onAdd,
   onQuote,
   controls,
 }) => {

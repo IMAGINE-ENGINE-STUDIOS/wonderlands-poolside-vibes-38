@@ -11,7 +11,6 @@ import {
   Plus,
   Trash2,
   AlertTriangle,
-  FileText,
   X,
   CreditCard,
   Plus as PlusIcon,
