@@ -21,6 +21,7 @@ import { getNarratorContext } from "@/lib/narratorStore";
 import {
   isGeniusSpeaking,
   playGeniusVoice,
+  speakGeniusText,
   stopGeniusVoice,
   subscribeGeniusVoice,
 } from "@/lib/geniusVoiceChannel";
