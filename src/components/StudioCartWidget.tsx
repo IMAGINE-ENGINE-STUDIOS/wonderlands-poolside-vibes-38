@@ -133,18 +133,7 @@ const StudioCartWidget = ({
 
 
       {/* Action buttons */}
-      <div className="relative grid grid-cols-2 gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            if (pendingPrice > 0) onAddCurrent?.();
-            onQuote?.();
-          }}
-          className="h-9 border-border/60 bg-background/50 text-[11px] font-medium backdrop-blur-sm hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all"
-        >
-          <FileText className="h-3.5 w-3.5 mr-1.5" /> Quote
-        </Button>
+      <div className="relative grid grid-cols-1 gap-2">
         <Button
           size="sm"
           onClick={() => {

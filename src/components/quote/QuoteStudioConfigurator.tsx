@@ -530,12 +530,6 @@ const QuoteStudioConfigurator: React.FC<Props> = ({
         </p>
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => onAdd(product)}
-            className="inline-flex items-center gap-2 border border-border/60 bg-background/60 px-4 py-2.5 text-[10px] uppercase tracking-[0.3em] text-foreground backdrop-blur-md transition-colors hover:bg-foreground hover:text-background"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add to selection
-          </button>
-          <button
             onClick={() => onQuote(product)}
             className="border border-foreground bg-foreground px-4 py-2.5 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
           >
