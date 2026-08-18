@@ -148,7 +148,7 @@ export function useVoiceSession({ onPhrase, busy = false, language }: Options) {
   React.useEffect(() => {
     const err = voice.error ?? '';
     if (!err) return;
-    if (/not-allowed|audio-capture|service-not-allowed|network/i.test(err)) {
+    if (/denied|not-allowed|audio-capture|service-not-allowed|network/i.test(err)) {
       setFreeEngineStalled(true);
     }
   }, [voice.error]);
