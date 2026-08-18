@@ -114,12 +114,8 @@ export const SouthBar: React.FC<SouthBarProps> = ({
   React.useEffect(() => subscribeGeniusVoice(setSpeaking), []);
   React.useEffect(() => () => stopGeniusVoice(), []);
 
-  /** PLAY — explain this screen out loud. */
+  /** Reads and explains whatever screen the guest is on. */
   const explainScreen = React.useCallback(async () => {
-    if (speaking) {
-      stopGeniusVoice();
-      return;
-    }
     const script = composeScreenScript(contextLabel);
     setTranscript(script);
     setTab("genius");
@@ -133,17 +129,23 @@ export const SouthBar: React.FC<SouthBarProps> = ({
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${ANON}` },
           body: JSON.stringify({ text: script, key: `screen::${script.slice(0, 64)}` }),
         });
-        if (!res.ok) return; // the written reading still stands — voice is a bonus
+        if (!res.ok) {
+          /* Recorded voice unavailable — she still reads with the browser engine. */
+          speakGeniusText(script);
+          return;
+        }
         url = URL.createObjectURL(await res.blob());
         audioCache.current.set(script, url);
       }
-      await playGeniusVoice(url);
+      const played = await playGeniusVoice(url);
+      if (!played) speakGeniusText(script);
     } catch {
       stopGeniusVoice();
+      speakGeniusText(script);
     } finally {
       setReading(false);
     }
-  }, [contextLabel, speaking]);
+  }, [contextLabel]);
 
   /** TALK — a real-time conversation: every finished phrase reaches Genius. */
   const voice = useVoiceSession({
@@ -155,12 +157,31 @@ export const SouthBar: React.FC<SouthBarProps> = ({
     busy: genius.isThinking,
   });
 
-  const toggleTalk = React.useCallback(() => {
+  /**
+   * ONE voice control.
+   *
+   * Reading the screen aloud and the live microphone used to be two separate
+   * buttons that could fight each other (she read while the microphone was
+   * open, and LIVE never re-armed after a reading). They are now a single
+   * session: press once → she explains this screen, then the microphone opens
+   * and stays open for a hands-free conversation. Press again → everything
+   * stops: her voice and the microphone.
+   */
+  const sessionOn = voice.handsFree || reading || speaking;
+
+  const toggleVoice = React.useCallback(async () => {
     setOpen(true);
     setTab("genius");
-    /* setHandsFree(false) already closes the microphone. */
-    void voice.setHandsFree(!voice.handsFree);
-  }, [voice]);
+    if (sessionOn) {
+      stopGeniusVoice();
+      await voice.setHandsFree(false);
+      return;
+    }
+    /* Ask for the microphone first — the guest gesture is still live here. */
+    await voice.setHandsFree(true);
+    await explainScreen();
+  }, [sessionOn, voice, explainScreen]);
+
 
   /* ------------------------------ the field ------------------------------ */
 
