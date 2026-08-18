@@ -10,7 +10,6 @@ import {
   Play,
   Square,
   Mic,
-  MicOff,
 } from "lucide-react";
 import type { ConsoleEntry } from "@/components/flip/flipConsoleData";
 import { useGenius } from "@/hooks/useGenius";
@@ -21,6 +20,7 @@ import { getNarratorContext } from "@/lib/narratorStore";
 import {
   isGeniusSpeaking,
   playGeniusVoice,
+  speakGeniusText,
   stopGeniusVoice,
   subscribeGeniusVoice,
 } from "@/lib/geniusVoiceChannel";
@@ -34,13 +34,13 @@ const FlipSearch = React.lazy(() => import("@/components/flip/FlipSearch"));
  * field). They are now merged into a single bar with a single typing field and
  * all of Genius' powers on it:
  *
- *   PLAY  — reads and explains whatever screen the guest is on. The script is
- *           lifted from the rendered viewport (flipViewportReader) plus the
- *           published narrator context, so it costs nothing to write; only the
- *           voice is billed, and each script's audio is cached per session.
- *   TALK  — opens the microphone for a real-time, hands-free conversation
+ *   GENIUS LIVE — one control for the voice. Pressing it reads and explains
+ *           whatever screen the guest is on (script lifted from the rendered
+ *           viewport plus the narrator context, so the text costs nothing) and
+ *           then opens the microphone for a hands-free conversation
  *           (useVoiceSession: free browser recognition first, recorded path as
- *           fallback, with an echo guard so she never records herself).
+ *           fallback, echo guard so she never records herself). Pressing it
+ *           again stops her voice and closes the microphone.
  *   FIELD — one field for everything. Enter asks Genius; the same words also
  *           seed the catalog search, which lives in the same sheet under the
  *           "Catalog" tab, so search and conversation are one tool.
@@ -114,12 +114,8 @@ export const SouthBar: React.FC<SouthBarProps> = ({
   React.useEffect(() => subscribeGeniusVoice(setSpeaking), []);
   React.useEffect(() => () => stopGeniusVoice(), []);
 
-  /** PLAY — explain this screen out loud. */
+  /** Reads and explains whatever screen the guest is on. */
   const explainScreen = React.useCallback(async () => {
-    if (speaking) {
-      stopGeniusVoice();
-      return;
-    }
     const script = composeScreenScript(contextLabel);
     setTranscript(script);
     setTab("genius");
@@ -133,17 +129,23 @@ export const SouthBar: React.FC<SouthBarProps> = ({
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${ANON}` },
           body: JSON.stringify({ text: script, key: `screen::${script.slice(0, 64)}` }),
         });
-        if (!res.ok) return; // the written reading still stands — voice is a bonus
+        if (!res.ok) {
+          /* Recorded voice unavailable — she still reads with the browser engine. */
+          speakGeniusText(script);
+          return;
+        }
         url = URL.createObjectURL(await res.blob());
         audioCache.current.set(script, url);
       }
-      await playGeniusVoice(url);
+      const played = await playGeniusVoice(url);
+      if (!played) speakGeniusText(script);
     } catch {
       stopGeniusVoice();
+      speakGeniusText(script);
     } finally {
       setReading(false);
     }
-  }, [contextLabel, speaking]);
+  }, [contextLabel]);
 
   /** TALK — a real-time conversation: every finished phrase reaches Genius. */
   const voice = useVoiceSession({
@@ -155,12 +157,31 @@ export const SouthBar: React.FC<SouthBarProps> = ({
     busy: genius.isThinking,
   });
 
-  const toggleTalk = React.useCallback(() => {
+  /**
+   * ONE voice control.
+   *
+   * Reading the screen aloud and the live microphone used to be two separate
+   * buttons that could fight each other (she read while the microphone was
+   * open, and LIVE never re-armed after a reading). They are now a single
+   * session: press once → she explains this screen, then the microphone opens
+   * and stays open for a hands-free conversation. Press again → everything
+   * stops: her voice and the microphone.
+   */
+  const sessionOn = voice.handsFree || reading || speaking;
+
+  const toggleVoice = React.useCallback(async () => {
     setOpen(true);
     setTab("genius");
-    /* setHandsFree(false) already closes the microphone. */
-    void voice.setHandsFree(!voice.handsFree);
-  }, [voice]);
+    if (sessionOn) {
+      stopGeniusVoice();
+      await voice.setHandsFree(false);
+      return;
+    }
+    /* Ask for the microphone first — the guest gesture is still live here. */
+    await voice.setHandsFree(true);
+    await explainScreen();
+  }, [sessionOn, voice, explainScreen]);
+
 
   /* ------------------------------ the field ------------------------------ */
 
@@ -252,8 +273,8 @@ export const SouthBar: React.FC<SouthBarProps> = ({
               >
                 {genius.turns.length === 0 && !transcript && (
                   <p className="py-4 text-center text-[11px] leading-relaxed text-muted-foreground">
-                    Press play and I will explain this screen — or talk to me and ask for a
-                    price, a finish, a design change, or an appointment.
+                    Press Genius Live and I will explain this screen, then simply speak — ask me
+                    for a price, a finish, a design change, or an appointment.
                   </p>
                 )}
                 {transcript && genius.turns.length === 0 && (
@@ -336,56 +357,40 @@ export const SouthBar: React.FC<SouthBarProps> = ({
         <div
           className={`pointer-events-auto flex w-full max-w-[min(100%,120rem)] items-center gap-2 rounded-2xl px-3 py-2.5 shadow-[0_-10px_60px_-30px_hsl(var(--foreground)/0.45)] sm:gap-3 sm:px-4 ${glass}`}
         >
-          {/* PLAY — explain this screen */}
+          {/* ONE voice control — she explains this screen, then listens live */}
           <button
-            onClick={() => void explainScreen()}
-            aria-label={speaking ? "Stop reading this screen" : "Explain this screen"}
+            onClick={() => void toggleVoice()}
+            aria-label={
+              sessionOn ? "Stop Genius' voice and microphone" : "Genius: explain this screen and listen"
+            }
+            aria-pressed={sessionOn}
             className={`${pill} ${
-              speaking
-                ? "border-primary/50 bg-primary/15 text-foreground"
-                : "border-foreground/15 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-            }`}
-          >
-            {reading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : speaking ? (
-              <Square className="h-3 w-3 text-primary" />
-            ) : (
-              <Play className="h-3 w-3 text-primary" />
-            )}
-            <span className="hidden sm:inline">{speaking ? "Stop" : "Play"}</span>
-          </button>
-
-          {/* TALK — real-time conversation */}
-          <button
-            onClick={toggleTalk}
-            aria-label={voice.handsFree ? "Stop talking to Genius" : "Talk to Genius"}
-            aria-pressed={voice.handsFree}
-            className={`${pill} ${
-              voice.handsFree
+              sessionOn
                 ? "border-primary/60 bg-primary/15 text-foreground"
                 : "border-foreground/15 text-muted-foreground hover:border-primary/40 hover:text-foreground"
             }`}
           >
-            {voice.handsFree ? (
-              voice.listening ? (
-                <Mic className="h-3 w-3 animate-pulse text-primary" />
-              ) : (
-                <Mic className="h-3 w-3 text-primary" />
-              )
+            {reading || voice.phase === "transcribing" || genius.isThinking ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            ) : sessionOn ? (
+              <Square className="h-3 w-3 text-primary" />
             ) : (
-              <MicOff className="h-3 w-3" />
+              <Play className="h-3 w-3 text-primary" />
             )}
+            {sessionOn && voice.listening && <Mic className="h-3 w-3 animate-pulse text-primary" />}
             <span className="hidden sm:inline">
-              {voice.handsFree
-                ? voice.phase === "listening"
-                  ? "Listening"
-                  : voice.phase === "speaking"
-                    ? "Speaking"
-                    : "Live"
-                : "Talk"}
+              {!sessionOn
+                ? "Genius Live"
+                : speaking
+                  ? "Speaking"
+                  : voice.phase === "listening"
+                    ? "Listening"
+                    : voice.phase === "transcribing" || genius.isThinking
+                      ? "Thinking"
+                      : "Live"}
             </span>
           </button>
+
 
           <span className="hidden h-6 w-px bg-foreground/10 sm:block" />
 

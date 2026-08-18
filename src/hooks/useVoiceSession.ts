@@ -142,6 +142,18 @@ export function useVoiceSession({ onPhrase, busy = false, language }: Options) {
     return () => window.clearTimeout(t);
   }, [armed, freePath, voice.isListening]);
 
+  /* The browser engine exists but refused the job (blocked inside an iframe, no
+     network service, no capture device): switch to the recorded path at once so
+     LIVE keeps working instead of failing silently. */
+  React.useEffect(() => {
+    const err = voice.error ?? '';
+    if (!err) return;
+    if (/denied|not-allowed|audio-capture|service-not-allowed|network/i.test(err)) {
+      setFreeEngineStalled(true);
+    }
+  }, [voice.error]);
+
+
   React.useEffect(() => {
     if (!armed || !freeEngineStalled || recorder.isRecording || recorder.isTranscribing) return;
     void recorder.start();

@@ -33,8 +33,10 @@ const element = (): HTMLAudioElement => {
   return el;
 };
 
-/** Play a clip, replacing anything currently being spoken. Resolves when it ends. */
-export async function playGeniusVoice(url: string): Promise<void> {
+/** Play a clip, replacing anything currently being spoken. Resolves when it ends.
+ *  Returns false when the browser refused to play it (autoplay policy, bad clip),
+ *  so the caller can fall back to the browser's own speech engine. */
+export async function playGeniusVoice(url: string): Promise<boolean> {
   const el = element();
   try {
     el.pause();
@@ -45,9 +47,9 @@ export async function playGeniusVoice(url: string): Promise<void> {
     await el.play();
   } catch {
     emit(false);
-    return;
+    return false;
   }
-  if (el.ended) return;
+  if (el.ended) return true;
   await new Promise<void>((resolve) => {
     const done = () => {
       el.removeEventListener('ended', done);
@@ -59,10 +61,43 @@ export async function playGeniusVoice(url: string): Promise<void> {
     el.addEventListener('pause', done);
     el.addEventListener('error', done);
   });
+  return true;
 }
+
+/**
+ * Last-resort voice: the browser's own speech engine.
+ *
+ * Used when the recorded reading cannot be fetched or the tab refuses to play
+ * it (autoplay policy inside preview iframes). It costs nothing and keeps the
+ * narrator audible instead of silently failing.
+ */
+export function speakGeniusText(text: string): boolean {
+  const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined;
+  if (!synth || !text) return false;
+  try {
+    synth.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.volume = GENIUS_VOLUME;
+    utter.rate = 1;
+    utter.onend = () => emit(false);
+    utter.onerror = () => emit(false);
+    emit(true);
+    synth.speak(utter);
+    return true;
+  } catch {
+    emit(false);
+    return false;
+  }
+}
+
 
 /** Silence her at once — used for barge-in and when a new page opens. */
 export function stopGeniusVoice() {
+  try {
+    window.speechSynthesis?.cancel();
+  } catch {
+    /* no speech engine here */
+  }
   if (!audio) {
     emit(false);
     return;
