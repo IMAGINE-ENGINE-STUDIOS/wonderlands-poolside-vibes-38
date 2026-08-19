@@ -4,22 +4,46 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import AdvancedSearch from "./AdvancedSearch";
 import FlipMagazine from "./flip/FlipMagazine";
 import heroVideo from "@/assets/hero/hero-beach-uhd.mp4.asset.json";
+import heroVideoFallback from "@/assets/hero/hero-beach.mp4.asset.json";
+import heroStill from "@/assets/hero/hero-pool-optimized.webp";
 import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  /* If the UHD reel fails (network, codec, blocked range request) we swap to the
+     lighter cut; the still image below always keeps the hero from going blank. */
+  const [videoSrc, setVideoSrc] = useState(heroVideo.url);
+  const [videoDead, setVideoDead] = useState(false);
   return <>
     <section className="relative h-screen w-full overflow-hidden bg-background">
-      {/* Full-bleed background video */}
-      <video
+      {/* Still backdrop — guarantees the hero is never an empty white screen */}
+      <img
+        src={heroStill}
+        alt="Wonderlands resort pool at golden hour"
         className="absolute inset-0 h-full w-full object-cover"
-        src={heroVideo.url}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
+        loading="eager"
+        decoding="async"
       />
+      {/* Full-bleed background video */}
+      {!videoDead && (
+        <video
+          key={videoSrc}
+          className="absolute inset-0 h-full w-full object-cover"
+          src={videoSrc}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onError={() => {
+            if (videoSrc !== heroVideoFallback.url) setVideoSrc(heroVideoFallback.url);
+            else setVideoDead(true);
+          }}
+        />
+      )}
+      {/* Legibility veil for the logo and search field */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/10 to-background/60" aria-hidden />
+
 
       {/* Centered logo + search engine */}
       <div className="absolute inset-0 z-10 flex items-center justify-center">
