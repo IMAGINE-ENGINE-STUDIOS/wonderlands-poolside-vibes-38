@@ -1196,7 +1196,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             </ul>
             <div className="mt-auto border-t border-border/50 pt-3">
               <p className="text-[10px] leading-relaxed text-muted-foreground">
-                Price includes installation at your home address.
+                All prices include delivery, installation and the product as described.
               </p>
             </div>
 

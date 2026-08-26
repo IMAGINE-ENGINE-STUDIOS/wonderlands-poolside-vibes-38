@@ -521,7 +521,7 @@ const OptionChapter: React.FC<{
       <div className="mt-4 flex min-h-0 flex-1 flex-col">{rows(true)}</div>
       <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
         Hover any option to see it on the plate above, expand it with the corner control, then add it with the + to
-        carry it into your estimate — every option is installed by our own crews.
+        carry it into your estimate with the same category, pricing and image data used by Wonderlands Studio.
       </p>
 
       {/* full-spread study — the whole book: one leaf is the photograph, the facing leaf the options */}
