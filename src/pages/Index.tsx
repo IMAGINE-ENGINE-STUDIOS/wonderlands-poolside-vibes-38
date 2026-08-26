@@ -31,6 +31,7 @@ const TanningLedgeSection = lazy(() => import("@/components/TanningLedgeSection"
 const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"));
 const LinersSection = lazy(() => import("@/components/LinersSection"));
 const AutomaticCoversSection = lazy(() => import("@/components/AutomaticCoversSection"));
+const PoolCoverEnergyEditorial = lazy(() => import("@/components/PoolCoverEnergyEditorial"));
 const ScreenEnclosureSection = lazy(() => import("@/components/ScreenEnclosureSection"));
 const PatioFencingSection = lazy(() => import("@/components/PatioFencingSection"));
 const LanaiSection = lazy(() => import("@/components/LanaiSection"));
@@ -178,6 +179,8 @@ const Index = () => {
         <Suspense fallback={<SectionFallback />}>
           <SectionBanner id="covers" image={coversBanner} alt="Automatic Pool Covers" title="Automatic Pool Covers" subtitle="Safety, energy efficiency, and convenience with our automatic cover systems" />
           <AutomaticCoversSection />
+          {/* "How much energy does a cover save" — editorial ledger */}
+          <PoolCoverEnergyEditorial />
         </Suspense>
 
         <Suspense fallback={<SectionFallback />}>
