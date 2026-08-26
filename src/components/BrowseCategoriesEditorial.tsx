@@ -31,6 +31,7 @@ const CATEGORIES: { id: string; label: string; image: string; tagline: string }[
   { id: "pavers", label: "Pavers", image: paversBanner, tagline: "Underfoot Detail" },
   { id: "artificial-grass", label: "Artificial Grass", image: grassBanner, tagline: "Effortless Green" },
   { id: "landscaping", label: "Landscaping", image: landscapingBanner, tagline: "Botanical Compositions" },
+  { id: "solar", label: "Wonderlands Solar", image: solarRoofArray, tagline: "Sunlight, Stored" },
   { id: "covers", label: "Covers", image: coversBanner, tagline: "Quiet Protection" },
   { id: "driveway-gates", label: "Driveway Gates", image: drivewayGateBanner, tagline: "Arrival Statement" },
   { id: "finishes", label: "Finishes", image: finishImg, tagline: "Surface & Light" },
