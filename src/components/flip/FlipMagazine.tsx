@@ -308,7 +308,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   const [dims, setDims] = useState({ w: 420, h: 560 });
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
   const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category.v2", ITEMS[0].id);
-  const [savedPage, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
+  /* Page position persists as the reader navigates, but load always starts at the Index. */
+  const [, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
   const [searchOpen, setSearchOpen] = usePersistentState<boolean>("flip.mag.search", false);
   /* Default open: always land on the Index spread (page 0). The page number is
