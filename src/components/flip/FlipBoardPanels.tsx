@@ -748,10 +748,21 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
           </Row>
         )}
 
-        {/* What the client actually receives, and in what order */}
+        {/* What the client actually receives. The pool turn-key scope (salt
+            system, pump, shell inspections) is only truthful on a vessel; other
+            disciplines get the scope that applies to their own installation. */}
         <Row label="Included turn-key, every project">
           <ul className="space-y-1">
-            {TURNKEY_SCOPE.map((s) => (
+            {(holdsWater
+              ? TURNKEY_SCOPE
+              : [
+                  { label: "Permits & drawings", note: "Engineered drawings and county permitting" },
+                  { label: "Site preparation", note: "Grading, base and clearances for the work" },
+                  { label: "Delivery & installation", note: "Our own crews, one contract" },
+                  { label: "Project management", note: "One point of contact to completion" },
+                  { label: "Clean & handover", note: "Site cleared and the work walked with you" },
+                ]
+            ).map((s) => (
               <li key={s.label} className="text-[9px] leading-relaxed">
                 <span className="uppercase tracking-[0.2em]">{s.label}</span>
                 <span className="text-muted-foreground"> — {s.note}</span>
@@ -759,6 +770,7 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
             ))}
           </ul>
         </Row>
+
 
         {pipeline && (
           <Row label={`${pipeline.title} — what happens, and when`}>
