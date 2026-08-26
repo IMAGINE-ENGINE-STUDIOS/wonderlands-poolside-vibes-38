@@ -218,8 +218,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
       {/* ── The selected model + its configurator ──────────────────────── */}
       <section className="border-t border-border/60 px-6 py-12 md:px-12">
         <div className="mx-auto grid max-w-[1600px] gap-10 lg:grid-cols-[1.05fr_1fr]">
-          {/* Plate */}
-          <div>
+          {/* Plate — min-w-0 keeps the carousel/accordion column from squeezing it */}
+          <div className="min-w-0">
             <div className="aspect-[4/3] w-full overflow-hidden bg-muted/40">
               {model?.image && (
                 <img
