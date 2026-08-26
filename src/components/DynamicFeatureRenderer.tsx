@@ -35,30 +35,41 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
         const selectedName = selectedExtras[feature.id];
         const selectedOption = feature.options?.find(o => o.name === selectedName);
         const choices = feature.options?.filter(opt => opt.name !== 'None') ?? [];
+        const isOpen = openSection === feature.id;
         return (
-          <div key={feature.id}>
-            {/* header — same reading order as the Screen Enclosure section */}
-            <div className="flex items-baseline justify-between gap-3 mb-2">
+          <div key={feature.id} className="border-b border-border/60 pb-3">
+            {/* header doubles as the accordion trigger — retracted until clicked */}
+            <button
+              type="button"
+              onClick={() => toggleSection(feature.id)}
+              aria-expanded={isOpen}
+              className="w-full flex items-baseline justify-between gap-3 text-left py-1"
+            >
               <div className="min-w-0">
-                <Label className="text-sm font-semibold">{feature.label}</Label>
+                <Label className="text-sm font-semibold cursor-pointer">{feature.label}</Label>
                 {feature.description && (
                   <p className="text-xs text-muted-foreground">{feature.description}</p>
                 )}
               </div>
-              {selectedOption && selectedOption.name !== 'None' ? (
-                <span className="text-xs font-semibold text-primary shrink-0">
-                  {selectedOption.price > 0 ? `+${fmt(selectedOption.price)}` : 'Included'}
-                </span>
-              ) : choices.some(o => o.price > 0) ? (
-                <span className="text-xs text-muted-foreground shrink-0">
-                  from {fmt(Math.min(...choices.filter(o => o.price > 0).map(o => o.price)))}
-                </span>
-              ) : null}
-            </div>
+              <span className="flex items-center gap-2 shrink-0">
+                {selectedOption && selectedOption.name !== 'None' ? (
+                  <span className="text-xs font-semibold text-primary">
+                    {selectedOption.price > 0 ? `+${fmt(selectedOption.price)}` : 'Included'}
+                  </span>
+                ) : choices.some(o => o.price > 0) ? (
+                  <span className="text-xs text-muted-foreground">
+                    from {fmt(Math.min(...choices.filter(o => o.price > 0).map(o => o.price)))}
+                  </span>
+                ) : null}
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                />
+              </span>
+            </button>
 
             {/* option tiles — identical format to Screen Enclosure; click again to remove */}
-            {choices.length > 0 && (
-              <div className="mb-4">
+            {isOpen && choices.length > 0 && (
+              <div className="mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <FeatureTileCarousel
                   tiles={choices.map((option, idx) => ({
                     key: `${feature.id}-${option.name}-${idx}`,
@@ -78,6 +89,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
           </div>
         );
       }
+
 
       case 'quantity':
         return (
