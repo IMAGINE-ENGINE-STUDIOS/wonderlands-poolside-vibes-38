@@ -1,54 +1,24 @@
 import * as React from "react";
-const { useState, useEffect } = React;
+const { useState } = React;
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  ShoppingCart,
-  Home,
-  Waves,
-  Flame,
-  Droplet,
-  Sun,
-  Shield,
-  Fence,
-  Home as HomeIcon,
-  Grid3x3,
-  Sprout,
-  Trees,
-  Umbrella,
-  DoorOpen,
-  Palette,
-  Layers,
-  Settings,
-} from "lucide-react";
+import { ShoppingCart, Home, LayoutDashboard } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MiniCart from "./MiniCart";
 
-const NAV_ITEMS = [
-  { id: "pools", label: "Pools", icon: Waves },
-  { id: "saunas", label: "Saunas", icon: Flame },
-  { id: "spas", label: "Spas", icon: Droplet },
-  { id: "tanning-ledges", label: "Tanning Ledges", icon: Sun },
-  { id: "screen-enclosures", label: "Screen Enclosures", icon: Shield },
-  { id: "patio-fencing", label: "Patio Fencing", icon: Fence },
-  { id: "lanai", label: "Lanai", icon: HomeIcon },
-  { id: "pavers", label: "Pavers", icon: Grid3x3 },
-  { id: "artificial-grass", label: "Artificial Grass", icon: Sprout },
-  { id: "landscaping", label: "Landscaping", icon: Trees },
-  { id: "covers", label: "Covers", icon: Umbrella },
-  { id: "driveway-gates", label: "Driveway Gates", icon: DoorOpen },
-  { id: "finishes", label: "Finishes", icon: Palette },
-  { id: "liners", label: "Liners", icon: Layers },
-];
-
+/**
+ * RightNavigation — floating right rail.
+ *
+ * NOTE (Aug 2026): the per-category shortcut buttons were removed on request.
+ * The main page now renders every category section inline (see src/pages/Index.tsx),
+ * so this rail only exposes the Cart and, for signed-in staff, the Admin Dashboard.
+ * On non-home routes it collapses to a single "Home" button.
+ */
 const RightNavigation = () => {
-  const [activeHash, setActiveHash] = useState<string>(() =>
-    typeof window !== "undefined" ? window.location.hash.replace("#", "") || "pools" : "pools"
-  );
   const { getCartCount, setIsCartOpen } = useShoppingCart();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -56,34 +26,11 @@ const RightNavigation = () => {
 
   const isMainPage = location.pathname === "/";
   const isWonderlandsStudio = location.pathname === "/wonderlands-studio";
-  const isQuoteOpen =
-    typeof document !== "undefined" && document.body.dataset.quoteOpen === "true";
-
-  useEffect(() => {
-    if (!isMainPage) return;
-    const onHashChange = () => {
-      setActiveHash(window.location.hash.replace("#", "") || "pools");
-    };
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
-  }, [isMainPage]);
+  const [isQuoteOpen] = useState<boolean>(
+    () => typeof document !== "undefined" && document.body.dataset.quoteOpen === "true"
+  );
 
   if (isWonderlandsStudio) return null;
-
-  const goToCategory = (id: string) => {
-    if (location.pathname !== "/") {
-      navigate(`/#${id}`);
-      return;
-    }
-    if (window.location.hash === `#${id}`) {
-      // Force re-trigger by clearing then setting
-      history.replaceState(null, "", "/");
-      window.location.hash = id;
-    } else {
-      window.location.hash = id;
-    }
-    setActiveHash(id);
-  };
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -93,7 +40,7 @@ const RightNavigation = () => {
         } max-h-[90vh] overflow-y-auto scrollbar-hide`}
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {(!isMainPage || isQuoteOpen) ? (
+        {!isMainPage || isQuoteOpen ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -141,10 +88,7 @@ const RightNavigation = () => {
                 <MiniCart onViewFullCart={() => setIsCartOpen(true)} />
               </PopoverContent>
             </Popover>
-            {/* NOTE: category shortcut buttons intentionally removed — the main page now
-                lists every category section inline, so the rail only keeps Cart + Admin. */}
           </>
-
         )}
       </div>
     </TooltipProvider>
