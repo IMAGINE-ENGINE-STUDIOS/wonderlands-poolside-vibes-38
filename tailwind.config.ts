@@ -193,7 +193,9 @@ export default {
 				'medallion-glow': 'medallion-glow 2.4s ease-in-out infinite',
 				'medallion-wave': 'medallion-wave 2.4s cubic-bezier(0.25,0.46,0.45,0.94) infinite',
 				'medallion-float': 'medallion-float 3s ease-in-out infinite',
-				'medallion-shimmer': 'medallion-shimmer 2.2s linear infinite'
+				'medallion-shimmer': 'medallion-shimmer 2.2s linear infinite',
+				'medallion-idle-wave': 'medallion-idle-wave 2.2s ease-in-out infinite'
+
 			}
 		}
 	},
