@@ -71,12 +71,13 @@ export async function playGeniusVoice(url: string): Promise<boolean> {
  * it (autoplay policy inside preview iframes). It costs nothing and keeps the
  * narrator audible instead of silently failing.
  */
-export function speakGeniusText(text: string): boolean {
+export function speakGeniusText(text: string, lang?: string): boolean {
   const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined;
   if (!synth || !text) return false;
   try {
     synth.cancel();
     const utter = new SpeechSynthesisUtterance(text);
+    if (lang) utter.lang = lang; // narrator console language selection
     utter.volume = GENIUS_VOLUME;
     utter.rate = 1;
     utter.onend = () => emit(false);
