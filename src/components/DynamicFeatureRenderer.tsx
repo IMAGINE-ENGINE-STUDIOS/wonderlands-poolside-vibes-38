@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ChevronDown } from "lucide-react";
 import { FeatureTileCarousel } from "@/components/product/FeatureTileCarousel";
 import { getProductFeatures, type ProductType, type FeatureConfig } from '@/config/productFeatures';
 
@@ -15,7 +17,13 @@ interface DynamicFeatureRendererProps {
 export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasChange }: DynamicFeatureRendererProps) {
   const features = getProductFeatures(productType);
 
+  /* accordion: only one option group is expanded at a time, exactly like the
+     pool cards — every group starts retracted and drops open on click */
+  const [openSection, setOpenSection] = useState<string | null>(null);
+  const toggleSection = (id: string) => setOpenSection(prev => (prev === id ? null : id));
+
   const fmt = (n: number) => `$${n.toLocaleString()}`;
+
 
   const renderFeature = (feature: FeatureConfig) => {
     switch (feature.type) {
@@ -27,30 +35,41 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
         const selectedName = selectedExtras[feature.id];
         const selectedOption = feature.options?.find(o => o.name === selectedName);
         const choices = feature.options?.filter(opt => opt.name !== 'None') ?? [];
+        const isOpen = openSection === feature.id;
         return (
-          <div key={feature.id}>
-            {/* header — same reading order as the Screen Enclosure section */}
-            <div className="flex items-baseline justify-between gap-3 mb-2">
+          <div key={feature.id} className="border-b border-border/60 pb-3">
+            {/* header doubles as the accordion trigger — retracted until clicked */}
+            <button
+              type="button"
+              onClick={() => toggleSection(feature.id)}
+              aria-expanded={isOpen}
+              className="w-full flex items-baseline justify-between gap-3 text-left py-1"
+            >
               <div className="min-w-0">
-                <Label className="text-sm font-semibold">{feature.label}</Label>
+                <Label className="text-sm font-semibold cursor-pointer">{feature.label}</Label>
                 {feature.description && (
                   <p className="text-xs text-muted-foreground">{feature.description}</p>
                 )}
               </div>
-              {selectedOption && selectedOption.name !== 'None' ? (
-                <span className="text-xs font-semibold text-primary shrink-0">
-                  {selectedOption.price > 0 ? `+${fmt(selectedOption.price)}` : 'Included'}
-                </span>
-              ) : choices.some(o => o.price > 0) ? (
-                <span className="text-xs text-muted-foreground shrink-0">
-                  from {fmt(Math.min(...choices.filter(o => o.price > 0).map(o => o.price)))}
-                </span>
-              ) : null}
-            </div>
+              <span className="flex items-center gap-2 shrink-0">
+                {selectedOption && selectedOption.name !== 'None' ? (
+                  <span className="text-xs font-semibold text-primary">
+                    {selectedOption.price > 0 ? `+${fmt(selectedOption.price)}` : 'Included'}
+                  </span>
+                ) : choices.some(o => o.price > 0) ? (
+                  <span className="text-xs text-muted-foreground">
+                    from {fmt(Math.min(...choices.filter(o => o.price > 0).map(o => o.price)))}
+                  </span>
+                ) : null}
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                />
+              </span>
+            </button>
 
             {/* option tiles — identical format to Screen Enclosure; click again to remove */}
-            {choices.length > 0 && (
-              <div className="mb-4">
+            {isOpen && choices.length > 0 && (
+              <div className="mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <FeatureTileCarousel
                   tiles={choices.map((option, idx) => ({
                     key: `${feature.id}-${option.name}-${idx}`,
@@ -70,6 +89,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
           </div>
         );
       }
+
 
       case 'quantity':
         return (
@@ -175,23 +195,41 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
   const otherFeatures = features.filter(f => f.type !== 'boolean');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {otherFeatures.map(feature => renderFeature(feature))}
 
       {booleanFeatures.length > 0 && (
-        <div>
-          <Label className="text-sm font-semibold">Additional Features</Label>
-          <p className="text-xs text-muted-foreground mb-2">Tap a tile to add or remove it</p>
-          <FeatureTileCarousel
-            tiles={booleanFeatures.map(f => ({
-              key: f.id,
-              name: f.label,
-              image: f.image,
-              priceLabel: f.basePrice ? `+${fmt(f.basePrice)}` : 'Included',
-              selected: !!selectedExtras[f.id],
-              onSelect: () => onExtrasChange({ ...selectedExtras, [f.id]: !selectedExtras[f.id] }),
-            }))}
-          />
+        <div className="border-b border-border/60 pb-3">
+          <button
+            type="button"
+            onClick={() => toggleSection('__additional__')}
+            aria-expanded={openSection === '__additional__'}
+            className="w-full flex items-baseline justify-between gap-3 text-left py-1"
+          >
+            <div className="min-w-0">
+              <Label className="text-sm font-semibold cursor-pointer">Additional Features</Label>
+              <p className="text-xs text-muted-foreground">Tap a tile to add or remove it</p>
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-300 ${
+                openSection === '__additional__' ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+          {openSection === '__additional__' && (
+            <div className="mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+              <FeatureTileCarousel
+                tiles={booleanFeatures.map(f => ({
+                  key: f.id,
+                  name: f.label,
+                  image: f.image,
+                  priceLabel: f.basePrice ? `+${fmt(f.basePrice)}` : 'Included',
+                  selected: !!selectedExtras[f.id],
+                  onSelect: () => onExtrasChange({ ...selectedExtras, [f.id]: !selectedExtras[f.id] }),
+                }))}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
