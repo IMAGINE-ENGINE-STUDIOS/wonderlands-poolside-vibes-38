@@ -63,7 +63,7 @@ export const featureExtrasBreakdown = (
   productType: ProductType,
   extras: Record<string, any>,
   priceMultiplier = 1,
-): Array<{ name: string; price: number }> =>
+): Array<{ name: string; price: number; key: string }> =>
   getProductFeatures(productType)
     .map((feature) => {
       const price = calculateFeaturePrice(feature, extras[feature.id], extras) * priceMultiplier;
@@ -77,9 +77,11 @@ export const featureExtrasBreakdown = (
             : feature.type === "quantity"
               ? `${feature.label} × ${value}`
               : feature.label;
-      return { name, price };
+      /* `key` lets the shared shopping-list widget edit or drop this exact
+         feature at its source (the suite's `extras` state). */
+      return { name, price, key: feature.id };
     })
-    .filter(Boolean) as Array<{ name: string; price: number }>;
+    .filter(Boolean) as Array<{ name: string; price: number; key: string }>;
 
 const EditorialFeatureConfigurator: React.FC<EditorialFeatureConfiguratorProps> = ({
   productType,

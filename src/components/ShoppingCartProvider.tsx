@@ -16,6 +16,11 @@ interface ShoppingCartContextType {
   removeExtra: (id: string, extraIndex: number) => void;
   /** Replaces a feature/extra selection (name + price) on a cart item */
   updateExtra: (id: string, extraIndex: number, next: { name: string; price: number }) => void;
+  /** Adds a feature and guarantees its parent product is on the list */
+  addFeatureToProduct: (
+    product: Omit<CartItem, 'quantity'>,
+    feature: { name: string; price: number; key?: string; image?: string }
+  ) => void;
   /** Live-syncs base price and features of a cart item while it is being configured */
   syncItemConfig: (id: string, next: { price?: number; extras?: CartItem['extras'] }) => void;
 
@@ -174,7 +179,51 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
     });
   };
 
+  /**
+   * Adds a single additional feature (finish, heater, paver…) to the cart while
+   * GUARANTEEING its parent product is on the list.
+   *
+   * WHY: a finish or a heater is never bought on its own — if a reader taps "+"
+   * on an option inside a pool book, the pool itself must land in the cart with
+   * that option attached to it, otherwise the shopping list shows orphan
+   * features (and $0 lines) with no vessel to install them on.
+   *
+   * HOW: the product line is created if missing (never duplicated / never
+   * quantity-bumped), then the feature is appended to that line's `extras`
+   * (replaced in place when the same `key` is added again).
+   */
+  const addFeatureToProduct = (
+    product: Omit<CartItem, 'quantity'>,
+    feature: { name: string; price: number; key?: string; image?: string }
+  ) => {
+    const category =
+      resolveCategoryLabel(product.category, (product as any).type, product.id, product.name) ||
+      'Other';
+    setCartItems(prev => {
+      const exists = prev.some(item => item.id === product.id);
+      const base: CartItem[] = exists
+        ? prev
+        : [...prev, { ...product, category, extras: product.extras || [], quantity: 1 }];
+      return base.map(item => {
+        if (item.id !== product.id) return item;
+        const extras = [...(item.extras || [])];
+        const at = feature.key
+          ? extras.findIndex(e => (e as any).key === feature.key)
+          : extras.findIndex(e => e.name === feature.name);
+        if (at >= 0) extras[at] = { ...extras[at], ...feature } as any;
+        else extras.push(feature as any);
+        return { ...item, extras };
+      });
+    });
+    toast({
+      title: 'Added to Cart',
+      description: `${feature.name} — added with ${product.name}`,
+    });
+
+  };
+
   const clearCart = () => setCartItems([]);
+
 
   const getCartTotal = () =>
     cartItems.reduce((total, item) => {
@@ -203,6 +252,7 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
         removeExtra,
         updateExtra,
         syncItemConfig,
+        addFeatureToProduct,
 
 
         clearCart,
