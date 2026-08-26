@@ -167,7 +167,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
         return 0;
       case "area":
         return 0;
-      case "toggle":
+      case "boolean":
         return false;
       default:
         return "None";
