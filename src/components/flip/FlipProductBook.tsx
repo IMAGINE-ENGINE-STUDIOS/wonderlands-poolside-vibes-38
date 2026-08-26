@@ -59,6 +59,7 @@ const TOOLS: Record<string, { name: string; note: string; to: string }> = {
   lanai: { name: "Lanai Planner", note: "Projection, roof and comfort package.", to: "/wonderlands-studio?category=lanai" },
   "driveway-gates": { name: "Gate Configurator", note: "Operation, automation and infill pattern.", to: "/wonderlands-studio?category=driveway-gates" },
   covers: { name: "Cover Selector", note: "Track system and fabric, sized to the shell.", to: "/wonderlands-studio?category=covers" },
+  solar: { name: "Solar Planner", note: "Array size, battery and pool heating priced against the roof.", to: "/wonderlands-studio?category=solar" },
   finishes: { name: "Finish Visualiser", note: "See the grade and accent against your water.", to: "/design-studio" },
   liners: { name: "Liner Visualiser", note: "Print and waterline border, matched to the shell.", to: "/design-studio" },
 };
@@ -186,6 +187,12 @@ const STORIES: Record<string, { lede: string; body: string; craft: string; care:
     craft: "Perimeter restrained with a soldier course or hidden edge; drainage falls set away from the house before a single unit is laid.",
     care: "Rinse seasonally, re-sand joints as needed, and lift and reset individual units instead of cutting a slab.",
   },
+  solar: {
+    lede: "The roof pays for the water below it — generation, storage and heat on one contract.",
+    body: "Arrays are sized from a shade study of the actual roof planes, not from a rule of thumb: azimuth, pitch, tree cover and the household's real consumption set the kilowatts. All-black monocrystalline modules are set flush to the tile on hurricane-rated mounts, and a hybrid inverter leaves the system ready for storage whether or not a battery is ordered on day one.",
+    craft: "County permit, utility interconnection and final inspection are handled by us; conduit is run concealed and terminated at a labelled panel.",
+    care: "Rinse the modules after a dry dust season and read production in the app. Panels carry a 25-year performance warranty.",
+  },
   "artificial-grass": {
     lede: "Permanently green, drainable, and cool enough to walk on barefoot.",
     body: "Blades are extruded in multiple tones with a thatch layer beneath, so the lawn reads as grass rather than carpet from every angle. A perforated backing sits over a compacted, free-draining base — water leaves the surface as fast as it arrives, which matters in a summer storm season.",
@@ -255,6 +262,7 @@ const EXTRA_BODY: Record<string, string> = {
   saunas: "Heat is a schedule, not a switch: thirty to forty minutes to bring the stones up, then hours of stable convection. Glass is chosen for how much of the garden you want in the room — a porthole, a full door, or a panoramic gable end. Electrical is sized to the heater and terminated on delivery day, so the first session happens the afternoon the cabin lands.",
   pavers: "Colour is read in daylight and again wet, because a paver darkens as it takes water. Borders and soldier courses are used to break a large field into rooms, and cuts are kept off the sightlines — full units at the pool edge, cuts hidden against the house. Levels are set to fall away from the slab before anything is laid.",
   "artificial-grass": "Pile height and density are matched to the traffic: a shorter, denser blade for a play lawn, a longer profile for a garden lawn read from the terrace. Infill weight keeps the blade standing and the surface cool, and the base is graded so a summer downpour is gone in minutes rather than pooling at the edges.",
+  solar: "Storage is what turns a solar array into a quiet house: a wall-mounted battery carries the pool pump, refrigeration and lighting through an outage and shifts the afternoon's surplus into the evening. Solar pool heating runs on the same roof but on water rather than wires — glazed collectors plumbed into the existing pump loop add ten to fifteen degrees of comfort with no operating cost at all.",
   landscaping: "Planting is drawn in three layers — canopy, hedge and understorey — so the garden holds shape in every season and screens what you would rather not see. Species are grouped by water demand, which keeps irrigation zones honest and the long-term maintenance low.",
   "screen-enclosures": "Span dictates the section: the wider the room, the heavier the upright and the beam that carries it. Anchors are set into the deck to an engineered schedule, fasteners are stainless, and every panel is sized so a single screen can be replaced without disturbing the frame. Drawings are sealed for permit before fabrication begins.",
   "patio-fencing": "Powder-coated aluminium is used because it does not rust in salt air and does not need painting. Panel heights of four and five feet cover both garden and pool-code applications, posts are set in concrete footings, and every gate is self-closing and self-latching with the latch above reach of a child.",
