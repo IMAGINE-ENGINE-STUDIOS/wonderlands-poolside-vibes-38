@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ShoppingCart as CartIcon, Plus, Minus, FileText, Sparkles, Trash2, Printer, Send } from "lucide-react";
+import { ShoppingCart as CartIcon, Plus, Minus, FileText, Trash2, Printer, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   landscapingPlants,
@@ -136,7 +136,93 @@ const LandscapingSection = () => {
             description="Premium plants, palms, trees and grasses — bringing the drawing to life."
           />
 
-          {/* Quote tool */}
+          {/* Category filter */}
+          <div className="max-w-5xl mx-auto mb-8">
+            <p className="text-center text-sm text-muted-foreground mb-3">
+              Browse the catalog and add plants to your quote
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Badge
+                variant={activeCat === "All" ? "default" : "outline"}
+                onClick={() => setActiveCat("All")}
+                className="cursor-pointer px-4 py-1.5 text-sm"
+              >
+                All ({landscapingPlants.length})
+              </Badge>
+              {landscapingCategories.map((cat) => {
+                const count = landscapingPlants.filter((p) => p.category === cat).length;
+                if (count === 0) return null;
+                return (
+                  <Badge
+                    key={cat}
+                    variant={activeCat === cat ? "default" : "outline"}
+                    onClick={() => setActiveCat(cat)}
+                    className="cursor-pointer px-4 py-1.5 text-sm"
+                  >
+                    {cat} ({count})
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Grid */}
+          <ProductScrollRow className="mb-8">
+            {filtered.map((plant) => {
+              const variantCount = plant.variants.length;
+              return (
+                <Card
+                  key={plant.id}
+                  className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer flex flex-col"
+                  onClick={() => openPlant(plant)}
+                >
+                  <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-muted">
+                    <PlantImage
+                      src={plant.image}
+                      alt={plant.name}
+                      fallback={landscapingCategoryImages[plant.category]}
+                      className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                        {plant.category}
+                      </span>
+                    </div>
+                    {variantCount > 1 && (
+                      <div className="absolute top-4 right-4">
+                        <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
+                          {variantCount} options
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-4 sm:p-5 flex-1 flex flex-col space-y-4">
+                    <h3 className="font-serif text-xl sm:text-2xl font-light leading-[1.05] tracking-tight text-foreground line-clamp-2 min-h-[2.5rem]">
+                      {plant.name}
+                    </h3>
+                    <div className="mt-auto border-t border-border/60 pt-4">
+                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Starting at</p>
+                      <p className="font-serif text-2xl font-light text-foreground">
+                        {formatPrice(plant.minPrice)}
+                      </p>
+                      <Button size="sm" variant="outline" className="w-full mt-3 rounded-none text-[10px] uppercase tracking-[0.3em]">
+                        {variantCount > 1 ? "View Options" : "View Sizes"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </ProductScrollRow>
+
+          {filtered.length === 0 && (
+            <div className="text-center py-16 text-muted-foreground">
+              No plants found. Try a different search.
+            </div>
+          )}
+
+          {/* Quote tool — editorial ledger, below the catalog */}
           {(() => {
             const sqft = Math.max(0, parseFloat(quoteSqft) || 0);
             const tier = TIERS.find((t) => t.id === quoteTier)!;
@@ -158,34 +244,52 @@ const LandscapingSection = () => {
               `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
             return (
-              <Card className="max-w-5xl mx-auto mb-8 border-emerald-200 shadow-sm">
-                <CardContent className="p-5 space-y-5">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-emerald-700" />
-                    <h3 className="text-lg font-bold text-emerald-800">Build Your Landscaping Quote</h3>
+              <div className="max-w-5xl mx-auto mt-16 border border-border/60 bg-card/40">
+                <div className="p-6 sm:p-10 space-y-8">
+                  {/* Editorial header */}
+                  <div className="border-b border-border/60 pb-6">
+                    <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
+                      The Estimate — Volume XIII
+                    </p>
+                    <h3 className="font-serif text-3xl sm:text-4xl font-light tracking-tight text-foreground mt-3">
+                      Compose your landscaping quote
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-2 max-w-xl leading-relaxed">
+                      Choose a service tier, measure your ground, add plants from the catalog —
+                      the ledger keeps count.
+                    </p>
                   </div>
 
                   {/* Tier picker */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {TIERS.map((t) => {
+                    {TIERS.map((t, i) => {
                       const isActive = t.id === quoteTier;
                       return (
                         <button
                           key={t.id}
                           type="button"
                           onClick={() => setQuoteTier(t.id)}
-                          className={`text-left p-4 rounded-none border-2 transition-all ${
+                          className={`text-left p-5 border transition-all duration-300 ${
                             isActive
-                              ? "border-emerald-600 bg-emerald-50 shadow"
-                              : "border-border hover:border-emerald-300"
+                              ? "border-foreground bg-foreground/5"
+                              : "border-border/60 hover:border-foreground/50"
                           }`}
                         >
-                          <div className="text-xl mb-1">{t.emoji}</div>
-                          <div className="font-semibold text-sm">{t.title}</div>
-                          <div className="text-emerald-700 font-bold text-lg">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+                              Tier {String(i + 1).padStart(2, "0")}
+                            </span>
+                            {isActive && (
+                              <span className="text-[9px] uppercase tracking-[0.35em] text-foreground">
+                                Selected
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-serif text-xl font-light text-foreground mt-2">{t.title}</div>
+                          <div className="font-serif text-2xl font-light text-foreground mt-1">
                             ${t.price}
                             {t.id === "luxury" ? "+" : ""}
-                            <span className="text-xs font-normal text-muted-foreground">/sq ft</span>
+                            <span className="text-xs text-muted-foreground"> /sq ft</span>
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
                         </button>
@@ -196,7 +300,7 @@ const LandscapingSection = () => {
                   {/* Sqft + summary */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      <label className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
                         Square Footage
                       </label>
                       <Input
@@ -205,30 +309,34 @@ const LandscapingSection = () => {
                         placeholder="e.g. 500"
                         value={quoteSqft}
                         onChange={(e) => setQuoteSqft(e.target.value)}
-                        className="mt-1"
+                        className="mt-2 rounded-none"
                       />
                     </div>
-                    <div className="text-sm">
-                      <div className="text-muted-foreground">Base ({sqft || 0} sq ft × ${tier.price})</div>
-                      <div className="font-semibold text-emerald-800">{fmt(baseCost)}</div>
+                    <div className="text-sm border-l border-border/60 pl-4">
+                      <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                        Base ({sqft || 0} sq ft × ${effectiveRate})
+                      </div>
+                      <div className="font-serif text-xl font-light text-foreground mt-1">{fmt(baseCost)}</div>
                     </div>
-                    <div className="text-sm">
-                      <div className="text-muted-foreground">Selected Plants</div>
-                      <div className="font-semibold text-emerald-800">{fmt(plantsCost)}</div>
+                    <div className="text-sm border-l border-border/60 pl-4">
+                      <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                        Selected Plants
+                      </div>
+                      <div className="font-serif text-xl font-light text-foreground mt-1">{fmt(plantsCost)}</div>
                     </div>
                   </div>
 
                   {/* Selected plants list */}
                   {Object.keys(quoteItems).length > 0 && (
-                    <div className="border-t pt-4 space-y-2">
+                    <div className="border-t border-border/60 pt-6 space-y-2">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
                           Plants in Quote ({Object.keys(quoteItems).length})
                         </p>
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 text-xs text-muted-foreground hover:text-destructive rounded-none"
+                          className="h-7 text-xs text-muted-foreground hover:text-foreground rounded-none"
                           onClick={() => setQuoteItems({})}
                         >
                           Clear all
@@ -308,8 +416,8 @@ const LandscapingSection = () => {
                   )}
 
                   {/* Customer info */}
-                  <div className="border-t pt-4 space-y-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  <div className="border-t border-border/60 pt-6 space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
                       Your Information
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -317,23 +425,27 @@ const LandscapingSection = () => {
                         placeholder="Full name *"
                         value={custName}
                         onChange={(e) => setCustName(e.target.value)}
+                        className="rounded-none"
                       />
                       <Input
                         type="email"
                         placeholder="Email *"
                         value={custEmail}
                         onChange={(e) => setCustEmail(e.target.value)}
+                        className="rounded-none"
                       />
                       <Input
                         type="tel"
                         placeholder="Phone"
                         value={custPhone}
                         onChange={(e) => setCustPhone(e.target.value)}
+                        className="rounded-none"
                       />
                       <Input
                         placeholder="Property address"
                         value={custAddress}
                         onChange={(e) => setCustAddress(e.target.value)}
+                        className="rounded-none"
                       />
                     </div>
                     <Textarea
@@ -341,11 +453,12 @@ const LandscapingSection = () => {
                       value={custNotes}
                       onChange={(e) => setCustNotes(e.target.value)}
                       rows={2}
+                      className="rounded-none"
                     />
                   </div>
 
                   {/* Admin unlock & overrides */}
-                  <div className="border-t pt-4">
+                  <div className="border-t border-border/60 pt-6">
                     {!isAdmin ? (
                       <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                         <Input
@@ -353,7 +466,7 @@ const LandscapingSection = () => {
                           placeholder="Admin passcode"
                           value={passcode}
                           onChange={(e) => setPasscode(e.target.value)}
-                          className="sm:max-w-xs"
+                          className="sm:max-w-xs rounded-none"
                         />
                         <Button className="rounded-none"
                           variant="outline"
@@ -378,9 +491,9 @@ const LandscapingSection = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-none p-3">
+                      <div className="space-y-3 bg-muted/40 border border-border/60 rounded-none p-3">
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
+                          <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
                             Admin Overrides Active
                           </p>
                           <Button
@@ -398,7 +511,7 @@ const LandscapingSection = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">
+                            <label className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                               Override $/sq ft (optional)
                             </label>
                             <Input
@@ -407,10 +520,11 @@ const LandscapingSection = () => {
                               placeholder={`Default $${tier.price}`}
                               value={overrideRate}
                               onChange={(e) => setOverrideRate(e.target.value)}
+                              className="rounded-none mt-1"
                             />
                           </div>
                           <div>
-                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">
+                            <label className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                               Override Total (optional)
                             </label>
                             <Input
@@ -419,6 +533,7 @@ const LandscapingSection = () => {
                               placeholder={`Computed ${fmt(computedTotal)}`}
                               value={overrideTotal}
                               onChange={(e) => setOverrideTotal(e.target.value)}
+                              className="rounded-none mt-1"
                             />
                           </div>
                         </div>
@@ -427,14 +542,16 @@ const LandscapingSection = () => {
                   </div>
 
                   {/* Total + actions */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6 border-t border-border/60">
                     <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">
+                      <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
                         Estimated Total
                       </p>
-                      <p className="text-3xl font-bold text-emerald-700">{fmt(total)}</p>
+                      <p className="font-serif text-4xl sm:text-5xl font-light text-foreground mt-1">
+                        {fmt(total)}
+                      </p>
                       {isAdmin && overrideTotal !== "" && (
-                        <p className="text-[11px] text-amber-700 mt-0.5">
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           Computed {fmt(computedTotal)} · overridden
                         </p>
                       )}
@@ -558,7 +675,7 @@ const LandscapingSection = () => {
                       </Button>
                       <Button
                         size="lg"
-                        className="bg-emerald-700 hover:bg-emerald-800 rounded-none"
+                        className="rounded-none bg-foreground text-background hover:bg-foreground/90"
                         disabled={total <= 0}
                         onClick={() => {
                           if (!custName || !custEmail) {
@@ -602,96 +719,10 @@ const LandscapingSection = () => {
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })()}
-
-          {/* Category filter */}
-          <div className="max-w-5xl mx-auto mb-8">
-            <p className="text-center text-sm text-muted-foreground mb-3">
-              Browse the catalog and add plants to your quote
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Badge
-                variant={activeCat === "All" ? "default" : "outline"}
-                onClick={() => setActiveCat("All")}
-                className="cursor-pointer px-4 py-1.5 text-sm"
-              >
-                All ({landscapingPlants.length})
-              </Badge>
-              {landscapingCategories.map((cat) => {
-                const count = landscapingPlants.filter((p) => p.category === cat).length;
-                if (count === 0) return null;
-                return (
-                  <Badge
-                    key={cat}
-                    variant={activeCat === cat ? "default" : "outline"}
-                    onClick={() => setActiveCat(cat)}
-                    className="cursor-pointer px-4 py-1.5 text-sm"
-                  >
-                    {cat} ({count})
-                  </Badge>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Grid */}
-          <ProductScrollRow className="mb-8">
-            {filtered.map((plant) => {
-              const variantCount = plant.variants.length;
-              return (
-                <Card
-                  key={plant.id}
-                  className="rounded-none border border-border/70 overflow-hidden group transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer flex flex-col"
-                  onClick={() => openPlant(plant)}
-                >
-                  <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-muted">
-                    <PlantImage
-                      src={plant.image}
-                      alt={plant.name}
-                      fallback={landscapingCategoryImages[plant.category]}
-                      className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
-                        {plant.category}
-                      </span>
-                    </div>
-                    {variantCount > 1 && (
-                      <div className="absolute top-4 right-4">
-                        <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">
-                          {variantCount} options
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4 sm:p-5 flex-1 flex flex-col space-y-4">
-                    <h3 className="font-serif text-xl sm:text-2xl font-light leading-[1.05] tracking-tight text-foreground line-clamp-2 min-h-[2.5rem]">
-                      {plant.name}
-                    </h3>
-                    <div className="mt-auto border-t border-border/60 pt-4">
-                      <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Starting at</p>
-                      <p className="font-serif text-2xl font-light text-foreground">
-                        {formatPrice(plant.minPrice)}
-                      </p>
-                      <Button size="sm" variant="outline" className="w-full mt-3 rounded-none text-[10px] uppercase tracking-[0.3em]">
-                        {variantCount > 1 ? "View Options" : "View Sizes"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </ProductScrollRow>
-
-          {filtered.length === 0 && (
-            <div className="text-center py-16 text-muted-foreground">
-              No plants found. Try a different search.
-            </div>
-          )}
         </div>
       </section>
 
