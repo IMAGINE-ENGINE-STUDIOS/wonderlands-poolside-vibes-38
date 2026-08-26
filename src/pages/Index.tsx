@@ -31,6 +31,7 @@ const TanningLedgeSection = lazy(() => import("@/components/TanningLedgeSection"
 const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"));
 const LinersSection = lazy(() => import("@/components/LinersSection"));
 const AutomaticCoversSection = lazy(() => import("@/components/AutomaticCoversSection"));
+const PoolCoverEnergyEditorial = lazy(() => import("@/components/PoolCoverEnergyEditorial"));
 const ScreenEnclosureSection = lazy(() => import("@/components/ScreenEnclosureSection"));
 const PatioFencingSection = lazy(() => import("@/components/PatioFencingSection"));
 const LanaiSection = lazy(() => import("@/components/LanaiSection"));
