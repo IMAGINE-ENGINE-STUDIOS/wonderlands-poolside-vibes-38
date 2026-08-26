@@ -557,6 +557,27 @@ export const useProductBookPages = ({
   /** True when the product has more photography than its single plate. */
   const rich = gallery.length > 1;
 
+  /**
+   * Stat labels read differently by discipline: a built vessel is a turn-key
+   * investment with dimensions, while a surface (finish, liner, paver, turf) is
+   * quoted by area and described by its collection — never by pool dimensions.
+   */
+  const SURFACE_CATS = new Set(["finishes", "liners", "pavers", "artificial-grass"]);
+  const isSurface = SURFACE_CATS.has(category.id);
+  const priceLabel = isSurface ? "Quoted by area" : "Turnkey investment";
+  const metaLabel = isSurface ? "Collection" : "Dimensions";
+  /** Three headline figures, phrased for the discipline of this book. */
+  const headlineStats = useMemo(
+    () => [
+      { value: price, label: priceLabel },
+      { value: metaBits[0] ?? category.label, label: metaLabel },
+      { value: "Florida", label: "Engineered & installed" },
+    ],
+    [price, priceLabel, metaBits[0], metaLabel, category.label],
+  );
+
+
+
 
 
 
