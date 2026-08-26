@@ -211,8 +211,10 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
       });
     });
     toast({
-      title: exists => exists, // placeholder replaced below
-    } as any);
+      title: 'Added to Cart',
+      description: `${feature.name} — added with ${product.name}`,
+    });
+
   };
 
   const clearCart = () => setCartItems([]);
