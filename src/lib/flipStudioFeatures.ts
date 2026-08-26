@@ -101,9 +101,11 @@ const GELCOAT: StudioOption[] = [
  * is a plain selection (liners are $/sq ft of interior surface in the studio;
  * screen-enclosure quality tiers are $/sq ft of screen area).
  */
-const SQFT_FEATURE_IDS = new Set(["liner", "quality"]);
+const SQFT_FEATURE_IDS = new Set(["liner", "quality", "baseMaterial"]);
 
-const isSqFt = (f: FeatureConfig) => f.type === "area" || SQFT_FEATURE_IDS.has(f.id);
+// `pricedByArea` selections (paver base material) are also $/sq ft.
+const isSqFt = (f: FeatureConfig) =>
+  f.type === "area" || (f as any).pricedByArea === true || SQFT_FEATURE_IDS.has(f.id);
 
 const unitFor = (f: FeatureConfig) =>
   isSqFt(f) ? " / sq ft" : f.type === "quantity" ? " each" : "";

@@ -33,7 +33,23 @@ export interface FeatureConfig {
   pricePerUnit?: number; // For area-based features
   subFeatures?: FeatureConfig[];
   pricingModifier?: (basePrice: number, extras: any) => number;
+  /**
+   * Selection features whose option prices are $ per square foot of another
+   * area feature (e.g. paver base material priced off the paved deck area).
+   */
+  pricedByArea?: boolean;
+  /** Feature id holding the square footage used by `pricedByArea`. */
+  areaSourceId?: string;
 }
+
+/**
+ * Paver base-material rates.
+ * Crushed stone is bought by the ton, so the paved square footage is converted
+ * to tonnage: 4" compacted depth => 0.0333 cu yd/sq ft × ~1.4 ton/cu yd.
+ */
+export const STONE_PRICE_PER_TON = 65;
+export const STONE_TONS_PER_SQFT = 0.0173;
+export const CONCRETE_BASE_PER_SQFT = 10;
 
 // Shared option data
 const spas: FeatureOption[] = [
@@ -681,31 +697,47 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       ]
     }
   ],
+  /**
+   * Pavers.
+   * Installation is INCLUDED in the per-square-foot paver price — it is never a
+   * separate line. The base underneath is derived from the same paved area:
+   * concrete is quoted by the square foot, crushed stone by the ton (tonnage is
+   * converted from the square footage at `STONE_TONS_PER_SQFT`).
+   */
   'paver': [
     {
       id: 'area',
       label: 'Installation Area',
-      description: 'Total square footage to be paved',
+      description: 'Total square footage to be paved — supplied and installed, installation included',
       type: 'area',
       icon: 'Grid3x3',
       pricePerUnit: 20
     },
     {
-      id: 'installation',
-      label: 'Professional Installation',
-      type: 'boolean',
-      icon: 'Wrench',
-      basePrice: 3000
-    },
-    {
       id: 'baseMaterial',
       label: 'Base Material',
+      description: 'Priced from the paved area above — concrete by the square foot, crushed stone by the ton',
       type: 'selection',
       icon: 'Layers',
+      /* Prices below are $ per square foot of the paved deck (see areaSourceId) */
+      pricedByArea: true,
+      areaSourceId: 'area',
       options: [
-        { name: 'Standard Gravel', price: 0 },
-        { name: 'Premium Crushed Stone', price: 1500 },
-        { name: 'Concrete Base', price: 3000 }
+        { name: 'Standard Gravel', price: 0, description: 'Included with the installation' },
+        {
+          name: 'Premium Crushed Stone',
+          /* $/sq ft = tons per sq ft × $ per ton */
+          price: Number((STONE_TONS_PER_SQFT * STONE_PRICE_PER_TON).toFixed(2)),
+          pricePerTon: STONE_PRICE_PER_TON,
+          tonsPerSqFt: STONE_TONS_PER_SQFT,
+          description: `${STONE_PRICE_PER_TON}/ton — ${STONE_TONS_PER_SQFT} ton per sq ft at a 4" compacted base`
+        },
+        {
+          name: 'Concrete Base',
+          price: CONCRETE_BASE_PER_SQFT,
+          pricePerSqFt: CONCRETE_BASE_PER_SQFT,
+          description: `${CONCRETE_BASE_PER_SQFT}/sq ft — 4" reinforced slab under the pavers`
+        }
       ]
     }
   ],
@@ -867,6 +899,16 @@ export const calculateFeaturePrice = (
           opt.name === value || opt.model === value
         );
         price = selected?.price || 0;
+        // Area-derived selections (paver base material) quote per sq ft of the
+        // paved deck; crushed stone's $/sq ft already folds in the ton conversion.
+        if (feature.pricedByArea) {
+          const area =
+            parseFloat(extras?.[feature.areaSourceId ?? 'area']) ||
+            parseFloat(extras?.paverSurfaceArea) ||
+            parseFloat(extras?.area) ||
+            0;
+          price = price * area;
+        }
       }
       break;
     case 'quantity':

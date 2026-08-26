@@ -181,7 +181,8 @@ interface ProductExtras {
  * - SAUNAS: Add a Spa (with Spa Heater + Waterline sub-options), Deck Pavers, Screen Enclosure
  * - TANNING LEDGES: Finish, Heater, Jets, Pavers
  * - COVERS: Installation, Extended Warranty
- * - PAVERS: Installation Area, Professional Installation, Base Material
+ * - PAVERS: Installation Area (installation included in the sq ft price), Base Material
+ *   (concrete $/sq ft, crushed stone $/ton converted from sq ft — both driven by the deck area)
  * - HEATERS/CHILLERS: Professional Installation ($2000), Extended Warranty, Annual Maintenance Plan
  * - SCREEN ENCLOSURES: Enclosure Area, Quality Level, Door Type, Roof Style
  * - DRIVEWAY GATES: Automatic Gate Opener ($2000), Professional Installation, Access Control System, Intercom System
