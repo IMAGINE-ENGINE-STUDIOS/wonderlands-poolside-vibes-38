@@ -26,9 +26,20 @@ export type SpreadOptions = {
   caption?: string;
   /** Extra content rendered on the right page (index lists, links). */
   right?: () => React.ReactNode;
+  /** Heading printed above the right-page content, e.g. "Contents". */
+  rightHeading?: string;
+  /** Small helper line under the right heading, e.g. "Tap a model to open it". */
+  rightHint?: string;
+  /**
+   * "ink" prints the spread as an editorial contents page: the photograph is
+   * pushed back behind a solid ink plate so type and tappable rows stay legible.
+   * "photo" (default) keeps the glassy statement treatment.
+   */
+  tone?: "photo" | "ink";
   /** Panel side — defaults to the left page. */
   invert?: boolean;
 };
+
 
 type PageLike = { key: string; tone?: string; render: () => React.ReactNode };
 
