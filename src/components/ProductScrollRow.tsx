@@ -14,7 +14,7 @@ const ProductScrollRow: React.FC<ProductScrollRowProps> = ({ children, className
         {items.map((child, i) => (
           <div
             key={i}
-            className="w-[calc(100vw/3)] min-w-[calc(100vw/3)] snap-start border-r border-border/60 bg-background last:border-r-0"
+            className="w-screen min-w-screen snap-start border-r border-border/60 bg-background last:border-r-0 md:w-[calc(100vw/3)] md:min-w-[calc(100vw/3)]"
           >
             {child}
           </div>
