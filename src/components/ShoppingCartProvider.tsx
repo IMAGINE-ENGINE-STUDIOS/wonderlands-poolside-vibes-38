@@ -16,6 +16,11 @@ interface ShoppingCartContextType {
   removeExtra: (id: string, extraIndex: number) => void;
   /** Replaces a feature/extra selection (name + price) on a cart item */
   updateExtra: (id: string, extraIndex: number, next: { name: string; price: number }) => void;
+  /** Adds a feature and guarantees its parent product is on the list */
+  addFeatureToProduct: (
+    product: Omit<CartItem, 'quantity'>,
+    feature: { name: string; price: number; key?: string; image?: string }
+  ) => void;
   /** Live-syncs base price and features of a cart item while it is being configured */
   syncItemConfig: (id: string, next: { price?: number; extras?: CartItem['extras'] }) => void;
 
@@ -247,6 +252,7 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
         removeExtra,
         updateExtra,
         syncItemConfig,
+        addFeatureToProduct,
 
 
         clearCart,
