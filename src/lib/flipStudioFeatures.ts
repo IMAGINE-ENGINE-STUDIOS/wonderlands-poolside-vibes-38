@@ -247,9 +247,12 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
 
   if (productType) {
     getProductFeatures(productType).forEach((f) => {
+      /* Keep only the features that educate a reader of *this* book */
+      if (allow && !allow.has(f.id)) return;
       const items = buildItems(f, ctx).filter(
         (i) => !(POOL_LIKE.has(categoryId) && /salt/i.test(i.label)),
       );
+
       if (!items.length) return;
       groups.push({
         title: f.label,
