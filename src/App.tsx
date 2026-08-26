@@ -77,6 +77,10 @@ const ToolsGallery2 = lazy(() => import("./pages/ToolsGallery2"));
 const AssetGallery = lazy(() => import("./pages/AssetGallery"));
 const FlipLab = lazy(() => import("./pages/FlipLab"));
 const FlipPagesFile = lazy(() => import("./pages/FlipPagesFile"));
+/* Per-category configuration suites (dropdown + carousel options + board) */
+const SaunaSuite = lazy(() => import("./pages/suites/SaunaSuite"));
+const SpaSuite = lazy(() => import("./pages/suites/SpaSuite"));
+const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
