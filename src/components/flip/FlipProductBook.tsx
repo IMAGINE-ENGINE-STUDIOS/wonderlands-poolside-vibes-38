@@ -281,6 +281,15 @@ const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
 );
 
 
+/**
+ * Which leaf of the spread a page is printed on.
+ * The + controls are kept away from the outer edge of the book: on a right-hand
+ * page they sit to the LEFT of the option title, on a left-hand page to the
+ * RIGHT — so tapping "add" never lands on the page-turn corner.
+ */
+export const LeafSideContext = React.createContext<"left" | "right">("left");
+export const useLeafSide = () => React.useContext(LeafSideContext);
+
 const Leaf = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ children }, ref) => (
   <div
     ref={ref}
