@@ -1,5 +1,5 @@
 import * as React from "react";
-const { useEffect, useState, lazy, Suspense } = React;
+const { useEffect, lazy, Suspense } = React;
 import { Helmet } from "react-helmet";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -38,180 +38,43 @@ const ArtificialGrassSection = lazy(() => import("@/components/ArtificialGrassSe
 const DrivewayGateSection = lazy(() => import("@/components/DrivewayGateSection"));
 const LandscapingSection = lazy(() => import("@/components/LandscapingSection"));
 
-type SectionId =
-  | "pools"
-  | "saunas"
-  | "spas"
-  | "tanning-ledges"
-  | "screen-enclosures"
-  | "patio-fencing"
-  | "lanai"
-  | "pavers"
-  | "artificial-grass"
-  | "landscaping"
-  | "covers"
-  | "driveway-gates"
-  | "finishes"
-  | "liners";
-
-const VALID_IDS = new Set<SectionId>([
-  "pools",
-  "saunas",
-  "spas",
-  "tanning-ledges",
-  "screen-enclosures",
-  "patio-fencing",
-  "lanai",
-  "pavers",
-  "artificial-grass",
-  "landscaping",
-  "covers",
-  "driveway-gates",
-  "finishes",
-  "liners",
-]);
-
-const getInitialFromHash = (): SectionId => {
-  if (typeof window === "undefined") return "pools";
-  const hash = window.location.hash.replace("#", "");
-  return (VALID_IDS.has(hash as SectionId) ? hash : "pools") as SectionId;
-};
-
 const SectionFallback = () => (
-  <div className="min-h-[400px] flex items-center justify-center">
+  <div className="min-h-[200px] flex items-center justify-center">
     <div className="animate-pulse text-muted-foreground">Loading…</div>
   </div>
 );
 
+/**
+ * Index (home).
+ *
+ * NOTE (Aug 2026): the page used to swap a single category section based on the
+ * URL hash (driven by the right-rail category buttons). Those buttons were removed,
+ * so every category is now rendered inline, in order, below the Glimmerglass
+ * (Gilmer fiberglass) collection. Section ids are preserved so deep links such as
+ * `/#pavers` still work — they simply scroll instead of swapping the view.
+ */
 const Index = () => {
-  const [active, setActive] = useState<SectionId>(getInitialFromHash());
-
-  // Sync URL hash → active state
+  // Deep-link support: scroll to the hashed section once mounted / on hash change.
   useEffect(() => {
-    const onHashChange = () => {
+    const scrollToHash = () => {
       const id = window.location.hash.replace("#", "");
-      if (VALID_IDS.has(id as SectionId)) {
-        setActive(id as SectionId);
-      }
+      if (!id) return;
+      // Sections stream in lazily, so retry briefly until the node exists.
+      let tries = 0;
+      const tick = () => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (tries++ < 20) {
+          window.setTimeout(tick, 150);
+        }
+      };
+      tick();
     };
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
   }, []);
-
-  const renderActive = () => {
-    switch (active) {
-      case "pools":
-        return (
-          <div key="pools" className="animate-fade-in">
-            <section id="pools" aria-label="Pool Catalog">
-              <PoolCatalog />
-            </section>
-            <div className="w-full">
-              <img
-                src={lathamGilmerBanner}
-                alt="Luxury Pool Design"
-                className="w-full h-auto object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-            <GilmerPoolsSection />
-          </div>
-        );
-      case "saunas":
-        return (
-          <div key="saunas" className="animate-fade-in">
-            <SectionBanner id="saunas" image={saunaBanner} alt="Luxury Saunas" title="Premium Saunas" subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas" />
-            <SaunaSection />
-          </div>
-        );
-      case "spas":
-        return (
-          <div key="spas" className="animate-fade-in">
-            <SpaCatalog />
-            <GilmerSpasSection />
-            <SectionBanner id="spas" image={spaBanner} alt="Hot Tubs & Spas" title="Hot Tubs & Spas" subtitle="Transform your backyard into a personal oasis with our premium spa collection" />
-          </div>
-        );
-      case "tanning-ledges":
-        return (
-          <div key="tanning-ledges" className="animate-fade-in">
-            <TanningLedgeSection />
-            <SectionBanner id="tanning-ledges" image={tanningLedgeBanner} alt="Tanning Ledges" title="Tanning Ledges" subtitle="Relax in style with our premium in-pool tanning ledges and sun shelves" />
-          </div>
-        );
-      case "screen-enclosures":
-        return (
-          <div key="screen-enclosures" className="animate-fade-in">
-            <ScreenEnclosureSection />
-            <SectionBanner id="screen-enclosures" image={screenEnclosureBanner} alt="Screen Enclosures" title="Screen Enclosures" subtitle="Protect your pool area from bugs and debris while enjoying the Florida sunshine" />
-          </div>
-        );
-      case "patio-fencing":
-        return (
-          <div key="patio-fencing" className="animate-fade-in">
-            <PatioFencingSection />
-            <SectionBanner id="patio-fencing" image={patioFencingBanner} alt="Patio Fencing" title="Aluminum Patio Fencing" subtitle="Premium pool-code compliant aluminum fencing for safety and style" />
-          </div>
-        );
-      case "lanai":
-        return (
-          <div key="lanai" className="animate-fade-in">
-            <LanaiSection />
-            <SectionBanner id="lanai" image={lanaiBanner} alt="Lanai Enclosures" title="Lanai Enclosures" subtitle="Transform your outdoor space into a luxurious covered living area" />
-          </div>
-        );
-      case "pavers":
-        return (
-          <div key="pavers" className="animate-fade-in">
-            <PaversSection />
-            <SectionBanner id="pavers" image={paversBanner} alt="Pool Pavers" title="Premium Pavers" subtitle="Elevate your outdoor space with stunning paver designs around your pool" />
-          </div>
-        );
-      case "artificial-grass":
-        return (
-          <div key="artificial-grass" className="animate-fade-in">
-            <ArtificialGrassSection />
-            <SectionBanner id="artificial-grass" image={grassBanner} alt="Artificial Grass" title="Artificial Grass" subtitle="Premium low-maintenance turf — get an instant quote at $25/sq ft" />
-          </div>
-        );
-      case "landscaping":
-        return (
-          <div key="landscaping" className="animate-fade-in">
-            <LandscapingSection />
-            <SectionBanner id="landscaping" image={landscapingBanner} alt="Landscaping" title="Landscaping" subtitle="Transform your outdoor space with premium plants, palms, trees, and grasses" />
-          </div>
-        );
-      case "covers":
-        return (
-          <div key="covers" className="animate-fade-in">
-            <AutomaticCoversSection />
-            <SectionBanner id="covers" image={coversBanner} alt="Automatic Pool Covers" title="Automatic Pool Covers" subtitle="Safety, energy efficiency, and convenience with our automatic cover systems" />
-          </div>
-        );
-      case "driveway-gates":
-        return (
-          <div key="driveway-gates" className="animate-fade-in">
-            <DrivewayGateSection />
-            <SectionBanner id="driveway-gates" image={drivewayGateBanner} alt="Driveway Gates" title="Driveway Gates" subtitle="Add security and elegance to your property with our custom gate solutions" />
-          </div>
-        );
-      case "finishes":
-        return (
-          <section key="finishes" id="finishes" aria-label="Pool Finishes" className="animate-fade-in">
-            <PoolFinishesSection />
-          </section>
-        );
-      case "liners":
-        return (
-          <section key="liners" id="liners" aria-label="Pool Liners" className="animate-fade-in">
-            <LinersSection />
-          </section>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <div className="min-h-screen">
@@ -236,7 +99,91 @@ const Index = () => {
       <StudioEditorial />
 
       <main>
-        <Suspense fallback={<SectionFallback />}>{renderActive()}</Suspense>
+        {/* Pools + Glimmerglass fiberglass collection */}
+        <Suspense fallback={<SectionFallback />}>
+          <section id="pools" aria-label="Pool Catalog">
+            <PoolCatalog />
+          </section>
+          <div className="w-full">
+            <img
+              src={lathamGilmerBanner}
+              alt="Luxury Pool Design"
+              className="w-full h-auto object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <GilmerPoolsSection />
+        </Suspense>
+
+        {/* ---- All remaining categories, stacked below Glimmerglass ---- */}
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="saunas" image={saunaBanner} alt="Luxury Saunas" title="Premium Saunas" subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas" />
+          <SaunaSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="spas" image={spaBanner} alt="Hot Tubs & Spas" title="Hot Tubs & Spas" subtitle="Transform your backyard into a personal oasis with our premium spa collection" />
+          <SpaCatalog />
+          <GilmerSpasSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="tanning-ledges" image={tanningLedgeBanner} alt="Tanning Ledges" title="Tanning Ledges" subtitle="Relax in style with our premium in-pool tanning ledges and sun shelves" />
+          <TanningLedgeSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="screen-enclosures" image={screenEnclosureBanner} alt="Screen Enclosures" title="Screen Enclosures" subtitle="Protect your pool area from bugs and debris while enjoying the Florida sunshine" />
+          <ScreenEnclosureSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="patio-fencing" image={patioFencingBanner} alt="Patio Fencing" title="Aluminum Patio Fencing" subtitle="Premium pool-code compliant aluminum fencing for safety and style" />
+          <PatioFencingSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="lanai" image={lanaiBanner} alt="Lanai Enclosures" title="Lanai Enclosures" subtitle="Transform your outdoor space into a luxurious covered living area" />
+          <LanaiSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="pavers" image={paversBanner} alt="Pool Pavers" title="Premium Pavers" subtitle="Elevate your outdoor space with stunning paver designs around your pool" />
+          <PaversSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="artificial-grass" image={grassBanner} alt="Artificial Grass" title="Artificial Grass" subtitle="Premium low-maintenance turf — get an instant quote at $25/sq ft" />
+          <ArtificialGrassSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="landscaping" image={landscapingBanner} alt="Landscaping" title="Landscaping" subtitle="Transform your outdoor space with premium plants, palms, trees, and grasses" />
+          <LandscapingSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="covers" image={coversBanner} alt="Automatic Pool Covers" title="Automatic Pool Covers" subtitle="Safety, energy efficiency, and convenience with our automatic cover systems" />
+          <AutomaticCoversSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="driveway-gates" image={drivewayGateBanner} alt="Driveway Gates" title="Driveway Gates" subtitle="Add security and elegance to your property with our custom gate solutions" />
+          <DrivewayGateSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <section id="finishes" aria-label="Pool Finishes">
+            <PoolFinishesSection />
+          </section>
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <section id="liners" aria-label="Pool Liners">
+            <LinersSection />
+          </section>
+        </Suspense>
       </main>
 
       <Footer />
