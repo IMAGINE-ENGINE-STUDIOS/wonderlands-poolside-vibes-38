@@ -1,11 +1,8 @@
-import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown } from "lucide-react";
 import { FeatureTileCarousel } from "@/components/product/FeatureTileCarousel";
 import { getProductFeatures, type ProductType, type FeatureConfig } from '@/config/productFeatures';
 
@@ -16,7 +13,6 @@ interface DynamicFeatureRendererProps {
 }
 
 export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasChange }: DynamicFeatureRendererProps) {
-  const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
   const features = getProductFeatures(productType);
 
   const fmt = (n: number) => `$${n.toLocaleString()}`;
