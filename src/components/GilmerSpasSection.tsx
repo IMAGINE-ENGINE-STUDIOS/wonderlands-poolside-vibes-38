@@ -5,6 +5,7 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 import type { GilmerSpa } from "@/data/gilmerSpas";
+import { Link } from "react-router-dom";
 
 interface SpaExtras {
   selectedColor?: string;
