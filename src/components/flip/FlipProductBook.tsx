@@ -624,11 +624,8 @@ export const useProductBookPages = ({
           title: entry.name,
           titleItalic: category.tagline ?? category.label,
           body: story.lede,
-          stats: [
-            { value: price, label: "Turnkey investment" },
-            { value: metaBits[0] ?? category.label, label: "Dimensions" },
-            { value: "Florida", label: "Engineered & installed" },
-          ],
+          stats: headlineStats,
+
           lockup: "Wonderlands World — Dossier",
           caption: `${entry.name} — photographed on site`,
         },
