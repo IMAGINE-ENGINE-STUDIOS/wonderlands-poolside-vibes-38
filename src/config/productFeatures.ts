@@ -899,6 +899,16 @@ export const calculateFeaturePrice = (
           opt.name === value || opt.model === value
         );
         price = selected?.price || 0;
+        // Area-derived selections (paver base material) quote per sq ft of the
+        // paved deck; crushed stone's $/sq ft already folds in the ton conversion.
+        if (feature.pricedByArea) {
+          const area =
+            parseFloat(extras?.[feature.areaSourceId ?? 'area']) ||
+            parseFloat(extras?.paverSurfaceArea) ||
+            parseFloat(extras?.area) ||
+            0;
+          price = price * area;
+        }
       }
       break;
     case 'quantity':
