@@ -11,6 +11,17 @@ const SaunaSection = () => {
           description="Barrel and traditional cabins — a wellness sanctuary composed for the garden."
         />
 
+        {/* Entry to the dedicated sauna suite (full configuration + pad board) */}
+        <div className="mb-6">
+          <Link
+            to="/suites/saunas"
+            className="inline-block border border-border/70 px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground/5"
+          >
+            Open the sauna suite
+          </Link>
+        </div>
+
+
         <ProductScrollRow className="mb-8">
           {saunas.map(sauna => <SaunaProductCard key={sauna.id} sauna={sauna} />)}
         </ProductScrollRow>
