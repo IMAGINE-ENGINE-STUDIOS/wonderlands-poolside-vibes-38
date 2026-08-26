@@ -732,9 +732,10 @@ export const useProductBookPages = ({
                 <dl className="space-y-1.5">
                   {[
                     ["Investment", price],
-                    ["Dimensions", metaBits[0] ?? category.label],
-                    ["Delivery", "Turnkey, installed"],
+                    [metaLabel, metaBits[0] ?? category.label],
+                    ["Delivery", isSurface ? "Supplied & installed" : "Turnkey, installed"],
                   ].map(([k, v]) => (
+
                     <div key={k} className="flex items-baseline justify-between gap-3 border-t border-border/50 pt-1.5">
                       <dt className="text-[8px] uppercase tracking-[0.28em] text-muted-foreground">{k}</dt>
                       <dd className="font-serif text-[11px]">{v}</dd>
