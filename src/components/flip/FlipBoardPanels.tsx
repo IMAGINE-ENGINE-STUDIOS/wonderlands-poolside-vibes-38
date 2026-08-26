@@ -537,6 +537,14 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
   const set = (patch: Partial<OptionState>) => setOptions((p) => ({ ...p, ...patch }));
   /* The managed pipeline for this discipline, when there is one */
   const pipeline = React.useMemo(() => getProjectPipeline(categoryId), [categoryId]);
+  /**
+   * Board ids can be model scoped ("pools__milan") — the discipline is the stem.
+   * `holdsWater` marks the vessel disciplines: only they get water volume,
+   * heater sizing, turnover and the pool rate card.
+   */
+  const stem = categoryId.split("__")[0];
+  const holdsWater = /pool|spa|tanning|ledge|plunge/i.test(stem) && !/finish|liner/i.test(stem);
+
 
 
   /* water volume, heater capacity and turnover, read off the drawn shell */
