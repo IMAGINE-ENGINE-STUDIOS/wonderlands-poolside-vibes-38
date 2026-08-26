@@ -675,7 +675,10 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
           </>
         )}
 
-        {board.kind === "site" && (
+        {/* Water volume, heater sizing and turnover only educate a reader of a
+            vessel book (pool, spa, sun shelf, cold plunge). A sauna pad, lanai,
+            hardscape or landscape board must never print pool water figures. */}
+        {board.kind === "site" && holdsWater && (
           <>
             <Row label="Water & heating">
               <div className="grid grid-cols-2 gap-2">
@@ -712,15 +715,21 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
                 <li>{water.gpm ? `Pump — ${water.gpm} gpm for an 8 hr turnover` : "Turnover sized once drawn"}</li>
               </ul>
             </Row>
-            <Row label="Rate card">
-              <ul className="space-y-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                <li>Pool shell — ${SITE_RATES.pool}/sq ft</li>
-                <li>Deck, patio, driveway — ${SITE_RATES.deck}/sq ft</li>
-                <li>Pool barrier — ${FENCE_RATE_PER_FT}/linear ft</li>
-              </ul>
-            </Row>
           </>
         )}
+
+        {board.kind === "site" && (
+          <Row label="Rate card">
+            <ul className="space-y-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {/* Only quote the lines that belong to this discipline */}
+              {holdsWater && <li>Pool shell — ${SITE_RATES.pool}/sq ft</li>}
+              <li>{holdsWater ? "Deck, patio, driveway" : "Paved surface, patio, pad"} — ${SITE_RATES.deck}/sq ft</li>
+              {holdsWater && <li>Pool barrier — ${FENCE_RATE_PER_FT}/linear ft</li>}
+              {!holdsWater && <li>Perimeter fencing or edging — ${FENCE_RATE_PER_FT}/linear ft</li>}
+            </ul>
+          </Row>
+        )}
+
 
         {board.kind === "grass" && (
           <Row label="Rate card">
