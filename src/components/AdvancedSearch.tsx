@@ -35,6 +35,7 @@ import saunaBanner from "@/assets/banners/sauna-banner.webp";
 import spaBanner from "@/assets/banners/spa-banner.webp";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.webp";
 import paversBanner from "@/assets/banners/pavers-banner.webp";
+import solarRoofArray from '@/assets/solar/solar-roof-array.jpg';
 import coversBanner from "@/assets/banners/covers-banner.webp";
 import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.webp";
 import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.webp";
@@ -53,6 +54,7 @@ const mainPageSections = [
   { id: 'lanai', label: 'Lanai', image: lanaiBanner, description: 'Covered outdoor living spaces' },
   { id: 'pavers', label: 'Pavers', image: paversBanner, description: 'Pool deck & patio pavers' },
   { id: 'artificial-grass', label: 'Artificial Grass', image: paversBanner, description: 'Premium low-maintenance turf' },
+  { id: 'solar', label: 'Wonderlands Solar', image: solarRoofArray, description: 'Solar arrays, batteries & pool heating' },
   { id: 'covers', label: 'Pool Covers', image: coversBanner, description: 'Automatic safety covers' },
   { id: 'driveway-gates', label: 'Driveway Gates', image: drivewayGateBanner, description: 'Ornamental entry gates' },
   { id: 'finishes', label: 'Pool Finishes', image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp', description: 'Interior pool finishes' },
