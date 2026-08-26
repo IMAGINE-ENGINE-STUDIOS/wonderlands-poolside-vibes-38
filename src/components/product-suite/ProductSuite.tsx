@@ -270,7 +270,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
           </div>
 
           {/* Options + summary */}
-          <div>
+          <div className="min-w-0">
             <h3 className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
               Additional features
             </h3>
