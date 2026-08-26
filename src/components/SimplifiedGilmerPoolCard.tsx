@@ -657,18 +657,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
 
-                {/* Pool Heater */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={options.poolHeater} 
-                    onCheckedChange={() => toggleOption('poolHeater')} 
-                    className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Thermometer size={16} className="text-coral" />
-                    <span className="text-sm">Add Pool Heater (+${options.poolHeater ? (heaterOptions.find(h => h.name === options.heaterModel)?.price || 0).toLocaleString() : '0'})</span>
-                  </div>
-                </label>
+                {/* Pool Heater — sub-options only; the toggle is a tile in the carousel above */}
+
                 {options.poolHeater && (
                   <div className="ml-6 space-y-2">
                     <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
