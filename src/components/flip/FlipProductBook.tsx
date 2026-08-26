@@ -782,15 +782,19 @@ export const useProductBookPages = ({
       key: "dimensions",
       render: () => (
         <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
-          <Eyebrow>01 — Dimensions & details</Eyebrow>
+          <Eyebrow>01 — {isSurface ? "Specification & detail" : "Dimensions & details"}</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
           <dl className="mt-5 space-y-0">
             {[
               ["Discipline", category.label],
               ["Brand", entry.brand ?? "Wonderlands World"],
-              ...metaBits.map((m, i) => [i === 0 ? "Dimensions" : "Depth", m] as [string, string]),
+              /* Depth only reads on a vessel — a surface lists its collection/detail instead */
+              ...metaBits.map(
+                (m, i) => [i === 0 ? metaLabel : isSurface ? "Detail" : "Depth", m] as [string, string],
+              ),
               ["Investment", price],
-              ["Delivery", "Turnkey — set at your address"],
+              ["Delivery", isSurface ? "Supplied & installed by our crews" : "Turnkey — set at your address"],
+
             ].map(([k, v]) => (
               <div key={`${k}-${v}`} className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2">
                 <dt className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">{k}</dt>
