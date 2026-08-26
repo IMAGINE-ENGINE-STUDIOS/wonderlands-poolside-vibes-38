@@ -404,6 +404,30 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
 
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
 
+  /* In-book navigation from any contents / index title: instead of snapping to
+     the leaf, run the same page-flip trans motion used when an edition or a
+     product book opens — pages riffle past, then the book lands on the target. */
+  const jumpTimer = useRef<number | null>(null);
+  const turnToPageWithMotion = useCallback(
+    (target: number, label: string, images: string[] = [], captions: string[] = []) => {
+      const plates = images.filter(Boolean) as string[];
+      flipMotion.play({
+        label,
+        images: plates,
+        captions: captions.length ? captions : plates.map(() => label),
+        destination: plates[0],
+      });
+      if (jumpTimer.current) window.clearTimeout(jumpTimer.current);
+      // Turn under the riffle so the reader lands on the page as it clears.
+      jumpTimer.current = window.setTimeout(() => {
+        bookRef.current?.pageFlip()?.turnToPage(target);
+      }, 420);
+    },
+    [flipMotion],
+  );
+  useEffect(() => () => { if (jumpTimer.current) window.clearTimeout(jumpTimer.current); }, []);
+
+
   const openCategory = useCallback(
     (id: string) => {
       const target = ITEMS.find((i) => i.id === id);
@@ -881,7 +905,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             {products.map((p, i) => (
               <li key={p.id}>
                 <button
-                  onClick={() => bookRef.current?.pageFlip()?.turnToPage(at.products + i * 2)}
+                  onClick={() =>
+                    turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
+                  }
                   className="flex w-full items-baseline justify-between gap-4 border-t border-border/50 py-[7px] text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
                 >
                   <span className="truncate text-foreground">
@@ -960,7 +986,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
           {products.slice(0, 14).map((p, i) => (
             <li key={p.id}>
               <button
-                onClick={() => bookRef.current?.pageFlip()?.turnToPage(at.products + i * 2)}
+                onClick={() =>
+                  turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
+                }
                 className="flex w-full items-baseline justify-between gap-4 border-t border-white/25 py-[6px] text-left text-[10px] uppercase tracking-[0.18em] text-white/80 transition-colors hover:text-white"
               >
                 <span className="truncate">{String(i + 1).padStart(2, "0")} — {p.name}</span>
@@ -1340,7 +1368,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       anchors: { index: 1, gallery: galleryAt, code: galleryAt + 1, features: featuresAt, estimate: estimateAt },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart]);
+  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart, turnToPageWithMotion]);
 
   /* Dossier pages are composed here and rendered in this same flipbook —
      opening "More" never spawns a second book. */
