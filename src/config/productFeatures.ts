@@ -233,7 +233,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Automatic Cover',
       type: 'selection',
       icon: 'ShieldCheck',
-      options: coverOptions
+      options: coverOptions,
+      /* the fabric colour of the chosen cover — printed with it everywhere */
+      subFeatures: [coverColorFeature]
     },
     {
       id: 'jets',
@@ -333,7 +335,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Automatic Cover',
       type: 'selection',
       icon: 'ShieldCheck',
-      options: coverOptions
+      options: coverOptions,
+      /* the fabric colour of the chosen cover — printed with it everywhere */
+      subFeatures: [coverColorFeature]
     },
     {
       id: 'tanningLedge',
@@ -667,7 +671,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Automatic Cover',
       type: 'selection',
       icon: 'ShieldCheck',
-      options: coverOptions
+      options: coverOptions,
+      /* the fabric colour of the chosen cover — printed with it everywhere */
+      subFeatures: [coverColorFeature]
     },
     {
       id: 'spa',
@@ -697,6 +703,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
     }
   ],
   'cover': [
+    coverColorFeature,
     {
       id: 'installation',
       label: 'Professional Installation',
@@ -724,6 +731,17 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
    * converted from the square footage at `STONE_TONS_PER_SQFT`).
    */
   'paver': [
+    {
+      /* The paver actually being laid — every collection we sell, $ per sq ft */
+      id: 'material',
+      label: 'Paver Material',
+      description: 'Paver collection and colour — supplied and installed, priced per square foot of deck',
+      type: 'selection',
+      icon: 'Grid3x3',
+      pricedByArea: true,
+      areaSourceId: 'area',
+      options: paverOptions
+    },
     {
       id: 'area',
       label: 'Installation Area',
