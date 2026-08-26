@@ -1032,17 +1032,15 @@ export const useProductBookPages = ({
       ),
     });
 
-    if (category.id === "pavers") {
-      list.push({
-        key: "pavers-work-message",
-        render: () => <PaversWorkMessage entryName={entry.name} />,
-      });
-    }
-
     /* the one pager — our written message to the client */
     list.push({
       key: "letter",
-      render: () => <FlipCustomerLetter categoryLabel={category.label} modelName={entry.name} />,
+      render: () =>
+        category.id === "pavers" ? (
+          <PaversWorkMessage entryName={entry.name} />
+        ) : (
+          <FlipCustomerLetter categoryLabel={category.label} modelName={entry.name} />
+        ),
     });
 
     /* design tool — a full spread: the live board runs across both pages */

@@ -192,6 +192,10 @@ const SHELL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges"]
  * Categories absent from this map keep every feature of their product type.
  */
 const CATEGORY_FEATURE_ALLOW: Record<string, Set<string>> = {
+  /* Spas can show spa finishes, waterline, heater, jets, cover and their immediate surround — never tanning ledges */
+  spas: new Set(["finish", "liner", "tiles", "heater", "jets", "pavers", "cover", "screenEnclosure"]),
+  /* Tanning ledges are shallow-water shelves; they do not inherit add-a-spa, enclosure or concrete-pool construction chapters */
+  "tanning-ledges": new Set(["finish", "heater", "jets", "pavers", "liner", "tiles"]),
   /* Pavers are a hardscape surface: only measured deck area and base material belong here */
   pavers: new Set(["area", "baseMaterial"]),
   /* Covers only need their cover housing/install choices; never pool heaters/jets/finishes */
