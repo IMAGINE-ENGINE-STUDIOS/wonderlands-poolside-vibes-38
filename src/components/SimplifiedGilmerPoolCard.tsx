@@ -606,18 +606,71 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 <div className="space-y-3">
 
               <div className="grid grid-cols-1 gap-3">
-                {/* Pool Tiles */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={options.tiles} 
-                    onCheckedChange={() => toggleOption('tiles')} 
-                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Cpu size={16} className="text-primary" />
-                    <span className="text-sm">Add Pool Tiles (+${options.tiles ? (tileOptions.find(t => t.name === options.tileOption)?.price || 0).toLocaleString() : '0'})</span>
-                  </div>
-                </label>
+                {/* Every add-on is presented in the same tile format as Screen Enclosure */}
+                <FeatureTileCarousel
+                  label="Select the features to add"
+                  tiles={[
+                    {
+                      key: 'tiles',
+                      name: 'Pool Tiles',
+                      image: tileOptions[0]?.image,
+                      priceLabel: options.tiles
+                        ? `+$${(tileOptions.find(t => t.name === options.tileOption)?.price || 0).toLocaleString()}`
+                        : `from $${Math.min(...tileOptions.map(t => t.price || 0)).toLocaleString()}`,
+                      selected: options.tiles,
+                      onSelect: () => toggleOption('tiles'),
+                    },
+                    {
+                      key: 'poolHeater',
+                      name: 'Pool Heater',
+                      icon: <Thermometer className="h-8 w-8 text-primary" />,
+                      priceLabel: options.poolHeater
+                        ? `+$${(heaterOptions.find(h => h.name === options.heaterModel)?.price || 0).toLocaleString()}`
+                        : `from $${Math.min(...heaterOptions.map(h => h.price)).toLocaleString()}`,
+                      selected: options.poolHeater,
+                      onSelect: () => toggleOption('poolHeater'),
+                    },
+                    {
+                      key: 'rockyWaterfalls',
+                      name: 'Rocky Waterfalls',
+                      image: rockyWaterfallsTypes[0]?.image,
+                      priceLabel: options.rockyWaterfalls
+                        ? `+$${(rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType)?.price || 17500).toLocaleString()}`
+                        : `from $${Math.min(...rockyWaterfallsTypes.map(t => t.price)).toLocaleString()}`,
+                      selected: options.rockyWaterfalls,
+                      onSelect: () => toggleOption('rockyWaterfalls'),
+                    },
+                    {
+                      key: 'addSpa',
+                      name: 'Gilmer Spa',
+                      image: gilmerSpaOptions[0]?.image,
+                      priceLabel: options.addSpa
+                        ? `+$${(gilmerSpaOptions.find(s => s.name === options.spaOption)?.price || 0).toLocaleString()}`
+                        : `from $${Math.min(...gilmerSpaOptions.map(s => s.price)).toLocaleString()}`,
+                      selected: options.addSpa,
+                      onSelect: () =>
+                        setOptions((prev) => ({
+                          ...prev,
+                          addSpa: !prev.addSpa,
+                          spaOption: !prev.addSpa ? (prev.spaOption || gilmerSpaOptions[0]?.name || '') : '',
+                        })),
+                    },
+                    /* concrete construction is meaningless on models that are already concrete */
+                    ...(pool.model !== "Winderview" && pool.model !== "Cape Coral"
+                      ? [{
+                          key: 'concreteConstruction',
+                          name: 'Make it on Concrete',
+                          image: concreteDeckTexture,
+                          priceLabel: '+$15,000',
+                          selected: options.concreteConstruction,
+                          onSelect: () => toggleOption('concreteConstruction'),
+                        }]
+                      : []),
+                  ]}
+                />
+
+                {/* Pool Tiles — sub-options only; the toggle is a tile in the carousel above */}
+
                 {options.tiles && (
                   <div className="ml-6 space-y-2">
                     <label className="text-xs font-medium text-muted-foreground">Select Tile Option:</label>
