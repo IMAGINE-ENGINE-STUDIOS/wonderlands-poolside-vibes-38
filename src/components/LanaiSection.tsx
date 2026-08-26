@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Home, Shield, TrendingUp } from "lucide-react";
+
 import lanaiStandardImg from "@/assets/enclosures/lanai-standard.webp";
 import lanaiDeluxeImg from "@/assets/enclosures/lanai-deluxe.webp";
 import lanaiPremiumImg from "@/assets/enclosures/lanai-premium.webp";
@@ -414,37 +414,46 @@ const LanaiSection = () => {
           ))}
         </ProductScrollRow>
 
-        {/* Information Section */}
-        <div className="bg-card border rounded-none p-8 shadow-lg">
-          <h3 className="text-2xl font-bold mb-6 text-center">Why Choose Our Roof & Lanai Covers?</h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
-                <Home className="w-8 h-8 text-primary" />
+        {/* Information Section — editorial afterword plate */}
+        <div className="mt-20 border border-border/60 bg-card/40">
+          <div className="border-b border-border/60 px-6 py-4 md:px-10 md:py-5">
+            <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
+              Volume IX — Afterword
+            </p>
+          </div>
+          <div className="grid grid-cols-1 divide-y divide-border/60 md:grid-cols-3 md:divide-x md:divide-y-0">
+            {[
+              {
+                num: "01",
+                title: "Outdoor Living",
+                text: "Expand your living space and enjoy the outdoors year-round in comfort."
+              },
+              {
+                num: "02",
+                title: "Weather Protection",
+                text: "Shield your patio from sun, rain, and elements with durable aluminum construction."
+              },
+              {
+                num: "03",
+                title: "Value Addition",
+                text: "Increase your property value with a premium outdoor living enhancement."
+              }
+            ].map((item) => (
+              <div
+                key={item.num}
+                className="p-6 md:p-10 text-center transition-colors duration-300 hover:bg-muted/20"
+              >
+                <span className="inline-block mb-5 border border-border/60 px-3 py-1 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                  {item.num}
+                </span>
+                <h3 className="mb-3 font-serif text-2xl font-light tracking-tight text-foreground md:text-3xl">
+                  {item.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {item.text}
+                </p>
               </div>
-              <h4 className="font-bold mb-2">Outdoor Living</h4>
-              <p className="text-sm text-muted-foreground">
-                Expand your living space and enjoy the outdoors year-round in comfort
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <h4 className="font-bold mb-2">Weather Protection</h4>
-              <p className="text-sm text-muted-foreground">
-                Shield your patio from sun, rain, and elements with durable aluminum construction
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
-                <TrendingUp className="w-8 h-8 text-primary" />
-              </div>
-              <h4 className="font-bold mb-2">Value Addition</h4>
-              <p className="text-sm text-muted-foreground">
-                Increase your property value with a premium outdoor living enhancement
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </div>

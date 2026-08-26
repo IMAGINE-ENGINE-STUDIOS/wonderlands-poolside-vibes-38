@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DollarSign, ShoppingCart, Calculator, Home, Zap, Star } from "lucide-react";
+import { DollarSign, ShoppingCart, Calculator } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
 import { useShoppingCart } from "./ShoppingCartProvider";
@@ -134,43 +134,46 @@ const ScreenEnclosureSection = () => {
               </Card>)}
           </ProductScrollRow>
           
-          {/* Information Section - Moved below products */}
-          <div className="bg-gradient-to-r from-primary/10 to-teal/10 rounded-none p-8 mt-16">
-            <div className="max-w-4xl mx-auto text-center">
-              <h3 className="text-2xl font-bold text-foreground mb-4">
-                Complete Pool Protection & Comfort
-              </h3>
-              <div className="grid md:grid-cols-3 gap-6 text-left">
-                <div className="flex items-start gap-3">
-                  <Home className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Year-Round Enjoyment</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Extend your swimming season with protection from rain, wind, and debris while maintaining an open-air feel.
-                    </p>
-                  </div>
+          {/* Information Section — editorial afterword plate */}
+          <div className="mt-20 border border-border/60 bg-card/40">
+            <div className="border-b border-border/60 px-6 py-4 md:px-10 md:py-5">
+              <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
+                Volume VII — Afterword
+              </p>
+            </div>
+            <div className="grid grid-cols-1 divide-y divide-border/60 md:grid-cols-3 md:divide-x md:divide-y-0">
+              {[
+                {
+                  num: "01",
+                  title: "Year-Round Enjoyment",
+                  text: "Extend your swimming season with protection from rain, wind, and debris while maintaining an open-air feel."
+                },
+                {
+                  num: "02",
+                  title: "Energy Efficient",
+                  text: "Reduce heating costs and chemical usage while keeping your pool cleaner with less maintenance required."
+                },
+                {
+                  num: "03",
+                  title: "Premium Materials",
+                  text: "Engineered aluminum frames with impact-resistant screening designed to withstand Florida weather conditions."
+                }
+              ].map((item) => (
+                <div
+                  key={item.num}
+                  className="p-6 md:p-10 text-center transition-colors duration-300 hover:bg-muted/20"
+                >
+                  <span className="inline-block mb-5 border border-border/60 px-3 py-1 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                    {item.num}
+                  </span>
+                  <h3 className="mb-3 font-serif text-2xl font-light tracking-tight text-foreground md:text-3xl">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {item.text}
+                  </p>
                 </div>
-                
-                <div className="flex items-start gap-3">
-                  <Zap className="h-6 w-6 text-teal mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Energy Efficient</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Reduce heating costs and chemical usage while keeping your pool cleaner with less maintenance required.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Star className="h-6 w-6 text-coral mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Premium Materials</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Engineered aluminum frames with impact-resistant screening designed to withstand Florida weather conditions.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
