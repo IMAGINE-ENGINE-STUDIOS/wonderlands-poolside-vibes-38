@@ -773,31 +773,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
 
-                {/* Add Spa */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={options.addSpa}
-                    onCheckedChange={(checked) => {
-                      const isChecked = checked === true;
-                      setOptions((prev) => ({
-                        ...prev,
-                        addSpa: isChecked,
-                        spaOption: isChecked ? (prev.spaOption || gilmerSpaOptions[0]?.name || '') : ''
-                      }));
-                    }}
-                    className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Droplets size={16} className="text-coral" />
-                    <span className="text-sm">
-                      Add Gilmer Spa (+$
-                      {options.addSpa
-                        ? (gilmerSpaOptions.find((s) => s.name === options.spaOption)?.price || 0).toLocaleString()
-                        : '0'}
-                      )
-                    </span>
-                  </div>
-                </label>
+                {/* Add Spa — sub-options only; the toggle is a tile in the carousel above */}
+
 
                 {options.addSpa && (
                   <div className="ml-6 space-y-2">
