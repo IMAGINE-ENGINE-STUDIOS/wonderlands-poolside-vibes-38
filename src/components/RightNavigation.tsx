@@ -112,9 +112,9 @@ const RightNavigation = () => {
                 <TooltipTrigger asChild>
                   <Button
                     onClick={() => navigate("/admin")}
-                    className="relative rounded-full w-11 h-11 bg-secondary hover:bg-secondary/90 shadow-lg"
+                    className="relative rounded-full w-11 h-11 bg-coral text-white hover:bg-coral/90 shadow-lg shadow-coral/30 ring-1 ring-white/20"
                   >
-                    <Settings className="h-4 w-4" />
+                    <LayoutDashboard className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="left">Admin Dashboard</TooltipContent>
@@ -141,28 +141,10 @@ const RightNavigation = () => {
                 <MiniCart onViewFullCart={() => setIsCartOpen(true)} />
               </PopoverContent>
             </Popover>
-
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeHash === item.id;
-              return (
-                <Tooltip key={item.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => goToCategory(item.id)}
-                      variant={isActive ? "default" : "outline"}
-                      className={`rounded-full w-11 h-11 shadow-lg transition-all duration-300 ${
-                        isActive ? "ring-2 ring-primary ring-offset-2" : ""
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">{item.label}</TooltipContent>
-                </Tooltip>
-              );
-            })}
+            {/* NOTE: category shortcut buttons intentionally removed — the main page now
+                lists every category section inline, so the rail only keeps Cart + Admin. */}
           </>
+
         )}
       </div>
     </TooltipProvider>
