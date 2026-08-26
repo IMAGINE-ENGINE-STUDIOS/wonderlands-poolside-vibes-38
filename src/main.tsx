@@ -15,6 +15,32 @@ import "./styles/animations.css";
 import "./styles/print.css";
 import { initializePerformanceMonitoring } from "@/utils/performanceMonitor";
 
+// Defensive DOM patch: browser page-translation (Chrome/Google Translate) and
+// some extensions rewrite text nodes inside React-managed DOM. React then
+// crashes with "Failed to execute 'removeChild' on 'Node'" because the node
+// was already moved. Swallow those mismatches instead of crashing the app.
+if (typeof Node !== "undefined" && Node.prototype) {
+  const originalRemoveChild = Node.prototype.removeChild;
+  // @ts-expect-error - intentionally looser signature
+  Node.prototype.removeChild = function <T extends Node>(child: T): T {
+    if (child.parentNode !== this) {
+      console.warn("removeChild skipped: node is not a child of this parent", child);
+      return child;
+    }
+    return originalRemoveChild.call(this, child) as T;
+  };
+
+  const originalInsertBefore = Node.prototype.insertBefore;
+  // @ts-expect-error - intentionally looser signature
+  Node.prototype.insertBefore = function <T extends Node>(newNode: T, referenceNode: Node | null): T {
+    if (referenceNode && referenceNode.parentNode !== this) {
+      console.warn("insertBefore skipped: reference node is not a child of this parent", referenceNode);
+      return newNode;
+    }
+    return originalInsertBefore.call(this, newNode, referenceNode) as T;
+  };
+}
+
 // Error Boundary for debugging white screen issues
 interface ErrorBoundaryState {
   hasError: boolean;
