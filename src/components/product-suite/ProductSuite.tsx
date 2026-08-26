@@ -200,7 +200,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                         )}
                         <p className="mt-1 text-sm font-medium leading-tight">{m.name}</p>
                         <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                          {m.meta ?? m.dimensions ?? ""}
+                          {/* Never repeat the group label already printed above */}
+                          {(groupBy && groupBy(m) === m.meta ? m.dimensions : m.meta ?? m.dimensions) ?? ""}
                         </p>
                         <p className="mt-3 text-sm">{money(m.price * priceMultiplier)}</p>
                       </div>
