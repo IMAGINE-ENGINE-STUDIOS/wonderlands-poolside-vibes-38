@@ -40,9 +40,8 @@ const FlipProjectPipeline: React.FC<Props> = ({ categoryId, part, half = 0 }) =>
         <Eyebrow>Included as standard</Eyebrow>
         <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Turn-key scope</h3>
         <p className="mt-3 max-w-[22rem] text-[10px] leading-relaxed text-muted-foreground">
-          These lines are carried by Wonderlands World on every project. Shape, depth profile,
-          waterline, interior finish, coping and every added feature are your selections and are
-          priced as configured.
+          These lines are carried by Wonderlands World on every vessel project. Dimensions, depth,
+          surface finish, edge details and added features remain your selections and are priced as configured.
         </p>
         <ul className="mt-4 min-h-0 flex-1 overflow-hidden">
           {TURNKEY_SCOPE.map((i) => (

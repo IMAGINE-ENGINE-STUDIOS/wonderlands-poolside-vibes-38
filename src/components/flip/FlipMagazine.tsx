@@ -125,6 +125,74 @@ const fallbackGroups: OptionGroup[] = [
   { title: "Specification", note: "Drawn to the property", options: ["Site measurement", "Permit drawings", "Turnkey installation", "Warranty registration"] },
 ];
 
+const CATEGORY_INCLUDED_LINES: Record<string, [string, string][]> = {
+  "concrete-pools": [
+    ["Survey & drawings", "Shell, depth profile, structure and permit set drawn from the site plan"],
+    ["Engineering", "Florida pool-code structural details and hydraulic coordination"],
+    ["Construction", "Excavation, steel, shotcrete, plumbing, electrical and inspections"],
+    ["Finish", "Pebble Tec interior, coping and deck interface installed as selected"],
+    ["Handover", "Water balance, walkthrough, warranty registration and care schedule"],
+  ],
+  pools: [
+    ["Survey & drawings", "Property measured, shell positioned and permit set submitted"],
+    ["Engineering", "Florida pool-code compliant shell, base, plumbing and bonding details"],
+    ["Installation", "Excavation, base work, shell set, backfill, plumbing and electrical"],
+    ["Systems", "Pump, filtration, start-up, balance and selected equipment integration"],
+    ["Handover", "Walkthrough, warranty registration and care schedule"],
+  ],
+  spas: [
+    ["Site plan", "Spa position, access, pad or shell interface confirmed before ordering"],
+    ["Mechanical", "Dedicated heater, jet, plumbing and electrical scope coordinated"],
+    ["Installation", "Set, level, connect, finish and inspect the vessel"],
+    ["Start-up", "Fill, heat, jet test, balance and client walkthrough"],
+    ["Warranty", "Equipment and shell documents organized for handover"],
+  ],
+  "tanning-ledges": [
+    ["Design", "Shelf footprint, depth, bubblers and umbrella sleeve drawn to scale"],
+    ["Engineering", "Structure and hydraulics coordinated with the pool it belongs to"],
+    ["Installation", "Shell or formed ledge, plumbing, finish and edge detail completed"],
+    ["Start-up", "Fill, balance, bubbler trim and walkthrough"],
+    ["Warranty", "Installed scope documented with the pool package"],
+  ],
+  pavers: [
+    ["Measured area", "Deck square footage calculated from the drawing board minus every non-paved zone"],
+    ["Installation", "Included in the paver square-foot price shown in the store"],
+    ["Base", "Concrete priced by square foot or crushed stone converted from square feet to tons"],
+    ["Drainage", "Falls, thresholds and water paths checked before units are laid"],
+    ["Finish", "Pattern, border, joints and edge restraints installed as selected"],
+  ],
+  "artificial-grass": [
+    ["Measured area", "Turf square footage calculated from the drawn lawn zones"],
+    ["Base", "Free-draining compacted base prepared for Florida rain"],
+    ["Seams", "Nap direction, glue seams, infill and brushing coordinated"],
+    ["Edges", "Perimeters tucked, nailed or bordered against adjacent hardscape"],
+    ["Handover", "Care guidance for brushing, rinsing and cooling the surface"],
+  ],
+  finishes: [
+    ["Selection", "Interior surface chosen by water colour, texture and collection"],
+    ["Coordination", "Reviewed against coping, waterline and lighting before ordering"],
+    ["Installation", "Applied as the selected vessel surface, not a separate pool package"],
+    ["Care", "Maintenance notes matched to the finish material"],
+    ["Documentation", "Colour and collection recorded for future service"],
+  ],
+  liners: [
+    ["Selection", "Print, border and waterline character chosen for the shell"],
+    ["Measurement", "Liner scope matched to the vessel geometry"],
+    ["Installation", "Set as an interior surface choice, not a separate construction package"],
+    ["Care", "Chemistry and surface-care guidance provided"],
+    ["Documentation", "Pattern and border recorded for future replacement"],
+  ],
+};
+
+const includedLinesForCategory = (id: string): [string, string][] =>
+  CATEGORY_INCLUDED_LINES[id] ?? [
+    ["Measurement", "Site conditions and dimensions confirmed before ordering"],
+    ["Specification", "Product, options and installation scope documented as selected"],
+    ["Installation", "Crew, access and material handling coordinated by Wonderlands World"],
+    ["Completion", "Installed work reviewed and warranty documents organized"],
+    ["Handover", "Care notes and next steps explained at completion"],
+  ];
+
 const MAX_MODELS = 24;
 
 const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
@@ -1039,13 +1107,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             <h3 className="mt-2 font-serif text-3xl font-light leading-tight">Turnkey, to the last joint</h3>
           </div>
           <ul className="mt-5 grid gap-0">
-            {[
-              ["Survey & drawings", "Property measured, permit set drawn and submitted"],
-              ["Engineering", "Florida wind-load and pool-code compliant details"],
-              ["Installation", "Crews, cranes, base work and finish carpentry"],
-              ["Systems", "Plumbing, electric, automation, start-up and balance"],
-              ["Handover", "Walkthrough, warranty registration, care schedule"],
-            ].map(([k, v]) => (
+            {includedLinesForCategory(category.id).map(([k, v]) => (
               <li key={k} className="border-t border-border/50 py-3">
                 <p className="text-[10px] uppercase tracking-[0.28em] text-foreground">{k}</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{v}</p>
@@ -1053,7 +1115,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             ))}
           </ul>
           <p className="border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
-            Every figure in this edition includes installation at your home address.
+            Every figure in this edition includes delivery, installation and the product as described.
           </p>
         </div>
       ),

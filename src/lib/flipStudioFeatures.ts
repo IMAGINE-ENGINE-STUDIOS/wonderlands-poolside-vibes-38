@@ -192,6 +192,15 @@ const SHELL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges"]
  * Categories absent from this map keep every feature of their product type.
  */
 const CATEGORY_FEATURE_ALLOW: Record<string, Set<string>> = {
+  /* Pavers are a hardscape surface: only measured deck area and base material belong here */
+  pavers: new Set(["area", "baseMaterial"]),
+  /* Covers only need their cover housing/install choices; never pool heaters/jets/finishes */
+  covers: new Set(["installation", "benchEnclosure"]),
+  /* Enclosures and lanais share the screen-enclosure configurator, but stay in enclosure scope */
+  "screen-enclosures": new Set(["area", "quality", "doorType", "roofStyle"]),
+  lanai: new Set(["area", "quality", "doorType", "roofStyle"]),
+  /* Driveway gates keep only access, operator and install choices */
+  "driveway-gates": new Set(["automation", "installation", "accessControl", "intercom"]),
   /* Interior surfaces: the finish itself plus the tile/waterline detail read against it */
   finishes: new Set(["finish", "tiles"]),
   /* Vinyl liner prints: the liner field and its waterline border only */
