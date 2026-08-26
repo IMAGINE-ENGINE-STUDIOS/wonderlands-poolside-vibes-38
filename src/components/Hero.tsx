@@ -4,6 +4,7 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import AdvancedSearch from "./AdvancedSearch";
 import FlipMagazine from "./flip/FlipMagazine";
 import heroStill from "@/assets/hero/hero-carousel-1.webp";
+import HeroVideo from "./HeroVideo";
 import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 const Hero = () => {
