@@ -318,6 +318,8 @@ const OptionChapter: React.FC<{
   categoryId: string;
 }> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId }) => {
   const cart = useOptionalShoppingCart();
+  /* which leaf of the spread this chapter is printed on — decides the + side */
+  const leafSide = useLeafSide();
   const [active, setActive] = useState<StudioOption | null>(null);
   const [full, setFull] = useState(false);
   const preview = active ?? chunk.find((o) => o.image) ?? null;
@@ -962,8 +964,10 @@ export const useProductBookPages = ({
       ),
     });
 
-    /* option chapters — one illustrated page each, long lists continue on facing pages */
-    const PER_PAGE = 9;
+    /* option chapters — one illustrated page each, long lists continue on facing
+       pages. Six rows is the most that fits under the preview plate without any
+       option being clipped out of sight, so long catalogues simply get more pages. */
+    const PER_PAGE = 6;
     groups.forEach((g, i) => {
       const chunks: StudioOption[][] = [];
       for (let c = 0; c < g.items.length; c += PER_PAGE) chunks.push(g.items.slice(c, c + PER_PAGE));
@@ -1347,8 +1351,14 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
       startZIndex={0}
       onFlip={(e: any) => setPage(e.data)}
     >
-      {pages.map((p) => (
-        <Leaf key={p.key}>{p.render()}</Leaf>
+      {pages.map((p, i) => (
+        <Leaf key={p.key}>
+          {/* spreads read (0,1), (2,3)… so an even index is the left leaf.
+              In portrait every page is a single sheet — treated as a left leaf. */}
+          <LeafSideContext.Provider value={portrait || i % 2 === 0 ? "left" : "right"}>
+            {p.render()}
+          </LeafSideContext.Provider>
+        </Leaf>
       ))}
     </HTMLFlipBook>
   );
