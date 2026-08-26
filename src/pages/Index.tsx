@@ -178,6 +178,8 @@ const Index = () => {
         <Suspense fallback={<SectionFallback />}>
           <SectionBanner id="covers" image={coversBanner} alt="Automatic Pool Covers" title="Automatic Pool Covers" subtitle="Safety, energy efficiency, and convenience with our automatic cover systems" />
           <AutomaticCoversSection />
+          {/* "How much energy does a cover save" — editorial ledger */}
+          <PoolCoverEnergyEditorial />
         </Suspense>
 
         <Suspense fallback={<SectionFallback />}>
