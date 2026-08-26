@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 import ProductScrollRow from "./ProductScrollRow";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import SolarLeadForm from "./SolarLeadForm";
 import { solarProducts, solarStats, solarGroups, type SolarProduct } from "@/data/solarData";
 
 /**
@@ -145,6 +146,11 @@ const WonderlandsSolarSection = () => {
             Prices are installed, turnkey and include the shade study, engineering, county permit, utility
             interconnection and final inspection. Incentive eligibility is confirmed in writing before contract.
           </p>
+
+          {/* Lead capture */}
+          <div className="mt-12">
+            <SolarLeadForm />
+          </div>
         </div>
       </section>
 
