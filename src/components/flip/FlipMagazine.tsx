@@ -602,10 +602,26 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
         onClick={() => openDossier(entry)}
         title={`Open the ${entry.name} book`}
         aria-label={`Open the ${entry.name} book`}
-        className="group pointer-events-auto relative flex h-28 w-28 flex-col items-center justify-center rounded-full border border-primary-foreground/40 bg-primary-foreground/10 text-primary-foreground backdrop-blur-md transition-all duration-500 ease-out hover:h-32 hover:w-32 hover:border-primary-foreground/80 hover:bg-primary-foreground hover:text-primary sm:h-32 sm:w-32 sm:hover:h-36 sm:hover:w-36"
+        className="group pointer-events-auto relative flex h-28 w-28 flex-col items-center justify-center rounded-full border border-primary-foreground/40 bg-primary-foreground/10 text-primary-foreground backdrop-blur-md transition-all duration-500 ease-out hover:h-32 hover:w-32 hover:border-primary-foreground/80 hover:bg-primary-foreground hover:text-primary sm:h-32 sm:w-32 sm:hover:h-36 sm:hover:w-36 animate-medallion-float"
         style={{ boxShadow: "0 18px 50px -18px rgba(0,0,0,0.65)" }}
       >
-        <span className="absolute inset-0 rounded-full border border-primary-foreground/30 animate-ping opacity-40 [animation-duration:2.8s]" />
+        {/* Expanding wave rings — announce this is clickable */}
+        <span className="absolute inset-0 rounded-full border-2 border-primary-foreground/40 animate-medallion-wave opacity-60" />
+        <span className="absolute inset-0 rounded-full border border-primary-foreground/30 animate-medallion-wave opacity-40 [animation-delay:0.8s]" />
+        <span className="absolute inset-0 rounded-full border border-primary-foreground/20 animate-medallion-wave opacity-30 [animation-delay:1.6s]" />
+
+        {/* Glowing pulse that lights up and down */}
+        <span className="absolute inset-0 rounded-full animate-medallion-glow" />
+
+        {/* Shimmer sweep across the surface */}
+        <span
+          className="absolute inset-0 rounded-full animate-medallion-shimmer opacity-30"
+          style={{
+            background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)",
+            backgroundSize: "200% 100%",
+          }}
+        />
+
         <span className="absolute inset-[7px] rounded-full border border-primary-foreground/20 transition-colors group-hover:border-primary/25" />
         <BookOpen className="h-5 w-5 transition-transform duration-500 group-hover:scale-110" />
         <span className="mt-2 text-[8px] uppercase tracking-[0.32em]">Open</span>
