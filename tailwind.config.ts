@@ -110,12 +110,12 @@ export default {
 					'100%': { transform: 'scaleX(1)' }
 				},
 				'accordion-down': {
-					from': { height: '0' },
-					to': { height: 'var(--radix-accordion-content-height)' }
+					'from': { height: '0' },
+					'to': { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from': { height: 'var(--radix-accordion-content-height)' },
-					to': { height: '0' }
+					'from': { height: 'var(--radix-accordion-content-height)' },
+					'to': { height: '0' }
 				},
 				'float': {
 					'0%, 100%': { transform: 'translateY(0px)' },
