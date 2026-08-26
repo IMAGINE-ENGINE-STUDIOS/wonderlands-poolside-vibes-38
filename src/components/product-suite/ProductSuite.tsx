@@ -14,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
-import { getDefaultExtras, type ProductType } from "@/config/productFeatures";
+import { getDefaultExtras, getProductFeatures, type ProductType } from "@/config/productFeatures";
+import StudioCartWidget from "@/components/StudioCartWidget";
 import EditorialFeatureConfigurator, {
   featureExtrasBreakdown,
   sumFeatureExtras,
@@ -87,7 +88,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addToCart } = useShoppingCart();
+  const { addToCart, cartItems, syncItemConfig } = useShoppingCart();
   const { priceMultiplier } = useProjectType();
 
   /* Selection and options survive a reload (global UI cache convention) */
@@ -118,11 +119,15 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
   );
   const total = base + extrasTotal;
 
-  const handleAddToCart = () => {
+  const cartId = model ? `${categoryId}-${model.id}` : "";
+  const modelName = model ? `${model.brand ? `${model.brand} ` : ""}${model.name}` : "";
+  const inCart = React.useMemo(() => cartItems.some((i) => i.id === cartId), [cartItems, cartId]);
+
+  const handleAddToCart = React.useCallback(() => {
     if (!model) return;
     addToCart({
-      id: `${categoryId}-${model.id}`,
-      name: `${model.brand ? `${model.brand} ` : ""}${model.name}`,
+      id: cartId,
+      name: modelName,
       price: base,
       image: model.image,
       category: categoryLabel,
@@ -133,6 +138,52 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
       description: `${model.name} — ${money(total)} delivered and installed.`,
       duration: 3000,
     });
+  }, [model, cartId, modelName, base, categoryLabel, breakdown, total, addToCart, toast]);
+
+  /**
+   * A feature is never bought alone: the moment the reader configures ANY
+   * additional feature, the product it belongs to enters the shopping list with
+   * that feature attached. Once on the list the line mirrors the configurator
+   * live, so the widget total can never diverge from the page.
+   */
+  const breakdownKey = JSON.stringify(breakdown);
+  React.useEffect(() => {
+    if (!model) return;
+    if (!inCart) {
+      if (breakdown.length) handleAddToCart();
+      return;
+    }
+    syncItemConfig(cartId, { price: base, extras: breakdown as any });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inCart, cartId, base, breakdownKey]);
+
+  /* The shopping list edits features at their source — the suite's own state */
+  const features = React.useMemo(() => getProductFeatures(productType), [productType]);
+  const resetValueFor = (id: string) => {
+    const feature = features.find((f) => f.id === id);
+    if (!feature) return undefined;
+    switch (feature.type) {
+      case "quantity":
+        return 0;
+      case "area":
+        return 0;
+      case "toggle":
+        return false;
+      default:
+        return "None";
+    }
+  };
+  const handleRemoveExtra = (key?: string) => {
+    if (!key) return;
+    setExtras({ ...extras, [key]: resetValueFor(key) });
+  };
+  const handleExtraQuantity = (key: string | undefined, quantity: number) => {
+    if (!key) return;
+    setExtras({ ...extras, [key]: quantity });
+  };
+  const handleExtraOption = (key: string | undefined, optionName: string) => {
+    if (!key) return;
+    setExtras({ ...extras, [key]: optionName });
   };
 
   return (
