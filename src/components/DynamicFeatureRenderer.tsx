@@ -195,25 +195,45 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
   const otherFeatures = features.filter(f => f.type !== 'boolean');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {otherFeatures.map(feature => renderFeature(feature))}
 
       {booleanFeatures.length > 0 && (
-        <div>
-          <Label className="text-sm font-semibold">Additional Features</Label>
-          <p className="text-xs text-muted-foreground mb-2">Tap a tile to add or remove it</p>
-          <FeatureTileCarousel
-            tiles={booleanFeatures.map(f => ({
-              key: f.id,
-              name: f.label,
-              image: f.image,
-              priceLabel: f.basePrice ? `+${fmt(f.basePrice)}` : 'Included',
-              selected: !!selectedExtras[f.id],
-              onSelect: () => onExtrasChange({ ...selectedExtras, [f.id]: !selectedExtras[f.id] }),
-            }))}
-          />
+        <div className="border-b border-border/60 pb-3">
+          <button
+            type="button"
+            onClick={() => toggleSection('__additional__')}
+            aria-expanded={openSection === '__additional__'}
+            className="w-full flex items-baseline justify-between gap-3 text-left py-1"
+          >
+            <div className="min-w-0">
+              <Label className="text-sm font-semibold cursor-pointer">Additional Features</Label>
+              <p className="text-xs text-muted-foreground">Tap a tile to add or remove it</p>
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-300 ${
+                openSection === '__additional__' ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+          {openSection === '__additional__' && (
+            <div className="mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+              <FeatureTileCarousel
+                tiles={booleanFeatures.map(f => ({
+                  key: f.id,
+                  name: f.label,
+                  image: f.image,
+                  priceLabel: f.basePrice ? `+${fmt(f.basePrice)}` : 'Included',
+                  selected: !!selectedExtras[f.id],
+                  onSelect: () => onExtrasChange({ ...selectedExtras, [f.id]: !selectedExtras[f.id] }),
+                }))}
+              />
+            </div>
+          )}
         </div>
       )}
+    </div>
+
     </div>
   );
 }
