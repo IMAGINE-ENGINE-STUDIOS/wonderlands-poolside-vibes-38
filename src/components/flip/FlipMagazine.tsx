@@ -905,7 +905,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             {products.map((p, i) => (
               <li key={p.id}>
                 <button
-                  onClick={() => bookRef.current?.pageFlip()?.turnToPage(at.products + i * 2)}
+                  onClick={() =>
+                    turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
+                  }
                   className="flex w-full items-baseline justify-between gap-4 border-t border-border/50 py-[7px] text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
                 >
                   <span className="truncate text-foreground">
@@ -984,7 +986,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
           {products.slice(0, 14).map((p, i) => (
             <li key={p.id}>
               <button
-                onClick={() => bookRef.current?.pageFlip()?.turnToPage(at.products + i * 2)}
+                onClick={() =>
+                  turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
+                }
                 className="flex w-full items-baseline justify-between gap-4 border-t border-white/25 py-[6px] text-left text-[10px] uppercase tracking-[0.18em] text-white/80 transition-colors hover:text-white"
               >
                 <span className="truncate">{String(i + 1).padStart(2, "0")} — {p.name}</span>
