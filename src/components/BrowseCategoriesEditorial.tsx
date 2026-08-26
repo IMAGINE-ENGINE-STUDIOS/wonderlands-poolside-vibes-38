@@ -14,7 +14,7 @@ import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import finishImg from "@/assets/finishes/sapphire-blue-g3.webp";
 import linerImg from "@/assets/finishes/ocean-blue-g3.webp";
-import solarRoofArray from "@/assets/solar/solar-solar-placeholder.jpg";
+import solarRoofArray from "@/assets/solar/solar-roof-array.jpg";
 
 interface BrowseCategoriesEditorialProps {
   activeId: string;
