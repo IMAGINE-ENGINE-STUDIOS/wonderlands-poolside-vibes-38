@@ -2,14 +2,18 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import studioImage from "@/assets/banners/pool-banner-2.webp";
+import StudioStepScene, { type StudioSceneKey } from "@/components/studio/StudioStepScenes";
 
-const STEPS = [
-  { num: "01", title: "Draw", text: "Trace your pool, deck and patio at true scale on an infinite canvas." },
-  { num: "02", title: "Compose", text: "Layer finishes, coping, pavers, lighting and enclosures." },
-  { num: "03", title: "Quote", text: "See live pricing and turn the design into a formal proposal." },
+const STEPS: { num: string; title: string; text: string; scene: StudioSceneKey }[] = [
+  { num: "01", title: "Draw", text: "Trace your pool, deck and patio at true scale on an infinite canvas.", scene: "draw" },
+  { num: "02", title: "Compose", text: "Layer finishes, coping, pavers, lighting and enclosures.", scene: "compose" },
+  { num: "03", title: "Quote", text: "See live pricing and turn the design into a formal proposal.", scene: "quote" },
 ];
 
 const StudioEditorial: React.FC = () => {
+  /* hovering or tapping a step swaps the banner for its animated scene */
+  const [activeScene, setActiveScene] = React.useState<StudioSceneKey | null>(null);
+
   return (
     <section aria-label="Wonderlands Studio" className="bg-background py-20 pb-8 md:py-28 md:pb-10">
       <div className="mx-auto max-w-7xl px-6 md:px-10">
@@ -44,6 +48,13 @@ const StudioEditorial: React.FC = () => {
                   Wonderlands Studio
                 </h3>
               </div>
+
+              {/* animated step scene — only the active one is mounted */}
+              {activeScene && (
+                <div className="absolute inset-0 animate-fade-in">
+                  <StudioStepScene scene={activeScene} />
+                </div>
+              )}
             </div>
           </div>
 
@@ -57,17 +68,43 @@ const StudioEditorial: React.FC = () => {
               </p>
 
               <dl className="mt-10 divide-y divide-border/60 border-t border-border/60">
-                {STEPS.map((step) => (
-                  <div key={step.num} className="flex gap-5 py-5">
-                    <dt className="w-8 pt-1 text-[10px] tracking-[0.3em] text-muted-foreground">
-                      {step.num}
-                    </dt>
-                    <dd>
-                      <p className="font-serif text-lg font-light text-foreground">{step.title}</p>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
-                    </dd>
-                  </div>
-                ))}
+                {STEPS.map((step) => {
+                  const isActive = activeScene === step.scene;
+                  return (
+                    <div
+                      key={step.num}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isActive}
+                      onMouseEnter={() => setActiveScene(step.scene)}
+                      onMouseLeave={() => setActiveScene(null)}
+                      onFocus={() => setActiveScene(step.scene)}
+                      onBlur={() => setActiveScene(null)}
+                      onClick={() => setActiveScene(isActive ? null : step.scene)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setActiveScene(isActive ? null : step.scene);
+                        }
+                      }}
+                      className={`flex cursor-pointer gap-5 py-5 pr-3 transition-colors duration-300 ${
+                        isActive ? "bg-muted/40" : "hover:bg-muted/25"
+                      }`}
+                    >
+                      <dt
+                        className={`w-8 pt-1 text-[10px] tracking-[0.3em] transition-colors duration-300 ${
+                          isActive ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {step.num}
+                      </dt>
+                      <dd>
+                        <p className="font-serif text-lg font-light text-foreground">{step.title}</p>
+                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
+                      </dd>
+                    </div>
+                  );
+                })}
               </dl>
             </div>
 
