@@ -404,6 +404,30 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
 
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
 
+  /* In-book navigation from any contents / index title: instead of snapping to
+     the leaf, run the same page-flip trans motion used when an edition or a
+     product book opens — pages riffle past, then the book lands on the target. */
+  const jumpTimer = useRef<number | null>(null);
+  const turnToPageWithMotion = useCallback(
+    (target: number, label: string, images: string[] = [], captions: string[] = []) => {
+      const plates = images.filter(Boolean) as string[];
+      flipMotion.play({
+        label,
+        images: plates,
+        captions: captions.length ? captions : plates.map(() => label),
+        destination: plates[0],
+      });
+      if (jumpTimer.current) window.clearTimeout(jumpTimer.current);
+      // Turn under the riffle so the reader lands on the page as it clears.
+      jumpTimer.current = window.setTimeout(() => {
+        bookRef.current?.pageFlip()?.turnToPage(target);
+      }, 420);
+    },
+    [flipMotion],
+  );
+  useEffect(() => () => { if (jumpTimer.current) window.clearTimeout(jumpTimer.current); }, []);
+
+
   const openCategory = useCallback(
     (id: string) => {
       const target = ITEMS.find((i) => i.id === id);
