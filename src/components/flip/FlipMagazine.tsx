@@ -178,7 +178,7 @@ const ServiceMemoir: React.FC<{ discipline?: string }> = ({ discipline }) => (
       <img
         src={wonderlandsLogo}
         alt="Wonderlands World"
-        loading="lazy"
+        loading="eager"
         decoding="async"
         className="h-9 w-auto sm:h-11"
       />
@@ -261,15 +261,21 @@ const Leaf = forwardRef<
     footnote?: string;
   }
 >(({ children, tone = "paper", tag, side = "right", footnote }, ref) => (
+  // NOTE: never add `relative` here. page-flip positions every leaf itself via
+  // `.stf__item { position: absolute }`; a Tailwind `relative` utility wins on
+  // load order and knocks the leaf back into normal flow — the leaf underneath a
+  // dragged page then paints below the book instead of under the peel.
+  // The library-applied absolute position still anchors our absolute children.
   <div
     ref={ref}
     className={
       tone === "cover"
-        ? "relative h-full w-full overflow-hidden bg-foreground text-background"
-        : "relative h-full w-full overflow-hidden bg-background text-foreground"
+        ? "h-full w-full overflow-hidden bg-foreground text-background"
+        : "h-full w-full overflow-hidden bg-background text-foreground"
     }
     style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.06)" }}
   >
+
     {children}
     {footnote && (
       <p className="pointer-events-none absolute inset-x-6 bottom-1.5 text-center text-[6px] uppercase tracking-[0.22em] text-muted-foreground/60">
@@ -739,7 +745,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
                   <img
                     src={it.images[0]}
                     alt={it.label}
-                    loading="lazy"
+                    loading="eager"
                     decoding="async"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.08]"
                   />
@@ -780,7 +786,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               <img
                 src={it.images[0]}
                 alt={it.label}
-                loading="lazy"
+                loading="eager"
                 decoding="async"
                 className="absolute inset-0 h-full w-full object-cover"
               />
@@ -844,7 +850,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
           <img
             src={category.images[0]}
             alt={category.label}
-            loading="lazy"
+            loading="eager"
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover opacity-60"
           />
@@ -911,7 +917,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             <img
               src={shots[1] ?? category.images[0]}
               alt={`${category.label} detail`}
-              loading="lazy"
+              loading="eager"
               decoding="async"
               className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
             />
@@ -983,7 +989,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
                 <img
                   src={src}
                   alt={`${category.label} plate ${i + 1}`}
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
                   className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
                 />
@@ -1039,7 +1045,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             <img
               src={p.image}
               alt={p.name}
-              loading="lazy"
+              loading="eager"
               decoding="async"
               className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
             />
@@ -1082,7 +1088,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               <img
                 src={p.image}
                 alt={`${p.name} detail`}
-                loading="lazy"
+                loading="eager"
                 decoding="async"
                 className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
               />
