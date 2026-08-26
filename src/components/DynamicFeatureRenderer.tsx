@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ChevronDown } from "lucide-react";
 import { FeatureTileCarousel } from "@/components/product/FeatureTileCarousel";
 import { getProductFeatures, type ProductType, type FeatureConfig } from '@/config/productFeatures';
 
@@ -15,7 +17,13 @@ interface DynamicFeatureRendererProps {
 export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasChange }: DynamicFeatureRendererProps) {
   const features = getProductFeatures(productType);
 
+  /* accordion: only one option group is expanded at a time, exactly like the
+     pool cards — every group starts retracted and drops open on click */
+  const [openSection, setOpenSection] = useState<string | null>(null);
+  const toggleSection = (id: string) => setOpenSection(prev => (prev === id ? null : id));
+
   const fmt = (n: number) => `$${n.toLocaleString()}`;
+
 
   const renderFeature = (feature: FeatureConfig) => {
     switch (feature.type) {
