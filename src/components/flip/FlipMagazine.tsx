@@ -1368,7 +1368,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       anchors: { index: 1, gallery: galleryAt, code: galleryAt + 1, features: featuresAt, estimate: estimateAt },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart]);
+  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart, turnToPageWithMotion]);
 
   /* Dossier pages are composed here and rendered in this same flipbook —
      opening "More" never spawns a second book. */
