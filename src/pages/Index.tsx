@@ -37,6 +37,7 @@ const PaversSection = lazy(() => import("@/components/PaversSection"));
 const ArtificialGrassSection = lazy(() => import("@/components/ArtificialGrassSection"));
 const DrivewayGateSection = lazy(() => import("@/components/DrivewayGateSection"));
 const LandscapingSection = lazy(() => import("@/components/LandscapingSection"));
+const WonderlandsSolarSection = lazy(() => import("@/components/WonderlandsSolarSection"));
 
 const SectionFallback = () => (
   <div className="min-h-[200px] flex items-center justify-center">
@@ -157,6 +158,14 @@ const Index = () => {
           <SectionBanner id="artificial-grass" image={grassBanner} alt="Artificial Grass" title="Artificial Grass" subtitle="Premium low-maintenance turf — get an instant quote at $25/sq ft" />
           <ArtificialGrassSection />
         </Suspense>
+
+        {/* Wonderlands Solar — energy collection */}
+        <Suspense fallback={<SectionFallback />}>
+          <section id="solar" aria-label="Wonderlands Solar">
+            <WonderlandsSolarSection />
+          </section>
+        </Suspense>
+
 
         <Suspense fallback={<SectionFallback />}>
           <SectionBanner id="landscaping" image={landscapingBanner} alt="Landscaping" title="Landscaping" subtitle="Transform your outdoor space with premium plants, palms, trees, and grasses" />
