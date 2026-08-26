@@ -26,6 +26,7 @@ const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as 
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 import heroCover from "@/assets/hero/hero-carousel-1.webp";
+import HeroVideo from "@/components/HeroVideo";
 import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 /**
@@ -634,13 +635,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       key: "home-left",
       render: () => (
         <div className="relative h-full w-full overflow-hidden">
-          <img
-            src={heroCover}
-            alt="Wonderlands outdoor living editorial cover"
-            loading="eager"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+          {/* Cover film — shared with the site header via HeroVideo (still fallback built in) */}
+          <HeroVideo poster={heroCover} alt="Wonderlands outdoor living editorial cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/85" />
           <div className="relative flex h-full flex-col justify-between p-8 text-white sm:p-10">
             <div className="flex items-center justify-between gap-4">

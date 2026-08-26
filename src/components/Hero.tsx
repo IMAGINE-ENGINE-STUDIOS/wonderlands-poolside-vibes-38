@@ -10,14 +10,8 @@ const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   return <>
     <section className="relative h-screen w-full overflow-hidden bg-background">
-      {/* Static hero artwork is intentional: the previous external video assets can fail codec/MIME checks on published domains. */}
-      <img
-        src={heroStill}
-        alt="Wonderlands resort pool at golden hour"
-        className="absolute inset-0 h-full w-full object-cover"
-        loading="eager"
-        decoding="async"
-      />
+      {/* Header film — same footage as the FLIP first page, with a still fallback */}
+      <HeroVideo poster={heroStill} alt="Wonderlands resort pool at golden hour" />
       {/* Legibility veil for the logo and search field */}
       <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/10 to-background/60" aria-hidden />
 
