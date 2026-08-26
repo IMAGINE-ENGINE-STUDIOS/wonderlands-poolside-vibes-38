@@ -316,9 +316,19 @@ const OptionChapter: React.FC<{
      shot, so a chapter with no swatches prints a typographic head instead. */
   const plate = preview?.image;
 
+  /* Every option belongs to THIS product line in the cart — the product id is
+     the same one the "Add to cart" plate uses, so a feature never creates an
+     orphan line: adding a finish adds the pool with the finish attached. */
+  const productCartId = `flip-${categoryId}-${entry.id}`;
   const optionId = (o: StudioOption) =>
     `flip-${categoryId}-${entry.id}-${group.title}-${o.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const inOrder = (o: StudioOption) => (cart?.cartItems ?? []).some((c) => c.id === optionId(o));
+  const inOrder = (o: StudioOption) =>
+    (cart?.cartItems ?? []).some(
+      (c) =>
+        c.id === optionId(o) ||
+        (c.id === productCartId &&
+          (c.extras ?? []).some((e: any) => e.key === optionId(o))),
+    );
 
   /** Measurement being collected for a unit-priced option (sq ft or count). */
   const [measure, setMeasure] = useState<{ label: string; value: string } | null>(null);
@@ -334,15 +344,23 @@ const OptionChapter: React.FC<{
 
   const addOption = (o: StudioOption, qty = 1) => {
     const total = lineTotal(o, qty);
-    cart?.addToCart({
-      id: optionId(o),
-      name: o.unit
-        ? `${entry.name} — ${group.title}: ${o.label} (${qty} ${unitWord(o)} @ ${o.priceLabel})`
-        : `${entry.name} — ${group.title}: ${o.label}`,
-      price: total,
-      image: o.image ?? entry.image,
-      category: categoryLabel,
-    });
+    cart?.addFeatureToProduct(
+      {
+        id: productCartId,
+        name: entry.name,
+        price: entry.price ?? 0,
+        image: entry.image,
+        category: categoryLabel,
+      },
+      {
+        key: optionId(o),
+        name: o.unit
+          ? `${group.title}: ${o.label} (${qty} ${unitWord(o)} @ ${o.priceLabel})`
+          : `${group.title}: ${o.label}`,
+        price: total,
+        image: o.image ?? entry.image,
+      },
+    );
     setMeasure(null);
   };
 
