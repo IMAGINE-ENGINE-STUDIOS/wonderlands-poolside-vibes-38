@@ -620,7 +620,7 @@ export const useProductBookPages = ({
 
   const tool = TOOLS[category.id];
   const brandKey = Object.keys(BRAND_NOTES).find((b) => (entry.brand ?? "").toLowerCase().includes(b.toLowerCase()));
-  const brandNote = (brandKey && BRAND_NOTES[brandKey]) || BRAND_NOTES.Wonderlands;
+  const brandNote = CATEGORY_MAKER_NOTES[category.id] || (brandKey && BRAND_NOTES[brandKey]) || BRAND_NOTES.Wonderlands;
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
   const price = formatEntryPrice(entry) || "On request";
   const story = STORIES[category.id] ?? FALLBACK_STORY;
@@ -820,7 +820,7 @@ export const useProductBookPages = ({
                   {[
                     ["Investment", price],
                     [metaLabel, metaBits[0] ?? category.label],
-                    ["Delivery", isSurface ? "Supplied & installed" : "Turnkey, installed"],
+                    ["Delivery", deliveryLineFor(category.id, isSurface)],
                   ].map(([k, v]) => (
 
                     <div key={k} className="flex items-baseline justify-between gap-3 border-t border-border/50 pt-1.5">
@@ -853,9 +853,7 @@ export const useProductBookPages = ({
               </div>
               <div>
                 <Eyebrow>Included</Eyebrow>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">
-                  Delivery, installation and the product exactly as described — one contract, our own crews.
-                </p>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{includedLineFor(category.id)}</p>
               </div>
             </div>
           </div>
@@ -880,7 +878,7 @@ export const useProductBookPages = ({
                 (m, i) => [i === 0 ? metaLabel : isSurface ? "Detail" : "Depth", m] as [string, string],
               ),
               ["Investment", price],
-              ["Delivery", isSurface ? "Supplied & installed by our crews" : "Turnkey — set at your address"],
+              ["Delivery", deliveryLineFor(category.id, isSurface)],
 
             ].map(([k, v]) => (
               <div key={`${k}-${v}`} className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2">
@@ -889,9 +887,7 @@ export const useProductBookPages = ({
               </div>
             ))}
           </dl>
-          <p className="mt-auto text-[10px] leading-relaxed text-muted-foreground">
-            Price includes installation at your home address.
-          </p>
+          <p className="mt-auto text-[10px] leading-relaxed text-muted-foreground">{includedLineFor(category.id)}</p>
         </div>
       ),
     });
@@ -904,7 +900,7 @@ export const useProductBookPages = ({
           <Eyebrow>02 — Features</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">What is included</h3>
           <ul className="mt-4 space-y-0">
-            {(category.notes ?? []).concat(["Permit drawings", "Warranty registration"]).map((n) => (
+            {standardFeatureLinesFor(category.id, category.notes ?? []).map((n) => (
               <li key={n} className="flex items-start gap-3 border-t border-border/50 py-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 <span className="mt-[7px] h-px w-4 shrink-0 bg-foreground/40" />
                 {n}
@@ -1035,6 +1031,13 @@ export const useProductBookPages = ({
         </div>
       ),
     });
+
+    if (category.id === "pavers") {
+      list.push({
+        key: "pavers-work-message",
+        render: () => <PaversWorkMessage entryName={entry.name} />,
+      });
+    }
 
     /* the one pager — our written message to the client */
     list.push({
@@ -1182,9 +1185,7 @@ export const useProductBookPages = ({
               {added ? "In your order" : "Add to the order"}
               {added ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
             </button>
-            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-              Price includes installation at your home address.
-            </p>
+            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{includedLineFor(category.id)}</p>
           </div>
         </div>
       ),
