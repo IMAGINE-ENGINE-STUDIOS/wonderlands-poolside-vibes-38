@@ -1443,10 +1443,12 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
         if (entry) openProduct(catId, entry);
         else openCategory(catId);
       },
-      openSearch: (open) => setSearchOpen(open),
+      /* The search bar is always live in the desk, so this is a no-op kept for the
+         page-registry contract; the narrator console is what pops on demand. */
+      openSearch: () => {},
     });
     return () => setFlipControls(null);
-  }, [goTo, flipNext, flipPrev, openHome, openCategory, openProduct, setSearchOpen]);
+  }, [goTo, flipNext, flipPrev, openHome, openCategory, openProduct]);
 
   /* Deep links from the page file: /flip?cat=pools&product=milan&page=7 */
   const deepLinked = useRef(false);
