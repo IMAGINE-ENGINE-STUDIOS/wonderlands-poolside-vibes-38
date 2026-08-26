@@ -28,6 +28,9 @@ import aquamarineFinish from "@/assets/finishes/aquamarine-g3.webp";
 import nightSkyFinish from "@/assets/finishes/night-sky-g3.webp";
 import shaleFinish from "@/assets/finishes/shale-gray-g3.webp";
 import lagoonFinish from "@/assets/finishes/lagoon-blue-g2.webp";
+import solarRoofArray from "@/assets/solar/solar-roof-array.jpg";
+import solarBatteryWall from "@/assets/solar/solar-battery-wall.jpg";
+import solarPoolHeating from "@/assets/solar/solar-pool-heating.jpg";
 
 type Layout = "full" | "duo" | "editorial";
 
@@ -151,6 +154,16 @@ export const ITEMS: Item[] = [
     description:
       "Palms, specimen trees, ornamental grasses and beds composed as a planting plan — mass, height, and shadow scheduled by season.",
     notes: ["Specimen palms & trees", "Ornamental grasses", "Planting plans"],
+  },
+  {
+    id: "solar",
+    label: "Wonderlands Solar",
+    tagline: "Sunlight, Stored",
+    layout: "duo",
+    images: [solarRoofArray, solarBatteryWall, solarPoolHeating],
+    description:
+      "All-black arrays set flush to the tile, wall-mounted home batteries, solar pool heating and EV charging — engineered, permitted and installed so the pool runs on the roof above it.",
+    notes: ["Turnkey installed pricing", "Battery backup & net metering", "26–30% incentives"],
   },
   {
     id: "covers",

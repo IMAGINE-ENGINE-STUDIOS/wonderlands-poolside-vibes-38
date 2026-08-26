@@ -107,6 +107,12 @@ const OPTION_GROUPS: Record<string, OptionGroup[]> = {
     { title: "System", note: "One key turn", options: ["Recessed track", "Top track", "Under-bench housing", "Deck lid"] },
     { title: "Fabric", note: "Safety rated", options: ["Vinyl solid", "Mesh", "Solar heat retention", "Custom color"] },
   ],
+  solar: [
+    { title: "Array", note: "Set flush to the tile", options: ["6 kW — 14 panels", "9 kW — 21 panels", "12 kW — 28 panels", "All-black monocrystalline", "Hurricane-rated mounting"] },
+    { title: "Storage", note: "Sunlight held for the evening", options: ["WonderWall 13.5 kWh", "WonderWall Duo 27 kWh", "Whole-home backup", "Storm Watch pre-charge"] },
+    { title: "Pool Heating", note: "Warm water, no bill", options: ["Four glazed collectors", "Automatic diverter valve", "Existing pump loop", "Season extension 10–15°F"] },
+    { title: "Charging & Control", note: "The car fills on sunlight", options: ["48 A wall charger", "Hybrid inverter upgrade", "Per-panel monitoring", "Solar-priority charging"] },
+  ],
   "tanning-ledges": [
     { title: "Depth & Shelf", note: "Threshold between deck and depth", options: ["9in shelf", "6in–10in graded", "In-water seating", "Step entry"] },
     { title: "Detail", note: "Sun shelf character", options: ["Bubblers", "Umbrella sleeve", "Matched shell finish", "Mosaic accent band"] },
