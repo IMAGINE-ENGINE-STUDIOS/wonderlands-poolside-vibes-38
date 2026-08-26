@@ -148,9 +148,10 @@ const WonderlandsSolarSection = () => {
           </p>
 
           {/* Lead capture */}
-          <div className="mt-12">
+          <div id="solar-quote" className="mt-12 scroll-mt-24">
             <SolarLeadForm />
           </div>
+
         </div>
       </section>
 

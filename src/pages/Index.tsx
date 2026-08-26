@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import StudioEditorial from "@/components/StudioEditorial";
+import SolarEditorial from "@/components/SolarEditorial";
 
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import lathamGilmerBanner from "@/assets/banners/latham-gilmer-banner.webp";
@@ -98,6 +99,8 @@ const Index = () => {
       <Header />
       <Hero />
       <StudioEditorial />
+      <SolarEditorial />
+
 
       <main>
         {/* Pools + Glimmerglass fiberglass collection */}
