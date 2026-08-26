@@ -70,8 +70,95 @@ const BRAND_NOTES: Record<string, string> = {
   Belgard: "Belgard hardscape is manufactured to tight dimensional tolerance, laid on a compacted limerock base with polymeric joints for a surface that stays true for decades.",
   Harvia: "Harvia has built sauna heat in Finland since 1950 — steel-cased heaters, stone baskets and cabins designed around convection rather than blast heat.",
   "Almost Heaven": "Almost Heaven builds barrel and cabin saunas in North American cedar and thermally treated spruce, pre-cut and pre-fitted for delivery-day assembly.",
-  Wonderlands: "Wonderlands World builds, sets and warranties the installation in-house — one contract from survey through the final water test.",
+  Wonderlands: "Wonderlands World builds, sets and warranties the installation in-house — one contract from field measurement through final handover.",
 };
+
+const CATEGORY_MAKER_NOTES: Record<string, string> = {
+  pavers:
+    "Wonderlands World treats hardscape as construction, not decoration: the deck is measured from the drawing board, corrected for every pool, spa, planter, turf island and non-paved zone, then built with the base, slope, joints and edge restraints required for the selected material.",
+  "artificial-grass":
+    "Wonderlands World builds turf from the base up: drainage, compaction, seam direction, infill and edging are coordinated so the lawn reads natural and survives Florida rain without soft spots.",
+  landscaping:
+    "Wonderlands World composes planting from canopy, privacy, texture, irrigation and maintenance access, so the garden supports the architecture instead of reading like a loose plant list.",
+  "screen-enclosures":
+    "Wonderlands World coordinates enclosure layout, engineering, permit details, doors, gutters and anchoring as one Florida-ready system matched to the deck and house.",
+  "patio-fencing":
+    "Wonderlands World specifies each aluminum fence run by height, gate swing, latch position, grade and pool-barrier compliance, then installs it as part of the complete outdoor plan.",
+  lanai:
+    "Wonderlands World plans the lanai as an outdoor room: roof, drainage, fans, lighting, screening and finish details are drawn before the structure is ordered.",
+  "driveway-gates":
+    "Wonderlands World designs driveway gates around arrival, safety, automation, post depth and access control, with the operator and conduit planned before installation begins.",
+  covers:
+    "Wonderlands World sizes every cover to the vessel and coping detail, coordinating tracks, housing, drainage and controls before the cover system is ordered.",
+  finishes:
+    "Wonderlands World presents finish choices as water-colour decisions, viewed against the selected coping, waterline and deck so the final surface educates the whole design.",
+  liners:
+    "Wonderlands World selects liners by print scale, waterline border, shell geometry and lighting so the chosen interior reads correctly once filled.",
+};
+
+const PAVERS_WORK_MESSAGE = [
+  "Our paver work begins with the drawing, not with a pallet. The deck is measured as a true paved area, and the calculator removes every zone that should not receive pavers: pool water, spas, tanning ledges, artificial grass, planters, gravel, sand, dirt, beach entries, lagoon edges, lake areas, planting beds and any object that belongs to the landscape rather than the walking surface.",
+  "Once the net area is confirmed, Wonderlands World designs the field pattern around how the patio will be lived in. Large terraces may need calmer ashlar or French pattern; tighter paths may need running bond; driveways may need herringbone for strength. Borders, soldier courses and contrast bands are used to organize the space into outdoor rooms, hide cuts away from sightlines and frame the pool or garden with intention.",
+  "The base is part of the product. Installation is included in the paver price, while the structural base is calculated from the same deck area: concrete is priced by the square foot, and crushed stone is converted from square feet into tons using the compacted-depth formula in the studio. That means the quote explains what is under the surface, not only what the customer sees on top.",
+  "Before laying begins, the crew establishes fall away from the house, checks thresholds, plans drains and confirms where water will move during Florida rain. Units are laid to the selected pattern, locked with polymeric sand where specified, restrained at the edges and cleaned so the finished deck reads level, intentional and durable. If a repair is ever needed, individual units can be lifted and reset rather than cutting into a slab.",
+];
+
+const deliveryLineFor = (categoryId: string, isSurface: boolean) => {
+  if (categoryId === "pavers") return "Pavers supplied and installed; base material calculated from the drawn deck area.";
+  if (categoryId === "artificial-grass") return "Turf supplied and installed; base, seams and drainage sized from the drawn lawn area.";
+  if (categoryId === "finishes") return "Finish supplied and installed as the selected interior surface scope.";
+  if (categoryId === "liners") return "Liner supplied and installed as the selected interior print and border scope.";
+  return isSurface ? "Supplied & installed by our crews" : "Turnkey — set at your address";
+};
+
+const includedLineFor = (categoryId: string) => {
+  if (categoryId === "pavers") return "Product, installation, pattern layout and measured-area takeoff; base material priced as configured.";
+  if (categoryId === "artificial-grass") return "Product, installation, seam layout, edging and measured-area takeoff.";
+  if (categoryId === "finishes") return "Selected finish material and installation exactly as described for the vessel surface.";
+  if (categoryId === "liners") return "Selected liner print, border scope and installation exactly as described.";
+  return "Delivery, installation and the product exactly as described — one contract, our own crews.";
+};
+
+const standardFeatureLinesFor = (categoryId: string, notes: string[] = []) => {
+  const clean = notes.filter(Boolean);
+  if (categoryId === "pavers") {
+    return [...clean, "Net paved area measured from the drawing board", "Installation included in the paver square-foot price", "Concrete or crushed-stone base priced from deck area"];
+  }
+  if (categoryId === "artificial-grass") {
+    return [...clean, "Net turf area measured from the drawing board", "Drainage base and seam direction", "Installed edging and infill scope"];
+  }
+  if (categoryId === "finishes") {
+    return [...clean, "Surface sample selected against coping and waterline", "Installed interior finish scope"];
+  }
+  if (categoryId === "liners") {
+    return [...clean, "Selected liner field print", "Waterline border detail", "Measured installation scope"];
+  }
+  if (["pools", "concrete-pools", "spas", "tanning-ledges"].includes(categoryId)) {
+    return [...clean, "Permit drawings", "Warranty registration"];
+  }
+  return clean.length ? clean : ["Field measurement", "Configured installation", "Warranty registration"];
+};
+
+const PaversWorkMessage: React.FC<{ entryName: string }> = ({ entryName }) => (
+  <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
+    <Eyebrow>Wonderlands hardscape</Eyebrow>
+    <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Our work on {entryName}</h3>
+    <div className="mt-4 h-px w-14 origin-left bg-foreground/40 animate-rule-draw" />
+    <div className="mt-5 grid min-h-0 flex-1 gap-4 sm:grid-cols-2">
+      {PAVERS_WORK_MESSAGE.map((paragraph, index) => (
+        <p
+          key={paragraph}
+          className={`font-serif text-[11.5px] leading-relaxed text-foreground/85 ${index === 0 ? "first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:leading-[0.8]" : ""}`}
+        >
+          {paragraph}
+        </p>
+      ))}
+    </div>
+    <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+      Pavers are quoted from the actual drawn deck area — never from a guessed patio allowance.
+    </p>
+  </div>
+);
 
 /** Editorial copy per discipline — the written body of every dossier. */
 const STORIES: Record<string, { lede: string; body: string; craft: string; care: string }> = {
@@ -434,7 +521,7 @@ const OptionChapter: React.FC<{
       <div className="mt-4 flex min-h-0 flex-1 flex-col">{rows(true)}</div>
       <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
         Hover any option to see it on the plate above, expand it with the corner control, then add it with the + to
-        carry it into your estimate — every option is installed by our own crews.
+        carry it into your estimate with the same category, pricing and image data used by Wonderlands Studio.
       </p>
 
       {/* full-spread study — the whole book: one leaf is the photograph, the facing leaf the options */}
@@ -533,7 +620,7 @@ export const useProductBookPages = ({
 
   const tool = TOOLS[category.id];
   const brandKey = Object.keys(BRAND_NOTES).find((b) => (entry.brand ?? "").toLowerCase().includes(b.toLowerCase()));
-  const brandNote = (brandKey && BRAND_NOTES[brandKey]) || BRAND_NOTES.Wonderlands;
+  const brandNote = CATEGORY_MAKER_NOTES[category.id] || (brandKey && BRAND_NOTES[brandKey]) || BRAND_NOTES.Wonderlands;
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
   const price = formatEntryPrice(entry) || "On request";
   const story = STORIES[category.id] ?? FALLBACK_STORY;
@@ -733,7 +820,7 @@ export const useProductBookPages = ({
                   {[
                     ["Investment", price],
                     [metaLabel, metaBits[0] ?? category.label],
-                    ["Delivery", isSurface ? "Supplied & installed" : "Turnkey, installed"],
+                    ["Delivery", deliveryLineFor(category.id, isSurface)],
                   ].map(([k, v]) => (
 
                     <div key={k} className="flex items-baseline justify-between gap-3 border-t border-border/50 pt-1.5">
@@ -766,9 +853,7 @@ export const useProductBookPages = ({
               </div>
               <div>
                 <Eyebrow>Included</Eyebrow>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">
-                  Delivery, installation and the product exactly as described — one contract, our own crews.
-                </p>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{includedLineFor(category.id)}</p>
               </div>
             </div>
           </div>
@@ -793,7 +878,7 @@ export const useProductBookPages = ({
                 (m, i) => [i === 0 ? metaLabel : isSurface ? "Detail" : "Depth", m] as [string, string],
               ),
               ["Investment", price],
-              ["Delivery", isSurface ? "Supplied & installed by our crews" : "Turnkey — set at your address"],
+              ["Delivery", deliveryLineFor(category.id, isSurface)],
 
             ].map(([k, v]) => (
               <div key={`${k}-${v}`} className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2">
@@ -802,9 +887,7 @@ export const useProductBookPages = ({
               </div>
             ))}
           </dl>
-          <p className="mt-auto text-[10px] leading-relaxed text-muted-foreground">
-            Price includes installation at your home address.
-          </p>
+          <p className="mt-auto text-[10px] leading-relaxed text-muted-foreground">{includedLineFor(category.id)}</p>
         </div>
       ),
     });
@@ -817,7 +900,7 @@ export const useProductBookPages = ({
           <Eyebrow>02 — Features</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">What is included</h3>
           <ul className="mt-4 space-y-0">
-            {(category.notes ?? []).concat(["Permit drawings", "Warranty registration"]).map((n) => (
+            {standardFeatureLinesFor(category.id, category.notes ?? []).map((n) => (
               <li key={n} className="flex items-start gap-3 border-t border-border/50 py-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 <span className="mt-[7px] h-px w-4 shrink-0 bg-foreground/40" />
                 {n}
@@ -952,7 +1035,12 @@ export const useProductBookPages = ({
     /* the one pager — our written message to the client */
     list.push({
       key: "letter",
-      render: () => <FlipCustomerLetter categoryLabel={category.label} modelName={entry.name} />,
+      render: () =>
+        category.id === "pavers" ? (
+          <PaversWorkMessage entryName={entry.name} />
+        ) : (
+          <FlipCustomerLetter categoryLabel={category.label} modelName={entry.name} />
+        ),
     });
 
     /* design tool — a full spread: the live board runs across both pages */
@@ -1095,9 +1183,7 @@ export const useProductBookPages = ({
               {added ? "In your order" : "Add to the order"}
               {added ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
             </button>
-            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-              Price includes installation at your home address.
-            </p>
+            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{includedLineFor(category.id)}</p>
           </div>
         </div>
       ),
