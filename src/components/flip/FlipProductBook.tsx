@@ -557,6 +557,27 @@ export const useProductBookPages = ({
   /** True when the product has more photography than its single plate. */
   const rich = gallery.length > 1;
 
+  /**
+   * Stat labels read differently by discipline: a built vessel is a turn-key
+   * investment with dimensions, while a surface (finish, liner, paver, turf) is
+   * quoted by area and described by its collection — never by pool dimensions.
+   */
+  const SURFACE_CATS = new Set(["finishes", "liners", "pavers", "artificial-grass"]);
+  const isSurface = SURFACE_CATS.has(category.id);
+  const priceLabel = isSurface ? "Quoted by area" : "Turnkey investment";
+  const metaLabel = isSurface ? "Collection" : "Dimensions";
+  /** Three headline figures, phrased for the discipline of this book. */
+  const headlineStats = useMemo(
+    () => [
+      { value: price, label: priceLabel },
+      { value: metaBits[0] ?? category.label, label: metaLabel },
+      { value: "Florida", label: "Engineered & installed" },
+    ],
+    [price, priceLabel, metaBits[0], metaLabel, category.label],
+  );
+
+
+
 
 
 
@@ -603,11 +624,8 @@ export const useProductBookPages = ({
           title: entry.name,
           titleItalic: category.tagline ?? category.label,
           body: story.lede,
-          stats: [
-            { value: price, label: "Turnkey investment" },
-            { value: metaBits[0] ?? category.label, label: "Dimensions" },
-            { value: "Florida", label: "Engineered & installed" },
-          ],
+          stats: headlineStats,
+
           lockup: "Wonderlands World — Dossier",
           caption: `${entry.name} — photographed on site`,
         },
@@ -629,11 +647,8 @@ export const useProductBookPages = ({
             <div className="mt-5 h-px w-14 origin-left bg-foreground/50 animate-rule-draw" />
             <p className="mt-5 max-w-[38ch] font-serif text-[13px] leading-relaxed text-foreground/85">{story.lede}</p>
             <div className="mt-8 grid grid-cols-3 gap-4">
-              {[
-                { value: price, label: "Turnkey investment" },
-                { value: metaBits[0] ?? category.label, label: "Dimensions" },
-                { value: "Florida", label: "Engineered & installed" },
-              ].map((s) => (
+              {headlineStats.map((s) => (
+
                 <div key={s.label} className="border-t border-border/50 pt-2">
                   <p className="font-serif text-lg font-light leading-none">{s.value}</p>
                   <p className="mt-1 text-[8px] uppercase tracking-[0.28em] text-muted-foreground">{s.label}</p>
@@ -717,9 +732,10 @@ export const useProductBookPages = ({
                 <dl className="space-y-1.5">
                   {[
                     ["Investment", price],
-                    ["Dimensions", metaBits[0] ?? category.label],
-                    ["Delivery", "Turnkey, installed"],
+                    [metaLabel, metaBits[0] ?? category.label],
+                    ["Delivery", isSurface ? "Supplied & installed" : "Turnkey, installed"],
                   ].map(([k, v]) => (
+
                     <div key={k} className="flex items-baseline justify-between gap-3 border-t border-border/50 pt-1.5">
                       <dt className="text-[8px] uppercase tracking-[0.28em] text-muted-foreground">{k}</dt>
                       <dd className="font-serif text-[11px]">{v}</dd>
@@ -766,15 +782,19 @@ export const useProductBookPages = ({
       key: "dimensions",
       render: () => (
         <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
-          <Eyebrow>01 — Dimensions & details</Eyebrow>
+          <Eyebrow>01 — {isSurface ? "Specification & detail" : "Dimensions & details"}</Eyebrow>
           <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{entry.name}</h3>
           <dl className="mt-5 space-y-0">
             {[
               ["Discipline", category.label],
               ["Brand", entry.brand ?? "Wonderlands World"],
-              ...metaBits.map((m, i) => [i === 0 ? "Dimensions" : "Depth", m] as [string, string]),
+              /* Depth only reads on a vessel — a surface lists its collection/detail instead */
+              ...metaBits.map(
+                (m, i) => [i === 0 ? metaLabel : isSurface ? "Detail" : "Depth", m] as [string, string],
+              ),
               ["Investment", price],
-              ["Delivery", "Turnkey — set at your address"],
+              ["Delivery", isSurface ? "Supplied & installed by our crews" : "Turnkey — set at your address"],
+
             ].map(([k, v]) => (
               <div key={`${k}-${v}`} className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2">
                 <dt className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">{k}</dt>

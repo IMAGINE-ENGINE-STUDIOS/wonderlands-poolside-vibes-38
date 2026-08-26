@@ -537,6 +537,14 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
   const set = (patch: Partial<OptionState>) => setOptions((p) => ({ ...p, ...patch }));
   /* The managed pipeline for this discipline, when there is one */
   const pipeline = React.useMemo(() => getProjectPipeline(categoryId), [categoryId]);
+  /**
+   * Board ids can be model scoped ("pools__milan") — the discipline is the stem.
+   * `holdsWater` marks the vessel disciplines: only they get water volume,
+   * heater sizing, turnover and the pool rate card.
+   */
+  const stem = categoryId.split("__")[0];
+  const holdsWater = /pool|spa|tanning|ledge|plunge/i.test(stem) && !/finish|liner/i.test(stem);
+
 
 
   /* water volume, heater capacity and turnover, read off the drawn shell */
@@ -675,7 +683,10 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
           </>
         )}
 
-        {board.kind === "site" && (
+        {/* Water volume, heater sizing and turnover only educate a reader of a
+            vessel book (pool, spa, sun shelf, cold plunge). A sauna pad, lanai,
+            hardscape or landscape board must never print pool water figures. */}
+        {board.kind === "site" && holdsWater && (
           <>
             <Row label="Water & heating">
               <div className="grid grid-cols-2 gap-2">
@@ -712,15 +723,21 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
                 <li>{water.gpm ? `Pump — ${water.gpm} gpm for an 8 hr turnover` : "Turnover sized once drawn"}</li>
               </ul>
             </Row>
-            <Row label="Rate card">
-              <ul className="space-y-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                <li>Pool shell — ${SITE_RATES.pool}/sq ft</li>
-                <li>Deck, patio, driveway — ${SITE_RATES.deck}/sq ft</li>
-                <li>Pool barrier — ${FENCE_RATE_PER_FT}/linear ft</li>
-              </ul>
-            </Row>
           </>
         )}
+
+        {board.kind === "site" && (
+          <Row label="Rate card">
+            <ul className="space-y-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {/* Only quote the lines that belong to this discipline */}
+              {holdsWater && <li>Pool shell — ${SITE_RATES.pool}/sq ft</li>}
+              <li>{holdsWater ? "Deck, patio, driveway" : "Paved surface, patio, pad"} — ${SITE_RATES.deck}/sq ft</li>
+              {holdsWater && <li>Pool barrier — ${FENCE_RATE_PER_FT}/linear ft</li>}
+              {!holdsWater && <li>Perimeter fencing or edging — ${FENCE_RATE_PER_FT}/linear ft</li>}
+            </ul>
+          </Row>
+        )}
+
 
         {board.kind === "grass" && (
           <Row label="Rate card">
@@ -731,10 +748,21 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
           </Row>
         )}
 
-        {/* What the client actually receives, and in what order */}
+        {/* What the client actually receives. The pool turn-key scope (salt
+            system, pump, shell inspections) is only truthful on a vessel; other
+            disciplines get the scope that applies to their own installation. */}
         <Row label="Included turn-key, every project">
           <ul className="space-y-1">
-            {TURNKEY_SCOPE.map((s) => (
+            {(holdsWater
+              ? TURNKEY_SCOPE
+              : [
+                  { label: "Permits & drawings", note: "Engineered drawings and county permitting" },
+                  { label: "Site preparation", note: "Grading, base and clearances for the work" },
+                  { label: "Delivery & installation", note: "Our own crews, one contract" },
+                  { label: "Project management", note: "One point of contact to completion" },
+                  { label: "Clean & handover", note: "Site cleared and the work walked with you" },
+                ]
+            ).map((s) => (
               <li key={s.label} className="text-[9px] leading-relaxed">
                 <span className="uppercase tracking-[0.2em]">{s.label}</span>
                 <span className="text-muted-foreground"> — {s.note}</span>
@@ -742,6 +770,7 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
             ))}
           </ul>
         </Row>
+
 
         {pipeline && (
           <Row label={`${pipeline.title} — what happens, and when`}>

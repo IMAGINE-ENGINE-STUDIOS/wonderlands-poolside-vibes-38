@@ -174,15 +174,38 @@ import { pebbleTecFinishes as PEBBLE_TEC, PEBBLE_TEC_PRICE_LABEL } from "@/data/
 
 const POOL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges", "finishes", "liners"]);
 
+/**
+ * Categories that are actually a built vessel, i.e. the only books where the
+ * turn-key scope (permits, engineering, land work, project management) applies.
+ * Surface catalogues such as "finishes" and "liners" are a *choice inside* a
+ * vessel — they must never carry the construction scope of a whole pool.
+ */
+const SHELL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges"]);
+
+/**
+ * Per-category allow-list of Wonderlands Studio feature ids.
+ * Without this, catalogue categories inherit the *entire* pool feature set
+ * (heaters, jets, covers, screen enclosures, "add a spa"…), which does not
+ * educate a reader who opened the surface-finish or liner book.
+ * Categories absent from this map keep every feature of their product type.
+ */
+const CATEGORY_FEATURE_ALLOW: Record<string, Set<string>> = {
+  /* Interior surfaces: the finish itself plus the tile/waterline detail read against it */
+  finishes: new Set(["finish", "tiles"]),
+  /* Vinyl liner prints: the liner field and its waterline border only */
+  liners: new Set(["liner", "tiles"]),
+};
+
 export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = {}): StudioGroup[] => {
   const key = `${categoryId}|${ctx.modelName ?? ""}|${ctx.brand ?? ""}`;
   const cached = cache.get(key);
   if (cached) return cached;
 
   const productType = CATEGORY_TO_PRODUCT[categoryId];
+  const allow = CATEGORY_FEATURE_ALLOW[categoryId];
   const groups: StudioGroup[] = [];
 
-  if (POOL_LIKE.has(categoryId)) {
+  if (SHELL_LIKE.has(categoryId)) {
     groups.push({
       title: "Included as standard",
       note: "Permits, engineering, land work, equipment, logistics and project management to turn-key — never charged as additional features",
@@ -191,6 +214,7 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
       choice: false,
     });
   }
+
 
   /* Concrete shells are finished in Pebble Tec — never in a moulded gelcoat */
   if (categoryId === "concrete-pools") {
@@ -223,9 +247,12 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
 
   if (productType) {
     getProductFeatures(productType).forEach((f) => {
+      /* Keep only the features that educate a reader of *this* book */
+      if (allow && !allow.has(f.id)) return;
       const items = buildItems(f, ctx).filter(
         (i) => !(POOL_LIKE.has(categoryId) && /salt/i.test(i.label)),
       );
+
       if (!items.length) return;
       groups.push({
         title: f.label,
