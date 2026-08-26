@@ -167,7 +167,12 @@ export default {
 				'medallion-shimmer': {
 					'0%': { backgroundPosition: '-200% 0' },
 					'100%': { backgroundPosition: '200% 0' }
+				},
+				'medallion-idle-wave': {
+					'0%, 100%': { transform: 'rotate(-4deg) translateY(-2px)' },
+					'50%': { transform: 'rotate(4deg) translateY(2px)' }
 				}
+
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
