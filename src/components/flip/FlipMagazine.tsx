@@ -388,7 +388,16 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   /* Default open: always land on the Index spread (page 0). The page number is
      still persisted as the reader navigates, but a fresh load starts at the Index. */
   const [page, setPage] = useState(0);
+  /* Gentle wave the Open Book medallion after 3 seconds without a page turn,
+     then stop as soon as the reader flips again. */
+  const [idleWave, setIdleWave] = useState(false);
+  useEffect(() => {
+    setIdleWave(false);
+    const t = window.setTimeout(() => setIdleWave(true), 3000);
+    return () => window.clearTimeout(t);
+  }, [page]);
   /* held while the reader draws on a board spread, so the book never turns under them */
+
   const flipLocked = useFlipLocked();
   const startPageRef = useRef(0);
 
