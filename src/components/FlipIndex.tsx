@@ -358,7 +358,7 @@ const CoverFace: React.FC = () => (
     <p className="text-[9px] uppercase tracking-[0.45em] opacity-70">Wonderlands World</p>
     <h3 className="font-serif text-5xl font-light leading-tight md:text-6xl">The Index</h3>
     <div className="h-px w-12 bg-current opacity-40" />
-    <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">Fourteen Disciplines</p>
+    <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">Sixteen Disciplines</p>
     <p className="mt-4 max-w-xs text-[11px] leading-relaxed opacity-60">
       A complete catalogue of the Wonderlands outdoor world — water, stone, shelter, surface and verdure, drawn as one
       continuous project.
