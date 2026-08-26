@@ -178,7 +178,7 @@ const ServiceMemoir: React.FC<{ discipline?: string }> = ({ discipline }) => (
       <img
         src={wonderlandsLogo}
         alt="Wonderlands World"
-        loading="lazy"
+        loading="eager"
         decoding="async"
         className="h-9 w-auto sm:h-11"
       />
@@ -739,7 +739,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
                   <img
                     src={it.images[0]}
                     alt={it.label}
-                    loading="lazy"
+                    loading="eager"
                     decoding="async"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.08]"
                   />
@@ -780,7 +780,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               <img
                 src={it.images[0]}
                 alt={it.label}
-                loading="lazy"
+                loading="eager"
                 decoding="async"
                 className="absolute inset-0 h-full w-full object-cover"
               />
@@ -844,7 +844,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
           <img
             src={category.images[0]}
             alt={category.label}
-            loading="lazy"
+            loading="eager"
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover opacity-60"
           />
@@ -911,7 +911,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             <img
               src={shots[1] ?? category.images[0]}
               alt={`${category.label} detail`}
-              loading="lazy"
+              loading="eager"
               decoding="async"
               className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
             />
@@ -983,7 +983,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
                 <img
                   src={src}
                   alt={`${category.label} plate ${i + 1}`}
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
                   className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
                 />
@@ -1039,7 +1039,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             <img
               src={p.image}
               alt={p.name}
-              loading="lazy"
+              loading="eager"
               decoding="async"
               className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
             />
@@ -1082,7 +1082,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               <img
                 src={p.image}
                 alt={`${p.name} detail`}
-                loading="lazy"
+                loading="eager"
                 decoding="async"
                 className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
               />

@@ -287,7 +287,7 @@ const OptionChapter: React.FC<{
             <img
               src={o.image}
               alt={o.label}
-              loading="lazy"
+              loading="eager"
               decoding="async"
               className="h-7 w-7 shrink-0 object-cover"
             />
@@ -375,7 +375,7 @@ const OptionChapter: React.FC<{
           key={plate}
           src={plate}
           alt={`${preview?.label ?? group.title} — ${categoryLabel}`}
-          loading="lazy"
+          loading="eager"
           decoding="async"
           className={`absolute inset-0 h-full w-full animate-fade-in ${contain ? "object-contain" : "object-cover"}`}
         />
@@ -570,7 +570,7 @@ export const useProductBookPages = ({
       key: "plate",
       render: () => (
         <div className="relative h-full w-full overflow-hidden">
-          <img src={entry.image} alt={entry.name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+          <img src={entry.image} alt={entry.name} loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/40" />
           <div className="relative flex h-full flex-col justify-between p-7 text-white sm:p-9">
             <div className="flex items-baseline justify-between gap-3">
@@ -654,7 +654,7 @@ export const useProductBookPages = ({
             <img
               src={plateAt(1)}
               alt={`${entry.name} in place`}
-              loading="lazy"
+              loading="eager"
               decoding="async"
               className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
             />
@@ -705,7 +705,7 @@ export const useProductBookPages = ({
                     <img
                       src={detail}
                       alt={`${entry.name} detail`}
-                      loading="lazy"
+                      loading="eager"
                       decoding="async"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
                     />
@@ -806,7 +806,7 @@ export const useProductBookPages = ({
           </ul>
           {plateAt(1) ? (
             <div className="relative mt-4 min-h-0 flex-1 overflow-hidden">
-              <img src={plateAt(1)} alt={`${category.label} detail`} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
+              <img src={plateAt(1)} alt={`${category.label} detail`} loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover animate-ken-burns" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               <p className="absolute inset-x-3 bottom-2 text-[9px] uppercase tracking-[0.3em] text-white/90">
                 {entry.name} — as installed
@@ -889,7 +889,7 @@ export const useProductBookPages = ({
                   <img
                     src={src}
                     alt={`${category.label} plate ${n + 1}`}
-                    loading="lazy"
+                    loading="eager"
                     decoding="async"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] hover:scale-105"
                   />
@@ -1063,7 +1063,7 @@ export const useProductBookPages = ({
             <p className="mt-4 font-serif text-3xl font-light">{price}</p>
           </div>
           <div className="relative h-[38%] overflow-hidden">
-            <img src={entry.image} alt={entry.name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            <img src={entry.image} alt={entry.name} loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
           </div>
           <div>
             <button
