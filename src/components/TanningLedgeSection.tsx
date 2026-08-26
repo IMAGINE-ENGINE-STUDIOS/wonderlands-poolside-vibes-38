@@ -98,6 +98,17 @@ const TanningLedgeSection = () => {
             description="The ideal shallow plane — drawn for lounging, reading and long afternoons of sun."
           />
 
+          {/* Entry to the dedicated sun shelf suite (full configuration + board) */}
+          <div className="mb-8">
+            <Link
+              to="/suites/tanning-ledges"
+              className="inline-block border border-border/70 px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground/5"
+            >
+              Open the tanning ledge suite
+            </Link>
+          </div>
+
+
           {/* Latham Tanning Ledges Section */}
           <div className="mb-16">
             <div className="mb-8 border-b border-border/60 pb-4">
