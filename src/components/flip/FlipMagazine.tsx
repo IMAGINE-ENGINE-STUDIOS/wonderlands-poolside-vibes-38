@@ -310,10 +310,12 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   const [savedPage, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
   const [searchOpen, setSearchOpen] = usePersistentState<boolean>("flip.mag.search", false);
-  const [page, setPage] = useState(savedPage);
+  /* Default open: always land on the Index spread (page 0). The page number is
+     still persisted as the reader navigates, but a fresh load starts at the Index. */
+  const [page, setPage] = useState(0);
   /* held while the reader draws on a board spread, so the book never turns under them */
   const flipLocked = useFlipLocked();
-  const startPageRef = useRef(savedPage);
+  const startPageRef = useRef(0);
 
   useEffect(() => {
     const measure = () => {
