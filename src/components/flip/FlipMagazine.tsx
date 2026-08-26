@@ -25,7 +25,7 @@ import FlipIndexV6 from "./FlipIndexV6";
 const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as any;
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
-import heroVideo from "@/assets/hero/hero-beach.mp4.asset.json";
+import heroCover from "@/assets/hero/hero-carousel-1.webp";
 import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 /**
@@ -632,14 +632,11 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       key: "home-left",
       render: () => (
         <div className="relative h-full w-full overflow-hidden">
-          <video
-            src={heroVideo.url}
-            poster={ITEMS[0].images[0]}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
+          <img
+            src={heroCover}
+            alt="Wonderlands outdoor living editorial cover"
+            loading="eager"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/85" />
