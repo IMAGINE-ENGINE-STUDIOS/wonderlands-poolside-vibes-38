@@ -14,6 +14,7 @@ import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import finishImg from "@/assets/finishes/sapphire-blue-g3.webp";
 import linerImg from "@/assets/finishes/ocean-blue-g3.webp";
+import solarRoofArray from "@/assets/solar/solar-roof-array.jpg";
 
 interface BrowseCategoriesEditorialProps {
   activeId: string;
@@ -31,6 +32,7 @@ const CATEGORIES: { id: string; label: string; image: string; tagline: string }[
   { id: "pavers", label: "Pavers", image: paversBanner, tagline: "Underfoot Detail" },
   { id: "artificial-grass", label: "Artificial Grass", image: grassBanner, tagline: "Effortless Green" },
   { id: "landscaping", label: "Landscaping", image: landscapingBanner, tagline: "Botanical Compositions" },
+  { id: "solar", label: "Wonderlands Solar", image: solarRoofArray, tagline: "Sunlight, Stored" },
   { id: "covers", label: "Covers", image: coversBanner, tagline: "Quiet Protection" },
   { id: "driveway-gates", label: "Driveway Gates", image: drivewayGateBanner, tagline: "Arrival Statement" },
   { id: "finishes", label: "Finishes", image: finishImg, tagline: "Surface & Light" },

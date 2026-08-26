@@ -30,6 +30,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   pavers: 'Pavers',
   'artificial-grass': 'Artificial Grass',
   grass: 'Artificial Grass',
+  solar: 'Wonderlands Solar',
   landscaping: 'Landscaping',
   plant: 'Landscaping',
   cover: 'Pool Covers',
