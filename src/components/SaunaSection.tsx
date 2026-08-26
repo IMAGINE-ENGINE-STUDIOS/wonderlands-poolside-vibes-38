@@ -2,6 +2,7 @@ import { saunas } from "@/data/saunaData";
 import SaunaProductCard from "./SaunaProductCard";
 import ProductScrollRow from "./ProductScrollRow";
 import EditorialSectionHeader from "./EditorialSectionHeader";
+import { Link } from "react-router-dom";
 const SaunaSection = () => {
   return <section className="py-12 bg-background">
       <div className="container mx-auto px-4">
