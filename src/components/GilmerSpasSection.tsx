@@ -33,6 +33,17 @@ const GilmerSpasSection = () => {
             description="Fiberglass spas and spillover features — lifetime warranty, superior craftsmanship."
           />
 
+          {/* Entry to the dedicated spa suite (full configuration + plan board) */}
+          <div className="mb-8">
+            <Link
+              to="/suites/spas"
+              className="inline-block border border-border/70 px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground/5"
+            >
+              Open the spa suite
+            </Link>
+          </div>
+
+
           <ProductScrollRow className="mb-12">
             {gilmerSpas.map(spa => <GilmerSpaCard key={spa.model} spa={spa} onRequestQuote={handleRequestQuote} />)}
           </ProductScrollRow>
