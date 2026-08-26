@@ -98,6 +98,8 @@ const Index = () => {
       <Header />
       <Hero />
       <StudioEditorial />
+      <SolarEditorial />
+
 
       <main>
         {/* Pools + Glimmerglass fiberglass collection */}
