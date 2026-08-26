@@ -87,6 +87,7 @@ const StudioCartWidget = ({
     },
     [onListOpenChange, setOpenState]
   );
+  const isMobile = useIsMobile();
 
   // Re-sync the parent with the restored (cached) panel state after a reload.
   React.useEffect(() => {
