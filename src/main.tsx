@@ -21,7 +21,6 @@ import { initializePerformanceMonitoring } from "@/utils/performanceMonitor";
 // was already moved. Swallow those mismatches instead of crashing the app.
 if (typeof Node !== "undefined" && Node.prototype) {
   const originalRemoveChild = Node.prototype.removeChild;
-  // @ts-expect-error - intentionally looser signature
   Node.prototype.removeChild = function <T extends Node>(child: T): T {
     if (child.parentNode !== this) {
       console.warn("removeChild skipped: node is not a child of this parent", child);
@@ -31,7 +30,6 @@ if (typeof Node !== "undefined" && Node.prototype) {
   };
 
   const originalInsertBefore = Node.prototype.insertBefore;
-  // @ts-expect-error - intentionally looser signature
   Node.prototype.insertBefore = function <T extends Node>(newNode: T, referenceNode: Node | null): T {
     if (referenceNode && referenceNode.parentNode !== this) {
       console.warn("insertBefore skipped: reference node is not a child of this parent", referenceNode);
