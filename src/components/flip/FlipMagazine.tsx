@@ -5,14 +5,14 @@ import FlipPageTabs from "./FlipPageTabs";
 // NOTE: FlipCornerHint removed per user request — the page-curl hint in the corner was not looking good.
 import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMotion";
 import { useFlipLocked } from "./flipBoardStore";
-import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X, Headphones } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
 import FlipSearch from "@/components/flip/FlipSearch";
+import FlipNarratorConsole from "@/components/flip/FlipNarratorConsole";
 import usePersistentState from "@/hooks/usePersistentState";
 import { setNarratorContext } from "@/lib/narratorStore";
-import { toggleGenius } from "@/lib/geniusPanelStore";
 import { setFlipManifest, setFlipControls } from "@/lib/flipPageRegistry";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import FlipCart from "./FlipCart";
@@ -315,7 +315,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   /* Page position persists as the reader navigates, but load always starts at the Index. */
   const [, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
-  const [searchOpen, setSearchOpen] = usePersistentState<boolean>("flip.mag.search", false);
+  /* The narrator console pops inside the search desk from the rail Genius button. */
+  const [narratorOpen, setNarratorOpen] = usePersistentState<boolean>("flip.mag.narrator", false);
   /* Default open: always land on the Index spread (page 0). The page number is
      still persisted as the reader navigates, but a fresh load starts at the Index. */
   const [page, setPage] = useState(0);
@@ -1774,31 +1775,31 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
             </div>
           )}
         </div>
-        {/* Wide search desk — spans the book from corner to corner. */}
+        {/* Wide search desk — spans the book from corner to corner.
+            The collapsible "FLIP Search Engine" header was removed: the bar is
+            always live, and the rail Genius button pops the narrator console here. */}
         <div className="mx-auto mt-6 w-full px-1 md:px-0" style={{ maxWidth: portrait ? dims.w : dims.w * 2 }}>
           <div className="border border-border/60 bg-background/70 backdrop-blur-xl">
-            <button
-              onClick={() => setSearchOpen((v) => !v)}
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-              aria-expanded={searchOpen}
-            >
-              <span className="flex items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                <Search className="h-3.5 w-3.5" />
-                FLIP Search Engine
-              </span>
-              {searchOpen ? (
-                <X className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <span className="hidden text-[9px] uppercase tracking-[0.3em] text-muted-foreground sm:block">
-                  Pools · Saunas · Enclosures · Turf
-                </span>
-              )}
-            </button>
-            {searchOpen && (
-              <div className="border-t border-border/60 px-3 pb-4 pt-3 md:px-5">
-                <FlipSearch autoFocus onOpenCategory={openCategory} onOpenProduct={openProduct} />
+            {narratorOpen && (
+              <div className="border-b border-border/60 px-3 pb-4 pt-3 md:px-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                    Genius — Narrator
+                  </span>
+                  <button
+                    onClick={() => setNarratorOpen(false)}
+                    aria-label="Close the narrator"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <FlipNarratorConsole />
               </div>
             )}
+            <div className="px-3 py-3 md:px-5">
+              <FlipSearch onOpenCategory={openCategory} onOpenProduct={openProduct} />
+            </div>
           </div>
         </div>
 
