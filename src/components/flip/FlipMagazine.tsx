@@ -1589,31 +1589,24 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       <div className="relative px-2 pb-28 pt-8 md:px-6 md:py-12">
         <div className="pointer-events-none absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 md:block">
           <div className="pointer-events-auto flex flex-col gap-1 rounded-full border border-border/50 bg-background/50 p-2 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]">
+            {/* Genius rail button — pops the narrator console inside the search desk.
+                The old search toggle was removed: the search bar below is always open. */}
             <button
-              onClick={() => setSearchOpen((v) => !v)}
-              title="FLIP Search Engine"
-              aria-label="FLIP Search Engine"
-              aria-pressed={searchOpen}
-              className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-                searchOpen
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:bg-foreground hover:text-background"
+              onClick={() => setNarratorOpen((v) => !v)}
+              title="Genius — narrator for this spread"
+              aria-label="Genius narrator"
+              aria-pressed={narratorOpen}
+              className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+                narratorOpen
+                  ? "bg-primary text-primary-foreground"
+                  : "text-primary hover:bg-primary hover:text-primary-foreground"
               }`}
-            >
-              <Search className="h-[15px] w-[15px]" />
-            </button>
-            {/* Genius lives in the rail — she reads the open spread by default */}
-            <button
-              onClick={toggleGenius}
-              title="Genius — she reads this spread aloud"
-              aria-label="Genius"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
             >
               <span
                 aria-hidden
                 className="absolute inset-0 rounded-full bg-primary/15 blur-[6px]"
               />
-              <Sparkles className="relative h-[15px] w-[15px]" />
+              <Headphones className="relative h-[15px] w-[15px]" />
             </button>
             <span className="mx-auto my-1 h-px w-4 bg-border" />
             {mode === "category" && !dossier &&
