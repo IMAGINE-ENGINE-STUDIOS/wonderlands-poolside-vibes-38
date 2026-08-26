@@ -158,36 +158,69 @@ const FlipPageTabs: React.FC<{
               onGo(tab.page);
             }}
             title={`${tab.label} — page ${tab.page + 1} (shift-click to recolour)`}
-            className={`pointer-events-auto animate-flip-tab-in group flex max-w-[120px] items-center gap-2 border px-2.5 py-2 backdrop-blur-xl transition-all duration-500 ease-out hover:!opacity-100 sm:max-w-[150px] lg:max-w-[190px] ${
+            /**
+             * Editorial tab: a thin glass wafer with a coloured spine on the book
+             * edge, a hairline-ruled folio numeral and a wide-tracked label.
+             * No pill, no bullet dot — the spine is the only chrome.
+             */
+            className={`pointer-events-auto animate-flip-tab-in group relative flex max-w-[132px] items-center gap-2.5 overflow-hidden px-3 py-[7px] backdrop-blur-2xl transition-all duration-[600ms] ease-out hover:!opacity-100 sm:max-w-[164px] lg:max-w-[208px] ${
               side === "right"
-                ? "rounded-r-full border-l-0 hover:translate-x-1.5"
-                : "rounded-l-full border-r-0 hover:-translate-x-1.5"
+                ? "rounded-r-[3px] pl-[13px] hover:translate-x-1.5"
+                : "rounded-l-[3px] pr-[13px] hover:-translate-x-1.5"
             }`}
             style={{
               opacity,
               transform: `scale(${scale}) translateX(${
-                isActive ? (side === "right" ? "6px" : "-6px") : "0px"
+                isActive ? (side === "right" ? "7px" : "-7px") : "0px"
               })`,
-              background: `linear-gradient(${side === "right" ? "90deg" : "270deg"}, ${hslString(
-                hsl,
-                isActive ? 0.72 : 0.4
-              )}, ${hslString(hsl, isActive ? 0.4 : 0.16)})`,
-              borderColor: hslString(hsl, isActive ? 0.85 : 0.35),
-              color: isActive ? fg : hslString(hsl, 1),
+              background: isActive
+                ? `linear-gradient(${side === "right" ? "100deg" : "260deg"}, hsl(0 0% 4% / 0.82), ${hslString(hsl, 0.26)})`
+                : `linear-gradient(${side === "right" ? "100deg" : "260deg"}, hsl(0 0% 6% / 0.55), hsl(0 0% 6% / 0.24))`,
+              border: "1px solid",
+              borderColor: isActive ? hslString(hsl, 0.55) : "hsl(0 0% 100% / 0.1)",
+              borderLeftWidth: side === "right" ? 0 : 1,
+              borderRightWidth: side === "right" ? 1 : 0,
+              color: isActive ? "#f6f4ef" : "hsl(0 0% 100% / 0.62)",
               boxShadow: isActive
-                ? `0 14px 34px -14px ${hslString(hsl, 0.75)}, inset 0 1px 0 hsl(0 0% 100% / 0.35)`
-                : "inset 0 1px 0 hsl(0 0% 100% / 0.2)",
+                ? `0 18px 40px -20px ${hslString(hsl, 0.7)}, inset 0 1px 0 hsl(0 0% 100% / 0.14)`
+                : "inset 0 1px 0 hsl(0 0% 100% / 0.07)",
             }}
           >
+            {/* Coloured spine, flush with the book's outer edge */}
             <span
-              className="h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ background: hslString(hsl, 1), boxShadow: `0 0 10px ${hslString(hsl, 0.9)}` }}
+              aria-hidden
+              className={`absolute inset-y-0 w-[2px] transition-all duration-500 ${
+                side === "right" ? "left-0" : "right-0"
+              }`}
+              style={{
+                background: hslString(hsl, isActive ? 1 : 0.55),
+                boxShadow: isActive ? `0 0 14px ${hslString(hsl, 0.85)}` : "none",
+              }}
             />
-            <span className="truncate text-[8px] uppercase tracking-[0.3em] sm:text-[9px]">
+            {/* Folio numeral — quiet, tabular, rule-separated */}
+            <span
+              className={`shrink-0 font-mono text-[8px] leading-none tabular-nums transition-colors ${
+                side === "right" ? "order-first" : "order-last"
+              }`}
+              style={{ color: isActive ? hslString(hsl, 1) : "hsl(0 0% 100% / 0.4)" }}
+            >
+              {String(tab.page + 1).padStart(2, "0")}
+            </span>
+            <span
+              aria-hidden
+              className="h-2.5 w-px shrink-0"
+              style={{ background: isActive ? hslString(hsl, 0.6) : "hsl(0 0% 100% / 0.16)" }}
+            />
+            <span
+              className={`truncate text-[8px] uppercase leading-none sm:text-[9px] ${
+                isActive ? "tracking-[0.34em]" : "tracking-[0.28em]"
+              }`}
+            >
               {tab.label}
             </span>
           </button>
         );
+
       })}
     </div>
   );
