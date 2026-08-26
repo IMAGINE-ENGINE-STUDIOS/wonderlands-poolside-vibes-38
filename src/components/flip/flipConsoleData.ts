@@ -192,6 +192,21 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
         meta: "High-density turf, drainage base included",
       }));
     }
+    /* Wonderlands Solar — energy collection */
+    case "solar": {
+      const { solarProducts } = await import("@/data/solarData");
+      return solarProducts
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          image: p.image,
+          price: p.price,
+          unit: "each" as const,
+          brand: "Wonderlands Solar",
+          meta: p.spec,
+        }))
+        .sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    }
     case "landscaping": {
       const { landscapingPlants } = await import("@/data/landscapingData");
       return landscapingPlants.slice(0, 60).map((p: any) => ({
