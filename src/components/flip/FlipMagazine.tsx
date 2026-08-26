@@ -174,6 +174,13 @@ const CATEGORY_INCLUDED_LINES: Record<string, [string, string][]> = {
     ["Edges", "Perimeters tucked, nailed or bordered against adjacent hardscape"],
     ["Handover", "Care guidance for brushing, rinsing and cooling the surface"],
   ],
+  solar: [
+    ["Site & shade study", "Roof planes, azimuth and shading modelled before a panel is quoted"],
+    ["Engineering", "Florida wind-load mounting details and electrical drawings"],
+    ["Permit & interconnection", "County permit, utility interconnection and final inspection handled"],
+    ["Installation", "Array, inverter, battery, conduit and labour included in the price shown"],
+    ["Handover", "Monitoring app set up, production baseline recorded, warranty registered"],
+  ],
   finishes: [
     ["Selection", "Interior surface chosen by water colour, texture and collection"],
     ["Coordination", "Reviewed against coping, waterline and lighting before ordering"],
