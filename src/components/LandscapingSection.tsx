@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ShoppingCart as CartIcon, Plus, Minus, FileText, Sparkles, Trash2, Printer, Send } from "lucide-react";
+import { ShoppingCart as CartIcon, Plus, Minus, FileText, Trash2, Printer, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   landscapingPlants,
