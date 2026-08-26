@@ -33,7 +33,23 @@ export interface FeatureConfig {
   pricePerUnit?: number; // For area-based features
   subFeatures?: FeatureConfig[];
   pricingModifier?: (basePrice: number, extras: any) => number;
+  /**
+   * Selection features whose option prices are $ per square foot of another
+   * area feature (e.g. paver base material priced off the paved deck area).
+   */
+  pricedByArea?: boolean;
+  /** Feature id holding the square footage used by `pricedByArea`. */
+  areaSourceId?: string;
 }
+
+/**
+ * Paver base-material rates.
+ * Crushed stone is bought by the ton, so the paved square footage is converted
+ * to tonnage: 4" compacted depth => 0.0333 cu yd/sq ft × ~1.4 ton/cu yd.
+ */
+export const STONE_PRICE_PER_TON = 65;
+export const STONE_TONS_PER_SQFT = 0.0173;
+export const CONCRETE_BASE_PER_SQFT = 10;
 
 // Shared option data
 const spas: FeatureOption[] = [
