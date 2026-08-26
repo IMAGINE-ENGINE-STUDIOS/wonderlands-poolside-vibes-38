@@ -118,44 +118,43 @@ const SpaCatalog = () => {
     return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
   }, []);
   return <>
-      {/* Wonderlands Studio CTA Section */}
-      <section className="py-12 px-4 bg-gradient-to-r from-primary/10 to-coral/10">
+      {/* Wonderlands Studio CTA — editorial plate */}
+      <section className="py-16 px-4 border-y border-border/60 bg-card/40">
         <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-2xl font-bold mb-4 text-foreground">Create a Wonderful Outdoor Experience</h3>
-          <p className="text-foreground/80 mb-6 max-w-2xl mx-auto">Use our interactive studio to customize your Pool, Spa or Tanning Ledge with premium finishes, advanced features, and personalized options in a private suit.</p>
-          <a href="/wonderlands-studio" className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-primary to-coral text-primary-foreground font-semibold rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+          <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground mb-4">
+            The Atelier — Private Suite
+          </p>
+          <h3 className="font-serif text-3xl md:text-5xl font-light tracking-tight text-foreground mb-5">
+            Create a Wonderful Outdoor Experience
+          </h3>
+          <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+            Use our interactive studio to customize your Pool, Spa or Tanning Ledge with premium
+            finishes, advanced features, and personalized options in a private suite.
+          </p>
+          <a
+            href="/wonderlands-studio"
+            className="group inline-flex items-center gap-3 border border-foreground px-8 py-4 text-[10px] uppercase tracking-[0.35em] text-foreground transition-colors duration-300 hover:bg-foreground hover:text-background"
+          >
             <span>Open Wonderlands Studio</span>
-            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
             </svg>
           </a>
         </div>
       </section>
 
-      <section className="py-20 px-4 relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background to-muted/30">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-20 right-20 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 left-20 w-72 h-72 bg-pink-500/30 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
-            <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '3s'}}></div>
-          </div>
-          {/* Bubble Effect */}
-          <svg className="absolute top-0 left-0 w-full h-full opacity-5" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="10%" cy="20%" r="2%" className="fill-primary animate-pulse" style={{animationDelay: '0s', animationDuration: '3s'}}/>
-            <circle cx="85%" cy="15%" r="3%" className="fill-coral animate-pulse" style={{animationDelay: '1s', animationDuration: '4s'}}/>
-            <circle cx="50%" cy="80%" r="2.5%" className="fill-teal animate-pulse" style={{animationDelay: '2s', animationDuration: '3.5s'}}/>
-            <circle cx="20%" cy="70%" r="1.5%" className="fill-purple-500 animate-pulse" style={{animationDelay: '0.5s', animationDuration: '4.5s'}}/>
-            <circle cx="75%" cy="60%" r="2%" className="fill-pink-500 animate-pulse" style={{animationDelay: '1.5s', animationDuration: '3s'}}/>
-          </svg>
-        </div>
-        <div className="max-w-7xl mx-auto relative z-10">
+      <section className="py-20 px-4 bg-background">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+            <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground mb-4">
+              Volume IV — Water
+            </p>
+            <h2 className="font-serif text-4xl md:text-5xl font-light tracking-tight text-foreground mb-6">
               Premium Spas
             </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-              Indulge in the luxury and therapeutic benefits of our premium spas. Designed for relaxation and rejuvenation, our spas offer the ultimate hydrotherapy experience.
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Indulge in the luxury and therapeutic benefits of our premium spas. Designed for
+              relaxation and rejuvenation, our spas offer the ultimate hydrotherapy experience.
             </p>
           </div>
 
