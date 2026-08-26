@@ -340,28 +340,22 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
               />
             </div>
 
-            {/* Live summary */}
-            <div className="mt-8 border border-border/70 p-5">
-              <div className="flex items-baseline justify-between text-sm">
-                <span className="text-muted-foreground">{model?.name}</span>
-                <span>{money(base)}</span>
-              </div>
-              {breakdown.map((line) => (
-                <div key={line.name} className="mt-2 flex items-baseline justify-between gap-4 text-xs">
-                  <span className="text-muted-foreground">{line.name}</span>
-                  <span>{money(line.price)}</span>
-                </div>
-              ))}
-              <div className="mt-5 flex items-baseline justify-between border-t border-border/60 pt-4">
-                <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Total</span>
-                <span className="text-2xl font-light">{money(total)}</span>
-              </div>
+            {/* Live shopping list — the SAME widget the Quote Atelier and the
+                Studio use, so every category shows one cart, one total. */}
+            <div className="mt-8">
+              <StudioCartWidget
+                currentPrice={total}
+                currentName={modelName}
+                currentCategory={categoryLabel}
+                currentExtras={breakdown}
+                onRemoveCurrentExtra={handleRemoveExtra}
+                onCurrentExtraQuantity={handleExtraQuantity}
+                onCurrentExtraOption={handleExtraOption}
+                onAddCurrent={handleAddToCart}
+                onQuote={() => setQuoteOpen(true)}
+              />
 
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                <Button onClick={handleAddToCart} className="rounded-none">Add to cart</Button>
-                <Button variant="outline" className="rounded-none" onClick={() => setQuoteOpen(true)}>
-                  Build a quote
-                </Button>
                 <Button variant="outline" className="rounded-none" onClick={() => setBoardOpen(true)}>
                   Open the design board
                 </Button>
@@ -374,6 +368,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
               </p>
             </div>
           </div>
+
         </div>
       </section>
 
