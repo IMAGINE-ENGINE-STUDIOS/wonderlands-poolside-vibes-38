@@ -166,16 +166,6 @@ export const ITEMS: Item[] = [
     notes: ["Specimen palms & trees", "Ornamental grasses", "Planting plans"],
   },
   {
-    id: "solar",
-    label: "Wonderlands Solar",
-    tagline: "Sunlight, Stored",
-    layout: "duo",
-    images: [solarRoofArray, solarBatteryWall, solarPoolHeating],
-    description:
-      "All-black arrays set flush to the tile, wall-mounted home batteries, solar pool heating and EV charging — engineered, permitted and installed so the pool runs on the roof above it.",
-    notes: ["Turnkey installed pricing", "Battery backup & net metering", "26–30% incentives"],
-  },
-  {
     id: "covers",
     label: "Covers",
     tagline: "Quiet Protection",
