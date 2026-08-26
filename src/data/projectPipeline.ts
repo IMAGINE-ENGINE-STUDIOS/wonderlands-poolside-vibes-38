@@ -89,10 +89,18 @@ const LEDGE_PIPELINE: ProjectPipeline = {
 
 export const PROJECT_PIPELINES: ProjectPipeline[] = [POOL_PIPELINE, SPA_PIPELINE, LEDGE_PIPELINE];
 
-/** Resolve the pipeline for a FLIP/studio category id. */
+/**
+ * Resolve the pipeline for a FLIP/studio category id.
+ * Only built vessels (pools, spas, sun shelves) carry a construction pipeline.
+ * Surface catalogues — finishes and liners — are a selection made inside a
+ * vessel, so they must not print excavation/plumbing/inspection stages that do
+ * not educate the reader about the surface they are choosing.
+ */
 export const getProjectPipeline = (categoryId: string): ProjectPipeline | null => {
+  if (/finish|liner/i.test(categoryId)) return null;
   if (/spa|hot[- ]tub/i.test(categoryId)) return SPA_PIPELINE;
   if (/tanning|ledge/i.test(categoryId)) return LEDGE_PIPELINE;
-  if (/pool/i.test(categoryId) || categoryId === "finishes" || categoryId === "liners") return POOL_PIPELINE;
+  if (/pool/i.test(categoryId)) return POOL_PIPELINE;
+
   return null;
 };
