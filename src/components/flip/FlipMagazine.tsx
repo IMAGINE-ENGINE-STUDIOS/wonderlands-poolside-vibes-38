@@ -261,15 +261,21 @@ const Leaf = forwardRef<
     footnote?: string;
   }
 >(({ children, tone = "paper", tag, side = "right", footnote }, ref) => (
+  // NOTE: never add `relative` here. page-flip positions every leaf itself via
+  // `.stf__item { position: absolute }`; a Tailwind `relative` utility wins on
+  // load order and knocks the leaf back into normal flow — the leaf underneath a
+  // dragged page then paints below the book instead of under the peel.
+  // The library-applied absolute position still anchors our absolute children.
   <div
     ref={ref}
     className={
       tone === "cover"
-        ? "relative h-full w-full overflow-hidden bg-foreground text-background"
-        : "relative h-full w-full overflow-hidden bg-background text-foreground"
+        ? "h-full w-full overflow-hidden bg-foreground text-background"
+        : "h-full w-full overflow-hidden bg-background text-foreground"
     }
     style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.06)" }}
   >
+
     {children}
     {footnote && (
       <p className="pointer-events-none absolute inset-x-6 bottom-1.5 text-center text-[6px] uppercase tracking-[0.22em] text-muted-foreground/60">
