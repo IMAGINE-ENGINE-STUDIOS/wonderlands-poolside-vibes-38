@@ -233,7 +233,5 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
         </div>
       )}
     </div>
-
-    </div>
   );
 }
