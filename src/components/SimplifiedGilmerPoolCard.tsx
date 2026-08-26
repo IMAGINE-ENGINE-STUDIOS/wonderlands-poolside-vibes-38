@@ -701,20 +701,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
 
-                {/* Rocky Waterfalls */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={options.rockyWaterfalls}
-                    onCheckedChange={() => toggleOption('rockyWaterfalls')}
-                    className="data-[state=checked]:bg-stone-600 data-[state=checked]:border-stone-600"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Waves size={16} className="text-stone-600" />
-                    <span className="text-sm">
-                      Rocky Waterfalls (+${options.rockyWaterfalls ? (rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType)?.price || 17500).toLocaleString() : '0'})
-                    </span>
-                  </div>
-                </label>
+                {/* Rocky Waterfalls — sub-options only; the toggle is a tile in the carousel above */}
+
 
                 {options.rockyWaterfalls && (
                   <div className="ml-6 space-y-4">
