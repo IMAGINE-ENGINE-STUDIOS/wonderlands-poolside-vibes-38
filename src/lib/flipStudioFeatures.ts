@@ -196,10 +196,10 @@ const CATEGORY_FEATURE_ALLOW: Record<string, Set<string>> = {
   spas: new Set(["finish", "liner", "tiles", "heater", "jets", "pavers", "cover", "screenEnclosure"]),
   /* Tanning ledges are shallow-water shelves; they do not inherit add-a-spa, enclosure or concrete-pool construction chapters */
   "tanning-ledges": new Set(["finish", "heater", "jets", "pavers", "liner", "tiles"]),
-  /* Pavers are a hardscape surface: only measured deck area and base material belong here */
-  pavers: new Set(["area", "baseMaterial"]),
-  /* Covers only need their cover housing/install choices; never pool heaters/jets/finishes */
-  covers: new Set(["installation", "benchEnclosure"]),
+  /* Pavers are a hardscape surface: the paver material itself, the measured deck area and the base */
+  pavers: new Set(["material", "area", "baseMaterial"]),
+  /* Covers need their fabric colour and housing/install choices; never pool heaters/jets/finishes */
+  covers: new Set(["coverColor", "installation", "benchEnclosure"]),
   /* Enclosures and lanais share the screen-enclosure configurator, but stay in enclosure scope */
   "screen-enclosures": new Set(["area", "quality", "doorType", "roofStyle"]),
   lanai: new Set(["area", "quality", "doorType", "roofStyle"]),

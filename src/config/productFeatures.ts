@@ -134,41 +134,60 @@ const tileOptions: FeatureOption[] = [
   }))
 ];
 
-const coverOptions: FeatureOption[] = [
-  { name: 'NO COVER', price: 0, image: noCoverBlack },
-  { name: 'Eclipse Automatic Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp' },
-  { name: 'CS3000 Safety Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.webp' },
-  { name: 'Infinity 4000 Smart Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.webp' },
-  { name: 'Atom Loop-Loc Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.webp' }
+/**
+ * Automatic cover fabrics.
+ * Every automatic cover is ordered in a fabric colour, so the colour list is
+ * carried on the option itself (used by the product cards) *and* exposed as a
+ * `coverColor` sub-feature below, so the FLIP books and the studio both print
+ * the colour choices under "Automatic Cover".
+ */
+export const COVER_COLOR_OPTIONS: FeatureOption[] = [
+  { name: 'Light Blue', price: 0, color: '#87CEEB' },
+  { name: 'Royal Blue', price: 0, color: '#4169E1' },
+  { name: 'Navy Blue', price: 0, color: '#000080' },
+  { name: 'Forest Green', price: 0, color: '#228B22' },
+  { name: 'Light Gray', price: 0, color: '#D3D3D3' },
+  { name: 'Charcoal Gray', price: 0, color: '#36454F' },
+  { name: 'Brown', price: 0, color: '#964B00' },
+  { name: 'Black', price: 0, color: '#000000' },
 ];
 
-const paverOptions: FeatureOption[] = [
-  { name: 'Concrete Patio', price: 10, image: '/images/concrete-patio-texture.avif', collection: 'none' },
-  
-  // Appian Collection - $15/sq ft
-  { name: 'Appian Adobe', price: 15, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp', collection: 'Appian Collection' },
-  { name: 'Appian Amaretto', price: 15, image: '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.webp', collection: 'Appian Collection' },
-  { name: 'Appian Harvest Blend', price: 15, image: '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.webp', collection: 'Appian Collection' },
-  { name: 'Appian Knightsbridge', price: 15, image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.webp', collection: 'Appian Collection' },
-  { name: 'Appian Napoli', price: 15, image: '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.webp', collection: 'Appian Collection' },
-  { name: 'Appian Rio', price: 15, image: '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.webp', collection: 'Appian Collection' },
-  { name: 'Appian Slate', price: 15, image: '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.webp', collection: 'Appian Collection' },
-  { name: 'Appian Titanium', price: 15, image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp', collection: 'Appian Collection' },
-  { name: 'Appian Charco', price: 15, image: '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.webp', collection: 'Appian Collection' },
-  
-  // Catalina Grana Collection - $22/sq ft
-  { name: 'Catalina Grana Amaretto', price: 22, image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.webp', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Napoli', price: 22, image: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.webp', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Rio', price: 22, image: '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.webp', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Scandina Gray', price: 22, image: '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.webp', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Slate', price: 22, image: '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.webp', collection: 'Catalina Grana Collection' },
-  { name: 'Catalina Grana Titanium', price: 22, image: '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.webp', collection: 'Catalina Grana Collection' },
-  
-  // Catalina Collection - $20/sq ft
-  { name: 'Catalina Napoli', price: 20, image: '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.webp', collection: 'Catalina Collection' },
-  { name: 'Catalina Slate', price: 20, image: '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.webp', collection: 'Catalina Collection' },
-  { name: 'Catalina Titanium', price: 20, image: '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.webp', collection: 'Catalina Collection' }
+const coverOptions: FeatureOption[] = [
+  { name: 'NO COVER', price: 0, image: noCoverBlack, colors: [] },
+  { name: 'Eclipse Automatic Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp', colors: COVER_COLOR_OPTIONS },
+  { name: 'CS3000 Safety Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.webp', colors: COVER_COLOR_OPTIONS },
+  { name: 'Infinity 4000 Smart Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.webp', colors: COVER_COLOR_OPTIONS },
+  { name: 'Atom Loop-Loc Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.webp', colors: COVER_COLOR_OPTIONS }
 ];
+
+/** The colour choice printed with the cover — no upcharge, it is a fabric selection. */
+const coverColorFeature: FeatureConfig = {
+  id: 'coverColor',
+  label: 'Cover Colour',
+  description: 'Fabric colour of the selected automatic cover — no upcharge',
+  type: 'selection',
+  options: COVER_COLOR_OPTIONS,
+};
+
+/**
+ * Every paver Wonderlands actually sells, read straight from `paverData` so the
+ * premium collections (Coralina, Gloca Mirage, Travertine…) can never go missing
+ * from a product card, the studio or a FLIP book. Rates are $ per square foot
+ * and the list is ordered cheapest first.
+ */
+const paverOptions: FeatureOption[] = [
+  { name: 'Concrete Patio', price: CONCRETE_BASE_PER_SQFT, image: '/images/concrete-patio-texture.avif', collection: 'none', description: 'Standard concrete deck' },
+  ...paverTypes
+    .filter(p => p.category === 'paver')
+    .map(p => ({
+      name: p.name,
+      price: p.basePrice,
+      image: p.image,
+      description: p.description,
+      collection: `${p.name.split(' ')[0]} Collection`,
+    })),
+].sort((a, b) => a.price - b.price);
+
 
 const tanningLedgeOptions: FeatureOption[] = tanningLedges.map(ledge => ({
   name: ledge.name,
@@ -214,7 +233,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Automatic Cover',
       type: 'selection',
       icon: 'ShieldCheck',
-      options: coverOptions
+      options: coverOptions,
+      /* the fabric colour of the chosen cover — printed with it everywhere */
+      subFeatures: [coverColorFeature]
     },
     {
       id: 'jets',
@@ -314,7 +335,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Automatic Cover',
       type: 'selection',
       icon: 'ShieldCheck',
-      options: coverOptions
+      options: coverOptions,
+      /* the fabric colour of the chosen cover — printed with it everywhere */
+      subFeatures: [coverColorFeature]
     },
     {
       id: 'tanningLedge',
@@ -648,7 +671,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Automatic Cover',
       type: 'selection',
       icon: 'ShieldCheck',
-      options: coverOptions
+      options: coverOptions,
+      /* the fabric colour of the chosen cover — printed with it everywhere */
+      subFeatures: [coverColorFeature]
     },
     {
       id: 'spa',
@@ -678,6 +703,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
     }
   ],
   'cover': [
+    coverColorFeature,
     {
       id: 'installation',
       label: 'Professional Installation',
@@ -705,6 +731,17 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
    * converted from the square footage at `STONE_TONS_PER_SQFT`).
    */
   'paver': [
+    {
+      /* The paver actually being laid — every collection we sell, $ per sq ft */
+      id: 'material',
+      label: 'Paver Material',
+      description: 'Paver collection and colour — supplied and installed, priced per square foot of deck',
+      type: 'selection',
+      icon: 'Grid3x3',
+      pricedByArea: true,
+      areaSourceId: 'area',
+      options: paverOptions
+    },
     {
       id: 'area',
       label: 'Installation Area',

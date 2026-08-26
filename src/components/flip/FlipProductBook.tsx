@@ -281,6 +281,15 @@ const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
 );
 
 
+/**
+ * Which leaf of the spread a page is printed on.
+ * The + controls are kept away from the outer edge of the book: on a right-hand
+ * page they sit to the LEFT of the option title, on a left-hand page to the
+ * RIGHT — so tapping "add" never lands on the page-turn corner.
+ */
+export const LeafSideContext = React.createContext<"left" | "right">("left");
+export const useLeafSide = () => React.useContext(LeafSideContext);
+
 const Leaf = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ children }, ref) => (
   <div
     ref={ref}
@@ -309,6 +318,8 @@ const OptionChapter: React.FC<{
   categoryId: string;
 }> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId }) => {
   const cart = useOptionalShoppingCart();
+  /* which leaf of the spread this chapter is printed on — decides the + side */
+  const leafSide = useLeafSide();
   const [active, setActive] = useState<StudioOption | null>(null);
   const [full, setFull] = useState(false);
   const preview = active ?? chunk.find((o) => o.image) ?? null;
@@ -373,6 +384,35 @@ const OptionChapter: React.FC<{
     addOption(o);
   };
 
+  /* the add control, printed on the gutter side of the row (see LeafSideContext) */
+  const control = (o: StudioOption) =>
+    isIncluded(o) ? (
+      /* fitted as standard — nothing to add, so the row is marked, not offered */
+      <span
+        title="Included as standard"
+        className="flex h-6 shrink-0 items-center gap-1 border border-foreground/30 bg-foreground/[0.06] px-2 text-[8px] uppercase tracking-[0.25em] text-muted-foreground"
+      >
+        <Check className="h-3 w-3" />
+        Standard
+      </span>
+    ) : (
+      <button
+        type="button"
+        aria-label={`Add ${o.label} to the order`}
+        onClick={(e) => {
+          e.stopPropagation();
+          requestAdd(o);
+        }}
+        className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
+          inOrder(o)
+            ? "border-foreground bg-foreground text-background"
+            : "border-border/70 hover:bg-foreground hover:text-background"
+        }`}
+      >
+        {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+      </button>
+    );
+
   const rows = (dense: boolean) => (
     <ul className={`min-h-0 flex-1 space-y-0 ${dense ? "overflow-hidden" : "overflow-y-auto"}`}>
       {chunk.map((o, oi) => (
@@ -385,6 +425,8 @@ const OptionChapter: React.FC<{
             active?.label === o.label ? "bg-foreground/[0.04]" : ""
           }`}
         >
+          {/* right-hand leaf: the + sits before the title, away from the flip corner */}
+          {leafSide === "right" && control(o)}
           <span className="font-serif text-xs text-muted-foreground">
             {String(chunkIndex * perPage + oi + 1).padStart(2, "0")}
           </span>
@@ -401,32 +443,9 @@ const OptionChapter: React.FC<{
           ) : null}
           <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em]">{o.label}</span>
           <span className="shrink-0 font-serif text-[11px] text-muted-foreground">{o.priceLabel}</span>
-          {isIncluded(o) ? (
-            /* fitted as standard — nothing to add, so the row is marked, not offered */
-            <span
-              title="Included as standard"
-              className="flex h-6 shrink-0 items-center gap-1 border border-foreground/30 bg-foreground/[0.06] px-2 text-[8px] uppercase tracking-[0.25em] text-muted-foreground"
-            >
-              <Check className="h-3 w-3" />
-              Standard
-            </span>
-          ) : (
-            <button
-              type="button"
-              aria-label={`Add ${o.label} to the order`}
-              onClick={(e) => {
-                e.stopPropagation();
-                requestAdd(o);
-              }}
-              className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
-                inOrder(o)
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border/70 hover:bg-foreground hover:text-background"
-              }`}
-            >
-              {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-            </button>
-          )}
+          {/* left-hand leaf: the + stays on the inner (right) edge of the row */}
+          {leafSide !== "right" && control(o)}
+
 
           {/* unit-priced options are measured before they enter the estimate, exactly as in the studio */}
           {measure?.label === o.label && (
@@ -945,8 +964,10 @@ export const useProductBookPages = ({
       ),
     });
 
-    /* option chapters — one illustrated page each, long lists continue on facing pages */
-    const PER_PAGE = 9;
+    /* option chapters — one illustrated page each, long lists continue on facing
+       pages. Six rows is the most that fits under the preview plate without any
+       option being clipped out of sight, so long catalogues simply get more pages. */
+    const PER_PAGE = 6;
     groups.forEach((g, i) => {
       const chunks: StudioOption[][] = [];
       for (let c = 0; c < g.items.length; c += PER_PAGE) chunks.push(g.items.slice(c, c + PER_PAGE));
@@ -1330,8 +1351,14 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
       startZIndex={0}
       onFlip={(e: any) => setPage(e.data)}
     >
-      {pages.map((p) => (
-        <Leaf key={p.key}>{p.render()}</Leaf>
+      {pages.map((p, i) => (
+        <Leaf key={p.key}>
+          {/* spreads read (0,1), (2,3)… so an even index is the left leaf.
+              In portrait every page is a single sheet — treated as a left leaf. */}
+          <LeafSideContext.Provider value={portrait || i % 2 === 0 ? "left" : "right"}>
+            {p.render()}
+          </LeafSideContext.Provider>
+        </Leaf>
       ))}
     </HTMLFlipBook>
   );
