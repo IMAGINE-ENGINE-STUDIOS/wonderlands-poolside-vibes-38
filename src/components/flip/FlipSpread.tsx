@@ -26,9 +26,20 @@ export type SpreadOptions = {
   caption?: string;
   /** Extra content rendered on the right page (index lists, links). */
   right?: () => React.ReactNode;
+  /** Heading printed above the right-page content, e.g. "Contents". */
+  rightHeading?: string;
+  /** Small helper line under the right heading, e.g. "Tap a model to open it". */
+  rightHint?: string;
+  /**
+   * "ink" prints the spread as an editorial contents page: the photograph is
+   * pushed back behind a solid ink plate so type and tappable rows stay legible.
+   * "photo" (default) keeps the glassy statement treatment.
+   */
+  tone?: "photo" | "ink";
   /** Panel side — defaults to the left page. */
   invert?: boolean;
 };
+
 
 type PageLike = { key: string; tone?: string; render: () => React.ReactNode };
 
@@ -37,11 +48,13 @@ type PageLike = { key: string; tone?: string; render: () => React.ReactNode };
  * cropped with object-cover, so the two pages form one continuous photograph
  * without ever stretching or squashing the original proportions.
  */
-const Half: React.FC<{ image: string; side: "left" | "right"; children?: React.ReactNode }> = ({
-  image,
-  side,
-  children,
-}) => (
+const Half: React.FC<{
+  image: string;
+  side: "left" | "right";
+  /** Extra darkening laid over the photograph so overlaid type stays readable. */
+  dim?: boolean;
+  children?: React.ReactNode;
+}> = ({ image, side, dim, children }) => (
   <div className="relative h-full w-full overflow-hidden bg-black">
     <div className={`absolute inset-y-0 w-[200%] ${side === "left" ? "left-0" : "-left-full"}`}>
       <img
@@ -58,15 +71,22 @@ const Half: React.FC<{ image: string; side: "left" | "right"; children?: React.R
         side === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"
       } from-black/35 to-transparent`}
     />
+    {dim && <div className="pointer-events-none absolute inset-0 bg-black/45" />}
     <div className="relative h-full w-full text-white">{children}</div>
   </div>
 );
 
 
-const Panel: React.FC<{ o: SpreadOptions }> = ({ o }) => (
+const Panel: React.FC<{ o: SpreadOptions }> = ({ o }) => {
+  const ink = o.tone === "ink";
+  return (
   <div
-    className="flex h-full w-[86%] flex-col justify-center bg-[hsl(0_0%_8%/0.86)] p-7 backdrop-blur-[2px] sm:p-9"
-    style={{ clipPath: "polygon(0 0, 100% 3.5%, 100% 96.5%, 0 100%)" }}
+    className={
+      ink
+        ? "flex h-full w-full flex-col justify-center border-r border-white/10 bg-[hsl(0_0%_5%/0.94)] p-7 sm:p-10"
+        : "flex h-full w-[86%] flex-col justify-center bg-[hsl(0_0%_8%/0.86)] p-7 backdrop-blur-[2px] sm:p-9"
+    }
+    style={ink ? undefined : { clipPath: "polygon(0 0, 100% 3.5%, 100% 96.5%, 0 100%)" }}
   >
     {o.eyebrow && <p className="text-[8px] uppercase tracking-[0.4em] text-white/65">{o.eyebrow}</p>}
     <h3 className="mt-2 font-serif text-2xl font-light uppercase leading-none tracking-[0.06em] sm:text-3xl">
@@ -88,7 +108,8 @@ const Panel: React.FC<{ o: SpreadOptions }> = ({ o }) => (
       </div>
     )}
   </div>
-);
+  );
+};
 
 /**
  * Push a two-page spread onto a page list. Pads with a full-bleed plate when the
@@ -157,7 +178,7 @@ export function pushSpread<T extends PageLike>(
     key: `${o.key}-left`,
     tone: "cover",
     render: () => (
-      <Half image={o.image} side="left">
+      <Half image={o.image} side="left" dim={o.tone === "ink"}>
         <div className={`flex h-full items-stretch ${panelLeft ? "" : "justify-end"}`}>
           {panelLeft ? <Panel o={o} /> : null}
           {!panelLeft && o.lockup ? (
@@ -172,7 +193,7 @@ export function pushSpread<T extends PageLike>(
     key: `${o.key}-right`,
     tone: "cover",
     render: () => (
-      <Half image={o.image} side="right">
+      <Half image={o.image} side="right" dim={o.tone === "ink"}>
         <div className="flex h-full flex-col justify-between p-7 sm:p-9">
           <div className="flex justify-end">
             {o.caption && (
@@ -181,7 +202,22 @@ export function pushSpread<T extends PageLike>(
               </p>
             )}
           </div>
-          {o.right ? <div className="min-h-0 flex-1 py-4">{o.right()}</div> : null}
+          {o.right ? (
+            /* contents sit on their own ink plate so rows read as list items, not caption type */
+            <div className="mt-4 flex min-h-0 flex-1 flex-col border border-white/12 bg-[hsl(0_0%_5%/0.9)] p-4 sm:p-5">
+              {(o.rightHeading || o.rightHint) && (
+                <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-white/20 pb-2">
+                  {o.rightHeading && (
+                    <p className="text-[8px] uppercase tracking-[0.4em] text-white/70">{o.rightHeading}</p>
+                  )}
+                  {o.rightHint && (
+                    <p className="text-[8px] uppercase tracking-[0.28em] text-white/50">{o.rightHint}</p>
+                  )}
+                </div>
+              )}
+              <div className="min-h-0 flex-1">{o.right()}</div>
+            </div>
+          ) : null}
           <div className="flex items-end justify-between gap-4">
             {panelLeft && o.lockup ? (
               <p className="text-[8px] uppercase tracking-[0.4em] text-white/75">{o.lockup}</p>

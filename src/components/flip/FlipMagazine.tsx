@@ -5,7 +5,7 @@ import FlipPageTabs from "./FlipPageTabs";
 // NOTE: FlipCornerHint removed per user request — the page-curl hint in the corner was not looking good.
 import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMotion";
 import { useFlipLocked } from "./flipBoardStore";
-import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, X, Headphones } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, X, Headphones, ArrowUpRight } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
@@ -1061,23 +1061,44 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     pushSpread(list, {
       key: `index-${category.id}`,
       image: shots[3] ?? shots[0] ?? category.images[0],
+      /* ink tone: the photograph drops back so the contents rows stay legible and
+         the spread no longer reads as a repeat of the statement opener */
+      tone: "ink",
       eyebrow: "The Collection",
       title: "Index",
       titleItalic: category.label,
       body: "Every model in this edition, priced with delivery and installation at your address.",
       lockup: "Wonderlands World — FLIP",
+      rightHeading: "Contents",
+      rightHint: "Tap to open",
       right: () => (
-        <ul className="h-full overflow-hidden">
+        <ul className="h-full overflow-y-auto">
           {products.slice(0, 14).map((p, i) => (
             <li key={p.id}>
               <button
                 onClick={() =>
                   turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
                 }
-                className="flex w-full items-baseline justify-between gap-4 border-t border-white/25 py-[6px] text-left text-[10px] uppercase tracking-[0.18em] text-white/80 transition-colors hover:text-white"
+                aria-label={`Open the ${p.name} page`}
+                className="group flex w-full cursor-pointer items-center gap-3 border-b border-white/15 px-2 py-[7px] text-left transition-colors hover:bg-white/12 focus-visible:bg-white/12 focus-visible:outline-none"
               >
-                <span className="truncate">{String(i + 1).padStart(2, "0")} — {p.name}</span>
-                <span className="shrink-0 text-white/60">{formatEntryPrice(p)}</span>
+                <span className="w-6 shrink-0 font-serif text-[11px] text-white/55 group-hover:text-white">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                {p.image ? (
+                  <img
+                    src={p.image}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="h-6 w-8 shrink-0 object-cover opacity-80 transition-opacity group-hover:opacity-100"
+                  />
+                ) : null}
+                <span className="min-w-0 flex-1 truncate text-[10.5px] uppercase tracking-[0.16em] text-white group-hover:underline group-hover:decoration-white/50 group-hover:underline-offset-4">
+                  {p.name}
+                </span>
+                <span className="shrink-0 font-serif text-[11px] text-white/80">{formatEntryPrice(p)}</span>
+                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/45 transition-transform group-hover:translate-x-[2px] group-hover:text-white" />
               </button>
             </li>
           ))}
