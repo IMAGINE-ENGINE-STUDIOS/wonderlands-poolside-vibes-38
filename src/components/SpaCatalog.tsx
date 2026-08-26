@@ -118,30 +118,6 @@ const SpaCatalog = () => {
     return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
   }, []);
   return <>
-      {/* Wonderlands Studio CTA — editorial plate */}
-      <section className="py-16 px-4 border-y border-border/60 bg-card/40">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground mb-4">
-            The Atelier — Private Suite
-          </p>
-          <h3 className="font-serif text-3xl md:text-5xl font-light tracking-tight text-foreground mb-5">
-            Create a Wonderful Outdoor Experience
-          </h3>
-          <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Use our interactive studio to customize your Pool, Spa or Tanning Ledge with premium
-            finishes, advanced features, and personalized options in a private suite.
-          </p>
-          <a
-            href="/wonderlands-studio"
-            className="group inline-flex items-center gap-3 border border-foreground px-8 py-4 text-[10px] uppercase tracking-[0.35em] text-foreground transition-colors duration-300 hover:bg-foreground hover:text-background"
-          >
-            <span>Open Wonderlands Studio</span>
-            <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-      </section>
 
       <section className="py-20 px-4 bg-background">
         <div className="max-w-7xl mx-auto">
