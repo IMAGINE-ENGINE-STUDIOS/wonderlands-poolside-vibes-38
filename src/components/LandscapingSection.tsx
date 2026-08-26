@@ -221,6 +221,508 @@ const LandscapingSection = () => {
               No plants found. Try a different search.
             </div>
           )}
+
+          {/* Quote tool — editorial ledger, below the catalog */}
+          {(() => {
+            const sqft = Math.max(0, parseFloat(quoteSqft) || 0);
+            const tier = TIERS.find((t) => t.id === quoteTier)!;
+            const effectiveRate =
+              isAdmin && overrideRate !== "" && !isNaN(parseFloat(overrideRate))
+                ? parseFloat(overrideRate)
+                : tier.price;
+            const baseCost = sqft * effectiveRate;
+            const plantsCost = Object.values(quoteItems).reduce(
+              (sum, it) => sum + it.price * it.qty,
+              0,
+            );
+            const computedTotal = baseCost + plantsCost;
+            const total =
+              isAdmin && overrideTotal !== "" && !isNaN(parseFloat(overrideTotal))
+                ? parseFloat(overrideTotal)
+                : computedTotal;
+            const fmt = (n: number) =>
+              `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            return (
+              <div className="max-w-5xl mx-auto mt-16 border border-border/60 bg-card/40">
+                <div className="p-6 sm:p-10 space-y-8">
+                  {/* Editorial header */}
+                  <div className="border-b border-border/60 pb-6">
+                    <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
+                      The Estimate — Volume XIII
+                    </p>
+                    <h3 className="font-serif text-3xl sm:text-4xl font-light tracking-tight text-foreground mt-3">
+                      Compose your landscaping quote
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-2 max-w-xl leading-relaxed">
+                      Choose a service tier, measure your ground, add plants from the catalog —
+                      the ledger keeps count.
+                    </p>
+                  </div>
+
+                  {/* Tier picker */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {TIERS.map((t, i) => {
+                      const isActive = t.id === quoteTier;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setQuoteTier(t.id)}
+                          className={`text-left p-5 border transition-all duration-300 ${
+                            isActive
+                              ? "border-foreground bg-foreground/5"
+                              : "border-border/60 hover:border-foreground/50"
+                          }`}
+                        >
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+                              Tier {String(i + 1).padStart(2, "0")}
+                            </span>
+                            {isActive && (
+                              <span className="text-[9px] uppercase tracking-[0.35em] text-foreground">
+                                Selected
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-serif text-xl font-light text-foreground mt-2">{t.title}</div>
+                          <div className="font-serif text-2xl font-light text-foreground mt-1">
+                            ${t.price}
+                            {t.id === "luxury" ? "+" : ""}
+                            <span className="text-xs text-muted-foreground"> /sq ft</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Sqft + summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                        Square Footage
+                      </label>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="e.g. 500"
+                        value={quoteSqft}
+                        onChange={(e) => setQuoteSqft(e.target.value)}
+                        className="mt-2 rounded-none"
+                      />
+                    </div>
+                    <div className="text-sm border-l border-border/60 pl-4">
+                      <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                        Base ({sqft || 0} sq ft × ${effectiveRate})
+                      </div>
+                      <div className="font-serif text-xl font-light text-foreground mt-1">{fmt(baseCost)}</div>
+                    </div>
+                    <div className="text-sm border-l border-border/60 pl-4">
+                      <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                        Selected Plants
+                      </div>
+                      <div className="font-serif text-xl font-light text-foreground mt-1">{fmt(plantsCost)}</div>
+                    </div>
+                  </div>
+
+                  {/* Selected plants list */}
+                  {Object.keys(quoteItems).length > 0 && (
+                    <div className="border-t border-border/60 pt-6 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                          Plants in Quote ({Object.keys(quoteItems).length})
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs text-muted-foreground hover:text-foreground rounded-none"
+                          onClick={() => setQuoteItems({})}
+                        >
+                          Clear all
+                        </Button>
+                      </div>
+                      <div className="space-y-1.5 max-h-48 overflow-auto pr-1">
+                        {Object.entries(quoteItems).map(([key, it]) => (
+                          <div
+                            key={key}
+                            className="flex items-center gap-2 p-2 bg-muted/40 rounded-none text-sm"
+                          >
+                            <img
+                              src={it.image}
+                              alt={it.plantName}
+                              className="w-9 h-9 rounded object-cover bg-background flex-shrink-0"
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate">{it.plantName}</div>
+                              <div className="text-xs text-muted-foreground truncate">
+                                {it.variantLabel !== "Standard" ? `${it.variantLabel} · ` : ""}
+                                {it.sizeLabel} · {fmt(it.price)} ea
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 border rounded-none bg-background">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 rounded-none"
+                                onClick={() =>
+                                  setQuoteItems((prev) => {
+                                    const next = { ...prev };
+                                    const cur = next[key];
+                                    if (!cur) return prev;
+                                    if (cur.qty <= 1) delete next[key];
+                                    else next[key] = { ...cur, qty: cur.qty - 1 };
+                                    return next;
+                                  })
+                                }
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="w-6 text-center text-xs font-semibold">{it.qty}</span>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 rounded-none"
+                                onClick={() =>
+                                  setQuoteItems((prev) => ({
+                                    ...prev,
+                                    [key]: { ...prev[key], qty: prev[key].qty + 1 },
+                                  }))
+                                }
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-muted-foreground hover:text-destructive rounded-none"
+                              onClick={() =>
+                                setQuoteItems((prev) => {
+                                  const next = { ...prev };
+                                  delete next[key];
+                                  return next;
+                                })
+                              }
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Customer info */}
+                  <div className="border-t border-border/60 pt-6 space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                      Your Information
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Input
+                        placeholder="Full name *"
+                        value={custName}
+                        onChange={(e) => setCustName(e.target.value)}
+                        className="rounded-none"
+                      />
+                      <Input
+                        type="email"
+                        placeholder="Email *"
+                        value={custEmail}
+                        onChange={(e) => setCustEmail(e.target.value)}
+                        className="rounded-none"
+                      />
+                      <Input
+                        type="tel"
+                        placeholder="Phone"
+                        value={custPhone}
+                        onChange={(e) => setCustPhone(e.target.value)}
+                        className="rounded-none"
+                      />
+                      <Input
+                        placeholder="Property address"
+                        value={custAddress}
+                        onChange={(e) => setCustAddress(e.target.value)}
+                        className="rounded-none"
+                      />
+                    </div>
+                    <Textarea
+                      placeholder="Notes or special requests (optional)"
+                      value={custNotes}
+                      onChange={(e) => setCustNotes(e.target.value)}
+                      rows={2}
+                      className="rounded-none"
+                    />
+                  </div>
+
+                  {/* Admin unlock & overrides */}
+                  <div className="border-t border-border/60 pt-6">
+                    {!isAdmin ? (
+                      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                        <Input
+                          type="password"
+                          placeholder="Admin passcode"
+                          value={passcode}
+                          onChange={(e) => setPasscode(e.target.value)}
+                          className="sm:max-w-xs rounded-none"
+                        />
+                        <Button className="rounded-none"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (passcode === "WONDERMAGIC") {
+                              setIsAdmin(true);
+                              setPasscode("");
+                              toast({
+                                title: "Admin Unlocked",
+                                description: "Override controls are now available.",
+                              });
+                            } else {
+                              toast({
+                                title: "Invalid Passcode",
+                                description: "Please enter the correct passcode.",
+                              });
+                            }
+                          }}
+                        >
+                          Unlock Admin
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 bg-muted/40 border border-border/60 rounded-none p-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                            Admin Overrides Active
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs rounded-none"
+                            onClick={() => {
+                              setIsAdmin(false);
+                              setOverrideRate("");
+                              setOverrideTotal("");
+                            }}
+                          >
+                            Lock
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                              Override $/sq ft (optional)
+                            </label>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder={`Default $${tier.price}`}
+                              value={overrideRate}
+                              onChange={(e) => setOverrideRate(e.target.value)}
+                              className="rounded-none mt-1"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                              Override Total (optional)
+                            </label>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder={`Computed ${fmt(computedTotal)}`}
+                              value={overrideTotal}
+                              onChange={(e) => setOverrideTotal(e.target.value)}
+                              className="rounded-none mt-1"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Total + actions */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6 border-t border-border/60">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
+                        Estimated Total
+                      </p>
+                      <p className="font-serif text-4xl sm:text-5xl font-light text-foreground mt-1">
+                        {fmt(total)}
+                      </p>
+                      {isAdmin && overrideTotal !== "" && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Computed {fmt(computedTotal)} · overridden
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button className="rounded-none"
+                        size="lg"
+                        variant="outline"
+                        disabled={total <= 0}
+                        onClick={() => {
+                          const today = new Date().toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          });
+                          const quoteNum = `WL-LS-${Date.now().toString().slice(-6)}`;
+                          const plantRows = Object.values(quoteItems)
+                            .map((it) => {
+                              const lbl = it.variantLabel !== "Standard" ? ` — ${it.variantLabel}` : "";
+                              return `<tr>
+                                <td>${it.plantName}${lbl} <span style="color:#64748b">(${it.sizeLabel})</span></td>
+                                <td style="text-align:center">${it.qty}</td>
+                                <td style="text-align:right">${fmt(it.price)}</td>
+                                <td style="text-align:right;font-weight:600">${fmt(it.price * it.qty)}</td>
+                              </tr>`;
+                            })
+                            .join("");
+                          const html = `<!doctype html><html><head><meta charset="utf-8"><title>Landscaping Quote ${quoteNum}</title>
+                            <style>
+                              *{box-sizing:border-box}
+                              body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:40px;color:#0f172a;background:#fff;max-width:850px;margin:auto;}
+                              .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:4px solid #0891b2;padding-bottom:20px;margin-bottom:30px}
+                              .brand h1{margin:0;font-size:28px;background:linear-gradient(90deg,#0891b2,#f97066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800}
+                              .brand p{margin:4px 0 0;color:#64748b;font-size:13px}
+                              .meta{text-align:right;font-size:12px;color:#475569}
+                              .meta strong{display:block;color:#0f172a;font-size:16px}
+                              .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+                              .box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px}
+                              .box h3{margin:0 0 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#0891b2}
+                              .box p{margin:2px 0;font-size:13px}
+                              h2.section{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#0891b2;border-bottom:2px solid #e2e8f0;padding-bottom:6px;margin:24px 0 12px}
+                              table{width:100%;border-collapse:collapse;font-size:13px}
+                              th{text-align:left;padding:8px;background:#f1f5f9;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#475569}
+                              td{padding:10px 8px;border-bottom:1px solid #e2e8f0}
+                              .totals{margin-top:16px;margin-left:auto;width:320px;font-size:14px}
+                              .totals .row{display:flex;justify-content:space-between;padding:6px 0}
+                              .totals .total{border-top:2px solid #0f172a;margin-top:8px;padding-top:10px;font-size:20px;font-weight:800;color:#0891b2}
+                              .footer{margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b;text-align:center;line-height:1.6}
+                              .notes{background:#fffbeb;border-left:3px solid #f59e0b;padding:12px;border-radius:4px;font-size:13px;margin-top:16px}
+                              @media print{body{padding:20px}}
+                            </style></head>
+                            <body>
+                              <div class="header">
+                                <div class="brand">
+                                  <h1>WONDERLANDS</h1>
+                                  <p>Landscaping & Outdoor Living · Florida</p>
+                                </div>
+                                <div class="meta">
+                                  <strong>Quote ${quoteNum}</strong>
+                                  Date: ${today}<br/>
+                                  Valid for 30 days
+                                </div>
+                              </div>
+
+                              <div class="grid">
+                                <div class="box">
+                                  <h3>Bill To</h3>
+                                  <p><strong>${custName || "—"}</strong></p>
+                                  ${custEmail ? `<p>${custEmail}</p>` : ""}
+                                  ${custPhone ? `<p>${custPhone}</p>` : ""}
+                                  ${custAddress ? `<p>${custAddress}</p>` : ""}
+                                </div>
+                                <div class="box">
+                                  <h3>Service</h3>
+                                  <p><strong>${tier.title}</strong></p>
+                                  <p>${tier.description}</p>
+                                  <p>Rate: $${effectiveRate}/sq ft${isAdmin && overrideRate !== "" ? " (adj.)" : ""}</p>
+                                  <p>Area: ${sqft} sq ft</p>
+                                </div>
+                              </div>
+
+                              <h2 class="section">Service Summary</h2>
+                              <table>
+                                <thead><tr><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead>
+                                <tbody>
+                                  <tr>
+                                    <td><strong>${tier.title}</strong> — ${tier.description}</td>
+                                    <td style="text-align:center">${sqft} sq ft</td>
+                                    <td style="text-align:right">${fmt(effectiveRate)}</td>
+                                    <td style="text-align:right;font-weight:600">${fmt(baseCost)}</td>
+                                  </tr>
+                                  ${plantRows}
+                                </tbody>
+                              </table>
+
+                              <div class="totals">
+                                <div class="row"><span>Service Base</span><span>${fmt(baseCost)}</span></div>
+                                <div class="row"><span>Plants & Materials</span><span>${fmt(plantsCost)}</span></div>
+                                <div class="row total"><span>TOTAL</span><span>${fmt(total)}</span></div>
+                              </div>
+
+                              ${custNotes ? `<div class="notes"><strong>Notes:</strong><br/>${custNotes.replace(/</g, "&lt;").replace(/\n/g, "<br/>")}</div>` : ""}
+
+                              <div class="footer">
+                                Wonderlands World · sales@wonderlandsworld.com · (407) 760-4873<br/>
+                                This estimate is valid for 30 days. Final pricing may vary based on site conditions.<br/>
+                                Schedule a consultation: calendly.com/wonderlandsworlds/30min
+                              </div>
+                              <script>window.onload=()=>setTimeout(()=>window.print(),300)</script>
+                            </body></html>`;
+                          const w = window.open("", "_blank");
+                          if (w) {
+                            w.document.open();
+                            w.document.write(html);
+                            w.document.close();
+                          }
+                        }}
+                      >
+                        <Printer className="h-4 w-4 mr-1.5" />
+                        Print Quote
+                      </Button>
+                      <Button
+                        size="lg"
+                        className="rounded-none bg-foreground text-background hover:bg-foreground/90"
+                        disabled={total <= 0}
+                        onClick={() => {
+                          if (!custName || !custEmail) {
+                            toast({
+                              title: "Missing Information",
+                              description: "Please add your name and email to submit the quote.",
+                            });
+                            return;
+                          }
+                          // Push everything into the cart so the existing checkout/quote flow takes over.
+                          if (baseCost > 0) {
+                            addToCart({
+                              id: `landscaping-${tier.id}-${Date.now()}`,
+                              name: `Landscaping — ${tier.title} (${sqft} sq ft @ $${tier.price}/sq ft)`,
+                              price: baseCost,
+                              image: "",
+                              category: "Landscaping",
+                            });
+                          }
+                          Object.entries(quoteItems).forEach(([key, it]) => {
+                            for (let i = 0; i < it.qty; i++) {
+                              addToCart({
+                                id: `${key}-${i}-${Date.now()}`,
+                                name: `${it.plantName}${
+                                  it.variantLabel !== "Standard" ? ` — ${it.variantLabel}` : ""
+                                } (${it.sizeLabel})`,
+                                price: it.price,
+                                image: it.image,
+                                category: "Landscaping",
+                              });
+                            }
+                          });
+                          toast({
+                            title: "Quote Submitted",
+                            description: `Thanks ${custName}! Your landscaping quote totals ${fmt(total)}. We'll reach out at ${custEmail}.`,
+                          });
+                        }}
+                      >
+                        <Send className="h-4 w-4 mr-1.5" />
+                        Submit Quote
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </section>
 
