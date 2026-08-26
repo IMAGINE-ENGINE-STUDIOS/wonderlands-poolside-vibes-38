@@ -5,7 +5,7 @@ import FlipPageTabs from "./FlipPageTabs";
 // NOTE: FlipCornerHint removed per user request — the page-curl hint in the corner was not looking good.
 import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMotion";
 import { useFlipLocked } from "./flipBoardStore";
-import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, X, Headphones } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, X, Headphones, ArrowUpRight } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
