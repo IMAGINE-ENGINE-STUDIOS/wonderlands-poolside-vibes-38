@@ -5,6 +5,8 @@ import { Separator } from '@/components/ui/separator';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
 import { useNavigate } from 'react-router-dom';
 import { usePersistentState } from '@/hooks/usePersistentState';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import {
   ChevronDown,
   Minus,
