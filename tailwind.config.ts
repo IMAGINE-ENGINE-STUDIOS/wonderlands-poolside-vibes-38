@@ -167,7 +167,12 @@ export default {
 				'medallion-shimmer': {
 					'0%': { backgroundPosition: '-200% 0' },
 					'100%': { backgroundPosition: '200% 0' }
+				},
+				'medallion-idle-wave': {
+					'0%, 100%': { transform: 'rotate(-4deg) translateY(-2px)' },
+					'50%': { transform: 'rotate(4deg) translateY(2px)' }
 				}
+
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -188,7 +193,9 @@ export default {
 				'medallion-glow': 'medallion-glow 2.4s ease-in-out infinite',
 				'medallion-wave': 'medallion-wave 2.4s cubic-bezier(0.25,0.46,0.45,0.94) infinite',
 				'medallion-float': 'medallion-float 3s ease-in-out infinite',
-				'medallion-shimmer': 'medallion-shimmer 2.2s linear infinite'
+				'medallion-shimmer': 'medallion-shimmer 2.2s linear infinite',
+				'medallion-idle-wave': 'medallion-idle-wave 2.2s ease-in-out infinite'
+
 			}
 		}
 	},
