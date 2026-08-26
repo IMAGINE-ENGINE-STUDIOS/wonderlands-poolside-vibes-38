@@ -2,7 +2,7 @@ import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
 import FlipPageTabs from "./FlipPageTabs";
-import FlipCornerHint from "./FlipCornerHint";
+// NOTE: FlipCornerHint removed per user request — the page-curl hint in the corner was not looking good.
 import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMotion";
 import { useFlipLocked } from "./flipBoardStore";
 import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, Search, X } from "lucide-react";
@@ -306,8 +306,6 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   const isV7 = variant === "v7";
 
   const bookRef = useRef<any>(null);
-  /* V5: the corner-lift invitation, retired as soon as the reader turns a page */
-  const [cornerHint, setCornerHint] = useState(isV5);
   /* Shared page-flip transition motion — played on every category / product open */
   const flipMotion = usePageFlipTransMotion();
   const [portrait, setPortrait] = useState(false);
@@ -1727,7 +1725,6 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"
               onFlip={(e: any) => {
                 setPage(e.data as number);
-                if (cornerHint) setCornerHint(false);
               }}
             >
               {pages.map((p, i) => (
@@ -1760,7 +1757,6 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
                     variant="trail"
                     storageKey={`flip.v5.tabs.${dossier ? "dossier" : mode}`}
                   />
-                  <FlipCornerHint visible={cornerHint && !flipLocked} onFlip={flipNext} />
                 </>
               )}
               {/* Shared page-flip trans motion — every category and product open */}
