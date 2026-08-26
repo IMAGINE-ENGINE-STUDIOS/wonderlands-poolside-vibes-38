@@ -3,6 +3,7 @@ import TanningLedgeProductCard from "./TanningLedgeProductCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
 import EditorialSectionHeader from "./EditorialSectionHeader";
+import { Link } from "react-router-dom";
 import { lathamTanningLedges, glimmerglassTanningLedges, tanningLedges } from "@/data/poolData";
 
 // Import GlimmerGlass images
@@ -97,6 +98,17 @@ const TanningLedgeSection = () => {
             title="Tanning Ledges"
             description="The ideal shallow plane — drawn for lounging, reading and long afternoons of sun."
           />
+
+          {/* Entry to the dedicated sun shelf suite (full configuration + board) */}
+          <div className="mb-8">
+            <Link
+              to="/suites/tanning-ledges"
+              className="inline-block border border-border/70 px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground/5"
+            >
+              Open the tanning ledge suite
+            </Link>
+          </div>
+
 
           {/* Latham Tanning Ledges Section */}
           <div className="mb-16">
