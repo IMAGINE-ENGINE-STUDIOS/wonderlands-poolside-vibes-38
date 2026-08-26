@@ -5,6 +5,8 @@ import { Separator } from '@/components/ui/separator';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
 import { useNavigate } from 'react-router-dom';
 import { usePersistentState } from '@/hooks/usePersistentState';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import {
   ChevronDown,
   Minus,
@@ -85,6 +87,7 @@ const StudioCartWidget = ({
     },
     [onListOpenChange, setOpenState]
   );
+  const isMobile = useIsMobile();
 
   // Re-sync the parent with the restored (cached) panel state after a reload.
   React.useEffect(() => {
@@ -157,23 +160,41 @@ const StudioCartWidget = ({
 
       {/* Shopping list panel */}
       {open && (
-        <div className="relative rounded-xl border border-border/40 bg-background/50 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col">
+        <div
+          className={cn(
+            'relative rounded-xl border border-border/40 bg-background/50 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col',
+            isMobile && 'fixed inset-0 z-[60] rounded-none bg-background/95'
+          )}
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-primary/5">
             <span className="flex items-center gap-2 text-[9px] uppercase tracking-[0.34em] text-muted-foreground">
               <ShoppingBag className="h-3 w-3 text-primary" />
               The Selection
             </span>
 
-            {cartItems.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-[11px] text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                onClick={clearCart}
-              >
-                Clear all
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {cartItems.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[11px] text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  onClick={clearCart}
+                >
+                  Clear all
+                </Button>
+              )}
+              {isMobile && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close cart"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
 
           {duplicates.length > 0 && (
@@ -185,7 +206,12 @@ const StudioCartWidget = ({
             </div>
           )}
 
-          <div className="max-h-[min(60vh,420px)] overflow-y-auto custom-scrollbar divide-y divide-border/30">
+          <div
+            className={cn(
+              'overflow-y-auto custom-scrollbar divide-y divide-border/30',
+              isMobile ? 'flex-1' : 'max-h-[min(60vh,420px)]'
+            )}
+          >
             {cartItems.map((item) => {
               const flagged = duplicates.includes(item.category || 'Other');
               return (
@@ -399,6 +425,18 @@ const StudioCartWidget = ({
           <Separator className="bg-border/40" />
 
           <div className="p-4 bg-primary/5">
+            {isMobile && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (pendingPrice > 0) onAddCurrent?.();
+                  navigate('/checkout');
+                }}
+                className="mb-3 h-10 w-full bg-gradient-to-r from-primary to-teal text-xs font-medium text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
+              >
+                <CreditCard className="h-4 w-4 mr-2" /> Checkout
+              </Button>
+            )}
             <div className="flex items-center justify-between text-sm font-bold">
               <span className="uppercase tracking-wider text-[11px]">CART TOTAL</span>
               <span className="text-lg">
