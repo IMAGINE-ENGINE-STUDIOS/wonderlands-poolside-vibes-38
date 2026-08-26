@@ -56,6 +56,16 @@ export const ITEMS: Item[] = [
     notes: ["Wonderlands custom concrete", "Pebble Tec interior finishes", "Integrated spas & tanning ledges"],
   },
   {
+    id: "solar",
+    label: "Wonderlands Solar",
+    tagline: "Sunlight, Stored",
+    layout: "duo",
+    images: [solarRoofArray, solarBatteryWall, solarPoolHeating],
+    description:
+      "All-black arrays set flush to the tile, wall-mounted home batteries, solar pool heating and EV charging — engineered, permitted and installed so the pool runs on the roof above it.",
+    notes: ["Turnkey installed pricing", "Battery backup & net metering", "26–30% incentives"],
+  },
+  {
     id: "pools",
     label: "Fiberglass Pools",
     tagline: "Signature Waters",
@@ -154,16 +164,6 @@ export const ITEMS: Item[] = [
     description:
       "Palms, specimen trees, ornamental grasses and beds composed as a planting plan — mass, height, and shadow scheduled by season.",
     notes: ["Specimen palms & trees", "Ornamental grasses", "Planting plans"],
-  },
-  {
-    id: "solar",
-    label: "Wonderlands Solar",
-    tagline: "Sunlight, Stored",
-    layout: "duo",
-    images: [solarRoofArray, solarBatteryWall, solarPoolHeating],
-    description:
-      "All-black arrays set flush to the tile, wall-mounted home batteries, solar pool heating and EV charging — engineered, permitted and installed so the pool runs on the roof above it.",
-    notes: ["Turnkey installed pricing", "Battery backup & net metering", "26–30% incentives"],
   },
   {
     id: "covers",
@@ -358,7 +358,7 @@ const CoverFace: React.FC = () => (
     <p className="text-[9px] uppercase tracking-[0.45em] opacity-70">Wonderlands World</p>
     <h3 className="font-serif text-5xl font-light leading-tight md:text-6xl">The Index</h3>
     <div className="h-px w-12 bg-current opacity-40" />
-    <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">Fourteen Disciplines</p>
+    <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">Sixteen Disciplines</p>
     <p className="mt-4 max-w-xs text-[11px] leading-relaxed opacity-60">
       A complete catalogue of the Wonderlands outdoor world — water, stone, shelter, surface and verdure, drawn as one
       continuous project.
