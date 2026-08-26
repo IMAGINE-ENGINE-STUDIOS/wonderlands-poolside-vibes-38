@@ -647,11 +647,8 @@ export const useProductBookPages = ({
             <div className="mt-5 h-px w-14 origin-left bg-foreground/50 animate-rule-draw" />
             <p className="mt-5 max-w-[38ch] font-serif text-[13px] leading-relaxed text-foreground/85">{story.lede}</p>
             <div className="mt-8 grid grid-cols-3 gap-4">
-              {[
-                { value: price, label: "Turnkey investment" },
-                { value: metaBits[0] ?? category.label, label: "Dimensions" },
-                { value: "Florida", label: "Engineered & installed" },
-              ].map((s) => (
+              {headlineStats.map((s) => (
+
                 <div key={s.label} className="border-t border-border/50 pt-2">
                   <p className="font-serif text-lg font-light leading-none">{s.value}</p>
                   <p className="mt-1 text-[8px] uppercase tracking-[0.28em] text-muted-foreground">{s.label}</p>
