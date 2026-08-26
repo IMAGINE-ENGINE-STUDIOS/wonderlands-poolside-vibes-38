@@ -49,42 +49,46 @@ const GilmerSpasSection = () => {
             {gilmerSpas.map(spa => <GilmerSpaCard key={spa.model} spa={spa} onRequestQuote={handleRequestQuote} />)}
           </ProductScrollRow>
 
-          {/* Features Section */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 rounded-none bg-gradient-to-br from-primary/5 to-teal/5">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-none bg-primary/10 flex items-center justify-center">
-                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold mb-2">Lifetime Warranty</h3>
-              <p className="text-sm text-muted-foreground">
-                All Gilmer Glass spas come with a comprehensive lifetime warranty
+          {/* Features Section — editorial guarantee plate */}
+          <div className="mt-20 border border-border/60 bg-card/40">
+            <div className="border-b border-border/60 px-6 py-4 md:px-10 md:py-5">
+              <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
+                The Glimmerglass Standard — 03 Guarantees
               </p>
             </div>
-
-            <div className="text-center p-6 rounded-none bg-gradient-to-br from-coral/5 to-primary/5">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-none bg-coral/10 flex items-center justify-center">
-                <svg className="w-8 h-8 text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold mb-2">Custom Colors</h3>
-              <p className="text-sm text-muted-foreground">
-                Choose from multiple premium color options to match your style
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-none bg-gradient-to-br from-teal/5 to-coral/5">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-none bg-teal/10 flex items-center justify-center">
-                <svg className="w-8 h-8 text-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold mb-2">Fast Installation</h3>
-              <p className="text-sm text-muted-foreground">
-                Quick and professional installation by certified experts
-              </p>
+            <div className="grid grid-cols-1 divide-y divide-border/60 md:grid-cols-3 md:divide-x md:divide-y-0">
+              {[
+                {
+                  num: "01",
+                  title: "Lifetime Warranty",
+                  text: "All Gilmer Glass spas come with a comprehensive lifetime warranty"
+                },
+                {
+                  num: "02",
+                  title: "Custom Colors",
+                  text: "Choose from multiple premium color options to match your style"
+                },
+                {
+                  num: "03",
+                  title: "Fast Installation",
+                  text: "Quick and professional installation by certified experts"
+                }
+              ].map((item) => (
+                <div
+                  key={item.num}
+                  className="p-6 md:p-10 text-center transition-colors duration-300 hover:bg-muted/20"
+                >
+                  <span className="inline-block mb-5 border border-border/60 px-3 py-1 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                    {item.num}
+                  </span>
+                  <h3 className="mb-3 font-serif text-2xl font-light tracking-tight text-foreground md:text-3xl">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {item.text}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
