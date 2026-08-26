@@ -424,6 +424,18 @@ const StudioCartWidget = ({
           <Separator className="bg-border/40" />
 
           <div className="p-4 bg-primary/5">
+            {isMobile && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (pendingPrice > 0) onAddCurrent?.();
+                  navigate('/checkout');
+                }}
+                className="mb-3 h-10 w-full bg-gradient-to-r from-primary to-teal text-xs font-medium text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
+              >
+                <CreditCard className="h-4 w-4 mr-2" /> Checkout
+              </Button>
+            )}
             <div className="flex items-center justify-between text-sm font-bold">
               <span className="uppercase tracking-wider text-[11px]">CART TOTAL</span>
               <span className="text-lg">
