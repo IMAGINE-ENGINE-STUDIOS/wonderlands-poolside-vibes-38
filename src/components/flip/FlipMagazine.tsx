@@ -26,6 +26,7 @@ const EMPTY_DOSSIER_ENTRY = { id: "none", name: "", image: "", price: null } as 
 import FlipEditorBoard, { boardForCategory } from "./FlipEditorBoard";
 import { mergeStudioGroups } from "@/lib/flipStudioFeatures";
 import heroCover from "@/assets/hero/hero-carousel-1.webp";
+import HeroVideo from "@/components/HeroVideo";
 import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 /**
@@ -307,13 +308,16 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   const [dims, setDims] = useState({ w: 420, h: 560 });
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
   const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category.v2", ITEMS[0].id);
-  const [savedPage, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
+  /* Page position persists as the reader navigates, but load always starts at the Index. */
+  const [, setSavedPage] = usePersistentState<number>("flip.mag.page", 0);
   const [entries, setEntries] = useState<ConsoleEntry[] | null>(null);
   const [searchOpen, setSearchOpen] = usePersistentState<boolean>("flip.mag.search", false);
-  const [page, setPage] = useState(savedPage);
+  /* Default open: always land on the Index spread (page 0). The page number is
+     still persisted as the reader navigates, but a fresh load starts at the Index. */
+  const [page, setPage] = useState(0);
   /* held while the reader draws on a board spread, so the book never turns under them */
   const flipLocked = useFlipLocked();
-  const startPageRef = useRef(savedPage);
+  const startPageRef = useRef(0);
 
   useEffect(() => {
     const measure = () => {
@@ -632,13 +636,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       key: "home-left",
       render: () => (
         <div className="relative h-full w-full overflow-hidden">
-          <img
-            src={heroCover}
-            alt="Wonderlands outdoor living editorial cover"
-            loading="eager"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+          {/* Cover film — shared with the site header via HeroVideo (still fallback built in) */}
+          <HeroVideo poster={heroCover} alt="Wonderlands outdoor living editorial cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/85" />
           <div className="relative flex h-full flex-col justify-between p-8 text-white sm:p-10">
             <div className="flex items-center justify-between gap-4">
