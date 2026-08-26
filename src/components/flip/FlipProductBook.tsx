@@ -382,6 +382,35 @@ const OptionChapter: React.FC<{
     addOption(o);
   };
 
+  /* the add control, printed on the gutter side of the row (see LeafSideContext) */
+  const control = (o: StudioOption) =>
+    isIncluded(o) ? (
+      /* fitted as standard — nothing to add, so the row is marked, not offered */
+      <span
+        title="Included as standard"
+        className="flex h-6 shrink-0 items-center gap-1 border border-foreground/30 bg-foreground/[0.06] px-2 text-[8px] uppercase tracking-[0.25em] text-muted-foreground"
+      >
+        <Check className="h-3 w-3" />
+        Standard
+      </span>
+    ) : (
+      <button
+        type="button"
+        aria-label={`Add ${o.label} to the order`}
+        onClick={(e) => {
+          e.stopPropagation();
+          requestAdd(o);
+        }}
+        className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
+          inOrder(o)
+            ? "border-foreground bg-foreground text-background"
+            : "border-border/70 hover:bg-foreground hover:text-background"
+        }`}
+      >
+        {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+      </button>
+    );
+
   const rows = (dense: boolean) => (
     <ul className={`min-h-0 flex-1 space-y-0 ${dense ? "overflow-hidden" : "overflow-y-auto"}`}>
       {chunk.map((o, oi) => (
@@ -394,6 +423,8 @@ const OptionChapter: React.FC<{
             active?.label === o.label ? "bg-foreground/[0.04]" : ""
           }`}
         >
+          {/* right-hand leaf: the + sits before the title, away from the flip corner */}
+          {leafSide === "right" && control(o)}
           <span className="font-serif text-xs text-muted-foreground">
             {String(chunkIndex * perPage + oi + 1).padStart(2, "0")}
           </span>
@@ -410,32 +441,9 @@ const OptionChapter: React.FC<{
           ) : null}
           <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em]">{o.label}</span>
           <span className="shrink-0 font-serif text-[11px] text-muted-foreground">{o.priceLabel}</span>
-          {isIncluded(o) ? (
-            /* fitted as standard — nothing to add, so the row is marked, not offered */
-            <span
-              title="Included as standard"
-              className="flex h-6 shrink-0 items-center gap-1 border border-foreground/30 bg-foreground/[0.06] px-2 text-[8px] uppercase tracking-[0.25em] text-muted-foreground"
-            >
-              <Check className="h-3 w-3" />
-              Standard
-            </span>
-          ) : (
-            <button
-              type="button"
-              aria-label={`Add ${o.label} to the order`}
-              onClick={(e) => {
-                e.stopPropagation();
-                requestAdd(o);
-              }}
-              className={`flex h-6 w-6 shrink-0 items-center justify-center border transition-colors ${
-                inOrder(o)
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border/70 hover:bg-foreground hover:text-background"
-              }`}
-            >
-              {inOrder(o) ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-            </button>
-          )}
+          {/* left-hand leaf: the + stays on the inner (right) edge of the row */}
+          {leafSide !== "right" && control(o)}
+
 
           {/* unit-priced options are measured before they enter the estimate, exactly as in the studio */}
           {measure?.label === o.label && (
