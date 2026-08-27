@@ -117,15 +117,22 @@ export const pointInPath = (point: LatLng, path: LatLng[]): boolean => {
  * flat roof still collects well, a steep north face barely at all.
  */
 export const faceIrradianceScore = (face: RoofFace, latitude = 27.5): number => {
+  const shade = 1 - Math.min(0.6, face.shadeFactor);
+
+  /* A near-flat deck has no facing: the modules are tilt-racked toward the sun,
+     so orientation stops mattering and only the ballast loss is taken. */
+  if (face.pitchDeg <= 7) return Math.max(0.05, Math.min(1, 0.93 * shade));
+
   const off = Math.abs(((face.azimuthDeg - 180 + 540) % 360) - 180); // 0 = due south
   const azFactor = 0.62 + 0.38 * Math.cos((off * Math.PI) / 180);
   const optimum = Math.min(30, Math.max(18, latitude - 2));
   const tiltPenalty = Math.min(1, Math.abs(face.pitchDeg - optimum) / 62);
   // a steep face pointed away from the sun compounds both penalties
   const orientationWeight = 1 - tiltPenalty * (0.35 + (off / 180) * 0.65);
-  const score = azFactor * orientationWeight * (1 - Math.min(0.6, face.shadeFactor));
+  const score = azFactor * orientationWeight * shade;
   return Math.max(0.05, Math.min(1, score));
 };
+
 
 export type ExposureBand = "prime" | "good" | "fair" | "shaded";
 
