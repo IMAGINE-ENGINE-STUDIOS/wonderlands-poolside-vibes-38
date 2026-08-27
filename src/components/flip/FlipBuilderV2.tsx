@@ -304,7 +304,7 @@ const FlipBuilderV2: React.FC = () => {
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={() => setPreview((v) => !v)} className={preview ? `${btnCx} bg-foreground text-background` : btnCx}>
+          <button onClick={() => setPreview((v) => !v)} className={preview ? `${btnCx} bg-foreground` : btnCx} style={preview ? { color: "hsl(var(--background))" } : undefined}>
             {preview ? <PenLine className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />} {preview ? "Edit" : "Read"}
           </button>
           <button onClick={() => save(false)} disabled={saving} className={btnCx}>
