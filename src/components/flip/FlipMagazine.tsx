@@ -483,13 +483,17 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     setFading(true);
     if (swapTimer.current) window.clearTimeout(swapTimer.current);
     // Swap only after the fade-out has fully completed, so the reader never
-    // catches the edition changing mid-dissolve.
+    // catches the edition changing mid-dissolve. The ref is cleared inside the
+    // callback so the fade-in effect knows the swap has actually landed — that
+    // race is what made a back step occasionally appear to do nothing.
     swapTimer.current = window.setTimeout(() => {
+      swapTimer.current = null;
       startPageRef.current = 0;
       setPage(0);
       apply();
     }, 420);
   }, []);
+
 
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
 
