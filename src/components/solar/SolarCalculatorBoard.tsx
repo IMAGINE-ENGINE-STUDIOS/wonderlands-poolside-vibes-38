@@ -694,6 +694,14 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
 
   return (
     <div className="space-y-5">
+      {/* map dimension labels need a dark halo to read over any aerial */}
+      <style>{`
+        .wl-solar-dim {
+          text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 8px rgba(0,0,0,.8);
+          letter-spacing: .04em;
+        }
+      `}</style>
+
       {/* ── address ── */}
       <form onSubmit={search} className="relative flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
@@ -1052,6 +1060,14 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         </div>
       </div>
 
+      {/* ── animated performance graphics ── */}
+      <SolarPerformanceGraphics
+        production={production}
+        savings={savings}
+        faces={faces}
+        latitude={session.lat ?? FL_LAT}
+      />
+
       <SolarReportTabs
         address={session.address}
         faces={faces}
@@ -1065,6 +1081,17 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         imageryDate={session.imageryDate}
         verified={production.yearlyKwhVerified != null}
       />
+
+      {/* the shared Order Desk, so the solar system lives with the rest of the project */}
+      {cart && (
+        <StudioCartWidget
+          currentPrice={bom.installed}
+          currentName={`Wonderlands Solar — ${production.kwDc.toFixed(2)} kW`}
+          currentCategory="solar"
+          currentExtras={solarExtras}
+          onAddCurrent={addToCart}
+        />
+      )}
     </div>
   );
 };
