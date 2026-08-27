@@ -392,7 +392,10 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
 
   const halfBody = (
     <>
-      <div className={`absolute inset-y-0 w-[200%] ${half === "left" ? "left-0" : "-left-full"}`}>
+      <div
+        className={`absolute inset-y-0 w-[200%] ${half === "left" ? "left-0" : "-left-full"}`}
+        {...lockHandlers}
+      >
         <div className="flex h-full w-full flex-col p-3 sm:p-4">
           <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
         </div>
@@ -403,21 +406,27 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
           half === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"
         } from-foreground/10 to-transparent`}
       />
+      {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
+          the reader can still grab the corner and turn instead of only using the
+          arrows. Entering it releases the drawing lock. */}
+      <div
+        onPointerEnter={unlock}
+        title="Drag here to turn the page"
+        className={`absolute inset-y-0 z-20 w-9 cursor-pointer ${half === "left" ? "left-0" : "right-0"}`}
+      />
     </>
   );
 
   return (
-    <div
-      className={half ? "relative h-full w-full overflow-hidden" : "flex min-h-0 flex-1 flex-col"}
-      {...lockHandlers}
-    >
+    <div className={half ? "relative h-full w-full overflow-hidden" : "flex min-h-0 flex-1 flex-col"}>
       {half ? (
         halfBody
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div className="min-h-0 flex-1 overflow-auto" {...lockHandlers}>
           {panel ?? <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>}
         </div>
       )}
+
 
 
 
