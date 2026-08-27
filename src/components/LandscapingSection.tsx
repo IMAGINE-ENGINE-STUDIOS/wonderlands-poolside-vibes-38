@@ -321,9 +321,11 @@ const LandscapingSection = () => {
                     </div>
                     <div className="text-sm border-l border-border/60 pl-4">
                       <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-                        Base ({sqft || 0} sq ft × ${effectiveRate})
+                        {isCallForQuote ? "Base service" : `Base (${sqft || 0} sq ft × $${effectiveRate})`}
                       </div>
-                      <div className="font-serif text-xl font-light text-foreground mt-1">{fmt(baseCost)}</div>
+                      <div className="font-serif text-xl font-light text-foreground mt-1">
+                        {isCallForQuote ? "Quoted by an agent" : fmt(baseCost)}
+                      </div>
                     </div>
                     <div className="text-sm border-l border-border/60 pl-4">
                       <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
@@ -524,7 +526,7 @@ const LandscapingSection = () => {
                             <Input
                               type="number"
                               min={0}
-                              placeholder={`Default $${tier.price}`}
+                              placeholder={tier.price != null ? `Default $${tier.price}` : "Set $/sq ft rate"}
                               value={overrideRate}
                               onChange={(e) => setOverrideRate(e.target.value)}
                               className="rounded-none mt-1"
@@ -635,8 +637,10 @@ const LandscapingSection = () => {
                                   <h3>Service</h3>
                                   <p><strong>${tier.title}</strong></p>
                                   <p>${tier.description}</p>
-                                  <p>Rate: $${effectiveRate}/sq ft${isAdmin && overrideRate !== "" ? " (adj.)" : ""}</p>
-                                  <p>Area: ${sqft} sq ft</p>
+                                  ${isCallForQuote
+                                    ? `<p>Price: quoted by one of our agents</p>`
+                                    : `<p>Rate: $${effectiveRate}/sq ft${isAdmin && overrideRate !== "" ? " (adj.)" : ""}</p>
+                                       <p>Area: ${sqft} sq ft</p>`}
                                 </div>
                               </div>
 
@@ -646,16 +650,16 @@ const LandscapingSection = () => {
                                 <tbody>
                                   <tr>
                                     <td><strong>${tier.title}</strong> — ${tier.description}</td>
-                                    <td style="text-align:center">${sqft} sq ft</td>
-                                    <td style="text-align:right">${fmt(effectiveRate)}</td>
-                                    <td style="text-align:right;font-weight:600">${fmt(baseCost)}</td>
+                                    <td style="text-align:center">${isCallForQuote ? "—" : `${sqft} sq ft`}</td>
+                                    <td style="text-align:right">${isCallForQuote ? "By agent" : fmt(effectiveRate)}</td>
+                                    <td style="text-align:right;font-weight:600">${isCallForQuote ? "Quoted by agent" : fmt(baseCost)}</td>
                                   </tr>
                                   ${plantRows}
                                 </tbody>
                               </table>
 
                               <div class="totals">
-                                <div class="row"><span>Service Base</span><span>${fmt(baseCost)}</span></div>
+                                <div class="row"><span>Service Base</span><span>${isCallForQuote ? "Quoted by agent" : fmt(baseCost)}</span></div>
                                 <div class="row"><span>Plants & Materials</span><span>${fmt(plantsCost)}</span></div>
                                 <div class="row total"><span>TOTAL</span><span>${fmt(total)}</span></div>
                               </div>
