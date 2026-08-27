@@ -1547,14 +1547,13 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     if (!pf) return;
     const current = pf.getCurrentPageIndex?.() ?? page;
 
-    // In landscape, the book shows two pages per spread. Clicking the tab for
-    // the right-hand page of the currently open spread only needs a state
-    // update so the tab becomes active; the page is already visible.
+    // In landscape the book opens as two-page spreads; in portrait each page is
+    // its own spread. A tab for the right-hand page of the currently open spread
+    // only needs a state update so the tab becomes active — that page is already
+    // visible. For every other tab we jump the book directly.
     const isSameSpread = portrait
       ? current === n
-      : current === 0
-        ? n === 0
-        : Math.floor((current - 1) / 2) === Math.floor((n - 1) / 2);
+      : Math.floor(current / 2) === Math.floor(n / 2);
 
     if (isSameSpread) {
       setPage(n);
