@@ -202,6 +202,7 @@ const App = () => {
             <Route path="/asset-gallery" element={<AssetGallery />} />
             <Route path="/flip" element={<FlipLab />} />
             <Route path="/flip-pages" element={<FlipPagesFile />} />
+            <Route path="/flip/:slug" element={<FlipBookPublished />} />
             {/* Product suites — one per category, full configuration + board */}
             <Route path="/suites/saunas" element={<SaunaSuite />} />
             <Route path="/suites/spas" element={<SpaSuite />} />
