@@ -731,7 +731,12 @@ const FlipBuilderV2: React.FC = () => {
               </p>
 
               <div className="flex flex-wrap gap-2">
-                <button onClick={() => save(true)} disabled={saving} className={`${btnCx} border-foreground bg-foreground text-background`}>
+                <button
+                  onClick={() => save(true)}
+                  disabled={saving}
+                  className={`${btnCx} border-foreground bg-foreground`}
+                  style={{ color: "hsl(var(--background))" }}
+                >
                   {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Globe className="h-3.5 w-3.5" />} Publish edition
                 </button>
                 <button onClick={() => save(false)} disabled={saving} className={btnCx}>Save as draft</button>
