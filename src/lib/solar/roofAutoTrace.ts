@@ -146,20 +146,39 @@ const loadBitmap = (dataUrl: string) =>
     img.src = dataUrl;
   });
 
+/** Feet per bitmap pixel for a frame — Web Mercator ground resolution. */
+export const feetPerPixel = (frame: TileFrame): number => {
+  const mPerPx =
+    (156543.03392 * Math.cos((frame.lat * Math.PI) / 180)) / 2 ** frame.zoom / frame.scale;
+  return mPerPx * 3.28084;
+};
+
+export interface TraceResult {
+  path: LatLng[] | null;
+  /** Set when the capture was refused, with the reason to show the reader */
+  rejected?: string;
+}
+
+const luma = (d: Uint8ClampedArray, o: number) => 0.299 * d[o] + 0.587 * d[o + 1] + 0.114 * d[o + 2];
+
 /**
- * Flood fills the roof face under the clicked point and returns its outline.
+ * Captures the roof plane under a click as a clean, corner-accurate outline.
  *
- * Roof planes on an aerial photo read as one broad tone bounded by ridge lines,
- * gutters and shadow, so a tolerance fill from the click lands on the face and
- * stops at those edges. The filled mask is walked for its boundary, reduced by
- * a coarse angular hull and returned in geographic coordinates. Returns null
- * when the fill runs away (too large — a click on grass or a driveway).
+ * 1. the seed colour is averaged over a small patch so one speckled shingle or a
+ *    vent shadow cannot poison it;
+ * 2. the region grows from the seed bounded by a hard ground radius (so it can
+ *    never reach the street), an area guard and a luminance-gradient brake that
+ *    refuses to step across ridge lines, gutters and wall shadow;
+ * 3. the mask is walked once, in order, for a single closed contour;
+ * 4. the contour is reduced to corners (Douglas–Peucker at ground scale) and the
+ *    edges are snapped to the two dominant roof directions;
+ * 5. the candidate is accepted only when it measures like a roof plane.
  */
-export const autoTraceAt = async (
+export const traceRoofPlane = async (
   frame: TileFrame,
   click: LatLng,
-  tolerance = 26,
-): Promise<LatLng[] | null> => {
+  opts: { maxRadiusFt?: number; tolerance?: number } = {},
+): Promise<TraceResult> => {
   const img = await loadBitmap(frame.dataUrl);
   const w = img.naturalWidth;
   const h = img.naturalHeight;
@@ -167,77 +186,310 @@ export const autoTraceAt = async (
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return null;
+  if (!ctx) return { path: null, rejected: "The aerial photo could not be sampled." };
   ctx.drawImage(img, 0, 0);
   const { data } = ctx.getImageData(0, 0, w, h);
+
+  const ftPerPx = feetPerPixel(frame);
+  const maxRadiusFt = opts.maxRadiusFt ?? 70;
+  const radiusPx = Math.max(12, Math.round(maxRadiusFt / ftPerPx));
 
   const start = latLngToTilePixel(frame, click);
   const sx = Math.round(start.x);
   const sy = Math.round(start.y);
-  if (sx < 1 || sy < 1 || sx >= w - 1 || sy >= h - 1) return null;
+  if (sx < 2 || sy < 2 || sx >= w - 2 || sy >= h - 2)
+    return { path: null, rejected: "Click inside the aerial view." };
 
   const at = (x: number, y: number) => (y * w + x) * 4;
-  const seed = at(sx, sy);
-  const sr = data[seed];
-  const sg = data[seed + 1];
-  const sb = data[seed + 2];
 
+  /* ── 1. seed colour, averaged over a 5×5 patch ── */
+  let sr = 0;
+  let sg = 0;
+  let sb = 0;
+  let n = 0;
+  for (let y = sy - 2; y <= sy + 2; y++)
+    for (let x = sx - 2; x <= sx + 2; x++) {
+      const o = at(x, y);
+      sr += data[o];
+      sg += data[o + 1];
+      sb += data[o + 2];
+      n++;
+    }
+  sr /= n;
+  sg /= n;
+  sb /= n;
+
+  /* ── 2. bounded region grow ── */
+  const tol = (opts.tolerance ?? 30) * 3;
+  const gradientLimit = 46; // luminance step that reads as a roof edge
   const mask = new Uint8Array(w * h);
   const stack: number[] = [sx, sy];
   let filled = 0;
-  const limit = Math.floor(w * h * 0.35);
+  const areaLimitPx = Math.floor((3200 / (ftPerPx * ftPerPx)) as number); // ~3200 sq ft plane cap
+  let minX = sx;
+  let maxX = sx;
+  let minY = sy;
+  let maxY = sy;
+
+  const x0 = Math.max(1, sx - radiusPx);
+  const x1 = Math.min(w - 2, sx + radiusPx);
+  const y0 = Math.max(1, sy - radiusPx);
+  const y1 = Math.min(h - 2, sy + radiusPx);
 
   while (stack.length) {
     const y = stack.pop()!;
     const x = stack.pop()!;
+    if (x < x0 || x > x1 || y < y0 || y > y1) continue;
     const idx = y * w + x;
     if (mask[idx]) continue;
     const o = idx * 4;
     const d = Math.abs(data[o] - sr) + Math.abs(data[o + 1] - sg) + Math.abs(data[o + 2] - sb);
-    if (d > tolerance * 3) continue;
+    if (d > tol) continue;
+    // gradient brake — do not step across a hard edge
+    const gx = Math.abs(luma(data, at(Math.min(w - 1, x + 1), y)) - luma(data, at(Math.max(0, x - 1), y)));
+    const gy = Math.abs(luma(data, at(x, Math.min(h - 1, y + 1))) - luma(data, at(x, Math.max(0, y - 1))));
+    if (Math.hypot(gx, gy) > gradientLimit && (x !== sx || y !== sy)) continue;
+
     mask[idx] = 1;
-    if (++filled > limit) return null; // ran off the roof
-    if (x > 0) stack.push(x - 1, y);
-    if (x < w - 1) stack.push(x + 1, y);
-    if (y > 0) stack.push(x, y - 1);
-    if (y < h - 1) stack.push(x, y + 1);
+    filled++;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (filled > areaLimitPx)
+      return { path: null, rejected: "That fill ran past the roof — click nearer the middle of one plane." };
+    stack.push(x - 1, y, x + 1, y, x, y - 1, x, y + 1);
   }
 
-  if (filled < 400) return null; // too small to be a roof face
+  const minAreaPx = Math.max(120, Math.floor(60 / (ftPerPx * ftPerPx)));
+  if (filled < minAreaPx)
+    return { path: null, rejected: "No roof plane read there — click nearer the middle of a plane." };
 
-  /* boundary points of the mask, then a 24-spoke hull about the centroid so the
-     outline comes back as a handful of draggable vertices rather than thousands */
-  let cx = 0;
-  let cy = 0;
-  const edge: [number, number][] = [];
-  for (let y = 1; y < h - 1; y++)
-    for (let x = 1; x < w - 1; x++) {
-      const i = y * w + x;
-      if (!mask[i]) continue;
-      cx += x;
-      cy += y;
-      if (!mask[i - 1] || !mask[i + 1] || !mask[i - w] || !mask[i + w]) edge.push([x, y]);
-    }
-  cx /= filled;
-  cy /= filled;
+  /* runaway guard: a region pressed against the radius on both axes is not a plane */
+  const spread = (maxX - minX) / (2 * radiusPx) + (maxY - minY) / (2 * radiusPx);
+  if (spread > 1.7)
+    return { path: null, rejected: "That area reads as ground, not roof — click on the roof itself." };
 
-  const spokes = 24;
-  const best: ([number, number] | null)[] = Array.from({ length: spokes }, () => null);
-  const bestR = new Array(spokes).fill(-1);
-  for (const [x, y] of edge) {
-    const a = Math.atan2(y - cy, x - cx);
-    const k = Math.floor((((a + Math.PI) / (2 * Math.PI)) * spokes) % spokes);
-    const r = Math.hypot(x - cx, y - cy);
-    if (r > bestR[k]) {
-      bestR[k] = r;
-      best[k] = [x, y];
-    }
-  }
+  /* ── 3. one ordered closed contour (Moore boundary tracing) ── */
+  const contour = traceContour(mask, w, h, minX, minY, maxX, maxY);
+  if (!contour || contour.length < 8)
+    return { path: null, rejected: "The plane edge could not be read — trace it by hand." };
 
-  const ring = best.filter(Boolean) as [number, number][];
-  if (ring.length < 6) return null;
-  return ring.map(([x, y]) => tilePixelToLatLng(frame, x, y));
+  /* ── 4. corners ── */
+  const epsilonPx = Math.max(2, 1.5 / ftPerPx);
+  let ring = simplify(contour, epsilonPx);
+  ring = snapToDominantAngles(ring, epsilonPx);
+  ring = dropShortEdges(ring, Math.max(3, 3 / ftPerPx));
+
+  /* ── 5. validate ── */
+  if (ring.length < 4 || ring.length > 10)
+    return { path: null, rejected: "That outline came back irregular — trace it by hand." };
+  const polyArea = Math.abs(shoelace(ring));
+  if (polyArea < filled * 0.55)
+    return { path: null, rejected: "That outline came back irregular — trace it by hand." };
+  const bbw = maxX - minX + 1;
+  const bbh = maxY - minY + 1;
+  if (Math.max(bbw, bbh) / Math.max(1, Math.min(bbw, bbh)) > 8)
+    return { path: null, rejected: "That reads as a strip, not a roof plane." };
+
+  return { path: ring.map(([x, y]) => tilePixelToLatLng(frame, x, y)) };
 };
+
+/** Back-compatible wrapper: the outline only, or null when refused. */
+export const autoTraceAt = async (
+  frame: TileFrame,
+  click: LatLng,
+  tolerance = 30,
+): Promise<LatLng[] | null> => (await traceRoofPlane(frame, click, { tolerance })).path;
+
+/* ── contour and polygon helpers ───────────────────────────────────────── */
+
+type Pt = [number, number];
+
+/** Moore-neighbour boundary trace of the mask, clockwise, from its top-left pixel. */
+const traceContour = (
+  mask: Uint8Array,
+  w: number,
+  h: number,
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): Pt[] | null => {
+  const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && mask[y * w + x] === 1;
+
+  let startX = -1;
+  let startY = -1;
+  for (let y = minY; y <= maxY && startX < 0; y++)
+    for (let x = minX; x <= maxX; x++)
+      if (inside(x, y)) {
+        startX = x;
+        startY = y;
+        break;
+      }
+  if (startX < 0) return null;
+
+  const N: Pt[] = [
+    [1, 0],
+    [1, 1],
+    [0, 1],
+    [-1, 1],
+    [-1, 0],
+    [-1, -1],
+    [0, -1],
+    [1, -1],
+  ];
+  const out: Pt[] = [];
+  let cx = startX;
+  let cy = startY;
+  let dir = 6; // came from above
+  const limit = 8 * (maxX - minX + maxY - minY + 8) * 4;
+
+  do {
+    out.push([cx, cy]);
+    let moved = false;
+    for (let k = 0; k < 8; k++) {
+      const d = (dir + 5 + k) % 8; // start looking back-left of travel
+      const nx = cx + N[d][0];
+      const ny = cy + N[d][1];
+      if (inside(nx, ny)) {
+        cx = nx;
+        cy = ny;
+        dir = d;
+        moved = true;
+        break;
+      }
+    }
+    if (!moved) break;
+  } while ((cx !== startX || cy !== startY) && out.length < limit);
+
+  return out.length > 7 ? out : null;
+};
+
+const shoelace = (ring: Pt[]): number => {
+  let s = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    s += a[0] * b[1] - b[0] * a[1];
+  }
+  return s / 2;
+};
+
+/** Douglas–Peucker on a closed ring. */
+const simplify = (ring: Pt[], eps: number): Pt[] => {
+  if (ring.length < 4) return ring;
+  /* split the ring at its two most distant points so the open-curve reduction
+     cannot shortcut across the plane */
+  let a = 0;
+  let b = 0;
+  let best = -1;
+  for (let i = 0; i < ring.length; i += Math.max(1, Math.floor(ring.length / 64)))
+    for (let j = i + 1; j < ring.length; j += Math.max(1, Math.floor(ring.length / 64))) {
+      const d = (ring[i][0] - ring[j][0]) ** 2 + (ring[i][1] - ring[j][1]) ** 2;
+      if (d > best) {
+        best = d;
+        a = i;
+        b = j;
+      }
+    }
+  const first = ring.slice(a, b + 1);
+  const second = [...ring.slice(b), ...ring.slice(0, a + 1)];
+  const reduced = [...dp(first, eps), ...dp(second, eps).slice(1, -1)];
+  return dedupe(reduced);
+};
+
+const dp = (pts: Pt[], eps: number): Pt[] => {
+  if (pts.length < 3) return pts;
+  const [ax, ay] = pts[0];
+  const [bx, by] = pts[pts.length - 1];
+  const len = Math.hypot(bx - ax, by - ay) || 1;
+  let worst = 0;
+  let index = 0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const d = Math.abs((bx - ax) * (ay - pts[i][1]) - (ax - pts[i][0]) * (by - ay)) / len;
+    if (d > worst) {
+      worst = d;
+      index = i;
+    }
+  }
+  if (worst <= eps) return [pts[0], pts[pts.length - 1]];
+  return [...dp(pts.slice(0, index + 1), eps).slice(0, -1), ...dp(pts.slice(index), eps)];
+};
+
+const dedupe = (ring: Pt[]): Pt[] => {
+  const out: Pt[] = [];
+  for (const p of ring) {
+    const last = out[out.length - 1];
+    if (!last || Math.hypot(last[0] - p[0], last[1] - p[1]) > 1) out.push(p);
+  }
+  if (out.length > 2) {
+    const f = out[0];
+    const l = out[out.length - 1];
+    if (Math.hypot(f[0] - l[0], f[1] - l[1]) <= 1) out.pop();
+  }
+  return out;
+};
+
+/**
+ * Roofs are built square: the edges of one plane run along two perpendicular
+ * directions. The longest edge sets that grid and every edge within 22° of it
+ * (or of its normal) is re-laid on the grid, which turns a slightly ragged fill
+ * boundary into a clean plane without moving the real corners.
+ */
+const snapToDominantAngles = (ring: Pt[], eps: number): Pt[] => {
+  if (ring.length < 4) return ring;
+  let theta = 0;
+  let longest = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len > longest) {
+      longest = len;
+      theta = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    }
+  }
+  const cos = Math.cos(-theta);
+  const sin = Math.sin(-theta);
+  const rot = (p: Pt): Pt => [p[0] * cos - p[1] * sin, p[0] * sin + p[1] * cos];
+  const unrot = (p: Pt): Pt => [p[0] * cos + p[1] * sin, -p[0] * sin + p[1] * cos];
+
+  const local = ring.map(rot);
+  /* in the roof's own frame, an edge that is nearly axis-aligned is levelled */
+  for (let i = 0; i < local.length; i++) {
+    const a = local[i];
+    const b = local[(i + 1) % local.length];
+    const dx = Math.abs(b[0] - a[0]);
+    const dy = Math.abs(b[1] - a[1]);
+    if (dy < dx * 0.4 && dy < eps * 3) {
+      const y = (a[1] + b[1]) / 2;
+      a[1] = y;
+      b[1] = y;
+    } else if (dx < dy * 0.4 && dx < eps * 3) {
+      const x = (a[0] + b[0]) / 2;
+      a[0] = x;
+      b[0] = x;
+    }
+  }
+  return local.map(unrot);
+};
+
+/** Merges corners that sit closer together than a roof detail could be. */
+const dropShortEdges = (ring: Pt[], minLen: number): Pt[] => {
+  if (ring.length <= 4) return ring;
+  const out: Pt[] = [];
+  for (const p of ring) {
+    const last = out[out.length - 1];
+    if (!last || Math.hypot(last[0] - p[0], last[1] - p[1]) >= minLen) out.push(p);
+    else {
+      last[0] = (last[0] + p[0]) / 2;
+      last[1] = (last[1] + p[1]) / 2;
+    }
+  }
+  return out.length >= 4 ? out : ring;
+};
+
 
 /** A plain rectangle around a point — the last-resort starting outline. */
 export const rectangleAround = (at: LatLng, widthFt = 40, depthFt = 28): LatLng[] => {
