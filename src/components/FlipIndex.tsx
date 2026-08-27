@@ -23,7 +23,7 @@ import lanaiBanner from "@/assets/banners/lanai-banner.webp";
 import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import sapphireFinish from "@/assets/finishes/sapphire-blue-g3.webp";
-import oceanLiner from "@/assets/finishes/ocean-blue-g3.webp";
+
 import aquamarineFinish from "@/assets/finishes/aquamarine-g3.webp";
 import nightSkyFinish from "@/assets/finishes/night-sky-g3.webp";
 import shaleFinish from "@/assets/finishes/shale-gray-g3.webp";
