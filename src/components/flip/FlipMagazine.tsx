@@ -1707,14 +1707,27 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      /* Never steal keys from a field, a map, or any interactive board: the
+         solar calculator and the drawing boards use arrows, +/- and the numeric
+         keypad for panning and zooming, and their address search needs typing.
+         Only the plain left/right arrows turn pages, and only when nothing on
+         the leaf has taken the book (useFlipLocked). */
+      if (flipLocked) return;
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (el?.isContentEditable) return;
+      if (el?.closest("input, textarea, select, [contenteditable=true], canvas, [role='application'], .gm-style, .mapboxgl-map")) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      /* keypad and paging keys belong to the map / canvas, not to the book */
+      if (e.code?.startsWith("Numpad")) return;
+      if (["PageUp", "PageDown", "Home", "End", "+", "-", "=", "_"].includes(e.key)) return;
       if (e.key === "ArrowLeft") flipPrev();
       if (e.key === "ArrowRight") flipNext();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [flipPrev, flipNext]);
+  }, [flipPrev, flipNext, flipLocked]);
 
   const rail: { id: keyof Anchors | "home"; label: string; icon: React.ElementType }[] = [
     { id: "index", label: "Index", icon: LayoutList },
