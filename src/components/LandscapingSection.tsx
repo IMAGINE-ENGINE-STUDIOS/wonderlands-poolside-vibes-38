@@ -559,6 +559,11 @@ const LandscapingSection = () => {
                       <p className="font-serif text-4xl sm:text-5xl font-light text-foreground mt-1">
                         {fmt(total)}
                       </p>
+                      {isCallForQuote && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Themed Patio base service is priced by one of our agents — total shown covers plants & materials.
+                        </p>
+                      )}
                       {isAdmin && overrideTotal !== "" && (
                         <p className="text-[11px] text-muted-foreground mt-0.5">
                           Computed {fmt(computedTotal)} · overridden
@@ -700,7 +705,7 @@ const LandscapingSection = () => {
                           if (baseCost > 0) {
                             addToCart({
                               id: `landscaping-${tier.id}-${Date.now()}`,
-                              name: `Landscaping — ${tier.title} (${sqft} sq ft @ $${tier.price}/sq ft)`,
+                              name: `Landscaping — ${tier.title} (${sqft} sq ft @ $${effectiveRate}/sq ft)`,
                               price: baseCost,
                               image: "",
                               category: "Landscaping",
