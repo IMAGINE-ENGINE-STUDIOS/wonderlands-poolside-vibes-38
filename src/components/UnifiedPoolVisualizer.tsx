@@ -1426,7 +1426,7 @@ export function UnifiedPoolVisualizer({
             copingName={scene.deck.coping?.name}
             finishName={scene.pool.finish?.name}
             waterlineName={scene.deck.waterline?.name}
-            additionalFeatures={designerFeatureLines}
+            additionalFeatures={designerQuoteFeatureLines}
             additionalBodies={designerBodyLines}
           />
         </div>
@@ -1443,7 +1443,7 @@ export function UnifiedPoolVisualizer({
             copingName={scene.deck.coping?.name}
             finishName={scene.pool.finish?.name}
             waterlineName={scene.deck.waterline?.name}
-            additionalFeatures={designerFeatureLines}
+            additionalFeatures={designerQuoteFeatureLines}
             additionalBodies={designerBodyLines}
           />
         </div>
