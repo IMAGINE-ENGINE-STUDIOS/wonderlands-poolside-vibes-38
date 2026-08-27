@@ -483,13 +483,17 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     setFading(true);
     if (swapTimer.current) window.clearTimeout(swapTimer.current);
     // Swap only after the fade-out has fully completed, so the reader never
-    // catches the edition changing mid-dissolve.
+    // catches the edition changing mid-dissolve. The ref is cleared inside the
+    // callback so the fade-in effect knows the swap has actually landed — that
+    // race is what made a back step occasionally appear to do nothing.
     swapTimer.current = window.setTimeout(() => {
+      swapTimer.current = null;
       startPageRef.current = 0;
       setPage(0);
       apply();
     }, 420);
   }, []);
+
 
   useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
 
@@ -677,6 +681,73 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     [swap, flipMotion, rifflePlates],
   );
   const closeDossier = useCallback(() => swap(() => setDossier(null)), [swap]);
+
+  /* ------------------------------ GOING BACK -------------------------------
+   * One reliable back step for the whole magazine: a product book falls back to
+   * its edition, an edition falls back to the index. The browser's own Back
+   * button and the Escape key are wired to the same step, so the reader is never
+   * thrown out of the flip when they expect one leaf back.
+   * ------------------------------------------------------------------------ */
+  const goBack = useCallback(() => {
+    if (dossier) {
+      swap(() => setDossier(null));
+      return true;
+    }
+    if (mode === "category") {
+      swap(() => {
+        setDossier(null);
+        setMode("home");
+      });
+      return true;
+    }
+    return false;
+  }, [dossier, mode, swap, setMode]);
+
+  // Mirror the reading depth into history so Back is a page step, not an exit.
+  const depthRef = useRef(0);
+  const ignorePop = useRef(0);
+  useEffect(() => {
+    const desired = dossier ? 2 : mode === "category" ? 1 : 0;
+    if (desired === depthRef.current) return;
+    if (desired > depthRef.current) {
+      for (let i = depthRef.current; i < desired; i += 1) {
+        window.history.pushState({ flipDepth: i + 1 }, "");
+      }
+    } else {
+      ignorePop.current += 1;
+      window.history.go(-(depthRef.current - desired));
+    }
+    depthRef.current = desired;
+  }, [dossier, mode]);
+
+  useEffect(() => {
+    const onPop = () => {
+      if (ignorePop.current > 0) {
+        ignorePop.current -= 1;
+        return;
+      }
+      if (depthRef.current === 0) return; // outside the book: let the router run
+      const target = depthRef.current - 1;
+      depthRef.current = target; // set first so the sync effect stays quiet
+      swap(() => {
+        setDossier(null);
+        if (target === 0) setMode("home");
+      });
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [swap, setMode]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (goBack()) e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goBack]);
+
+
 
   /* ------------------------------ EDITOR BOARD ------------------------------ */
   // The design board takes over the page: the flip fades out while a wireframe
@@ -1643,9 +1714,11 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   // stillness first so the dissolve reads as one continuous breath.
   useEffect(() => {
     if (loading || !fading || boardOpen) return;
+    if (swapTimer.current) return; // a swap is still pending — wait for it to land
     const t = window.setTimeout(() => setFading(false), 160);
     return () => window.clearTimeout(t);
-  }, [loading, fading, boardOpen, mode, categoryId, pages.length]);
+  }, [loading, fading, boardOpen, mode, categoryId, dossier, pages.length]);
+
 
 
 
