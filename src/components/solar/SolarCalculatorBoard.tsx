@@ -401,9 +401,11 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
 
   /**
    * A click on the aerial. In hand-trace mode it lays down the next vertex;
-   * otherwise it captures the plane under the cursor: Google's measured segment
-   * first (real azimuth, pitch and satellite sunshine hours), then a flood-fill
-   * trace of the aerial photo, then an editable outline so a click is never dead.
+   * in click-to-capture mode it takes the one plane under the cursor: the photo
+   * is traced for the true corners, and when the click also falls inside a
+   * Google-measured segment that segment's azimuth, pitch and satellite sunshine
+   * hours are carried on the face. A trace that cannot be trusted is refused
+   * outright rather than dropping a shape that makes no sense.
    */
   const handleMapClick = React.useCallback(
     async (point: LatLng) => {
@@ -413,45 +415,65 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       }
       if (mode !== "auto") return;
 
+      /* clicking a face already captured just selects it */
+      const existing = session.faces.find((f) => pointInPath(point, f.path));
+      if (existing) {
+        setSelected(existing.id);
+        return;
+      }
+
       const hit = measured.current.find((p) => pointInPath(point, p.path));
-      if (hit) {
-        const already = session.faces.some((f) => pointInPath(point, f.path));
-        if (already) {
-          setSelected(session.faces.find((f) => pointInPath(point, f.path))!.id);
+
+      if (!frame.current) {
+        if (hit) {
+          addMeasuredFace(hit);
+          toast({
+            title: "Roof plane captured",
+            description: `${compassLabel(hit.azimuthDeg)} facing · measured plane.`,
+          });
           return;
         }
-        addMeasuredFace(hit);
         toast({
-          title: "Roof plane detected",
-          description: `${compassLabel(hit.azimuthDeg)} facing · coloured by sun exposure.`,
+          title: "Zoom in a little",
+          description: "The aerial needs to be closer before a plane can be traced.",
         });
         return;
       }
 
-      if (frame.current) {
-        setBusy("trace");
-        try {
-          const traced = await autoTraceAt(frame.current, point);
-          if (traced) {
-            addFace(traced, "auto");
-            return;
-          }
-        } catch (err) {
-          console.error("roof trace failed:", (err as Error).message);
-        } finally {
-          setBusy("");
+      setBusy("trace");
+      try {
+        const { path, rejected } = await traceRoofPlane(frame.current, point);
+        if (path) {
+          if (hit) addMeasuredFace(hit, path);
+          else addFace(path, "auto");
+          toast({
+            title: "Roof plane captured",
+            description: hit
+              ? `${compassLabel(hit.azimuthDeg)} facing · measured pitch and sun hours.`
+              : "Corners read from the photo — drag any point to correct it.",
+          });
+          return;
         }
+        if (hit) {
+          addMeasuredFace(hit);
+          toast({
+            title: "Roof plane captured",
+            description: `${compassLabel(hit.azimuthDeg)} facing · measured plane.`,
+          });
+          return;
+        }
+        toast({ title: "No plane captured", description: rejected ?? "Click nearer the middle of one roof plane." });
+      } catch (err) {
+        console.error("roof trace failed:", (err as Error).message);
+        toast({ title: "No plane captured", description: "Try again, or trace the plane by hand." });
+      } finally {
+        setBusy("");
       }
-
-      addFace(rectangleAround(point), "traced");
-      toast({
-        title: "Outline placed for you",
-        description: "Drag the points onto the roof edges — every measurement follows.",
-      });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [mode, session.faces, toast],
   );
+
 
 
 
