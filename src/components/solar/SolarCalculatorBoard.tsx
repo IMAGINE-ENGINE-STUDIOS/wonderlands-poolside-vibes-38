@@ -410,39 +410,39 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     setSelected(id);
   };
 
-  React.useEffect(() => {
-    if (!ready || !map.current) return;
-    const m = map.current;
-    const listener = m.addListener("click", async (e: google.maps.MapMouseEvent) => {
-      const at = e.latLng;
-      if (!at) return;
-      const point = { lat: at.lat(), lng: at.lng() };
-
+  /**
+   * A click on the aerial. In hand-trace mode it lays down the next vertex;
+   * otherwise it captures the plane under the cursor: Google's measured segment
+   * first (real azimuth, pitch and satellite sunshine hours), then a flood-fill
+   * trace of the aerial photo, then an editable outline so a click is never dead.
+   */
+  const handleMapClick = React.useCallback(
+    async (point: LatLng) => {
       if (mode === "manual") {
         setDraft((d) => [...d, point]);
         return;
       }
       if (mode !== "auto") return;
 
-      /* 1. A measured plane under the cursor is the best answer — real
-            azimuth, pitch and satellite sunshine hours, no image guessing. */
       const hit = measured.current.find((p) => pointInPath(point, p.path));
       if (hit) {
         const already = session.faces.some((f) => pointInPath(point, f.path));
         if (already) {
-          toast({ title: "Plane already captured", description: "Click it once more to select and edit its outline." });
+          setSelected(session.faces.find((f) => pointInPath(point, f.path))!.id);
           return;
         }
         addMeasuredFace(hit);
-        toast({ title: "Roof plane detected", description: `${compassLabel(hit.azimuthDeg)} facing · coloured by sun exposure.` });
+        toast({
+          title: "Roof plane detected",
+          description: `${compassLabel(hit.azimuthDeg)} facing · coloured by sun exposure.`,
+        });
         return;
       }
 
-      /* 2. Otherwise read the plane out of the aerial photo. */
-      if (tile.current) {
+      if (frame.current) {
         setBusy("trace");
         try {
-          const traced = await autoTraceAt(tile.current, point);
+          const traced = await autoTraceAt(frame.current, point);
           if (traced) {
             addFace(traced, "auto");
             return;
@@ -454,183 +454,59 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         }
       }
 
-      /* 3. Last resort — an editable outline on the spot, so the click is
-            never dead even when the photo cannot be sampled. */
       addFace(rectangleAround(point), "traced");
       toast({
         title: "Outline placed for you",
-        description: "The photo could not be read here — drag the points onto the roof edges.",
+        description: "Drag the points onto the roof edges — every measurement follows.",
       });
-    });
-    return () => listener.remove();
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, mode, session.faces, toast]);
+    [mode, session.faces, toast],
+  );
 
 
-  /* ── draw the faces ───────────────────────────────────────────────── */
 
-  React.useEffect(() => {
-    if (!ready || !map.current) return;
-    const m = map.current;
-    const live = new Set(session.faces.map((f) => f.id));
 
-    // drop polygons whose face is gone
-    polys.current.forEach((poly, id) => {
-      if (!live.has(id)) {
-        poly.setMap(null);
-        polys.current.delete(id);
-      }
-    });
-
-    session.faces.forEach((face) => {
-      const engineFace: RoofFace = { ...face, planAreaSqFt: pathAreaSqFt(face.path) };
-      const exposure = readExposure(engineFace, session.lat ?? FL_LAT);
-      const isSelected = face.id === selected;
-      const style: google.maps.PolygonOptions = {
-        paths: face.path,
-        fillColor: face.excluded ? "#dc2626" : exposure.color,
-        fillOpacity: face.excluded ? 0.2 : isSelected ? 0.62 : 0.45,
-        strokeColor: isSelected ? "#ffffff" : exposure.color,
-        strokeOpacity: 0.95,
-        strokeWeight: isSelected ? 2.5 : 1.5,
-        editable: isSelected,
-        draggable: isSelected,
-        zIndex: isSelected ? 20 : 10,
-      };
-
-      let poly = polys.current.get(face.id);
-      if (!poly) {
-        poly = new google.maps.Polygon({ ...style, map: m });
-        polys.current.set(face.id, poly);
-        poly.addListener("click", () => setSelected(face.id));
-        const commit = () => {
-          const path = poly!
-            .getPath()
-            .getArray()
-            .map((p) => ({ lat: p.lat(), lng: p.lng() }));
-          updateFace(face.id, { path, source: "traced" });
-        };
-        poly.getPath().addListener("set_at", commit);
-        poly.getPath().addListener("insert_at", commit);
-        poly.getPath().addListener("remove_at", commit);
-        poly.addListener("dragend", commit);
-      } else {
-        poly.setOptions(style);
-      }
-    });
-  }, [ready, session.faces, session.lat, selected, updateFace]);
+  /* ── the faces, in canvas form ─────────────────────────────────────── */
 
   /**
-   * The in-progress hand trace. The spline is drawn as it is laid down — an
-   * open polyline with a dot on every vertex, a dimension label in feet on
-   * every side (including the closing side once three points exist), and a
-   * translucent fill so the plane reads while it is still being drawn.
+   * Every captured plane, coloured by sun exposure read from its azimuth and the
+   * property's latitude (or Google's measured sunshine hours where the address
+   * is covered). Rejected faces go red and translucent.
    */
-  React.useEffect(() => {
-    if (!ready || !map.current) return;
-    const m = map.current;
-
-    const clearOverlay = () => {
-      draftDots.current.forEach((d) => d.setMap(null));
-      draftDots.current = [];
-      draftLabels.current.forEach((l) => l.setMap(null));
-      draftLabels.current = [];
-    };
-
-    if (!draft.length) {
-      draftPoly.current?.setMap(null);
-      draftPoly.current = null;
-      draftLine.current?.setMap(null);
-      draftLine.current = null;
-      clearOverlay();
-      return;
-    }
-
-    /* fill (needs three points to read as a plane) */
-    if (!draftPoly.current)
-      draftPoly.current = new google.maps.Polygon({
-        map: m,
-        clickable: false,
-        strokeOpacity: 0,
-        fillColor: "#f97316",
-        fillOpacity: 0.22,
-      });
-    draftPoly.current.setPath(draft.length >= 3 ? draft : []);
-
-    /* the spline itself, as drawn */
-    if (!draftLine.current)
-      draftLine.current = new google.maps.Polyline({
-        map: m,
-        clickable: false,
-        strokeColor: "#ffffff",
-        strokeOpacity: 0.95,
-        strokeWeight: 2.5,
-        zIndex: 40,
-      });
-    draftLine.current.setPath(draft);
-
-    clearOverlay();
-
-    /* vertex dots */
-    draft.forEach((p, i) => {
-      draftDots.current.push(
-        new google.maps.Marker({
-          position: p,
-          map: m,
-          clickable: false,
-          zIndex: 41,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 5,
-            fillColor: i === draft.length - 1 ? "#f97316" : "#ffffff",
-            fillOpacity: 1,
-            strokeColor: "#0a0a0f",
-            strokeWeight: 1.5,
-          },
-        }),
-      );
-    });
-
-    /* one dimension label per side, at the side's midpoint */
-    const sides = draft.length >= 3 ? draft.length : draft.length - 1;
-    for (let i = 0; i < sides; i++) {
-      const a = draft[i];
-      const b = draft[(i + 1) % draft.length];
-      const feet = distanceFt(a, b);
-      if (feet < 1) continue;
-      draftLabels.current.push(
-        new google.maps.Marker({
-          position: { lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2 },
-          map: m,
-          clickable: false,
-          zIndex: 42,
-          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
-          label: {
-            text: `${feet.toFixed(1)} ft`,
-            color: "#ffffff",
-            fontSize: "11px",
-            fontWeight: "500",
-            className: "wl-solar-dim",
-          },
-        }),
-      );
-    }
-  }, [ready, draft]);
-
-
-  React.useEffect(
-    () => () => {
-      polys.current.forEach((p) => p.setMap(null));
-      polys.current.clear();
-      draftLine.current?.setMap(null);
-      draftDots.current.forEach((d) => d.setMap(null));
-      draftLabels.current.forEach((l) => l.setMap(null));
-      draftPoly.current?.setMap(null);
-      marker.current?.setMap(null);
-      map.current = null;
-    },
-    [],
+  const aerialFaces = React.useMemo(
+    () =>
+      session.faces.map((face) => {
+        const engineFace: RoofFace = { ...face, planAreaSqFt: pathAreaSqFt(face.path) };
+        const exposure = readExposure(engineFace, session.lat ?? FL_LAT);
+        return {
+          id: face.id,
+          path: face.path,
+          fill: face.excluded ? "#dc2626" : exposure.color,
+          stroke: face.excluded ? "#dc2626" : exposure.color,
+          fillOpacity: face.excluded ? 0.2 : face.id === selected ? 0.62 : 0.45,
+          selected: face.id === selected,
+          caption: `${Math.round(engineFace.planAreaSqFt)} SF · ${compassLabel(face.azimuthDeg)}`,
+        };
+      }),
+    [session.faces, session.lat, selected],
   );
+
+  /** Dragging a vertex of the selected plane re-measures it live. */
+  const moveVertex = React.useCallback(
+    (faceId: string, index: number, at: LatLng) =>
+      setSession((s) => ({
+        ...s,
+        faces: s.faces.map((f) =>
+          f.id === faceId
+            ? { ...f, source: "traced" as const, path: f.path.map((p, i) => (i === index ? at : p)) }
+            : f,
+        ),
+      })),
+    [setSession],
+  );
+
+
 
   const finishManual = () => {
     if (draft.length >= 3) addFace(draft, "traced");
@@ -751,20 +627,22 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       </form>
 
 
-      {mapsError && (
-        <p className="border border-border/60 p-3 text-xs text-muted-foreground">{mapsError}</p>
-      )}
-
       <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
         {/* ── aerial ── */}
         <div>
           <div className="relative overflow-hidden border border-border/60">
-            <div ref={mapEl} style={{ height: mapHeight }} className="w-full" />
-            {!ready && !mapsError && (
-              <div className="absolute inset-0 flex items-center justify-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-                Bringing up the aerial…
-              </div>
-            )}
+            <AerialCanvas
+              view={view}
+              onViewChange={setView}
+              height={mapHeight}
+              faces={aerialFaces}
+              draft={draft}
+              marker={session.lat != null && session.lng != null ? { lat: session.lat, lng: session.lng } : null}
+              capturing={mode !== "idle"}
+              onMapClick={handleMapClick}
+              onFaceClick={(id) => setSelected((s) => (s === id ? "" : id))}
+              onVertexMove={moveVertex}
+            />
             {(busy === "insights" || busy === "trace") && (
               <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 bg-background/90 px-3 py-2 text-[9px] uppercase tracking-[0.3em]">
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -779,6 +657,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
               </div>
             )}
           </div>
+
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <button
