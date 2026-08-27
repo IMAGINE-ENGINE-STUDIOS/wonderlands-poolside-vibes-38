@@ -169,8 +169,11 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
               </div>
             }
           >
-            {board.kind === "grass" ? (
+            {board.kind === "solar" ? (
+              <SolarCalculatorBoard height={Math.min(620, height)} />
+            ) : board.kind === "grass" ? (
               <GrassConfigurator initialGrassName={productName} onTotalChange={setTotal} />
+
             ) : board.kind === "fence" ? (
               <FenceConfigurator onTotalChange={setTotal} />
             ) : board.kind === "enclosure" ? (
