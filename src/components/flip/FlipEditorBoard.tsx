@@ -18,8 +18,10 @@ const SiteDrawingBoard = lazy(() => import("@/components/blueprint/SiteDrawingBo
 const FenceConfigurator = lazy(() => import("@/components/fence/FenceConfigurator"));
 const EnclosureConfigurator = lazy(() => import("@/components/enclosure/EnclosureConfigurator"));
 const GrassConfigurator = lazy(() => import("@/components/grass/GrassConfigurator"));
+const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 
-export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass";
+export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass" | "solar";
+
 
 /** Which board serves each discipline. */
 const BOARDS: Record<string, { kind: EditorBoardKind; name: string; note: string }> = {
