@@ -370,9 +370,22 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   /* every design leaf is interactive, so the flipbook must never receive the
      pointer: page turning is held and drags/clicks stop at the leaf */
   const { lock, unlock } = useFlipLock();
+
+  /**
+   * The Total Solar Calculator owns the whole leaf: it holds a live map that
+   * consumes drag, scroll and arrow keys. So the moment the reader arrives the
+   * book is locked and it stays locked while the tool is on screen — page turns
+   * happen only through the arrow buttons. Turning away unmounts the widget,
+   * which releases the lock, and coming back locks it again.
+   */
+  const holdsBookStill = board.kind === "solar";
+  React.useEffect(() => {
+    if (holdsBookStill) lock();
+  }, [holdsBookStill, lock]);
+
   const lockHandlers = {
     onPointerEnter: lock,
-    onPointerLeave: unlock,
+    onPointerLeave: holdsBookStill ? undefined : unlock,
     onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
     onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
     onMouseMove: (e: React.MouseEvent) => e.stopPropagation(),
@@ -409,11 +422,13 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
       {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
           the reader can still grab the corner and turn instead of only using the
           arrows. Entering it releases the drawing lock. */}
-      <div
-        onPointerEnter={unlock}
-        title="Drag here to turn the page"
-        className={`absolute inset-y-0 z-20 w-9 cursor-pointer ${half === "left" ? "left-0" : "right-0"}`}
-      />
+      {!holdsBookStill && (
+        <div
+          onPointerEnter={unlock}
+          title="Drag here to turn the page"
+          className={`absolute inset-y-0 z-20 w-9 cursor-pointer ${half === "left" ? "left-0" : "right-0"}`}
+        />
+      )}
     </>
   );
 
