@@ -16,7 +16,7 @@ const Footer = () => {
               sizeConfig="logoSmall"
             />
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Transform your backyard into your personal oasis with premium fiberglass pools and patios. Where lifestyle meets luxury.
+              A technology-powered home services platform — helping homeowners design, build, transform and power their homes, from outdoor living and pools to solar and energy solutions.
             </p>
           </div>
 
