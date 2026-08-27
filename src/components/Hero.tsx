@@ -32,22 +32,24 @@ const Hero = () => {
             <div className="w-full">
               <AdvancedSearch />
             </div>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <nav className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <a
                 href="https://calendly.com/wonderlandsworlds/30min?month=2026-08&date=2026-08-27"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-primary/90 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-primary-foreground shadow-lg backdrop-blur-md transition hover:bg-primary hover:shadow-xl"
+                className="inline-flex min-w-[10rem] items-center justify-center gap-2 rounded-full bg-primary-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-primary shadow-lg ring-1 ring-primary-foreground/20 backdrop-blur-sm transition hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-xl"
               >
                 Schedule Your Consultation
+                <span aria-hidden className="text-xs">→</span>
               </a>
+              <span className="hidden h-5 w-px bg-primary-foreground/25 sm:block" aria-hidden />
               <a
                 href="tel:+12392570637"
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-medium uppercase tracking-widest text-white backdrop-blur-md transition hover:bg-white/20 hover:border-white/40"
+                className="inline-flex min-w-[10rem] items-center justify-center gap-2 rounded-full border border-primary-foreground/20 bg-primary/10 px-6 py-3 text-[10px] font-medium uppercase tracking-[0.25em] text-primary-foreground backdrop-blur-sm transition hover:scale-[1.02] hover:-translate-y-0.5 hover:bg-primary/20 hover:border-primary-foreground/30"
               >
                 +1 (239) 257-0637
               </a>
-            </div>
+            </nav>
           </div>
         </div>
       </div>
