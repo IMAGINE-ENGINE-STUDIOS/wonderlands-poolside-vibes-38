@@ -1,11 +1,12 @@
-/// <reference types="google.maps" />
 import * as React from "react";
 import { Loader2, Crosshair, MapPin, Pencil, RotateCcw, Search, Trash2, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
-import useGoogleMaps from "@/lib/solar/useGoogleMaps";
+import AerialCanvas, { type AerialView } from "./AerialCanvas";
+import { composeAerialFrame } from "@/lib/solar/aerialTiles";
+
 import {
   autoTraceAt,
   facesFromInsights,
