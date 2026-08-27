@@ -151,6 +151,7 @@ const FlipPageTabs: React.FC<{
           <button
             key={`${tab.label}-${tab.page}`}
             onClick={(e) => {
+              console.log("tab click", tab.label, tab.page, e.target);
               if (e.shiftKey || e.altKey) {
                 cycle(tab.label);
                 return;

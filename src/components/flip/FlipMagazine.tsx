@@ -1542,9 +1542,14 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
 
   const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
-  const goTo = useCallback((n: number) => bookRef.current?.pageFlip()?.turnToPage(n), []);
+  const goTo = useCallback((n: number) => {
+    const pf = bookRef.current?.pageFlip();
+    console.log("goTo called", n, "bookRef", !!bookRef.current, "pageFlip", !!pf, "pages", pf?.getPageCount?.());
+    pf?.flip(n, "top");
+  }, []);
 
   useEffect(() => {
+    (window as any).__bookRef = bookRef.current;
     setFlipControls({
       goTo,
       next: flipNext,
