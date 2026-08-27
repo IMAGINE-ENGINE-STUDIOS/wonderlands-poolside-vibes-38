@@ -20,11 +20,18 @@ const StudioEditorial: React.FC = () => {
         {/* Header */}
         <div className="mb-14 md:mb-20">
           <p className="mb-6 text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
-            The Studio — Design Room
+            Wonderlands Studio — The Technology
           </p>
           <h2 className="max-w-4xl font-serif text-4xl font-light leading-[1.05] tracking-tight text-foreground md:text-6xl lg:text-7xl">
-            Design your pool, plainly and precisely
+            See it. Configure it. Price it. Build it.
           </h2>
+          <p className="mt-7 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+            Wonderlands Studio turns the traditional home-improvement process into a
+            digital experience: explore ideas, visualize the whole property, configure
+            products and options, understand pricing and move from concept toward
+            construction — all in one connected platform.
+          </p>
+
           <div className="mt-8 h-px w-24 bg-foreground/30" />
         </div>
 
