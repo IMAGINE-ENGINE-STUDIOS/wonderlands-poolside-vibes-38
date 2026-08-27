@@ -112,7 +112,6 @@ const selectClass =
   "mt-1 w-full border border-border/60 bg-transparent px-2 py-2 text-sm font-light outline-none focus:border-foreground";
 
 const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
-  const { ready, error: mapsError } = useGoogleMaps();
   const { toast } = useToast();
   const cart = useOptionalShoppingCart();
 
@@ -126,18 +125,18 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   const [selected, setSelected] = React.useState<string>("");
   const [draft, setDraft] = React.useState<LatLng[]>([]);
 
-  const mapEl = React.useRef<HTMLDivElement>(null);
-  const map = React.useRef<google.maps.Map | null>(null);
-  const polys = React.useRef<Map<string, google.maps.Polygon>>(new Map());
-  const draftPoly = React.useRef<google.maps.Polygon | null>(null);
-  const marker = React.useRef<google.maps.Marker | null>(null);
-  const tile = React.useRef<TileFrame | null>(null);
+  /** what the aerial is framing — cached so a reload lands on the same roof */
+  const [view, setView] = usePersistentState<AerialView>("solar_aerial_view", {
+    lat: session.lat ?? 27.9506,
+    lng: session.lng ?? -82.4572,
+    zoom: session.lat ? 20 : 11,
+  });
+
+  /** the composed aerial bitmap the flood-fill tracer samples */
+  const frame = React.useRef<TileFrame | null>(null);
   /** Google's measured roof planes for this address — the click hit-test pool */
   const measured = React.useRef<RoofFace[]>([]);
-  /** Live hand-trace overlay: the spline plus one length label per side */
-  const draftLine = React.useRef<google.maps.Polyline | null>(null);
-  const draftDots = React.useRef<google.maps.Marker[]>([]);
-  const draftLabels = React.useRef<google.maps.Marker[]>([]);
+
 
   const panel = solarPanels.find((p) => p.id === session.panelId) ?? solarPanels[0];
   const battery = solarBatteries.find((b) => b.id === session.batteryId) ?? solarBatteries[0];
