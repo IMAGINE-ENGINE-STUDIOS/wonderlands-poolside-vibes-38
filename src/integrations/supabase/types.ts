@@ -1170,6 +1170,139 @@ export type Database = {
         }
         Relationships: []
       }
+      flip_books: {
+        Row: {
+          created_at: string
+          custom_domain: string | null
+          doc: Json
+          id: string
+          narrator_enabled: boolean
+          owner_id: string | null
+          published: boolean
+          share_token: string
+          slug: string
+          theme: Json
+          title: string
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          created_at?: string
+          custom_domain?: string | null
+          doc?: Json
+          id?: string
+          narrator_enabled?: boolean
+          owner_id?: string | null
+          published?: boolean
+          share_token?: string
+          slug: string
+          theme?: Json
+          title?: string
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          created_at?: string
+          custom_domain?: string | null
+          doc?: Json
+          id?: string
+          narrator_enabled?: boolean
+          owner_id?: string | null
+          published?: boolean
+          share_token?: string
+          slug?: string
+          theme?: Json
+          title?: string
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
+      }
+      flip_credit_ledger: {
+        Row: {
+          amount: number
+          book_id: string
+          created_at: string
+          id: string
+          kind: string
+          note: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number
+          book_id: string
+          created_at?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          book_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flip_credit_ledger_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "flip_books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flip_narrator_accounts: {
+        Row: {
+          active: boolean
+          book_id: string
+          created_at: string
+          credits_balance: number
+          id: string
+          monthly_fee: number
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          book_id: string
+          created_at?: string
+          credits_balance?: number
+          id?: string
+          monthly_fee?: number
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          book_id?: string
+          created_at?: string
+          credits_balance?: number
+          id?: string
+          monthly_fee?: number
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flip_narrator_accounts_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: true
+            referencedRelation: "flip_books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       florida_locations: {
         Row: {
           city: string

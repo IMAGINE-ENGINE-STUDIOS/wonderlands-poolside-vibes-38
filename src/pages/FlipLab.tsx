@@ -6,8 +6,9 @@ import FlipMagazine from "@/components/flip/FlipMagazine";
 import FlipConsoleEdition from "@/components/flip/FlipConsoleEdition";
 import FlipDossierEdition from "@/components/flip/FlipDossierEdition";
 import FlipBuilder from "@/components/flip/FlipBuilder";
+import FlipBuilderV2 from "@/components/flip/FlipBuilderV2";
 
-type VersionId = "v1" | "v2" | "v3" | "v4" | "v5" | "v6" | "v7" | "builder";
+type VersionId = "v1" | "v2" | "v3" | "v4" | "v5" | "v6" | "v7" | "builder" | "builder2";
 
 const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[] = [
   {
@@ -66,6 +67,13 @@ const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[]
     title: "Flip Builder",
     blurb:
       "Compose your own edition. Add pages from the layout gallery, upload images and film, edit or delete text boxes, set page transitions, then read it back as a book.",
+  },
+  {
+    id: "builder2",
+    label: "Flip It V2",
+    title: "Flip Builder V2",
+    blurb:
+      "The full workshop: every V7 layout and live widget, a palette controller with a house-style shuffler, page-motion character, the paid narrator with metered credits, and one-click publishing to a free Wonderlands address or your own domain.",
   },
 ];
 
@@ -127,6 +135,7 @@ const FlipLab = () => {
       {active === "v6" && <FlipMagazine variant="v6" />}
       {active === "v7" && <FlipMagazine variant="v7" />}
       {active === "builder" && <FlipBuilder />}
+      {active === "builder2" && <FlipBuilderV2 />}
     </main>
   );
 };
