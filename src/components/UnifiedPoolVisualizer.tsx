@@ -485,6 +485,61 @@ export function UnifiedPoolVisualizer({
     [scene.additionalPools]
   );
 
+  /**
+   * Every physical object placed in the 3D scene, itemized for the quote.
+   *
+   * WHY: the quote must mirror the scene exactly — stairs, chairs, contour
+   * seating, lights and imported 3D/terrain objects are real build items, so
+   * they belong in the estimate and in the generated quote document, not only
+   * in the Scene Objects widget.
+   */
+  const designerSceneObjectLines = useMemo(() => {
+    const lines: Array<{ name: string; price: number }> = [];
+
+    poolStairs.forEach((s, i) =>
+      lines.push({
+        name: `Pool Stairs ${i + 1} — ${s.numSteps} steps`,
+        price: FEATURE_COSTS.stairs ?? 0,
+      })
+    );
+
+    poolChairs.forEach((c, i) =>
+      lines.push({
+        name: `${c.name || `In-Pool Chair ${i + 1}`} — ${c.width}×${c.depth} ft`,
+        price: FEATURE_COSTS['pool-seat'] ?? 0,
+      })
+    );
+
+    contourSeating.forEach((s, i) =>
+      lines.push({
+        name: `Contour Seating ${i + 1} — ${s.width} ft wide`,
+        price: FEATURE_COSTS['pool-seat'] ?? 0,
+      })
+    );
+
+    poolLights.forEach((l, i) =>
+      lines.push({ name: `Pool Light ${i + 1}`, price: FEATURE_COSTS.light ?? 0 })
+    );
+
+    terrainAssets.forEach(a =>
+      lines.push({ name: `${a.name} (${a.type})`, price: (a as any).price ?? 0 })
+    );
+
+    assets3D.forEach(a =>
+      lines.push({ name: `${a.name}${a.type ? ` (${a.type})` : ''}`, price: (a as any).price ?? 0 })
+    );
+
+    return lines;
+  }, [poolStairs, poolChairs, contourSeating, poolLights, terrainAssets, assets3D]);
+
+  /** Pool features + every scene object, in one list for the estimate & quote */
+  const designerQuoteFeatureLines = useMemo(
+    () => [...designerFeatureLines, ...designerSceneObjectLines],
+    [designerFeatureLines, designerSceneObjectLines]
+  );
+
+
+
 
 
   // Create linearDepthAnchors if not set, based on product depths
