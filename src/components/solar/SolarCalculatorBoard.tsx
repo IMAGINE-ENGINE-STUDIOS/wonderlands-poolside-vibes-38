@@ -457,7 +457,6 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     toast({ title: "Added to your project", description: `${production.kwDc.toFixed(2)} kW · ${formatUsd(bom.installed)}` });
   };
 
-  const selectedFace = session.faces.find((f) => f.id === selected);
   const mapHeight = height ?? 520;
 
   return (
