@@ -333,6 +333,16 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         imageryDate: d ? `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}` : "",
         faces: planes.map(({ planAreaSqFt: _drop, ...f }) => f),
       });
+      /* Frame the building Google actually measured — a street address often
+         geocodes to the kerb, which would leave the planes off to one side. */
+      if (planes.length) {
+        const pts = planes.flatMap((p) => p.path);
+        setView((v) => ({
+          lat: pts.reduce((s, p) => s + p.lat, 0) / pts.length,
+          lng: pts.reduce((s, p) => s + p.lng, 0) / pts.length,
+          zoom: Math.max(v.zoom, 20),
+        }));
+      }
       /* Stay in click-to-detect so any plane Google missed can be added by
          clicking it — the roof colouring is applied from location + azimuth. */
       setMode("auto");
@@ -341,6 +351,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           title: `${planes.length} roof planes detected`,
           description: "Colours read sun exposure. Click any missed plane, or drag a point to adjust.",
         });
+
     } catch (err) {
       measured.current = [];
       patch({ covered: false });
