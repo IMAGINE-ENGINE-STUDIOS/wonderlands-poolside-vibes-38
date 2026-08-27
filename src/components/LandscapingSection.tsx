@@ -692,7 +692,7 @@ const LandscapingSection = () => {
                       <Button
                         size="lg"
                         className="rounded-none bg-foreground text-background hover:bg-foreground/90"
-                        disabled={total <= 0}
+                        disabled={total <= 0 && !isCallForQuote}
                         onClick={() => {
                           if (!custName || !custEmail) {
                             toast({
