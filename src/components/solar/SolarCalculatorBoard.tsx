@@ -746,9 +746,8 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
               {(production.yearlyKwhVerified ?? production.yearlyKwhModel).toLocaleString()} kWh per year ·{" "}
               {savings.offsetPercent}% of the bill
             </p>
-            <p className="mt-3 font-serif text-xl font-light">{formatUsd(bom.netCost)}</p>
-            <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-              after the federal credit
+            <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+              Pricing provided after the site survey
             </p>
             {cart && (
               <button
