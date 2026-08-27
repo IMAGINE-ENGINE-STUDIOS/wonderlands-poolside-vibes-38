@@ -200,7 +200,12 @@ export const ITEMS: Item[] = [
     label: "Liners",
     tagline: "Inner Hue",
     layout: "duo",
-    images: [oceanLiner, nightSkyFinish, shaleFinish],
+    /* Actual liner prints from the liner catalogue (public uploads) */
+    images: [
+      "/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.webp",
+      "/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.webp",
+      "/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.webp",
+    ],
     description:
       "Printed liners with waterline borders and mosaic bands — a complete change of tone without touching the shell.",
     notes: ["Waterline borders", "Mosaic band options", "Shell-safe installation"],
