@@ -25,7 +25,7 @@ import {
   type LatLng,
   type RoofFace,
 } from "@/lib/solar/solarEngine";
-import { buildSolarBom, formatUsd } from "@/lib/solar/solarBom";
+import { buildSolarBom } from "@/lib/solar/solarBom";
 import {
   rackingByCovering,
   roofCoverings,
@@ -447,7 +447,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     cart.addToCart({
       id: `solar-system-${panel.id}-${session.batteryId}`,
       name: `Wonderlands Solar — ${production.kwDc.toFixed(2)} kW`,
-      price: bom.installed,
+      price: 0,
       category: "solar",
       extras: [
         { name: `${production.panels} × ${panel.name}`, price: 0 },
@@ -455,7 +455,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         ...(battery.usableKwh ? [{ name: battery.name, price: 0 }] : []),
       ],
     } as never);
-    toast({ title: "Added to your project", description: `${production.kwDc.toFixed(2)} kW · ${formatUsd(bom.installed)}` });
+    toast({ title: "Added to your project", description: `${production.kwDc.toFixed(2)} kW system — a representative will confirm pricing after the site survey.` });
   };
 
   const mapHeight = height ?? 520;
@@ -746,9 +746,8 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
               {(production.yearlyKwhVerified ?? production.yearlyKwhModel).toLocaleString()} kWh per year ·{" "}
               {savings.offsetPercent}% of the bill
             </p>
-            <p className="mt-3 font-serif text-xl font-light">{formatUsd(bom.netCost)}</p>
-            <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-              after the federal credit
+            <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+              Pricing provided after the site survey
             </p>
             {cart && (
               <button

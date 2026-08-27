@@ -116,22 +116,12 @@ const SolarReportTabs: React.FC<SolarReportProps> = ({
 
             <div>
               <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">The numbers</p>
-              <h3 className="mt-2 font-serif text-2xl font-light leading-tight">{formatUsd(bom.netCost)}</h3>
+              <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Custom proposal</h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                after the 30% federal credit — {formatUsd(bom.installed)} installed
+                Pricing is provided in writing after the site survey and shade study.
               </p>
 
               <div className="mt-5">
-                <Row label="Installed price" value={formatUsd(bom.installed)} />
-                <Row label="Federal credit (30%)" value={`− ${formatUsd(bom.federalCredit)}`} />
-                <Row label="Net investment" value={formatUsd(bom.netCost)} />
-                <Row label="Cost per watt" value={`$${bom.costPerWatt.toFixed(2)}/W`} />
-                <Row label="Year-one savings" value={formatUsd(savings.yearOneSavings)} />
-                <Row label="25-year savings" value={formatUsd(savings.lifetimeSavings)} />
-                <Row
-                  label="Payback"
-                  value={savings.paybackYears ? `${savings.paybackYears} years` : "—"}
-                />
                 <Row label="Florida sales tax on solar" value="$0" />
               </div>
 

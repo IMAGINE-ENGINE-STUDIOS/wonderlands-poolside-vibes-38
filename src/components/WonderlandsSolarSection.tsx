@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 import ProductScrollRow from "./ProductScrollRow";
-import SurveyQuoteTool from "./SurveyQuoteTool";
 import SolarLeadForm from "./SolarLeadForm";
 import { solarProducts, solarStats, solarGroups, type SolarProduct } from "@/data/solarData";
 
@@ -14,12 +13,13 @@ import { solarProducts, solarStats, solarGroups, type SolarProduct } from "@/dat
  * one full-bleed dark statement plate with a very short headline and a stat
  * row, then quiet outlined product tiles. Styling stays on semantic tokens so
  * the section themes with the rest of the site.
+ *
+ * Pricing note: solar system prices are currently hidden from public view;
+ * interested visitors are routed to the lead form for a written proposal.
  */
-const money = (n: number) => `$${n.toLocaleString()}`;
 
 const WonderlandsSolarSection = () => {
   const [group, setGroup] = useState<"All" | SolarProduct["group"]>("All");
-  const [quoteProduct, setQuoteProduct] = useState<SolarProduct | null>(null);
 
   const visible = useMemo(
     () => (group === "All" ? solarProducts : solarProducts.filter((p) => p.group === group)),
@@ -127,15 +127,15 @@ const WonderlandsSolarSection = () => {
                   <div className="flex items-end justify-between gap-4 border-t border-border/60 pt-4">
                     <div>
                       <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Installed</p>
-                      <p className="font-serif text-2xl font-light text-foreground sm:text-3xl">{money(p.price)}</p>
+                      <p className="font-serif text-2xl font-light text-foreground sm:text-3xl">On request</p>
                     </div>
                   </div>
                   <Button
-                    onClick={() => setQuoteProduct(p)}
+                    onClick={() => document.getElementById("solar-quote")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                     size="sm"
                     className="w-full rounded-none bg-foreground text-[10px] uppercase tracking-[0.3em] text-background hover:bg-foreground/90"
                   >
-                    Instant Quote
+                    Request a Quote
                   </Button>
                 </CardContent>
               </Card>
@@ -143,9 +143,10 @@ const WonderlandsSolarSection = () => {
           </ProductScrollRow>
 
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Prices are installed, turnkey and include the shade study, engineering, county permit, utility
-            interconnection and final inspection. Incentive eligibility is confirmed in writing before contract.
+            Turnkey proposals include the shade study, engineering, county permit, utility
+            interconnection and final inspection. Pricing is provided in writing after the site survey.
           </p>
+
 
           {/* Lead capture */}
           <div id="solar-quote" className="mt-12 scroll-mt-24">
@@ -154,22 +155,6 @@ const WonderlandsSolarSection = () => {
 
         </div>
       </section>
-
-      <SurveyQuoteTool
-        pool={null}
-        isOpen={!!quoteProduct}
-        onClose={() => setQuoteProduct(null)}
-        customProduct={
-          quoteProduct
-            ? {
-                name: `Wonderlands Solar - ${quoteProduct.name}`,
-                price: quoteProduct.price,
-                type: "solar",
-                image: quoteProduct.image,
-              }
-            : undefined
-        }
-      />
     </>
   );
 };

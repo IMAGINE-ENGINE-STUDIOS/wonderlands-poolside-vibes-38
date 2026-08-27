@@ -28,7 +28,7 @@ const STEPS: { num: string; title: string; text: string; image: string; alt: str
   {
     num: "03",
     title: "Quote",
-    text: "Installed turnkey price, with incentives and net metering confirmed in writing.",
+    text: "Installed turnkey proposal, with incentives and net metering confirmed in writing.",
     image: solarPoolHeating,
     alt: "Solar pool heating collectors plumbed into the pump loop",
   },
