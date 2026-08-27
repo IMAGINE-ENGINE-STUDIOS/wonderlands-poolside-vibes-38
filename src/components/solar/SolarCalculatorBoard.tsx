@@ -863,7 +863,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
                       .filter((p) => p.brand === panel.brand)
                       .map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.watts} W — {p.name}
+                          {p.name}
                         </option>
                       ))}
                   </select>
