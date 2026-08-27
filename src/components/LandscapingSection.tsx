@@ -574,7 +574,7 @@ const LandscapingSection = () => {
                       <Button className="rounded-none"
                         size="lg"
                         variant="outline"
-                        disabled={total <= 0}
+                        disabled={total <= 0 && !isCallForQuote}
                         onClick={() => {
                           const today = new Date().toLocaleDateString("en-US", {
                             year: "numeric",
