@@ -18,7 +18,9 @@ import {
   compassLabel,
   computeProduction,
   computeSavings,
+  distanceFt,
   pathAreaSqFt,
+  pointInPath,
   pathSpanFt,
   pitchAsRise,
   readExposure,
@@ -30,10 +32,14 @@ import {
   rackingByCovering,
   roofCoverings,
   solarBatteries,
+  solarPanelBrands,
   solarPanels,
+  panelFullName,
   type RoofCovering,
 } from "@/data/solarHardware";
 import SolarReportTabs from "./SolarReportTabs";
+import SolarPerformanceGraphics from "./SolarPerformanceGraphics";
+import StudioCartWidget from "@/components/StudioCartWidget";
 
 /**
  * Total Solar Calculator.
@@ -91,6 +97,13 @@ const emptySession: SolarSession = {
 
 const FL_LAT = 27.5;
 
+/** One registered address returned by the Places suggestion service. */
+interface Suggestion {
+  placeId: string;
+  label: string;
+}
+
+
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">{children}</span>
 );
@@ -105,7 +118,10 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
 
   const [session, setSession] = usePersistentState<SolarSession>("solar_calculator_session", emptySession);
   const [query, setQuery] = React.useState(session.address);
+  const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
+  const [typing, setTyping] = React.useState(false);
   const [busy, setBusy] = React.useState<"" | "geocode" | "insights" | "trace">("");
+
   const [mode, setMode] = usePersistentState<Mode>("solar_capture_mode", "idle");
   const [selected, setSelected] = React.useState<string>("");
   const [draft, setDraft] = React.useState<LatLng[]>([]);
@@ -116,6 +132,12 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   const draftPoly = React.useRef<google.maps.Polygon | null>(null);
   const marker = React.useRef<google.maps.Marker | null>(null);
   const tile = React.useRef<TileFrame | null>(null);
+  /** Google's measured roof planes for this address — the click hit-test pool */
+  const measured = React.useRef<RoofFace[]>([]);
+  /** Live hand-trace overlay: the spline plus one length label per side */
+  const draftLine = React.useRef<google.maps.Polyline | null>(null);
+  const draftDots = React.useRef<google.maps.Marker[]>([]);
+  const draftLabels = React.useRef<google.maps.Marker[]>([]);
 
   const panel = solarPanels.find((p) => p.id === session.panelId) ?? solarPanels[0];
   const battery = solarBatteries.find((b) => b.id === session.batteryId) ?? solarBatteries[0];
@@ -172,23 +194,28 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     async <T,>(body: Record<string, unknown>): Promise<T> => {
       const { data, error } = await supabase.functions.invoke("solar-report", { body });
       if (error) {
-        let detail = error.message;
+        /* The function answers non-2xx with a JSON body that names the real
+           cause (an un-enabled Google API, a rejected address, a quota). Read
+           it and pass that through instead of a blanket "unavailable". */
+        let detail = "";
         const ctx = (error as { context?: { text?: () => Promise<string> } }).context;
         if (ctx?.text) {
           try {
-            detail = await ctx.text();
+            const text = await ctx.text();
+            detail = (JSON.parse(text) as { error?: string })?.error ?? text;
           } catch {
-            /* keep the original message */
+            /* body was not JSON — fall through to the generic message */
           }
         }
-        console.error("solar-report failed:", detail);
-        throw new Error("The aerial service is unavailable right now.");
+        console.error("solar-report failed:", detail || error.message);
+        throw new Error(detail || "We could not reach the aerial service. Please try again.");
       }
       if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
       return data as T;
     },
     [],
   );
+
 
   /* ── map bootstrap ─────────────────────────────────────────────────── */
 
@@ -234,24 +261,47 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
 
   /* ── address search ────────────────────────────────────────────────── */
 
-  const search = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    const address = query.trim();
-    if (address.length < 5) return;
+  /** Frames a resolved address on the aerial and reads its roof. */
+  const settleOn = async (found: { address: string; lat: number; lng: number }) => {
+    patch({ address: found.address, lat: found.lat, lng: found.lng });
+    setQuery(found.address);
+    setSuggestions([]);
+    map.current?.setCenter({ lat: found.lat, lng: found.lng });
+    map.current?.setZoom(20);
+    marker.current?.setMap(null);
+    marker.current = new google.maps.Marker({
+      position: { lat: found.lat, lng: found.lng },
+      map: map.current!,
+      opacity: 0.85,
+    });
+    await loadInsights(found.lat, found.lng);
+  };
+
+  /* Suggest registered addresses as the reader types (debounced, server-side). */
+  React.useEffect(() => {
+    const input = query.trim();
+    if (!typing || input.length < 4 || input === session.address) {
+      setSuggestions([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      callSolar<{ suggestions: Suggestion[] }>({ action: "autocomplete", input })
+        .then((r) => setSuggestions(r.suggestions ?? []))
+        .catch(() => setSuggestions([]));
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [query, typing, session.address, callSolar]);
+
+  const chooseSuggestion = async (s: Suggestion) => {
+    setTyping(false);
+    setSuggestions([]);
     setBusy("geocode");
     try {
-      const found = await callSolar<{ address: string; lat: number; lng: number }>({ action: "geocode", address });
-      patch({ address: found.address, lat: found.lat, lng: found.lng });
-      setQuery(found.address);
-      map.current?.setCenter({ lat: found.lat, lng: found.lng });
-      map.current?.setZoom(20);
-      marker.current?.setMap(null);
-      marker.current = new google.maps.Marker({
-        position: { lat: found.lat, lng: found.lng },
-        map: map.current!,
-        opacity: 0.85,
+      const found = await callSolar<{ address: string; lat: number; lng: number }>({
+        action: "place",
+        placeId: s.placeId,
       });
-      await loadInsights(found.lat, found.lng);
+      await settleOn({ ...found, address: found.address || s.label });
     } catch (err) {
       toast({ title: "Address", description: (err as Error).message });
     } finally {
@@ -259,12 +309,35 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     }
   };
 
+  const search = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const address = query.trim();
+    if (address.length < 5) return;
+    /* pressing enter on a highlighted list takes the first suggestion */
+    if (suggestions.length) {
+      await chooseSuggestion(suggestions[0]);
+      return;
+    }
+    setTyping(false);
+    setBusy("geocode");
+    try {
+      const found = await callSolar<{ address: string; lat: number; lng: number }>({ action: "geocode", address });
+      await settleOn(found);
+    } catch (err) {
+      toast({ title: "Address", description: (err as Error).message });
+    } finally {
+      setBusy("");
+    }
+  };
+
+
   /** Measured roof planes, when Google covers the address. */
   const loadInsights = async (lat: number, lng: number) => {
     setBusy("insights");
     try {
       const insights = await callSolar<BuildingInsights>({ action: "insights", lat, lng });
       if (!insights.covered) {
+        measured.current = [];
         patch({ covered: false });
         setMode("auto");
         toast({
@@ -273,17 +346,26 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         });
         return;
       }
-      const measured = facesFromInsights(insights);
+      const planes = facesFromInsights(insights);
+      /* Kept aside so a later click on the aerial can pick the measured plane
+         under the cursor even after the reader has cleared or edited faces. */
+      measured.current = planes;
       const d = insights.imageryDate;
       patch({
         covered: true,
         imageryDate: d ? `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}` : "",
-        faces: measured.map(({ planAreaSqFt: _drop, ...f }) => f),
+        faces: planes.map(({ planAreaSqFt: _drop, ...f }) => f),
       });
-      setMode("idle");
-      if (measured.length)
-        toast({ title: `${measured.length} roof planes captured`, description: "Adjust any outline by dragging its points." });
+      /* Stay in click-to-detect so any plane Google missed can be added by
+         clicking it — the roof colouring is applied from location + azimuth. */
+      setMode("auto");
+      if (planes.length)
+        toast({
+          title: `${planes.length} roof planes detected`,
+          description: "Colours read sun exposure. Click any missed plane, or drag a point to adjust.",
+        });
     } catch (err) {
+      measured.current = [];
       patch({ covered: false });
       setMode("auto");
       toast({ title: "Roof data", description: (err as Error).message });
@@ -307,6 +389,27 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     setSelected(id);
   };
 
+  /** Adds a measured plane (azimuth, pitch and sunshine hours all real). */
+  const addMeasuredFace = (plane: RoofFace) => {
+    const id = `auto-${plane.id}-${Date.now().toString(36)}`;
+    setSession((s) => ({
+      ...s,
+      faces: [
+        ...s.faces,
+        {
+          id,
+          path: plane.path,
+          azimuthDeg: Math.round(plane.azimuthDeg),
+          pitchDeg: plane.pitchDeg,
+          shadeFactor: 0,
+          measuredSunshineHours: plane.measuredSunshineHours,
+          source: "auto" as const,
+        },
+      ],
+    }));
+    setSelected(id);
+  };
+
   React.useEffect(() => {
     if (!ready || !map.current) return;
     const m = map.current;
@@ -321,30 +424,48 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       }
       if (mode !== "auto") return;
 
-      if (!tile.current) {
-        toast({ title: "Zoom in a little", description: "Frame the property closely, then click the roof." });
+      /* 1. A measured plane under the cursor is the best answer — real
+            azimuth, pitch and satellite sunshine hours, no image guessing. */
+      const hit = measured.current.find((p) => pointInPath(point, p.path));
+      if (hit) {
+        const already = session.faces.some((f) => pointInPath(point, f.path));
+        if (already) {
+          toast({ title: "Plane already captured", description: "Click it once more to select and edit its outline." });
+          return;
+        }
+        addMeasuredFace(hit);
+        toast({ title: "Roof plane detected", description: `${compassLabel(hit.azimuthDeg)} facing · coloured by sun exposure.` });
         return;
       }
-      setBusy("trace");
-      try {
-        const traced = await autoTraceAt(tile.current, point);
-        if (traced) addFace(traced, "auto");
-        else {
-          addFace(rectangleAround(point), "traced");
-          toast({
-            title: "Outline placed by hand",
-            description: "The plane could not be read from the photo — drag the points onto the roof edges.",
-          });
+
+      /* 2. Otherwise read the plane out of the aerial photo. */
+      if (tile.current) {
+        setBusy("trace");
+        try {
+          const traced = await autoTraceAt(tile.current, point);
+          if (traced) {
+            addFace(traced, "auto");
+            return;
+          }
+        } catch (err) {
+          console.error("roof trace failed:", (err as Error).message);
+        } finally {
+          setBusy("");
         }
-      } catch (err) {
-        toast({ title: "Roof trace", description: (err as Error).message });
-      } finally {
-        setBusy("");
       }
+
+      /* 3. Last resort — an editable outline on the spot, so the click is
+            never dead even when the photo cannot be sampled. */
+      addFace(rectangleAround(point), "traced");
+      toast({
+        title: "Outline placed for you",
+        description: "The photo could not be read here — drag the points onto the roof edges.",
+      });
     });
     return () => listener.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, mode, toast]);
+  }, [ready, mode, session.faces, toast]);
+
 
   /* ── draw the faces ───────────────────────────────────────────────── */
 
@@ -399,29 +520,111 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     });
   }, [ready, session.faces, session.lat, selected, updateFace]);
 
-  /* the in-progress manual outline */
+  /**
+   * The in-progress hand trace. The spline is drawn as it is laid down — an
+   * open polyline with a dot on every vertex, a dimension label in feet on
+   * every side (including the closing side once three points exist), and a
+   * translucent fill so the plane reads while it is still being drawn.
+   */
   React.useEffect(() => {
     if (!ready || !map.current) return;
+    const m = map.current;
+
+    const clearOverlay = () => {
+      draftDots.current.forEach((d) => d.setMap(null));
+      draftDots.current = [];
+      draftLabels.current.forEach((l) => l.setMap(null));
+      draftLabels.current = [];
+    };
+
     if (!draft.length) {
       draftPoly.current?.setMap(null);
       draftPoly.current = null;
+      draftLine.current?.setMap(null);
+      draftLine.current = null;
+      clearOverlay();
       return;
     }
+
+    /* fill (needs three points to read as a plane) */
     if (!draftPoly.current)
       draftPoly.current = new google.maps.Polygon({
-        map: map.current,
-        strokeColor: "#ffffff",
-        strokeWeight: 2,
+        map: m,
+        clickable: false,
+        strokeOpacity: 0,
         fillColor: "#f97316",
-        fillOpacity: 0.25,
+        fillOpacity: 0.22,
       });
-    draftPoly.current.setPath(draft);
+    draftPoly.current.setPath(draft.length >= 3 ? draft : []);
+
+    /* the spline itself, as drawn */
+    if (!draftLine.current)
+      draftLine.current = new google.maps.Polyline({
+        map: m,
+        clickable: false,
+        strokeColor: "#ffffff",
+        strokeOpacity: 0.95,
+        strokeWeight: 2.5,
+        zIndex: 40,
+      });
+    draftLine.current.setPath(draft);
+
+    clearOverlay();
+
+    /* vertex dots */
+    draft.forEach((p, i) => {
+      draftDots.current.push(
+        new google.maps.Marker({
+          position: p,
+          map: m,
+          clickable: false,
+          zIndex: 41,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 5,
+            fillColor: i === draft.length - 1 ? "#f97316" : "#ffffff",
+            fillOpacity: 1,
+            strokeColor: "#0a0a0f",
+            strokeWeight: 1.5,
+          },
+        }),
+      );
+    });
+
+    /* one dimension label per side, at the side's midpoint */
+    const sides = draft.length >= 3 ? draft.length : draft.length - 1;
+    for (let i = 0; i < sides; i++) {
+      const a = draft[i];
+      const b = draft[(i + 1) % draft.length];
+      const feet = distanceFt(a, b);
+      if (feet < 1) continue;
+      draftLabels.current.push(
+        new google.maps.Marker({
+          position: { lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2 },
+          map: m,
+          clickable: false,
+          zIndex: 42,
+          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
+          label: {
+            text: `${feet.toFixed(1)} ft`,
+            color: "#ffffff",
+            fontSize: "11px",
+            fontWeight: "500",
+            className: "wl-solar-dim",
+          },
+        }),
+      );
+    }
   }, [ready, draft]);
+
 
   React.useEffect(
     () => () => {
       polys.current.forEach((p) => p.setMap(null));
       polys.current.clear();
+      draftLine.current?.setMap(null);
+      draftDots.current.forEach((d) => d.setMap(null));
+      draftLabels.current.forEach((l) => l.setMap(null));
       draftPoly.current?.setMap(null);
       marker.current?.setMap(null);
       map.current = null;
@@ -442,37 +645,92 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     setMode("idle");
   };
 
+  /**
+   * The whole captured system goes into the shared cart (the same Order Desk
+   * the flip book and the studio use): the installed total as the line price,
+   * and every priced BOM line — array, racking, electrical, storage, soft
+   * costs — carried as an itemised extra so the quote reads in full.
+   */
+  const solarExtras = React.useMemo(
+    () =>
+      bom.lines.map((l) => ({
+        name: l.qty > 1 ? `${l.item} — ${l.qty} ${l.unit}` : l.item,
+        price: l.total,
+        key: `${l.group}:${l.item}`,
+      })),
+    [bom.lines],
+  );
+
+  const solarSummary = React.useMemo(
+    () =>
+      [
+        `${production.kwDc.toFixed(2)} kW DC · ${production.panels} × ${panel.name}`,
+        `${(production.yearlyKwhVerified ?? production.yearlyKwhModel).toLocaleString()} kWh per year · ${savings.offsetPercent}% of the bill`,
+        `${rackingByCovering[session.covering].label} on ${session.covering} roof`,
+        battery.usableKwh ? `${battery.name} — ${battery.usableKwh} kWh usable` : "No battery storage",
+        session.address || "Address pending",
+      ].join(" · "),
+    [production, panel, savings, session.covering, session.address, battery],
+  );
+
   const addToCart = () => {
     if (!cart || !production.panels) return;
     cart.addToCart({
-      id: `solar-system-${panel.id}-${session.batteryId}`,
+      id: `solar-system-${panel.id}-${session.batteryId}-${session.covering}`,
       name: `Wonderlands Solar — ${production.kwDc.toFixed(2)} kW`,
-      price: 0,
+      price: bom.installed,
       category: "solar",
-      extras: [
-        { name: `${production.panels} × ${panel.name}`, price: 0 },
-        { name: rackingByCovering[session.covering].label, price: 0 },
-        ...(battery.usableKwh ? [{ name: battery.name, price: 0 }] : []),
-      ],
+      description: solarSummary,
+      extras: solarExtras,
     } as never);
-    toast({ title: "Added to your project", description: `${production.kwDc.toFixed(2)} kW system — a representative will confirm pricing after the site survey.` });
+    toast({
+      title: "Added to your project",
+      description: `${production.kwDc.toFixed(2)} kW system with ${solarExtras.length} itemised lines — the Order Desk holds the full build.`,
+    });
   };
+
 
   const mapHeight = height ?? 520;
 
   return (
     <div className="space-y-5">
       {/* ── address ── */}
-      <form onSubmit={search} className="flex flex-col gap-2 sm:flex-row">
-        <div className="flex flex-1 items-center gap-2 border border-border/60 px-3">
-          <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Property address — street, city, FL"
-            aria-label="Property address"
-            className="w-full bg-transparent py-3 text-sm font-light outline-none"
-          />
+      <form onSubmit={search} className="relative flex flex-col gap-2 sm:flex-row">
+        <div className="relative flex-1">
+          <div className="flex items-center gap-2 border border-border/60 px-3">
+            <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => {
+                setTyping(true);
+                setQuery(e.target.value);
+              }}
+              onBlur={() => window.setTimeout(() => setSuggestions([]), 150)}
+              placeholder="Property address — start typing, then pick your home"
+              aria-label="Property address"
+              autoComplete="off"
+              className="w-full bg-transparent py-3 text-sm font-light outline-none"
+            />
+          </div>
+
+          {/* registered addresses, as a maps-style suggestion list */}
+          {suggestions.length > 0 && (
+            <ul className="absolute left-0 right-0 top-full z-30 max-h-64 overflow-y-auto border border-border/60 bg-background shadow-lg">
+              {suggestions.map((s) => (
+                <li key={s.placeId}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => chooseSuggestion(s)}
+                    className="flex w-full items-start gap-2 px-3 py-2.5 text-left text-xs font-light hover:bg-muted"
+                  >
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    {s.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <button
           type="submit"
@@ -483,6 +741,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           Find the roof
         </button>
       </form>
+
 
       {mapsError && (
         <p className="border border-border/60 p-3 text-xs text-muted-foreground">{mapsError}</p>
@@ -566,16 +825,47 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           <div className="border border-border/60 p-4">
             <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">The system</p>
             <div className="mt-3 space-y-3">
-              <label className="block">
-                <Label>Module</Label>
-                <select value={session.panelId} onChange={(e) => patch({ panelId: e.target.value })} className={selectClass}>
-                  {solarPanels.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} — {p.watts} W
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {/* brand first, then the wattage inside that brand */}
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <Label>Brand</Label>
+                  <select
+                    value={panel.brand}
+                    onChange={(e) => {
+                      const first = solarPanels.find((p) => p.brand === e.target.value);
+                      if (first) patch({ panelId: first.id });
+                    }}
+                    className={selectClass}
+                  >
+                    {solarPanelBrands.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <Label>Module · watts</Label>
+                  <select
+                    value={session.panelId}
+                    onChange={(e) => patch({ panelId: e.target.value })}
+                    className={selectClass}
+                  >
+                    {solarPanels
+                      .filter((p) => p.brand === panel.brand)
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.watts} W — {p.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              </div>
+              <p className="text-[10px] leading-relaxed text-muted-foreground">
+                {panelFullName(panel)} · {(panel.efficiency * 100).toFixed(1)}% efficient ·{" "}
+                {panel.warrantyYears}-year warranty. {panel.note}
+              </p>
+
               <label className="block">
                 <Label>Storage</Label>
                 <select value={session.batteryId} onChange={(e) => patch({ batteryId: e.target.value })} className={selectClass}>

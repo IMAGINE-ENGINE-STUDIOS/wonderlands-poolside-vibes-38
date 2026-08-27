@@ -9,6 +9,8 @@ export type RoofCovering = "shingle" | "tile" | "metal-standing-seam" | "metal-5
 
 export interface SolarPanelSpec {
   id: string;
+  /** Manufacturer — the calculator groups the module list by this */
+  brand: string;
   name: string;
   /** Nameplate DC watts */
   watts: number;
@@ -22,11 +24,17 @@ export interface SolarPanelSpec {
   note: string;
 }
 
-/** The three modules Wonderlands installs, cheapest per watt first. */
+/**
+ * Every module Wonderlands installs, grouped by manufacturer and ordered by
+ * nameplate watts inside each brand. The board's brand selector reads this
+ * list, so adding a manufacturer here is all that is needed to offer it.
+ */
 export const solarPanels: SolarPanelSpec[] = [
+  /* ── Wonderlands house line ─────────────────────────────────────────── */
   {
     id: "panel-400",
-    name: "Wonderlands 400 W All-Black",
+    brand: "Wonderlands",
+    name: "400 W All-Black",
     watts: 400,
     widthFt: 3.42,
     heightFt: 5.63,
@@ -37,7 +45,8 @@ export const solarPanels: SolarPanelSpec[] = [
   },
   {
     id: "panel-450",
-    name: "Wonderlands 450 W Signature",
+    brand: "Wonderlands",
+    name: "450 W Signature",
     watts: 450,
     widthFt: 3.48,
     heightFt: 6.2,
@@ -48,7 +57,8 @@ export const solarPanels: SolarPanelSpec[] = [
   },
   {
     id: "panel-500",
-    name: "Wonderlands 500 W Estate",
+    brand: "Wonderlands",
+    name: "500 W Estate",
     watts: 500,
     widthFt: 3.72,
     heightFt: 7.55,
@@ -57,7 +67,106 @@ export const solarPanels: SolarPanelSpec[] = [
     warrantyYears: 30,
     note: "Estate-scale module with a thirty-year performance warranty.",
   },
+
+  /* ── REC ────────────────────────────────────────────────────────────── */
+  {
+    id: "panel-rec-410",
+    brand: "REC",
+    name: "Alpha Pure-R 410 W",
+    watts: 410,
+    widthFt: 3.44,
+    heightFt: 5.71,
+    efficiency: 0.212,
+    pricePerWatt: 3.4,
+    warrantyYears: 25,
+    note: "Lead-free heterojunction cells — strong hot-climate temperature coefficient.",
+  },
+  {
+    id: "panel-rec-460",
+    brand: "REC",
+    name: "Alpha Pure-RX 460 W",
+    watts: 460,
+    widthFt: 3.65,
+    heightFt: 6.17,
+    efficiency: 0.226,
+    pricePerWatt: 3.6,
+    warrantyYears: 25,
+    note: "REC's highest-density residential module, all-black frame.",
+  },
+
+  /* ── Qcells ─────────────────────────────────────────────────────────── */
+  {
+    id: "panel-qcells-405",
+    brand: "Qcells",
+    name: "Q.PEAK DUO BLK ML-G10+ 405 W",
+    watts: 405,
+    widthFt: 3.47,
+    heightFt: 5.75,
+    efficiency: 0.204,
+    pricePerWatt: 3.0,
+    warrantyYears: 25,
+    note: "Value workhorse, built in Georgia — quick lead times in Florida.",
+  },
+  {
+    id: "panel-qcells-430",
+    brand: "Qcells",
+    name: "Q.TRON BLK M-G2+ 430 W",
+    watts: 430,
+    widthFt: 3.47,
+    heightFt: 5.75,
+    efficiency: 0.223,
+    pricePerWatt: 3.25,
+    warrantyYears: 25,
+    note: "N-type cells with a 0.25%/yr degradation rate.",
+  },
+
+  /* ── Maxeon / SunPower ──────────────────────────────────────────────── */
+  {
+    id: "panel-maxeon-440",
+    brand: "Maxeon",
+    name: "Maxeon 6 AC 440 W",
+    watts: 440,
+    widthFt: 3.4,
+    heightFt: 6.16,
+    efficiency: 0.229,
+    pricePerWatt: 3.95,
+    warrantyYears: 40,
+    note: "Back-contact cells with a forty-year warranty — the top of the catalogue.",
+  },
+
+  /* ── Jinko ──────────────────────────────────────────────────────────── */
+  {
+    id: "panel-jinko-475",
+    brand: "Jinko",
+    name: "Tiger NEO 475 W",
+    watts: 475,
+    widthFt: 3.7,
+    heightFt: 6.4,
+    efficiency: 0.221,
+    pricePerWatt: 2.85,
+    warrantyYears: 25,
+    note: "Best cost per watt for large roofs where space is not the constraint.",
+  },
+  {
+    id: "panel-jinko-575",
+    brand: "Jinko",
+    name: "Tiger NEO 575 W (large format)",
+    watts: 575,
+    widthFt: 3.75,
+    heightFt: 7.71,
+    efficiency: 0.223,
+    pricePerWatt: 2.7,
+    warrantyYears: 25,
+    note: "Commercial-format module for barns, lanai roofs and flat decks.",
+  },
 ];
+
+/** Manufacturers in catalogue order, for the brand selector. */
+export const solarPanelBrands: string[] = Array.from(new Set(solarPanels.map((p) => p.brand)));
+
+/** Full display name — brand and model together, for quotes and the cart. */
+export const panelFullName = (p: SolarPanelSpec): string => `${p.brand} ${p.name}`;
+
 
 export interface BatterySpec {
   id: string;
