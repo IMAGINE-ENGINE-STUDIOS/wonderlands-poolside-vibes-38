@@ -72,13 +72,13 @@ const LandscapingSection = () => {
   const { addToCart } = useShoppingCart();
 
   // ── Quote tool state ───────────────────────────────────────────────
-  type QuoteTier = "basic" | "full" | "luxury";
-  const TIERS: { id: QuoteTier; emoji: string; title: string; price: number; description: string }[] = [
-    { id: "basic", emoji: "🌿", title: "Basic Refresh", price: 5, description: "Mulch, plants, cleanup" },
+  type QuoteTier = "themed" | "full" | "luxury";
+  const TIERS: { id: QuoteTier; emoji: string; title: string; price: number | null; description: string; callForQuote?: boolean }[] = [
+    { id: "themed", emoji: "", title: "Themed Patio", price: null, callForQuote: true, description: "Green walls, luxury landscaping design, matured trees & vegetation" },
     { id: "full", emoji: "🌿🌿", title: "Full Yard Makeover", price: 15, description: "Design + planting + irrigation" },
     { id: "luxury", emoji: "🌿🏡", title: "Luxury Outdoor Space", price: 20, description: "Patios, stonework, premium features" },
   ];
-  const [quoteTier, setQuoteTier] = useState<QuoteTier>("basic");
+  const [quoteTier, setQuoteTier] = useState<QuoteTier>("themed");
   const [quoteSqft, setQuoteSqft] = useState<string>("");
   // Customer info (mirrors main /quote tool)
   const [custName, setCustName] = useState("");
@@ -226,10 +226,11 @@ const LandscapingSection = () => {
           {(() => {
             const sqft = Math.max(0, parseFloat(quoteSqft) || 0);
             const tier = TIERS.find((t) => t.id === quoteTier)!;
+            const isCallForQuote = tier.callForQuote === true;
             const effectiveRate =
               isAdmin && overrideRate !== "" && !isNaN(parseFloat(overrideRate))
                 ? parseFloat(overrideRate)
-                : tier.price;
+                : (tier.price ?? 0);
             const baseCost = sqft * effectiveRate;
             const plantsCost = Object.values(quoteItems).reduce(
               (sum, it) => sum + it.price * it.qty,
@@ -287,9 +288,15 @@ const LandscapingSection = () => {
                           </div>
                           <div className="font-serif text-xl font-light text-foreground mt-2">{t.title}</div>
                           <div className="font-serif text-2xl font-light text-foreground mt-1">
-                            ${t.price}
-                            {t.id === "luxury" ? "+" : ""}
-                            <span className="text-xs text-muted-foreground"> /sq ft</span>
+                            {t.callForQuote ? (
+                              <span className="text-lg">Call one of our agents</span>
+                            ) : (
+                              <>
+                                ${t.price}
+                                {t.id === "luxury" ? "+" : ""}
+                                <span className="text-xs text-muted-foreground"> /sq ft</span>
+                              </>
+                            )}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
                         </button>
