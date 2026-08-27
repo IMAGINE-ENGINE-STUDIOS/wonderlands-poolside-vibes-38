@@ -200,12 +200,11 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
           id: p.id,
           name: p.name,
           image: p.image,
-          price: p.price,
           unit: "each" as const,
           brand: "Wonderlands Solar",
           meta: p.spec,
         }))
-        .sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
     case "landscaping": {
       const { landscapingPlants } = await import("@/data/landscapingData");
