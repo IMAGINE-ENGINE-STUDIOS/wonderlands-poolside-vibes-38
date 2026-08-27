@@ -155,22 +155,6 @@ const WonderlandsSolarSection = () => {
 
         </div>
       </section>
-
-      <SurveyQuoteTool
-        pool={null}
-        isOpen={!!quoteProduct}
-        onClose={() => setQuoteProduct(null)}
-        customProduct={
-          quoteProduct
-            ? {
-                name: `Wonderlands Solar - ${quoteProduct.name}`,
-                price: quoteProduct.price,
-                type: "solar",
-                image: quoteProduct.image,
-              }
-            : undefined
-        }
-      />
     </>
   );
 };
