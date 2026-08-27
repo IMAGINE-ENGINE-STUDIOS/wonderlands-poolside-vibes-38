@@ -58,7 +58,7 @@ const SolarEditorial: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-px bg-border/40 lg:grid-cols-12">
           {/* Primary image */}
-          <div className="relative overflow-hidden bg-background lg:col-span-7">
+          <div className="relative overflow-hidden bg-background lg:order-2 lg:col-span-7">
             <div className="relative aspect-[4/3] lg:aspect-[16/11]">
               <img
                 src={solarInverterCharger}
@@ -90,7 +90,7 @@ const SolarEditorial: React.FC = () => {
           </div>
 
           {/* Editorial copy column */}
-          <div className="flex flex-col justify-between bg-background p-7 md:p-10 lg:col-span-5">
+          <div className="flex flex-col justify-between bg-background p-7 md:p-10 lg:order-1 lg:col-span-5">
             <div>
               <p className="max-w-md text-sm leading-relaxed text-muted-foreground md:text-base">
                 Power the pool, the spa and the house from the roof above them. We model
