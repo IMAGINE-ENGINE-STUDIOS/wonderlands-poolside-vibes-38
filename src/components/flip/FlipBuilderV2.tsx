@@ -566,8 +566,8 @@ const FlipBuilderV2: React.FC = () => {
                   className={`border p-3 text-left transition-colors ${doc.theme.paletteId === p.id ? "border-foreground" : "border-border/60 hover:border-foreground/60"}`}
                 >
                   <div className="flex h-12 overflow-hidden">
-                    {[p.paper, p.ink, p.accent, p.muted, p.coverPaper].map((c) => (
-                      <span key={c} className="flex-1" style={{ background: c }} />
+                    {[p.paper, p.ink, p.accent, p.muted, p.coverPaper].map((c, i) => (
+                      <span key={`${p.id}-${i}`} className="flex-1" style={{ background: c }} />
                     ))}
                   </div>
                   <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-foreground">{p.name}</p>
