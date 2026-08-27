@@ -1284,13 +1284,25 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      /* Interactive leaves (maps, canvases, search fields) keep their own keys —
+         arrows, keypad and zoom belong to the board, not to the book. */
+      if (flipLocked) return;
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (el?.isContentEditable) return;
+      if (el?.closest("input, textarea, select, [contenteditable=true], canvas, [role='application'], .gm-style, .mapboxgl-map")) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.code?.startsWith("Numpad")) return;
       if (e.key === "ArrowRight") bookRef.current?.pageFlip?.().flipNext();
       if (e.key === "ArrowLeft") bookRef.current?.pageFlip?.().flipPrev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, flipLocked]);
 
   const total = pages.length;
 
