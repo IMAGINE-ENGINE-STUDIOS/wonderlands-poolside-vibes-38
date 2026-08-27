@@ -34,6 +34,10 @@ import sceneQuotePoster from "@/assets/studio/scene-quote.webp";
 import sceneDrawVideo from "@/assets/studio/scene-draw.mp4";
 import sceneComposeVideo from "@/assets/studio/scene-compose.mp4";
 import sceneQuoteVideo from "@/assets/studio/scene-quote.mp4";
+/* VP9 fallback for builds without the H.264 decoder */
+import sceneDrawWebm from "@/assets/studio/scene-draw.webm";
+import sceneComposeWebm from "@/assets/studio/scene-compose.webm";
+import sceneQuoteWebm from "@/assets/studio/scene-quote.webm";
 
 export type StudioSceneKey = "draw" | "compose" | "quote";
 
@@ -46,6 +50,7 @@ const SCENE_CSS = `
 
 type Scene = {
   video: string;
+  videoWebm: string;
   poster: string;
   alt: string;
   eyebrow: string;
@@ -58,6 +63,7 @@ type Scene = {
 const SCENES: Record<StudioSceneKey, Scene> = {
   draw: {
     video: sceneDrawVideo,
+    videoWebm: sceneDrawWebm,
     poster: sceneDrawPoster,
     alt: "Screen recording of the Wonderlands 2D Designer opening and a pool shell being traced at true scale",
     eyebrow: "Live tool — 2D Designer",
@@ -67,6 +73,7 @@ const SCENES: Record<StudioSceneKey, Scene> = {
   },
   compose: {
     video: sceneComposeVideo,
+    videoWebm: sceneComposeWebm,
     poster: sceneComposePoster,
     alt: "Screen recording of a Wonderlands product card being configured — finishes, liner, pavers, enclosure and features with live pricing",
     eyebrow: "Live tool — Product configurator",
@@ -76,6 +83,7 @@ const SCENES: Record<StudioSceneKey, Scene> = {
   },
   quote: {
     video: sceneQuoteVideo,
+    videoWebm: sceneQuoteWebm,
     poster: sceneQuotePoster,
     alt: "Screen recording of the Wonderlands quote document being reviewed, edited and converted into an invoice",
     eyebrow: "Live tool — The quote document",
@@ -109,7 +117,6 @@ const StudioStepScene: React.FC<{ scene: StudioSceneKey }> = ({ scene }) => {
       <video
         ref={ref}
         key={s.video}
-        src={s.video}
         poster={s.poster}
         muted
         loop
@@ -122,7 +129,10 @@ const StudioStepScene: React.FC<{ scene: StudioSceneKey }> = ({ scene }) => {
           objectPosition: s.position,
           animation: "wlSceneDrift 18s ease-in-out infinite alternate",
         }}
-      />
+      >
+        <source src={s.videoWebm} type="video/webm" />
+        <source src={s.video} type="video/mp4" />
+      </video>
 
       {/* editorial caption plate */}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent p-6 md:p-8">
