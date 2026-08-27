@@ -79,6 +79,33 @@ export const pathSpanFt = (path: LatLng[]): number => {
   return max * 3.28084;
 };
 
+/** Straight-line distance between two points, in feet. */
+export const distanceFt = (a: LatLng, b: LatLng): number => {
+  const latRad = (a.lat * Math.PI) / 180;
+  const mPerDegLat = 111132.92;
+  const mPerDegLng = (Math.PI / 180) * EARTH_R_M * Math.cos(latRad);
+  const dx = (a.lng - b.lng) * mPerDegLng;
+  const dy = (a.lat - b.lat) * mPerDegLat;
+  return Math.hypot(dx, dy) * 3.28084;
+};
+
+/** True when the point falls inside the ring (planar ray casting). */
+export const pointInPath = (point: LatLng, path: LatLng[]): boolean => {
+  let inside = false;
+  for (let i = 0, j = path.length - 1; i < path.length; j = i++) {
+    const xi = path[i].lng;
+    const yi = path[i].lat;
+    const xj = path[j].lng;
+    const yj = path[j].lat;
+    const hits =
+      yi > point.lat !== yj > point.lat &&
+      point.lng < ((xj - xi) * (point.lat - yi)) / (yj - yi) + xi;
+    if (hits) inside = !inside;
+  }
+  return inside;
+};
+
+
 /* ── sun exposure ─────────────────────────────────────────────────────── */
 
 /**

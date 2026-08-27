@@ -70,9 +70,71 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action ?? "");
 
+    /* Address suggestions while the reader types — Places API (New).
+       Kept server-side so the key never reaches the browser; results are
+       memo-cached per prefix so a typed address does not re-bill each keystroke. */
+    if (action === "autocomplete") {
+      const input = String(body?.input ?? "").trim().slice(0, 200);
+      if (input.length < 3) return json({ suggestions: [] });
+
+      const key = `ac:${input.toLowerCase()}`;
+      const hit = cached(key);
+      if (hit) return json(hit);
+
+      const res = await fetch(`${GATEWAY_URL}/places/v1/places:autocomplete`, {
+        method: "POST",
+        headers: { ...gatewayHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input,
+          includedRegionCodes: ["us"],
+          includedPrimaryTypes: ["street_address", "premise", "subpremise", "route"],
+        }),
+      });
+      const data = await relay(res);
+      if (data instanceof Response) return data;
+
+      const suggestions = ((data as {
+        suggestions?: Array<{ placePrediction?: { placeId: string; text?: { text?: string } } }>;
+      }).suggestions ?? [])
+        .filter((s) => s.placePrediction?.placeId)
+        .slice(0, 6)
+        .map((s) => ({
+          placeId: s.placePrediction!.placeId,
+          label: s.placePrediction!.text?.text ?? "",
+        }));
+
+      const out = { suggestions };
+      cache.set(key, { at: Date.now(), data: out });
+      return json(out);
+    }
+
+    /* A chosen suggestion → formatted address + coordinates. */
+    if (action === "place") {
+      const placeId = String(body?.placeId ?? "").trim().slice(0, 200);
+      if (!placeId) return json({ error: "Pick an address from the list." }, 400);
+
+      const key = `place:${placeId}`;
+      const hit = cached(key);
+      if (hit) return json(hit);
+
+      const res = await fetch(`${GATEWAY_URL}/places/v1/places/${encodeURIComponent(placeId)}`, {
+        headers: { ...gatewayHeaders(), "X-Goog-FieldMask": "formattedAddress,location" },
+      });
+      const data = await relay(res);
+      if (data instanceof Response) return data;
+
+      const p = data as { formattedAddress?: string; location?: { latitude: number; longitude: number } };
+      if (!p.location) return json({ error: "That address has no coordinates." }, 404);
+
+      const out = { address: p.formattedAddress ?? "", lat: p.location.latitude, lng: p.location.longitude };
+      cache.set(key, { at: Date.now(), data: out });
+      return json(out);
+    }
+
     if (action === "geocode") {
       const address = String(body?.address ?? "").trim().slice(0, 200);
       if (address.length < 5) return json({ error: "Enter a fuller address." }, 400);
+
 
       const key = `geo:${address.toLowerCase()}`;
       const hit = cached(key);
