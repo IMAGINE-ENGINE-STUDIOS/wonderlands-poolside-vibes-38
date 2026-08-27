@@ -7,9 +7,7 @@ import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import StudioEditorial from "@/components/StudioEditorial";
 import SolarEditorial from "@/components/SolarEditorial";
-import PlatformPositioning from "@/components/PlatformPositioning";
-import PlatformPillars from "@/components/PlatformPillars";
-import PlatformJourney from "@/components/PlatformJourney";
+import PlatformOverview from "@/components/PlatformOverview";
 
 
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
@@ -104,15 +102,11 @@ const Index = () => {
       <Header />
       <Hero />
 
-      {/* Platform positioning first — Wonderlands is the platform, not one trade */}
-      <PlatformPositioning />
+      {/* One consolidated platform plate: statement, solutions, process */}
+      <PlatformOverview />
       {/* The technology */}
       <StudioEditorial />
-      {/* The three pillars: home transformation, outdoor living, solar & energy */}
-      <PlatformPillars />
       <SolarEditorial />
-      {/* Process + company story + primary CTA */}
-      <PlatformJourney />
 
       <main>
         {/* Flagship product — Pools + Glimmerglass fiberglass collection */}

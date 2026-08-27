@@ -70,8 +70,9 @@ const FlipNarratorConsole: React.FC = () => {
       return;
     }
     /* Another tongue: keep the local script, read it with the browser engine. */
-    void narrator.narrate({ withVoice: false }).then(() => {
-      if (narrator.script) speakGeniusText(narrator.script, lang);
+    void narrator.narrate({ withVoice: false }).then((script) => {
+      const text = script || narrator.script;
+      if (text) speakGeniusText(text, lang);
     });
   }, [english, lang, narrator]);
 

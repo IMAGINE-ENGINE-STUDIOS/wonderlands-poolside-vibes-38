@@ -744,11 +744,14 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
     },
     {
       id: 'area',
-      label: 'Installation Area',
-      description: 'Total square footage to be paved — supplied and installed, installation included',
+      /* Measurement only — the money lives on the paver `material` above, which
+         is priced per square foot of this same area. Charging here as well would
+         bill the identical square footage twice. */
+      label: 'Installation Area (sq ft)',
+      description: 'Total square footage to be paved — the paver collection above is priced per square foot of this area',
       type: 'area',
       icon: 'Grid3x3',
-      pricePerUnit: 20
+      pricePerUnit: 0
     },
     {
       id: 'baseMaterial',

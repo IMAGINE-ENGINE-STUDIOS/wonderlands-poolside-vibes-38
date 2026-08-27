@@ -102,9 +102,11 @@ export function useNarrator() {
 
 
   const narrate = React.useCallback(
-    async (opts?: { branch?: string; withVoice?: boolean }) => {
+    /* Returns the script it just wrote so callers can read it aloud in the same
+       turn — the `script` state is not yet updated inside the awaiting closure. */
+    async (opts?: { branch?: string; withVoice?: boolean }): Promise<string> => {
       const ctx = getNarratorContext();
-      if (!ctx) return;
+      if (!ctx) return '';
       const key = opts?.branch ? `${ctx.key}::${opts.branch}` : ctx.key;
 
       const cached = getCachedScript(key);
@@ -112,7 +114,7 @@ export function useNarrator() {
         setScript(cached.script);
         setActions(cached.actions);
         if (opts?.withVoice !== false) void speak(cached.script, key);
-        return;
+        return cached.script;
       }
 
       setIsLoading(true);
@@ -130,6 +132,7 @@ export function useNarrator() {
         setScript(data.script);
         setActions(data.actions ?? []);
         if (opts?.withVoice !== false) void speak(data.script, key);
+        return data.script;
       } finally {
         setIsLoading(false);
       }
