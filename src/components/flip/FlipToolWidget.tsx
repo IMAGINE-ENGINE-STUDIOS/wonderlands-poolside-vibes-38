@@ -32,6 +32,7 @@ const SiteDrawingBoard = lazy(() => import("@/components/blueprint/SiteDrawingBo
 const FenceDrawingBoard = lazy(() => import("@/components/fence/FenceDrawingBoard"));
 const EnclosureDrawingBoard = lazy(() => import("@/components/enclosure/EnclosureDrawingBoard"));
 const GrassDrawingBoard = lazy(() => import("@/components/grass/GrassDrawingBoard"));
+const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 
 const emptySite: SitePlanData = { shapes: [], pxPerFt: DEFAULT_PX_PER_FT };
 const emptyEnclosure: EnclosureLayout = { points: [], closed: false, features: {} };
