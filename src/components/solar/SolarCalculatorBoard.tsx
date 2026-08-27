@@ -1,11 +1,12 @@
-/// <reference types="google.maps" />
 import * as React from "react";
 import { Loader2, Crosshair, MapPin, Pencil, RotateCcw, Search, Trash2, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
-import useGoogleMaps from "@/lib/solar/useGoogleMaps";
+import AerialCanvas, { type AerialView } from "./AerialCanvas";
+import { composeAerialFrame } from "@/lib/solar/aerialTiles";
+
 import {
   autoTraceAt,
   facesFromInsights,
@@ -112,7 +113,6 @@ const selectClass =
   "mt-1 w-full border border-border/60 bg-transparent px-2 py-2 text-sm font-light outline-none focus:border-foreground";
 
 const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
-  const { ready, error: mapsError } = useGoogleMaps();
   const { toast } = useToast();
   const cart = useOptionalShoppingCart();
 
@@ -126,18 +126,18 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   const [selected, setSelected] = React.useState<string>("");
   const [draft, setDraft] = React.useState<LatLng[]>([]);
 
-  const mapEl = React.useRef<HTMLDivElement>(null);
-  const map = React.useRef<google.maps.Map | null>(null);
-  const polys = React.useRef<Map<string, google.maps.Polygon>>(new Map());
-  const draftPoly = React.useRef<google.maps.Polygon | null>(null);
-  const marker = React.useRef<google.maps.Marker | null>(null);
-  const tile = React.useRef<TileFrame | null>(null);
+  /** what the aerial is framing — cached so a reload lands on the same roof */
+  const [view, setView] = usePersistentState<AerialView>("solar_aerial_view", {
+    lat: session.lat ?? 27.9506,
+    lng: session.lng ?? -82.4572,
+    zoom: session.lat ? 20 : 11,
+  });
+
+  /** the composed aerial bitmap the flood-fill tracer samples */
+  const frame = React.useRef<TileFrame | null>(null);
   /** Google's measured roof planes for this address — the click hit-test pool */
   const measured = React.useRef<RoofFace[]>([]);
-  /** Live hand-trace overlay: the spline plus one length label per side */
-  const draftLine = React.useRef<google.maps.Polyline | null>(null);
-  const draftDots = React.useRef<google.maps.Marker[]>([]);
-  const draftLabels = React.useRef<google.maps.Marker[]>([]);
+
 
   const panel = solarPanels.find((p) => p.id === session.panelId) ?? solarPanels[0];
   const battery = solarBatteries.find((b) => b.id === session.batteryId) ?? solarBatteries[0];
@@ -217,47 +217,30 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   );
 
 
-  /* ── map bootstrap ─────────────────────────────────────────────────── */
+  /* ── the aerial frame ──────────────────────────────────────────────── */
 
+  /* The sampling bitmap behind click-to-trace is rebuilt from the same imagery
+     the canvas shows, a beat after the framing settles, so panning stays smooth. */
   React.useEffect(() => {
-    if (!ready || !mapEl.current || map.current) return;
-    const centre = { lat: session.lat ?? 27.9506, lng: session.lng ?? -82.4572 };
-    map.current = new google.maps.Map(mapEl.current, {
-      center: centre,
-      zoom: session.lat ? 20 : 11,
-      mapTypeId: "satellite",
-      tilt: 0,
-      rotateControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      mapTypeControl: false,
-      gestureHandling: "greedy",
-      maxZoom: 21,
-    });
-  }, [ready, session.lat, session.lng]);
-
-  /* refresh the sampling tile whenever the framing settles */
-  React.useEffect(() => {
-    if (!ready || !map.current) return;
-    const m = map.current;
-    const listener = m.addListener("idle", () => {
-      const c = m.getCenter();
-      if (!c) return;
-      const zoom = Math.round(m.getZoom() ?? 20);
-      if (zoom < 17) {
-        tile.current = null;
-        return;
-      }
-      callSolar<TileFrame>({ action: "tile", lat: c.lat(), lng: c.lng(), zoom, size: 640 })
-        .then((frame) => {
-          tile.current = frame;
+    if (view.zoom < 18) {
+      frame.current = null;
+      return;
+    }
+    let alive = true;
+    const timer = window.setTimeout(() => {
+      composeAerialFrame({ lat: view.lat, lng: view.lng }, Math.round(view.zoom), 640)
+        .then((f) => {
+          if (alive) frame.current = f;
         })
         .catch(() => {
-          tile.current = null;
+          if (alive) frame.current = null;
         });
-    });
-    return () => listener.remove();
-  }, [ready, callSolar]);
+    }, 400);
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+    };
+  }, [view.lat, view.lng, view.zoom]);
 
   /* ── address search ────────────────────────────────────────────────── */
 
@@ -266,21 +249,14 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     patch({ address: found.address, lat: found.lat, lng: found.lng });
     setQuery(found.address);
     setSuggestions([]);
-    map.current?.setCenter({ lat: found.lat, lng: found.lng });
-    map.current?.setZoom(20);
-    marker.current?.setMap(null);
-    marker.current = new google.maps.Marker({
-      position: { lat: found.lat, lng: found.lng },
-      map: map.current!,
-      opacity: 0.85,
-    });
+    setView({ lat: found.lat, lng: found.lng, zoom: 20 });
     await loadInsights(found.lat, found.lng);
   };
 
   /* Suggest registered addresses as the reader types (debounced, server-side). */
   React.useEffect(() => {
     const input = query.trim();
-    if (!typing || input.length < 4 || input === session.address) {
+    if (!typing || input.length < 3) {
       setSuggestions([]);
       return;
     }
@@ -288,9 +264,10 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       callSolar<{ suggestions: Suggestion[] }>({ action: "autocomplete", input })
         .then((r) => setSuggestions(r.suggestions ?? []))
         .catch(() => setSuggestions([]));
-    }, 300);
+    }, 250);
     return () => window.clearTimeout(timer);
-  }, [query, typing, session.address, callSolar]);
+  }, [query, typing, callSolar]);
+
 
   const chooseSuggestion = async (s: Suggestion) => {
     setTyping(false);
@@ -356,6 +333,16 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         imageryDate: d ? `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}` : "",
         faces: planes.map(({ planAreaSqFt: _drop, ...f }) => f),
       });
+      /* Frame the building Google actually measured — a street address often
+         geocodes to the kerb, which would leave the planes off to one side. */
+      if (planes.length) {
+        const pts = planes.flatMap((p) => p.path);
+        setView((v) => ({
+          lat: pts.reduce((s, p) => s + p.lat, 0) / pts.length,
+          lng: pts.reduce((s, p) => s + p.lng, 0) / pts.length,
+          zoom: Math.max(v.zoom, 20),
+        }));
+      }
       /* Stay in click-to-detect so any plane Google missed can be added by
          clicking it — the roof colouring is applied from location + azimuth. */
       setMode("auto");
@@ -364,6 +351,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           title: `${planes.length} roof planes detected`,
           description: "Colours read sun exposure. Click any missed plane, or drag a point to adjust.",
         });
+
     } catch (err) {
       measured.current = [];
       patch({ covered: false });
@@ -410,39 +398,39 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     setSelected(id);
   };
 
-  React.useEffect(() => {
-    if (!ready || !map.current) return;
-    const m = map.current;
-    const listener = m.addListener("click", async (e: google.maps.MapMouseEvent) => {
-      const at = e.latLng;
-      if (!at) return;
-      const point = { lat: at.lat(), lng: at.lng() };
-
+  /**
+   * A click on the aerial. In hand-trace mode it lays down the next vertex;
+   * otherwise it captures the plane under the cursor: Google's measured segment
+   * first (real azimuth, pitch and satellite sunshine hours), then a flood-fill
+   * trace of the aerial photo, then an editable outline so a click is never dead.
+   */
+  const handleMapClick = React.useCallback(
+    async (point: LatLng) => {
       if (mode === "manual") {
         setDraft((d) => [...d, point]);
         return;
       }
       if (mode !== "auto") return;
 
-      /* 1. A measured plane under the cursor is the best answer — real
-            azimuth, pitch and satellite sunshine hours, no image guessing. */
       const hit = measured.current.find((p) => pointInPath(point, p.path));
       if (hit) {
         const already = session.faces.some((f) => pointInPath(point, f.path));
         if (already) {
-          toast({ title: "Plane already captured", description: "Click it once more to select and edit its outline." });
+          setSelected(session.faces.find((f) => pointInPath(point, f.path))!.id);
           return;
         }
         addMeasuredFace(hit);
-        toast({ title: "Roof plane detected", description: `${compassLabel(hit.azimuthDeg)} facing · coloured by sun exposure.` });
+        toast({
+          title: "Roof plane detected",
+          description: `${compassLabel(hit.azimuthDeg)} facing · coloured by sun exposure.`,
+        });
         return;
       }
 
-      /* 2. Otherwise read the plane out of the aerial photo. */
-      if (tile.current) {
+      if (frame.current) {
         setBusy("trace");
         try {
-          const traced = await autoTraceAt(tile.current, point);
+          const traced = await autoTraceAt(frame.current, point);
           if (traced) {
             addFace(traced, "auto");
             return;
@@ -454,183 +442,59 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         }
       }
 
-      /* 3. Last resort — an editable outline on the spot, so the click is
-            never dead even when the photo cannot be sampled. */
       addFace(rectangleAround(point), "traced");
       toast({
         title: "Outline placed for you",
-        description: "The photo could not be read here — drag the points onto the roof edges.",
+        description: "Drag the points onto the roof edges — every measurement follows.",
       });
-    });
-    return () => listener.remove();
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, mode, session.faces, toast]);
+    [mode, session.faces, toast],
+  );
 
 
-  /* ── draw the faces ───────────────────────────────────────────────── */
 
-  React.useEffect(() => {
-    if (!ready || !map.current) return;
-    const m = map.current;
-    const live = new Set(session.faces.map((f) => f.id));
 
-    // drop polygons whose face is gone
-    polys.current.forEach((poly, id) => {
-      if (!live.has(id)) {
-        poly.setMap(null);
-        polys.current.delete(id);
-      }
-    });
-
-    session.faces.forEach((face) => {
-      const engineFace: RoofFace = { ...face, planAreaSqFt: pathAreaSqFt(face.path) };
-      const exposure = readExposure(engineFace, session.lat ?? FL_LAT);
-      const isSelected = face.id === selected;
-      const style: google.maps.PolygonOptions = {
-        paths: face.path,
-        fillColor: face.excluded ? "#dc2626" : exposure.color,
-        fillOpacity: face.excluded ? 0.2 : isSelected ? 0.62 : 0.45,
-        strokeColor: isSelected ? "#ffffff" : exposure.color,
-        strokeOpacity: 0.95,
-        strokeWeight: isSelected ? 2.5 : 1.5,
-        editable: isSelected,
-        draggable: isSelected,
-        zIndex: isSelected ? 20 : 10,
-      };
-
-      let poly = polys.current.get(face.id);
-      if (!poly) {
-        poly = new google.maps.Polygon({ ...style, map: m });
-        polys.current.set(face.id, poly);
-        poly.addListener("click", () => setSelected(face.id));
-        const commit = () => {
-          const path = poly!
-            .getPath()
-            .getArray()
-            .map((p) => ({ lat: p.lat(), lng: p.lng() }));
-          updateFace(face.id, { path, source: "traced" });
-        };
-        poly.getPath().addListener("set_at", commit);
-        poly.getPath().addListener("insert_at", commit);
-        poly.getPath().addListener("remove_at", commit);
-        poly.addListener("dragend", commit);
-      } else {
-        poly.setOptions(style);
-      }
-    });
-  }, [ready, session.faces, session.lat, selected, updateFace]);
+  /* ── the faces, in canvas form ─────────────────────────────────────── */
 
   /**
-   * The in-progress hand trace. The spline is drawn as it is laid down — an
-   * open polyline with a dot on every vertex, a dimension label in feet on
-   * every side (including the closing side once three points exist), and a
-   * translucent fill so the plane reads while it is still being drawn.
+   * Every captured plane, coloured by sun exposure read from its azimuth and the
+   * property's latitude (or Google's measured sunshine hours where the address
+   * is covered). Rejected faces go red and translucent.
    */
-  React.useEffect(() => {
-    if (!ready || !map.current) return;
-    const m = map.current;
-
-    const clearOverlay = () => {
-      draftDots.current.forEach((d) => d.setMap(null));
-      draftDots.current = [];
-      draftLabels.current.forEach((l) => l.setMap(null));
-      draftLabels.current = [];
-    };
-
-    if (!draft.length) {
-      draftPoly.current?.setMap(null);
-      draftPoly.current = null;
-      draftLine.current?.setMap(null);
-      draftLine.current = null;
-      clearOverlay();
-      return;
-    }
-
-    /* fill (needs three points to read as a plane) */
-    if (!draftPoly.current)
-      draftPoly.current = new google.maps.Polygon({
-        map: m,
-        clickable: false,
-        strokeOpacity: 0,
-        fillColor: "#f97316",
-        fillOpacity: 0.22,
-      });
-    draftPoly.current.setPath(draft.length >= 3 ? draft : []);
-
-    /* the spline itself, as drawn */
-    if (!draftLine.current)
-      draftLine.current = new google.maps.Polyline({
-        map: m,
-        clickable: false,
-        strokeColor: "#ffffff",
-        strokeOpacity: 0.95,
-        strokeWeight: 2.5,
-        zIndex: 40,
-      });
-    draftLine.current.setPath(draft);
-
-    clearOverlay();
-
-    /* vertex dots */
-    draft.forEach((p, i) => {
-      draftDots.current.push(
-        new google.maps.Marker({
-          position: p,
-          map: m,
-          clickable: false,
-          zIndex: 41,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 5,
-            fillColor: i === draft.length - 1 ? "#f97316" : "#ffffff",
-            fillOpacity: 1,
-            strokeColor: "#0a0a0f",
-            strokeWeight: 1.5,
-          },
-        }),
-      );
-    });
-
-    /* one dimension label per side, at the side's midpoint */
-    const sides = draft.length >= 3 ? draft.length : draft.length - 1;
-    for (let i = 0; i < sides; i++) {
-      const a = draft[i];
-      const b = draft[(i + 1) % draft.length];
-      const feet = distanceFt(a, b);
-      if (feet < 1) continue;
-      draftLabels.current.push(
-        new google.maps.Marker({
-          position: { lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2 },
-          map: m,
-          clickable: false,
-          zIndex: 42,
-          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
-          label: {
-            text: `${feet.toFixed(1)} ft`,
-            color: "#ffffff",
-            fontSize: "11px",
-            fontWeight: "500",
-            className: "wl-solar-dim",
-          },
-        }),
-      );
-    }
-  }, [ready, draft]);
-
-
-  React.useEffect(
-    () => () => {
-      polys.current.forEach((p) => p.setMap(null));
-      polys.current.clear();
-      draftLine.current?.setMap(null);
-      draftDots.current.forEach((d) => d.setMap(null));
-      draftLabels.current.forEach((l) => l.setMap(null));
-      draftPoly.current?.setMap(null);
-      marker.current?.setMap(null);
-      map.current = null;
-    },
-    [],
+  const aerialFaces = React.useMemo(
+    () =>
+      session.faces.map((face) => {
+        const engineFace: RoofFace = { ...face, planAreaSqFt: pathAreaSqFt(face.path) };
+        const exposure = readExposure(engineFace, session.lat ?? FL_LAT);
+        return {
+          id: face.id,
+          path: face.path,
+          fill: face.excluded ? "#dc2626" : exposure.color,
+          stroke: face.excluded ? "#dc2626" : exposure.color,
+          fillOpacity: face.excluded ? 0.2 : face.id === selected ? 0.62 : 0.45,
+          selected: face.id === selected,
+          caption: `${Math.round(engineFace.planAreaSqFt)} SF · ${compassLabel(face.azimuthDeg)}`,
+        };
+      }),
+    [session.faces, session.lat, selected],
   );
+
+  /** Dragging a vertex of the selected plane re-measures it live. */
+  const moveVertex = React.useCallback(
+    (faceId: string, index: number, at: LatLng) =>
+      setSession((s) => ({
+        ...s,
+        faces: s.faces.map((f) =>
+          f.id === faceId
+            ? { ...f, source: "traced" as const, path: f.path.map((p, i) => (i === index ? at : p)) }
+            : f,
+        ),
+      })),
+    [setSession],
+  );
+
+
 
   const finishManual = () => {
     if (draft.length >= 3) addFace(draft, "traced");
@@ -751,20 +615,22 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       </form>
 
 
-      {mapsError && (
-        <p className="border border-border/60 p-3 text-xs text-muted-foreground">{mapsError}</p>
-      )}
-
       <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
         {/* ── aerial ── */}
         <div>
           <div className="relative overflow-hidden border border-border/60">
-            <div ref={mapEl} style={{ height: mapHeight }} className="w-full" />
-            {!ready && !mapsError && (
-              <div className="absolute inset-0 flex items-center justify-center text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-                Bringing up the aerial…
-              </div>
-            )}
+            <AerialCanvas
+              view={view}
+              onViewChange={setView}
+              height={mapHeight}
+              faces={aerialFaces}
+              draft={draft}
+              marker={session.lat != null && session.lng != null ? { lat: session.lat, lng: session.lng } : null}
+              capturing={mode !== "idle"}
+              onMapClick={handleMapClick}
+              onFaceClick={(id) => setSelected((s) => (s === id ? "" : id))}
+              onVertexMove={moveVertex}
+            />
             {(busy === "insights" || busy === "trace") && (
               <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 bg-background/90 px-3 py-2 text-[9px] uppercase tracking-[0.3em]">
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -779,6 +645,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
               </div>
             )}
           </div>
+
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <button
