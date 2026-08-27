@@ -217,47 +217,30 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   );
 
 
-  /* ── map bootstrap ─────────────────────────────────────────────────── */
+  /* ── the aerial frame ──────────────────────────────────────────────── */
 
+  /* The sampling bitmap behind click-to-trace is rebuilt from the same imagery
+     the canvas shows, a beat after the framing settles, so panning stays smooth. */
   React.useEffect(() => {
-    if (!ready || !mapEl.current || map.current) return;
-    const centre = { lat: session.lat ?? 27.9506, lng: session.lng ?? -82.4572 };
-    map.current = new google.maps.Map(mapEl.current, {
-      center: centre,
-      zoom: session.lat ? 20 : 11,
-      mapTypeId: "satellite",
-      tilt: 0,
-      rotateControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      mapTypeControl: false,
-      gestureHandling: "greedy",
-      maxZoom: 21,
-    });
-  }, [ready, session.lat, session.lng]);
-
-  /* refresh the sampling tile whenever the framing settles */
-  React.useEffect(() => {
-    if (!ready || !map.current) return;
-    const m = map.current;
-    const listener = m.addListener("idle", () => {
-      const c = m.getCenter();
-      if (!c) return;
-      const zoom = Math.round(m.getZoom() ?? 20);
-      if (zoom < 17) {
-        tile.current = null;
-        return;
-      }
-      callSolar<TileFrame>({ action: "tile", lat: c.lat(), lng: c.lng(), zoom, size: 640 })
-        .then((frame) => {
-          tile.current = frame;
+    if (view.zoom < 18) {
+      frame.current = null;
+      return;
+    }
+    let alive = true;
+    const timer = window.setTimeout(() => {
+      composeAerialFrame({ lat: view.lat, lng: view.lng }, Math.round(view.zoom), 640)
+        .then((f) => {
+          if (alive) frame.current = f;
         })
         .catch(() => {
-          tile.current = null;
+          if (alive) frame.current = null;
         });
-    });
-    return () => listener.remove();
-  }, [ready, callSolar]);
+    }, 400);
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+    };
+  }, [view.lat, view.lng, view.zoom]);
 
   /* ── address search ────────────────────────────────────────────────── */
 
@@ -266,21 +249,14 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     patch({ address: found.address, lat: found.lat, lng: found.lng });
     setQuery(found.address);
     setSuggestions([]);
-    map.current?.setCenter({ lat: found.lat, lng: found.lng });
-    map.current?.setZoom(20);
-    marker.current?.setMap(null);
-    marker.current = new google.maps.Marker({
-      position: { lat: found.lat, lng: found.lng },
-      map: map.current!,
-      opacity: 0.85,
-    });
+    setView({ lat: found.lat, lng: found.lng, zoom: 20 });
     await loadInsights(found.lat, found.lng);
   };
 
   /* Suggest registered addresses as the reader types (debounced, server-side). */
   React.useEffect(() => {
     const input = query.trim();
-    if (!typing || input.length < 4 || input === session.address) {
+    if (!typing || input.length < 3) {
       setSuggestions([]);
       return;
     }
@@ -288,9 +264,10 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       callSolar<{ suggestions: Suggestion[] }>({ action: "autocomplete", input })
         .then((r) => setSuggestions(r.suggestions ?? []))
         .catch(() => setSuggestions([]));
-    }, 300);
+    }, 250);
     return () => window.clearTimeout(timer);
-  }, [query, typing, session.address, callSolar]);
+  }, [query, typing, callSolar]);
+
 
   const chooseSuggestion = async (s: Suggestion) => {
     setTyping(false);
