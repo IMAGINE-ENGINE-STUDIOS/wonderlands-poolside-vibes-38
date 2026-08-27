@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import * as React from "react";
 import { Loader2, Crosshair, MapPin, Pencil, RotateCcw, Search, Trash2, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
