@@ -122,7 +122,6 @@ const SolarReportTabs: React.FC<SolarReportProps> = ({
               </p>
 
               <div className="mt-5">
-                <Row label="Year-one bill offset" value={`${savings.offsetPercent}%`} note={`on $${monthlyBill}/mo`} />
                 <Row label="Florida sales tax on solar" value="$0" />
               </div>
 
