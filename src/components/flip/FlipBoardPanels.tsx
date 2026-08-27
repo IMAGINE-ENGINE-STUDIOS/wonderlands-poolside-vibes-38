@@ -154,6 +154,9 @@ export function useBoardEstimate(categoryId: string) {
   const runFt = Math.round(options.runOverride > 0 ? options.runOverride : takeoff.linearFt);
 
   const result = React.useMemo<{ lines: Line[]; total: number; perSqFt: number }>(() => {
+    // Solar pricing is private — the flip book never prints a solar figure;
+    // proposals are written after the site survey.
+    if (board.kind === "solar") return { lines: [], total: 0, perSqFt: 0 };
     if (board.kind === "enclosure") {
       const est = estimateEnclosure({
         ...DEFAULT_ENCLOSURE_CONFIG,
@@ -433,16 +436,20 @@ export const FlipBoardTools: React.FC<{
  * ------------------------------------------------------------------ */
 
 export const FlipBoardCost: React.FC<{ categoryId: string }> = ({ categoryId }) => {
-  const { lines, total, perSqFt, takeoff, areaSqFt, runFt } = useBoardEstimate(categoryId);
+  const { board, lines, total, perSqFt, takeoff, areaSqFt, runFt } = useBoardEstimate(categoryId);
   const { specs, schedule } = useProjectSpecs(categoryId);
+  // Solar figures are private — proposals are written after the site survey.
+  const priceHidden = board.kind === "solar";
   return (
     <div className="flex h-full w-full flex-col overflow-hidden p-6 sm:p-8">
-      <Eyebrow>Priced as drawn</Eyebrow>
-      <h3 className="mt-2 font-serif text-3xl font-light leading-none">{formatMoney(total)}</h3>
+      <Eyebrow>{priceHidden ? "Designed as drawn" : "Priced as drawn"}</Eyebrow>
+      <h3 className="mt-2 font-serif text-3xl font-light leading-none">
+        {priceHidden ? "On request" : formatMoney(total)}
+      </h3>
       <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-        {areaSqFt > 0 ? `${areaSqFt.toLocaleString()} sq ft` : "No area drawn"}
-        {runFt > 0 ? ` · ${runFt.toLocaleString()} lf` : ""}
-        {perSqFt > 0 ? ` · $${perSqFt.toFixed(2)}/sq ft installed` : ""}
+        {priceHidden
+          ? "A custom proposal follows the site survey and shade study"
+          : `${areaSqFt > 0 ? `${areaSqFt.toLocaleString()} sq ft` : "No area drawn"}${runFt > 0 ? ` · ${runFt.toLocaleString()} lf` : ""}${perSqFt > 0 ? ` · $${perSqFt.toFixed(2)}/sq ft installed` : ""}`}
       </p>
 
       {/* Money, then the engineering that money buys, then how it is paid */}
@@ -508,11 +515,13 @@ export const FlipBoardCost: React.FC<{ categoryId: string }> = ({ categoryId }) 
       </div>
 
 
-      <p className="mt-3 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
-        All prices include delivery, installation and the product as described. Final figures are confirmed on the
-        survey visit.
-        {takeoff.doors > 0 ? ` ${takeoff.doors} self-latching door(s) taken off the drawing.` : ""}
-      </p>
+      {!priceHidden && (
+        <p className="mt-3 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
+          All prices include delivery, installation and the product as described. Final figures are confirmed on the
+          survey visit.
+          {takeoff.doors > 0 ? ` ${takeoff.doors} self-latching door(s) taken off the drawing.` : ""}
+        </p>
+      )}
     </div>
   );
 };
@@ -791,20 +800,33 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
           </Row>
         )}
 
-        <Row label="Running total">
+        <Row label={board.kind === "solar" ? "Proposal" : "Running total"}>
 
-          <p className="font-serif text-2xl font-light leading-none">{formatMoney(total)}</p>
-          <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
-            {areaSqFt > 0 ? `${areaSqFt.toLocaleString()} sq ft` : "Draw or enter an area"}
-            {runFt > 0 ? ` · ${runFt.toLocaleString()} lf` : ""}
-            {perSqFt > 0 ? ` · $${perSqFt.toFixed(2)}/sq ft` : ""}
-          </p>
+          {board.kind === "solar" ? (
+            <>
+              <p className="font-serif text-2xl font-light leading-none">On request</p>
+              <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+                Written after the site survey and shade study
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-serif text-2xl font-light leading-none">{formatMoney(total)}</p>
+              <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+                {areaSqFt > 0 ? `${areaSqFt.toLocaleString()} sq ft` : "Draw or enter an area"}
+                {runFt > 0 ? ` · ${runFt.toLocaleString()} lf` : ""}
+                {perSqFt > 0 ? ` · $${perSqFt.toFixed(2)}/sq ft` : ""}
+              </p>
+            </>
+          )}
         </Row>
       </div>
 
-      <p className="mt-3 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
-        Figures update live with the drawing. All prices include delivery, installation and the product as described.
-      </p>
+      {board.kind !== "solar" && (
+        <p className="mt-3 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
+          Figures update live with the drawing. All prices include delivery, installation and the product as described.
+        </p>
+      )}
     </div>
   );
 };

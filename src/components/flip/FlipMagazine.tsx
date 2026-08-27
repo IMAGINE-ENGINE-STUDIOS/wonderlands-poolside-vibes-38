@@ -178,7 +178,7 @@ const CATEGORY_INCLUDED_LINES: Record<string, [string, string][]> = {
     ["Site & shade study", "Roof planes, azimuth and shading modelled before a panel is quoted"],
     ["Engineering", "Florida wind-load mounting details and electrical drawings"],
     ["Permit & interconnection", "County permit, utility interconnection and final inspection handled"],
-    ["Installation", "Array, inverter, battery, conduit and labour included in the price shown"],
+    ["Installation", "Array, inverter, battery, conduit and labour included in the written proposal"],
     ["Handover", "Monitoring app set up, production baseline recorded, warranty registered"],
   ],
   finishes: [
