@@ -82,12 +82,12 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Wonderlands Pools & Spas | #1 Pool Builder in Florida | Pool Contractor Orlando, FL</title>
-        <meta name="description" content="Florida's premier pool builder and contractor. Custom fiberglass pools, hot tubs, spas, saunas, patios, pavers, screen enclosures & more. Serving Orlando, Lake Nona, and Central Florida. Get a free quote today!" />
-        <meta name="keywords" content="pool builder, pool contractor, Florida pool builder, Orlando pool builder, fiberglass pools, spa installation, hot tubs, patios, pavers, screen enclosures, pool renovation, Central Florida pools" />
+        <title>Wonderlands | Everything Your Home Needs. One Platform.</title>
+        <meta name="description" content="Wonderlands is a technology-powered home services platform: design, build, power and transform your home — outdoor living, pools, spas, patios, solar and energy — in one connected experience." />
+        <meta name="keywords" content="home services platform, outdoor living, pool builder, solar panels, battery storage, patios, pavers, screen enclosures, landscaping, Orlando, Central Florida" />
         <link rel="canonical" href="https://www.wonderlandsworld.com/" />
-        <meta property="og:title" content="Wonderlands Pools & Spas | #1 Pool Builder in Florida" />
-        <meta property="og:description" content="Florida's premier pool builder. Custom fiberglass pools, spas, saunas, patios & more. Serving Orlando & Central Florida." />
+        <meta property="og:title" content="Wonderlands | Everything Your Home Needs. One Platform." />
+        <meta property="og:description" content="Design. Build. Power. Transform. One technology-powered platform for outdoor living, home improvement, solar and energy solutions." />
         <meta property="og:url" content="https://www.wonderlandsworld.com/" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.wonderlandsworld.com/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png" />
