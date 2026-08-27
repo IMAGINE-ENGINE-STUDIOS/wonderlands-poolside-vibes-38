@@ -40,6 +40,12 @@ const BOARDS: Record<string, { kind: EditorBoardKind; name: string; note: string
   covers: { kind: "site", name: "Cover Board", note: "Track lines sized to the shell on plan." },
   finishes: { kind: "site", name: "Finish Board", note: "Water surface laid out against deck and coping." },
   liners: { kind: "site", name: "Liner Board", note: "Shell footprint and waterline border on plan." },
+  solar: {
+    kind: "solar",
+    name: "Total Solar Calculator",
+    note: "Find the property, click each roof plane and read the array, production and price.",
+  },
+
 };
 
 const FALLBACK = { kind: "site" as EditorBoardKind, name: "Design Board", note: "Draw the area on a scaled grid." };
