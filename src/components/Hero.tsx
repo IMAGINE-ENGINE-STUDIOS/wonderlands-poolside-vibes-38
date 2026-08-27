@@ -32,6 +32,22 @@ const Hero = () => {
             <div className="w-full">
               <AdvancedSearch />
             </div>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <a
+                href="https://calendly.com/wonderlandsworlds/30min?month=2026-08&date=2026-08-27"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-primary/90 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-primary-foreground shadow-lg backdrop-blur-md transition hover:bg-primary hover:shadow-xl"
+              >
+                Schedule Your Consultation
+              </a>
+              <a
+                href="tel:+12392570637"
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-medium uppercase tracking-widest text-white backdrop-blur-md transition hover:bg-white/20 hover:border-white/40"
+              >
+                +1 (239) 257-0637
+              </a>
+            </div>
           </div>
         </div>
       </div>
