@@ -379,7 +379,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   };
 
   /** Adds a measured plane (azimuth, pitch and sunshine hours all real). */
-  const addMeasuredFace = (plane: RoofFace) => {
+  const addMeasuredFace = (plane: RoofFace, path?: LatLng[]) => {
     const id = `auto-${plane.id}-${Date.now().toString(36)}`;
     setSession((s) => ({
       ...s,
@@ -387,7 +387,8 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
         ...s.faces,
         {
           id,
-          path: plane.path,
+          path: path ?? plane.path,
+
           azimuthDeg: Math.round(plane.azimuthDeg),
           pitchDeg: plane.pitchDeg,
           shadeFactor: 0,
