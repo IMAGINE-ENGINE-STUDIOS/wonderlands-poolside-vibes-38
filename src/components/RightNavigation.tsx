@@ -1,25 +1,21 @@
 import * as React from "react";
 const { useState } = React;
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ShoppingCart, Home, LayoutDashboard } from "lucide-react";
-import { useShoppingCart } from "./ShoppingCartProvider";
+import { Home, LayoutDashboard } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import MiniCart from "./MiniCart";
 
 /**
  * RightNavigation — floating right rail.
  *
  * NOTE (Aug 2026): the per-category shortcut buttons were removed on request.
  * The main page now renders every category section inline (see src/pages/Index.tsx),
- * so this rail only exposes the Cart and, for signed-in staff, the Admin Dashboard.
+ * so this rail only exposes, for signed-in staff, the Admin Dashboard — the cart
+ * lives solely in the Studio cart / FLIP Order Desk.
  * On non-home routes it collapses to a single "Home" button.
  */
 const RightNavigation = () => {
-  const { getCartCount, setIsCartOpen } = useShoppingCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,26 +64,8 @@ const RightNavigation = () => {
               </Tooltip>
             )}
 
-            <Popover>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PopoverTrigger asChild>
-                    <Button className="relative rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-lg">
-                      <ShoppingCart className="h-4 w-4" />
-                      {getCartCount() > 0 && (
-                        <Badge className="absolute -top-2 -right-2 bg-coral text-white min-w-5 h-5 flex items-center justify-center text-xs">
-                          {getCartCount()}
-                        </Badge>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="left">Cart</TooltipContent>
-              </Tooltip>
-              <PopoverContent side="left" align="start" className="p-0">
-                <MiniCart onViewFullCart={() => setIsCartOpen(true)} />
-              </PopoverContent>
-            </Popover>
+            {/* The cart lives in one place only — the Order Desk / Studio cart.
+                The duplicate floating cart button was removed here on request. */}
           </>
         )}
       </div>

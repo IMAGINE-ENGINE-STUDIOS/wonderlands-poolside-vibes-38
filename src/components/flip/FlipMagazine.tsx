@@ -589,22 +589,41 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     [cart, categoryId, category.label],
   );
 
-  /** Editorial add-to-order control used across the magazine pages. */
+  /**
+   * Editorial add-to-order control used across the magazine pages.
+   *
+   * Deliberately loud: the reader has to see where the order is built, so the
+   * control is a filled coral capsule with a soft pulse until the item is in
+   * the order. Adding also opens the Order Desk (one shared cart) by way of the
+   * `wl:open-order-desk` window event, so the click visibly lands somewhere.
+   */
   const AddButton: React.FC<{ entry: ConsoleEntry; tone?: "light" | "dark" }> = ({ entry, tone = "light" }) => {
     const added = inCart(entry);
     return (
       <button
-        onClick={() => addEntry(entry)}
-        className={`inline-flex items-center justify-between gap-3 border px-4 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors ${
-          tone === "dark"
-            ? "border-white/70 text-white hover:bg-white hover:text-black"
-            : added
-              ? "border-foreground bg-foreground text-background"
-              : "border-foreground text-foreground hover:bg-foreground hover:text-background"
-        }`}
+        onClick={() => {
+          addEntry(entry);
+          window.dispatchEvent(new CustomEvent("wl:open-order-desk"));
+        }}
+        title={added ? "In your order — open the Order Desk" : "Add to the order"}
+        className={`group relative inline-flex items-center justify-between gap-3 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.3em] shadow-lg transition-all hover:-translate-y-0.5 ${
+          added
+            ? "bg-foreground text-background shadow-foreground/25"
+            : "bg-coral text-white shadow-coral/40 hover:bg-coral/90"
+        } ${tone === "dark" ? "ring-1 ring-white/40" : ""}`}
       >
-        {added ? "In your order" : "Add to the order"}
-        {added ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+        {!added && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 animate-pulse bg-white/15"
+          />
+        )}
+        <span className="relative">{added ? "In your order" : "Add to the order"}</span>
+        {added ? (
+          <Check className="relative h-4 w-4" />
+        ) : (
+          <Plus className="relative h-4 w-4 transition-transform group-hover:rotate-90" />
+        )}
       </button>
     );
   };

@@ -18,6 +18,14 @@ const FlipCart: React.FC = () => {
   const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
 
+  /* Any "Add to the order" control in the magazine opens this desk, so the
+     reader always sees where the item landed. */
+  React.useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("wl:open-order-desk", onOpen);
+    return () => window.removeEventListener("wl:open-order-desk", onOpen);
+  }, []);
+
   if (!cart) return null;
 
   const { cartItems, getCartCount, getCartTotal, removeFromCart, updateQuantity, removeExtra, clearCart } = cart;
@@ -29,7 +37,7 @@ const FlipCart: React.FC = () => {
       <button
         onClick={() => setOpen(true)}
         aria-label="Open the order desk"
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-3 border border-foreground bg-background/85 px-4 py-3 backdrop-blur-xl transition-colors hover:bg-foreground hover:text-background"
+        className="fixed bottom-5 right-5 z-40 flex items-center gap-3 border border-foreground bg-background/90 px-5 py-3.5 shadow-xl backdrop-blur-xl transition-colors hover:bg-foreground hover:text-background"
       >
         <ShoppingBag className="h-4 w-4" />
         <span className="text-[9px] uppercase tracking-[0.3em]">Order Desk</span>
