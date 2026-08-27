@@ -1,128 +1,101 @@
-import { MapPin, Phone, Mail, Clock, Star } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
 import { OptimizedImage } from "./OptimizedImage";
+
 const Footer = () => {
-  return <footer className="bg-gradient-to-br from-primary/5 via-background to-teal/5 border-t border-border/50" itemScope itemType="https://schema.org/LocalBusiness">
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <OptimizedImage src="/logo/wonderlands-logo.webp" alt="Wonderlands Logo" className="h-10 w-auto" sizeConfig="logoSmall" />
-            </div>
-            <p className="text-muted-foreground text-sm leading-relaxed">
+  return (
+    <footer className="border-t border-border bg-background" itemScope itemType="https://schema.org/LocalBusiness">
+      <div className="mx-auto max-w-[1600px] px-6 py-16 md:px-12">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-3">
+          {/* Brand */}
+          <div className="space-y-6">
+            <OptimizedImage
+              src="/logo/wonderlands-logo.webp"
+              alt="Wonderlands Logo"
+              className="h-10 w-auto"
+              sizeConfig="logoSmall"
+            />
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Transform your backyard into your personal oasis with premium fiberglass pools and patios. Where lifestyle meets luxury.
             </p>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center text-orange">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
-              </div>
-              <span className="text-sm text-muted-foreground"> Happy Customers</span>
-            </div>
           </div>
 
-          {/* Contact Info */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Contact Us</h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <Phone className="w-4 h-4 text-primary" />
-                <a href="tel:+14077604873" className="text-muted-foreground hover:text-foreground transition-colors" itemProp="telephone">+1 (407) 760-4873</a>
+          {/* Contact */}
+          <div className="space-y-6">
+            <h4 className="font-serif text-lg tracking-tight text-foreground">Contact</h4>
+            <dl className="space-y-4 text-sm text-muted-foreground">
+              <div>
+                <dt className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground/70">Phone</dt>
+                <dd className="mt-1">
+                  <a href="tel:+14077604873" className="hover:text-foreground transition-colors" itemProp="telephone">
+                    +1 (407) 760-4873
+                  </a>
+                </dd>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Mail className="w-4 h-4 text-teal" />
-                <a href="mailto:sales@wonderlandsworld.com" className="text-muted-foreground hover:text-foreground transition-colors" itemProp="email">sales@wonderlandsworld.com</a>
+              <div>
+                <dt className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground/70">Email</dt>
+                <dd className="mt-1">
+                  <a href="mailto:sales@wonderlandsworld.com" className="hover:text-foreground transition-colors" itemProp="email">
+                    sales@wonderlandsworld.com
+                  </a>
+                </dd>
               </div>
-              <div className="flex items-start gap-3 text-sm">
-                <MapPin className="w-4 h-4 text-coral mt-0.5 flex-shrink-0" />
-                <span className="text-muted-foreground">
+              <div>
+                <dt className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground/70">Address</dt>
+                <dd className="mt-1" itemProp="address">
                   6900 Tavistock Lakes Boulevard Southeast Orlando, Suite 400, Lake Nona Center, Orlando, FL 32827
-                </span>
+                </dd>
               </div>
-              
-              <div className="flex items-center gap-3 text-sm">
-                <Clock className="w-4 h-4 text-orange" />
-                <span className="text-muted-foreground">Opens 24/7 </span>
+              <div>
+                <dt className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground/70">Hours</dt>
+                <dd className="mt-1">Open 24/7</dd>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <MapPin className="w-4 h-4 text-coral" />
-                <span className="text-muted-foreground">​Powered by Wonderlands Platform.
-Installed by Licensed GC  Tech Terra Corp #CGC1537275                                         </span>
+              <div>
+                <dt className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground/70">License</dt>
+                <dd className="mt-1">Powered by Wonderlands Platform. Installed by Licensed GC Tech Terra Corp #CGC1537275</dd>
               </div>
-            </div>
+            </dl>
           </div>
 
-          {/* Services */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Quick Links</h4>
-            <div className="space-y-2">
-              {["Pool Installation", "Pool Renovation", "LED Lighting Systems", "Salt Water Systems", "Pool Equipment", "Maintenance & Repair"].map((service, idx) => <div key={idx} className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-teal rounded-full"></div>
-                  <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {service}
-                  </span>
-                </div>)}
-              {/* Referral Program Link */}
-              <Link to="/referral" className="flex items-center gap-2 group">
-                <div className="w-1.5 h-1.5 bg-gradient-to-r from-coral to-orange rounded-full"></div>
-                <span className="text-sm text-coral hover:text-orange transition-colors font-medium">
-                  REFER TO EARN - 5% Commission
-                </span>
+          {/* Resources */}
+          <div className="space-y-6">
+            <h4 className="font-serif text-lg tracking-tight text-foreground">Resources</h4>
+            <nav className="flex flex-col gap-3 text-sm text-muted-foreground">
+              <Link to="/referral" className="hover:text-foreground transition-colors">
+                Refer to Earn — 5% Commission
               </Link>
-              {/* Sales Rep Registration */}
-              <Link to="/sales-rep-register" className="flex items-center gap-2 group">
-                <div className="w-1.5 h-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"></div>
-                <span className="text-sm text-cyan-600 hover:text-blue-600 transition-colors font-medium">
-                  Join Our Sales Team
-                </span>
+              <Link to="/sales-rep-register" className="hover:text-foreground transition-colors">
+                Join Our Sales Team
               </Link>
-              {/* Sales Rep Login */}
-              <Link to="/sales-rep-login" className="flex items-center gap-2 group">
-                <div className="w-1.5 h-1.5 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full"></div>
-                <span className="text-sm text-blue-500 hover:text-indigo-600 transition-colors font-medium">
-                  Sales Rep Login
-                </span>
+              <Link to="/sales-rep-login" className="hover:text-foreground transition-colors">
+                Sales Rep Login
               </Link>
-              {/* Contractor Registration */}
-              <Link to="/contractor-registration" className="flex items-center gap-2 group">
-                <div className="w-1.5 h-1.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full"></div>
-                <span className="text-sm text-emerald-600 hover:text-green-600 transition-colors font-medium">
-                  Register as Contractor
-                </span>
+              <Link to="/contractor-registration" className="hover:text-foreground transition-colors">
+                Register as Contractor
               </Link>
-              {/* Contractor Login */}
-              <Link to="/contractor-login" className="flex items-center gap-2 group">
-                <div className="w-1.5 h-1.5 bg-gradient-to-r from-emerald-400 to-teal rounded-full"></div>
-                <span className="text-sm text-emerald-500 hover:text-teal transition-colors font-medium">
-                  Contractor Login
-                </span>
+              <Link to="/contractor-login" className="hover:text-foreground transition-colors">
+                Contractor Login
               </Link>
-              {/* Careers */}
-              <Link to="/jobs" className="flex items-center gap-2 group">
-                <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-coral rounded-full"></div>
-                <span className="text-sm text-primary hover:text-coral transition-colors font-medium">
-                  Careers — We're Hiring!
-                </span>
+              <Link to="/jobs" className="hover:text-foreground transition-colors">
+                Careers — We're Hiring!
               </Link>
-            </div>
+            </nav>
           </div>
-
-          {/* Social & CTA */}
-          
         </div>
 
-        <Separator className="my-8" />
-        
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <Separator className="my-12" />
+
+        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-sm text-muted-foreground">© 2025 Wonderlands Worlds Entertainment. All rights reserved.</p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <span className="hover:text-foreground cursor-pointer transition-colors">Privacy Policy</span>
-            <span className="hover:text-foreground cursor-pointer transition-colors">Terms of Service</span>
-            <span className="hover:text-foreground cursor-pointer transition-colors">Warranty</span>
+            <span className="cursor-pointer transition-colors hover:text-foreground">Privacy Policy</span>
+            <span className="cursor-pointer transition-colors hover:text-foreground">Terms of Service</span>
+            <span className="cursor-pointer transition-colors hover:text-foreground">Warranty</span>
           </div>
         </div>
       </div>
-    </footer>;
+    </footer>
+  );
 };
+
 export default Footer;
