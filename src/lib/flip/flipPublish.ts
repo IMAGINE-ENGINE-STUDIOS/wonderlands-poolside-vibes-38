@@ -52,8 +52,8 @@ export const saveBook = async (doc: BuilderDocV2): Promise<FlipBookRow> => {
     title: doc.title,
     slug: doc.publish.slug,
     custom_domain: doc.publish.customDomain || null,
-    doc: doc as unknown as Record<string, unknown>,
-    theme: doc.theme as unknown as Record<string, unknown>,
+    doc: JSON.parse(JSON.stringify(doc)),
+    theme: JSON.parse(JSON.stringify(doc.theme)),
     narrator_enabled: doc.narrator.enabled,
     published: doc.publish.published,
   };
@@ -61,7 +61,7 @@ export const saveBook = async (doc: BuilderDocV2): Promise<FlipBookRow> => {
   if (doc.publish.bookId) {
     const { data, error } = await supabase
       .from("flip_books")
-      .update(payload)
+      .update(payload as never)
       .eq("id", doc.publish.bookId)
       .select()
       .maybeSingle();
@@ -69,7 +69,7 @@ export const saveBook = async (doc: BuilderDocV2): Promise<FlipBookRow> => {
     if (data) return data as unknown as FlipBookRow;
   }
 
-  const { data, error } = await supabase.from("flip_books").insert(payload).select().maybeSingle();
+  const { data, error } = await supabase.from("flip_books").insert(payload as never).select().maybeSingle();
   if (error) throw error;
   return data as unknown as FlipBookRow;
 };
