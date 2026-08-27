@@ -18,8 +18,10 @@ const SiteDrawingBoard = lazy(() => import("@/components/blueprint/SiteDrawingBo
 const FenceConfigurator = lazy(() => import("@/components/fence/FenceConfigurator"));
 const EnclosureConfigurator = lazy(() => import("@/components/enclosure/EnclosureConfigurator"));
 const GrassConfigurator = lazy(() => import("@/components/grass/GrassConfigurator"));
+const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 
-export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass";
+export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass" | "solar";
+
 
 /** Which board serves each discipline. */
 const BOARDS: Record<string, { kind: EditorBoardKind; name: string; note: string }> = {
@@ -38,6 +40,12 @@ const BOARDS: Record<string, { kind: EditorBoardKind; name: string; note: string
   covers: { kind: "site", name: "Cover Board", note: "Track lines sized to the shell on plan." },
   finishes: { kind: "site", name: "Finish Board", note: "Water surface laid out against deck and coping." },
   liners: { kind: "site", name: "Liner Board", note: "Shell footprint and waterline border on plan." },
+  solar: {
+    kind: "solar",
+    name: "Total Solar Calculator",
+    note: "Find the property, click each roof plane and read the array, production and price.",
+  },
+
 };
 
 const FALLBACK = { kind: "site" as EditorBoardKind, name: "Design Board", note: "Draw the area on a scaled grid." };
@@ -161,8 +169,11 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
               </div>
             }
           >
-            {board.kind === "grass" ? (
+            {board.kind === "solar" ? (
+              <SolarCalculatorBoard height={Math.min(620, height)} />
+            ) : board.kind === "grass" ? (
               <GrassConfigurator initialGrassName={productName} onTotalChange={setTotal} />
+
             ) : board.kind === "fence" ? (
               <FenceConfigurator onTotalChange={setTotal} />
             ) : board.kind === "enclosure" ? (

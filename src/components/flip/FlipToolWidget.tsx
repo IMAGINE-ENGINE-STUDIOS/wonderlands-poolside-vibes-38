@@ -32,6 +32,7 @@ const SiteDrawingBoard = lazy(() => import("@/components/blueprint/SiteDrawingBo
 const FenceDrawingBoard = lazy(() => import("@/components/fence/FenceDrawingBoard"));
 const EnclosureDrawingBoard = lazy(() => import("@/components/enclosure/EnclosureDrawingBoard"));
 const GrassDrawingBoard = lazy(() => import("@/components/grass/GrassDrawingBoard"));
+const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 
 const emptySite: SitePlanData = { shapes: [], pxPerFt: DEFAULT_PX_PER_FT };
 const emptyEnclosure: EnclosureLayout = { points: [], closed: false, features: {} };
@@ -285,8 +286,16 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
 
   const renderBoard = useCallback(
     (header: React.ReactNode, fullScreen?: boolean) => {
+      if (board.kind === "solar")
+        return (
+          <div className="space-y-3">
+            {header}
+            <SolarCalculatorBoard height={fullScreen ? 560 : 380} />
+          </div>
+        );
       if (board.kind === "enclosure")
         return (
+
           <EnclosureDrawingBoard
             layout={enclosure}
             onChange={setEnclosure}
