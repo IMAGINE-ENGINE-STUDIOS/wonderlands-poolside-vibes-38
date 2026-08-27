@@ -103,16 +103,36 @@ const Index = () => {
 
       <Header />
       <Hero />
-      <StudioEditorial />
-      <SolarEditorial />
 
+      {/* Platform positioning first — Wonderlands is the platform, not one trade */}
+      <PlatformPositioning />
+      {/* The technology */}
+      <StudioEditorial />
+      {/* The three pillars: home transformation, outdoor living, solar & energy */}
+      <PlatformPillars />
+      <SolarEditorial />
+      {/* Process + company story + primary CTA */}
+      <PlatformJourney />
 
       <main>
-        {/* Pools + Glimmerglass fiberglass collection */}
+        {/* Flagship product — Pools + Glimmerglass fiberglass collection */}
         <Suspense fallback={<SectionFallback />}>
           <section id="pools" aria-label="Pool Catalog">
+            <div className="mx-auto max-w-7xl px-6 pt-16 md:px-10">
+              <p className="text-[10px] uppercase tracking-[0.42em] text-muted-foreground">
+                Flagship Collection — Outdoor Living
+              </p>
+              <h2 className="mt-5 max-w-3xl font-serif text-3xl font-light leading-tight text-foreground md:text-4xl">
+                Pools & spas, the centerpiece of the transformation
+              </h2>
+              <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                One of many products on the platform — configured alongside patios,
+                enclosures, landscaping and energy in a single project.
+              </p>
+            </div>
             <PoolCatalog />
           </section>
+
           <div className="w-full">
             <img
               src={lathamGilmerBanner}
