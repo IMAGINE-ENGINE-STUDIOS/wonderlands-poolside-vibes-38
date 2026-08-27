@@ -61,6 +61,9 @@ const Footer = () => {
           <div className="space-y-6">
             <h4 className="font-serif text-lg tracking-tight text-foreground">Resources</h4>
             <nav className="flex flex-col gap-3 text-sm text-muted-foreground">
+              <Link to="/about" className="hover:text-foreground transition-colors">
+                About Wonderlands — One Platform
+              </Link>
               <Link to="/referral" className="hover:text-foreground transition-colors">
                 Refer to Earn — 5% Commission
               </Link>
