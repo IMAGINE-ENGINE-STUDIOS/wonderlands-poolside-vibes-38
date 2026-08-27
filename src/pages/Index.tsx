@@ -7,6 +7,10 @@ import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import StudioEditorial from "@/components/StudioEditorial";
 import SolarEditorial from "@/components/SolarEditorial";
+import PlatformPositioning from "@/components/PlatformPositioning";
+import PlatformPillars from "@/components/PlatformPillars";
+import PlatformJourney from "@/components/PlatformJourney";
+
 
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import lathamGilmerBanner from "@/assets/banners/latham-gilmer-banner.webp";
