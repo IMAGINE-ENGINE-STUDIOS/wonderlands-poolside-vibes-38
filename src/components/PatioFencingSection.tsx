@@ -145,8 +145,13 @@ const PatioFencingSection = () => {
           <div className="mt-20 border border-border/60 bg-card/40">
             <div className="border-b border-border/60 px-6 py-4 md:px-10 md:py-5">
               <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
-                Volume VIII — Afterword
+                Volume VIII — Boundary
               </p>
+            </div>
+            <div className="border-b border-border/60 px-6 py-10 md:px-10 md:py-14 text-center">
+              <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light tracking-tight text-foreground">
+                Pool Safety & Stylish Design
+              </h3>
             </div>
             <div className="grid grid-cols-1 divide-y divide-border/60 md:grid-cols-3 md:divide-x md:divide-y-0">
               {[
