@@ -800,20 +800,33 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
           </Row>
         )}
 
-        <Row label="Running total">
+        <Row label={board.kind === "solar" ? "Proposal" : "Running total"}>
 
-          <p className="font-serif text-2xl font-light leading-none">{formatMoney(total)}</p>
-          <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
-            {areaSqFt > 0 ? `${areaSqFt.toLocaleString()} sq ft` : "Draw or enter an area"}
-            {runFt > 0 ? ` · ${runFt.toLocaleString()} lf` : ""}
-            {perSqFt > 0 ? ` · $${perSqFt.toFixed(2)}/sq ft` : ""}
-          </p>
+          {board.kind === "solar" ? (
+            <>
+              <p className="font-serif text-2xl font-light leading-none">On request</p>
+              <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+                Written after the site survey and shade study
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-serif text-2xl font-light leading-none">{formatMoney(total)}</p>
+              <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+                {areaSqFt > 0 ? `${areaSqFt.toLocaleString()} sq ft` : "Draw or enter an area"}
+                {runFt > 0 ? ` · ${runFt.toLocaleString()} lf` : ""}
+                {perSqFt > 0 ? ` · $${perSqFt.toFixed(2)}/sq ft` : ""}
+              </p>
+            </>
+          )}
         </Row>
       </div>
 
-      <p className="mt-3 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
-        Figures update live with the drawing. All prices include delivery, installation and the product as described.
-      </p>
+      {board.kind !== "solar" && (
+        <p className="mt-3 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
+          Figures update live with the drawing. All prices include delivery, installation and the product as described.
+        </p>
+      )}
     </div>
   );
 };
