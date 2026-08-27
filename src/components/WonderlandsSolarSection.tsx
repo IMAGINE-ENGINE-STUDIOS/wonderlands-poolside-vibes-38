@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 import ProductScrollRow from "./ProductScrollRow";
-import SurveyQuoteTool from "./SurveyQuoteTool";
 import SolarLeadForm from "./SolarLeadForm";
 import { solarProducts, solarStats, solarGroups, type SolarProduct } from "@/data/solarData";
 
@@ -14,12 +13,13 @@ import { solarProducts, solarStats, solarGroups, type SolarProduct } from "@/dat
  * one full-bleed dark statement plate with a very short headline and a stat
  * row, then quiet outlined product tiles. Styling stays on semantic tokens so
  * the section themes with the rest of the site.
+ *
+ * Pricing note: solar system prices are currently hidden from public view;
+ * interested visitors are routed to the lead form for a written proposal.
  */
-const money = (n: number) => `$${n.toLocaleString()}`;
 
 const WonderlandsSolarSection = () => {
   const [group, setGroup] = useState<"All" | SolarProduct["group"]>("All");
-  const [quoteProduct, setQuoteProduct] = useState<SolarProduct | null>(null);
 
   const visible = useMemo(
     () => (group === "All" ? solarProducts : solarProducts.filter((p) => p.group === group)),
