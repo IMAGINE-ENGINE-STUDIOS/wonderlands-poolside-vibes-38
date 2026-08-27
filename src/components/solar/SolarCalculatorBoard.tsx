@@ -25,7 +25,7 @@ import {
   type LatLng,
   type RoofFace,
 } from "@/lib/solar/solarEngine";
-import { buildSolarBom, formatUsd } from "@/lib/solar/solarBom";
+import { buildSolarBom } from "@/lib/solar/solarBom";
 import {
   rackingByCovering,
   roofCoverings,
