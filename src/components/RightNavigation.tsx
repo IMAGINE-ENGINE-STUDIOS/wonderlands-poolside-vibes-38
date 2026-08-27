@@ -68,26 +68,8 @@ const RightNavigation = () => {
               </Tooltip>
             )}
 
-            <Popover>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PopoverTrigger asChild>
-                    <Button className="relative rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-lg">
-                      <ShoppingCart className="h-4 w-4" />
-                      {getCartCount() > 0 && (
-                        <Badge className="absolute -top-2 -right-2 bg-coral text-white min-w-5 h-5 flex items-center justify-center text-xs">
-                          {getCartCount()}
-                        </Badge>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="left">Cart</TooltipContent>
-              </Tooltip>
-              <PopoverContent side="left" align="start" className="p-0">
-                <MiniCart onViewFullCart={() => setIsCartOpen(true)} />
-              </PopoverContent>
-            </Popover>
+            {/* The cart lives in one place only — the Order Desk / Studio cart.
+                The duplicate floating cart button was removed here on request. */}
           </>
         )}
       </div>
