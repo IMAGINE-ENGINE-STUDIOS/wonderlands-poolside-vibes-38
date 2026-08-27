@@ -70,6 +70,7 @@ const LandscapingPage = lazy(() => import("./pages/LandscapingPage"));
 const SharedGalleryView = lazy(() => import("./pages/SharedGalleryView"));
 const OfferPage = lazy(() => import("./pages/OfferPage"));
 const DesignProposals = lazy(() => import("./pages/DesignProposals"));
+const About = lazy(() => import("./pages/About"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const BlueprintBuilder = lazy(() => import("./pages/BlueprintBuilder"));
 const ToolsGallery = lazy(() => import("./pages/ToolsGallery"));
@@ -193,6 +194,7 @@ const App = () => {
             <Route path="/Landscaping" element={<LandscapingPage />} />
             <Route path="/offer/:id" element={<OfferPage />} />
             <Route path="/design" element={<DesignProposals />} />
+            <Route path="/about" element={<About />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/blueprint-builder" element={<BlueprintBuilder />} />
             <Route path="/studio-showroom" element={<StudioShowroom />} />
