@@ -23,7 +23,7 @@ import lanaiBanner from "@/assets/banners/lanai-banner.webp";
 import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import sapphireFinish from "@/assets/finishes/sapphire-blue-g3.webp";
-import oceanLiner from "@/assets/finishes/ocean-blue-g3.webp";
+
 import aquamarineFinish from "@/assets/finishes/aquamarine-g3.webp";
 import nightSkyFinish from "@/assets/finishes/night-sky-g3.webp";
 import shaleFinish from "@/assets/finishes/shale-gray-g3.webp";
@@ -200,7 +200,12 @@ export const ITEMS: Item[] = [
     label: "Liners",
     tagline: "Inner Hue",
     layout: "duo",
-    images: [oceanLiner, nightSkyFinish, shaleFinish],
+    /* Actual liner prints from the liner catalogue (public uploads) */
+    images: [
+      "/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.webp",
+      "/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.webp",
+      "/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.webp",
+    ],
     description:
       "Printed liners with waterline borders and mosaic bands — a complete change of tone without touching the shell.",
     notes: ["Waterline borders", "Mosaic band options", "Shell-safe installation"],
