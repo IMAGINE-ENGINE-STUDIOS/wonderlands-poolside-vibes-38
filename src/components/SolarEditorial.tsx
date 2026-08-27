@@ -58,7 +58,7 @@ const SolarEditorial: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-px bg-border/40 lg:grid-cols-12">
           {/* Primary image */}
-          <div className="relative overflow-hidden bg-background lg:col-span-7">
+          <div className="relative overflow-hidden bg-background lg:order-2 lg:col-span-7">
             <div className="relative aspect-[4/3] lg:aspect-[16/11]">
               <img
                 src={solarInverterCharger}
