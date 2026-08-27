@@ -1544,9 +1544,30 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
   const goTo = useCallback((n: number) => {
     const pf = bookRef.current?.pageFlip();
-    console.log("goTo called", n, "bookRef", !!bookRef.current, "pageFlip", !!pf, "pages", pf?.getPageCount?.());
-    pf?.flip(n, "top");
-  }, []);
+    if (!pf) return;
+    const current = pf.getCurrentPageIndex?.() ?? page;
+
+    // In landscape, the book shows two pages per spread. Clicking the tab for
+    // the right-hand page of the currently open spread only needs a state
+    // update so the tab becomes active; the page is already visible.
+    const isSameSpread = portrait
+      ? current === n
+      : current === 0
+        ? n === 0
+        : Math.floor((current - 1) / 2) === Math.floor((n - 1) / 2);
+
+    if (isSameSpread) {
+      setPage(n);
+      pf.update?.();
+      return;
+    }
+
+    // For tabs in a different spread, jump the book directly and force a
+    // render refresh so the visual follows immediately.
+    pf.turnToPage?.(n);
+    pf.update?.();
+    setPage(n);
+  }, [page, portrait]);
 
   useEffect(() => {
     (window as any).__bookRef = bookRef.current;
