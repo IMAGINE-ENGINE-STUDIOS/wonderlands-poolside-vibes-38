@@ -127,15 +127,15 @@ const WonderlandsSolarSection = () => {
                   <div className="flex items-end justify-between gap-4 border-t border-border/60 pt-4">
                     <div>
                       <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Installed</p>
-                      <p className="font-serif text-2xl font-light text-foreground sm:text-3xl">{money(p.price)}</p>
+                      <p className="font-serif text-2xl font-light text-foreground sm:text-3xl">On request</p>
                     </div>
                   </div>
                   <Button
-                    onClick={() => setQuoteProduct(p)}
+                    onClick={() => document.getElementById("solar-quote")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                     size="sm"
                     className="w-full rounded-none bg-foreground text-[10px] uppercase tracking-[0.3em] text-background hover:bg-foreground/90"
                   >
-                    Instant Quote
+                    Request a Quote
                   </Button>
                 </CardContent>
               </Card>
@@ -143,9 +143,10 @@ const WonderlandsSolarSection = () => {
           </ProductScrollRow>
 
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Prices are installed, turnkey and include the shade study, engineering, county permit, utility
-            interconnection and final inspection. Incentive eligibility is confirmed in writing before contract.
+            Turnkey proposals include the shade study, engineering, county permit, utility
+            interconnection and final inspection. Pricing is provided in writing after the site survey.
           </p>
+
 
           {/* Lead capture */}
           <div id="solar-quote" className="mt-12 scroll-mt-24">
