@@ -72,13 +72,13 @@ const LandscapingSection = () => {
   const { addToCart } = useShoppingCart();
 
   // ── Quote tool state ───────────────────────────────────────────────
-  type QuoteTier = "basic" | "full" | "luxury";
-  const TIERS: { id: QuoteTier; emoji: string; title: string; price: number; description: string }[] = [
-    { id: "basic", emoji: "🌿", title: "Basic Refresh", price: 5, description: "Mulch, plants, cleanup" },
+  type QuoteTier = "themed" | "full" | "luxury";
+  const TIERS: { id: QuoteTier; emoji: string; title: string; price: number | null; description: string; callForQuote?: boolean }[] = [
+    { id: "themed", emoji: "", title: "Themed Patio", price: null, callForQuote: true, description: "Green walls, luxury landscaping design, matured trees & vegetation" },
     { id: "full", emoji: "🌿🌿", title: "Full Yard Makeover", price: 15, description: "Design + planting + irrigation" },
     { id: "luxury", emoji: "🌿🏡", title: "Luxury Outdoor Space", price: 20, description: "Patios, stonework, premium features" },
   ];
-  const [quoteTier, setQuoteTier] = useState<QuoteTier>("basic");
+  const [quoteTier, setQuoteTier] = useState<QuoteTier>("themed");
   const [quoteSqft, setQuoteSqft] = useState<string>("");
   // Customer info (mirrors main /quote tool)
   const [custName, setCustName] = useState("");
@@ -226,10 +226,11 @@ const LandscapingSection = () => {
           {(() => {
             const sqft = Math.max(0, parseFloat(quoteSqft) || 0);
             const tier = TIERS.find((t) => t.id === quoteTier)!;
+            const isCallForQuote = tier.callForQuote === true;
             const effectiveRate =
               isAdmin && overrideRate !== "" && !isNaN(parseFloat(overrideRate))
                 ? parseFloat(overrideRate)
-                : tier.price;
+                : (tier.price ?? 0);
             const baseCost = sqft * effectiveRate;
             const plantsCost = Object.values(quoteItems).reduce(
               (sum, it) => sum + it.price * it.qty,
@@ -287,9 +288,15 @@ const LandscapingSection = () => {
                           </div>
                           <div className="font-serif text-xl font-light text-foreground mt-2">{t.title}</div>
                           <div className="font-serif text-2xl font-light text-foreground mt-1">
-                            ${t.price}
-                            {t.id === "luxury" ? "+" : ""}
-                            <span className="text-xs text-muted-foreground"> /sq ft</span>
+                            {t.callForQuote ? (
+                              <span className="text-lg">Call one of our agents</span>
+                            ) : (
+                              <>
+                                ${t.price}
+                                {t.id === "luxury" ? "+" : ""}
+                                <span className="text-xs text-muted-foreground"> /sq ft</span>
+                              </>
+                            )}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
                         </button>
@@ -314,9 +321,11 @@ const LandscapingSection = () => {
                     </div>
                     <div className="text-sm border-l border-border/60 pl-4">
                       <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-                        Base ({sqft || 0} sq ft × ${effectiveRate})
+                        {isCallForQuote ? "Base service" : `Base (${sqft || 0} sq ft × $${effectiveRate})`}
                       </div>
-                      <div className="font-serif text-xl font-light text-foreground mt-1">{fmt(baseCost)}</div>
+                      <div className="font-serif text-xl font-light text-foreground mt-1">
+                        {isCallForQuote ? "Quoted by an agent" : fmt(baseCost)}
+                      </div>
                     </div>
                     <div className="text-sm border-l border-border/60 pl-4">
                       <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
@@ -517,7 +526,7 @@ const LandscapingSection = () => {
                             <Input
                               type="number"
                               min={0}
-                              placeholder={`Default $${tier.price}`}
+                              placeholder={tier.price != null ? `Default $${tier.price}` : "Set $/sq ft rate"}
                               value={overrideRate}
                               onChange={(e) => setOverrideRate(e.target.value)}
                               className="rounded-none mt-1"
@@ -550,6 +559,11 @@ const LandscapingSection = () => {
                       <p className="font-serif text-4xl sm:text-5xl font-light text-foreground mt-1">
                         {fmt(total)}
                       </p>
+                      {isCallForQuote && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Themed Patio base service is priced by one of our agents — total shown covers plants & materials.
+                        </p>
+                      )}
                       {isAdmin && overrideTotal !== "" && (
                         <p className="text-[11px] text-muted-foreground mt-0.5">
                           Computed {fmt(computedTotal)} · overridden
@@ -560,7 +574,7 @@ const LandscapingSection = () => {
                       <Button className="rounded-none"
                         size="lg"
                         variant="outline"
-                        disabled={total <= 0}
+                        disabled={total <= 0 && !isCallForQuote}
                         onClick={() => {
                           const today = new Date().toLocaleDateString("en-US", {
                             year: "numeric",
@@ -628,8 +642,10 @@ const LandscapingSection = () => {
                                   <h3>Service</h3>
                                   <p><strong>${tier.title}</strong></p>
                                   <p>${tier.description}</p>
-                                  <p>Rate: $${effectiveRate}/sq ft${isAdmin && overrideRate !== "" ? " (adj.)" : ""}</p>
-                                  <p>Area: ${sqft} sq ft</p>
+                                  ${isCallForQuote
+                                    ? `<p>Price: quoted by one of our agents</p>`
+                                    : `<p>Rate: $${effectiveRate}/sq ft${isAdmin && overrideRate !== "" ? " (adj.)" : ""}</p>
+                                       <p>Area: ${sqft} sq ft</p>`}
                                 </div>
                               </div>
 
@@ -639,16 +655,16 @@ const LandscapingSection = () => {
                                 <tbody>
                                   <tr>
                                     <td><strong>${tier.title}</strong> — ${tier.description}</td>
-                                    <td style="text-align:center">${sqft} sq ft</td>
-                                    <td style="text-align:right">${fmt(effectiveRate)}</td>
-                                    <td style="text-align:right;font-weight:600">${fmt(baseCost)}</td>
+                                    <td style="text-align:center">${isCallForQuote ? "—" : `${sqft} sq ft`}</td>
+                                    <td style="text-align:right">${isCallForQuote ? "By agent" : fmt(effectiveRate)}</td>
+                                    <td style="text-align:right;font-weight:600">${isCallForQuote ? "Quoted by agent" : fmt(baseCost)}</td>
                                   </tr>
                                   ${plantRows}
                                 </tbody>
                               </table>
 
                               <div class="totals">
-                                <div class="row"><span>Service Base</span><span>${fmt(baseCost)}</span></div>
+                                <div class="row"><span>Service Base</span><span>${isCallForQuote ? "Quoted by agent" : fmt(baseCost)}</span></div>
                                 <div class="row"><span>Plants & Materials</span><span>${fmt(plantsCost)}</span></div>
                                 <div class="row total"><span>TOTAL</span><span>${fmt(total)}</span></div>
                               </div>
@@ -676,7 +692,7 @@ const LandscapingSection = () => {
                       <Button
                         size="lg"
                         className="rounded-none bg-foreground text-background hover:bg-foreground/90"
-                        disabled={total <= 0}
+                        disabled={total <= 0 && !isCallForQuote}
                         onClick={() => {
                           if (!custName || !custEmail) {
                             toast({
@@ -689,7 +705,7 @@ const LandscapingSection = () => {
                           if (baseCost > 0) {
                             addToCart({
                               id: `landscaping-${tier.id}-${Date.now()}`,
-                              name: `Landscaping — ${tier.title} (${sqft} sq ft @ $${tier.price}/sq ft)`,
+                              name: `Landscaping — ${tier.title} (${sqft} sq ft @ $${effectiveRate}/sq ft)`,
                               price: baseCost,
                               image: "",
                               category: "Landscaping",
