@@ -1611,7 +1611,24 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
 
   useEffect(() => () => setFlipManifest(null), []);
 
-  const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev(), []);
+  const flipPrev = useCallback(() => {
+    const pf = bookRef.current?.pageFlip();
+    const current = pf?.getCurrentPageIndex?.() ?? page;
+    if (current > 0) {
+      pf?.flipPrev();
+      return;
+    }
+    // At the very start of a book, the left arrow steps back through the edition hierarchy.
+    if (dossier) {
+      swap(() => setDossier(null));
+      return;
+    }
+    if (mode === "category") {
+      const idx = ITEMS.findIndex((i) => i.id === categoryId);
+      if (idx > 0) openCategory(ITEMS[idx - 1].id);
+      else openHome();
+    }
+  }, [page, dossier, mode, categoryId, swap, openCategory, openHome]);
   const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext(), []);
   const goTo = useCallback((n: number) => {
     const pf = bookRef.current?.pageFlip();
@@ -1892,7 +1909,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               {/* Side arrows — left/right of the book */}
               <button
                 onClick={flipPrev}
-                aria-label="Previous page"
+                aria-label="Previous page or book"
+                title="Previous page or book"
                 className="absolute left-0 top-1/2 z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border/60 bg-background/80 text-foreground shadow-lg backdrop-blur-md transition-colors hover:bg-foreground hover:text-background"
               >
                 <ChevronLeft className="h-4 w-4" />
