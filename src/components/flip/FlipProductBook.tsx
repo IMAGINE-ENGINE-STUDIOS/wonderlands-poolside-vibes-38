@@ -1282,6 +1282,8 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
     return () => window.removeEventListener("resize", measure);
   }, []);
 
+  const flipLocked = useFlipLocked();
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -1341,7 +1343,6 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
   );
 
   /* while a board is being drawn on, page turning is suspended */
-  const flipLocked = useFlipLocked();
 
   const book = (
     <HTMLFlipBook
