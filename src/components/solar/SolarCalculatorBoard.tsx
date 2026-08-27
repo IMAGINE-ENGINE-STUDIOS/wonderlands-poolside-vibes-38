@@ -308,7 +308,13 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   };
 
 
-  /** Measured roof planes, when Google covers the address. */
+  /**
+   * Measured roof planes, when Google covers the address.
+   *
+   * Nothing is drawn from this: the planes are kept aside so a click can pick up
+   * the measured azimuth, pitch and satellite sunshine hours for whichever plane
+   * the reader actually asks for. The reader captures the roof, not the machine.
+   */
   const loadInsights = async (lat: number, lng: number) => {
     setBusy("insights");
     try {
@@ -316,25 +322,22 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       if (!insights.covered) {
         measured.current = [];
         patch({ covered: false });
-        setMode("auto");
+        setMode("idle");
         toast({
           title: "No measured roof data here",
-          description: "Click each roof plane on the aerial and the outline is traced for you.",
+          description: "Press “Click a roof plane”, then click each roof face.",
         });
         return;
       }
       const planes = facesFromInsights(insights);
-      /* Kept aside so a later click on the aerial can pick the measured plane
-         under the cursor even after the reader has cleared or edited faces. */
       measured.current = planes;
       const d = insights.imageryDate;
       patch({
         covered: true,
         imageryDate: d ? `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}` : "",
-        faces: planes.map(({ planAreaSqFt: _drop, ...f }) => f),
       });
       /* Frame the building Google actually measured — a street address often
-         geocodes to the kerb, which would leave the planes off to one side. */
+         geocodes to the kerb, which would leave the roof off to one side. */
       if (planes.length) {
         const pts = planes.flatMap((p) => p.path);
         setView((v) => ({
@@ -343,24 +346,22 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           zoom: Math.max(v.zoom, 20),
         }));
       }
-      /* Stay in click-to-detect so any plane Google missed can be added by
-         clicking it — the roof colouring is applied from location + azimuth. */
-      setMode("auto");
-      if (planes.length)
-        toast({
-          title: `${planes.length} roof planes detected`,
-          description: "Colours read sun exposure. Click any missed plane, or drag a point to adjust.",
-        });
+      setMode("idle");
+      toast({
+        title: "Roof read",
+        description: "Press “Click a roof plane”, then click each roof face you want on the array.",
+      });
 
     } catch (err) {
       measured.current = [];
       patch({ covered: false });
-      setMode("auto");
+      setMode("idle");
       toast({ title: "Roof data", description: (err as Error).message });
     } finally {
       setBusy("");
     }
   };
+
 
   /* ── capture: click-to-trace and manual trace ──────────────────────── */
 
