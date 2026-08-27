@@ -1647,9 +1647,11 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
   // stillness first so the dissolve reads as one continuous breath.
   useEffect(() => {
     if (loading || !fading || boardOpen) return;
+    if (swapTimer.current) return; // a swap is still pending — wait for it to land
     const t = window.setTimeout(() => setFading(false), 160);
     return () => window.clearTimeout(t);
-  }, [loading, fading, boardOpen, mode, categoryId, pages.length]);
+  }, [loading, fading, boardOpen, mode, categoryId, dossier, pages.length]);
+
 
 
 
