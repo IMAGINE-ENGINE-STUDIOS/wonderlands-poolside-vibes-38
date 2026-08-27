@@ -778,18 +778,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           </h3>
 
           <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-4">
+            {/* Card price figures intentionally removed — pricing is presented in
+                the configurator / quote, never on the catalog card. */}
             <div>
               <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-                From
+                Price on request
               </p>
-              <p className="font-serif text-2xl sm:text-3xl font-light text-foreground">
-                ${(getPoolPrice(pool) * priceMultiplier).toLocaleString()}
-              </p>
-              {projectType === 'commercial' && (
-                <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Commercial Rate</p>
-              )}
               <InstallationNote className="mt-2 !text-[9px]" />
-
             </div>
             {pool.dimensions && (
               <p className="text-right text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
