@@ -8,13 +8,13 @@ import AerialCanvas, { type AerialView } from "./AerialCanvas";
 import { composeAerialFrame } from "@/lib/solar/aerialTiles";
 
 import {
-  autoTraceAt,
+  traceRoofPlane,
   facesFromInsights,
   guessAzimuth,
-  rectangleAround,
   type BuildingInsights,
   type TileFrame,
 } from "@/lib/solar/roofAutoTrace";
+
 import {
   compassLabel,
   computeProduction,
