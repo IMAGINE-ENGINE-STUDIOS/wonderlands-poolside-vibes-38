@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import FinancingOptions from "@/components/FinancingOptions";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
+import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import StudioCartWidget from "@/components/StudioCartWidget";
 import { getCategoryLabelForProduct } from "@/lib/productCategories";
