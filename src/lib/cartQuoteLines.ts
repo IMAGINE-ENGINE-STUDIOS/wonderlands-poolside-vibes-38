@@ -21,10 +21,12 @@ export const cartToQuoteLines = (
           price: (item.price || 0) * qty,
           image: (item as any).image || '',
         },
+        /* A selected option keeps its own photography so the quote shows the
+           finish / heater / paver the guest actually chose. */
         ...(item.extras || []).map(extra => ({
           name: `${item.name} — ${extra.name}`,
           price: (extra.price || 0) * qty,
-          image: '',
+          image: (extra as any).image || '',
         })),
       ];
     });

@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import FinancingOptions from "@/components/FinancingOptions";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
+import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import StudioCartWidget from "@/components/StudioCartWidget";
 import { getCategoryLabelForProduct } from "@/lib/productCategories";
@@ -3989,9 +3990,16 @@ const WonderlandsStudio = () => {
             onClose={() => setShowQuoteModal(false)}
             extras={{
               ...selectedExtras,
-              // Use ref data which is set synchronously before modal opens
-              extrasBreakdown: extrasDataRef.current.extrasBreakdown,
-              extrasTotal: extrasDataRef.current.extrasTotal,
+              /* One cart, one quote: the open configuration plus everything else
+                 already on the shared shopping list, photography included. */
+              ...mergeCartIntoExtras(
+                {
+                  extrasBreakdown: extrasDataRef.current.extrasBreakdown,
+                  extrasTotal: extrasDataRef.current.extrasTotal,
+                },
+                cartItems as any,
+                selectedProduct?.model || selectedProduct?.name || null,
+              ),
               enclosure: isEnclosureQuote && enclosureProject ? {
                 header: enclosureProject.header,
                 typeLabel: enclosureProject.typeLabel,
