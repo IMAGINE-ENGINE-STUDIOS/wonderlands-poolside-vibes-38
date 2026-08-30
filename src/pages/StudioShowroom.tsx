@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 
 import AdvancedSearch from '@/components/AdvancedSearch';
 import StudioCartWidget from '@/components/StudioCartWidget';
-import MiniCart from '@/components/MiniCart';
 import { PoolCalculator } from '@/components/PoolCalculator';
 import HeaterSizeCalculator from '@/components/HeaterSizeCalculator';
 import FinancingOptions from '@/components/FinancingOptions';
@@ -304,11 +303,6 @@ const StudioShowroom = () => {
           </div>
         </Frame>
 
-        <Frame section={W('minicart')} active={isActive('minicart')}>
-          <div className="max-w-md">
-            <MiniCart onViewFullCart={() => undefined} />
-          </div>
-        </Frame>
 
         <Frame section={W('features')} active={isActive('features')}>
           <div className="grid gap-8 lg:grid-cols-2">
