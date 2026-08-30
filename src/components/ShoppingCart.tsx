@@ -21,6 +21,8 @@ export interface CartItem {
   extras?: {
     name: string;
     price: number;
+    /** Photography of the selected option — printed on the quote breakdown */
+    image?: string;
     /** Feature key (finish, heater, liner, ...) used to edit the selection later */
     key?: string;
     /** Quantity for countable features (jets, doors, ...) */
