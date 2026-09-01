@@ -92,12 +92,7 @@ const PlatformOverview: React.FC = () => {
               and energy, with the design tools, products and specialists in one place.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                to="/studio"
-                className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-background transition hover:-translate-y-0.5"
-              >
-                Start My Project
-              </Link>
+              {/* "Start My Project" intentionally hidden — consultation is the primary CTA */}
               <Link
                 to="/consultation"
                 className="inline-flex items-center justify-center rounded-full border border-foreground/25 px-6 py-3 text-[10px] font-medium uppercase tracking-[0.25em] text-foreground transition hover:-translate-y-0.5 hover:border-foreground/50"

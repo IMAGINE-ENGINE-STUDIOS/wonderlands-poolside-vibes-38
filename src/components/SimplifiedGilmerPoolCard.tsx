@@ -17,6 +17,7 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
 import { FeatureTileCarousel } from "./product/FeatureTileCarousel";
+import { CatalogExtrasPanel, useCatalogExtras } from "./product/CatalogExtras";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu, Droplets } from 'lucide-react';
@@ -65,11 +66,32 @@ interface GilmerOptions {
   rockyWaterfallsColor: string;
 }
 
+/** Features this card already renders itself — everything else comes from the catalogue. */
+const POOL_CARD_OWN_FEATURES = [
+  'finish',
+  'liner',
+  'tiles',
+  'heater',
+  'pavers',
+  'screenEnclosure',
+  'spa',
+  'concreteConstruction',
+];
+
 const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   const navigate = useNavigate();
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
   const { priceMultiplier, projectType } = useProjectType();
+
+  // Catalogue add-ons (covers + colours, jets, tanning ledges, ...)
+  const {
+    extras: catalogExtras,
+    setExtras: setCatalogExtras,
+    lines: catalogLines,
+    total: catalogTotal,
+  } = useCatalogExtras('pool', POOL_CARD_OWN_FEATURES);
+  
   
   const [showFinancing, setShowFinancing] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -231,6 +253,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       total += waterfallType?.price || 17500;
     }
     
+    // Catalogue add-ons selected in the shared panel
+    total += catalogTotal;
+
     // Apply project type multiplier (3x for commercial)
     return total * priceMultiplier;
   };
@@ -286,6 +311,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       const waterfallType = rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType);
       extrasArray.push({ name: `Rocky Waterfalls - ${options.rockyWaterfallsType}: ${options.rockyWaterfallsColor}`, price: waterfallType?.price || 17500 });
     }
+    // Catalogue add-ons keep their own itemised lines (with imagery for quotes)
+    catalogLines.forEach(line => extrasArray.push(line));
+    
     
     const productData = {
       id: `gilmer-${pool.model.toLowerCase().replace(/\s+/g, '-')}`,
@@ -855,6 +883,17 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               </AccordionContent>
             </AccordionItem>
             </Accordion>
+
+            {/* Remaining catalogue options (covers, jets, tanning ledges, ...) —
+                sourced from PRODUCT_FEATURES so GlimmerGlass pools offer the
+                same add-ons as the Latham pools. */}
+            <CatalogExtrasPanel
+              productType="pool"
+              excludeIds={POOL_CARD_OWN_FEATURES}
+              extras={catalogExtras}
+              onExtrasChange={setCatalogExtras}
+              className="pt-2"
+            />
 
             <Separator />
 

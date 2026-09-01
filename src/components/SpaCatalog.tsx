@@ -3,6 +3,7 @@ import SpaProductCard from "./SpaProductCard";
 import SpaDetailModal from "./SpaDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
+import SuiteEntryHeader from "./product/SuiteEntryHeader";
 interface Spa {
   model: string;
   price: number;
@@ -121,18 +122,14 @@ const SpaCatalog = () => {
 
       <section className="py-20 px-4 bg-background">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground mb-4">
-              Volume IV — Water
-            </p>
-            <h2 className="font-serif text-4xl md:text-5xl font-light tracking-tight text-foreground mb-6">
-              Premium Spas
-            </h2>
-            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Indulge in the luxury and therapeutic benefits of our premium spas. Designed for
-              relaxation and rejuvenation, our spas offer the ultimate hydrotherapy experience.
-            </p>
-          </div>
+          {/* Editorial header + elegant entry into the full spa suite */}
+          <SuiteEntryHeader
+            eyebrow="Volume IV — Water"
+            title="Premium Spas"
+            description="Indulge in the luxury and therapeutic benefits of our premium spas — composed for relaxation, rejuvenation and the ultimate hydrotherapy experience."
+            suiteHref="/suites/spas"
+            suiteLabel="Enter the spa suite"
+          />
 
           <ProductScrollRow className="mb-8">
             {spas.map(spa => (

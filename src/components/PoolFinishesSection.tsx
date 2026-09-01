@@ -9,6 +9,7 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import { getProductsByCategory, getProductsBySubcategory, Product } from "@/data/consolidatedProducts";
 import ProductScrollRow from "./ProductScrollRow";
 import EditorialSectionHeader from "./EditorialSectionHeader";
+import PebbleTecConcreteFinishes from "./PebbleTecConcreteFinishes";
 
 const PoolFinishesSection = () => {
   const [selectedFinish, setSelectedFinish] = useState<Product | null>(null);
@@ -144,6 +145,10 @@ const PoolFinishesSection = () => {
             </ProductScrollRow>
           </TabsContent>
         </Tabs>
+
+        {/* Pebble Tec® — concrete (gunite) shells only */}
+        <PebbleTecConcreteFinishes />
+
 
         {/* Enhanced Detail Modal */}
         {selectedFinish && (

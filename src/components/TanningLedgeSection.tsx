@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import TanningLedgeProductCard from "./TanningLedgeProductCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import ProductScrollRow from "./ProductScrollRow";
-import EditorialSectionHeader from "./EditorialSectionHeader";
+import SuiteEntryHeader from "./product/SuiteEntryHeader";
 import { Link } from "react-router-dom";
 import { lathamTanningLedges, glimmerglassTanningLedges, tanningLedges } from "@/data/poolData";
 
@@ -72,17 +72,19 @@ const TanningLedgeSection = () => {
     return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
   }, []);
 
-  // Convert Latham tanning ledges
+  // Convert Latham tanning ledges — brand drives the finish family in the card
   const lathamLedgesWithCategory = lathamTanningLedges.map(ledge => ({
     ...ledge,
+    brand: 'Latham',
     category: 'premium' as const,
     installationTimeWeeks: 2,
     warrantyYears: 'LIFETIME'
   }));
 
-  // Convert GlimmerGlass tanning ledges with correct images
+  // Convert GlimmerGlass tanning ledges with correct images + gelcoat finishes
   const glimmerglassLedgesWithCategory = glimmerglassTanningLedges.map(ledge => ({
     ...ledge,
+    brand: 'GlimmerGlass',
     image: glimmerglassImageMap[ledge.name] || ledge.image,
     category: 'premium' as const,
     installationTimeWeeks: 2,
@@ -93,21 +95,14 @@ const TanningLedgeSection = () => {
     <>
       <section className="py-12 px-4 bg-gradient-to-br from-background to-coral/5" data-tanning-ledge-section>
         <div className="max-w-7xl mx-auto">
-          <EditorialSectionHeader
+          {/* Editorial header + elegant entry into the full sun shelf suite */}
+          <SuiteEntryHeader
             eyebrow="Volume II — Sun Shelf"
             title="Tanning Ledges"
             description="The ideal shallow plane — drawn for lounging, reading and long afternoons of sun."
+            suiteHref="/suites/tanning-ledges"
+            suiteLabel="Enter the tanning ledge suite"
           />
-
-          {/* Entry to the dedicated sun shelf suite (full configuration + board) */}
-          <div className="mb-8">
-            <Link
-              to="/suites/tanning-ledges"
-              className="inline-block border border-border/70 px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground/5"
-            >
-              Open the tanning ledge suite
-            </Link>
-          </div>
 
 
           {/* Latham Tanning Ledges Section */}

@@ -1,27 +1,18 @@
 import { saunas } from "@/data/saunaData";
 import SaunaProductCard from "./SaunaProductCard";
 import ProductScrollRow from "./ProductScrollRow";
-import EditorialSectionHeader from "./EditorialSectionHeader";
-import { Link } from "react-router-dom";
+import SuiteEntryHeader from "./product/SuiteEntryHeader";
 const SaunaSection = () => {
   return <section className="py-12 bg-background">
       <div className="container mx-auto px-4">
-        <EditorialSectionHeader
+        {/* Editorial header + elegant entry into the full sauna suite */}
+        <SuiteEntryHeader
           eyebrow="Volume III — Heat"
           title="Premium Saunas"
           description="Barrel and traditional cabins — a wellness sanctuary composed for the garden."
+          suiteHref="/suites/saunas"
+          suiteLabel="Enter the sauna suite"
         />
-
-        {/* Entry to the dedicated sauna suite (full configuration + pad board) */}
-        <div className="mb-6">
-          <Link
-            to="/suites/saunas"
-            className="inline-block border border-border/70 px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground/5"
-          >
-            Open the sauna suite
-          </Link>
-        </div>
-
 
         <ProductScrollRow className="mb-8">
           {saunas.map(sauna => <SaunaProductCard key={sauna.id} sauna={sauna} />)}

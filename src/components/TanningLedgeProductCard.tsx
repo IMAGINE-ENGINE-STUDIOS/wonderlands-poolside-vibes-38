@@ -33,6 +33,8 @@ interface TanningLedge {
   description?: string;
   installationTimeWeeks?: number;
   warrantyYears?: number | string;
+  /** Brand decides which interior finish family is offered (hard rule). */
+  brand?: string;
 }
 interface TanningLedgeProductCardProps {
   ledge: TanningLedge;
@@ -97,17 +99,44 @@ const ledgeHeaters = [{
 import { getProductsByCategory } from '@/data/consolidatedProducts';
 import InstallationNote from "@/components/InstallationNote";
 
-// Convert pool finishes data to finish options format
-const finishOptions = getProductsByCategory('finish').map(finish => ({
+/**
+ * Finishes are brand-scoped (hard rule): Latham ledges get the Latham
+ * Crystite/G3 finish range, GlimmerGlass ledges get GlimmerGlass gelcoat —
+ * never the other brand's swatches.
+ */
+const lathamFinishOptions = getProductsByCategory('finish').map(finish => ({
   name: finish.name,
   color: '#4169E1',
-  image: finish.image,
+  image: finish.image as string | undefined,
   price: finish.price / 2,
   // Tanning ledge pricing is half of pool pricing
   collection: finish.collection,
   category: finish.category,
   description: finish.description
 }));
+
+const glimmerglassFinishOptions = [
+  { name: 'Ocean Blue', color: '#1E40AF' },
+  { name: 'Sapphire Blue', color: '#2563EB' },
+  { name: 'Glacier Blue', color: '#0EA5E9' },
+  { name: 'Coastal Bronze', color: '#A16207' },
+  { name: 'Steel Grey', color: '#6B7280' },
+  { name: 'Snow White', color: '#FFFFFF' },
+  { name: 'Arctic White', color: '#F8FAFC' },
+].map(gelcoat => ({
+  name: gelcoat.name,
+  color: gelcoat.color,
+  image: undefined as string | undefined,
+  price: 0,
+  collection: 'GlimmerGlass Gelcoat',
+  category: 'finish',
+  description: `GlimmerGlass ${gelcoat.name} gelcoat — included`,
+}));
+
+const getFinishOptionsForBrand = (brand?: string) =>
+  brand && brand.toLowerCase().includes('glimmer')
+    ? glimmerglassFinishOptions
+    : lathamFinishOptions;
 
 // Convert paver data to options format
 const paverOptions = [{
@@ -131,6 +160,8 @@ const TanningLedgeProductCard = ({
   onRequestQuote,
   isAdmin = false
 }: TanningLedgeProductCardProps) => {
+  // Brand decides the finish family — GlimmerGlass gelcoat vs Latham Crystite/G3
+  const finishOptions = getFinishOptionsForBrand(ledge.brand);
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
@@ -329,8 +360,8 @@ const TanningLedgeProductCard = ({
                   ...prev,
                   finish: finish.name
                 }))}>
-                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
-                          <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0" style={!finish.image ? { backgroundColor: finish.color } : undefined}>
+                          {finish.image && <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />}
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
@@ -580,13 +611,18 @@ const TanningLedgeProductCard = ({
                           setShowDetails(true);
                         }}
                       >
-                        <div className="w-full h-12 rounded-none mb-1 overflow-hidden flex-shrink-0">
-                          <img
-                            src={finish.image}
-                            alt={finish.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
+                        <div
+                          className="w-full h-12 rounded-none mb-1 overflow-hidden flex-shrink-0"
+                          style={!finish.image ? { backgroundColor: finish.color } : undefined}
+                        >
+                          {finish.image && (
+                            <img
+                              src={finish.image}
+                              alt={finish.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          )}
                         </div>
                         <p className="text-[10px] font-medium text-center line-clamp-1">{finish.name}</p>
                       </div>
