@@ -440,9 +440,34 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
     </div>
   );
 
+  /* The live leaf: the drawing board, mounted once per spread. On a solar spread
+     the aerial map takes the LEFT leaf and the collection takes the right. */
+  const boardLeaf = (
+    <div className="absolute inset-0" {...lockHandlers}>
+      <div className="flex h-full w-full flex-col p-3 sm:p-4">
+        <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
+      </div>
+    </div>
+  );
+
+  const solarOptionsLeaf = (
+    <div className="absolute inset-0" {...lockHandlers}>
+      <div className="flex h-full w-full flex-col p-3 sm:p-4">
+        <Suspense fallback={fallback}>
+          <SolarOptionsLeaf />
+        </Suspense>
+      </div>
+    </div>
+  );
+
+  const isSolar = board.kind === "solar";
+
   const halfBody = half === "left" ? (
-    <>{staticPlate}</>
+    <>{isSolar ? boardLeaf : staticPlate}</>
+  ) : isSolar ? (
+    <>{solarOptionsLeaf}</>
   ) : (
+
     <>
       <div className="absolute inset-0" {...lockHandlers}>
         <div className="flex h-full w-full flex-col p-3 sm:p-4">
