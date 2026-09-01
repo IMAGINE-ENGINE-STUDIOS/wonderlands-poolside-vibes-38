@@ -1335,12 +1335,12 @@ const FlipProductBook: React.FC<Props> = ({
       if (el?.isContentEditable) return;
       if (el?.closest("input, textarea, select, [contenteditable=true], canvas, [role='application'], .gm-style, .mapboxgl-map")) return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.code?.startsWith("Numpad")) return;
-      if (e.key === "ArrowRight") bookRef.current?.pageFlip?.().flipNext();
-      if (e.key === "ArrowLeft") bookRef.current?.pageFlip?.().flipPrev();
+      if (e.key === "ArrowRight") goNext();
+      if (e.key === "ArrowLeft") goPrev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, flipLocked]);
+  }, [onClose, flipLocked, goNext, goPrev]);
 
   const total = pages.length;
 
