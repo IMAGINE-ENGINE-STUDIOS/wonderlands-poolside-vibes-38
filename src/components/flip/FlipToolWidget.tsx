@@ -466,12 +466,13 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   const isSolar = board.kind === "solar";
 
   const halfBody = half === "left" ? (
-    <>{isSolar ? boardLeaf : staticPlate}</>
+    <>{isSolar ? boardLeaf(true) : staticPlate}</>
   ) : isSolar ? (
     <>{solarOptionsLeaf}</>
   ) : (
     <>
-      {boardLeaf}
+      {boardLeaf()}
+
 
       {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
           the reader can still grab the corner and turn instead of only using the
