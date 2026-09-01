@@ -64,7 +64,7 @@ export default function MilanOfferCampaign() {
     const q = search.trim().toLowerCase();
     if (!q) return clients;
     return clients.filter(
-      c => c.name?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q),
+      c => fullName(c).toLowerCase().includes(q) || c.email?.toLowerCase().includes(q),
     );
   }, [clients, search]);
 
