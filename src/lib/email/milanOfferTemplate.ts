@@ -19,6 +19,7 @@ const abs = (u: string) => (u.startsWith('http') ? u : SITE + u);
 export const MILAN_HERO_IMAGE = abs(heroAsset.url);
 export const MILAN_KITCHEN_IMAGE = abs(kitchenAsset.url);
 export const MILAN_SOLAR_IMAGE = abs(solarAsset.url);
+export const MILAN_NATURAL_POOL_IMAGE = abs(naturalPoolAsset.url);
 
 export interface MilanOfferConfig {
   price: string;
