@@ -253,6 +253,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       total += waterfallType?.price || 17500;
     }
     
+    // Catalogue add-ons selected in the shared panel
+    total += catalogTotal;
+
     // Apply project type multiplier (3x for commercial)
     return total * priceMultiplier;
   };
