@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CatalogExtrasPanel, useCatalogExtras } from "./product/CatalogExtras";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,8 +71,18 @@ const paverOptions = [
   image: paver.image || azureBlueFinish
 }))];
 
+/** Features this card renders itself — the rest come from the shared catalogue. */
+const SPA_CARD_OWN_FEATURES = ['finish', 'liner', 'heater', 'jets', 'pavers', 'concreteConstruction'];
+
 const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
   const { priceMultiplier, projectType } = useProjectType();
+  // Catalogue add-ons (covers, tiles, screen enclosure, cold plunge, ...)
+  const {
+    extras: catalogExtras,
+    setExtras: setCatalogExtras,
+    lines: catalogLines,
+    total: catalogTotal,
+  } = useCatalogExtras('spa', SPA_CARD_OWN_FEATURES);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedColor, setSelectedColor] = useState(spa.colorOptions[0]);
   const [extras, setExtras] = useState({
@@ -135,6 +146,9 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
       total += parseFloat(extras.paverSurfaceArea) * pricePerSqFt;
     }
 
+    // Catalogue add-ons selected in the shared panel
+    total += catalogTotal;
+
     // Apply project type multiplier (3x for commercial)
     return total * priceMultiplier;
   };
@@ -165,6 +179,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
           image: selectedPaver?.image
         });
       }
+      catalogLines.forEach((line) => extrasBreakdown.push(line));
       onRequestQuote(spa, {
         ...extras,
         selectedColor,
@@ -468,6 +483,17 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
           </div>
         }
         
+        {/* Remaining catalogue options — same list the pool cards offer */}
+        {showDetails &&
+        <CatalogExtrasPanel
+          productType="spa"
+          excludeIds={SPA_CARD_OWN_FEATURES}
+          extras={catalogExtras}
+          onExtrasChange={setCatalogExtras}
+          className="pt-2"
+        />
+        }
+
         {/* Action Buttons - Only when expanded */}
         {showDetails &&
         <div className="space-y-2 pt-2">
