@@ -150,6 +150,43 @@ const PebbleTecConcreteFinishes = ({ onSelect }: Props) => {
           );
         })}
       </div>
+
+      {/* Pop-up dossier — the product flip book opened over this view. Next on
+          the final page continues into the following finish of the list. */}
+      {openFinish && openIndex !== null && (
+        <FlipProductBook
+          key={openFinish.id}
+          entry={{
+            id: openFinish.id,
+            name: openFinish.name,
+            image: openFinish.image ?? "",
+            color: openFinish.color,
+            brand: "Pebble Tec",
+            meta: `${openFinish.collection} — concrete shells only`,
+            priceLabel: PEBBLE_TEC_PRICE_LABEL,
+          }}
+          category={{
+            id: "finishes",
+            label: `${openFinish.collection} — Pebble Tec®`,
+            tagline: "Interior finishes for custom concrete shells",
+            description: openFinish.note,
+            notes: [
+              "Pebble Tec® is offered on concrete (gunite) shells only.",
+              PEBBLE_TEC_PRICE_LABEL,
+            ],
+            images: openFinish.image ? [openFinish.image] : [],
+            siblings: readingOrder
+              .filter((f) => f.id !== openFinish.id && f.collection === openFinish.collection)
+              .slice(0, 6)
+              .map((f) => ({ name: f.name, brand: "Pebble Tec", image: f.image })),
+          }}
+          onClose={() => setOpenIndex(null)}
+          onNextEntry={
+            openIndex < readingOrder.length - 1 ? () => setOpenIndex(openIndex + 1) : undefined
+          }
+          onPrevEntry={openIndex > 0 ? () => setOpenIndex(openIndex - 1) : undefined}
+        />
+      )}
     </div>
   );
 };
