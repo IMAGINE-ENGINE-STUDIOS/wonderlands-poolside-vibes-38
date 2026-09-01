@@ -6,6 +6,7 @@ import {
   PEBBLE_TEC_PRICE_LABEL,
   type PebbleTecFinish,
 } from "@/data/pebbleTecFinishes";
+import FlipProductBook from "@/components/flip/FlipProductBook";
 
 /**
  * Pebble Tec® finishes for concrete (gunite) pools.
