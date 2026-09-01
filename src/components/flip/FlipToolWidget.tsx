@@ -467,13 +467,9 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   ) : isSolar ? (
     <>{solarOptionsLeaf}</>
   ) : (
-
     <>
-      <div className="absolute inset-0" {...lockHandlers}>
-        <div className="flex h-full w-full flex-col p-3 sm:p-4">
-          <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
-        </div>
-      </div>
+      {boardLeaf}
+
       {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
           the reader can still grab the corner and turn instead of only using the
           arrows. Entering it releases the drawing lock. */}
