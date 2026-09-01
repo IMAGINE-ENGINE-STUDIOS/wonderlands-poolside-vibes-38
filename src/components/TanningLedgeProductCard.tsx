@@ -99,17 +99,44 @@ const ledgeHeaters = [{
 import { getProductsByCategory } from '@/data/consolidatedProducts';
 import InstallationNote from "@/components/InstallationNote";
 
-// Convert pool finishes data to finish options format
-const finishOptions = getProductsByCategory('finish').map(finish => ({
+/**
+ * Finishes are brand-scoped (hard rule): Latham ledges get the Latham
+ * Crystite/G3 finish range, GlimmerGlass ledges get GlimmerGlass gelcoat —
+ * never the other brand's swatches.
+ */
+const lathamFinishOptions = getProductsByCategory('finish').map(finish => ({
   name: finish.name,
   color: '#4169E1',
-  image: finish.image,
+  image: finish.image as string | undefined,
   price: finish.price / 2,
   // Tanning ledge pricing is half of pool pricing
   collection: finish.collection,
   category: finish.category,
   description: finish.description
 }));
+
+const glimmerglassFinishOptions = [
+  { name: 'Ocean Blue', color: '#1E40AF' },
+  { name: 'Sapphire Blue', color: '#2563EB' },
+  { name: 'Glacier Blue', color: '#0EA5E9' },
+  { name: 'Coastal Bronze', color: '#A16207' },
+  { name: 'Steel Grey', color: '#6B7280' },
+  { name: 'Snow White', color: '#FFFFFF' },
+  { name: 'Arctic White', color: '#F8FAFC' },
+].map(gelcoat => ({
+  name: gelcoat.name,
+  color: gelcoat.color,
+  image: undefined as string | undefined,
+  price: 0,
+  collection: 'GlimmerGlass Gelcoat',
+  category: 'finish',
+  description: `GlimmerGlass ${gelcoat.name} gelcoat — included`,
+}));
+
+const getFinishOptionsForBrand = (brand?: string) =>
+  brand && brand.toLowerCase().includes('glimmer')
+    ? glimmerglassFinishOptions
+    : lathamFinishOptions;
 
 // Convert paver data to options format
 const paverOptions = [{
