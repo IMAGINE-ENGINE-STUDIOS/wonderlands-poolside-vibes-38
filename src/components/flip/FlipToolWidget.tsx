@@ -33,6 +33,8 @@ const FenceDrawingBoard = lazy(() => import("@/components/fence/FenceDrawingBoar
 const EnclosureDrawingBoard = lazy(() => import("@/components/enclosure/EnclosureDrawingBoard"));
 const GrassDrawingBoard = lazy(() => import("@/components/grass/GrassDrawingBoard"));
 const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
+/** The facing leaf of the solar spread — the whole panel/storage/racking collection. */
+const SolarOptionsLeaf = lazy(() => import("@/components/solar/SolarOptionsLeaf"));
 
 const emptySite: SitePlanData = { shapes: [], pxPerFt: DEFAULT_PX_PER_FT };
 const emptyEnclosure: EnclosureLayout = { points: [], closed: false, features: {} };
@@ -440,15 +442,36 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
     </div>
   );
 
+  /* The live leaf: the drawing board, mounted once per spread. On a solar spread
+     the aerial map takes the LEFT leaf and the collection takes the right. */
+  const boardLeaf = (
+    <div className="absolute inset-0" {...lockHandlers}>
+      <div className="flex h-full w-full flex-col p-3 sm:p-4">
+        <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
+      </div>
+    </div>
+  );
+
+  const solarOptionsLeaf = (
+    <div className="absolute inset-0" {...lockHandlers}>
+      <div className="flex h-full w-full flex-col p-3 sm:p-4">
+        <Suspense fallback={fallback}>
+          <SolarOptionsLeaf />
+        </Suspense>
+      </div>
+    </div>
+  );
+
+  const isSolar = board.kind === "solar";
+
   const halfBody = half === "left" ? (
-    <>{staticPlate}</>
+    <>{isSolar ? boardLeaf : staticPlate}</>
+  ) : isSolar ? (
+    <>{solarOptionsLeaf}</>
   ) : (
     <>
-      <div className="absolute inset-0" {...lockHandlers}>
-        <div className="flex h-full w-full flex-col p-3 sm:p-4">
-          <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
-        </div>
-      </div>
+      {boardLeaf}
+
       {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
           the reader can still grab the corner and turn instead of only using the
           arrows. Entering it releases the drawing lock. */}

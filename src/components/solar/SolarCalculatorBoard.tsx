@@ -11,7 +11,7 @@ import {
   traceRoofPlane,
   facesFromInsights,
   guessAzimuth,
-  rectangleAround,
+  snapVertexToEdge,
   type BuildingInsights,
   type TileFrame,
 } from "@/lib/solar/roofAutoTrace";
@@ -58,44 +58,15 @@ import StudioCartWidget from "@/components/StudioCartWidget";
 
 type Mode = "idle" | "auto" | "manual";
 
-interface SavedFace {
-  id: string;
-  path: LatLng[];
-  azimuthDeg: number;
-  pitchDeg: number;
-  shadeFactor: number;
-  measuredSunshineHours?: number | null;
-  source: "auto" | "traced";
-  excluded?: boolean;
-}
+/* the session shape, defaults and cache key are shared with the facing
+   product-options leaf — see ./solarSession */
+import {
+  SOLAR_SESSION_KEY,
+  emptySolarSession as emptySession,
+  type SavedFace,
+  type SolarSession,
+} from "./solarSession";
 
-interface SolarSession {
-  address: string;
-  lat: number | null;
-  lng: number | null;
-  faces: SavedFace[];
-  covered: boolean;
-  imageryDate: string;
-  panelId: string;
-  batteryId: string;
-  covering: RoofCovering;
-  monthlyBill: number;
-  serviceRunFt: number;
-}
-
-const emptySession: SolarSession = {
-  address: "",
-  lat: null,
-  lng: null,
-  faces: [],
-  covered: false,
-  imageryDate: "",
-  panelId: solarPanels[0]?.id ?? "",
-  batteryId: "battery-none",
-  covering: "shingle",
-  monthlyBill: 320,
-  serviceRunFt: 45,
-};
 
 const FL_LAT = 27.5;
 
@@ -117,7 +88,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   const { toast } = useToast();
   const cart = useOptionalShoppingCart();
 
-  const [session, setSession] = usePersistentState<SolarSession>("solar_calculator_session", emptySession);
+  const [session, setSession] = usePersistentState<SolarSession>(SOLAR_SESSION_KEY, emptySession);
   const [query, setQuery] = React.useState(session.address);
   const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
   const [typing, setTyping] = React.useState(false);
@@ -266,9 +237,27 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
 
   /* ── address search ────────────────────────────────────────────────── */
 
-  /** Frames a resolved address on the aerial and reads its roof. */
+  /**
+   * Frames a resolved address on the aerial and reads its roof.
+   *
+   * Faces captured on a previous property are dropped here. They used to survive
+   * in the cache and reappear over the new address, which read as though the
+   * board had auto-dropped a dozen planes before the reader clicked anything.
+   */
   const settleOn = async (found: { address: string; lat: number; lng: number }) => {
-    patch({ address: found.address, lat: found.lat, lng: found.lng });
+    setSession((s) => {
+      const centre = { lat: found.lat, lng: found.lng };
+      const kept = s.faces.filter((f) => {
+        const c = {
+          lat: f.path.reduce((t, p) => t + p.lat, 0) / f.path.length,
+          lng: f.path.reduce((t, p) => t + p.lng, 0) / f.path.length,
+        };
+        return distanceFt(c, centre) < 400; // same property only
+      });
+      return { ...s, address: found.address, lat: found.lat, lng: found.lng, faces: kept };
+    });
+    setSelected("");
+    setDraft([]);
     setQuery(found.address);
     setSuggestions([]);
     setView({ lat: found.lat, lng: found.lng, zoom: 20 });
@@ -423,17 +412,31 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   };
 
   /**
-   * A click on the aerial. In hand-trace mode it lays down the next vertex;
-   * in click-to-capture mode it takes the one plane under the cursor: the photo
-   * is traced for the true corners, and when the click also falls inside a
-   * Google-measured segment that segment's azimuth, pitch and satellite sunshine
-   * hours are carried on the face. A trace that cannot be trusted is refused
-   * outright rather than dropping a shape that makes no sense.
+   * A click on the aerial.
+   *
+   * Hand trace: the dropped point is magnetised to the nearest roof edge in the
+   * photo (ridge, hip, gutter or wall shadow) so a perimeter can be walked
+   * quickly and still land on the real line; clicking back on the first point
+   * closes the plane.
+   *
+   * Click-to-capture: the plane under the cursor is traced from the photo, and a
+   * Google-measured segment under the same click carries its azimuth, pitch and
+   * satellite sunshine hours. Nothing is dropped when neither source can be
+   * trusted — a blind rectangle in the middle of the roof is worse than asking
+   * for a hand trace.
    */
   const handleMapClick = React.useCallback(
     async (point: LatLng) => {
       if (mode === "manual") {
-        setDraft((d) => [...d, point]);
+        const at = frame.current ? await snapVertexToEdge(frame.current, point) : point;
+        if (draft.length >= 3 && distanceFt(draft[0], at) < 9) {
+          addFace(draft, "traced");
+          setDraft([]);
+          setMode("idle");
+          toast({ title: "Plane closed", description: "Drag any point to refine the perimeter." });
+          return;
+        }
+        setDraft([...draft, at]);
         return;
       }
       if (mode !== "auto") return;
@@ -489,15 +492,11 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           return;
         }
 
-        /* No measured plane either. As a last resort, drop a conservative
-           rectangle aligned to the dominant roof axis so the user can edit it. */
-        const fallback = rectangleAround(point, 32, 22);
-        addFace(fallback, "auto");
+        /* Neither source is trustworthy — refuse rather than invent a shape. */
+        setMode("manual");
         toast({
-          title: "Roof plane captured",
-          description: rejected
-            ? `${rejected} — drag the corners to match the roof.`
-            : "Drag the corners to match the roof plane.",
+          title: "That plane could not be read",
+          description: `${rejected ?? "The photo is too uneven here"} — trace the perimeter by hand; points snap to the roof edges.`,
         });
       } catch (err) {
         console.error("roof trace failed:", (err as Error).message);
@@ -509,17 +508,47 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
             description: `${compassLabel(hit.azimuthDeg)} facing · measured plane.`,
           });
         } else {
-          const fallback = rectangleAround(point, 32, 22);
-          addFace(fallback, "auto");
-          toast({ title: "Roof plane captured", description: "Drag the corners to match the roof plane." });
+          setMode("manual");
+          toast({
+            title: "That plane could not be read",
+            description: "Trace the perimeter by hand — points snap to the roof edges.",
+          });
         }
       } finally {
         setBusy("");
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mode, session.faces, toast],
+    [mode, session.faces, draft, toast],
   );
+
+  /* Hand trace shortcuts: Backspace removes the last point, Enter closes the
+     plane, Escape abandons it. Only while the trace is armed. */
+  React.useEffect(() => {
+    if (mode !== "manual") return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        setDraft((d) => d.slice(0, -1));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        setDraft((d) => {
+          if (d.length >= 3) addFace(d, "traced");
+          return [];
+        });
+        setMode("idle");
+      } else if (e.key === "Escape") {
+        setDraft([]);
+        setMode("idle");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
 
 
 

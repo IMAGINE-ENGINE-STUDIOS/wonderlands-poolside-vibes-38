@@ -1,9 +1,8 @@
 # Roadmap
 
-- [x] Milan $59,999 campaign: `MilanOfferCampaign.tsx` mounted in Admin → Message Templates
-- [x] Hide the "Start My Project" button (PlatformOverview)
-- [x] GlimmerGlass pool + spa cards: expose the full additional-feature catalogue
-- [x] Tanning ledges: brand-correct finishes (GlimmerGlass gelcoat, not Latham G3)
-- [x] Pavers section: render every collection from `paverData`
-- [x] Elegant suite header buttons per section (saunas / spas / tanning ledges)
-- [x] Pebble Tec finishes for concrete pools in Pool Finishes
+## Solar spread (FLIP)
+- [x] Move the live aerial map to the left leaf of the solar spread
+- [x] Fill the facing leaf with the full solar collection (panels by brand, storage, racking/anchoring, companion systems, inclusions)
+- [ ] Roof capture: stop auto-dropping faces before the user clicks a roof
+- [ ] Roof capture: spline/perimeter tracing quality — outlines must follow the roof perimeter
+- [ ] Verify with Playwright screenshots
