@@ -179,6 +179,9 @@ export default function AutomationTemplatesManager() {
 
   return (
     <div className="space-y-6">
+      {/* Featured campaign — Milan Collection premium offer email */}
+      <MilanOfferCampaign />
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-cyan-300">Message Templates</h2>
