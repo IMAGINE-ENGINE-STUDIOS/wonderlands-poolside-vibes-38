@@ -56,6 +56,7 @@ export const MILAN_DEFAULTS: MilanOfferConfig = {
   heroImage: MILAN_HERO_IMAGE,
   kitchenImage: MILAN_KITCHEN_IMAGE,
   solarImage: MILAN_SOLAR_IMAGE,
+  naturalPoolImage: MILAN_NATURAL_POOL_IMAGE,
   whatsappNumber: '+12392570637',
   whatsappLink: 'https://wa.me/12392570637',
   appointmentLink: 'https://calendly.com/wonderlandsworlds/30min',
