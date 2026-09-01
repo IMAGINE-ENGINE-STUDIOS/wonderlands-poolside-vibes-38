@@ -287,12 +287,12 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   );
 
   const renderBoard = useCallback(
-    (header: React.ReactNode, fullScreen?: boolean) => {
+    (header: React.ReactNode, fullScreen?: boolean, mapOnly?: boolean) => {
       if (board.kind === "solar")
         return (
           <div className="space-y-3">
             {header}
-            <SolarCalculatorBoard height={fullScreen ? 560 : 380} />
+            <SolarCalculatorBoard height={fullScreen ? 560 : 380} mapOnly={mapOnly} />
           </div>
         );
       if (board.kind === "enclosure")
@@ -443,11 +443,12 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   );
 
   /* The live leaf: the drawing board, mounted once per spread. On a solar spread
-     the aerial map takes the LEFT leaf and the collection takes the right. */
-  const boardLeaf = (
-    <div className="absolute inset-0" {...lockHandlers}>
+     the aerial map takes the LEFT leaf (map + tools + headers only) and the
+     collection takes the right. */
+  const boardLeaf = (mapOnly?: boolean) => (
+    <div className="absolute inset-0 overflow-auto" {...lockHandlers}>
       <div className="flex h-full w-full flex-col p-3 sm:p-4">
-        <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
+        <Suspense fallback={fallback}>{renderBoard(headerBlock, false, mapOnly)}</Suspense>
       </div>
     </div>
   );
@@ -465,12 +466,13 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   const isSolar = board.kind === "solar";
 
   const halfBody = half === "left" ? (
-    <>{isSolar ? boardLeaf : staticPlate}</>
+    <>{isSolar ? boardLeaf(true) : staticPlate}</>
   ) : isSolar ? (
     <>{solarOptionsLeaf}</>
   ) : (
     <>
-      {boardLeaf}
+      {boardLeaf()}
+
 
       {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
           the reader can still grab the corner and turn instead of only using the

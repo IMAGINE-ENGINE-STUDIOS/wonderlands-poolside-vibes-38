@@ -84,7 +84,12 @@ const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 const selectClass =
   "mt-1 w-full border border-border/60 bg-transparent px-2 py-2 text-sm font-light outline-none focus:border-foreground";
 
-const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
+/**
+ * `mapOnly` trims the board to the aerial leaf: the address header, the map and
+ * the map tools underneath it. The system builder, the graphics and the report
+ * live on the facing page of the flip spread, so they are not repeated here.
+ */
+const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = ({ height, mapOnly }) => {
   const { toast } = useToast();
   const cart = useOptionalShoppingCart();
 
@@ -714,7 +719,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       </form>
 
 
-      <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+      <div className={`grid gap-5 ${mapOnly ? "" : "lg:grid-cols-[1.6fr_1fr]"}`}>
         {/* ── aerial ── */}
         <div>
           <div className="relative overflow-hidden border border-border/60">
@@ -795,8 +800,10 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           </div>
         </div>
 
-        {/* ── the build ── */}
+        {/* ── the build (hidden on the map-only leaf) ── */}
+        {!mapOnly && (
         <div className="space-y-5">
+
           <div className="border border-border/60 p-4">
             <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">The system</p>
             <div className="mt-3 space-y-3">
@@ -1025,29 +1032,34 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
             )}
           </div>
         </div>
+        )}
       </div>
 
-      {/* ── animated performance graphics ── */}
-      <SolarPerformanceGraphics
-        production={production}
-        savings={savings}
-        faces={faces}
-        latitude={session.lat ?? FL_LAT}
-      />
+      {!mapOnly && (
+        <>
+          {/* ── animated performance graphics ── */}
+          <SolarPerformanceGraphics
+            production={production}
+            savings={savings}
+            faces={faces}
+            latitude={session.lat ?? FL_LAT}
+          />
 
-      <SolarReportTabs
-        address={session.address}
-        faces={faces}
-        production={production}
-        savings={savings}
-        bom={bom}
-        panel={panel}
-        battery={battery}
-        covering={session.covering}
-        monthlyBill={session.monthlyBill}
-        imageryDate={session.imageryDate}
-        verified={production.yearlyKwhVerified != null}
-      />
+          <SolarReportTabs
+            address={session.address}
+            faces={faces}
+            production={production}
+            savings={savings}
+            bom={bom}
+            panel={panel}
+            battery={battery}
+            covering={session.covering}
+            monthlyBill={session.monthlyBill}
+            imageryDate={session.imageryDate}
+            verified={production.yearlyKwhVerified != null}
+          />
+        </>
+      )}
 
       {/* the shared Order Desk, so the solar system lives with the rest of the project */}
       {cart && (
