@@ -17,6 +17,7 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
 import { FeatureTileCarousel } from "./product/FeatureTileCarousel";
+import { CatalogExtrasPanel, useCatalogExtras } from "./product/CatalogExtras";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu, Droplets } from 'lucide-react';
