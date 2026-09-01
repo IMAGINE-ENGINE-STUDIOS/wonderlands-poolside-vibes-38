@@ -30,6 +30,7 @@ export interface MilanOfferConfig {
   heroImage: string;
   kitchenImage: string;
   solarImage: string;
+  naturalPoolImage: string;
   whatsappNumber: string;
   whatsappLink: string;
   appointmentLink: string;
