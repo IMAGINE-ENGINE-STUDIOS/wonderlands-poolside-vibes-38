@@ -39,6 +39,8 @@ export const MILAN_DEFAULTS: MilanOfferConfig = {
   includes: [
     'Premium fiberglass pool shell',
     'Engineered paver or concrete deck',
+    'Salem 2 Person Barrel Sauna by Almost Heaven',
+    'Outdoor fireplace',
     'LED lighting package',
     'Full equipment & plumbing set',
     'Permits, engineering & inspections',
