@@ -145,6 +145,10 @@ const PoolFinishesSection = () => {
           </TabsContent>
         </Tabs>
 
+        {/* Pebble Tec® — concrete (gunite) shells only */}
+        <PebbleTecConcreteFinishes />
+
+
         {/* Enhanced Detail Modal */}
         {selectedFinish && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFinish(null)}>
