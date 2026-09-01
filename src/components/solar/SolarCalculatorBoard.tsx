@@ -11,6 +11,7 @@ import {
   traceRoofPlane,
   facesFromInsights,
   guessAzimuth,
+  rectangleAround,
   type BuildingInsights,
   type TileFrame,
 } from "@/lib/solar/roofAutoTrace";
@@ -126,6 +127,12 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   const [selected, setSelected] = React.useState<string>("");
   const [draft, setDraft] = React.useState<LatLng[]>([]);
 
+  /** real pixel size of the visible map so the trace bitmap matches the click */
+  const [frameSize, setFrameSize] = React.useState<{ width: number; height: number }>({
+    width: 640,
+    height: height ?? 520,
+  });
+
   /** what the aerial is framing — cached so a reload lands on the same roof */
   const [view, setView] = usePersistentState<AerialView>("solar_aerial_view", {
     lat: session.lat ?? 27.9506,
@@ -220,7 +227,8 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   /* ── the aerial frame ──────────────────────────────────────────────── */
 
   /* The sampling bitmap behind click-to-trace is rebuilt from the same imagery
-     the canvas shows, a beat after the framing settles, so panning stays smooth. */
+     the canvas shows, a beat after the framing settles, so panning stays smooth.
+     It is the exact size of the visible map so a click maps to the same pixel. */
   React.useEffect(() => {
     if (view.zoom < 18) {
       frame.current = null;
@@ -228,7 +236,8 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
     }
     let alive = true;
     const timer = window.setTimeout(() => {
-      composeAerialFrame({ lat: view.lat, lng: view.lng }, Math.round(view.zoom), 640)
+      const size = Math.min(1024, Math.max(512, Math.round(frameSize.width)), Math.max(512, Math.round(frameSize.height)));
+      composeAerialFrame({ lat: view.lat, lng: view.lng }, Math.round(view.zoom), size)
         .then((f) => {
           if (alive) frame.current = f;
         })
@@ -240,7 +249,20 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
       alive = false;
       window.clearTimeout(timer);
     };
-  }, [view.lat, view.lng, view.zoom]);
+  }, [view.lat, view.lng, view.zoom, frameSize.width, frameSize.height]);
+
+  /* Purge any absurd cached faces — bad lat/lng jumps can create million-SF
+     shapes or roof-shaped polygons that leak into the road. Keep reasonable
+     residential / small commercial footprints only. */
+  React.useEffect(() => {
+    setSession((s) => ({
+      ...s,
+      faces: s.faces.filter((f) => {
+        const area = pathAreaSqFt(f.path);
+        return area >= 80 && area <= 20000 && f.path.length >= 3 && f.path.length <= 40;
+      }),
+    }));
+  }, []); // run once on mount
 
   /* ── address search ────────────────────────────────────────────────── */
 
@@ -455,6 +477,9 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           });
           return;
         }
+
+        /* Trace did not return a clean polygon. Google measured data is the next
+           best source: it gives azimuth, pitch and sunshine hours. */
         if (hit) {
           addMeasuredFace(hit);
           toast({
@@ -463,10 +488,31 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           });
           return;
         }
-        toast({ title: "No plane captured", description: rejected ?? "Click nearer the middle of one roof plane." });
+
+        /* No measured plane either. As a last resort, drop a conservative
+           rectangle aligned to the dominant roof axis so the user can edit it. */
+        const fallback = rectangleAround(point, 32, 22);
+        addFace(fallback, "auto");
+        toast({
+          title: "Roof plane captured",
+          description: rejected
+            ? `${rejected} — drag the corners to match the roof.`
+            : "Drag the corners to match the roof plane.",
+        });
       } catch (err) {
         console.error("roof trace failed:", (err as Error).message);
-        toast({ title: "No plane captured", description: "Try again, or trace the plane by hand." });
+        /* Even if the tracer throws, measured planes are still usable. */
+        if (hit) {
+          addMeasuredFace(hit);
+          toast({
+            title: "Roof plane captured",
+            description: `${compassLabel(hit.azimuthDeg)} facing · measured plane.`,
+          });
+        } else {
+          const fallback = rectangleAround(point, 32, 22);
+          addFace(fallback, "auto");
+          toast({ title: "Roof plane captured", description: "Drag the corners to match the roof plane." });
+        }
       } finally {
         setBusy("");
       }
@@ -654,6 +700,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
               onMapClick={handleMapClick}
               onFaceClick={(id) => setSelected((s) => (s === id ? "" : id))}
               onVertexMove={moveVertex}
+              onSizeChange={setFrameSize}
             />
             {(busy === "insights" || busy === "trace") && (
               <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 bg-background/90 px-3 py-2 text-[9px] uppercase tracking-[0.3em]">

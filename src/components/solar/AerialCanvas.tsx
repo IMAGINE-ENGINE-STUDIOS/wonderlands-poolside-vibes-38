@@ -52,6 +52,8 @@ interface Props {
   onMapClick?: (at: LatLng) => void;
   onFaceClick?: (id: string) => void;
   onVertexMove?: (faceId: string, index: number, at: LatLng) => void;
+  /** Report the measured map size so the parent can sample the same frame for auto-trace. */
+  onSizeChange?: (size: { width: number; height: number }) => void;
 }
 
 const AerialCanvas: React.FC<Props> = ({
@@ -65,6 +67,7 @@ const AerialCanvas: React.FC<Props> = ({
   onMapClick,
   onFaceClick,
   onVertexMove,
+  onSizeChange,
 }) => {
   const host = React.useRef<HTMLDivElement>(null);
   const [size, setSize] = React.useState({ w: 800, h: height });
@@ -74,12 +77,17 @@ const AerialCanvas: React.FC<Props> = ({
   React.useEffect(() => {
     const el = host.current;
     if (!el) return;
-    const measure = () => setSize({ w: el.clientWidth || 800, h: el.clientHeight || height });
+    const measure = () => {
+      const w = el.clientWidth || 800;
+      const h = el.clientHeight || height;
+      setSize({ w, h });
+      onSizeChange?.({ width: w, height: h });
+    };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [height]);
+  }, [height, onSizeChange]);
 
   /* ── projection between screen pixels and coordinates ───────────────── */
 

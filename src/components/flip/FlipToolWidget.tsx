@@ -396,29 +396,59 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   };
 
   /**
-   * A drawing spread: the same live board is laid out at twice the page width on
-   * both leaves — the left leaf shows its left half, the right leaf its right
-   * half — so one continuous board runs across the gutter and both halves stay
-   * drawable, sharing one drawing through the board store.
+   * A drawing spread mounts the live board only once, on the right leaf. The left
+   * leaf is a static plate (title, readout, live price, enlarge button). Two
+   * copies of the same interactive board were fighting each other — duplicating
+   * maps, address bars, tile fetchers and stores — so now one board instance
+   * serves the whole spread.
    */
   const half = part === "board-left" ? "left" : part === "board-right" ? "right" : null;
 
-  const halfBody = (
+  const staticPlate = (
+    <div className="flex h-full flex-col p-3 sm:p-4" {...lockHandlers}>
+      <div className="flex-1">
+        <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+          Wonderlands World — Design board
+        </p>
+        <p className="mt-3 font-serif text-2xl font-light leading-none">
+          {(isSite ? siteReadout : readout) || "Draw the plan"}
+        </p>
+        {livePrice > 0 && (
+          <p className="mt-2 font-serif text-xl font-light leading-none">{formatMoney(livePrice)}</p>
+        )}
+        <p className="mt-4 max-w-xs text-[10px] leading-relaxed text-muted-foreground">
+          The live board is on the facing page. Use it to draw, trace or configure; the price and dimensions
+          stay in sync across both leaves.
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 pt-4">
+        <button
+          onClick={() => setFull(true)}
+          className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+        >
+          Enlarge <Maximize2 className="h-3 w-3" />
+        </button>
+        {onExpand && (
+          <button
+            onClick={onExpand}
+            className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+          >
+            Editor board
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  const halfBody = half === "left" ? (
+    <>{staticPlate}</>
+  ) : (
     <>
-      <div
-        className={`absolute inset-y-0 w-[200%] ${half === "left" ? "left-0" : "-left-full"}`}
-        {...lockHandlers}
-      >
+      <div className="absolute inset-0" {...lockHandlers}>
         <div className="flex h-full w-full flex-col p-3 sm:p-4">
           <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>
         </div>
       </div>
-      {/* the gutter shading, so the fold still reads like paper */}
-      <div
-        className={`pointer-events-none absolute inset-y-0 w-10 ${
-          half === "left" ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"
-        } from-foreground/10 to-transparent`}
-      />
       {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
           the reader can still grab the corner and turn instead of only using the
           arrows. Entering it releases the drawing lock. */}
@@ -426,7 +456,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
         <div
           onPointerEnter={unlock}
           title="Drag here to turn the page"
-          className={`absolute inset-y-0 z-20 w-9 cursor-pointer ${half === "left" ? "left-0" : "right-0"}`}
+          className="absolute inset-y-0 right-0 z-20 w-9 cursor-pointer"
         />
       )}
     </>
