@@ -29,6 +29,7 @@ export interface MilanOfferConfig {
   kitchenImage: string;
   solarImage: string;
   whatsappNumber: string;
+  whatsappLink: string;
   appointmentLink: string;
   phone: string;
 }
@@ -53,6 +54,7 @@ export const MILAN_DEFAULTS: MilanOfferConfig = {
   kitchenImage: MILAN_KITCHEN_IMAGE,
   solarImage: MILAN_SOLAR_IMAGE,
   whatsappNumber: '+12392570637',
+  whatsappLink: 'https://wa.me/qr/63IHYQHGTQBBJ1',
   appointmentLink: 'https://calendly.com/wonderlandsworlds/30min',
   phone: '+1 (239) 257-0637',
 };
@@ -60,9 +62,9 @@ export const MILAN_DEFAULTS: MilanOfferConfig = {
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const waLink = (num: string) =>
-  `https://wa.me/${num.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
-    "Hi Wonderlands — I'd like details on the Milan Collection offer."
+const waLink = (cfg: MilanOfferConfig) =>
+  `${cfg.whatsappLink}?text=${encodeURIComponent(
+    `Hi Wonderlands — I'd like details on the ${cfg.headline} offer.`
   )}`;
 
 export function buildMilanOfferSubject(cfg: MilanOfferConfig) {
@@ -135,7 +137,7 @@ export function buildMilanOfferHtml(cfg: MilanOfferConfig): string {
   <!-- CTAs -->
   <tr><td class="wl-pad" align="center" style="padding:30px 38px 8px;">
     <span class="wl-btn" style="margin-right:8px;">${btn(cfg.appointmentLink, 'Book a consultation', '#0f172a', '#ffffff')}</span>
-    <span class="wl-btn">${btn(waLink(cfg.whatsappNumber), 'Message us', '#25d366', '#ffffff')}</span>
+    <span class="wl-btn">${btn(waLink(cfg), 'Message us', '#25d366', '#ffffff')}</span>
     <p style="margin:16px 0 0;font:400 13px/1.6 Arial,Helvetica,sans-serif;color:#6b6862;">Or call <a href="tel:${cfg.phone.replace(/[^\d+]/g, '')}" style="color:#0891b2;text-decoration:none;">${esc(cfg.phone)}</a></p>
   </td></tr>
 
