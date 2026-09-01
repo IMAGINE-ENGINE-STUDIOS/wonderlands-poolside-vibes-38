@@ -1,6 +1,7 @@
 import heroAsset from '@/assets/campaigns/milan-hero.png.asset.json';
 import kitchenAsset from '@/assets/campaigns/milan-outdoor-kitchen.jpg.asset.json';
 import solarAsset from '@/assets/campaigns/milan-solar.jpg.asset.json';
+import naturalPoolAsset from '@/assets/pools/wonderlands/natural-pool-view-1.jpg.asset.json';
 
 /**
  * Milan Collection premium email template.
