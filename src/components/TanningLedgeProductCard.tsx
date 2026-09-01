@@ -360,8 +360,8 @@ const TanningLedgeProductCard = ({
                   ...prev,
                   finish: finish.name
                 }))}>
-                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
-                          <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
+                        <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0" style={!finish.image ? { backgroundColor: finish.color } : undefined}>
+                          {finish.image && <img loading="lazy" decoding="async" src={finish.image} alt={finish.name} className="w-full h-full object-cover" />}
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
