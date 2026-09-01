@@ -856,6 +856,17 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             </AccordionItem>
             </Accordion>
 
+            {/* Remaining catalogue options (covers, jets, tanning ledges, ...) —
+                sourced from PRODUCT_FEATURES so GlimmerGlass pools offer the
+                same add-ons as the Latham pools. */}
+            <CatalogExtrasPanel
+              productType="pool"
+              excludeIds={POOL_CARD_OWN_FEATURES}
+              extras={catalogExtras}
+              onExtrasChange={setCatalogExtras}
+              className="pt-2"
+            />
+
             <Separator />
 
             {/* Pricing Section */}
