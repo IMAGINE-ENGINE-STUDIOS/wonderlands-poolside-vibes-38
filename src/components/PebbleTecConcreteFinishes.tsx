@@ -118,7 +118,8 @@ const PebbleTecConcreteFinishes = ({ onSelect }: Props) => {
                   <button
                     key={finish.id}
                     type="button"
-                    onClick={() => onSelect?.(finish)}
+                    onClick={() => handleOpen(finish)}
+                    title={`Open the ${finish.name} dossier`}
                     className="group text-left"
                   >
                     <div
