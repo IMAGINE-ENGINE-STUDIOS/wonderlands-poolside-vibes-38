@@ -800,8 +800,10 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
           </div>
         </div>
 
-        {/* ── the build ── */}
+        {/* ── the build (hidden on the map-only leaf) ── */}
+        {!mapOnly && (
         <div className="space-y-5">
+
           <div className="border border-border/60 p-4">
             <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">The system</p>
             <div className="mt-3 space-y-3">
