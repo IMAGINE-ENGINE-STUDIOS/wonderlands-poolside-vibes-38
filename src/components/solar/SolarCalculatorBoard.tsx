@@ -88,7 +88,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   const { toast } = useToast();
   const cart = useOptionalShoppingCart();
 
-  const [session, setSession] = usePersistentState<SolarSession>("solar_calculator_session", emptySession);
+  const [session, setSession] = usePersistentState<SolarSession>(SOLAR_SESSION_KEY, emptySession);
   const [query, setQuery] = React.useState(session.address);
   const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
   const [typing, setTyping] = React.useState(false);
