@@ -1265,7 +1265,15 @@ export const useProductBookPages = ({
   return pages;
 };
 
-const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClose, inline = false }) => {
+const FlipProductBook: React.FC<Props> = ({
+  entry,
+  category,
+  groups = [],
+  onClose,
+  inline = false,
+  onNextEntry,
+  onPrevEntry,
+}) => {
   const bookRef = useRef<any>(null);
   const [page, setPage] = useState(0);
   const [portrait, setPortrait] = useState(false);
