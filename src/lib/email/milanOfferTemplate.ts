@@ -35,10 +35,12 @@ export const MILAN_DEFAULTS: MilanOfferConfig = {
   headline: 'The Milan Collection',
   subheadline: 'Turnkey luxury pool, deck and lighting — installed.',
   bodyCopy:
-    'A complete outdoor transformation designed by our studio and delivered by our own crews: fiberglass shell, engineered deck, waterline finish, LED lighting and full equipment set. One price, one team, one season.',
+    'A complete outdoor transformation designed by our studio and delivered by our own crews: fiberglass shell, engineered deck, waterline finish, LED lighting, full equipment set, a Salem 2 person barrel sauna and an outdoor fireplace. One price, one team, one season.',
   includes: [
     'Premium fiberglass pool shell',
     'Engineered paver or concrete deck',
+    'Salem 2 Person Barrel Sauna by Almost Heaven',
+    'Outdoor fireplace',
     'LED lighting package',
     'Full equipment & plumbing set',
     'Permits, engineering & inspections',
