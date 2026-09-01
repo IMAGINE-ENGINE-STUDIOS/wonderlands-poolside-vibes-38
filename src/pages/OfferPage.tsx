@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, Mail, Phone, MessageCircle, ArrowLeft, Check, User } from "lucide-react";
+import { Loader2, Mail, Phone, ArrowLeft, Check, User } from "lucide-react";
+import whatsappQr from "@/assets/campaigns/whatsapp-qr.webp";
 import Footer from "@/components/Footer";
 
 interface Promotion {
@@ -177,12 +178,30 @@ const OfferPage = () => {
                   <Mail className="h-4 w-4 mr-2" /> Email
                 </Button>
               </a>
-              <a href="https://wa.me/qr/63IHYQHGTQBBJ1" target="_blank" rel="noopener noreferrer" className="flex-1">
-                <Button className="w-full bg-[#0891b2] hover:bg-[#0e7490] text-white">
-                  <MessageCircle className="h-4 w-4 mr-2" /> Message us
-                </Button>
-              </a>
             </div>
+
+            <div className="rounded-lg border border-border bg-muted/30 p-5 text-center">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
+                Message us on WhatsApp
+              </p>
+              <a
+                href="https://wa.me/12392570637"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <img
+                  src={whatsappQr}
+                  alt="Scan to message Wonderlands on WhatsApp"
+                  className="w-36 h-36 rounded-lg border border-border bg-white mx-auto"
+                  loading="lazy"
+                />
+              </a>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Scan the code or tap it to start a chat.
+              </p>
+            </div>
+
             <a
               href="https://calendly.com/wonderlandsworlds/30min"
               target="_blank"

@@ -54,7 +54,7 @@ export const MILAN_DEFAULTS: MilanOfferConfig = {
   kitchenImage: MILAN_KITCHEN_IMAGE,
   solarImage: MILAN_SOLAR_IMAGE,
   whatsappNumber: '+12392570637',
-  whatsappLink: 'https://wa.me/qr/63IHYQHGTQBBJ1',
+  whatsappLink: 'https://wa.me/12392570637',
   appointmentLink: 'https://calendly.com/wonderlandsworlds/30min',
   phone: '+1 (239) 257-0637',
 };
