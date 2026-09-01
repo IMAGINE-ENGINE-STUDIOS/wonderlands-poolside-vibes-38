@@ -611,13 +611,18 @@ const TanningLedgeProductCard = ({
                           setShowDetails(true);
                         }}
                       >
-                        <div className="w-full h-12 rounded-none mb-1 overflow-hidden flex-shrink-0">
-                          <img
-                            src={finish.image}
-                            alt={finish.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
+                        <div
+                          className="w-full h-12 rounded-none mb-1 overflow-hidden flex-shrink-0"
+                          style={!finish.image ? { backgroundColor: finish.color } : undefined}
+                        >
+                          {finish.image && (
+                            <img
+                              src={finish.image}
+                              alt={finish.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          )}
                         </div>
                         <p className="text-[10px] font-medium text-center line-clamp-1">{finish.name}</p>
                       </div>
