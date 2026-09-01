@@ -11,7 +11,7 @@ import {
   traceRoofPlane,
   facesFromInsights,
   guessAzimuth,
-  rectangleAround,
+  snapVertexToEdge,
   type BuildingInsights,
   type TileFrame,
 } from "@/lib/solar/roofAutoTrace";
