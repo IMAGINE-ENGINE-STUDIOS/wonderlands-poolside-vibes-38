@@ -164,6 +164,18 @@ export function buildMilanOfferHtml(cfg: MilanOfferConfig): string {
     </tr></table>
   </td></tr>
 
+  <!-- Natural Pools -->
+  <tr><td class="wl-pad" style="padding:28px 38px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr><td>
+        <img src="${cfg.naturalPoolImage}" width="524" alt="Natural Pools by Wonderlands" style="display:block;width:100%;height:auto;border:0;"/>
+        <h3 style="margin:14px 0 6px;font:400 24px/1.2 Georgia,serif;color:#0f172a;">Natural Pools</h3>
+        <p style="margin:0 0 14px;font:400 14px/1.6 Georgia,serif;color:#6b6862;">A fully custom freeform concrete sanctuary shaped around your terrain. Waterfalls, stone edges and planting beds designed to order — pricing and timing scoped in a private consultation.</p>
+        <span style="font:600 10px/1 Arial,Helvetica,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#0891b2;">Consultation only</span>
+      </td></tr>
+    </table>
+  </td></tr>
+
   <!-- Signature -->
   <tr><td class="wl-pad" style="padding:32px 38px 34px;">
     <div style="border-top:1px solid #e6e4df;padding-top:18px;font:400 14px/1.6 Arial,Helvetica,sans-serif;color:#2c2c2c;">
