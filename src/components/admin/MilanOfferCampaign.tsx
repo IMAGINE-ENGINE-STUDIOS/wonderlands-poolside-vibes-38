@@ -29,9 +29,13 @@ import {
 
 interface ClientRow {
   id: string;
-  name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   email: string | null;
 }
+
+const fullName = (c: ClientRow) =>
+  [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
 
 export default function MilanOfferCampaign() {
   const [cfg, setCfg] = useState<MilanOfferConfig>(MILAN_DEFAULTS);
@@ -46,9 +50,9 @@ export default function MilanOfferCampaign() {
     (async () => {
       const { data } = await supabase
         .from('clients')
-        .select('id, name, email')
+        .select('id, first_name, last_name, email')
         .not('email', 'is', null)
-        .order('name');
+        .order('first_name', { ascending: true });
       setClients((data as ClientRow[]) || []);
     })();
   }, []);
@@ -185,7 +189,7 @@ export default function MilanOfferCampaign() {
                       checked={selectedIds.includes(c.id)}
                       onCheckedChange={() => toggleClient(c.id)}
                     />
-                    <span className="text-sm text-slate-200">{c.name || 'Unnamed'}</span>
+                    <span className="text-sm text-slate-200">{fullName(c) || 'Unnamed'}</span>
                     <span className="ml-auto text-xs text-slate-500">{c.email}</span>
                   </label>
                 ))}
