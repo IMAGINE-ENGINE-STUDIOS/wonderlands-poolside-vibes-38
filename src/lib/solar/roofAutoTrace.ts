@@ -162,6 +162,64 @@ export interface TraceResult {
 const luma = (d: Uint8ClampedArray, o: number) => 0.299 * d[o] + 0.587 * d[o + 1] + 0.114 * d[o + 2];
 
 /**
+ * Magnet for hand tracing.
+ *
+ * A dropped vertex rarely lands exactly on the roof edge. This looks in a small
+ * window around the drop point for the pixel with the strongest luminance
+ * gradient — a ridge, a gutter, a hip or the wall shadow line — and returns that
+ * coordinate instead, biased towards the click so a clean click is not dragged
+ * far. Returns the original point when nothing distinct is nearby.
+ */
+export const snapVertexToEdge = async (
+  frame: TileFrame,
+  at: LatLng,
+  radiusPx = 9,
+): Promise<LatLng> => {
+  try {
+    const img = await loadBitmap(frame.dataUrl);
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return at;
+    ctx.drawImage(img, 0, 0);
+
+    const seed = latLngToTilePixel(frame, at);
+    const sx = Math.round(seed.x);
+    const sy = Math.round(seed.y);
+    if (sx < 2 || sy < 2 || sx > w - 3 || sy > h - 3) return at;
+
+    const x0 = Math.max(1, sx - radiusPx);
+    const y0 = Math.max(1, sy - radiusPx);
+    const x1 = Math.min(w - 2, sx + radiusPx);
+    const y1 = Math.min(h - 2, sy + radiusPx);
+    const data = ctx.getImageData(x0 - 1, y0 - 1, x1 - x0 + 3, y1 - y0 + 3).data;
+    const stride = x1 - x0 + 3;
+    const lumaAt = (x: number, y: number) => luma(data, ((y - y0 + 1) * stride + (x - x0 + 1)) * 4);
+
+    let best = { x: sx, y: sy, score: -1 };
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const gx = lumaAt(x + 1, y) - lumaAt(x - 1, y);
+        const gy = lumaAt(x, y + 1) - lumaAt(x, y - 1);
+        const grad = Math.hypot(gx, gy);
+        /* pull towards the click: distance costs a little contrast */
+        const dist = Math.hypot(x - sx, y - sy);
+        const score = grad - dist * 2.2;
+        if (score > best.score) best = { x, y, score };
+      }
+    }
+    /* only move when the edge is genuinely distinct */
+    if (best.score < 14) return at;
+    return tilePixelToLatLng(frame, best.x, best.y);
+  } catch {
+    return at;
+  }
+};
+
+/**
  * Captures the roof plane under a click as a clean, corner-accurate outline.
  *
  * 1. the seed colour is averaged over a small patch so one speckled shingle or a
