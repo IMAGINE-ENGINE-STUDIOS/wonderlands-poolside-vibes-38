@@ -72,17 +72,19 @@ const TanningLedgeSection = () => {
     return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
   }, []);
 
-  // Convert Latham tanning ledges
+  // Convert Latham tanning ledges — brand drives the finish family in the card
   const lathamLedgesWithCategory = lathamTanningLedges.map(ledge => ({
     ...ledge,
+    brand: 'Latham',
     category: 'premium' as const,
     installationTimeWeeks: 2,
     warrantyYears: 'LIFETIME'
   }));
 
-  // Convert GlimmerGlass tanning ledges with correct images
+  // Convert GlimmerGlass tanning ledges with correct images + gelcoat finishes
   const glimmerglassLedgesWithCategory = glimmerglassTanningLedges.map(ledge => ({
     ...ledge,
+    brand: 'GlimmerGlass',
     image: glimmerglassImageMap[ledge.name] || ledge.image,
     category: 'premium' as const,
     installationTimeWeeks: 2,
