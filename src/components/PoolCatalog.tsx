@@ -3,6 +3,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import PoolDetailModal from "./PoolDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
+import NaturalPoolCard from "./NaturalPoolCard";
 import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import TileDetailModal from "./TileDetailModal";
@@ -981,6 +982,7 @@ const PoolCatalog = () => {
               </div>
 
               <ProductScrollRow>
+                <NaturalPoolCard />
                 {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').sort((a, b) => a.price - b.price).map(pool => {
                   // Override some props for Winderview since it's concrete
                   const poolProps = pool.model === 'Winderview' 
