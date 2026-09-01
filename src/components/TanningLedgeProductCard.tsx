@@ -160,6 +160,8 @@ const TanningLedgeProductCard = ({
   onRequestQuote,
   isAdmin = false
 }: TanningLedgeProductCardProps) => {
+  // Brand decides the finish family — GlimmerGlass gelcoat vs Latham Crystite/G3
+  const finishOptions = getFinishOptionsForBrand(ledge.brand);
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
