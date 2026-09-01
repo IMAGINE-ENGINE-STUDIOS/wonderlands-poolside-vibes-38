@@ -33,6 +33,8 @@ const FenceDrawingBoard = lazy(() => import("@/components/fence/FenceDrawingBoar
 const EnclosureDrawingBoard = lazy(() => import("@/components/enclosure/EnclosureDrawingBoard"));
 const GrassDrawingBoard = lazy(() => import("@/components/grass/GrassDrawingBoard"));
 const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
+/** The facing leaf of the solar spread — the whole panel/storage/racking collection. */
+const SolarOptionsLeaf = lazy(() => import("@/components/solar/SolarOptionsLeaf"));
 
 const emptySite: SitePlanData = { shapes: [], pxPerFt: DEFAULT_PX_PER_FT };
 const emptyEnclosure: EnclosureLayout = { points: [], closed: false, features: {} };
