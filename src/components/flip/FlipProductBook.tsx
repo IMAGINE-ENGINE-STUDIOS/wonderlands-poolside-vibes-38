@@ -1347,8 +1347,8 @@ const FlipProductBook: React.FC<Props> = ({
   const nav = (
     <div className={`mt-4 flex items-center gap-4 ${inline ? "" : ""}`}>
       <button
-        onClick={() => bookRef.current?.pageFlip?.().flipPrev()}
-        aria-label="Previous page"
+        onClick={goPrev}
+        aria-label={atStart && onPrevEntry ? "Previous product" : "Previous page"}
         className={`flex h-9 w-9 items-center justify-center border transition-colors ${
           inline
             ? "border-border/60 text-foreground hover:bg-foreground hover:text-background"
