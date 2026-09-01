@@ -43,6 +43,13 @@ type Props = {
   onClose: () => void;
   /** Rendered inside the magazine flip rather than as a full-screen overlay. */
   inline?: boolean;
+  /**
+   * Walking a list inside one pop-up: when the reader is on the final page,
+   * Next continues into the following product instead of dead-ending.
+   * Symmetrically, Previous on the first page steps back one product.
+   */
+  onNextEntry?: () => void;
+  onPrevEntry?: () => void;
 };
 
 /** Design tool per discipline — the widget the reader is sent to. */
