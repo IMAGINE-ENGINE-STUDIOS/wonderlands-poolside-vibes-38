@@ -287,12 +287,12 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   );
 
   const renderBoard = useCallback(
-    (header: React.ReactNode, fullScreen?: boolean) => {
+    (header: React.ReactNode, fullScreen?: boolean, mapOnly?: boolean) => {
       if (board.kind === "solar")
         return (
           <div className="space-y-3">
             {header}
-            <SolarCalculatorBoard height={fullScreen ? 560 : 380} />
+            <SolarCalculatorBoard height={fullScreen ? 560 : 380} mapOnly={mapOnly} />
           </div>
         );
       if (board.kind === "enclosure")
