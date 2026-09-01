@@ -719,7 +719,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
       </form>
 
 
-      <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+      <div className={`grid gap-5 ${mapOnly ? "" : "lg:grid-cols-[1.6fr_1fr]"}`}>
         {/* ── aerial ── */}
         <div>
           <div className="relative overflow-hidden border border-border/60">
