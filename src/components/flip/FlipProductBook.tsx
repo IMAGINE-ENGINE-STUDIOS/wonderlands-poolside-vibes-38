@@ -1272,6 +1272,27 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
   const [dims, setDims] = useState({ w: 360, h: 480 });
   const pages = useProductBookPages({ entry, category, groups, portrait });
 
+  /* Page turning that can leave the book: at the very end Next continues into
+     the next product of the list (and Previous, at the start, steps back). */
+  const step = portrait ? 1 : 2;
+  const atEnd = page + step >= pages.length;
+  const atStart = page <= 0;
+  const goNext = () => {
+    if (atEnd && onNextEntry) {
+      onNextEntry();
+      return;
+    }
+    bookRef.current?.pageFlip?.().flipNext();
+  };
+  const goPrev = () => {
+    if (atStart && onPrevEntry) {
+      onPrevEntry();
+      return;
+    }
+    bookRef.current?.pageFlip?.().flipPrev();
+  };
+
+
   useEffect(() => {
     const measure = () => {
       const vw = window.innerWidth;
