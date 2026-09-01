@@ -58,44 +58,15 @@ import StudioCartWidget from "@/components/StudioCartWidget";
 
 type Mode = "idle" | "auto" | "manual";
 
-interface SavedFace {
-  id: string;
-  path: LatLng[];
-  azimuthDeg: number;
-  pitchDeg: number;
-  shadeFactor: number;
-  measuredSunshineHours?: number | null;
-  source: "auto" | "traced";
-  excluded?: boolean;
-}
+/* the session shape, defaults and cache key are shared with the facing
+   product-options leaf — see ./solarSession */
+import {
+  SOLAR_SESSION_KEY,
+  emptySolarSession as emptySession,
+  type SavedFace,
+  type SolarSession,
+} from "./solarSession";
 
-interface SolarSession {
-  address: string;
-  lat: number | null;
-  lng: number | null;
-  faces: SavedFace[];
-  covered: boolean;
-  imageryDate: string;
-  panelId: string;
-  batteryId: string;
-  covering: RoofCovering;
-  monthlyBill: number;
-  serviceRunFt: number;
-}
-
-const emptySession: SolarSession = {
-  address: "",
-  lat: null,
-  lng: null,
-  faces: [],
-  covered: false,
-  imageryDate: "",
-  panelId: solarPanels[0]?.id ?? "",
-  batteryId: "battery-none",
-  covering: "shingle",
-  monthlyBill: 320,
-  serviceRunFt: 45,
-};
 
 const FL_LAT = 27.5;
 
