@@ -84,7 +84,12 @@ const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 const selectClass =
   "mt-1 w-full border border-border/60 bg-transparent px-2 py-2 text-sm font-light outline-none focus:border-foreground";
 
-const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
+/**
+ * `mapOnly` trims the board to the aerial leaf: the address header, the map and
+ * the map tools underneath it. The system builder, the graphics and the report
+ * live on the facing page of the flip spread, so they are not repeated here.
+ */
+const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = ({ height, mapOnly }) => {
   const { toast } = useToast();
   const cart = useOptionalShoppingCart();
 
