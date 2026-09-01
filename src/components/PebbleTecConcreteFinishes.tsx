@@ -49,6 +49,22 @@ const PebbleTecConcreteFinishes = ({ onSelect }: Props) => {
     [activeCollection],
   );
 
+  /* Flat reading order — exactly the sequence rendered below, so the dossier's
+     "next product" arrow walks the list the reader can see. */
+  const readingOrder = React.useMemo(
+    () => visible.flatMap((c) => grouped.get(c) ?? []),
+    [visible, grouped],
+  );
+
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+  const openFinish = openIndex === null ? null : readingOrder[openIndex] ?? null;
+
+  const handleOpen = (finish: PebbleTecFinish) => {
+    onSelect?.(finish);
+    const i = readingOrder.findIndex((f) => f.id === finish.id);
+    setOpenIndex(i >= 0 ? i : null);
+  };
+
   return (
     <div className="mt-16 border-t border-border/60 pt-12">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
