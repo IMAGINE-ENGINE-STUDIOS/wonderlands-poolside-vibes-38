@@ -1032,29 +1032,34 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
             )}
           </div>
         </div>
+        )}
       </div>
 
-      {/* ── animated performance graphics ── */}
-      <SolarPerformanceGraphics
-        production={production}
-        savings={savings}
-        faces={faces}
-        latitude={session.lat ?? FL_LAT}
-      />
+      {!mapOnly && (
+        <>
+          {/* ── animated performance graphics ── */}
+          <SolarPerformanceGraphics
+            production={production}
+            savings={savings}
+            faces={faces}
+            latitude={session.lat ?? FL_LAT}
+          />
 
-      <SolarReportTabs
-        address={session.address}
-        faces={faces}
-        production={production}
-        savings={savings}
-        bom={bom}
-        panel={panel}
-        battery={battery}
-        covering={session.covering}
-        monthlyBill={session.monthlyBill}
-        imageryDate={session.imageryDate}
-        verified={production.yearlyKwhVerified != null}
-      />
+          <SolarReportTabs
+            address={session.address}
+            faces={faces}
+            production={production}
+            savings={savings}
+            bom={bom}
+            panel={panel}
+            battery={battery}
+            covering={session.covering}
+            monthlyBill={session.monthlyBill}
+            imageryDate={session.imageryDate}
+            verified={production.yearlyKwhVerified != null}
+          />
+        </>
+      )}
 
       {/* the shared Order Desk, so the solar system lives with the rest of the project */}
       {cart && (
