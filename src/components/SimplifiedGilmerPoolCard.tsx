@@ -66,11 +66,32 @@ interface GilmerOptions {
   rockyWaterfallsColor: string;
 }
 
+/** Features this card already renders itself — everything else comes from the catalogue. */
+const POOL_CARD_OWN_FEATURES = [
+  'finish',
+  'liner',
+  'tiles',
+  'heater',
+  'pavers',
+  'screenEnclosure',
+  'spa',
+  'concreteConstruction',
+];
+
 const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   const navigate = useNavigate();
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
   const { priceMultiplier, projectType } = useProjectType();
+
+  // Catalogue add-ons (covers + colours, jets, tanning ledges, ...)
+  const {
+    extras: catalogExtras,
+    setExtras: setCatalogExtras,
+    lines: catalogLines,
+    total: catalogTotal,
+  } = useCatalogExtras('pool', POOL_CARD_OWN_FEATURES);
+  
   
   const [showFinancing, setShowFinancing] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
