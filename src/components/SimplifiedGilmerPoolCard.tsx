@@ -311,6 +311,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       const waterfallType = rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType);
       extrasArray.push({ name: `Rocky Waterfalls - ${options.rockyWaterfallsType}: ${options.rockyWaterfallsColor}`, price: waterfallType?.price || 17500 });
     }
+    // Catalogue add-ons keep their own itemised lines (with imagery for quotes)
+    catalogLines.forEach(line => extrasArray.push(line));
+    
     
     const productData = {
       id: `gilmer-${pool.model.toLowerCase().replace(/\s+/g, '-')}`,
