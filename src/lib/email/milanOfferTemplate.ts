@@ -1,6 +1,7 @@
 import heroAsset from '@/assets/campaigns/milan-hero.png.asset.json';
 import kitchenAsset from '@/assets/campaigns/milan-outdoor-kitchen.jpg.asset.json';
 import solarAsset from '@/assets/campaigns/milan-solar.jpg.asset.json';
+import naturalPoolAsset from '@/assets/pools/wonderlands/natural-pool-view-1.jpg.asset.json';
 
 /**
  * Milan Collection premium email template.
@@ -18,6 +19,7 @@ const abs = (u: string) => (u.startsWith('http') ? u : SITE + u);
 export const MILAN_HERO_IMAGE = abs(heroAsset.url);
 export const MILAN_KITCHEN_IMAGE = abs(kitchenAsset.url);
 export const MILAN_SOLAR_IMAGE = abs(solarAsset.url);
+export const MILAN_NATURAL_POOL_IMAGE = abs(naturalPoolAsset.url);
 
 export interface MilanOfferConfig {
   price: string;
@@ -28,6 +30,7 @@ export interface MilanOfferConfig {
   heroImage: string;
   kitchenImage: string;
   solarImage: string;
+  naturalPoolImage: string;
   whatsappNumber: string;
   whatsappLink: string;
   appointmentLink: string;
@@ -53,6 +56,7 @@ export const MILAN_DEFAULTS: MilanOfferConfig = {
   heroImage: MILAN_HERO_IMAGE,
   kitchenImage: MILAN_KITCHEN_IMAGE,
   solarImage: MILAN_SOLAR_IMAGE,
+  naturalPoolImage: MILAN_NATURAL_POOL_IMAGE,
   whatsappNumber: '+12392570637',
   whatsappLink: 'https://wa.me/12392570637',
   appointmentLink: 'https://calendly.com/wonderlandsworlds/30min',
@@ -158,6 +162,18 @@ export function buildMilanOfferHtml(cfg: MilanOfferConfig): string {
         <p style="margin:0;font:400 14px/1.6 Georgia,serif;color:#6b6862;">A free aerial roof study with production modeling, panel layout and battery options for your home.</p>
       </td>
     </tr></table>
+  </td></tr>
+
+  <!-- Natural Pools -->
+  <tr><td class="wl-pad" style="padding:28px 38px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr><td>
+        <img src="${cfg.naturalPoolImage}" width="524" alt="Natural Pools by Wonderlands" style="display:block;width:100%;height:auto;border:0;"/>
+        <h3 style="margin:14px 0 6px;font:400 24px/1.2 Georgia,serif;color:#0f172a;">Natural Pools</h3>
+        <p style="margin:0 0 14px;font:400 14px/1.6 Georgia,serif;color:#6b6862;">A fully custom freeform concrete sanctuary shaped around your terrain. Waterfalls, stone edges and planting beds designed to order — pricing and timing scoped in a private consultation.</p>
+        <span style="font:600 10px/1 Arial,Helvetica,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#0891b2;">Consultation only</span>
+      </td></tr>
+    </table>
   </td></tr>
 
   <!-- Signature -->
