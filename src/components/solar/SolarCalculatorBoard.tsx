@@ -412,17 +412,31 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
   };
 
   /**
-   * A click on the aerial. In hand-trace mode it lays down the next vertex;
-   * in click-to-capture mode it takes the one plane under the cursor: the photo
-   * is traced for the true corners, and when the click also falls inside a
-   * Google-measured segment that segment's azimuth, pitch and satellite sunshine
-   * hours are carried on the face. A trace that cannot be trusted is refused
-   * outright rather than dropping a shape that makes no sense.
+   * A click on the aerial.
+   *
+   * Hand trace: the dropped point is magnetised to the nearest roof edge in the
+   * photo (ridge, hip, gutter or wall shadow) so a perimeter can be walked
+   * quickly and still land on the real line; clicking back on the first point
+   * closes the plane.
+   *
+   * Click-to-capture: the plane under the cursor is traced from the photo, and a
+   * Google-measured segment under the same click carries its azimuth, pitch and
+   * satellite sunshine hours. Nothing is dropped when neither source can be
+   * trusted — a blind rectangle in the middle of the roof is worse than asking
+   * for a hand trace.
    */
   const handleMapClick = React.useCallback(
     async (point: LatLng) => {
       if (mode === "manual") {
-        setDraft((d) => [...d, point]);
+        const at = frame.current ? await snapVertexToEdge(frame.current, point) : point;
+        if (draft.length >= 3 && distanceFt(draft[0], at) < 9) {
+          addFace(draft, "traced");
+          setDraft([]);
+          setMode("idle");
+          toast({ title: "Plane closed", description: "Drag any point to refine the perimeter." });
+          return;
+        }
+        setDraft([...draft, at]);
         return;
       }
       if (mode !== "auto") return;
@@ -478,15 +492,11 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
           return;
         }
 
-        /* No measured plane either. As a last resort, drop a conservative
-           rectangle aligned to the dominant roof axis so the user can edit it. */
-        const fallback = rectangleAround(point, 32, 22);
-        addFace(fallback, "auto");
+        /* Neither source is trustworthy — refuse rather than invent a shape. */
+        setMode("manual");
         toast({
-          title: "Roof plane captured",
-          description: rejected
-            ? `${rejected} — drag the corners to match the roof.`
-            : "Drag the corners to match the roof plane.",
+          title: "That plane could not be read",
+          description: `${rejected ?? "The photo is too uneven here"} — trace the perimeter by hand; points snap to the roof edges.`,
         });
       } catch (err) {
         console.error("roof trace failed:", (err as Error).message);
@@ -498,17 +508,47 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
             description: `${compassLabel(hit.azimuthDeg)} facing · measured plane.`,
           });
         } else {
-          const fallback = rectangleAround(point, 32, 22);
-          addFace(fallback, "auto");
-          toast({ title: "Roof plane captured", description: "Drag the corners to match the roof plane." });
+          setMode("manual");
+          toast({
+            title: "That plane could not be read",
+            description: "Trace the perimeter by hand — points snap to the roof edges.",
+          });
         }
       } finally {
         setBusy("");
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mode, session.faces, toast],
+    [mode, session.faces, draft, toast],
   );
+
+  /* Hand trace shortcuts: Backspace removes the last point, Enter closes the
+     plane, Escape abandons it. Only while the trace is armed. */
+  React.useEffect(() => {
+    if (mode !== "manual") return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        setDraft((d) => d.slice(0, -1));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        setDraft((d) => {
+          if (d.length >= 3) addFace(d, "traced");
+          return [];
+        });
+        setMode("idle");
+      } else if (e.key === "Escape") {
+        setDraft([]);
+        setMode("idle");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
 
 
 
