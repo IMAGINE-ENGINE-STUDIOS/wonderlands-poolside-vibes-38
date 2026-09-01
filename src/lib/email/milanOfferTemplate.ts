@@ -135,7 +135,7 @@ export function buildMilanOfferHtml(cfg: MilanOfferConfig): string {
   <!-- CTAs -->
   <tr><td class="wl-pad" align="center" style="padding:30px 38px 8px;">
     <span class="wl-btn" style="margin-right:8px;">${btn(cfg.appointmentLink, 'Book a consultation', '#0f172a', '#ffffff')}</span>
-    <span class="wl-btn">${btn(waLink(cfg.whatsappNumber), 'WhatsApp us', '#25d366', '#ffffff')}</span>
+    <span class="wl-btn">${btn(waLink(cfg.whatsappNumber), 'Message us', '#25d366', '#ffffff')}</span>
     <p style="margin:16px 0 0;font:400 13px/1.6 Arial,Helvetica,sans-serif;color:#6b6862;">Or call <a href="tel:${cfg.phone.replace(/[^\d+]/g, '')}" style="color:#0891b2;text-decoration:none;">${esc(cfg.phone)}</a></p>
   </td></tr>
 

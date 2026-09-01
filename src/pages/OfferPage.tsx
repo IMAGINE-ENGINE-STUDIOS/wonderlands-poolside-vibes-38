@@ -179,7 +179,7 @@ const OfferPage = () => {
               </a>
               <a href="https://wa.me/12392570637" target="_blank" rel="noopener noreferrer" className="flex-1">
                 <Button className="w-full bg-[#0891b2] hover:bg-[#0e7490] text-white">
-                  <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
+                  <MessageCircle className="h-4 w-4 mr-2" /> Message us
                 </Button>
               </a>
             </div>
