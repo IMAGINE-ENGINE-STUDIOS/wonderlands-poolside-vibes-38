@@ -1365,8 +1365,8 @@ const FlipProductBook: React.FC<Props> = ({
         {String(page + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
       </p>
       <button
-        onClick={() => bookRef.current?.pageFlip?.().flipNext()}
-        aria-label="Next page"
+        onClick={goNext}
+        aria-label={atEnd && onNextEntry ? "Next product" : "Next page"}
         className={`flex h-9 w-9 items-center justify-center border transition-colors ${
           inline
             ? "border-border/60 text-foreground hover:bg-foreground hover:text-background"
