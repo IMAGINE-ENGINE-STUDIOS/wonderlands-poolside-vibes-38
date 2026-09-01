@@ -202,14 +202,14 @@ export const traceRoofPlane = async (
 
   const at = (x: number, y: number) => (y * w + x) * 4;
 
-  /* ── 1. seed colour, averaged over a 5×5 patch ── */
+  /* ── 1. seed colour + local variance, averaged over a 7×7 patch ── */
   let sr = 0;
   let sg = 0;
   let sb = 0;
   let n = 0;
-  for (let y = sy - 2; y <= sy + 2; y++)
-    for (let x = sx - 2; x <= sx + 2; x++) {
-      const o = at(x, y);
+  for (let y = sy - 3; y <= sy + 3; y++)
+    for (let x = sx - 3; x <= sx + 3; x++) {
+      const o = at(Math.max(0, Math.min(w - 1, x)), Math.max(0, Math.min(h - 1, y)));
       sr += data[o];
       sg += data[o + 1];
       sb += data[o + 2];
@@ -219,13 +219,28 @@ export const traceRoofPlane = async (
   sg /= n;
   sb /= n;
 
-  /* ── 2. bounded region grow ── */
-  const tol = (opts.tolerance ?? 30) * 3;
-  const gradientLimit = 46; // luminance step that reads as a roof edge
+  /* variance in the same patch drives the colour tolerance — uniform roofs
+     (shingle, metal) get a tighter gate, mottled tiles get more room. */
+  let vr = 0;
+  let vg = 0;
+  let vb = 0;
+  for (let y = sy - 3; y <= sy + 3; y++)
+    for (let x = sx - 3; x <= sx + 3; x++) {
+      const o = at(Math.max(0, Math.min(w - 1, x)), Math.max(0, Math.min(h - 1, y)));
+      vr += (data[o] - sr) ** 2;
+      vg += (data[o + 1] - sg) ** 2;
+      vb += (data[o + 2] - sb) ** 2;
+    }
+  const std = Math.sqrt((vr + vg + vb) / (3 * n));
+  const baseTol = (opts.tolerance ?? 32) * 2.5;
+  const tol = Math.min(120, Math.max(40, baseTol + std * 1.5));
+
+  /* ── 2. bounded, edge-aware region grow ── */
+  const gradientLimit = Math.max(24, 60 - std * 0.8); // lower on textured roofs
   const mask = new Uint8Array(w * h);
   const stack: number[] = [sx, sy];
   let filled = 0;
-  const areaLimitPx = Math.floor((3200 / (ftPerPx * ftPerPx)) as number); // ~3200 sq ft plane cap
+  const areaLimitPx = Math.floor(4500 / (ftPerPx * ftPerPx)); // ~4500 sq ft plane cap
   let minX = sx;
   let maxX = sx;
   let minY = sy;
@@ -261,13 +276,13 @@ export const traceRoofPlane = async (
     stack.push(x - 1, y, x + 1, y, x, y - 1, x, y + 1);
   }
 
-  const minAreaPx = Math.max(120, Math.floor(60 / (ftPerPx * ftPerPx)));
+  const minAreaPx = Math.max(120, Math.floor(80 / (ftPerPx * ftPerPx)));
   if (filled < minAreaPx)
     return { path: null, rejected: "No roof plane read there — click nearer the middle of a plane." };
 
   /* runaway guard: a region pressed against the radius on both axes is not a plane */
   const spread = (maxX - minX) / (2 * radiusPx) + (maxY - minY) / (2 * radiusPx);
-  if (spread > 1.7)
+  if (spread > 1.75)
     return { path: null, rejected: "That area reads as ground, not roof — click on the roof itself." };
 
   /* ── 3. one ordered closed contour (Moore boundary tracing) ── */
@@ -281,16 +296,25 @@ export const traceRoofPlane = async (
   ring = snapToDominantAngles(ring, epsilonPx);
   ring = dropShortEdges(ring, Math.max(3, 3 / ftPerPx));
 
-  /* ── 5. validate ── */
-  if (ring.length < 4 || ring.length > 10)
-    return { path: null, rejected: "That outline came back irregular — trace it by hand." };
+  /* ── 5. validate, with oriented-rectangle fallback ── */
+  const tooFew = ring.length < 4;
+  const tooMany = ring.length > 12;
   const polyArea = Math.abs(shoelace(ring));
-  if (polyArea < filled * 0.55)
-    return { path: null, rejected: "That outline came back irregular — trace it by hand." };
+  const areaRatio = polyArea / filled;
   const bbw = maxX - minX + 1;
   const bbh = maxY - minY + 1;
-  if (Math.max(bbw, bbh) / Math.max(1, Math.min(bbw, bbh)) > 8)
+  const stripLike = Math.max(bbw, bbh) / Math.max(1, Math.min(bbw, bbh)) > 8;
+
+  if (stripLike)
     return { path: null, rejected: "That reads as a strip, not a roof plane." };
+
+  if (tooFew || tooMany || areaRatio < 0.45 || areaRatio > 1.25) {
+    /* The fill found a real roof plane but its outline is messy. Return the
+       oriented bounding box of the filled mask so the user can edit it. */
+    const obb = orientedBoundingBox(mask, w, h, minX, minY, maxX, maxY);
+    if (obb.length === 4) return { path: obb.map(([x, y]) => tilePixelToLatLng(frame, x, y)) };
+    return { path: null, rejected: "That outline came back irregular — trace it by hand." };
+  }
 
   return { path: ring.map(([x, y]) => tilePixelToLatLng(frame, x, y)) };
 };
@@ -490,6 +514,67 @@ const dropShortEdges = (ring: Pt[], minLen: number): Pt[] => {
   return out.length >= 4 ? out : ring;
 };
 
+
+/**
+ * Builds the oriented bounding box of a filled mask. The longest dimension of the
+ * filled region sets the rectangle's axis; the result is a 4-corner roof plane the
+ * reader can drag into shape when the raw contour is too noisy to use directly.
+ */
+const orientedBoundingBox = (
+  mask: Uint8Array,
+  w: number,
+  h: number,
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): Pt[] => {
+  const pts: Pt[] = [];
+  for (let y = minY; y <= maxY; y++)
+    for (let x = minX; x <= maxX; x++) if (mask[y * w + x]) pts.push([x, y]);
+  if (pts.length < 4) return [];
+
+  /* find the two most distant points -> the long axis */
+  let a = 0;
+  let b = 0;
+  let best = -1;
+  for (let i = 0; i < pts.length; i += Math.max(1, Math.floor(pts.length / 64)))
+    for (let j = i + 1; j < pts.length; j += Math.max(1, Math.floor(pts.length / 64))) {
+      const d = (pts[i][0] - pts[j][0]) ** 2 + (pts[i][1] - pts[j][1]) ** 2;
+      if (d > best) {
+        best = d;
+        a = i;
+        b = j;
+      }
+    }
+
+  const [ax, ay] = pts[a];
+  const [bx, by] = pts[b];
+  const theta = Math.atan2(by - ay, bx - ax);
+  const cos = Math.cos(-theta);
+  const sin = Math.sin(-theta);
+  const rot = (p: Pt): Pt => [p[0] * cos - p[1] * sin, p[0] * sin + p[1] * cos];
+  const unrot = (p: Pt): Pt => [p[0] * cos + p[1] * sin, -p[0] * sin + p[1] * cos];
+
+  const local = pts.map(rot);
+  let minU = Infinity;
+  let maxU = -Infinity;
+  let minV = Infinity;
+  let maxV = -Infinity;
+  for (const [u, v] of local) {
+    minU = Math.min(minU, u);
+    maxU = Math.max(maxU, u);
+    minV = Math.min(minV, v);
+    maxV = Math.max(maxV, v);
+  }
+  const corners: Pt[] = [
+    [minU, minV],
+    [maxU, minV],
+    [maxU, maxV],
+    [minU, maxV],
+  ];
+  return corners.map(unrot);
+};
 
 /** A plain rectangle around a point — the last-resort starting outline. */
 export const rectangleAround = (at: LatLng, widthFt = 40, depthFt = 28): LatLng[] => {
