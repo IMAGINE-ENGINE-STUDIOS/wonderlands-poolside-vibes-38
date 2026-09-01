@@ -43,6 +43,13 @@ type Props = {
   onClose: () => void;
   /** Rendered inside the magazine flip rather than as a full-screen overlay. */
   inline?: boolean;
+  /**
+   * Walking a list inside one pop-up: when the reader is on the final page,
+   * Next continues into the following product instead of dead-ending.
+   * Symmetrically, Previous on the first page steps back one product.
+   */
+  onNextEntry?: () => void;
+  onPrevEntry?: () => void;
 };
 
 /** Design tool per discipline — the widget the reader is sent to. */
@@ -1258,12 +1265,41 @@ export const useProductBookPages = ({
   return pages;
 };
 
-const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClose, inline = false }) => {
+const FlipProductBook: React.FC<Props> = ({
+  entry,
+  category,
+  groups = [],
+  onClose,
+  inline = false,
+  onNextEntry,
+  onPrevEntry,
+}) => {
   const bookRef = useRef<any>(null);
   const [page, setPage] = useState(0);
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 360, h: 480 });
   const pages = useProductBookPages({ entry, category, groups, portrait });
+
+  /* Page turning that can leave the book: at the very end Next continues into
+     the next product of the list (and Previous, at the start, steps back). */
+  const step = portrait ? 1 : 2;
+  const atEnd = page + step >= pages.length;
+  const atStart = page <= 0;
+  const goNext = () => {
+    if (atEnd && onNextEntry) {
+      onNextEntry();
+      return;
+    }
+    bookRef.current?.pageFlip?.().flipNext();
+  };
+  const goPrev = () => {
+    if (atStart && onPrevEntry) {
+      onPrevEntry();
+      return;
+    }
+    bookRef.current?.pageFlip?.().flipPrev();
+  };
+
 
   useEffect(() => {
     const measure = () => {
@@ -1299,20 +1335,20 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
       if (el?.isContentEditable) return;
       if (el?.closest("input, textarea, select, [contenteditable=true], canvas, [role='application'], .gm-style, .mapboxgl-map")) return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.code?.startsWith("Numpad")) return;
-      if (e.key === "ArrowRight") bookRef.current?.pageFlip?.().flipNext();
-      if (e.key === "ArrowLeft") bookRef.current?.pageFlip?.().flipPrev();
+      if (e.key === "ArrowRight") goNext();
+      if (e.key === "ArrowLeft") goPrev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, flipLocked]);
+  }, [onClose, flipLocked, goNext, goPrev]);
 
   const total = pages.length;
 
   const nav = (
     <div className={`mt-4 flex items-center gap-4 ${inline ? "" : ""}`}>
       <button
-        onClick={() => bookRef.current?.pageFlip?.().flipPrev()}
-        aria-label="Previous page"
+        onClick={goPrev}
+        aria-label={atStart && onPrevEntry ? "Previous product" : "Previous page"}
         className={`flex h-9 w-9 items-center justify-center border transition-colors ${
           inline
             ? "border-border/60 text-foreground hover:bg-foreground hover:text-background"
@@ -1329,8 +1365,8 @@ const FlipProductBook: React.FC<Props> = ({ entry, category, groups = [], onClos
         {String(page + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
       </p>
       <button
-        onClick={() => bookRef.current?.pageFlip?.().flipNext()}
-        aria-label="Next page"
+        onClick={goNext}
+        aria-label={atEnd && onNextEntry ? "Next product" : "Next page"}
         className={`flex h-9 w-9 items-center justify-center border transition-colors ${
           inline
             ? "border-border/60 text-foreground hover:bg-foreground hover:text-background"

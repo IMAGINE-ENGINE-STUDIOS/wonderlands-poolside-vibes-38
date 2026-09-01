@@ -6,6 +6,7 @@ import {
   PEBBLE_TEC_PRICE_LABEL,
   type PebbleTecFinish,
 } from "@/data/pebbleTecFinishes";
+import FlipProductBook from "@/components/flip/FlipProductBook";
 
 /**
  * Pebble Tec® finishes for concrete (gunite) pools.
@@ -47,6 +48,22 @@ const PebbleTecConcreteFinishes = ({ onSelect }: Props) => {
     () => (activeCollection === "all" ? COLLECTIONS : [activeCollection]),
     [activeCollection],
   );
+
+  /* Flat reading order — exactly the sequence rendered below, so the dossier's
+     "next product" arrow walks the list the reader can see. */
+  const readingOrder = React.useMemo(
+    () => visible.flatMap((c) => grouped.get(c) ?? []),
+    [visible, grouped],
+  );
+
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+  const openFinish = openIndex === null ? null : readingOrder[openIndex] ?? null;
+
+  const handleOpen = (finish: PebbleTecFinish) => {
+    onSelect?.(finish);
+    const i = readingOrder.findIndex((f) => f.id === finish.id);
+    setOpenIndex(i >= 0 ? i : null);
+  };
 
   return (
     <div className="mt-16 border-t border-border/60 pt-12">
@@ -101,7 +118,8 @@ const PebbleTecConcreteFinishes = ({ onSelect }: Props) => {
                   <button
                     key={finish.id}
                     type="button"
-                    onClick={() => onSelect?.(finish)}
+                    onClick={() => handleOpen(finish)}
+                    title={`Open the ${finish.name} dossier`}
                     className="group text-left"
                   >
                     <div
@@ -132,6 +150,43 @@ const PebbleTecConcreteFinishes = ({ onSelect }: Props) => {
           );
         })}
       </div>
+
+      {/* Pop-up dossier — the product flip book opened over this view. Next on
+          the final page continues into the following finish of the list. */}
+      {openFinish && openIndex !== null && (
+        <FlipProductBook
+          key={openFinish.id}
+          entry={{
+            id: openFinish.id,
+            name: openFinish.name,
+            image: openFinish.image ?? "",
+            color: openFinish.color,
+            brand: "Pebble Tec",
+            meta: `${openFinish.collection} — concrete shells only`,
+            priceLabel: PEBBLE_TEC_PRICE_LABEL,
+          }}
+          category={{
+            id: "finishes",
+            label: `${openFinish.collection} — Pebble Tec®`,
+            tagline: "Interior finishes for custom concrete shells",
+            description: openFinish.note,
+            notes: [
+              "Pebble Tec® is offered on concrete (gunite) shells only.",
+              PEBBLE_TEC_PRICE_LABEL,
+            ],
+            images: openFinish.image ? [openFinish.image] : [],
+            siblings: readingOrder
+              .filter((f) => f.id !== openFinish.id && f.collection === openFinish.collection)
+              .slice(0, 6)
+              .map((f) => ({ name: f.name, brand: "Pebble Tec", image: f.image })),
+          }}
+          onClose={() => setOpenIndex(null)}
+          onNextEntry={
+            openIndex < readingOrder.length - 1 ? () => setOpenIndex(openIndex + 1) : undefined
+          }
+          onPrevEntry={openIndex > 0 ? () => setOpenIndex(openIndex - 1) : undefined}
+        />
+      )}
     </div>
   );
 };
