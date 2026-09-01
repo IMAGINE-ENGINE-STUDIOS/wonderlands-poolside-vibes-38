@@ -237,9 +237,27 @@ const SolarCalculatorBoard: React.FC<{ height?: number }> = ({ height }) => {
 
   /* ── address search ────────────────────────────────────────────────── */
 
-  /** Frames a resolved address on the aerial and reads its roof. */
+  /**
+   * Frames a resolved address on the aerial and reads its roof.
+   *
+   * Faces captured on a previous property are dropped here. They used to survive
+   * in the cache and reappear over the new address, which read as though the
+   * board had auto-dropped a dozen planes before the reader clicked anything.
+   */
   const settleOn = async (found: { address: string; lat: number; lng: number }) => {
-    patch({ address: found.address, lat: found.lat, lng: found.lng });
+    setSession((s) => {
+      const centre = { lat: found.lat, lng: found.lng };
+      const kept = s.faces.filter((f) => {
+        const c = {
+          lat: f.path.reduce((t, p) => t + p.lat, 0) / f.path.length,
+          lng: f.path.reduce((t, p) => t + p.lng, 0) / f.path.length,
+        };
+        return distanceFt(c, centre) < 400; // same property only
+      });
+      return { ...s, address: found.address, lat: found.lat, lng: found.lng, faces: kept };
+    });
+    setSelected("");
+    setDraft([]);
     setQuery(found.address);
     setSuggestions([]);
     setView({ lat: found.lat, lng: found.lng, zoom: 20 });
