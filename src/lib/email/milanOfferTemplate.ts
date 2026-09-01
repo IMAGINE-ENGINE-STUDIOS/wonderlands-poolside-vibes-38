@@ -1,5 +1,6 @@
 import heroAsset from '@/assets/campaigns/milan-hero.png.asset.json';
 import kitchenAsset from '@/assets/campaigns/milan-outdoor-kitchen.jpg.asset.json';
+import solarAsset from '@/assets/campaigns/milan-solar.jpg.asset.json';
 
 /**
  * Milan Collection premium email template.
@@ -16,6 +17,7 @@ const abs = (u: string) => (u.startsWith('http') ? u : SITE + u);
 
 export const MILAN_HERO_IMAGE = abs(heroAsset.url);
 export const MILAN_KITCHEN_IMAGE = abs(kitchenAsset.url);
+export const MILAN_SOLAR_IMAGE = abs(solarAsset.url);
 
 export interface MilanOfferConfig {
   price: string;
@@ -25,6 +27,7 @@ export interface MilanOfferConfig {
   includes: string[];
   heroImage: string;
   kitchenImage: string;
+  solarImage: string;
   whatsappNumber: string;
   appointmentLink: string;
   phone: string;
@@ -48,6 +51,7 @@ export const MILAN_DEFAULTS: MilanOfferConfig = {
   ],
   heroImage: MILAN_HERO_IMAGE,
   kitchenImage: MILAN_KITCHEN_IMAGE,
+  solarImage: MILAN_SOLAR_IMAGE,
   whatsappNumber: '+12392570637',
   appointmentLink: 'https://calendly.com/wonderlandsworlds/30min',
   phone: '+1 (239) 257-0637',
@@ -147,10 +151,7 @@ export function buildMilanOfferHtml(cfg: MilanOfferConfig): string {
         <p style="margin:0;font:400 14px/1.6 Georgia,serif;color:#6b6862;">Marine-grade cabinetry, porcelain counters and built-in grills — designed to live outside, year round.</p>
       </td>
       <td class="wl-col" width="50%" valign="top" style="padding-left:10px;">
-        <div style="height:150px;background:#0f172a;color:#ffffff;text-align:center;">
-          <div style="padding:52px 16px 0;font:400 22px/1.2 Georgia,serif;">Wonderlands Solar</div>
-          <div style="font:400 9px/1 Arial,Helvetica,sans-serif;letter-spacing:3px;text-transform:uppercase;color:#7dd3e0;padding-top:10px;">Roof study · Battery · Install</div>
-        </div>
+        <img src="${cfg.solarImage}" width="260" alt="Wonderlands Solar" style="display:block;width:100%;height:auto;border:0;"/>
         <h3 style="margin:12px 0 6px;font:400 20px/1.2 Georgia,serif;color:#0f172a;">Solar</h3>
         <p style="margin:0;font:400 14px/1.6 Georgia,serif;color:#6b6862;">A free aerial roof study with production modeling, panel layout and battery options for your home.</p>
       </td>
