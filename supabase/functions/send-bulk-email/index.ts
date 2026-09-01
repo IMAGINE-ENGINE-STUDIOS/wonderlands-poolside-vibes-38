@@ -93,7 +93,7 @@ serve(async (req: Request) => {
             ${priceBlock}
             ${items ? `<ul style="padding-left:20px;margin:16px 0;">${items}</ul>` : ''}
             <a href="${offerUrl}" style="display:inline-block;background:#0891b2;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px;">View Full Offer</a>
-            <a href="https://wa.me/qr/63IHYQHGTQBBJ1" style="display:inline-block;background:#25d366;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:12px;">Message us on WhatsApp</a>
+            <a href="https://wa.me/12392570637" style="display:inline-block;background:#25d366;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:12px;">Message us on WhatsApp</a>
             <p style="color:#6b7280;font-size:13px;margin-top:24px;">Reach out anytime — we're here to help. <br/>Or schedule a free consultation: <a href="https://calendly.com/wonderlandsworlds/30min" style="color:#0891b2;">calendly.com/wonderlandsworlds/30min</a></p>
           </div>
         `,
