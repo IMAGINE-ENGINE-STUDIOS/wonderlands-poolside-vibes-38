@@ -12,10 +12,14 @@ interface DynamicFeatureRendererProps {
   productType: ProductType;
   selectedExtras: any;
   onExtrasChange: (extras: any) => void;
+  /** Feature ids the host card already renders itself (avoids duplicates). */
+  excludeIds?: string[];
 }
 
-export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasChange }: DynamicFeatureRendererProps) {
-  const features = getProductFeatures(productType);
+export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasChange, excludeIds }: DynamicFeatureRendererProps) {
+  const features = excludeIds?.length
+    ? getProductFeatures(productType).filter(f => !excludeIds.includes(f.id))
+    : getProductFeatures(productType);
 
   /* accordion: only one option group is expanded at a time, exactly like the
      pool cards — every group starts retracted and drops open on click */
