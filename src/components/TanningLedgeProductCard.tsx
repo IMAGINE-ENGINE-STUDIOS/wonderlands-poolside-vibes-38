@@ -33,6 +33,8 @@ interface TanningLedge {
   description?: string;
   installationTimeWeeks?: number;
   warrantyYears?: number | string;
+  /** Brand decides which interior finish family is offered (hard rule). */
+  brand?: string;
 }
 interface TanningLedgeProductCardProps {
   ledge: TanningLedge;
