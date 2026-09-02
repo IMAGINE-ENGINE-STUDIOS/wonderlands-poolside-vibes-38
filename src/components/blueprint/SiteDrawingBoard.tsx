@@ -594,8 +594,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         ctx.stroke();
         void span;
       }
-      ctx.strokeStyle = selected === shape.id ? '#f59e0b' : meta.color;
-      ctx.lineWidth = selected === shape.id ? 3 : meta.id === 'property' ? 2.5 : 2;
+      const hovered = !isDraft && hoverShapeId === shape.id && selected !== shape.id;
+      ctx.strokeStyle = selected === shape.id ? '#f59e0b' : hovered ? '#0891b2' : meta.color;
+      ctx.lineWidth = selected === shape.id ? 3 : hovered ? 3 : meta.id === 'property' ? 2.5 : 2;
+
       ctx.setLineDash(isDraft ? [6, 4] : meta.dash ?? []);
       ctx.stroke();
       ctx.setLineDash([]);
