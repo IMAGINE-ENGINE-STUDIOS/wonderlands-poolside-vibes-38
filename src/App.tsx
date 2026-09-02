@@ -74,6 +74,7 @@ const About = lazy(() => import("./pages/About"));
 const Consultation = lazy(() => import("./pages/Consultation"));
 const SolarBoard = lazy(() => import("./pages/SolarBoard"));
 const SolarGenius = lazy(() => import("./pages/SolarGenius"));
+const ProductManual = lazy(() => import("./pages/ProductManual"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const BlueprintBuilder = lazy(() => import("./pages/BlueprintBuilder"));
 const GlobalDesignBoard = lazy(() => import("./pages/GlobalDesignBoard"));
@@ -204,6 +205,7 @@ const App = () => {
             <Route path="/consultation" element={<Consultation />} />
             <Route path="/solar-board" element={<SolarBoard />} />
             <Route path="/solar-genius" element={<SolarGenius />} />
+            <Route path="/product-manual" element={<ProductManual />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/blueprint-builder" element={<BlueprintBuilder />} />
             <Route path="/global-design-board" element={<GlobalDesignBoard />} />
