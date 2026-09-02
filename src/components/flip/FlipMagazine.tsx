@@ -1234,39 +1234,62 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       caption: `${category.label} — Florida engineered`,
     });
 
-    /* index spread — contents set over full imagery */
+    /* index spread — a visual plate index. The written contents table lives on
+       its own leaf earlier in the edition, so this spread never repeats it:
+       here the collection is indexed by photography alone. */
     pushSpread(list, {
       key: `index-${category.id}`,
       image: shots[3] ?? shots[0] ?? category.images[0],
-      /* ink tone: the photograph drops back so the contents rows stay legible and
-         the spread no longer reads as a repeat of the statement opener */
       tone: "ink",
       eyebrow: "The Collection",
-      title: "Index",
+      title: "Plate index",
       titleItalic: category.label,
-      body: "Every model in this edition, priced with delivery and installation at your address.",
+      body: "The edition indexed by photograph — every model, priced with delivery and installation at your address.",
       lockup: "Wonderlands World — FLIP",
-      rightHeading: "Contents",
-      rightHint: "Pose the mouse to preview · tap to open",
+      rightHeading: "Plates",
+      rightHint: "Tap a plate to open its pages",
       right: () => (
-        <ul className="h-full overflow-y-auto">
-          {products.slice(0, 14).map((p, i) => (
-            <FlipContentsRow
+        <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-0.5 sm:grid-cols-3">
+          {products.slice(0, 18).map((p, i) => (
+            <button
               key={p.id}
-              index={i}
-              name={p.name}
-              priceLabel={formatEntryPrice(p)}
-              image={p.image}
-              description={[p.brand, p.meta].filter(Boolean).join(" · ")}
-              tone="ink"
-              onOpen={() =>
+              type="button"
+              onClick={() =>
                 turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
               }
-            />
+              title={`Open ${p.name}`}
+              className="group relative aspect-[4/5] overflow-hidden ring-1 ring-white/15 transition-all duration-500 hover:ring-white/70"
+            >
+              {p.image ? (
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.08]"
+                />
+              ) : null}
+              <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
+              <span className="absolute right-1.5 top-1 font-serif text-[9px] tabular-nums text-white/60">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="absolute inset-x-1.5 bottom-1.5 block text-left">
+                <span className="block truncate text-[8.5px] uppercase tracking-[0.2em] text-white">
+                  {p.name}
+                </span>
+                <span className="mt-0.5 block font-serif text-[10px] text-white/75">
+                  {formatEntryPrice(p) || "On request"}
+                </span>
+              </span>
+            </button>
           ))}
-        </ul>
+          {!products.length && (
+            <p className="text-[10px] text-white/70">Composing plates…</p>
+          )}
+        </div>
       ),
     });
+
 
     /* -------------------------------- GALLERY --------------------------------- */
     const galleryAt = list.length;
@@ -1468,11 +1491,15 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
 
     const featuresAt = list.length;
 
-    /* options — chunked so a list can never run past the page margin */
+    /* options — chunked so a list can never run past the page margin.
+       Every additional feature now prints as a slide-open row (the same gesture
+       as the contents rows): posing the mouse reveals the studio photograph and
+       a short description of the option, so no chapter is text only. */
     const PER_OPT_PAGE = 10;
-    groups.forEach((g, gi) => {
-      const chunks: string[][] = [];
-      for (let c = 0; c < g.options.length; c += PER_OPT_PAGE) chunks.push(g.options.slice(c, c + PER_OPT_PAGE));
+    groups.forEach((g: any, gi) => {
+      const items: any[] = (g.items?.length ? g.items : (g.options ?? []).map((label: string) => ({ label })));
+      const chunks: any[][] = [];
+      for (let c = 0; c < items.length; c += PER_OPT_PAGE) chunks.push(items.slice(c, c + PER_OPT_PAGE));
       chunks.forEach((chunk, ci) => {
         list.push({
           key: `opt-${gi}-${ci}`,
@@ -1487,27 +1514,33 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               </div>
               <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">{g.title}</h3>
               <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{g.note}</p>
-              <ul className="mt-6 min-h-0 flex-1 overflow-hidden">
+              <ul className="mt-5 min-h-0 flex-1 overflow-y-auto">
                 {chunk.map((o, oi) => (
-                  <li
-                    key={o}
-                    className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2.5 text-[12px] text-foreground"
-                  >
-                    <span className="min-w-0 flex-1 truncate">{o}</span>
-                    <span className="shrink-0 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                      {String(ci * PER_OPT_PAGE + oi + 1).padStart(2, "0")}
-                    </span>
-                  </li>
+                  <FlipContentsRow
+                    key={o.label}
+                    index={ci * PER_OPT_PAGE + oi}
+                    name={o.label}
+                    priceLabel={o.priceLabel}
+                    image={o.image}
+                    color={o.color}
+                    description={
+                      [o.note, o.priceLabel ? `Priced ${o.priceLabel}` : ""]
+                        .filter(Boolean)
+                        .join(" · ") ||
+                      `${g.title} — configured in the studio, installed with the product.`
+                    }
+                  />
                 ))}
               </ul>
               <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                Selected in the studio — configured, priced, installed
+                Pose the mouse on a line to see it — configured, priced, installed
               </p>
             </div>
           ),
         });
       });
     });
+
 
 
     const estimateAt = list.length;

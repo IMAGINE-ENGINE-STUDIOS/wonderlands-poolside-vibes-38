@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 
 /**
  * A single line of a FLIP contents page.
@@ -16,10 +16,13 @@ export interface FlipContentsRowProps {
   name: string;
   priceLabel?: string;
   image?: string;
+  /** Flat swatch used when an option has no photograph (gelcoat colours). */
+  color?: string;
   description?: string;
   /** "light" prints on paper, "ink" prints over photography. */
   tone?: "light" | "ink";
-  onOpen: () => void;
+  /** Optional — informational rows (option chapters) simply open their leaf. */
+  onOpen?: () => void;
 }
 
 const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
@@ -27,6 +30,7 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
   name,
   priceLabel,
   image,
+  color,
   description,
   tone = "light",
   onOpen,
@@ -44,12 +48,14 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
     >
       <button
         type="button"
-        onClick={onOpen}
-        aria-label={`Open the ${name} page`}
+        onClick={() => (onOpen ? onOpen() : setOpen((o) => !o))}
+        aria-label={onOpen ? `Open the ${name} page` : `Preview ${name}`}
+        aria-expanded={onOpen ? undefined : open}
         className={`group flex w-full items-center gap-3 px-1 py-[7px] text-left transition-colors ${
           ink ? "hover:bg-white/12 focus-visible:bg-white/12" : "hover:bg-foreground/[0.04]"
         } focus-visible:outline-none`}
       >
+
         <span
           className={`w-6 shrink-0 font-serif text-[11px] tabular-nums ${
             ink ? "text-white/55 group-hover:text-white" : "text-muted-foreground"
@@ -69,11 +75,19 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
             {priceLabel}
           </span>
         ) : null}
-        <ArrowUpRight
-          className={`h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-[2px] ${
-            ink ? "text-white/45 group-hover:text-white" : "text-muted-foreground"
-          }`}
-        />
+        {onOpen ? (
+          <ArrowUpRight
+            className={`h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-[2px] ${
+              ink ? "text-white/45 group-hover:text-white" : "text-muted-foreground"
+            }`}
+          />
+        ) : (
+          <ChevronDown
+            className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ${open ? "rotate-180" : ""} ${
+              ink ? "text-white/45 group-hover:text-white" : "text-muted-foreground"
+            }`}
+          />
+        )}
       </button>
 
       {/* the slide-open leaf: image + description */}
@@ -94,7 +108,14 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
                   open ? "scale-100" : "scale-105"
                 } ${ink ? "ring-1 ring-white/20" : "ring-1 ring-border/50"}`}
               />
+            ) : color ? (
+              <span
+                aria-hidden
+                style={{ backgroundColor: color }}
+                className={`h-14 w-20 shrink-0 ${ink ? "ring-1 ring-white/20" : "ring-1 ring-border/50"}`}
+              />
             ) : null}
+
             <p
               className={`min-w-0 text-[10.5px] leading-relaxed ${
                 ink ? "text-white/75" : "text-muted-foreground"
