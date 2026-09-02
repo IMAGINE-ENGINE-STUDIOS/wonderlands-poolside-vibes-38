@@ -393,10 +393,15 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   /* Additional features armed per trade before anything is drawn — the options
      of the armed element are always on screen, not hidden behind a selection. */
   const [armedFeatures, setArmedFeatures] = React.useState<Partial<Record<SiteLayerId, string[]>>>({});
-  /* Host page may offer a project column for the options drawers */
+  /* Host page may offer a project column for the options drawers, and a slot
+     inside its TRADES rail for the element palette — on the Global Design Board
+     the elements ARE the site trade, so the two live as one list. */
   const [optionsSlot, setOptionsSlot] = React.useState<HTMLElement | null>(null);
+  const [elementsSlot, setElementsSlot] = React.useState<HTMLElement | null>(null);
   React.useEffect(() => {
-    setOptionsSlot(typeof document === 'undefined' ? null : document.getElementById('wl-board-options'));
+    if (typeof document === 'undefined') return;
+    setOptionsSlot(document.getElementById('wl-board-options'));
+    setElementsSlot(document.getElementById('wl-board-elements'));
   }, []);
 
   const [mode, setMode] = React.useState<Mode>('draw');
@@ -406,8 +411,14 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const [selectedVertex, setSelectedVertex] = React.useState<number | null>(null);
   /** The run (segment i → i+1) under the curvature inspector. */
   const [selectedSegment, setSelectedSegment] = React.useState<number | null>(null);
-  /** True overlap logic: pools, spas, ledges and buildings cut deck and turf. */
-  const [cropping, setCropping] = React.useState(true);
+  /**
+   * True overlap logic is AUTOMATIC — it is how a site is actually built, not a
+   * preference. A pool, spa, tanning ledge or building drawn on top of a paver
+   * deck, patio, driveway, gravel field or artificial turf always cuts an
+   * opening in it, so the painted sheet and the priced SF are the net field the
+   * crew installs. One element at a time can still be opted out (`noCrop`).
+   */
+  const cropping = true;
   /* Element under the pointer while picking — the sheet lights it up so it is
      obvious that clicking the paver deck opens the paver book for that deck. */
   const [hoverShapeId, setHoverShapeId] = React.useState<string | null>(null);
@@ -1528,35 +1539,60 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     </button>
   );
 
-  const layerTags = (
-    <div className="flex flex-wrap gap-1.5">
+  /** How many elements of each kind are already on the sheet. */
+  const layerCounts = React.useMemo(() => {
+    const m: Partial<Record<SiteLayerId, number>> = {};
+    data.shapes.forEach(s => {
+      m[s.layer] = (m[s.layer] ?? 0) + 1;
+    });
+    return m;
+  }, [data.shapes]);
+
+  /** Arm an element: reassign the picked one, or load the pencil for a new one. */
+  const armLayer = (id: SiteLayerId) => {
+    setLayer(id);
+    if (selected) assignSelectedLayer(id);
+    else {
+      setMode('draw');
+      setDraft([]);
+    }
+  };
+
+  /**
+   * The element palette. `stacked` renders it as the gateway list the Global
+   * Design Board files inside its TRADES rail — the site's elements and the
+   * project's trades read as one continuous list of what is in scope.
+   */
+  const layerList = (stacked = false) => (
+    <div className={stacked ? 'space-y-1.5' : 'flex flex-wrap gap-1.5'}>
       {SITE_LAYERS.map(l => {
         const on = layer === l.id && mode === 'draw';
+        const count = layerCounts[l.id] ?? 0;
         return (
           <button
             key={l.id}
             type="button"
-            onClick={() => {
-              setLayer(l.id);
-              if (selected) assignSelectedLayer(l.id);
-              else {
-                setMode('draw');
-                setDraft([]);
-              }
-            }}
-            className={`${CTRL} ${on ? CTRL_ON : CTRL_OFF}`}
+            onClick={() => armLayer(l.id)}
+            className={`${CTRL} ${on ? CTRL_ON : CTRL_OFF} ${stacked ? 'w-full justify-start' : ''}`}
           >
             <span
               className="h-2 w-2 rounded-full ring-1 ring-inset ring-black/10"
               style={{ background: l.color }}
             />
             {l.label}
+            {stacked ? (
+              <span className={`ml-auto tabular-nums ${on ? 'opacity-80' : 'text-muted-foreground/70'}`}>
+                {count ? `${count} drawn` : '—'}
+              </span>
+            ) : null}
             {!on && sweep}
           </button>
         );
       })}
     </div>
   );
+
+  const layerTags = layerList();
 
   /* ── instrument header ────────────────────────────────────────────────────
      The tools live in the sheet's own header, in the empty band beside the
@@ -1646,11 +1682,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         disabled: !selected,
         title: 'Curvature — pick a run, then drag its diamond or type an exact radius',
       })}
-      {ctrl(<Scissors className="h-3.5 w-3.5" />, {
-        on: cropping,
-        onClick: () => setCropping(c => !c),
-        title: 'Crop — pools, spas, ledges and buildings cut the deck and turf they sit on',
-      })}
+      {/* No crop toggle: water bodies, ledges and structures cut the surfaces
+          they sit on automatically. A single element can still be drawn uncut
+          from its own options drawer. */}
       {ctrl(<Grid3X3 className="h-3.5 w-3.5" />, { on: showGrid, onClick: () => setShowGrid(g => !g), title: 'Grid' })}
       {/* REAL zoom — a view transform over the sheet. The drafting scale
           (px per foot) never changes, so nothing a customer drew is resized;
@@ -1954,16 +1988,20 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
               className="h-1 w-20 cursor-pointer accent-primary disabled:opacity-40"
             />
           </label>
-          {ctrl(
-            <>
-              <Scissors className="h-3.5 w-3.5" /> {selectedShape.noCrop ? 'Uncut' : 'Cut around overlaps'}
-            </>,
-            {
-              on: !selectedShape.noCrop,
-              onClick: () => patchSelected(sh => ({ ...sh, noCrop: !sh.noCrop })),
-              title: 'Overlapping pools, spas, ledges and buildings cut this element',
-            },
-          )}
+          {/* Cutting is automatic; this is only the rare override for a surface
+              the crew really does run underneath something. */}
+          {CROPPABLE_LAYERS.has(selectedShape.layer)
+            ? ctrl(
+                <>
+                  <Scissors className="h-3.5 w-3.5" /> {selectedShape.noCrop ? 'Drawn uncut' : 'Auto-cut around water'}
+                </>,
+                {
+                  on: !selectedShape.noCrop,
+                  onClick: () => patchSelected(sh => ({ ...sh, noCrop: !sh.noCrop })),
+                  title: 'Pools, spas, tanning ledges and structures automatically open this surface — switch off to lay it underneath',
+                },
+              )
+            : null}
         </div>
       </div>
     ) : null;
@@ -2240,6 +2278,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const optionsInline = optionsSlot ? null : optionPanels;
   const optionsPortal = optionsSlot ? createPortal(optionPanels, optionsSlot) : null;
 
+  /* The element palette is portalled into the host page's TRADES rail when one
+     is offered (`#wl-board-elements`), so elements and trades are a single
+     consolidated list instead of two competing menus. */
+  const elementsPortal =
+    !readOnly && elementsSlot ? createPortal(layerList(true), elementsSlot) : null;
+
   /* FLIP dossier layout — the tools ride in the sheet header, so everything
      under it is drawing. Only the element palette stays docked below. */
   if (menuSide) {
@@ -2249,10 +2293,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         {canvasEl}
         {optionsInline}
         {optionsPortal}
+        {elementsPortal}
         {underlayBar}
 
 
-        {!readOnly && (
+        {!readOnly && !elementsSlot && (
           <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
@@ -2275,10 +2320,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
               {instrumentHeader}
             </div>
           )}
-          <div className="flex flex-wrap items-center gap-2">{layerTags}</div>
+          {elementsSlot ? null : <div className="flex flex-wrap items-center gap-2">{layerTags}</div>}
           {underlayBar}
         </div>
       )}
+      {elementsPortal}
       {canvasEl}
       {optionsInline}
       {optionsPortal}

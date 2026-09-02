@@ -303,15 +303,10 @@ const GlobalDesignBoard: React.FC = () => {
         </div>
       </header>
 
-      {/* the trade rail becomes a swipeable strip on small screens */}
-      <div className="border-b border-border/50 bg-background/55 backdrop-blur-2xl xl:hidden">
-        <div className="mx-auto max-w-[1800px] px-3 py-3 sm:px-5">
-          <p className="mb-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Trades</p>
-          <div className="flex snap-x gap-2 overflow-x-auto pb-1">
-            {TRADES.map((t, i) => tradeCard(t, i, true))}
-          </div>
-        </div>
-      </div>
+      {/* The trades rail now lives in the left column at every width (it stacks
+          above the board on small screens), so elements and trades stay one
+          consolidated list instead of two competing menus. */}
+
 
       <main className="mx-auto grid max-w-[1800px] gap-4 px-3 py-4 sm:px-5 sm:py-5 xl:grid-cols-[320px_minmax(0,1fr)]">
         {/* ── project + trade rail ── */}
@@ -361,11 +356,30 @@ const GlobalDesignBoard: React.FC = () => {
 
 
 
-          {/* Trade gateways — the same glass gateway button as the FLIP edition */}
-          <section className="glass-panel hidden rounded-2xl p-2 xl:block">
-            <p className="px-2 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Trades</p>
-            <div className="mt-2 space-y-1.5">{TRADES.map((t, i) => tradeCard(t, i))}</div>
+          {/* Trades & elements — one list: the trade gateways, and directly under
+              the active trade the site board's own element palette (portalled
+              into #wl-board-elements). */}
+          <section className="glass-panel rounded-2xl p-2">
+            <p className="px-2 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+              Trades &amp; elements
+            </p>
+            <div className="mt-2 space-y-1.5">
+              {TRADES.map((t, i) => (
+                <div key={t.id} className="space-y-1.5">
+                  {tradeCard(t, i)}
+                  {t.id === active.id && t.id === "site" && (
+                    <div className="board-console rounded-xl border border-border/40 bg-background/40 p-2">
+                      <p className="px-1 pb-1.5 text-[8.5px] uppercase tracking-[0.28em] text-muted-foreground">
+                        Elements on the sheet
+                      </p>
+                      <div id="wl-board-elements" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </section>
+
 
           <section className="glass-panel rounded-2xl p-4 xl:sticky xl:top-24">
             <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Project total</p>
