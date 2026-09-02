@@ -1491,11 +1491,15 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
 
     const featuresAt = list.length;
 
-    /* options — chunked so a list can never run past the page margin */
+    /* options — chunked so a list can never run past the page margin.
+       Every additional feature now prints as a slide-open row (the same gesture
+       as the contents rows): posing the mouse reveals the studio photograph and
+       a short description of the option, so no chapter is text only. */
     const PER_OPT_PAGE = 10;
-    groups.forEach((g, gi) => {
-      const chunks: string[][] = [];
-      for (let c = 0; c < g.options.length; c += PER_OPT_PAGE) chunks.push(g.options.slice(c, c + PER_OPT_PAGE));
+    groups.forEach((g: any, gi) => {
+      const items: any[] = (g.items?.length ? g.items : (g.options ?? []).map((label: string) => ({ label })));
+      const chunks: any[][] = [];
+      for (let c = 0; c < items.length; c += PER_OPT_PAGE) chunks.push(items.slice(c, c + PER_OPT_PAGE));
       chunks.forEach((chunk, ci) => {
         list.push({
           key: `opt-${gi}-${ci}`,
@@ -1510,27 +1514,33 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               </div>
               <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">{g.title}</h3>
               <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{g.note}</p>
-              <ul className="mt-6 min-h-0 flex-1 overflow-hidden">
+              <ul className="mt-5 min-h-0 flex-1 overflow-y-auto">
                 {chunk.map((o, oi) => (
-                  <li
-                    key={o}
-                    className="flex items-baseline justify-between gap-4 border-t border-border/50 py-2.5 text-[12px] text-foreground"
-                  >
-                    <span className="min-w-0 flex-1 truncate">{o}</span>
-                    <span className="shrink-0 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                      {String(ci * PER_OPT_PAGE + oi + 1).padStart(2, "0")}
-                    </span>
-                  </li>
+                  <FlipContentsRow
+                    key={o.label}
+                    index={ci * PER_OPT_PAGE + oi}
+                    name={o.label}
+                    priceLabel={o.priceLabel}
+                    image={o.image}
+                    color={o.color}
+                    description={
+                      [o.note, o.priceLabel ? `Priced ${o.priceLabel}` : ""]
+                        .filter(Boolean)
+                        .join(" · ") ||
+                      `${g.title} — configured in the studio, installed with the product.`
+                    }
+                  />
                 ))}
               </ul>
               <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                Selected in the studio — configured, priced, installed
+                Pose the mouse on a line to see it — configured, priced, installed
               </p>
             </div>
           ),
         });
       });
     });
+
 
 
     const estimateAt = list.length;
