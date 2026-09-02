@@ -931,7 +931,8 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl glass-tile p-2">
+      {/* board-console: the FLIP gateway control language, shared by every board */}
+      <div className="board-console rounded-xl glass-tile p-2">
       {header && <div className="px-1 pt-1 pb-3">{header}</div>}
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} onClick={() => { setMode('draw'); setSelection(null); }}>

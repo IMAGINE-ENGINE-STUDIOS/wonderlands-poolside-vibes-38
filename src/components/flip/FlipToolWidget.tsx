@@ -96,13 +96,17 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   const landscape = shared.landscape;
   const plantKey = shared.plantKey;
 
-  /* the board is never blank: the product is drawn to its published dimensions
-     on the 2D studio grid the first time the dossier is opened */
+  /* A product dossier is never blank: the model is drawn to its published
+     dimensions on the 2D studio grid the first time it is opened. The Global
+     Design Board is the exception — a whole-property project always starts on a
+     clean sheet, so nothing is priced that the designer did not draw. */
+  const startsBlank = categoryId.includes("global-design");
   React.useEffect(() => {
-    if (board.kind !== "site" || site.shapes.length) return;
+    if (startsBlank || board.kind !== "site" || site.shapes.length) return;
     const seeded = buildProductSitePlan({ categoryId, modelName, meta: modelMeta });
     if (seeded) setFlipBoardValue(boardId, { site: seeded });
-  }, [board.kind, site.shapes.length, categoryId, modelName, modelMeta, boardId]);
+  }, [startsBlank, board.kind, site.shapes.length, categoryId, modelName, modelMeta, boardId]);
+
 
   const setSite = useCallback(
     (next: SitePlanData) => setFlipBoardValue(boardId, { site: next }),

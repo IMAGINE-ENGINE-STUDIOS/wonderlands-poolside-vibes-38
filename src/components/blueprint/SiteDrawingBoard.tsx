@@ -231,6 +231,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const imgRef = React.useRef<HTMLImageElement | null>(null);
   const [imgReady, setImgReady] = React.useState(0);
   const [layer, setLayer] = React.useState<SiteLayerId>(defaultLayer ?? 'property');
+  /* Additional features armed per trade before anything is drawn — the options
+     of the armed element are always on screen, not hidden behind a selection. */
+  const [armedFeatures, setArmedFeatures] = React.useState<Partial<Record<SiteLayerId, string[]>>>({});
   const [mode, setMode] = React.useState<Mode>('draw');
   const [draft, setDraft] = React.useState<{ x: number; y: number }[]>([]);
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
@@ -639,10 +642,13 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       points,
       closed: closed && points.length > 2,
       curves: points.map(() => false),
+      /* features armed on the trade before drawing carry onto the element */
+      features: armedFeatures[layer]?.length ? [...armedFeatures[layer]] : undefined,
     };
     onChange({ ...data, shapes: [...data.shapes, shape] });
     setDraft([]);
   };
+
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
@@ -1114,6 +1120,71 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       </div>
     ) : null;
 
+  /* ── armed trade options ──────────────────────────────────────────────────
+     Before anything is drawn the armed trade still shows its own rate sheet and
+     its additional features, exactly as it does on its own drawing board. What
+     is switched on here is carried onto the next element traced on that layer. */
+  const armedSpec = TRADE_LAYERS[layer];
+  const armedOn = armedFeatures[layer] ?? [];
+  const armedOptions =
+    !readOnly && !selectedShape && armedSpec ? (
+      <div className="rounded-2xl border border-border/50 bg-foreground/[0.03] p-3 backdrop-blur-xl">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+            <span className="h-2 w-2 rounded-full" style={{ background: layerMeta(layer).color }} />
+            {layerMeta(layer).label} — additional features
+          </span>
+          {armedSpec.rate ? (
+            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              ${armedSpec.rate}/sq ft base
+            </span>
+          ) : null}
+          {armedSpec.linearRate ? (
+            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              ${armedSpec.linearRate}/lf base
+            </span>
+          ) : null}
+          <span className="ml-auto text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+            Armed for the next element
+          </span>
+        </div>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {armedSpec.features.map(f => {
+            const on = armedOn.includes(f.id);
+            return (
+              <span key={f.id} className="contents">
+                {ctrl(
+                  <>
+                    {f.label}
+                    {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
+                    {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
+                    {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
+                  </>,
+                  {
+                    on,
+                    title: f.hint,
+                    onClick: () =>
+                      setArmedFeatures(prev => {
+                        const cur = prev[layer] ?? [];
+                        return {
+                          ...prev,
+                          [layer]: cur.includes(f.id) ? cur.filter(id => id !== f.id) : [...cur, f.id],
+                        };
+                      }),
+                  },
+                )}
+              </span>
+            );
+          })}
+        </div>
+        {armedSpec.note ? (
+          <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{armedSpec.note}</p>
+        ) : null}
+      </div>
+    ) : null;
+
+
+
   const underlayBar =
 
           underlay ? (
@@ -1238,6 +1309,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         {header}
         {canvasEl}
         {elementOptions}
+        {armedOptions}
         {underlayBar}
 
         {!readOnly && (
@@ -1274,6 +1346,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       )}
       {canvasEl}
       {elementOptions}
+      {armedOptions}
       {footNote}
     </div>
   );

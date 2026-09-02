@@ -364,7 +364,8 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       {header && (
         <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
       )}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* board-console: the FLIP gateway control language, shared by every board */}
+      <div className="board-console flex flex-wrap items-center gap-2 rounded-2xl border border-border/50 bg-background/55 p-2.5 backdrop-blur-xl">
         <Button size="sm" variant={mode === 'draw' ? 'default' : 'outline'} onClick={() => setMode('draw')}>
           <Ruler className="h-3.5 w-3.5 mr-1" /> Draw run
         </Button>

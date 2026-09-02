@@ -91,3 +91,57 @@
   border-color: hsl(var(--primary) / 0.5);
   box-shadow: 0 26px 60px -28px hsl(var(--primary) / 0.45);
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   BOARD CONSOLE — one control language for every drawing board
+   The "gateway" button of the FLIP fiberglass landing (hairline glass pane,
+   letter-spaced micro caps, a rule that sweeps in on hover) applied to any
+   toolbar wrapped in `.board-console`, so the enclosure, fence and turf boards
+   read exactly like the site studio and the global design board.
+   ──────────────────────────────────────────────────────────────────────────── */
+.board-console button {
+  position: relative;
+  overflow: hidden;
+  height: auto;
+  min-height: 0;
+  border-radius: 2px;
+  border: 1px solid hsl(var(--border) / 0.5);
+  background: hsl(var(--foreground) / 0.035);
+  color: hsl(var(--muted-foreground));
+  padding: 0.4rem 0.75rem;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  box-shadow: none;
+  backdrop-filter: blur(6px);
+  transition: color .5s ease, border-color .5s ease, background-color .5s ease;
+}
+.board-console button:hover:not(:disabled) {
+  border-color: hsl(var(--foreground) / 0.7);
+  background: hsl(var(--foreground) / 0.05);
+  color: hsl(var(--foreground));
+}
+.board-console button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 0;
+  background: hsl(var(--foreground));
+  transition: width .5s ease;
+}
+.board-console button:hover:not(:disabled)::after { width: 100%; }
+.board-console button:disabled { opacity: 0.35; }
+
+/* the armed tool reads as ink on paper */
+.board-console button.bg-primary,
+.board-console button.bg-destructive,
+.board-console button[aria-pressed="true"] {
+  background: hsl(var(--foreground));
+  border-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+.board-console button.bg-primary::after,
+.board-console button.bg-destructive::after { width: 0; }
