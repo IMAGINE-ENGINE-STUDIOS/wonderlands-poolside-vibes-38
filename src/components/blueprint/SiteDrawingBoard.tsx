@@ -1132,24 +1132,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 </span>
               ) : null}
             </div>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {tradeSpec.features.map(f => {
-                const on = (selectedShape.features ?? []).includes(f.id);
-                return (
-                  <span key={f.id} className="contents">
-                    {ctrl(
-                  <>
-                    {f.label}
-                    {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
-                    {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
-                    {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
-                  </>,
-                      { on, onClick: () => toggleSelectedFeature(f.id), title: f.hint },
-                    )}
-                  </span>
-                );
-              })}
-            </div>
+            {featureChips(tradeSpec, selectedShape.features ?? [], toggleSelectedFeature)}
+
             {tradeSpec.note ? (
               <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{tradeSpec.note}</p>
             ) : null}
