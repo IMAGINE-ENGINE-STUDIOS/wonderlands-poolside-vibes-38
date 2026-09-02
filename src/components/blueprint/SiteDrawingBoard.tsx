@@ -1165,8 +1165,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       onClick={opts.onClick}
       disabled={opts.disabled}
       title={opts.title}
+      aria-label={opts.title}
       className={`${CTRL} ${opts.on ? CTRL_ON : CTRL_OFF} ${opts.danger && !opts.on ? 'hover:border-destructive hover:text-destructive' : ''}`}
     >
+
       {label}
       {!opts.on && sweep}
     </button>
