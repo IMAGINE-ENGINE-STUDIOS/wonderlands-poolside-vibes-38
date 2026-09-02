@@ -145,3 +145,31 @@
 }
 .board-console button.bg-primary::after,
 .board-console button.bg-destructive::after { width: 0; }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   BOARD CONSOLE — SLIM VARIANT
+   The boards must read as a thin instrument header with the sheet taking the
+   rest of the screen, so every control collapses to a square glyph button and
+   the label survives only as its tooltip / aria-label.
+   ──────────────────────────────────────────────────────────────────────────── */
+.board-console.board-console-slim button {
+  padding: 0;
+  height: 1.75rem;
+  width: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0;
+}
+/* controls that must keep a short caption (presets, readouts) */
+.board-console.board-console-slim button.has-label {
+  width: auto;
+  padding: 0 0.5rem;
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+}
+.board-console.board-console-slim button svg {
+  height: 0.875rem;
+  width: 0.875rem;
+  margin: 0;
+}
