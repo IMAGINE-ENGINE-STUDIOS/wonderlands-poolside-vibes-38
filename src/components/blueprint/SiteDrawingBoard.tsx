@@ -820,7 +820,13 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
+    /* Middle button or shift-drag pans the camera over the sheet. */
+    if (e.button === 1 || e.shiftKey) {
+      pan.current = { x: e.clientX, y: e.clientY };
+      return;
+    }
     const raw = toLocal(e);
+
     if (mode === 'underlay' && underlay && !underlay.locked) {
       drag.current = { kind: 'underlay', last: raw };
       return;
