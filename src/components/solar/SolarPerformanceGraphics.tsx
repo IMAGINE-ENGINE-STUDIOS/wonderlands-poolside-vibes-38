@@ -899,7 +899,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
             </text>
           </svg>
 
-          <dl className="grid grid-cols-1 gap-2.5 xs:grid-cols-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-3">
+          <dl className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-3">
             {[
               { k: "System", v: `${production.kwDc.toFixed(2)} kW`, s: `${production.panels} modules` },
               { k: "Per year", v: `${nf.format(yearly)} kWh`, s: production.yearlyKwhVerified ? "Measured by satellite" : "Modelled" },
