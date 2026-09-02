@@ -22,6 +22,7 @@ import {
 import type { EnclosureLayout, EnclosureTakeoff } from "@/components/enclosure/EnclosureDrawingBoard";
 import type { FenceLayout } from "@/components/fence/FenceDrawingBoard";
 import type { GrassLayout, GrassTakeoff } from "@/components/grass/GrassDrawingBoard";
+import type { LandscapeLayout, LandscapeTakeoff } from "@/lib/landscape/landscapeEstimate";
 
 /**
  * The live design widget printed on a dossier page — the real drawing board for
@@ -34,6 +35,7 @@ const SiteDrawingBoard = lazy(() => import("@/components/blueprint/SiteDrawingBo
 const FenceDrawingBoard = lazy(() => import("@/components/fence/FenceDrawingBoard"));
 const EnclosureDrawingBoard = lazy(() => import("@/components/enclosure/EnclosureDrawingBoard"));
 const GrassDrawingBoard = lazy(() => import("@/components/grass/GrassDrawingBoard"));
+const LandscapeDrawingBoard = lazy(() => import("@/components/landscape/LandscapeDrawingBoard"));
 const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 /** The facing leaf of the solar spread — the whole panel/storage/racking collection. */
 const SolarOptionsLeaf = lazy(() => import("@/components/solar/SolarOptionsLeaf"));
@@ -91,6 +93,8 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   const fence = shared.fence;
   const grass = shared.grass;
   const grassId = shared.grassId;
+  const landscape = shared.landscape;
+  const plantKey = shared.plantKey;
 
   /* the board is never blank: the product is drawn to its published dimensions
      on the 2D studio grid the first time the dossier is opened */
@@ -120,6 +124,22 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
     (next: string) => setFlipBoardValue(boardId, { grassId: next }),
     [boardId],
   );
+
+  const setLandscape = useCallback(
+    (next: LandscapeLayout) => setFlipBoardValue(boardId, { landscape: next }),
+    [boardId],
+  );
+  const setPlantKey = useCallback(
+    (next: string) => setFlipBoardValue(boardId, { plantKey: next }),
+    [boardId],
+  );
+  const onLandscapeMeasure = useCallback((t: LandscapeTakeoff) => {
+    setReadout(
+      t.plantCount || t.bedSqFt
+        ? `${t.plantCount} plants · ${t.bedSqFt.toLocaleString()} sq ft of beds · ${t.mulchYards} cu yd mulch`
+        : "",
+    );
+  }, []);
 
   const onEnclosureMeasure = useCallback((t: EnclosureTakeoff) => {
     setReadout(
@@ -309,6 +329,18 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
         );
       if (board.kind === "fence")
         return <FenceDrawingBoard layout={fence} onChange={setFence} onMeasure={onFenceMeasure} header={header} />;
+      if (board.kind === "landscape")
+        return (
+          <LandscapeDrawingBoard
+            layout={landscape}
+            onChange={setLandscape}
+            onMeasure={onLandscapeMeasure}
+            activePlantKey={plantKey}
+            onActivePlantChange={setPlantKey}
+            header={header}
+            menuSide={!fullScreen}
+          />
+        );
       if (board.kind === "grass")
         return (
           <GrassDrawingBoard
@@ -342,6 +374,11 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
       grass,
       setGrass,
       onGrassMeasure,
+      landscape,
+      setLandscape,
+      onLandscapeMeasure,
+      plantKey,
+      setPlantKey,
       grassId,
       setGrassId,
       site,

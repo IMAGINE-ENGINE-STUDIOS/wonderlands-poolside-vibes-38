@@ -31,7 +31,7 @@ import {
   type LandscapeTakeoff,
 } from "@/lib/landscape/landscapeEstimate";
 import { drawnSpreadFt, resolvePick, type PlantSpec } from "@/lib/landscape/plantSpecs";
-import { hitVertexIndex, insertVertexAt, nearestSegment, removeVertex, toggleCurveFlag } from "@/utils/splineEditing";
+import { hitVertexIndex, removeVertex, toggleCurveFlag } from "@/utils/splineEditing";
 
 /**
  * Wonderlands Planting Studio — the landscape drawing board.
@@ -312,9 +312,13 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
   React.useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+    /* Rounded and change-gated: a sub-pixel wobble must never feed the observer
+       back into a resize loop (it makes the whole console jitter). */
     const ro = new ResizeObserver(() => {
       const rect = el.getBoundingClientRect();
-      setSize({ w: Math.max(320, rect.width), h: Math.max(280, rect.height) });
+      const w = Math.max(320, Math.round(rect.width));
+      const h = Math.max(280, Math.round(rect.height));
+      setSize((prev) => (Math.abs(prev.w - w) < 2 && Math.abs(prev.h - h) < 2 ? prev : { w, h }));
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -735,9 +739,11 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
         if (sel.type === "plant") commit({ plantings: layout.plantings.filter((x) => x.id !== sel.id) });
         else if (sel.type === "vertex")
           commit({
-            beds: layout.beds.map((b) =>
-              b.id === sel.id ? { ...b, points: removeVertex(b.points, sel.index), curves: b.curves } : b,
-            ),
+            beds: layout.beds.map((b) => {
+              if (b.id !== sel.id) return b;
+              const next = removeVertex(b.points, sel.index, 3, b.curves);
+              return next ? { ...b, points: next.points, curves: next.curves } : b;
+            }),
           });
         else commit({ beds: layout.beds.filter((b) => b.id !== sel.id) });
         setSel(null);
@@ -786,14 +792,16 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
   const canvasEl = (
     <div
       ref={wrapRef}
-      className="relative min-h-[280px] flex-1 overflow-hidden rounded-2xl border border-border/60 bg-background/60 shadow-[0_24px_60px_-40px_rgba(8,20,16,0.6)]"
-      style={{ height: menuSide ? 340 : 560 }}
+      /* fixed height: the canvas is absolutely positioned so it can never grow the
+         box it is measured against (that feeds the ResizeObserver back on itself) */
+      className="relative shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-background/60 shadow-[0_24px_60px_-40px_rgba(8,20,16,0.6)]"
+      style={{ height: menuSide ? 360 : 560 }}
     >
       <canvas
         ref={canvasRef}
         style={{ width: size.w, height: size.h, touchAction: "none" }}
         className={cn(
-          "block",
+          "absolute inset-0 block",
           tool === "select" ? "cursor-default" : tool === "plant" ? "cursor-crosshair" : "cursor-crosshair",
         )}
         onPointerDown={onPointerDown}

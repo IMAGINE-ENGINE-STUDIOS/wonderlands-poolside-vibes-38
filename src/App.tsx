@@ -75,6 +75,7 @@ const Consultation = lazy(() => import("./pages/Consultation"));
 const SolarBoard = lazy(() => import("./pages/SolarBoard"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const BlueprintBuilder = lazy(() => import("./pages/BlueprintBuilder"));
+const GlobalDesignBoard = lazy(() => import("./pages/GlobalDesignBoard"));
 const ToolsGallery = lazy(() => import("./pages/ToolsGallery"));
 const ToolsGallery2 = lazy(() => import("./pages/ToolsGallery2"));
 const AssetGallery = lazy(() => import("./pages/AssetGallery"));
@@ -203,6 +204,7 @@ const App = () => {
             <Route path="/solar-board" element={<SolarBoard />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/blueprint-builder" element={<BlueprintBuilder />} />
+            <Route path="/global-design-board" element={<GlobalDesignBoard />} />
             <Route path="/studio-showroom" element={<StudioShowroom />} />
             <Route path="/studio" element={<StudioLanding />} />
             <Route path="/tools" element={<ToolsGallery />} />

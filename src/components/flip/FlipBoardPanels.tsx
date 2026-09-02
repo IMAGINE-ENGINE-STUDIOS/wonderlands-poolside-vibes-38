@@ -5,6 +5,7 @@ import { boardForCategory } from "./FlipEditorBoard";
 import { useFlipBoard, resetFlipBoard, type FlipBoardState } from "./flipBoardStore";
 import { computeSiteEstimate, formatMoney, SITE_RATES, FENCE_RATE_PER_FT } from "@/lib/siteEstimate";
 import { measureGrassLayout } from "@/components/grass/GrassDrawingBoard";
+import { measureLandscapeLayout } from "@/lib/landscape/landscapeEstimate";
 import {
   DEFAULT_ENCLOSURE_CONFIG,
   ENCLOSURE_DOORS,
@@ -85,6 +86,11 @@ export function measureBoard(kind: Kind, state: FlipBoardState): Takeoff {
       doors: 0,
     };
   }
+  if (kind === "landscape") {
+    const t = measureLandscapeLayout(state.landscape);
+    /* doors/gates stay zero: a planting plan has none, and the footer note reads them */
+    return { areaSqFt: t.bedSqFt, perimeterFt: t.edgeFt, linearFt: t.edgeFt, gates: 0, doors: 0 };
+  }
   if (kind === "grass") {
     const t = measureGrassLayout(state.grass);
     return { areaSqFt: t.areaSqFt, perimeterFt: t.perimeterFt, linearFt: t.perimeterFt, gates: 0, doors: 0 };
@@ -157,7 +163,26 @@ export function useBoardEstimate(categoryId: string) {
     // Solar pricing is private — the flip book never prints a solar figure;
     // proposals are written after the site survey.
     if (board.kind === "solar") return { lines: [], total: 0, perSqFt: 0 };
+    if (board.kind === "landscape") {
+      // the planting plan prices itself: every plant is a catalog line
+      const t = measureLandscapeLayout(state.landscape);
+      const lines: Line[] = [
+        ...t.species.map((sp) => ({
+          label: sp.name,
+          detail: `${sp.qty} × ${sp.size}${sp.variant ? ` — ${sp.variant}` : ""}`,
+          amount: Math.round(sp.amount),
+        })),
+        ...(t.bedTotal
+          ? [{ label: "Beds, surface & prep", detail: `${t.bedSqFt.toLocaleString()} sq ft · ${t.mulchYards} cu yd`, amount: t.bedTotal }]
+          : []),
+        ...(t.irrigationTotal
+          ? [{ label: "Irrigation", detail: `${t.plantCount} emitters`, amount: t.irrigationTotal }]
+          : []),
+      ];
+      return { lines, total: t.total, perSqFt: t.bedSqFt ? t.total / t.bedSqFt : 0 };
+    }
     if (board.kind === "enclosure") {
+      if (!areaSqFt) return { lines: [], total: 0, perSqFt: 0 };
       const est = estimateEnclosure({
         ...DEFAULT_ENCLOSURE_CONFIG,
         typeId: options.typeId,
@@ -172,6 +197,7 @@ export function useBoardEstimate(categoryId: string) {
       return { lines: est.lines as Line[], total: est.total, perSqFt: est.pricePerSqFt };
     }
     if (board.kind === "fence") {
+      if (!runFt) return { lines: [], total: 0, perSqFt: 0 };
       const est = estimateFence({
         ...DEFAULT_FENCE_CONFIG,
         heightId: options.heightId,
@@ -182,6 +208,7 @@ export function useBoardEstimate(categoryId: string) {
       return { lines: est.lines as Line[], total: est.total, perSqFt: runFt > 0 ? est.total / runFt : 0 };
     }
     if (board.kind === "grass") {
+      if (!state.grass.areas.length) return { lines: [], total: 0, perSqFt: 0 };
       const areas = state.grass.areas.length
         ? measureGrassLayout(state.grass).areas.map((a) => ({
             id: a.id,
@@ -204,7 +231,17 @@ export function useBoardEstimate(categoryId: string) {
       total: est.total,
       perSqFt: est.poolSqFt > 0 ? est.total / (est.poolSqFt + est.deckSqFt) : 0,
     };
-  }, [board.kind, options, areaSqFt, runFt, takeoff.perimeterFt, takeoff.gates, state.grass, state.site]);
+  }, [
+    board.kind,
+    options,
+    areaSqFt,
+    runFt,
+    takeoff.perimeterFt,
+    takeoff.gates,
+    state.grass,
+    state.site,
+    state.landscape,
+  ]);
 
   const poolSqFt = React.useMemo(
     () => (board.kind === "site" ? Math.round(computeSiteEstimate(state.site).poolSqFt) : 0),
