@@ -344,7 +344,12 @@ export function measureSitePlan(data: SitePlanData): SiteAreas {
   };
 }
 
-type Mode = 'draw' | 'select' | 'underlay' | 'calibrate';
+/**
+ * Board tools. `point` is the architect's insert-vertex tool: a ghost point
+ * rides the outline under the cursor, sliding along the spline, and clicking
+ * drops the new vertex exactly where the ghost sits.
+ */
+type Mode = 'draw' | 'select' | 'underlay' | 'calibrate' | 'point';
 
 interface Props {
   data: SitePlanData;
