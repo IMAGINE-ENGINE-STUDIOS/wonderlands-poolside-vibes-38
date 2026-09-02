@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 
 /**
  * A single line of a FLIP contents page.
