@@ -20,6 +20,8 @@ import {
   Plus,
   Minus,
   Spline,
+  Maximize2,
+
 
 } from 'lucide-react';
 import {
