@@ -826,6 +826,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   }, [zoomAt]);
 
 
+  /**
+   * What is under the pointer. Edges win (so a corner of the deck can be grabbed
+   * even where it overlaps the pool), then the *inside* of a closed element — a
+   * click anywhere on the paver deck picks that deck and opens its paver book.
+   * Smaller elements are tested first so a pool on top of a deck stays clickable.
+   */
   const hitTest = (p: { x: number; y: number }): string | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
       const shape = data.shapes[i];
@@ -841,8 +847,13 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         if (d < 8) return shape.id;
       }
     }
-    return null;
+    const inside = data.shapes
+      .filter(s => s.closed && !layerMeta(s.layer).linear && s.points.length > 2)
+      .filter(s => pointInPolygon(siteShapeOutline(s), p))
+      .sort((a, b) => polygonArea(siteShapeOutline(a)) - polygonArea(siteShapeOutline(b)));
+    return inside[0]?.id ?? null;
   };
+
 
   const hitVertex = (p: { x: number; y: number }): { shapeId: string; index: number } | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
