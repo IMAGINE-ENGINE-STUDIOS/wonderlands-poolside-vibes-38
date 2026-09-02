@@ -1652,11 +1652,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         disabled: !selected,
         title: 'Curvature — pick a run, then drag its diamond or type an exact radius',
       })}
-      {ctrl(<Scissors className="h-3.5 w-3.5" />, {
-        on: cropping,
-        onClick: () => setCropping(c => !c),
-        title: 'Crop — pools, spas, ledges and buildings cut the deck and turf they sit on',
-      })}
+      {/* No crop toggle: water bodies, ledges and structures cut the surfaces
+          they sit on automatically. A single element can still be drawn uncut
+          from its own options drawer. */}
       {ctrl(<Grid3X3 className="h-3.5 w-3.5" />, { on: showGrid, onClick: () => setShowGrid(g => !g), title: 'Grid' })}
       {/* REAL zoom — a view transform over the sheet. The drafting scale
           (px per foot) never changes, so nothing a customer drew is resized;
