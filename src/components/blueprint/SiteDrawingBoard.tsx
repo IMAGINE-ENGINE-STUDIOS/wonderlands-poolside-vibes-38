@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
+
 import { Button } from '@/components/ui/button';
 import {
   Undo2,
@@ -35,6 +37,23 @@ import {
   tracePolyline,
 } from '@/utils/splineEditing';
 import { TRADE_LAYERS, tradeFeaturePrice, solarPanelsForArea } from '@/lib/design/siteTradeLayers';
+
+/**
+ * Toggle one additional feature on a layer. Options that belong to the same
+ * `exclusive` family (a paver surface, a fence height, a screen mesh) behave as
+ * a single choice, exactly like the standalone configurators.
+ */
+const applyFeatureToggle = (layer: string, current: string[], featureId: string): string[] => {
+  const spec = TRADE_LAYERS[layer];
+  const feature = spec?.features.find(f => f.id === featureId);
+  if (current.includes(featureId)) return current.filter(f => f !== featureId);
+  const siblings = feature?.exclusive
+    ? new Set(spec!.features.filter(f => f.exclusive === feature.exclusive).map(f => f.id))
+    : null;
+  const kept = siblings ? current.filter(id => !siblings.has(id)) : current;
+  return [...kept, featureId];
+};
+
 
 
 export type SiteLayerId =
@@ -238,6 +257,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   /* Additional features armed per trade before anything is drawn — the options
      of the armed element are always on screen, not hidden behind a selection. */
   const [armedFeatures, setArmedFeatures] = React.useState<Partial<Record<SiteLayerId, string[]>>>({});
+  /* Host page may offer a project column for the options drawers */
+  const [optionsSlot, setOptionsSlot] = React.useState<HTMLElement | null>(null);
+  React.useEffect(() => {
+    setOptionsSlot(typeof document === 'undefined' ? null : document.getElementById('wl-board-options'));
+  }, []);
+
   const [mode, setMode] = React.useState<Mode>('draw');
   const [draft, setDraft] = React.useState<{ x: number; y: number }[]>([]);
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
@@ -832,16 +857,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ...data,
       shapes: data.shapes.map(s => {
         if (s.id !== selected) return s;
-        const current = s.features ?? [];
-        return {
-          ...s,
-          features: current.includes(featureId)
-            ? current.filter(f => f !== featureId)
-            : [...current, featureId],
-        };
+        return { ...s, features: applyFeatureToggle(s.layer, s.features ?? [], featureId) };
       }),
     });
   };
+
 
   React.useEffect(() => {
     if (readOnly) return;
@@ -1054,6 +1074,48 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ? tradeFeaturePrice(selectedShape.layer, selectedShape.features, selectedMeasure.sqFt, selectedMeasure.lenFt)
       : 0;
 
+  /* Every catalogued option, filed under its heading, priced exactly as the
+     configurators and the FLIP book price it. Long catalogues (the paver book,
+     the fence book) scroll inside the drawer instead of pushing the board down. */
+  const featureChips = (
+    spec: (typeof TRADE_LAYERS)[string],
+    activeIds: string[],
+    onToggle: (id: string) => void,
+  ) => {
+    const groups: { name: string; items: typeof spec.features }[] = [];
+    spec.features.forEach(f => {
+      const name = f.group ?? 'Options';
+      const bucket = groups.find(g => g.name === name);
+      if (bucket) bucket.items.push(f);
+      else groups.push({ name, items: [f] });
+    });
+    return (
+      <div className="mt-1.5 max-h-[46vh] space-y-2 overflow-y-auto pr-1">
+        {groups.map(g => (
+          <div key={g.name}>
+            <p className="text-[8.5px] uppercase tracking-[0.26em] text-muted-foreground/80">{g.name}</p>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {g.items.map(f => (
+                <span key={f.id} className="contents">
+                  {ctrl(
+                    <>
+                      {f.label}
+                      {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
+                      {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
+                      {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
+                    </>,
+                    { on: activeIds.includes(f.id), onClick: () => onToggle(f.id), title: f.hint },
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+
   const elementOptions =
     !readOnly && selectedShape ? (
       <div className="rounded-2xl border border-border/50 bg-foreground/[0.03] p-3 backdrop-blur-xl">
@@ -1120,24 +1182,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 </span>
               ) : null}
             </div>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {tradeSpec.features.map(f => {
-                const on = (selectedShape.features ?? []).includes(f.id);
-                return (
-                  <span key={f.id} className="contents">
-                    {ctrl(
-                  <>
-                    {f.label}
-                    {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
-                    {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
-                    {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
-                  </>,
-                      { on, onClick: () => toggleSelectedFeature(f.id), title: f.hint },
-                    )}
-                  </span>
-                );
-              })}
-            </div>
+            {featureChips(tradeSpec, selectedShape.features ?? [], toggleSelectedFeature)}
+
             {tradeSpec.note ? (
               <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{tradeSpec.note}</p>
             ) : null}
@@ -1178,35 +1224,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             Armed for the next element
           </span>
         </div>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {armedSpec.features.map(f => {
-            const on = armedOn.includes(f.id);
-            return (
-              <span key={f.id} className="contents">
-                {ctrl(
-                  <>
-                    {f.label}
-                    {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
-                    {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
-                    {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
-                  </>,
-                  {
-                    on,
-                    title: f.hint,
-                    onClick: () =>
-                      setArmedFeatures(prev => {
-                        const cur = prev[layer] ?? [];
-                        return {
-                          ...prev,
-                          [layer]: cur.includes(f.id) ? cur.filter(id => id !== f.id) : [...cur, f.id],
-                        };
-                      }),
-                  },
-                )}
-              </span>
-            );
-          })}
-        </div>
+        {featureChips(armedSpec, armedOn, id =>
+          setArmedFeatures(prev => ({ ...prev, [layer]: applyFeatureToggle(layer, prev[layer] ?? [], id) })),
+        )}
+
         {armedSpec.note ? (
           <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{armedSpec.note}</p>
         ) : null}
@@ -1330,6 +1351,18 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         </p>
   ) : null;
 
+  /* The options drawers are rendered into the page's project column when one is
+     offered (`#wl-board-options`, as on the Global Design Board), so the drawing
+     keeps the full width of the leaf. Without a slot they stay under the board. */
+  const optionPanels = (
+    <>
+      {elementOptions}
+      {armedOptions}
+    </>
+  );
+  const optionsInline = optionsSlot ? null : optionPanels;
+  const optionsPortal = optionsSlot ? createPortal(optionPanels, optionsSlot) : null;
+
   /* FLIP dossier layout — the drawing takes the full width of the leaf and every
      control lives in a glass console docked BELOW the canvas, so the board is as
      wide as the page allows instead of losing a column to a sidebar. */
@@ -1338,9 +1371,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       <div className="flex h-full min-h-0 flex-col gap-2.5">
         {header}
         {canvasEl}
-        {elementOptions}
-        {armedOptions}
+        {optionsInline}
+        {optionsPortal}
         {underlayBar}
+
 
         {!readOnly && (
           <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
@@ -1375,8 +1409,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         </div>
       )}
       {canvasEl}
-      {elementOptions}
-      {armedOptions}
+      {optionsInline}
+      {optionsPortal}
+
       {footNote}
     </div>
   );
