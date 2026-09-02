@@ -692,7 +692,17 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         ctx.strokeText(areaText, cx, cy + 9);
         ctx.fillStyle = meta.color;
         ctx.fillText(areaText, cx, cy + 9);
+        /* the selected surface is named on the element itself */
+        if (surface) {
+          ctx.font = '600 11px ui-sans-serif, system-ui';
+          const surfText = surface.label.toUpperCase();
+          ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+          ctx.strokeText(surfText, cx, cy + 26);
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText(surfText, cx, cy + 26);
+        }
       }
+
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
 
