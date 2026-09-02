@@ -14,6 +14,8 @@ import {
 import { computeSiteEstimate, formatMoney } from "@/lib/siteEstimate";
 import { registerGeniusDesignAgent, resizeSitePlanPool } from "@/lib/geniusDesignBus";
 import { buildProductSitePlan } from "@/lib/productSitePlan";
+import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
+import { applySelectionsToPlan, selectionsFromExtras } from "@/lib/design/productBoardHydration";
 import {
   fitShapesToBox,
   guessSiteLayer,
@@ -101,11 +103,46 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
      Design Board is the exception — a whole-property project always starts on a
      clean sheet, so nothing is priced that the designer did not draw. */
   const startsBlank = categoryId.includes("global-design");
+  /* What the reader configured in the book — the cart line of THIS product. Its
+     extras are the selected paver, finish, coping and equipment, so the board
+     opens dressed in the reader's own choices instead of a generic plan. */
+  const cart = useOptionalShoppingCart();
+  const selections = React.useMemo(() => {
+    const name = (modelName ?? "").trim().toLowerCase();
+    if (!name) return { features: {} as Record<string, string[]> };
+    const line = (cart?.cartItems ?? []).find(
+      (c: any) =>
+        typeof c.id === "string" &&
+        c.id.startsWith(`flip-${categoryId}-`) &&
+        String(c.name ?? "").trim().toLowerCase() === name,
+    );
+    return selectionsFromExtras(line?.extras as Array<{ name: string }> | undefined);
+  }, [cart?.cartItems, categoryId, modelName]);
+
+  const selectionKey = React.useMemo(
+    () => `${JSON.stringify(selections.features)}|${selections.deckSqFt ?? ""}`,
+    [selections],
+  );
+
   React.useEffect(() => {
     if (startsBlank || board.kind !== "site" || site.shapes.length) return;
     const seeded = buildProductSitePlan({ categoryId, modelName, meta: modelMeta });
-    if (seeded) setFlipBoardValue(boardId, { site: seeded });
-  }, [startsBlank, board.kind, site.shapes.length, categoryId, modelName, modelMeta, boardId]);
+    if (seeded) setFlipBoardValue(boardId, { site: applySelectionsToPlan(seeded, selections) });
+  }, [startsBlank, board.kind, site.shapes.length, categoryId, modelName, modelMeta, boardId, selections]);
+
+  /* Selections made after the board was seeded still land on the drawing: only
+     the seeded elements are dressed, so nothing the designer drew is touched. */
+  const dressedRef = React.useRef("");
+  React.useEffect(() => {
+    if (startsBlank || board.kind !== "site" || !site.shapes.length) return;
+    if (!Object.keys(selections.features).length && !selections.deckSqFt) return;
+    if (dressedRef.current === selectionKey) return;
+    dressedRef.current = selectionKey;
+    const seeded = site.shapes.some((s) => s.id.startsWith("seed-"));
+    if (!seeded) return;
+    setFlipBoardValue(boardId, { site: applySelectionsToPlan(site, selections) });
+  }, [startsBlank, board.kind, site, selections, selectionKey, boardId]);
+
 
 
   const setSite = useCallback(
@@ -278,32 +315,40 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
   const livePrice = isSite ? estimate.total : boardTotal;
 
 
+  /* The sheet header of a design leaf: one slim glass strip carrying the live
+     readout, the live figure and the two board actions. It never grows taller
+     than a line and a half, so the drawing keeps the leaf. */
   const headerBlock = (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+    <div className="flex shrink-0 items-center justify-between gap-2 rounded-full border border-border/50 bg-background/70 px-3 py-1.5 shadow-[0_16px_44px_-34px_rgba(8,12,24,0.6)] backdrop-blur-xl">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[8.5px] uppercase tracking-[0.28em] text-muted-foreground">
           {(isSite ? siteReadout : readout) || "Draw on the grid — 1 ft squares"}
         </p>
         {livePrice > 0 && (
-          <p className="mt-1 font-serif text-lg font-light leading-none">
+          <p className="truncate font-serif text-[15px] font-light leading-tight">
             {formatMoney(livePrice)}
-            <span className="ml-2 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+            <span className="ml-2 hidden text-[8px] uppercase tracking-[0.26em] text-muted-foreground sm:inline">
               as drawn — installed
             </span>
           </p>
         )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5">
         <button
           onClick={() => setFull(true)}
-          className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+          title="Enlarge the board"
+          aria-label="Enlarge the board"
+          className="inline-flex h-7 items-center gap-1.5 rounded-full border border-border/60 px-2.5 text-[8px] uppercase tracking-[0.26em] transition-colors hover:bg-foreground hover:text-background"
         >
-          Enlarge <Maximize2 className="h-3 w-3" />
+          <Maximize2 className="h-3 w-3" />
+          <span className="hidden sm:inline">Enlarge</span>
         </button>
         {onExpand && (
           <button
             onClick={onExpand}
-            className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+            title="Open the editor board"
+            aria-label="Open the editor board"
+            className="hidden h-7 items-center rounded-full border border-border/60 px-2.5 text-[8px] uppercase tracking-[0.26em] transition-colors hover:bg-foreground hover:text-background md:inline-flex"
           >
             Editor board
           </button>
@@ -311,6 +356,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
       </div>
     </div>
   );
+
 
   const renderBoard = useCallback(
     (header: React.ReactNode, fullScreen?: boolean, mapOnly?: boolean) => {
@@ -460,12 +506,15 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
      tools) takes the LEFT leaf, and the facing leaf carries the reading matter:
      board tools, the live cost sheet and the calculators. */
   const boardLeaf = (mapOnly?: boolean) => (
-    <div className="absolute inset-0 overflow-auto" {...lockHandlers}>
-      <div className="flex h-full w-full flex-col p-3 sm:p-4">
+    <div className="absolute inset-0 overflow-hidden" {...lockHandlers}>
+      {/* the leaf itself never scrolls: the board owns the sheet, and only the
+          panels under the drawing scroll, so the canvas is always on screen */}
+      <div className="flex h-full min-h-0 w-full flex-col p-2.5 sm:p-3.5">
         <Suspense fallback={fallback}>{renderBoard(headerBlock, false, mapOnly)}</Suspense>
       </div>
     </div>
   );
+
 
   const solarOptionsLeaf = (
     <div className="absolute inset-0" {...lockHandlers}>

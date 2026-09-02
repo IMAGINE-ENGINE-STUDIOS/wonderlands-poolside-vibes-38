@@ -2288,9 +2288,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
      under it is drawing. Only the element palette stays docked below. */
   if (menuSide) {
     return (
-      <div className="flex h-full min-h-0 flex-col gap-2.5">
+      <div className="flex h-full min-h-0 flex-col gap-2">
         {instrumentHeader}
-        <div className="min-h-0 flex-1 overflow-hidden flex items-center justify-center">
+        {/* The drawing keeps the sheet: it takes every pixel the leaf has left and
+            never falls under a usable height, whatever the panels below carry. */}
+        <div className="flex min-h-[190px] flex-[1_1_auto] items-center justify-center overflow-hidden">
           {React.cloneElement(canvasEl, {
             style: {
               ...canvasEl.props.style,
@@ -2302,24 +2304,28 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             },
           })}
         </div>
-        {optionsInline}
-        {optionsPortal}
-        {elementsPortal}
-        {underlayBar}
+        {/* Options, elements and the note are reading matter under the drawing —
+            they scroll in their own band instead of squeezing the canvas. */}
+        <div className="max-h-[38%] min-h-0 shrink-0 space-y-2 overflow-y-auto pr-0.5">
+          {optionsInline}
+          {optionsPortal}
+          {elementsPortal}
+          {underlayBar}
 
-
-        {!readOnly && !elementsSlot && (
-          <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
-              {layerTags}
+          {!readOnly && !elementsSlot && (
+            <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
+                {layerTags}
+              </div>
             </div>
-          </div>
-        )}
-        {footNote}
+          )}
+          {footNote}
+        </div>
       </div>
     );
   }
+
 
 
   return (
