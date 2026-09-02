@@ -872,6 +872,34 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       renderShape({ id: 'draft', layer, points: preview, closed: false }, true);
     }
 
+    /* GHOST VERTEX — the point tool's anchor. It rides the outline under the
+       cursor, sliding along the run, so the designer sees exactly where the new
+       point will land before clicking. Constant on-screen size at any altitude. */
+    if (!readOnly && mode === 'point' && insertGhost) {
+      const g = insertGhost.point;
+      const r = 6 / view.z;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.fill();
+      ctx.strokeStyle = '#0891b2';
+      ctx.lineWidth = 2 / view.z;
+      ctx.stroke();
+      /* crosshair so the anchor reads as a drafting insertion, not a handle */
+      ctx.beginPath();
+      ctx.moveTo(g.x - r * 1.9, g.y);
+      ctx.lineTo(g.x + r * 1.9, g.y);
+      ctx.moveTo(g.x, g.y - r * 1.9);
+      ctx.lineTo(g.x, g.y + r * 1.9);
+      ctx.strokeStyle = 'rgba(8,145,178,0.75)';
+      ctx.lineWidth = 1.2 / view.z;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+
+
     // calibration line
     if (calibration.length) {
       const pts = hover && calibration.length === 1 ? [...calibration, hover] : calibration;
