@@ -248,7 +248,7 @@ const GlobalDesignBoard: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-background">
       <Helmet>
         <title>Global Design Board | Wonderlands World</title>
         <meta
