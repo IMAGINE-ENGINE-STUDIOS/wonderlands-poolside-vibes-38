@@ -639,10 +639,13 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       points,
       closed: closed && points.length > 2,
       curves: points.map(() => false),
+      /* features armed on the trade before drawing carry onto the element */
+      features: armedFeatures[layer]?.length ? [...armedFeatures[layer]] : undefined,
     };
     onChange({ ...data, shapes: [...data.shapes, shape] });
     setDraft([]);
   };
+
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
