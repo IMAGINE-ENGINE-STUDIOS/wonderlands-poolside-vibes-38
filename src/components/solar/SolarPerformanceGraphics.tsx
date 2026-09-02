@@ -20,6 +20,20 @@ import {
   compassLabel,
   readExposure,
 } from "@/lib/solar/solarEngine";
+import {
+  BRIGHT_STARS,
+  moonRead,
+  planetReads,
+  starHorizontal,
+} from "@/lib/solar/astronomy";
+import {
+  DEFAULT_TARIFF_CODE,
+  ELECTRICITY_TARIFFS,
+  formatTariffMoney,
+  tariffByCode,
+} from "@/data/electricityTariffs";
+import { usePersistentState } from "@/hooks/usePersistentState";
+
 
 /**
  * Share of annual production per month for peninsular Florida — long, bright
