@@ -47,11 +47,18 @@ export interface TradeFeature {
    */
   image?: string;
   /**
+   * This option *is* the surface of the element and its price is the published
+   * all-in rate, so the layer's base rate must not be charged twice (a $15/sq ft
+   * paver replaces the $10/sq ft concrete deck base, it is not added to it).
+   */
+  replacesBase?: boolean;
+  /**
    * Options sharing an `exclusive` key are a single choice (a surface, a height,
    * a screen mesh) — picking one clears the rest, exactly as the standalone
    * configurators and the FLIP book behave.
    */
   exclusive?: string;
+
 }
 
 export interface TradeLayerSpec {
