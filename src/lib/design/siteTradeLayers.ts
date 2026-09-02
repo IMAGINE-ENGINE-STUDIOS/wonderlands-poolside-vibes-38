@@ -27,6 +27,31 @@ import { FENCE_HEIGHTS, FENCE_STYLES, FENCE_GATES, FENCE_ADDONS } from '@/data/f
 import { solarBatteries } from '@/data/solarHardware';
 import { getProductFeatures, type ProductType } from '@/config/productFeatures';
 
+/* ── option photography ───────────────────────────────────────────────────
+   Every tile on a drawing board shows a picture, exactly as Wonderlands Studio
+   prints on its product cards. Catalogues that ship their own imagery (pavers,
+   finishes, coping, turf) use it; the trades whose configurators are text-only
+   (cage, fencing, solar, deck extras, comfort options) borrow the same studio
+   photography used elsewhere on the site. ES6 imports only — never string paths. */
+import imgEnclosurePremium from '@/assets/enclosures/screen-enclosure-premium.webp';
+import imgEnclosureDeluxe from '@/assets/enclosures/screen-enclosure-deluxe.webp';
+import imgLanaiPremium from '@/assets/enclosures/lanai-premium.webp';
+import imgLanaiStandard from '@/assets/enclosures/lanai-standard.webp';
+import imgFencePanels from '@/assets/fencing/aluminum-fencing.webp';
+import imgFencePanel2 from '@/assets/fencing/aluminum-panel-2.webp';
+import imgFenceTexture from '@/assets/fencing/fence-texture.webp';
+import imgSolarArray from '@/assets/solar/solar-roof-array.jpg';
+import imgSolarBattery from '@/assets/solar/solar-battery-wall.jpg';
+import imgSolarInverter from '@/assets/solar/solar-inverter-charger.jpg';
+import imgTurfTexture from '@/assets/turf/grass-texture.avif';
+import imgDeckLuxury from '@/assets/deck/luxury-outdoor.webp';
+import imgDeckGarden from '@/assets/deck/garden.webp';
+import imgSpa from '@/assets/deck/spa.webp';
+import imgTanningLedge from '@/assets/deck/tanning-ledge.webp';
+import imgPergola from '@/assets/deck/pergola.webp';
+import imgLuxuryPool from '@/assets/deck/luxury-pool.webp';
+
+
 /** One selectable feature on a drawn element. */
 export interface TradeFeature {
   id: string;
