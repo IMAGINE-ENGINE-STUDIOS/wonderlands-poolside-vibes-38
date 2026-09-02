@@ -1353,30 +1353,30 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         /* instrument keys — hard-edged mission controls, SpaceX console style */
         .wl-key { position: relative; display: inline-flex; align-items: center; gap: .55rem;
           padding: .62rem 1.05rem; border-radius: 6px; font-size: 11px; letter-spacing: .22em;
-          text-transform: uppercase; color: rgba(255,255,255,.9);
-          border: 1px solid rgba(255,255,255,.22);
-          background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.02));
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 10px 26px -18px rgba(0,0,0,.9);
+          text-transform: uppercase; color: hsl(var(--foreground) / .92);
+          border: 1px solid hsl(var(--foreground) / .22);
+          background: linear-gradient(180deg, hsl(var(--foreground) / .10), hsl(var(--foreground) / .02));
+          box-shadow: inset 0 1px 0 hsl(var(--background) / .5), 0 10px 26px -18px hsl(var(--foreground) / .5);
           backdrop-filter: blur(18px); overflow: hidden;
           transition: border-color .2s ease, transform .2s ease, box-shadow .25s ease, color .2s ease; }
         .wl-key::after { content: ''; position: absolute; inset: 0; opacity: 0;
           background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,.28) 50%, transparent 80%);
           transition: opacity .3s ease; }
-        .wl-key:hover { transform: translateY(-1px); border-color: rgba(251,191,36,.7);
-          color: #fef3c7; box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 14px 34px -18px rgba(251,191,36,.55); }
+        .wl-key:hover { transform: translateY(-1px); border-color: rgba(217,119,6,.75);
+          color: hsl(var(--foreground)); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 14px 34px -18px rgba(251,191,36,.55); }
         .wl-key:hover::after { opacity: 1; }
         .wl-key:active { transform: translateY(0); }
         .wl-key:focus-visible { outline: none; border-color: rgba(251,191,36,.9);
           box-shadow: 0 0 0 2px rgba(251,191,36,.45); }
         .wl-key-glyph { display: inline-flex; align-items: center; justify-content: center;
           height: 20px; width: 20px; border-radius: 4px; color: currentColor;
-          border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); }
+          border: 1px solid hsl(var(--foreground) / .2); background: hsl(var(--foreground) / .08); }
         .wl-key-label { line-height: 1; }
-        .wl-key-live { border-color: rgba(251,191,36,.75); color: #fff7e0;
-          background: linear-gradient(180deg, rgba(251,191,36,.3), rgba(249,115,22,.12));
+        .wl-key-live { border-color: rgba(217,119,6,.85); color: hsl(var(--foreground));
+          background: linear-gradient(180deg, rgba(251,191,36,.42), rgba(249,115,22,.18));
           box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 16px 40px -20px rgba(251,191,36,.8); }
-        .wl-key-ghost { color: rgba(255,255,255,.62); border-color: rgba(255,255,255,.14);
-          background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0)); }
+        .wl-key-ghost { color: hsl(var(--muted-foreground)); border-color: hsl(var(--foreground) / .16);
+          background: linear-gradient(180deg, hsl(var(--foreground) / .05), transparent); }
 
         /* generous, glassy scrubbers — big enough to grab on a touch screen */
         .wl-range { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 999px;
