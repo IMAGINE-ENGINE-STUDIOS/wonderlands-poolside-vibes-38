@@ -856,7 +856,17 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
+    if (pan.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const k = CANVAS_W / rect.width;
+      const dx = (e.clientX - pan.current.x) * k;
+      const dy = (e.clientY - pan.current.y) * k;
+      pan.current = { x: e.clientX, y: e.clientY };
+      setView(v => ({ ...v, x: v.x + dx, y: v.y + dy }));
+      return;
+    }
     const raw = toLocal(e);
+
     const active = drag.current;
     if (active) {
       if (active.kind === 'underlay' && underlay) {
