@@ -794,35 +794,36 @@ const GrassDrawingBoard: React.FC<Props> = ({
   const selectedArea =
     selection && layout.areas.find(a => a.id === selection.id && (selection.type === 'area' || selection.type === 'point'));
 
-  const fitView = () => setView({ zoom: 1, ox: 40, oy: 30 });
+  /* Every board frames 20 ft of the sheet by default. */
+  const fitView = () =>
+    setView({ zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), ox: 40, oy: 30 });
 
   return (
     <div className="space-y-3">
-      {/* Toolbar */}
-      {/* board-console: the FLIP gateway control language, shared by every board */}
-      <div className="board-console rounded-2xl border border-border/50 bg-background/55 p-2.5 backdrop-blur-xl">
-      {header && <div className="px-1 pt-1 pb-3">{header}</div>}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" size="sm" variant={tool === 'draw' ? 'default' : 'outline'} onClick={() => setTool('draw')} className="h-8">
-          <PenTool className="mr-1.5 h-3.5 w-3.5" /> Draw
+      {/* Slim instrument header — glyph tools, names in the tooltips */}
+      <div className="board-console board-console-slim rounded-xl border border-border/50 bg-background/55 px-2 py-1.5 backdrop-blur-xl">
+      {header && <div className="px-0.5 pb-2">{header}</div>}
+      <div className="flex flex-wrap items-center gap-1">
+        <Button type="button" size="sm" variant={tool === 'draw' ? 'default' : 'outline'} onClick={() => setTool('draw')} title="Draw area" aria-label="Draw area">
+          <PenTool />
         </Button>
-        <Button type="button" size="sm" variant={tool === 'select' ? 'default' : 'outline'} onClick={() => setTool('select')} className="h-8">
-          <MousePointer2 className="mr-1.5 h-3.5 w-3.5" /> Select
+        <Button type="button" size="sm" variant={tool === 'select' ? 'default' : 'outline'} onClick={() => setTool('select')} title="Select" aria-label="Select">
+          <MousePointer2 />
         </Button>
-        <Button type="button" size="sm" variant={spline ? 'default' : 'outline'} onClick={() => setSpline(s => !s)} className="h-8">
-          <Waves className="mr-1.5 h-3.5 w-3.5" /> {spline ? 'Curved edges' : 'Straight edges'}
+        <Button type="button" size="sm" variant={spline ? 'default' : 'outline'} onClick={() => setSpline(s => !s)} title={spline ? 'Curved edges' : 'Straight edges'} aria-label="Toggle curved edges">
+          <Waves />
         </Button>
-        <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
+        <span className="mx-0.5 h-4 w-px bg-border" />
         <Button
           type="button"
           size="sm"
           variant="outline"
           onClick={addPointAfterSelected}
           disabled={selection?.type !== 'point'}
-          className="h-8"
-          title="Add a spline point after the selected one (or click any edge)"
+          title="Add a spline point after the selected one"
+          aria-label="Add point"
         >
-          <Plus className="mr-1.5 h-3.5 w-3.5" /> Add point
+          <Plus />
         </Button>
         <Button
           type="button"
@@ -830,18 +831,18 @@ const GrassDrawingBoard: React.FC<Props> = ({
           variant={selectedPointCurved ? 'default' : 'outline'}
           onClick={toggleCurveOnSelected}
           disabled={selection?.type !== 'point'}
-          className="h-8"
           title="Toggle curvature on the selected point"
+          aria-label="Curve point"
         >
-          <Spline className="mr-1.5 h-3.5 w-3.5" /> {selectedPointCurved ? 'Curved point' : 'Corner point'}
+          <Spline />
         </Button>
 
-        <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
-        <Button type="button" size="sm" variant="outline" onClick={closeCurrent} disabled={!openArea || openArea.points.length < 3} className="h-8">
-          <CornerDownRight className="mr-1.5 h-3.5 w-3.5" /> Close area
+        <span className="mx-0.5 h-4 w-px bg-border" />
+        <Button type="button" size="sm" variant="outline" onClick={closeCurrent} disabled={!openArea || openArea.points.length < 3} title="Close area" aria-label="Close area">
+          <CornerDownRight />
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={undo} disabled={layout.areas.length === 0} className="h-8">
-          <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Undo
+        <Button type="button" size="sm" variant="outline" onClick={undo} disabled={layout.areas.length === 0} title="Undo" aria-label="Undo">
+          <Undo2 />
         </Button>
         <Button
           type="button"
@@ -849,24 +850,36 @@ const GrassDrawingBoard: React.FC<Props> = ({
           variant="outline"
           onClick={deleteSelection}
           disabled={!selection}
-          className="h-8 text-destructive hover:text-destructive"
+          className="text-destructive hover:text-destructive"
+          title="Delete selection"
+          aria-label="Delete selection"
         >
-          <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Delete
+          <Trash2 />
         </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={fitView} className="h-8">
-          <Maximize2 className="mr-1.5 h-3.5 w-3.5" /> Reset view
+        <span className="mx-0.5 h-4 w-px bg-border" />
+        <Button type="button" size="sm" variant="ghost" onClick={() => setView(v => ({ ...v, zoom: Math.max(MIN_ZOOM, v.zoom / 1.25) }))} title="Zoom out" aria-label="Zoom out">
+          <ZoomOut />
         </Button>
-        <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary" className="font-mono">
+        <Button type="button" size="sm" variant="ghost" className="has-label tabular-nums" onClick={fitView} title="Fit the sheet" aria-label="Fit sheet">
+          {Math.round(size.w / (view.zoom * PX_PER_FT))} ft
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => setView(v => ({ ...v, zoom: Math.min(MAX_ZOOM, v.zoom * 1.25) }))} title="Zoom in" aria-label="Zoom in">
+          <ZoomIn />
+        </Button>
+        <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Badge variant="secondary" className="font-mono text-[9px]">
             {takeoff.areaSqFt.toLocaleString()} sq ft
           </Badge>
-          <Badge variant="secondary" className="font-mono">
-            {takeoff.perimeterFt.toLocaleString()} lf edge
+          <Badge variant="secondary" className="font-mono text-[9px]">
+            {takeoff.perimeterFt.toLocaleString()} lf
           </Badge>
-          <BoardDensityToggle compact={compact} onToggle={toggleDensity} />
+          <Button type="button" size="sm" variant="ghost" onClick={toggleDensity} aria-pressed={compact} title={compact ? 'Show all panels' : 'Compact view'} aria-label="Toggle panels">
+            {compact ? <Maximize2 /> : <Minimize2 />}
+          </Button>
         </div>
       </div>
       </div>
+
 
       {/* Turf swatch carousel — applies to new or selected areas */}
       {!compact && (
