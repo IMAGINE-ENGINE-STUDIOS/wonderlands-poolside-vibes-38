@@ -1,3 +1,4 @@
+import { boardAltitudeFtOr, setBoardAltitudeFt } from '@/lib/design/boardAltitude';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
