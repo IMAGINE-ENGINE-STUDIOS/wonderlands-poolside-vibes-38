@@ -4,6 +4,9 @@ import { ArrowUpRight, ArrowDown, Loader2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import useReveal from "@/hooks/useReveal";
+import WidgetVersionRail from "@/components/tools/WidgetVersionRail";
+import type { LandscapeLayout } from "@/lib/landscape/landscapeEstimate";
+import { emptyLandscapeLayout } from "@/lib/landscape/landscapeEstimate";
 
 import logo from "@/assets/brand/wonderlands-logo.webp";
 
@@ -29,6 +32,8 @@ const GrassDrawingBoard = React.lazy(() => import("@/components/grass/GrassDrawi
 const GrassConfigurator = React.lazy(() => import("@/components/grass/GrassConfigurator"));
 const SiteDrawingBoard = React.lazy(() => import("@/components/blueprint/SiteDrawingBoard"));
 const SurveyQuoteTool = React.lazy(() => import("@/components/SurveyQuoteTool"));
+const SolarCalculatorBoard = React.lazy(() => import("@/components/solar/SolarCalculatorBoard"));
+const LandscapeDrawingBoard = React.lazy(() => import("@/components/landscape/LandscapeDrawingBoard"));
 const BlueprintImportDialog = React.lazy(() =>
   import("@/components/blueprint/BlueprintImportDialog").then((m) => ({ default: m.BlueprintImportDialog }))
 );
@@ -37,6 +42,7 @@ const BlueprintImportDialog = React.lazy(() =>
 const DesignStudioTool = React.lazy(() => import("@/pages/DesignStudio"));
 const BlueprintBuilderTool = React.lazy(() => import("@/pages/BlueprintBuilder"));
 const WonderlandsStudioTool = React.lazy(() => import("@/pages/WonderlandsStudio"));
+const GlobalDesignBoardTool = React.lazy(() => import("@/pages/GlobalDesignBoard"));
 
 const EMPTY_SITE_PLAN: SitePlanData = {
   shapes: [],
@@ -222,7 +228,10 @@ const Stage = ({
 
           <div className="tl-in tl-d2 min-w-0 lg:col-span-8">
             <LiveSurface route={meta.route} label={`${meta.name} — live widget`} contain={contain}>
-              {children}
+              {/* version tabs, palette + type controller, then the live module */}
+              <WidgetVersionRail widgetId={meta.id} name={meta.name}>
+                {children}
+              </WidgetVersionRail>
             </LiveSurface>
           </div>
         </div>
@@ -492,6 +501,66 @@ const SECTIONS: SectionMeta[] = [
     route: "/quote",
     cta: "Build a Proposal",
   },
+  {
+    id: "solar",
+    index: "14",
+    name: "Total Solar Calculator",
+    tag: "Estimating engine",
+    eyebrow: "Aerial roof capture. Real yield.",
+    headline: "Only the panels the roof can hold.",
+    description:
+      "A solar instrument built on measured roofs rather than averages. Search an address, capture roof planes from high-resolution aerial imagery, and each face is scored for sun exposure from azimuth, pitch, latitude and shade. Modules are fitted to the usable plane area, racking follows the roof covering, and one console carries the household inputs, the system headline and the production telemetry together.",
+    capabilities: [
+      "Address search over high-resolution aerial tiles",
+      "Roof plane capture with editable outlines",
+      "Per-face exposure from azimuth, pitch and shade",
+      "Astronomical sun path with moon, planets and yearly simulation",
+      "Country electricity tariffs and contractor bill of materials",
+    ],
+    license: { module: "WL-SOLAR", tier: "Enterprise", delivery: "Embedded React module" },
+    route: "/solar-board",
+    cta: "Open the Solar Board",
+  },
+  {
+    id: "planting",
+    index: "15",
+    name: "Planting Studio",
+    tag: "CAD engine",
+    eyebrow: "Botanical. Drawn to canopy.",
+    headline: "The garden priced as it is planted.",
+    description:
+      "A planting board where the drawing is botanical, not schematic: beds, hedges and specimens are placed to scale, each plant rendered at its true canopy spread and in flower, sized by container. Mulch and edging derive from bed area and perimeter, hedges price by linear foot, and the take-off merges into the whole-property estimate.",
+    capabilities: [
+      "Plants rendered at true canopy spread, in flower",
+      "Beds, hedges and specimens as separate instruments",
+      "Mulch and edging derived from area and perimeter",
+      "Container sizing with catalogue pricing",
+      "Compatible with the global design board take-off",
+    ],
+    license: { module: "WL-PLANTING", tier: "Professional", delivery: "Embedded React module" },
+    route: "/global-design-board",
+    cta: "Open the Planting Studio",
+  },
+  {
+    id: "global-board",
+    index: "16",
+    name: "Global Design Board",
+    tag: "Platform",
+    eyebrow: "Every trade. One take-off.",
+    headline: "The whole property, priced as it is drawn.",
+    description:
+      "The one-stop board for an entire project. Site, pool, deck, spa, tanning ledge, enclosure, fence, turf, planting and solar each bring their own splines, options and features, priced exactly as in the Studio and the FLIP book. Overlapping bodies crop automatically so decks open around water and turf, the dossier aggregates take-off, specifications, process and payment schedule across all trades, and the plan loads into the permit set in one click.",
+    capabilities: [
+      "All trade layers on one canvas at a shared altitude",
+      "Studio-identical imagery, options and pricing per trade",
+      "Automatic overlap cropping between trades",
+      "Project-wide dossier with payment schedule",
+      "One-click load into the blueprint plan set",
+    ],
+    license: { module: "WL-GLOBAL", tier: "Platform", delivery: "Embedded React module or full app" },
+    route: "/global-design-board",
+    cta: "Open the Global Board",
+  },
 ];
 
 const meta = (id: string) => SECTIONS.find((s) => s.id === id)!;
@@ -509,6 +578,8 @@ const ToolsGallery2 = () => {
   const [grassLayout, setGrassLayout] = React.useState<GrassLayout>({ areas: [] });
   const [grassProduct, setGrassProduct] = React.useState("");
   const [sitePlan, setSitePlan] = React.useState<SitePlanData>(EMPTY_SITE_PLAN);
+  const [landscape, setLandscape] = React.useState<LandscapeLayout>(() => emptyLandscapeLayout());
+  const [plantKey, setPlantKey] = React.useState("");
   const [heater, setHeater] = React.useState("");
   const [inlineResult, setInlineResult] = React.useState("");
   const [quoteOpen, setQuoteOpen] = React.useState(false);
@@ -611,7 +682,7 @@ const ToolsGallery2 = () => {
 
         <div className="relative z-10 mx-auto w-full max-w-[1500px] px-5 py-10 sm:px-8">
           <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground sm:text-[11px]">
-            Thirteen licensable modules
+            Sixteen licensable modules
           </p>
           <h1 className="mt-5 max-w-5xl font-serif text-[clamp(2.3rem,8vw,6.5rem)] font-light leading-[0.95] tracking-tight">
             Not screenshots.
@@ -885,6 +956,37 @@ const ToolsGallery2 = () => {
         </React.Suspense>
       </Stage>
 
+      {/* 14 — total solar calculator */}
+      <Stage meta={meta("solar")} dark>
+        <Launcher
+          title="the Solar Board"
+          note="The Total Solar Calculator streams aerial imagery and runs the astronomical console. Load it here to search an address, trace a roof and size a system."
+        >
+          <SolarCalculatorBoard height={620} />
+        </Launcher>
+      </Stage>
+
+      {/* 15 — planting studio */}
+      <Stage meta={meta("planting")}>
+        <React.Suspense fallback={<Loading label="Loading planting studio" />}>
+          <LandscapeDrawingBoard
+            layout={landscape}
+            onChange={setLandscape}
+            activePlantKey={plantKey}
+            onActivePlantChange={setPlantKey}
+          />
+        </React.Suspense>
+      </Stage>
+
+      {/* 16 — global design board */}
+      <Stage meta={meta("global-board")} dark contain>
+        <Launcher
+          title="the Global Design Board"
+          note="The global board mounts every trade layer, its options and the project dossier. Load it to price a complete property inside this page."
+        >
+          <GlobalDesignBoardTool />
+        </Launcher>
+      </Stage>
 
       <footer className="relative overflow-hidden border-t border-border/60 bg-secondary/40 py-20 text-center">
         <div className="pointer-events-none absolute inset-0 tl-grid opacity-50" />
@@ -893,7 +995,7 @@ const ToolsGallery2 = () => {
             Licensing — Wonderlands Software
           </p>
           <p className="mx-auto mt-5 max-w-2xl font-serif text-[clamp(1.5rem,4vw,2.5rem)] font-light">
-            Thirteen modules, licensed individually or as one platform.
+            Sixteen modules, licensed individually or as one platform.
           </p>
           <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-muted-foreground">
             Every module above is the production build, embeddable as a React module or deployed as a full

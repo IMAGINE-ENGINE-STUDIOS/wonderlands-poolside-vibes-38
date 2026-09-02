@@ -41,6 +41,7 @@ import {
 } from "@/data/solarHardware";
 import SolarReportTabs from "./SolarReportTabs";
 import SolarPerformanceGraphics from "./SolarPerformanceGraphics";
+import SolarSystemConsole from "./SolarSystemConsole";
 import SolarProjectGallery from "./SolarProjectGallery";
 import { saveSolarProject, type SolarProjectEntry } from "@/lib/solar/solarGallery";
 import StudioCartWidget from "@/components/StudioCartWidget";
@@ -939,28 +940,6 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
               <p className="text-[10px] leading-relaxed text-muted-foreground">
                 {rackingByCovering[session.covering].anchor}
               </p>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block">
-                  <Label>Power bill / mo</Label>
-                  <input
-                    type="number"
-                    min={40}
-                    value={session.monthlyBill}
-                    onChange={(e) => patch({ monthlyBill: Math.max(40, Number(e.target.value) || 0) })}
-                    className={selectClass}
-                  />
-                </label>
-                <label className="block">
-                  <Label>Run to panel (ft)</Label>
-                  <input
-                    type="number"
-                    min={5}
-                    value={session.serviceRunFt}
-                    onChange={(e) => patch({ serviceRunFt: Math.max(5, Number(e.target.value) || 0) })}
-                    className={selectClass}
-                  />
-                </label>
-              </div>
             </div>
           </div>
 
@@ -1073,28 +1052,18 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
             </div>
           </div>
 
-          {/* headline */}
-          <div className="border border-foreground/70 p-4">
-            <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Your solar project</p>
-            <p className="mt-2 font-serif text-3xl font-light leading-none">{production.kwDc.toFixed(2)} kW</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {production.panels} panels ·{" "}
-              {(production.yearlyKwhVerified ?? production.yearlyKwhModel).toLocaleString()} kWh per year ·{" "}
-              {savings.offsetPercent}% of the bill
-            </p>
-            <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-              Pricing provided after the site survey
-            </p>
-            {cart && (
-              <button
-                onClick={addToCart}
-                disabled={!production.panels}
-                className="mt-4 w-full border border-foreground px-4 py-3 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background disabled:opacity-40"
-              >
-                Add this system to my project
-              </button>
-            )}
-          </div>
+          {/* one console — house inputs, system headline and production telemetry */}
+          <SolarSystemConsole
+            monthlyBill={session.monthlyBill}
+            onMonthlyBillChange={(v) => patch({ monthlyBill: v })}
+            serviceRunFt={session.serviceRunFt}
+            onServiceRunChange={(v) => patch({ serviceRunFt: v })}
+            production={production}
+            savings={savings}
+            latitude={session.lat ?? FL_LAT}
+            demandPerMonth={Math.round(savings.householdKwhPerYear / 12)}
+            onAddToCart={cart ? addToCart : undefined}
+          />
         </div>
         )}
       </div>
