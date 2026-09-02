@@ -465,30 +465,41 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           filter="url(#wlSunGlow)"
         />
 
-        {/* hour stations */}
+        {/* hour stations — hover to inspect, click to jump the solar clock */}
         {stations.map((s, i) => (
           <g
             key={s.h}
             onPointerEnter={() => setStation(i)}
             onPointerLeave={() => setStation(null)}
+            onClick={() => {
+              setPlaying(false);
+              setHours(s.h);
+              setStation(null);
+            }}
             style={{ cursor: "pointer" }}
+            role="button"
+            tabIndex={-1}
+            aria-label={`${clockLabel(s.h)} — altitude ${s.altitude.toFixed(0)} degrees`}
           >
-            <circle cx={s.x} cy={s.y} r={9} fill="transparent" />
+            <circle cx={s.x} cy={s.y} r={14} fill="transparent" />
+            {station === i && (
+              <circle cx={s.x} cy={s.y} r={9} fill="#fde68a" opacity={0.16} />
+            )}
             <circle
               cx={s.x}
               cy={s.y}
-              r={station === i ? 3.4 : 1.9}
+              r={station === i ? 5 : 2.8}
               fill={station === i ? "#fde68a" : "#fbbf24"}
-              opacity={station === i ? 1 : 0.75}
+              opacity={station === i ? 1 : 0.8}
               className="transition-all duration-200"
             />
             {(s.h % 2 === 0 || station === i) && (
               <text
                 x={s.x}
-                y={s.y - 8}
+                y={s.y - 13}
                 textAnchor="middle"
-                className="fill-muted-foreground"
-                style={{ fontSize: 6.8, letterSpacing: 0.8 }}
+                className={station === i ? "fill-foreground" : "fill-muted-foreground"}
+                style={{ fontSize: station === i ? 12 : 10.5, letterSpacing: 0.4 }}
               >
                 {clockLabel(s.h).replace(":00", "")}
               </text>
@@ -496,19 +507,53 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           </g>
         ))}
 
+        {/* hovered station tooltip — a floating glass tag inside the plate */}
+        {station !== null && stations[station] && (
+          <g pointerEvents="none" className="wl-fade">
+            {(() => {
+              const s = stations[station];
+              const w = 150;
+              const h = 52;
+              const x = Math.max(DOME.left, Math.min(DOME.right - w, s.x - w / 2));
+              const above = s.y > DOME.top + 80;
+              const y = above ? s.y - h - 26 : s.y + 24;
+              return (
+                <>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={w}
+                    height={h}
+                    rx={10}
+                    fill="rgba(8,12,24,0.66)"
+                    stroke="rgba(253,230,138,0.45)"
+                    strokeWidth={1}
+                  />
+                  <text x={x + 12} y={y + 20} className="fill-foreground" style={{ fontSize: 13 }}>
+                    {clockLabel(s.h)}
+                  </text>
+                  <text x={x + 12} y={y + 38} className="fill-muted-foreground" style={{ fontSize: 11 }}>
+                    {`${s.altitude.toFixed(0)}° alt · ${s.azimuth.toFixed(0)}° ${compassLabel(s.azimuth)}`}
+                  </text>
+                </>
+              );
+            })()}
+          </g>
+        )}
+
         {/* horizon terminators */}
         {[
           { x: sunriseX, l: `SUNRISE ${clockLabel(sunrise)}`, anchor: "start" as const },
           { x: sunsetX, l: `SUNSET ${clockLabel(sunset)}`, anchor: "end" as const },
         ].map((t) => (
           <g key={t.l}>
-            <line x1={t.x} x2={t.x} y1={DOME.base - 26} y2={DOME.base} stroke="#fbbf24" strokeOpacity={0.6} strokeWidth={0.9} strokeDasharray="2 3" />
+            <line x1={t.x} x2={t.x} y1={DOME.base - 30} y2={DOME.base} stroke="#fbbf24" strokeOpacity={0.6} strokeWidth={1} strokeDasharray="2 3" />
             <text
-              x={t.anchor === "start" ? t.x + 4 : t.x - 4}
-              y={DOME.base - 30}
+              x={t.anchor === "start" ? t.x + 6 : t.x - 6}
+              y={DOME.base - 36}
               textAnchor={t.anchor}
-              className="fill-muted-foreground"
-              style={{ fontSize: 6.4, letterSpacing: 1.4 }}
+              className="fill-amber-200"
+              style={{ fontSize: 10.5, letterSpacing: 1 }}
             >
               {t.l}
             </text>
@@ -521,7 +566,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           return (
             <g>
               <line x1={p.x} x2={p.x} y1={p.y} y2={DOME.base} stroke="#fde68a" strokeOpacity={0.28} strokeWidth={0.8} strokeDasharray="2 4" />
-              <text x={p.x} y={p.y - 12} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6.6, letterSpacing: 1.4 }}>
+              <text x={p.x} y={p.y - 16} textAnchor="middle" className="fill-foreground" style={{ fontSize: 10.5, letterSpacing: 1, opacity: 0.8 }}>
                 {`CULMINATION ${noonAlt.toFixed(1)}°`}
               </text>
             </g>
@@ -556,7 +601,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           </g>
         )}
         {sun.altitude <= 0 && (
-          <text x={DOME.w / 2} y={DOME.top + 14} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8, letterSpacing: 2 }}>
+          <text x={DOME.w / 2} y={DOME.top + 16} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 12.5, letterSpacing: 2 }}>
             SUN BELOW HORIZON · ARRAY IDLE
           </text>
         )}
