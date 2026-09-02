@@ -217,6 +217,19 @@ export const CANVAS_H = 720;
  * dimensions at a workable drafting scale (~1/2" = 1'-0" on screen).
  */
 export const DEFAULT_VIEW_HEIGHT_FT = 28;
+
+/**
+ * Default camera altitude, in real feet of frontage across the sheet.
+ *
+ * This board is used above all to lay out pools and the patio around them. A
+ * 16 x 36 shell with a generous 12 ft deck on every side measures about 60 x 40
+ * ft, so 70 ft across (about 43 ft deep on this sheet) opens with the whole
+ * pool-and-patio composition on the paper, dimensions legible, and still leaves
+ * room to draw. Whole-lot work — the 160 ft frontages and 400 ft depths our
+ * customers own — is one press of Fit away, and the camera the customer leaves
+ * behind is remembered for every board.
+ */
+export const DEFAULT_VIEW_WIDTH_FT = 70;
 export const DEFAULT_PX_PER_FT = +(CANVAS_H / DEFAULT_VIEW_HEIGHT_FT).toFixed(2); // 25.7 px/ft
 
 const layerMeta = (id: SiteLayerId) => SITE_LAYERS.find(l => l.id === id) || SITE_LAYERS[0];
@@ -384,7 +397,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const fitView = React.useCallback(() => {
     const pts = data.shapes.flatMap(s => s.points);
     if (!pts.length) {
-      const wantFt = defaultViewWidthFt ?? CANVAS_W / pxPerFt;
+      const wantFt = defaultViewWidthFt ?? DEFAULT_VIEW_WIDTH_FT;
       const z = clampZ(CANVAS_W / (wantFt * pxPerFt));
       setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
       return;
@@ -407,7 +420,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   React.useEffect(() => {
     if (framed.current) return;
     framed.current = true;
-    const wantFt = boardAltitudeFtOr(defaultViewWidthFt ?? CANVAS_W / pxPerFt);
+    const wantFt = boardAltitudeFtOr(defaultViewWidthFt ?? DEFAULT_VIEW_WIDTH_FT);
     const z = clampZ(CANVAS_W / (wantFt * pxPerFt));
     setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
   }, [defaultViewWidthFt, pxPerFt]);
@@ -1165,8 +1178,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       onClick={opts.onClick}
       disabled={opts.disabled}
       title={opts.title}
+      aria-label={opts.title}
       className={`${CTRL} ${opts.on ? CTRL_ON : CTRL_OFF} ${opts.danger && !opts.on ? 'hover:border-destructive hover:text-destructive' : ''}`}
     >
+
       {label}
       {!opts.on && sweep}
     </button>
@@ -1202,81 +1217,53 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     </div>
   );
 
+  /* ── instrument header ────────────────────────────────────────────────────
+     The tools live in the sheet's own header, in the empty band beside the
+     live price, so the drawing keeps every pixel below it. Icon-only controls
+     (each with a tooltip) keep the strip one line on a desktop and a single
+     comfortable, swipeable row on a phone. */
   const toolButtons = (
-    <div className={menuSide ? 'flex flex-wrap items-center gap-1.5' : 'ml-auto flex flex-wrap items-center gap-1.5'}>
-      {onRequestImport
-        ? ctrl(
-            <>
-              <ImageIcon className="h-3.5 w-3.5" /> Import plan
-            </>,
-            { onClick: onRequestImport },
-          )
-        : null}
+    <div className="-mx-0.5 flex items-center gap-1 overflow-x-auto px-0.5 py-0.5 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible md:justify-end [&::-webkit-scrollbar]:hidden">
+      {onRequestImport ? ctrl(<ImageIcon className="h-3.5 w-3.5" />, { onClick: onRequestImport, title: 'Import a plan' }) : null}
       {/* Two separate instruments, exactly as the artificial-turf board: the pen
           traces new elements, the pointer picks a drawn one to change its
           options (click the paver deck to change its paver). */}
-      {ctrl(
-        <>
-          <PenLine className="h-3.5 w-3.5" /> Draw
-        </>,
-        {
-          on: mode === 'draw',
-          title: 'Trace a new element on the armed layer',
-          onClick: () => {
-            setMode('draw');
-            setHoverShapeId(null);
-          },
+      {ctrl(<PenLine className="h-3.5 w-3.5" />, {
+        on: mode === 'draw',
+        title: 'Draw — trace a new element on the armed layer',
+        onClick: () => {
+          setMode('draw');
+          setHoverShapeId(null);
         },
-      )}
-      {ctrl(
-        <>
-          <MousePointer2 className="h-3.5 w-3.5" /> Pick
-        </>,
-        {
-          on: mode === 'select',
-          title: 'Pick a drawn element to open its features and options',
-          onClick: () => {
-            setMode('select');
-            setDraft([]);
-            setHover(null);
-          },
+      })}
+      {ctrl(<MousePointer2 className="h-3.5 w-3.5" />, {
+        on: mode === 'select',
+        title: 'Pick — click a drawn element to open its features and options',
+        onClick: () => {
+          setMode('select');
+          setDraft([]);
+          setHover(null);
         },
-      )}
-
-      {ctrl(
-        <>
-          <Ruler className="h-3.5 w-3.5" /> Calibrate
-        </>,
-        {
-          on: mode === 'calibrate',
-          title: 'Set the drawing scale from a known dimension',
-          onClick: () => {
-            setCalibration([]);
-            setMode(mode === 'calibrate' ? 'draw' : 'calibrate');
-          },
+      })}
+      {ctrl(<Ruler className="h-3.5 w-3.5" />, {
+        on: mode === 'calibrate',
+        title: 'Calibrate — set the drawing scale from a known dimension',
+        onClick: () => {
+          setCalibration([]);
+          setMode(mode === 'calibrate' ? 'draw' : 'calibrate');
         },
-      )}
-      {ctrl(
-        <>
-          <Plus className="h-3.5 w-3.5" /> Point
-        </>,
-        {
-          onClick: addVertexAfterSelected,
-          disabled: !selected || selectedVertex === null,
-          title: 'Add a point after the selected one (or Alt-click a line to insert)',
-        },
-      )}
-      {ctrl(
-        <>
-          <Spline className="h-3.5 w-3.5" /> {selectedShapeCurved ? 'Curved' : 'Straight'}
-        </>,
-        {
-          on: selectedShapeCurved,
-          onClick: toggleSelectedCurve,
-          disabled: !selected,
-          title: 'Toggle curvature on the selected point (or the whole shape)',
-        },
-      )}
+      })}
+      {ctrl(<Plus className="h-3.5 w-3.5" />, {
+        onClick: addVertexAfterSelected,
+        disabled: !selected || selectedVertex === null,
+        title: 'Add a point after the selected one (or Alt-click a line to insert)',
+      })}
+      {ctrl(<Spline className="h-3.5 w-3.5" />, {
+        on: selectedShapeCurved,
+        onClick: toggleSelectedCurve,
+        disabled: !selected,
+        title: selectedShapeCurved ? 'Curved — straighten this point' : 'Straight — curve this point',
+      })}
       {ctrl(<Minus className="h-3.5 w-3.5" />, {
         onClick: () => selected && selectedVertex !== null && removeVertexFrom(selected, selectedVertex),
         disabled: !selected || selectedVertex === null,
@@ -1293,17 +1280,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         danger: true,
         title: 'Erase the selected element',
       })}
-      {ctrl(
-        <>
-          <RotateCcw className="h-3.5 w-3.5" /> Reset
-        </>,
-        {
-          onClick: resetProject,
-          disabled: !data.shapes.length && !draft.length && !underlay,
-          danger: true,
-          title: 'Erase everything and start the project over',
-        },
-      )}
+      {ctrl(<RotateCcw className="h-3.5 w-3.5" />, {
+        onClick: resetProject,
+        disabled: !data.shapes.length && !draft.length && !underlay,
+        danger: true,
+        title: 'Reset — erase everything and start the project over',
+      })}
       {ctrl(<Grid3X3 className="h-3.5 w-3.5" />, { on: showGrid, onClick: () => setShowGrid(g => !g), title: 'Grid' })}
       {/* REAL zoom — a view transform over the sheet. The drafting scale
           (px per foot) never changes, so nothing a customer drew is resized;
@@ -1316,19 +1298,29 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         value={zoomSlider}
         onChange={e => setZoomFromSlider(+e.target.value)}
         aria-label="Zoom"
-        className="h-1 w-28 cursor-pointer appearance-none rounded-full bg-foreground/15 accent-foreground"
+        className="hidden h-1 w-24 shrink-0 cursor-pointer appearance-none rounded-full bg-foreground/15 accent-foreground lg:block"
       />
       {ctrl(<ZoomIn className="h-3.5 w-3.5" />, { onClick: () => zoomBy(1.25), title: 'Zoom in' })}
-      <span className="w-24 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-        {Math.round(viewWidthFt).toLocaleString()} ft across
+      <span className="shrink-0 whitespace-nowrap px-1 text-center text-[8.5px] uppercase tracking-[0.16em] text-muted-foreground">
+        {Math.round(viewWidthFt).toLocaleString()} ft
       </span>
       {ctrl(<Maximize2 className="h-3.5 w-3.5" />, {
         onClick: fitView,
-        title: data.shapes.length ? 'Fit the drawing to the sheet' : `Fit ${Math.round(defaultViewWidthFt ?? CANVAS_W / pxPerFt)} ft of land`,
+        title: data.shapes.length ? 'Fit the drawing to the sheet' : `Fit ${Math.round(defaultViewWidthFt ?? DEFAULT_VIEW_WIDTH_FT)} ft of land`,
       })}
 
     </div>
   );
+
+  /** The sheet header: what is drawn, what it costs, and every tool beside it. */
+  const instrumentHeader =
+    header || !readOnly ? (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        {header ? <div className="min-w-0 max-w-full grow md:grow-0">{header}</div> : null}
+        {!readOnly ? <div className="min-w-0 w-full md:ml-auto md:w-auto md:flex-1">{toolButtons}</div> : null}
+      </div>
+    ) : null;
+
 
 
   /* ── element options ──────────────────────────────────────────────────────
@@ -1696,13 +1688,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const optionsInline = optionsSlot ? null : optionPanels;
   const optionsPortal = optionsSlot ? createPortal(optionPanels, optionsSlot) : null;
 
-  /* FLIP dossier layout — the drawing takes the full width of the leaf and every
-     control lives in a glass console docked BELOW the canvas, so the board is as
-     wide as the page allows instead of losing a column to a sidebar. */
+  /* FLIP dossier layout — the tools ride in the sheet header, so everything
+     under it is drawing. Only the element palette stays docked below. */
   if (menuSide) {
     return (
       <div className="flex h-full min-h-0 flex-col gap-2.5">
-        {header}
+        {instrumentHeader}
         {canvasEl}
         {optionsInline}
         {optionsPortal}
@@ -1714,10 +1705,6 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
               {layerTags}
-            </div>
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/50 pt-2">
-              <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Tools</span>
-              {toolButtons}
             </div>
           </div>
         )}
@@ -1731,13 +1718,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     <div className="space-y-3">
       {!readOnly && (
         <div className="space-y-2">
-          {header && (
-            <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
+          {instrumentHeader && (
+            <div className="rounded-xl border border-border/60 bg-background/60 p-2.5 backdrop-blur-md">
+              {instrumentHeader}
+            </div>
           )}
-          <div className="flex flex-wrap items-center gap-2">
-            {layerTags}
-            {toolButtons}
-          </div>
+          <div className="flex flex-wrap items-center gap-2">{layerTags}</div>
           {underlayBar}
         </div>
       )}
@@ -1749,5 +1735,6 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     </div>
   );
 };
+
 
 export default SiteDrawingBoard;

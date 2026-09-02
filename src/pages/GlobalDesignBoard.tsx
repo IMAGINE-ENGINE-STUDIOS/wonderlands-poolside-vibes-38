@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import usePersistentState from "@/hooks/usePersistentState";
 import FlipToolWidget from "@/components/flip/FlipToolWidget";
-import FlipBoardDossier from "@/components/flip/FlipBoardDossier";
+import FlipProjectDossier, { type DossierTrade } from "@/components/flip/FlipProjectDossier";
 import { useBoardEstimate, FlipBoardCalculators } from "@/components/flip/FlipBoardPanels";
 import { useFlipBoard, resetFlipBoard } from "@/components/flip/flipBoardStore";
 import {
@@ -104,6 +104,14 @@ const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
 /** Live total for one trade, read straight off its board. */
 const useTradeTotal = (boardId: string) => useBoardEstimate(boardId).total;
+
+/** The dossier reads every trade; solar stays a post-survey proposal. */
+const DOSSIER_TRADES: DossierTrade[] = TRADES.map((t) => ({
+  id: t.id,
+  boardId: t.boardId,
+  label: t.label,
+  priceHidden: t.id === "solar",
+}));
 
 /**
  * Every trade total in one place. Hook order is fixed by TRADES, so this reads
@@ -404,9 +412,16 @@ const GlobalDesignBoard: React.FC = () => {
             <FlipToolWidget key={active.boardId} categoryId={active.boardId} part="board" />
           </div>
 
-          {/* the discipline's own estimate, take-off, options, specs and process */}
+          {/* the WHOLE project: every trade's estimate, take-off & options,
+              specifications and process in one live dossier */}
           <div className="glass-panel overflow-hidden rounded-3xl">
-            <FlipBoardDossier key={`${active.boardId}-dossier`} categoryId={active.boardId} title={active.label} />
+            <FlipProjectDossier
+              trades={DOSSIER_TRADES}
+              enabled={enabled}
+              activeId={activeTrade}
+              onActiveChange={(id) => setActiveTrade(id as TradeId)}
+              title="This property"
+            />
           </div>
         </section>
       </main>
