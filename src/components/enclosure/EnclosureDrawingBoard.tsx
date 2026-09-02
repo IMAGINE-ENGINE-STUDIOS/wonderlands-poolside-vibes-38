@@ -254,7 +254,8 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   React.useEffect(() => {
     if (framedRef.current || !size.w) return;
     framedRef.current = true;
-    const z = Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT)));
+    /* the altitude last flown on any board — see lib/design/boardAltitude */
+    const z = Math.max(0.25, Math.min(8, size.w / (boardAltitudeFtOr(VIEW_WIDTH_FT) * PX_PER_FT)));
     setView({ z, x: 0, y: 0 });
   }, [size.w]);
 
@@ -268,7 +269,11 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       const py = size.h / 2;
       return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
     });
-  const fitSheet = () => setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
+  const fitSheet = () => setView({ z: Math.max(0.25, Math.min(8, size.w / (boardAltitudeFtOr(VIEW_WIDTH_FT) * PX_PER_FT))), x: 0, y: 0 });
+  /* publish this board's altitude so every other board opens level with it */
+  React.useEffect(() => {
+    if (size.w) setBoardAltitudeFt(size.w / (view.z * PX_PER_FT));
+  }, [view.z, size.w]);
 
   const curves = React.useMemo(() => normalizeFlags(layout.curves, layout.points.length), [layout.curves, layout.points.length]);
 

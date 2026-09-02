@@ -301,6 +301,10 @@ const GrassDrawingBoard: React.FC<Props> = ({
   const [selection, setSelection] = React.useState<Selection>(null);
   const [hover, setHover] = React.useState<GrassPoint | null>(null);
   const [view, setView] = React.useState({ zoom: 1, ox: 40, oy: 30 });
+  /* publish this board's altitude so every other board opens level with it */
+  React.useEffect(() => {
+    if (size.w) setBoardAltitudeFt(size.w / (view.zoom * PX_PER_FT));
+  }, [view.zoom, size.w]);
   const dragRef = React.useRef<{ mode: 'point' | 'pan'; id?: string; index?: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 540 });
   /* frame 20 ft of the sheet as soon as the board is measured */
@@ -308,7 +312,7 @@ const GrassDrawingBoard: React.FC<Props> = ({
   React.useEffect(() => {
     if (framedRef.current || !size.w) return;
     framedRef.current = true;
-    setView(v => ({ ...v, zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (VIEW_WIDTH_FT * PX_PER_FT))) }));
+    setView(v => ({ ...v, zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (boardAltitudeFtOr(VIEW_WIDTH_FT) * PX_PER_FT))) }));
   }, [size.w]);
 
   // Grass textures for pattern fills — product photos carry a white studio border,
@@ -807,7 +811,7 @@ const GrassDrawingBoard: React.FC<Props> = ({
 
   /* Every board frames 20 ft of the sheet by default. */
   const fitView = () =>
-    setView({ zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), ox: 40, oy: 30 });
+    setView({ zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (boardAltitudeFtOr(VIEW_WIDTH_FT) * PX_PER_FT))), ox: 40, oy: 30 });
 
   return (
     <div className="space-y-3">

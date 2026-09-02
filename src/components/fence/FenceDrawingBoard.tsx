@@ -60,11 +60,17 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
   /* Camera over the sheet — the drafting scale stays 10 px = 1 ft. */
   const [view, setView] = React.useState({ z: 1, x: 0, y: 0 });
   const framedRef = React.useRef(false);
+  /* Open at the altitude last flown on any board — see lib/design/boardAltitude */
   React.useEffect(() => {
     if (framedRef.current || !size.w) return;
     framedRef.current = true;
-    setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
+    const wantFt = boardAltitudeFtOr(VIEW_WIDTH_FT);
+    setView({ z: Math.max(0.25, Math.min(8, size.w / (wantFt * PX_PER_FT))), x: 0, y: 0 });
   }, [size.w]);
+  /* …and publish this board's altitude back for the others. */
+  React.useEffect(() => {
+    if (size.w) setBoardAltitudeFt(size.w / (view.z * PX_PER_FT));
+  }, [view.z, size.w]);
   const zoomBy = (factor: number) =>
     setView(v => {
       const next = Math.max(0.25, Math.min(8, v.z * factor));
@@ -73,7 +79,7 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       const py = size.h / 2;
       return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
     });
-  const fitSheet = () => setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
+  const fitSheet = () => setView({ z: Math.max(0.25, Math.min(8, size.w / (boardAltitudeFtOr(VIEW_WIDTH_FT) * PX_PER_FT))), x: 0, y: 0 });
   React.useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
