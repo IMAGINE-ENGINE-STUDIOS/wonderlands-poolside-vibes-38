@@ -6,6 +6,7 @@ import {
   DEFAULT_PX_PER_FT,
   type SitePlanData,
 } from "@/components/blueprint/SiteDrawingBoard";
+import { emptyLandscapeLayout, type LandscapeLayout } from "@/lib/landscape/landscapeEstimate";
 
 /**
  * FLIP → Editor Board.
@@ -75,6 +76,13 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
   const [traced, setTraced] = useState(false);
   const [total, setTotal] = useState(0);
   const [plan, setPlan] = usePersistentState<SitePlanData>(
+  /* the planting plan is cached like every other board, so the reader returns
+     to the same beds and plants */
+  const [landscape, setLandscape] = usePersistentState<LandscapeLayout>(
+    `editor_landscape_${categoryId}`,
+    emptyLandscapeLayout(),
+  );
+  const [plantKey, setPlantKey] = usePersistentState<string>(`editor_plant_${categoryId}`, "");
     `flip_editor_board_site_${categoryId}`,
     emptyPlan,
   );
@@ -179,6 +187,14 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
             ) : board.kind === "grass" ? (
               <GrassConfigurator initialGrassName={productName} onTotalChange={setTotal} />
 
+            ) : board.kind === "landscape" ? (
+              <LandscapeDrawingBoard
+                layout={landscape}
+                onChange={setLandscape}
+                activePlantKey={plantKey}
+                onActivePlantChange={setPlantKey}
+                onMeasure={(t) => setTotal(t.total)}
+              />
             ) : board.kind === "fence" ? (
               <FenceConfigurator onTotalChange={setTotal} />
             ) : board.kind === "enclosure" ? (
