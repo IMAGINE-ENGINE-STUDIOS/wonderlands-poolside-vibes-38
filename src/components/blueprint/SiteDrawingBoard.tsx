@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import {
   Undo2,
   Trash2,
+  Eraser,
+  RotateCcw,
   MousePointer2,
   PenLine,
   ZoomIn,
@@ -255,9 +257,25 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    /* ULTRA HIGH-RES, CHEAP: the drawing logic keeps working in logical
+       CANVAS_W x CANVAS_H units, but the bitmap is allocated at the device
+       pixel ratio (capped at 2 so large 4K screens don't pay for a 3x buffer).
+       Everything below then renders crisp with zero extra draw calls. */
+    const dpr = Math.min(2, Math.max(1, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1));
+    const bw = Math.round(CANVAS_W * dpr);
+    const bh = Math.round(CANVAS_H * dpr);
+    if (canvas.width !== bw || canvas.height !== bh) {
+      canvas.width = bw;
+      canvas.height = bh;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
 
     // imported sheet underlay
     if (underlay && underlay.visible && imgRef.current) {
@@ -694,6 +712,19 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     setSelected(null);
   };
 
+  /** Erase the whole drawing — geometry, imported sheet, draft and selection. */
+  const resetProject = () => {
+    if (typeof window !== 'undefined' && (data.shapes.length || underlay)) {
+      if (!window.confirm('Erase this drawing and start the project over? This cannot be undone.')) return;
+    }
+    setDraft([]);
+    setCalibration([]);
+    setSelected(null);
+    setSelectedVertex(null);
+    onChange({ ...data, shapes: [], underlay: undefined });
+  };
+
+
   const assignSelectedLayer = (id: SiteLayerId) => {
     if (!selected) return;
     onChange({
@@ -727,125 +758,236 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     onChange({ ...data, underlay: { ...underlay, ...patch } });
   };
 
+  /* ── console styling ──────────────────────────────────────────────────────
+     Same language as the Latham / GlimmerGlass gateways in the FLIP edition:
+     hairline glass panes, letter-spaced micro caps, a rule that sweeps in on
+     hover and a full invert when the control is engaged. */
+  const CTRL =
+    'group relative inline-flex items-center gap-1.5 overflow-hidden rounded-sm border px-3 py-1.5 text-[9px] uppercase tracking-[0.26em] backdrop-blur-md transition-all duration-500 disabled:pointer-events-none disabled:opacity-35';
+  const CTRL_OFF = 'border-border/50 bg-foreground/[0.035] text-muted-foreground hover:border-foreground/70 hover:text-foreground';
+  const CTRL_ON = 'border-foreground bg-foreground text-background';
+  const sweep = (
+    <span aria-hidden className="absolute bottom-0 left-0 h-px w-0 bg-foreground transition-all duration-500 group-hover:w-full" />
+  );
+
+  const ctrl = (
+    label: React.ReactNode,
+    opts: { on?: boolean; onClick: () => void; disabled?: boolean; title?: string; danger?: boolean },
+  ) => (
+    <button
+      type="button"
+      onClick={opts.onClick}
+      disabled={opts.disabled}
+      title={opts.title}
+      className={`${CTRL} ${opts.on ? CTRL_ON : CTRL_OFF} ${opts.danger && !opts.on ? 'hover:border-destructive hover:text-destructive' : ''}`}
+    >
+      {label}
+      {!opts.on && sweep}
+    </button>
+  );
+
   const layerTags = (
     <div className="flex flex-wrap gap-1.5">
-
-
-              {SITE_LAYERS.map(l => (
-                <button
-                  key={l.id}
-                  type="button"
-                  onClick={() => {
-                    setLayer(l.id);
-                    if (selected) assignSelectedLayer(l.id);
-                    else {
-                      setMode('draw');
-                      setDraft([]);
-                    }
-                  }}
-                  className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-                    layer === l.id && mode === 'draw'
-                      ? 'border-primary bg-primary/10 text-foreground'
-                      : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: l.color }} />
-                  {l.label}
-                </button>
-              ))}
+      {SITE_LAYERS.map(l => {
+        const on = layer === l.id && mode === 'draw';
+        return (
+          <button
+            key={l.id}
+            type="button"
+            onClick={() => {
+              setLayer(l.id);
+              if (selected) assignSelectedLayer(l.id);
+              else {
+                setMode('draw');
+                setDraft([]);
+              }
+            }}
+            className={`${CTRL} ${on ? CTRL_ON : CTRL_OFF}`}
+          >
+            <span
+              className="h-2 w-2 rounded-full ring-1 ring-inset ring-black/10"
+              style={{ background: l.color }}
+            />
+            {l.label}
+            {!on && sweep}
+          </button>
+        );
+      })}
     </div>
   );
 
   const toolButtons = (
-            <div className={menuSide ? 'flex flex-wrap items-center gap-1.5' : 'ml-auto flex items-center gap-1.5'}>
-
-              {onRequestImport ? (
-                <Button type="button" size="sm" variant="outline" onClick={onRequestImport}>
-                  <ImageIcon className="mr-1 h-3.5 w-3.5" /> Import plan
-                </Button>
-              ) : null}
-              <Button
-                type="button"
-                size="sm"
-                variant={mode === 'select' ? 'default' : 'outline'}
-                onClick={() => setMode(mode === 'select' ? 'draw' : 'select')}
-              >
-                {mode === 'select' ? <MousePointer2 className="mr-1 h-3.5 w-3.5" /> : <PenLine className="mr-1 h-3.5 w-3.5" />}
-                {mode === 'select' ? 'Select' : 'Draw'}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={mode === 'calibrate' ? 'default' : 'outline'}
-                onClick={() => {
-                  setCalibration([]);
-                  setMode(mode === 'calibrate' ? 'draw' : 'calibrate');
-                }}
-                title="Set the drawing scale from a known dimension"
-              >
-                <Ruler className="mr-1 h-3.5 w-3.5" /> Calibrate
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={addVertexAfterSelected}
-                disabled={!selected || selectedVertex === null}
-                title="Add a point after the selected one (or Alt-click a line to insert)"
-              >
-                <Plus className="mr-1 h-3.5 w-3.5" /> Point
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={selectedShapeCurved ? 'default' : 'outline'}
-                onClick={toggleSelectedCurve}
-                disabled={!selected}
-                title="Toggle curvature on the selected point (or the whole shape)"
-              >
-                <Spline className="mr-1 h-3.5 w-3.5" /> {selectedShapeCurved ? 'Curved' : 'Straight'}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => selected && selectedVertex !== null && removeVertexFrom(selected, selectedVertex)}
-                disabled={!selected || selectedVertex === null}
-                title="Remove the selected point"
-              >
-                <Minus className="h-3.5 w-3.5" />
-              </Button>
-              <Button type="button" size="sm" variant="outline" onClick={() => setDraft(p => p.slice(0, -1))} disabled={!draft.length}>
-                <Undo2 className="h-3.5 w-3.5" />
-              </Button>
-              <Button type="button" size="sm" variant="outline" onClick={deleteSelected} disabled={!selected}>
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-
-              <Button type="button" size="sm" variant="outline" onClick={() => setShowGrid(g => !g)}>
-                <Grid3X3 className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => onChange({ ...data, pxPerFt: Math.max(1, +(data.pxPerFt - 0.5).toFixed(1)) })}
-              >
-                <ZoomOut className="h-3.5 w-3.5" />
-              </Button>
-              <span className="w-24 text-center text-[11px] text-muted-foreground">{data.pxPerFt} px / ft</span>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => onChange({ ...data, pxPerFt: Math.min(24, +(data.pxPerFt + 0.5).toFixed(1)) })}
-              >
-                <ZoomIn className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+    <div className={menuSide ? 'flex flex-wrap items-center gap-1.5' : 'ml-auto flex flex-wrap items-center gap-1.5'}>
+      {onRequestImport
+        ? ctrl(
+            <>
+              <ImageIcon className="h-3.5 w-3.5" /> Import plan
+            </>,
+            { onClick: onRequestImport },
+          )
+        : null}
+      {ctrl(
+        <>
+          {mode === 'select' ? <MousePointer2 className="h-3.5 w-3.5" /> : <PenLine className="h-3.5 w-3.5" />}
+          {mode === 'select' ? 'Select' : 'Draw'}
+        </>,
+        { on: mode === 'select', onClick: () => setMode(mode === 'select' ? 'draw' : 'select') },
+      )}
+      {ctrl(
+        <>
+          <Ruler className="h-3.5 w-3.5" /> Calibrate
+        </>,
+        {
+          on: mode === 'calibrate',
+          title: 'Set the drawing scale from a known dimension',
+          onClick: () => {
+            setCalibration([]);
+            setMode(mode === 'calibrate' ? 'draw' : 'calibrate');
+          },
+        },
+      )}
+      {ctrl(
+        <>
+          <Plus className="h-3.5 w-3.5" /> Point
+        </>,
+        {
+          onClick: addVertexAfterSelected,
+          disabled: !selected || selectedVertex === null,
+          title: 'Add a point after the selected one (or Alt-click a line to insert)',
+        },
+      )}
+      {ctrl(
+        <>
+          <Spline className="h-3.5 w-3.5" /> {selectedShapeCurved ? 'Curved' : 'Straight'}
+        </>,
+        {
+          on: selectedShapeCurved,
+          onClick: toggleSelectedCurve,
+          disabled: !selected,
+          title: 'Toggle curvature on the selected point (or the whole shape)',
+        },
+      )}
+      {ctrl(<Minus className="h-3.5 w-3.5" />, {
+        onClick: () => selected && selectedVertex !== null && removeVertexFrom(selected, selectedVertex),
+        disabled: !selected || selectedVertex === null,
+        title: 'Remove the selected point',
+      })}
+      {ctrl(<Undo2 className="h-3.5 w-3.5" />, {
+        onClick: () => setDraft(p => p.slice(0, -1)),
+        disabled: !draft.length,
+        title: 'Undo the last placed corner',
+      })}
+      {ctrl(<Eraser className="h-3.5 w-3.5" />, {
+        onClick: deleteSelected,
+        disabled: !selected,
+        danger: true,
+        title: 'Erase the selected element',
+      })}
+      {ctrl(
+        <>
+          <RotateCcw className="h-3.5 w-3.5" /> Reset
+        </>,
+        {
+          onClick: resetProject,
+          disabled: !data.shapes.length && !draft.length && !underlay,
+          danger: true,
+          title: 'Erase everything and start the project over',
+        },
+      )}
+      {ctrl(<Grid3X3 className="h-3.5 w-3.5" />, { on: showGrid, onClick: () => setShowGrid(g => !g), title: 'Grid' })}
+      {ctrl(<ZoomOut className="h-3.5 w-3.5" />, {
+        onClick: () => onChange({ ...data, pxPerFt: Math.max(1, +(data.pxPerFt - 0.5).toFixed(1)) }),
+        title: 'Zoom out',
+      })}
+      <span className="w-20 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+        {data.pxPerFt} px/ft
+      </span>
+      {ctrl(<ZoomIn className="h-3.5 w-3.5" />, {
+        onClick: () => onChange({ ...data, pxPerFt: Math.min(24, +(data.pxPerFt + 0.5).toFixed(1)) }),
+        title: 'Zoom in',
+      })}
+    </div>
   );
 
+
+  /* ── element options ──────────────────────────────────────────────────────
+     Selecting an element opens its own option drawer straight away: what it is,
+     its measured size, its geometry controls and its additional features. The
+     same selection is broadcast so the discipline's dossier opens on its
+     options tab, exactly like the boards inside the FLIP edition. */
+  const selectedMeasure = React.useMemo(() => {
+    if (!selectedShape) return null;
+    const pts = selectedShape.points;
+    const lenFt = polylineLength(pts, selectedShape.closed) / data.pxPerFt;
+    let a = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const q = pts[(i + 1) % pts.length];
+      a += p.x * q.y - q.x * p.y;
+    }
+    const sqFt = Math.abs(a / 2) / (data.pxPerFt * data.pxPerFt);
+    return { lenFt: Math.round(lenFt), sqFt: Math.round(sqFt), points: pts.length };
+  }, [selectedShape, data.pxPerFt]);
+
+  React.useEffect(() => {
+    if (!selectedShape || typeof window === 'undefined') return;
+    window.dispatchEvent(
+      new CustomEvent('wl:board-element-selected', {
+        detail: { layer: selectedShape.layer, label: layerMeta(selectedShape.layer).label },
+      }),
+    );
+  }, [selectedShape?.id, selectedShape?.layer]);
+
+  const elementOptions =
+    !readOnly && selectedShape ? (
+      <div className="rounded-2xl border border-border/50 bg-foreground/[0.03] p-3 backdrop-blur-xl">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+            <span className="h-2 w-2 rounded-full" style={{ background: layerMeta(selectedShape.layer).color }} />
+            {layerMeta(selectedShape.layer).label}
+          </span>
+          {selectedMeasure ? (
+            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              {layerMeta(selectedShape.layer).linear
+                ? `${selectedMeasure.lenFt} LF`
+                : `${selectedMeasure.sqFt.toLocaleString()} SF · ${selectedMeasure.lenFt} LF perimeter`}{' '}
+              · {selectedMeasure.points} points
+            </span>
+          ) : null}
+          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            {ctrl(
+              <>
+                <Spline className="h-3.5 w-3.5" /> {selectedShapeCurved ? 'Curved' : 'Straight'}
+              </>,
+              { on: selectedShapeCurved, onClick: toggleSelectedCurve },
+            )}
+            {ctrl(
+              <>
+                <Plus className="h-3.5 w-3.5" /> Point
+              </>,
+              { onClick: addVertexAfterSelected, disabled: selectedVertex === null },
+            )}
+            {ctrl(<Minus className="h-3.5 w-3.5" />, {
+              onClick: () => selectedVertex !== null && removeVertexFrom(selectedShape.id, selectedVertex),
+              disabled: selectedVertex === null,
+            })}
+            {ctrl(
+              <>
+                <Eraser className="h-3.5 w-3.5" /> Erase
+              </>,
+              { onClick: deleteSelected, danger: true },
+            )}
+          </div>
+        </div>
+        <p className="mt-2 border-t border-border/50 pt-2 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+          Reassign this element
+        </p>
+        <div className="mt-1.5">{layerTags}</div>
+      </div>
+    ) : null;
+
   const underlayBar =
+
           underlay ? (
             <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-2 text-[11px]">
 
@@ -906,8 +1048,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const canvasEl = (
       <canvas
         ref={canvasRef}
-        width={CANVAS_W}
-        height={CANVAS_H}
+        /* bitmap size is owned by draw() (device-pixel-ratio aware) */
+
         onClick={handleClick}
         onDoubleClick={handleDouble}
         onMouseDown={handleMouseDown}
@@ -967,7 +1109,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       <div className="flex h-full min-h-0 flex-col gap-2.5">
         {header}
         {canvasEl}
+        {elementOptions}
         {underlayBar}
+
         {!readOnly && (
           <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -1001,6 +1145,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         </div>
       )}
       {canvasEl}
+      {elementOptions}
       {footNote}
     </div>
   );

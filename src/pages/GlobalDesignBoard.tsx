@@ -11,6 +11,7 @@ import {
   Ruler,
   Sun,
   Trees,
+  Eraser,
   Waves,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import usePersistentState from "@/hooks/usePersistentState";
 import FlipToolWidget from "@/components/flip/FlipToolWidget";
 import FlipBoardDossier from "@/components/flip/FlipBoardDossier";
 import { useBoardEstimate } from "@/components/flip/FlipBoardPanels";
-import { useFlipBoard } from "@/components/flip/flipBoardStore";
+import { useFlipBoard, resetFlipBoard } from "@/components/flip/flipBoardStore";
 import {
   DEFAULT_GLOBAL_META,
   computeGlobalEstimate,
@@ -146,6 +147,13 @@ const GlobalDesignBoard: React.FC = () => {
       ...prev,
       trades: prev.trades.includes(id) ? prev.trades.filter((t) => t !== id) : [...prev.trades, id],
     }));
+
+  /** Erase every trade board and the project sheet, then start clean. */
+  const resetProject = () => {
+    if (!window.confirm("Erase every drawing and reset this project? This cannot be undone.")) return;
+    TRADES.forEach((t) => resetFlipBoard(t.boardId));
+    setMeta({ ...DEFAULT_GLOBAL_META });
+  };
 
   const openBlueprint = () => {
     /* every trade is priced from its own board, then summarised as scope */
@@ -296,6 +304,9 @@ const GlobalDesignBoard: React.FC = () => {
             </div>
             <Button size="sm" className="mt-4 w-full" onClick={openBlueprint}>
               Load into blueprint mode
+            </Button>
+            <Button size="sm" variant="ghost" className="mt-1.5 w-full text-destructive" onClick={resetProject}>
+              <Eraser className="mr-1 h-4 w-4" /> Erase &amp; reset project
             </Button>
           </section>
         </aside>
