@@ -255,6 +255,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   /* Additional features armed per trade before anything is drawn — the options
      of the armed element are always on screen, not hidden behind a selection. */
   const [armedFeatures, setArmedFeatures] = React.useState<Partial<Record<SiteLayerId, string[]>>>({});
+  /* Host page may offer a project column for the options drawers */
+  const [optionsSlot, setOptionsSlot] = React.useState<HTMLElement | null>(null);
+  React.useEffect(() => {
+    setOptionsSlot(typeof document === 'undefined' ? null : document.getElementById('wl-board-options'));
+  }, []);
+
   const [mode, setMode] = React.useState<Mode>('draw');
   const [draft, setDraft] = React.useState<{ x: number; y: number }[]>([]);
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
