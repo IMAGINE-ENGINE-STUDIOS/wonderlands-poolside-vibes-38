@@ -117,7 +117,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
     `suite_${categoryId}_extras`,
     getDefaultExtras(productType),
   );
-  const [boardOpen, setBoardOpen] = React.useState(false);
+  /** Which drawing board is open — the discipline id, or null when closed. */
+  const [boardId, setBoardId] = React.useState<string | null>(null);
   const [quoteOpen, setQuoteOpen] = React.useState(false);
 
   const model = React.useMemo(
