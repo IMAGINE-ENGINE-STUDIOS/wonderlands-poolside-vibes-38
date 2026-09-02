@@ -1202,81 +1202,53 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     </div>
   );
 
+  /* ── instrument header ────────────────────────────────────────────────────
+     The tools live in the sheet's own header, in the empty band beside the
+     live price, so the drawing keeps every pixel below it. Icon-only controls
+     (each with a tooltip) keep the strip one line on a desktop and a single
+     comfortable, swipeable row on a phone. */
   const toolButtons = (
-    <div className={menuSide ? 'flex flex-wrap items-center gap-1.5' : 'ml-auto flex flex-wrap items-center gap-1.5'}>
-      {onRequestImport
-        ? ctrl(
-            <>
-              <ImageIcon className="h-3.5 w-3.5" /> Import plan
-            </>,
-            { onClick: onRequestImport },
-          )
-        : null}
+    <div className="-mx-0.5 flex items-center gap-1 overflow-x-auto px-0.5 py-0.5 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible md:justify-end [&::-webkit-scrollbar]:hidden">
+      {onRequestImport ? ctrl(<ImageIcon className="h-3.5 w-3.5" />, { onClick: onRequestImport, title: 'Import a plan' }) : null}
       {/* Two separate instruments, exactly as the artificial-turf board: the pen
           traces new elements, the pointer picks a drawn one to change its
           options (click the paver deck to change its paver). */}
-      {ctrl(
-        <>
-          <PenLine className="h-3.5 w-3.5" /> Draw
-        </>,
-        {
-          on: mode === 'draw',
-          title: 'Trace a new element on the armed layer',
-          onClick: () => {
-            setMode('draw');
-            setHoverShapeId(null);
-          },
+      {ctrl(<PenLine className="h-3.5 w-3.5" />, {
+        on: mode === 'draw',
+        title: 'Draw — trace a new element on the armed layer',
+        onClick: () => {
+          setMode('draw');
+          setHoverShapeId(null);
         },
-      )}
-      {ctrl(
-        <>
-          <MousePointer2 className="h-3.5 w-3.5" /> Pick
-        </>,
-        {
-          on: mode === 'select',
-          title: 'Pick a drawn element to open its features and options',
-          onClick: () => {
-            setMode('select');
-            setDraft([]);
-            setHover(null);
-          },
+      })}
+      {ctrl(<MousePointer2 className="h-3.5 w-3.5" />, {
+        on: mode === 'select',
+        title: 'Pick — click a drawn element to open its features and options',
+        onClick: () => {
+          setMode('select');
+          setDraft([]);
+          setHover(null);
         },
-      )}
-
-      {ctrl(
-        <>
-          <Ruler className="h-3.5 w-3.5" /> Calibrate
-        </>,
-        {
-          on: mode === 'calibrate',
-          title: 'Set the drawing scale from a known dimension',
-          onClick: () => {
-            setCalibration([]);
-            setMode(mode === 'calibrate' ? 'draw' : 'calibrate');
-          },
+      })}
+      {ctrl(<Ruler className="h-3.5 w-3.5" />, {
+        on: mode === 'calibrate',
+        title: 'Calibrate — set the drawing scale from a known dimension',
+        onClick: () => {
+          setCalibration([]);
+          setMode(mode === 'calibrate' ? 'draw' : 'calibrate');
         },
-      )}
-      {ctrl(
-        <>
-          <Plus className="h-3.5 w-3.5" /> Point
-        </>,
-        {
-          onClick: addVertexAfterSelected,
-          disabled: !selected || selectedVertex === null,
-          title: 'Add a point after the selected one (or Alt-click a line to insert)',
-        },
-      )}
-      {ctrl(
-        <>
-          <Spline className="h-3.5 w-3.5" /> {selectedShapeCurved ? 'Curved' : 'Straight'}
-        </>,
-        {
-          on: selectedShapeCurved,
-          onClick: toggleSelectedCurve,
-          disabled: !selected,
-          title: 'Toggle curvature on the selected point (or the whole shape)',
-        },
-      )}
+      })}
+      {ctrl(<Plus className="h-3.5 w-3.5" />, {
+        onClick: addVertexAfterSelected,
+        disabled: !selected || selectedVertex === null,
+        title: 'Add a point after the selected one (or Alt-click a line to insert)',
+      })}
+      {ctrl(<Spline className="h-3.5 w-3.5" />, {
+        on: selectedShapeCurved,
+        onClick: toggleSelectedCurve,
+        disabled: !selected,
+        title: selectedShapeCurved ? 'Curved — straighten this point' : 'Straight — curve this point',
+      })}
       {ctrl(<Minus className="h-3.5 w-3.5" />, {
         onClick: () => selected && selectedVertex !== null && removeVertexFrom(selected, selectedVertex),
         disabled: !selected || selectedVertex === null,
@@ -1293,17 +1265,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         danger: true,
         title: 'Erase the selected element',
       })}
-      {ctrl(
-        <>
-          <RotateCcw className="h-3.5 w-3.5" /> Reset
-        </>,
-        {
-          onClick: resetProject,
-          disabled: !data.shapes.length && !draft.length && !underlay,
-          danger: true,
-          title: 'Erase everything and start the project over',
-        },
-      )}
+      {ctrl(<RotateCcw className="h-3.5 w-3.5" />, {
+        onClick: resetProject,
+        disabled: !data.shapes.length && !draft.length && !underlay,
+        danger: true,
+        title: 'Reset — erase everything and start the project over',
+      })}
       {ctrl(<Grid3X3 className="h-3.5 w-3.5" />, { on: showGrid, onClick: () => setShowGrid(g => !g), title: 'Grid' })}
       {/* REAL zoom — a view transform over the sheet. The drafting scale
           (px per foot) never changes, so nothing a customer drew is resized;
@@ -1316,11 +1283,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         value={zoomSlider}
         onChange={e => setZoomFromSlider(+e.target.value)}
         aria-label="Zoom"
-        className="h-1 w-28 cursor-pointer appearance-none rounded-full bg-foreground/15 accent-foreground"
+        className="hidden h-1 w-24 shrink-0 cursor-pointer appearance-none rounded-full bg-foreground/15 accent-foreground sm:block"
       />
       {ctrl(<ZoomIn className="h-3.5 w-3.5" />, { onClick: () => zoomBy(1.25), title: 'Zoom in' })}
-      <span className="w-24 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-        {Math.round(viewWidthFt).toLocaleString()} ft across
+      <span className="shrink-0 whitespace-nowrap px-1 text-center text-[8.5px] uppercase tracking-[0.16em] text-muted-foreground">
+        {Math.round(viewWidthFt).toLocaleString()} ft
       </span>
       {ctrl(<Maximize2 className="h-3.5 w-3.5" />, {
         onClick: fitView,
@@ -1329,6 +1296,16 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
     </div>
   );
+
+  /** The sheet header: what is drawn, what it costs, and every tool beside it. */
+  const instrumentHeader =
+    header || !readOnly ? (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        {header ? <div className="min-w-0 max-w-full grow md:grow-0">{header}</div> : null}
+        {!readOnly ? <div className="min-w-0 w-full md:ml-auto md:w-auto md:flex-1">{toolButtons}</div> : null}
+      </div>
+    ) : null;
+
 
 
   /* ── element options ──────────────────────────────────────────────────────
