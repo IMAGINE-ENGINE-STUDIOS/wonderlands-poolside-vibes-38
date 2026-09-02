@@ -39,7 +39,7 @@ import {
   polylineLength,
   tracePolyline,
 } from '@/utils/splineEditing';
-import { TRADE_LAYERS, tradeFeaturePrice, solarPanelsForArea } from '@/lib/design/siteTradeLayers';
+import { TRADE_LAYERS, tradeFeaturePrice, solarPanelsForArea, type TradeFeature } from '@/lib/design/siteTradeLayers';
 
 /**
  * Toggle one additional feature on a layer. Options that belong to the same
