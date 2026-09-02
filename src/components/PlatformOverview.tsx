@@ -25,6 +25,8 @@ type Solution = {
   image: string;
   alt: string;
   to: string;
+  /** Secondary link into the configuration suite for this solution */
+  suite?: { to: string; label: string };
 };
 
 const SOLUTIONS: Solution[] = [
@@ -37,6 +39,7 @@ const SOLUTIONS: Solution[] = [
     image: outdoorImage,
     alt: "Resort-style pool with sun deck and water feature",
     to: "/#pools",
+    suite: { to: "/suites/spas", label: "Spa & Sauna Suites" },
   },
   {
     eyebrow: "02 — Home Transformation",
@@ -47,6 +50,7 @@ const SOLUTIONS: Solution[] = [
     image: homeImage,
     alt: "Covered lanai with pavers and landscaping",
     to: "/#lanai",
+    suite: { to: "/suites/enclosures", label: "Enclosure, Lanai & Fencing Suite" },
   },
   {
     eyebrow: "03 — Solar & Energy",
@@ -57,6 +61,7 @@ const SOLUTIONS: Solution[] = [
     image: solarImage,
     alt: "Rooftop solar array on a Florida home",
     to: "/#solar",
+    suite: { to: "/solar-board", label: "Total Solar Calculator" },
   },
 ];
 
@@ -134,13 +139,24 @@ const PlatformOverview: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  to={s.to}
-                  className="mt-7 inline-flex w-fit items-center gap-2 border-b border-foreground/40 pb-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground transition hover:border-foreground"
-                >
-                  Explore
-                  <span aria-hidden>→</span>
-                </Link>
+                <div className="mt-7 flex flex-col items-start gap-3">
+                  <Link
+                    to={s.to}
+                    className="inline-flex w-fit items-center gap-2 border-b border-foreground/40 pb-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground transition hover:border-foreground"
+                  >
+                    Explore
+                    <span aria-hidden>→</span>
+                  </Link>
+                  {s.suite && (
+                    <Link
+                      to={s.suite.to}
+                      className="inline-flex w-fit items-center gap-2 text-[10px] uppercase tracking-[0.28em] text-muted-foreground transition hover:text-foreground"
+                    >
+                      {s.suite.label}
+                      <span aria-hidden>→</span>
+                    </Link>
+                  )}
+                </div>
               </div>
             </article>
           ))}
