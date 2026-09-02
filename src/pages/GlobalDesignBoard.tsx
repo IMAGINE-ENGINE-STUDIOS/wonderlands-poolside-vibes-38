@@ -304,9 +304,9 @@ const GlobalDesignBoard: React.FC = () => {
           consolidated list instead of two competing menus. */}
 
 
-      <main className="mx-auto grid h-full max-w-[1800px] gap-4 overflow-hidden px-3 py-4 sm:px-5 sm:py-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <main className="mx-auto flex h-full max-w-[1800px] flex-col gap-4 overflow-hidden px-3 py-4 sm:px-5 sm:py-5 xl:flex-row">
         {/* ── project + trade rail ── */}
-        <aside className="h-full min-h-0 space-y-4 overflow-y-auto">
+        <aside className="flex-[1.1] min-h-0 space-y-4 overflow-y-auto xl:h-full xl:w-80 xl:flex-none">
           {/* ── features & options ──
               The drawn element's own additional features now hold the top of the
               left rail — every catalogued option, priced exactly as the studio
