@@ -64,10 +64,19 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
   const areas = measureSitePlan(data);
   const lines: SiteEstimateLine[] = [];
 
-  // Surfaces that need nothing underneath them are cut out of the paved layers.
+  /* Surfaces that need nothing underneath them are cut out of the paved layers.
+     Pool, spa and tanning-ledge shells are always deducted (by layer, not just
+     by keyword) so the paver deck is billed on its net area. */
+  const CUT_LAYERS: SiteLayerId[] = ['pool', 'spa', 'ledge', 'turf', 'gravel'];
   const exclusionPolygons = data.shapes
-    .filter((s) => isNonPaverSurface(s.layer) || isNonPaverSurface(layerLabel(s.layer)))
+    .filter(
+      (s) =>
+        CUT_LAYERS.includes(s.layer) ||
+        isNonPaverSurface(s.layer) ||
+        isNonPaverSurface(layerLabel(s.layer)),
+    )
     .map((s) => siteShapeOutline(s).map((p) => ({ x: p.x, y: p.y })));
+
 
   const netPaved = (layer: SiteLayerId) =>
     computeNetPaverArea({
