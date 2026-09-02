@@ -922,8 +922,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const canvasEl = (
       <canvas
         ref={canvasRef}
-        width={CANVAS_W}
-        height={CANVAS_H}
+        /* bitmap size is owned by draw() (device-pixel-ratio aware) */
+
         onClick={handleClick}
         onDoubleClick={handleDouble}
         onMouseDown={handleMouseDown}
