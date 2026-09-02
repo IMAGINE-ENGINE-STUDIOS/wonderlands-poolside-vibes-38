@@ -909,7 +909,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const endDrag = () => {
     drag.current = null;
+    pan.current = null;
   };
+
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
