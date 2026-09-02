@@ -293,9 +293,6 @@ const GlobalDesignBoard: React.FC = () => {
             <span className="text-[9px] uppercase tracking-[0.28em] text-foreground">
               {money(projectTotal)} installed
             </span>
-            <button type="button" onClick={() => navigate("/blueprint-builder")}>
-              <Ruler className="mr-1.5 inline h-3.5 w-3.5" /> Blueprint builder
-            </button>
             <button type="button" onClick={openBlueprint} className="bg-primary">
               Load into blueprint mode <ArrowRight className="ml-1.5 inline h-3.5 w-3.5" />
             </button>
