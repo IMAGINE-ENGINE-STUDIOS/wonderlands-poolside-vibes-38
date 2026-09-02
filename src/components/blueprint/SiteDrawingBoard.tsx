@@ -770,6 +770,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     gridFt,
     majorFt,
     selected,
+    hoverShapeId,
+
     showGrid,
     underlay,
     imgReady,
