@@ -66,18 +66,22 @@ const sunPosition = (latDeg: number, decDeg: number, hourAngleDeg: number) => {
 const declination = (dayOfYear: number) =>
   23.45 * Math.sin(((360 / 365) * (dayOfYear - 81)) * RAD);
 
-/** Path geometry of the sun dome plate. */
-const DOME = { w: 360, h: 176, base: 148, left: 26, right: 334, top: 22 };
+/** Path geometry of the sun dome plate (a wide mission-console sheet). */
+const DOME = { w: 720, h: 320, base: 246, left: 54, right: 686, top: 34 };
+/** Azimuth window drawn across the plate: ENE → WNW. */
+const AZ_FROM = 52;
+const AZ_TO = 308;
 
 /** Project altitude/azimuth into the dome plate. */
 const project = (azimuth: number, altitude: number) => {
-  const span = 300 - 60; // azimuth 60°(ENE) → 300°(WNW)
-  const t = Math.max(0, Math.min(1, (azimuth - 60) / span));
+  const span = AZ_TO - AZ_FROM;
+  const t = Math.max(0, Math.min(1, (azimuth - AZ_FROM) / span));
   return {
     x: DOME.left + t * (DOME.right - DOME.left),
-    y: DOME.base - (Math.max(0, altitude) / 90) * (DOME.base - DOME.top),
+    y: DOME.base - (Math.max(-12, altitude) / 90) * (DOME.base - DOME.top),
   };
 };
+
 
 /** Sample a full arc for a declination, keeping only daylight positions. */
 const arcPoints = (lat: number, dec: number) => {
