@@ -1675,13 +1675,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const optionsInline = optionsSlot ? null : optionPanels;
   const optionsPortal = optionsSlot ? createPortal(optionPanels, optionsSlot) : null;
 
-  /* FLIP dossier layout — the drawing takes the full width of the leaf and every
-     control lives in a glass console docked BELOW the canvas, so the board is as
-     wide as the page allows instead of losing a column to a sidebar. */
+  /* FLIP dossier layout — the tools ride in the sheet header, so everything
+     under it is drawing. Only the element palette stays docked below. */
   if (menuSide) {
     return (
       <div className="flex h-full min-h-0 flex-col gap-2.5">
-        {header}
+        {instrumentHeader}
         {canvasEl}
         {optionsInline}
         {optionsPortal}
@@ -1693,10 +1692,6 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
               {layerTags}
-            </div>
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/50 pt-2">
-              <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Tools</span>
-              {toolButtons}
             </div>
           </div>
         )}
@@ -1710,13 +1705,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     <div className="space-y-3">
       {!readOnly && (
         <div className="space-y-2">
-          {header && (
-            <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
+          {instrumentHeader && (
+            <div className="rounded-xl border border-border/60 bg-background/60 p-2.5 backdrop-blur-md">
+              {instrumentHeader}
+            </div>
           )}
-          <div className="flex flex-wrap items-center gap-2">
-            {layerTags}
-            {toolButtons}
-          </div>
+          <div className="flex flex-wrap items-center gap-2">{layerTags}</div>
           {underlayBar}
         </div>
       )}
@@ -1728,5 +1722,6 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     </div>
   );
 };
+
 
 export default SiteDrawingBoard;
