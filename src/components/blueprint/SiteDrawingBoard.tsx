@@ -240,7 +240,15 @@ interface Props {
    * tag strip above it — used on the FLIP dossier boards.
    */
   menuSide?: boolean;
+  /**
+   * How much land the camera should show across the sheet when the board opens
+   * (the Global Design Board asks for 400 ft of frontage). This moves the
+   * camera only — the drafting scale, and therefore every drawn dimension,
+   * is untouched.
+   */
+  defaultViewWidthFt?: number;
 }
+
 
 /**
  * Architect-style 2D site plan board. Draw the property boundary, the
