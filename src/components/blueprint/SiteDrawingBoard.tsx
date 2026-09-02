@@ -1067,18 +1067,79 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     onChange({ ...data, shapes: data.shapes.map(s => (s.id === id ? patch(s) : s)) });
   };
 
-  /** Drop a new vertex on the nearest run of a shape. */
-  const insertVertexNear = (p: { x: number; y: number }): boolean => {
-    for (let i = data.shapes.length - 1; i >= 0; i--) {
-      const shape = data.shapes[i];
-      const res = insertVertexAt(shape.points, shape.closed, p, 10, normalizeFlags(shape.curves, shape.points.length));
-      if (!res) continue;
-      updateShape(shape.id, s => ({ ...s, points: res.points, curves: res.curves }));
-      setSelected(shape.id);
-      setSelectedVertex(res.index);
-      return true;
+  /**
+   * Closest point ON the drawn outline — the true sampled spline, so the ghost
+   * follows a bowed arc exactly as it follows a straight run. Preference goes to
+   * the selected element, then to whatever run is nearest the cursor.
+   */
+  const nearestOnOutline = (
+    p: { x: number; y: number },
+    tolerance: number,
+  ): { shapeId: string; segment: number; point: { x: number; y: number }; distance: number } | null => {
+    let best: { shapeId: string; segment: number; point: { x: number; y: number }; distance: number } | null = null;
+    for (const shape of data.shapes) {
+      if (shape.points.length < 2) continue;
+      const segs = segmentCount(shape.points.length, shape.closed);
+      for (let i = 0; i < segs; i++) {
+        const pts = sampleSegmentAdvanced(shape.points, shape.closed, shape, i);
+        for (let k = 1; k < pts.length; k++) {
+          const a = pts[k - 1];
+          const b = pts[k];
+          const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+          const t = Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / (len * len)));
+          const proj = { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
+          const d = Math.hypot(p.x - proj.x, p.y - proj.y);
+          /* the selected element wins ties comfortably, as a CAD seat does */
+          const weighted = shape.id === selected ? d * 0.6 : d;
+          if (d <= tolerance && (!best || weighted < best.distance)) {
+            best = { shapeId: shape.id, segment: i, point: proj, distance: weighted };
+          }
+        }
+      }
     }
-    return false;
+    return best;
+  };
+
+  /** Widen a per-point / per-run numeric spec when a vertex is spliced in. */
+  const spliceSpec = (arr: number[] | undefined, n: number, at: number, fallback = 0): number[] | undefined => {
+    if (!arr?.length) return arr;
+    const out = new Array(n).fill(fallback) as number[];
+    for (let i = 0; i < Math.min(n, arr.length); i++) out[i] = arr[i];
+    out.splice(at, 0, fallback);
+    return out;
+  };
+
+  /** Drop the ghost vertex onto its run, splitting that run in two. */
+  const insertVertexOnOutline = (shapeId: string, segment: number, point: { x: number; y: number }) => {
+    const shape = data.shapes.find(s => s.id === shapeId);
+    if (!shape) return;
+    const n = shape.points.length;
+    const at = segment + 1;
+    const points = [...shape.points];
+    points.splice(at, 0, point);
+    const flags = normalizeFlags(shape.curves, n);
+    /* the new point inherits the curvature of the run it was dropped on */
+    flags.splice(at, 0, !!(flags[segment] || flags[(segment + 1) % n]));
+    updateShape(shapeId, s => ({
+      ...s,
+      points,
+      curves: flags,
+      /* both halves of a bowed run restart straight — the designer re-bows each */
+      arcs: spliceSpec(s.arcs, n, at),
+      fillets: spliceSpec(s.fillets, n, at),
+      tension: spliceSpec(s.tension, n, at, DEFAULT_TENSION),
+    }));
+    setSelected(shapeId);
+    setSelectedVertex(at);
+    setSelectedSegment(null);
+  };
+
+  /** Drop a new vertex on the nearest run of a shape (Alt-click shortcut). */
+  const insertVertexNear = (p: { x: number; y: number }): boolean => {
+    const hit = nearestOnOutline(p, 12 / viewRef.current.z);
+    if (!hit) return false;
+    insertVertexOnOutline(hit.shapeId, hit.segment, hit.point);
+    return true;
   };
 
   const removeVertexFrom = (shapeId: string, index: number) => {
