@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useLocation } from "react-router-dom";
 import ProductSuite, { type SuiteModel } from "@/components/product-suite/ProductSuite";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import type { ProductType } from "@/config/productFeatures";
@@ -231,6 +232,14 @@ const EnclosureSuite = () => {
     DISCIPLINES[0].id,
   );
   const active = DISCIPLINES.find((d) => d.id === activeId) ?? DISCIPLINES[0];
+
+  /* /suites/lanai and /suites/fencing open straight onto their own trade */
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    if (pathname.endsWith("/lanai")) setActiveId("lanai");
+    else if (pathname.endsWith("/fencing")) setActiveId("patio-fencing");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const switcher = (
     <nav aria-label="Choose a trade" className="flex flex-wrap gap-px bg-border/60">
