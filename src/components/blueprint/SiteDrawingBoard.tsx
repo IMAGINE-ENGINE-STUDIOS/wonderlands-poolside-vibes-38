@@ -832,16 +832,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ...data,
       shapes: data.shapes.map(s => {
         if (s.id !== selected) return s;
-        const current = s.features ?? [];
-        return {
-          ...s,
-          features: current.includes(featureId)
-            ? current.filter(f => f !== featureId)
-            : [...current, featureId],
-        };
+        return { ...s, features: applyFeatureToggle(s.layer, s.features ?? [], featureId) };
       }),
     });
   };
+
 
   React.useEffect(() => {
     if (readOnly) return;
