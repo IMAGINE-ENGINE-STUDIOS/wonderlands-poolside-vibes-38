@@ -787,21 +787,21 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
 
   if (!production.panels) {
     return (
-      <div className="rounded-2xl border border-white/15 bg-foreground/[0.04] p-6 text-center backdrop-blur-xl">
-        <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Performance</p>
-        <p className="mt-3 text-sm font-light text-muted-foreground">
+      <div className="rounded-3xl border border-white/15 bg-foreground/[0.05] p-8 text-center backdrop-blur-2xl">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Performance</p>
+        <p className="mt-3 text-base font-light text-muted-foreground">
           Trace a roof face to model production.
         </p>
       </div>
     );
   }
 
-  /* shared glass shell */
+  /* shared glass shell — deeper frost, inner light line, ultra-wide friendly */
   const glass =
-    "relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-foreground/[0.06] to-foreground/[0.02] p-4 backdrop-blur-xl shadow-[0_18px_50px_-30px_rgba(8,12,24,0.7)] sm:p-5";
+    "relative overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-b from-foreground/[0.09] to-foreground/[0.02] p-5 backdrop-blur-2xl shadow-[0_28px_70px_-38px_rgba(8,12,24,0.85),inset_0_1px_0_rgba(255,255,255,0.12)] transition-shadow duration-500 hover:shadow-[0_34px_90px_-38px_rgba(8,12,24,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] sm:p-7";
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-4 sm:space-y-5">
       {/* keyframes are local so the figure carries its own motion */}
       <style>{`
         @keyframes wlSolarRing { from { stroke-dashoffset: ${CIRC}; } }
@@ -819,6 +819,21 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         .wl-fade { animation: wlSolarFade .7s ease-out both; }
         .wl-pulse { transform-box: fill-box; transform-origin: center; animation: wlSolarPulse 2.6s ease-in-out infinite; }
         .wl-drift { animation: wlSolarDrift 18s ease-in-out infinite alternate; }
+
+        /* generous, glassy scrubbers — big enough to grab on a touch screen */
+        .wl-range { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 999px;
+          background: linear-gradient(90deg, rgba(99,102,241,.45), rgba(251,191,36,.55), rgba(249,115,22,.5));
+          box-shadow: inset 0 1px 3px rgba(0,0,0,.45); outline: none; }
+        .wl-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+          height: 22px; width: 22px; border-radius: 999px; background: #fef3c7;
+          border: 1px solid rgba(255,255,255,.7);
+          box-shadow: 0 0 0 5px rgba(251,191,36,.18), 0 6px 16px rgba(0,0,0,.45);
+          transition: transform .18s ease, box-shadow .18s ease; cursor: grab; }
+        .wl-range::-webkit-slider-thumb:hover { transform: scale(1.12); box-shadow: 0 0 0 8px rgba(251,191,36,.24), 0 8px 20px rgba(0,0,0,.5); }
+        .wl-range::-moz-range-thumb { height: 20px; width: 20px; border-radius: 999px; background: #fef3c7;
+          border: 1px solid rgba(255,255,255,.7); box-shadow: 0 0 0 5px rgba(251,191,36,.18); cursor: grab; }
+        .wl-range:focus-visible { box-shadow: inset 0 1px 3px rgba(0,0,0,.45), 0 0 0 2px rgba(251,191,36,.7); }
+
         @media (prefers-reduced-motion: reduce) {
           .wl-ring, .wl-bar, .wl-grow, .wl-line, .wl-arc, .wl-fade, .wl-pulse, .wl-drift { animation: none; }
         }
