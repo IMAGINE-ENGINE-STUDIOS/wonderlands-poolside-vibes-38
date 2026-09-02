@@ -41,6 +41,14 @@ export const FlipBoardDossier: React.FC<{
   const pipeline = React.useMemo(() => getProjectPipeline(categoryId), [categoryId]);
   const [tab, setTab] = React.useState<TabId>("estimate");
 
+  /* Selecting an element on the board opens its additional features/options
+     straight away — the boards broadcast `wl:board-element-selected`. */
+  React.useEffect(() => {
+    const onSelect = () => setTab("takeoff");
+    window.addEventListener("wl:board-element-selected", onSelect as EventListener);
+    return () => window.removeEventListener("wl:board-element-selected", onSelect as EventListener);
+  }, []);
+
   /* Solar figures stay private — proposals follow the survey. */
   const priceHidden = board.kind === "solar";
 
