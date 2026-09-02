@@ -10,6 +10,8 @@ import {
   Trash2,
   TreeDeciduous,
   Undo2,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { landscapingCategories, landscapingPlants, type LandscapingCategory } from "@/data/landscapingData";
@@ -55,7 +57,9 @@ export { measureLandscapeLayout } from "@/lib/landscape/landscapeEstimate";
 
 const PX = LANDSCAPE_PX_PER_FT;
 const MIN_ZOOM = 0.3;
-const MAX_ZOOM = 4;
+const MAX_ZOOM = 8;
+/** Every drawing board opens on 20 ft of frontage. */
+const VIEW_WIDTH_FT = 20;
 const HIT_PX = 9;
 
 type Tool = "select" | "bed" | "plant" | "hedge";
@@ -288,6 +292,8 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
   const [tool, setTool] = React.useState<Tool>("plant");
   const [sel, setSel] = React.useState<Selection>(null);
   const [zoom, setZoom] = React.useState(1);
+  /* frame 20 ft of the sheet as soon as the board is measured */
+  const framedRef = React.useRef(false);
   const [pan, setPan] = React.useState({ x: 0, y: 0 });
   const [draft, setDraft] = React.useState<LandscapePoint[]>([]);
   const [hedge, setHedge] = React.useState<LandscapePoint[]>([]);
@@ -780,12 +786,14 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
         setDraft([]);
         setHedge([]);
       }}
+      title={label}
+      aria-label={label}
       className={cn(
-        "inline-flex items-center gap-1.5 border px-2.5 py-1.5 text-[8.5px] uppercase tracking-[0.24em] transition-colors",
+        "inline-flex h-7 w-7 items-center justify-center border transition-colors",
         tool === id ? "border-foreground bg-foreground text-background" : "border-border/60 hover:bg-muted",
       )}
     >
-      <Icon className="h-3 w-3" /> {label}
+      <Icon className="h-3.5 w-3.5" />
     </button>
   );
 
@@ -838,57 +846,94 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
     </div>
   );
 
+  React.useEffect(() => {
+    if (framedRef.current || !size.w) return;
+    framedRef.current = true;
+    setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (VIEW_WIDTH_FT * PX))));
+  }, [size.w]);
+
+  /* Slim instrument header — glyph tools, names in the tooltips. */
+  const slimHeader = (
+    <div className="board-console board-console-slim flex flex-wrap items-center gap-1 rounded-xl border border-border/50 bg-background/60 px-2 py-1.5 backdrop-blur-xl">
+      {toolBtn("plant", "Plant", Flower2)}
+      {toolBtn("hedge", "Hedge run", Route)}
+      {toolBtn("bed", "Bed", PenTool)}
+      {toolBtn("select", "Select", MousePointer2)}
+      <span className="mx-0.5 h-4 w-px bg-border" />
+      <button
+        type="button"
+        onClick={fillBed}
+        disabled={!selectedBed}
+        title="Mass-plant the selected bed"
+        aria-label="Mass-plant bed"
+        className="inline-flex h-7 w-7 items-center justify-center border border-border/60 transition-colors hover:bg-muted disabled:opacity-40"
+      >
+        <Repeat className="h-3.5 w-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => commit({ plantings: layout.plantings.slice(0, -1) })}
+        disabled={!layout.plantings.length}
+        title="Undo plant"
+        aria-label="Undo plant"
+        className="inline-flex h-7 w-7 items-center justify-center border border-border/60 transition-colors hover:bg-muted disabled:opacity-40"
+      >
+        <Undo2 className="h-3.5 w-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onChange(emptyLandscapeLayout());
+          setSel(null);
+        }}
+        title="Clear the sheet"
+        aria-label="Clear"
+        className="inline-flex h-7 w-7 items-center justify-center border border-border/60 transition-colors hover:bg-muted"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+      <span className="mx-0.5 h-4 w-px bg-border" />
+      <button
+        type="button"
+        onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z / 1.25))}
+        title="Zoom out"
+        aria-label="Zoom out"
+        className="inline-flex h-7 w-7 items-center justify-center border border-border/60 transition-colors hover:bg-muted"
+      >
+        <ZoomOut className="h-3.5 w-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (VIEW_WIDTH_FT * PX))))}
+        title="Fit the sheet"
+        aria-label="Fit sheet"
+        className="inline-flex h-7 items-center justify-center border border-border/60 px-2 text-[8.5px] uppercase tracking-[0.16em] tabular-nums transition-colors hover:bg-muted"
+      >
+        {Math.round(size.w / (zoom * PX))} ft
+      </button>
+      <button
+        type="button"
+        onClick={() => setZoom((z) => Math.min(MAX_ZOOM, z * 1.25))}
+        title="Zoom in"
+        aria-label="Zoom in"
+        className="inline-flex h-7 w-7 items-center justify-center border border-border/60 transition-colors hover:bg-muted"
+      >
+        <ZoomIn className="h-3.5 w-3.5" />
+      </button>
+      <label className="ml-auto flex items-center gap-1.5 text-[8.5px] uppercase tracking-[0.24em] text-muted-foreground">
+        <input type="checkbox" checked={showSpacing} onChange={(e) => setShowSpacing(e.target.checked)} /> Spacing
+      </label>
+      <label className="flex items-center gap-1.5 text-[8.5px] uppercase tracking-[0.24em] text-muted-foreground">
+        <input type="checkbox" checked={showLabels} onChange={(e) => setShowLabels(e.target.checked)} /> Labels
+      </label>
+      <label className="flex items-center gap-1.5 text-[8.5px] uppercase tracking-[0.24em] text-muted-foreground">
+        <input type="checkbox" checked={!!layout.irrigation} onChange={(e) => commit({ irrigation: e.target.checked })} /> Irrigation
+      </label>
+    </div>
+  );
+
   const console_ = (
     <div className="rounded-2xl border border-border/50 bg-background/60 p-3 shadow-[0_18px_50px_-34px_rgba(8,20,16,0.55)] backdrop-blur-xl">
-      {/* tools */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Tools</span>
-        {toolBtn("plant", "Plant", Flower2)}
-        {toolBtn("hedge", "Hedge run", Route)}
-        {toolBtn("bed", "Bed", PenTool)}
-        {toolBtn("select", "Select", MousePointer2)}
-        <button
-          type="button"
-          onClick={fillBed}
-          disabled={!selectedBed}
-          className="inline-flex items-center gap-1.5 border border-border/60 px-2.5 py-1.5 text-[8.5px] uppercase tracking-[0.24em] transition-colors hover:bg-muted disabled:opacity-40"
-        >
-          <Repeat className="h-3 w-3" /> Mass-plant bed
-        </button>
-        <button
-          type="button"
-          onClick={() => commit({ plantings: layout.plantings.slice(0, -1) })}
-          disabled={!layout.plantings.length}
-          className="inline-flex items-center gap-1.5 border border-border/60 px-2.5 py-1.5 text-[8.5px] uppercase tracking-[0.24em] transition-colors hover:bg-muted disabled:opacity-40"
-        >
-          <Undo2 className="h-3 w-3" /> Undo plant
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            onChange(emptyLandscapeLayout());
-            setSel(null);
-          }}
-          className="inline-flex items-center gap-1.5 border border-border/60 px-2.5 py-1.5 text-[8.5px] uppercase tracking-[0.24em] transition-colors hover:bg-muted"
-        >
-          <Trash2 className="h-3 w-3" /> Clear
-        </button>
-        <label className="ml-auto flex items-center gap-1.5 text-[8.5px] uppercase tracking-[0.24em] text-muted-foreground">
-          <input type="checkbox" checked={showSpacing} onChange={(e) => setShowSpacing(e.target.checked)} /> Spacing
-        </label>
-        <label className="flex items-center gap-1.5 text-[8.5px] uppercase tracking-[0.24em] text-muted-foreground">
-          <input type="checkbox" checked={showLabels} onChange={(e) => setShowLabels(e.target.checked)} /> Labels
-        </label>
-        <label className="flex items-center gap-1.5 text-[8.5px] uppercase tracking-[0.24em] text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={!!layout.irrigation}
-            onChange={(e) => commit({ irrigation: e.target.checked })}
-          />
-          Irrigation
-        </label>
-      </div>
-
       {/* bed surface */}
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/50 pt-2">
         <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Bed surface</span>
@@ -1068,6 +1113,7 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
           <TreeDeciduous className="ml-auto h-4 w-4 text-muted-foreground" />
         </div>
       )}
+      {!readOnly && slimHeader}
       {canvasEl}
       {!readOnly && console_}
     </div>
