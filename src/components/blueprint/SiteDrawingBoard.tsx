@@ -34,6 +34,7 @@ import {
   polylineLength,
   tracePolyline,
 } from '@/utils/splineEditing';
+import { TRADE_LAYERS, tradeFeaturePrice, solarPanelsForArea } from '@/lib/design/siteTradeLayers';
 
 
 export type SiteLayerId =
@@ -42,7 +43,12 @@ export type SiteLayerId =
   | 'driveway'
   | 'patio'
   | 'pool'
+  | 'spa'
+  | 'ledge'
   | 'deck'
+  | 'enclosure'
+  | 'turf'
+  | 'solar'
   | 'gravel'
   | 'fence'
   | 'equipment';
@@ -55,15 +61,24 @@ export interface SiteLayerMeta {
   impervious: boolean;
   /** Open polyline instead of a closed area (fence runs) */
   linear?: boolean;
+  /** Stroke pattern — each trade keeps its own spline signature on the sheet */
+  dash?: number[];
+  /** Diagonal hatch inside the shape (cage roofs, solar planes, turf fields) */
+  hatch?: boolean;
 }
 
 export const SITE_LAYERS: SiteLayerMeta[] = [
-  { id: 'property', label: 'Property boundary', color: '#111827', impervious: false },
+  { id: 'property', label: 'Property boundary', color: '#111827', impervious: false, dash: [10, 4, 2, 4] },
   { id: 'building', label: 'Building / residence', color: '#6b7280', impervious: true },
   { id: 'driveway', label: 'Driveway', color: '#9ca3af', impervious: true },
   { id: 'patio', label: 'Conc. patio / AC pad', color: '#78716c', impervious: true },
   { id: 'pool', label: 'Pool / spa', color: '#0891b2', impervious: true },
+  { id: 'spa', label: 'Spa / hot tub', color: '#0e7490', impervious: true, dash: [7, 3] },
+  { id: 'ledge', label: 'Tanning ledge', color: '#38bdf8', impervious: true, dash: [3, 3] },
   { id: 'deck', label: 'Paver deck', color: '#f97066', impervious: true },
+  { id: 'enclosure', label: 'Screen enclosure / lanai', color: '#334155', impervious: false, dash: [12, 5], hatch: true },
+  { id: 'turf', label: 'Artificial turf', color: '#4d7c0f', impervious: false, hatch: true },
+  { id: 'solar', label: 'Solar array', color: '#f59e0b', impervious: false, dash: [9, 4], hatch: true },
   { id: 'gravel', label: 'Gravel area', color: '#a3a3a3', impervious: true },
   { id: 'fence', label: 'Fence / barrier', color: '#16a34a', impervious: false, linear: true },
   { id: 'equipment', label: 'Equipment pad', color: '#7c3aed', impervious: true },
@@ -76,6 +91,8 @@ export interface SiteShape {
   closed: boolean;
   /** Per-point curvature flags — true renders that vertex as a smooth spline handle */
   curves?: boolean[];
+  /** Additional features selected on this element (see TRADE_LAYERS) */
+  features?: string[];
   /** Set when the shape came from an imported PDF/DXF/SVG plan */
   importedFrom?: string;
 }
@@ -335,9 +352,48 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         ctx.fillStyle = meta.color + '22';
         ctx.fill();
       }
+      /* Each trade keeps its own spline signature: cages and arrays are hatched
+         planes, spa and ledge shells are dashed, the lot line stays chain-dot. */
+      if (shape.closed && meta.hatch && !isDraft && outline.length > 2) {
+        /* Trade hatch, cut exactly to the polygon: each hatch line is trimmed by
+           its real intersections with the outline (cheap scanline, no clipping
+           state, so it stays crisp at any device pixel ratio). */
+        const ys = outline.map(p => p.y);
+        const xs = outline.map(p => p.x);
+        const minY = Math.min(...ys), maxY = Math.max(...ys);
+        const minX = Math.min(...xs), maxX = Math.max(...xs);
+        const span = maxY - minY;
+        const step = meta.id === 'solar' ? Math.max(10, pxPerFt * 3.4) : Math.max(8, pxPerFt * 1.5);
+        ctx.strokeStyle = meta.color + (meta.id === 'solar' ? '66' : '44');
+        ctx.lineWidth = 1;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        // Hatch direction is 45°: y = x - c, i.e. c = x - y.
+        for (let c = minX - maxY; c <= maxX - minY; c += step) {
+          const hits: { x: number; y: number }[] = [];
+          for (let i = 0; i < outline.length; i++) {
+            const a = outline[i];
+            const b = outline[(i + 1) % outline.length];
+            // Solve for t where (a + t(b-a)).x - (a + t(b-a)).y === c
+            const den = (b.x - a.x) - (b.y - a.y);
+            if (Math.abs(den) < 1e-6) continue;
+            const t = (c - (a.x - a.y)) / den;
+            if (t < 0 || t > 1) continue;
+            hits.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+          }
+          if (hits.length < 2) continue;
+          hits.sort((u, v) => u.y - v.y);
+          for (let i = 0; i + 1 < hits.length; i += 2) {
+            ctx.moveTo(hits[i].x, hits[i].y);
+            ctx.lineTo(hits[i + 1].x, hits[i + 1].y);
+          }
+        }
+        ctx.stroke();
+        void span;
+      }
       ctx.strokeStyle = selected === shape.id ? '#f59e0b' : meta.color;
       ctx.lineWidth = selected === shape.id ? 3 : meta.id === 'property' ? 2.5 : 2;
-      ctx.setLineDash(isDraft ? [6, 4] : meta.id === 'property' ? [10, 4, 2, 4] : []);
+      ctx.setLineDash(isDraft ? [6, 4] : meta.dash ?? []);
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -733,6 +789,24 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     });
   };
 
+  /** Toggle one additional feature on the selected element. */
+  const toggleSelectedFeature = (featureId: string) => {
+    if (!selected) return;
+    onChange({
+      ...data,
+      shapes: data.shapes.map(s => {
+        if (s.id !== selected) return s;
+        const current = s.features ?? [];
+        return {
+          ...s,
+          features: current.includes(featureId)
+            ? current.filter(f => f !== featureId)
+            : [...current, featureId],
+        };
+      }),
+    });
+  };
+
   React.useEffect(() => {
     if (readOnly) return;
     const onKey = (e: KeyboardEvent) => {
@@ -938,6 +1012,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     );
   }, [selectedShape?.id, selectedShape?.layer]);
 
+  const tradeSpec = selectedShape ? TRADE_LAYERS[selectedShape.layer] : undefined;
+  const selectedFeatureCost =
+    selectedShape && selectedMeasure
+      ? tradeFeaturePrice(selectedShape.layer, selectedShape.features, selectedMeasure.sqFt, selectedMeasure.lenFt)
+      : 0;
+
   const elementOptions =
     !readOnly && selectedShape ? (
       <div className="rounded-2xl border border-border/50 bg-foreground/[0.03] p-3 backdrop-blur-xl">
@@ -979,6 +1059,54 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             )}
           </div>
         </div>
+        {tradeSpec ? (
+          <div className="mt-2 border-t border-border/50 pt-2">
+            <div className="flex flex-wrap items-baseline gap-x-3">
+              <p className="text-[9px] uppercase tracking-[0.24em] text-muted-foreground">Additional features</p>
+              {tradeSpec.rate ? (
+                <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                  ${tradeSpec.rate}/sq ft base
+                </span>
+              ) : null}
+              {tradeSpec.linearRate ? (
+                <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                  ${tradeSpec.linearRate}/lf base
+                </span>
+              ) : null}
+              {selectedShape.layer === 'solar' && selectedMeasure ? (
+                <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {solarPanelsForArea(selectedMeasure.sqFt)} panels fit
+                </span>
+              ) : null}
+              {selectedFeatureCost > 0 ? (
+                <span className="ml-auto text-[9px] uppercase tracking-[0.2em] text-foreground">
+                  +${Math.round(selectedFeatureCost).toLocaleString()} options
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {tradeSpec.features.map(f => {
+                const on = (selectedShape.features ?? []).includes(f.id);
+                return (
+                  <span key={f.id} className="contents">
+                    {ctrl(
+                  <>
+                    {f.label}
+                    {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
+                    {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
+                    {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
+                  </>,
+                      { on, onClick: () => toggleSelectedFeature(f.id), title: f.hint },
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+            {tradeSpec.note ? (
+              <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{tradeSpec.note}</p>
+            ) : null}
+          </div>
+        ) : null}
         <p className="mt-2 border-t border-border/50 pt-2 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
           Reassign this element
         </p>
