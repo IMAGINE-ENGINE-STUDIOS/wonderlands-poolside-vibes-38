@@ -2187,7 +2187,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 : 'default'
               : mode === 'underlay'
                 ? 'move'
-                : 'crosshair',
+                : mode === 'point'
+                  ? insertGhost
+                    ? 'copy'
+                    : 'crosshair'
+                  : 'crosshair',
         }}
 
       />
