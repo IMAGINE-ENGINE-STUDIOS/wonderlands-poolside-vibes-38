@@ -47,7 +47,7 @@ export interface CurvatureSpec {
 
 export const DEFAULT_TENSION = 0.5;
 /** Bulge beyond this is a semicircle; clamp keeps the maths well conditioned. */
-export const MAX_BULGE = 0.999;
+export const MAX_BULGE = 1; // a semicircle — the tightest arc a single run can hold
 const STEPS = 28;
 
 export const dist = (a: CPt, b: CPt) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -80,8 +80,10 @@ export const segmentCount = (n: number, closed: boolean) => (closed && n > 2 ? n
 
 /**
  * Exact geometry of an arc segment.
- * `bulge` is sagitta ÷ chord, so 0.5 is a semicircle and the radius is
- * R = chord (1 + b²) / (4 |b|).
+ * `bulge` is the DXF/CAD bulge — tan(sweep ÷ 4) — so 1 is a semicircle, the
+ * radius is R = chord (1 + b²) / (4 |b|) and the rise off the chord (the
+ * sagitta) is chord × |b| ÷ 2. Matching the DXF convention exactly is what lets
+ * an imported plan and an arc drawn here mean the same curve.
  */
 export function arcMetrics(chordPx: number, bulge: number) {
   const b = Math.max(-MAX_BULGE, Math.min(MAX_BULGE, bulge));
@@ -94,7 +96,7 @@ export function arcMetrics(chordPx: number, bulge: number) {
     radiusPx,
     sweepRad,
     arcLenPx: radiusPx * sweepRad,
-    sagittaPx: Math.abs(b) * chordPx,
+    sagittaPx: (Math.abs(b) * chordPx) / 2,
     sign: (b > 0 ? 1 : -1) as -1 | 1,
   };
 }
@@ -103,9 +105,9 @@ export function arcMetrics(chordPx: number, bulge: number) {
 export function bulgeForRadius(chordPx: number, radiusPx: number, sign: 1 | -1 = 1) {
   if (!(chordPx > 0) || !(radiusPx > 0)) return 0;
   const half = chordPx / 2;
-  if (radiusPx <= half) return sign * 0.5; // tightest real arc: the semicircle
+  if (radiusPx <= half) return sign * 1; // tightest real arc: the semicircle
   const sagitta = radiusPx - Math.sqrt(radiusPx * radiusPx - half * half);
-  return sign * Math.min(MAX_BULGE, sagitta / chordPx);
+  return sign * Math.min(MAX_BULGE, (2 * sagitta) / chordPx);
 }
 
 /** Signed bulge implied by dragging the arc's midpoint to `p`. */
@@ -118,7 +120,8 @@ export function bulgeFromPoint(a: CPt, b: CPt, p: CPt) {
   const my = p.y - (a.y + b.y) / 2;
   /* signed offset along the chord's right-hand normal (-uy, ux) */
   const offset = mx * -uy + my * ux;
-  return Math.max(-MAX_BULGE, Math.min(MAX_BULGE, offset / chord));
+  /* sagitta → bulge (DXF): b = 2 × rise ÷ chord */
+  return Math.max(-MAX_BULGE, Math.min(MAX_BULGE, (2 * offset) / chord));
 }
 
 /** Midpoint of the arc — the grab handle a designer pulls to bow a run. */
@@ -128,7 +131,7 @@ export function arcMidpoint(a: CPt, b: CPt, bulge: number): CPt {
   if (chord < 1e-6) return mid;
   const ux = (b.x - a.x) / chord;
   const uy = (b.y - a.y) / chord;
-  const off = bulge * chord;
+  const off = (bulge * chord) / 2; // the arc's true rise off the chord
   return { x: mid.x + -uy * off, y: mid.y + ux * off };
 }
 
