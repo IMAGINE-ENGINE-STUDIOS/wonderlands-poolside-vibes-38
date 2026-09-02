@@ -787,8 +787,15 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     if (!onSnapshot) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    onSnapshot(data.shapes.length || data.underlay ? canvas.toDataURL('image/png') : null);
+    try {
+      onSnapshot(data.shapes.length || data.underlay ? canvas.toDataURL('image/png') : null);
+    } catch {
+      /* a catalogue photograph served without CORS taints the sheet — the board
+         keeps working, only the printed snapshot is skipped */
+      onSnapshot(null);
+    }
   }, [draw, onSnapshot, data.shapes.length, data.underlay]);
+
 
   /** Pointer → sheet coordinates, through the camera. */
   const toLocal = (e: React.MouseEvent<HTMLCanvasElement>) => {
