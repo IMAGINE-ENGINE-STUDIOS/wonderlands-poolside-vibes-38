@@ -273,7 +273,9 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
     rate: 10,
     note: 'Paver or concrete deck — non-paved surfaces are cut out of the take-off. Concrete deck is the $10/sq ft base; picking a paver prices it at its published rate.',
     features: [
-      /* the full Wonderlands paver catalogue, each at its published $/sq ft */
+      /* the full Wonderlands paver catalogue, each at its published $/sq ft.
+         Picking one REPLACES the $10/sq ft concrete deck base — the published
+         paver rate is the installed rate, exactly as the studio quotes it. */
       ...paverTypes.map((p) => ({
         id: `paver-${p.id}`,
         label: p.name,
@@ -282,7 +284,9 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         image: p.image,
         group: 'Paver selection',
         exclusive: 'deck-surface',
+        replacesBase: true,
       })),
+
       { id: 'deck-sealer', label: 'Penetrating sealer', perSqFt: 1.75, group: 'Deck options' },
       { id: 'deck-drain', label: 'Deck drain', perLinearFt: 26, group: 'Deck options' },
     ],
