@@ -2199,9 +2199,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             ? 'Click two points with a known distance on the imported sheet, then type the real length in feet to set the scale.'
             : mode === 'underlay'
               ? 'Drag the imported sheet to position it, then use Scale and Calibrate so the drawing matches real dimensions.'
-              : mode === 'select'
-                ? 'Click an element — the paver deck, the pool, the cage — to open its own features and options: the paver, finish or screen you pick applies to that element only. Drag a corner to reshape, drag it to move, Delete to remove.'
-                : `Click to place corners, click the first corner (or press Enter / double-click) to close the shape. The ${layerMeta(layer).label.toLowerCase()} options armed below travel onto the element you are drawing.`}{' '}
+              : mode === 'point'
+                ? 'Add point — the new point is anchored to your cursor and to the outline, sliding along the line (straight or bowed). Click to drop it exactly where you see it. Erase removes only the point you picked first.'
+                : mode === 'select'
+                  ? 'Click an element — the paver deck, the pool, the cage — to open its own features and options: the paver, finish or screen you pick applies to that element only. Drag a corner to reshape, drag it to move, Delete to remove.'
+                  : `Click to place corners, click the first corner (or press Enter / double-click) to close the shape. The ${layerMeta(layer).label.toLowerCase()} options armed below travel onto the element you are drawing.`}{' '}
 
           Drawn: {areas.propertySqFt.toLocaleString()} SF lot &middot; {areas.imperviousSqFt.toLocaleString()} SF impervious (
           {areas.imperviousPct}%) &middot; {areas.fenceLinearFt} LF barrier.
