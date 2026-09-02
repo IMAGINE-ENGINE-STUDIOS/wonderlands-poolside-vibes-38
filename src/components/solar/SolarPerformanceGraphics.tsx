@@ -1151,6 +1151,121 @@ const SunPathConsole: React.FC<{
           </span>
         </label>
       </div>
+
+      {/* ── night-sky ephemeris ── */}
+      <div className="relative mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className={chip} title={`${moon.phaseName} · ${(moon.illumination * 100).toFixed(0)}% lit`}>
+          <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Moon</dt>
+          <dd className="mt-1 text-[15px] font-light leading-tight">
+            {moon.phaseName}
+            <span className="block text-[11px] text-muted-foreground tabular-nums">
+              {`${(moon.illumination * 100).toFixed(0)}% lit · ${moon.altitude > 0 ? `${moon.altitude.toFixed(0)}° up` : "below horizon"}`}
+            </span>
+          </dd>
+        </div>
+        <div className={chip} title="Distance to the Moon at this instant">
+          <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Lunar range</dt>
+          <dd className="mt-1 text-[15px] font-light tabular-nums leading-tight">
+            {`${nf.format(Math.round(moon.distanceKm))} km`}
+            <span className="block text-[11px] text-muted-foreground">{`${moon.diameterDeg.toFixed(2)}° disc`}</span>
+          </dd>
+        </div>
+        <div className={chip} title="Naked-eye planets above the horizon in this window of sky">
+          <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Planets up</dt>
+          <dd className="mt-1 text-[15px] font-light leading-tight">
+            {planets.length ? planets.map((p) => p.name).join(" · ") : "None in view"}
+          </dd>
+        </div>
+        <div className={chip} title="Darkness of the sky, from full daylight to astronomical night">
+          <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Sky state</dt>
+          <dd className="mt-1 text-[15px] font-light leading-tight">
+            {night >= 0.95 ? "Astronomical night" : night > 0.35 ? "Twilight" : night > 0.02 ? "Civil dusk" : "Daylight"}
+            <span className="block text-[11px] text-muted-foreground tabular-nums">
+              {`${(night * 100).toFixed(0)}% dark`}
+            </span>
+          </dd>
+        </div>
+      </div>
+
+      {/* ── yearly simulation & electricity token ── */}
+      <div className="relative mt-4 rounded-2xl border border-white/12 bg-background/25 p-4 backdrop-blur-xl sm:p-5">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+              Yearly simulation
+            </p>
+            <p className="mt-1 text-base font-light">
+              {`Day ${Math.max(1, Math.round(yearDay))} of 365`}
+              <span className="text-muted-foreground">{` · ${MONTH_NAMES[monthIdx]}`}</span>
+            </p>
+          </div>
+          <label className="min-w-[220px] flex-1 sm:max-w-xs">
+            <span className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Electricity token
+            </span>
+            <select
+              value={tariffCode}
+              onChange={(e) => setTariffCode(e.target.value)}
+              className="mt-1.5 w-full rounded-xl border border-white/15 bg-background/60 px-3 py-2 text-sm font-light outline-none transition focus:border-amber-300/60"
+            >
+              {ELECTRICITY_TARIFFS.map((t) => (
+                <option key={t.code} value={t.code}>
+                  {`${t.country} — ${formatTariffMoney(t.rate, t)}/kWh`}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1 block text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+              {tariff.grid}
+            </span>
+          </label>
+        </div>
+
+        {/* accumulation bar */}
+        <div className="mt-4 h-[6px] w-full overflow-hidden rounded-full bg-foreground/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-400/70 via-amber-300 to-orange-400"
+            style={{ width: `${(Math.min(365, yearDay) / 365) * 100}%` }}
+          />
+        </div>
+
+        <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className={chip}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Accumulated</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none">{`${nf.format(Math.round(yearAccumulated))} kWh`}</dd>
+          </div>
+          <div className={chip}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Full year</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none">{`${nf.format(Math.round(yearlyKwh))} kWh`}</dd>
+          </div>
+          <div className={chip}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Value banked</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none text-amber-200">
+              {formatTariffMoney(yearMoney, tariff)}
+            </dd>
+          </div>
+          <div className={chip}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Year value</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none">
+              {formatTariffMoney(fullYearMoney, tariff)}
+            </dd>
+          </div>
+        </dl>
+
+        <input
+          type="range"
+          min={0}
+          max={365}
+          step={1}
+          value={Math.round(yearDay)}
+          onChange={(e) => {
+            setYearRun(false);
+            setYearDay(Number(e.target.value));
+            setDoy(Math.max(1, Number(e.target.value)));
+          }}
+          className="wl-range mt-4 w-full cursor-pointer"
+          aria-label="Simulated day of the year"
+        />
+      </div>
     </div>
   );
 };
