@@ -850,10 +850,10 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
               "radial-gradient(120% 90% at 12% 0%, rgba(249,115,22,0.16), transparent 60%), radial-gradient(80% 70% at 95% 100%, rgba(56,189,248,0.12), transparent 65%)",
           }}
         />
-        <div className="relative grid gap-5 sm:grid-cols-[minmax(0,168px)_1fr] sm:items-center">
+        <div className="relative grid gap-6 sm:grid-cols-[minmax(0,200px)_1fr] sm:items-center xl:grid-cols-[minmax(0,240px)_1fr]">
           <svg
             viewBox="0 0 140 140"
-            className="mx-auto h-32 w-32 sm:h-40 sm:w-40"
+            className="mx-auto h-40 w-40 sm:h-48 sm:w-48 xl:h-56 xl:w-56"
             role="img"
             aria-label={`Array covers ${offset}% of the household demand`}
           >
@@ -888,18 +888,18 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
               transform="rotate(-90 70 70)"
               filter="url(#wlGaugeGlow)"
             />
-            <text x="70" y="66" textAnchor="middle" className="fill-foreground" style={{ fontSize: 24, fontWeight: 300 }}>
+            <text x="70" y="68" textAnchor="middle" className="fill-foreground" style={{ fontSize: 32, fontWeight: 300 }}>
               {savings.offsetPercent}%
             </text>
-            <text x="70" y="82" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6.4, letterSpacing: 2 }}>
+            <text x="70" y="86" textAnchor="middle" className="fill-foreground" style={{ fontSize: 9, letterSpacing: 1.8, opacity: 0.75 }}>
               OF YOUR BILL
             </text>
-            <text x="70" y="95" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 5.6, letterSpacing: 1.6 }}>
+            <text x="70" y="100" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8, letterSpacing: 1.4 }}>
               {`LAT ${lat.toFixed(2)}°`}
             </text>
           </svg>
 
-          <dl className="grid grid-cols-2 gap-2 sm:gap-2.5">
+          <dl className="grid grid-cols-1 gap-2.5 xs:grid-cols-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-3">
             {[
               { k: "System", v: `${production.kwDc.toFixed(2)} kW`, s: `${production.panels} modules` },
               { k: "Per year", v: `${nf.format(yearly)} kWh`, s: production.yearlyKwhVerified ? "Measured by satellite" : "Modelled" },
@@ -911,12 +911,12 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
             ].map((row, i) => (
               <div
                 key={row.k}
-                className="wl-fade rounded-xl border border-white/10 bg-background/20 px-3 py-2.5 backdrop-blur-md"
+                className="wl-fade rounded-2xl border border-white/15 bg-background/28 px-4 py-3.5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:-translate-y-0.5 hover:border-amber-300/40 hover:bg-background/40"
                 style={{ animationDelay: `${0.1 + i * 0.08}s` }}
               >
-                <dt className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground">{row.k}</dt>
-                <dd className="mt-1 text-base font-light leading-none sm:text-lg">{row.v}</dd>
-                {row.s && <dd className="mt-1 text-[10px] text-muted-foreground">{row.s}</dd>}
+                <dt className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">{row.k}</dt>
+                <dd className="mt-1.5 text-2xl font-light leading-none tabular-nums sm:text-[26px]">{row.v}</dd>
+                {row.s && <dd className="mt-1.5 text-[12px] text-muted-foreground">{row.s}</dd>}
               </div>
             ))}
           </dl>
