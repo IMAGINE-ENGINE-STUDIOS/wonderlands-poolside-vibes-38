@@ -1,3 +1,4 @@
+import { boardAltitudeFtOr, setBoardAltitudeFt } from '@/lib/design/boardAltitude';
 import * as React from "react";
 import {
   Flower2,
@@ -861,11 +862,17 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
     </div>
   );
 
+  /* Open at the altitude last flown on any board — see lib/design/boardAltitude */
   React.useEffect(() => {
     if (framedRef.current || !size.w) return;
     framedRef.current = true;
-    setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (VIEW_WIDTH_FT * PX))));
+    setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (boardAltitudeFtOr(VIEW_WIDTH_FT) * PX))));
   }, [size.w]);
+
+  /* …and publish this board's altitude back so the others open level with it */
+  React.useEffect(() => {
+    if (size.w) setBoardAltitudeFt(size.w / (zoom * PX));
+  }, [zoom, size.w]);
 
   /* Slim instrument header — glyph tools, names in the tooltips. */
   const slimHeader = (
@@ -919,7 +926,7 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
       </button>
       <button
         type="button"
-        onClick={() => setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (VIEW_WIDTH_FT * PX))))}
+        onClick={() => setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (boardAltitudeFtOr(VIEW_WIDTH_FT) * PX))))}
         title="Fit the sheet"
         aria-label="Fit sheet"
         className="inline-flex h-7 items-center justify-center border border-border/60 px-2 text-[8.5px] uppercase tracking-[0.16em] tabular-nums transition-colors hover:bg-muted"
