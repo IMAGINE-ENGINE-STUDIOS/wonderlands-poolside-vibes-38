@@ -153,7 +153,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
     } as any);
     toast({
       title: "Added to cart",
-      description: `${model.name} — ${money(total)} delivered and installed.`,
+      description: `${model.name} — ${money(total)}${unitSuffix} delivered and installed.`,
       duration: 3000,
     });
   }, [model, cartId, modelName, base, categoryLabel, breakdown, total, addToCart, toast]);
@@ -232,7 +232,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                 {models.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     {groupBy ? `${groupBy(m)} · ` : ""}
-                    {m.name} — {money(m.price * priceMultiplier)}
+                    {m.name} — {money(m.price * priceMultiplier)}{unitSuffix}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -272,7 +272,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                           {/* Never repeat the group label already printed above */}
                           {(groupBy && groupBy(m) === m.meta ? m.dimensions : m.meta ?? m.dimensions) ?? ""}
                         </p>
-                        <p className="mt-3 text-sm">{money(m.price * priceMultiplier)}</p>
+                        <p className="mt-3 text-sm">{money(m.price * priceMultiplier)}{unitSuffix}</p>
                       </div>
                     </button>
                   </CarouselItem>
