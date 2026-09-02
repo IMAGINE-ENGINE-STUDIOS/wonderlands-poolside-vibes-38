@@ -39,7 +39,7 @@ import {
   polylineLength,
   tracePolyline,
 } from '@/utils/splineEditing';
-import { TRADE_LAYERS, tradeFeaturePrice, solarPanelsForArea } from '@/lib/design/siteTradeLayers';
+import { TRADE_LAYERS, tradeFeaturePrice, solarPanelsForArea, type TradeFeature } from '@/lib/design/siteTradeLayers';
 
 /**
  * Toggle one additional feature on a layer. Options that belong to the same
@@ -124,6 +124,55 @@ export const siteShapeOutline = (shape: SiteShape) =>
   hasAnyCurve(shape.curves)
     ? samplePath(shape.points, shape.closed, normalizeFlags(shape.curves, shape.points.length))
     : shape.points;
+
+/**
+ * The surface option selected on an element — the paver on a deck, the blade on
+ * a turf field, the finish on a pool. It is the option that must be *visible* on
+ * the sheet, so the board paints the element with its real catalogue photograph
+ * instead of a flat colour. Exclusive options win (a surface is one choice).
+ */
+export const shapeSurfaceFeature = (shape: SiteShape): TradeFeature | undefined => {
+  const spec = TRADE_LAYERS[shape.layer];
+  if (!spec || !shape.features?.length) return undefined;
+  const picked = shape.features
+    .map(id => spec.features.find(f => f.id === id))
+    .filter((f): f is TradeFeature => !!f && !!f.image);
+  return picked.find(f => f.exclusive) ?? picked[0];
+};
+
+/* Catalogue photographs used as canvas fills, loaded once and shared by every
+   board on the page. `crossOrigin` keeps the sheet exportable (toDataURL). */
+const surfaceImages = new Map<string, HTMLImageElement>();
+const surfaceLoading = new Set<string>();
+const surfaceImage = (src: string, onLoad: () => void): HTMLImageElement | null => {
+  const hit = surfaceImages.get(src);
+  if (hit) return hit;
+  if (!surfaceLoading.has(src)) {
+    surfaceLoading.add(src);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      surfaceImages.set(src, img);
+      surfaceLoading.delete(src);
+      onLoad();
+    };
+    img.onerror = () => surfaceLoading.delete(src);
+    img.src = src;
+  }
+  return null;
+};
+
+/** Is a point inside the polygon? Lets a click anywhere on the deck select it. */
+const pointInPolygon = (pts: { x: number; y: number }[], p: { x: number; y: number }) => {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const a = pts[i];
+    const b = pts[j];
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y || 1e-9) + a.x) inside = !inside;
+  }
+  return inside;
+};
+
 
 
 /** Imported raster plan placed behind the drawing, used to trace over */
@@ -279,6 +328,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
   const [selectedVertex, setSelectedVertex] = React.useState<number | null>(null);
+  /* Element under the pointer while picking — the sheet lights it up so it is
+     obvious that clicking the paver deck opens the paver book for that deck. */
+  const [hoverShapeId, setHoverShapeId] = React.useState<string | null>(null);
+
 
   const [showGrid, setShowGrid] = React.useState(true);
   const [calibration, setCalibration] = React.useState<{ x: number; y: number }[]>([]);
@@ -477,11 +530,31 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       if (shape.points.length === 0) return;
       const flags = normalizeFlags(shape.curves, shape.points.length);
       const outline = siteShapeOutline(shape);
+      /* The chosen surface — paver, turf blade, pool finish — is painted into the
+         element with its catalogue photograph, tiled at roughly 2 ft, so a paver
+         change is visible on the sheet the instant it is selected. */
+      const surface = isDraft ? undefined : shapeSurfaceFeature(shape);
       tracePolyline(ctx, outline, shape.closed);
       if (shape.closed && !meta.linear) {
-        ctx.fillStyle = meta.color + '22';
+        const img = surface?.image ? surfaceImage(surface.image, () => setImgReady(n => n + 1)) : null;
+        let painted = false;
+        if (img && img.width && typeof DOMMatrix !== 'undefined') {
+          const pat = ctx.createPattern(img, 'repeat');
+          if (pat) {
+            const k = (pxPerFt * 2) / img.width;
+            pat.setTransform(new DOMMatrix([k, 0, 0, k, 0, 0]));
+            ctx.save();
+            ctx.globalAlpha = 0.9;
+            ctx.fillStyle = pat;
+            ctx.fill();
+            ctx.restore();
+            painted = true;
+          }
+        }
+        ctx.fillStyle = meta.color + (painted ? '14' : '22');
         ctx.fill();
       }
+
       /* Each trade keeps its own spline signature: cages and arrays are hatched
          planes, spa and ledge shells are dashed, the lot line stays chain-dot. */
       if (shape.closed && meta.hatch && !isDraft && outline.length > 2) {
@@ -521,8 +594,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         ctx.stroke();
         void span;
       }
-      ctx.strokeStyle = selected === shape.id ? '#f59e0b' : meta.color;
-      ctx.lineWidth = selected === shape.id ? 3 : meta.id === 'property' ? 2.5 : 2;
+      const hovered = !isDraft && hoverShapeId === shape.id && selected !== shape.id;
+      ctx.strokeStyle = selected === shape.id ? '#f59e0b' : hovered ? '#0891b2' : meta.color;
+      ctx.lineWidth = selected === shape.id ? 3 : hovered ? 3 : meta.id === 'property' ? 2.5 : 2;
+
       ctx.setLineDash(isDraft ? [6, 4] : meta.dash ?? []);
       ctx.stroke();
       ctx.setLineDash([]);
@@ -617,7 +692,17 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         ctx.strokeText(areaText, cx, cy + 9);
         ctx.fillStyle = meta.color;
         ctx.fillText(areaText, cx, cy + 9);
+        /* the selected surface is named on the element itself */
+        if (surface) {
+          ctx.font = '600 11px ui-sans-serif, system-ui';
+          const surfText = surface.label.toUpperCase();
+          ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+          ctx.strokeText(surfText, cx, cy + 26);
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText(surfText, cx, cy + 26);
+        }
       }
+
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
 
@@ -685,6 +770,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     gridFt,
     majorFt,
     selected,
+    hoverShapeId,
+
     showGrid,
     underlay,
     imgReady,
@@ -700,8 +787,15 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     if (!onSnapshot) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    onSnapshot(data.shapes.length || data.underlay ? canvas.toDataURL('image/png') : null);
+    try {
+      onSnapshot(data.shapes.length || data.underlay ? canvas.toDataURL('image/png') : null);
+    } catch {
+      /* a catalogue photograph served without CORS taints the sheet — the board
+         keeps working, only the printed snapshot is skipped */
+      onSnapshot(null);
+    }
   }, [draw, onSnapshot, data.shapes.length, data.underlay]);
+
 
   /** Pointer → sheet coordinates, through the camera. */
   const toLocal = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -732,6 +826,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   }, [zoomAt]);
 
 
+  /**
+   * What is under the pointer. Edges win (so a corner of the deck can be grabbed
+   * even where it overlaps the pool), then the *inside* of a closed element — a
+   * click anywhere on the paver deck picks that deck and opens its paver book.
+   * Smaller elements are tested first so a pool on top of a deck stays clickable.
+   */
   const hitTest = (p: { x: number; y: number }): string | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
       const shape = data.shapes[i];
@@ -747,8 +847,13 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         if (d < 8) return shape.id;
       }
     }
-    return null;
+    const inside = data.shapes
+      .filter(s => s.closed && !layerMeta(s.layer).linear && s.points.length > 2)
+      .filter(s => pointInPolygon(siteShapeOutline(s), p))
+      .sort((a, b) => polygonArea(siteShapeOutline(a)) - polygonArea(siteShapeOutline(b)));
+    return inside[0]?.id ?? null;
   };
+
 
   const hitVertex = (p: { x: number; y: number }): { shapeId: string; index: number } | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
@@ -915,9 +1020,17 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       setHover(raw);
       return;
     }
+    if (mode === 'select') {
+      /* light up whatever the pointer is over so it is obvious which element
+         will take the option change on the next click */
+      const over = hitTest(raw);
+      setHoverShapeId(prev => (prev === over ? prev : over));
+      return;
+    }
     if (mode !== 'draw' || !draft.length) return;
     setHover({ x: snap(raw.x), y: snap(raw.y) });
   };
+
 
   const endDrag = () => {
     drag.current = null;
@@ -1099,13 +1212,37 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             { onClick: onRequestImport },
           )
         : null}
+      {/* Two separate instruments, exactly as the artificial-turf board: the pen
+          traces new elements, the pointer picks a drawn one to change its
+          options (click the paver deck to change its paver). */}
       {ctrl(
         <>
-          {mode === 'select' ? <MousePointer2 className="h-3.5 w-3.5" /> : <PenLine className="h-3.5 w-3.5" />}
-          {mode === 'select' ? 'Select' : 'Draw'}
+          <PenLine className="h-3.5 w-3.5" /> Draw
         </>,
-        { on: mode === 'select', onClick: () => setMode(mode === 'select' ? 'draw' : 'select') },
+        {
+          on: mode === 'draw',
+          title: 'Trace a new element on the armed layer',
+          onClick: () => {
+            setMode('draw');
+            setHoverShapeId(null);
+          },
+        },
       )}
+      {ctrl(
+        <>
+          <MousePointer2 className="h-3.5 w-3.5" /> Pick
+        </>,
+        {
+          on: mode === 'select',
+          title: 'Pick a drawn element to open its features and options',
+          onClick: () => {
+            setMode('select');
+            setDraft([]);
+            setHover(null);
+          },
+        },
+      )}
+
       {ctrl(
         <>
           <Ruler className="h-3.5 w-3.5" /> Calibrate
@@ -1502,6 +1639,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         onMouseLeave={() => {
           endDrag();
           setHover(null);
+          setHoverShapeId(null);
         }}
         className="mx-auto block rounded-md border border-border bg-white"
         style={{
@@ -1519,7 +1657,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
           cursor: readOnly
             ? 'default'
             : mode === 'select'
-              ? 'pointer'
+              ? hoverShapeId
+                ? 'pointer'
+                : 'default'
               : mode === 'underlay'
                 ? 'move'
                 : 'crosshair',
@@ -1535,8 +1675,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             : mode === 'underlay'
               ? 'Drag the imported sheet to position it, then use Scale and Calibrate so the drawing matches real dimensions.'
               : mode === 'select'
-                ? 'Drag a corner to reshape, drag a line to move the whole element, click a layer chip to reassign it, Delete to remove.'
-                : 'Click to place corners, click the first corner (or press Enter / double-click) to close the shape.'}{' '}
+                ? 'Click an element — the paver deck, the pool, the cage — to open its own features and options: the paver, finish or screen you pick applies to that element only. Drag a corner to reshape, drag it to move, Delete to remove.'
+                : `Click to place corners, click the first corner (or press Enter / double-click) to close the shape. The ${layerMeta(layer).label.toLowerCase()} options armed below travel onto the element you are drawing.`}{' '}
+
           Drawn: {areas.propertySqFt.toLocaleString()} SF lot &middot; {areas.imperviousSqFt.toLocaleString()} SF impervious (
           {areas.imperviousPct}%) &middot; {areas.fenceLinearFt} LF barrier.
           {selectedShape ? ` Selected: ${layerMeta(selectedShape.layer).label}${selectedShape.importedFrom ? ` (imported from ${selectedShape.importedFrom})` : ''}.` : ''}

@@ -47,11 +47,18 @@ export interface TradeFeature {
    */
   image?: string;
   /**
+   * This option *is* the surface of the element and its price is the published
+   * all-in rate, so the layer's base rate must not be charged twice (a $15/sq ft
+   * paver replaces the $10/sq ft concrete deck base, it is not added to it).
+   */
+  replacesBase?: boolean;
+  /**
    * Options sharing an `exclusive` key are a single choice (a surface, a height,
    * a screen mesh) — picking one clears the rest, exactly as the standalone
    * configurators and the FLIP book behave.
    */
   exclusive?: string;
+
 }
 
 export interface TradeLayerSpec {
@@ -266,7 +273,9 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
     rate: 10,
     note: 'Paver or concrete deck — non-paved surfaces are cut out of the take-off. Concrete deck is the $10/sq ft base; picking a paver prices it at its published rate.',
     features: [
-      /* the full Wonderlands paver catalogue, each at its published $/sq ft */
+      /* the full Wonderlands paver catalogue, each at its published $/sq ft.
+         Picking one REPLACES the $10/sq ft concrete deck base — the published
+         paver rate is the installed rate, exactly as the studio quotes it. */
       ...paverTypes.map((p) => ({
         id: `paver-${p.id}`,
         label: p.name,
@@ -275,7 +284,9 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         image: p.image,
         group: 'Paver selection',
         exclusive: 'deck-surface',
+        replacesBase: true,
       })),
+
       { id: 'deck-sealer', label: 'Penetrating sealer', perSqFt: 1.75, group: 'Deck options' },
       { id: 'deck-drain', label: 'Deck drain', perLinearFt: 26, group: 'Deck options' },
     ],
@@ -336,4 +347,16 @@ export function tradeFeaturePrice(
     if (!f) return sum;
     return sum + (f.flat ?? 0) + (f.perSqFt ?? 0) * sqFt + (f.perLinearFt ?? 0) * linearFt;
   }, 0);
+}
+
+/**
+ * Does the element carry a surface option that already includes the layer base?
+ * A paver on a deck is quoted at its published installed rate, so the $10/sq ft
+ * concrete deck base is dropped for that element instead of being stacked on it.
+ */
+export function tradeBaseReplaced(layer: string, featureIds: string[] | undefined): boolean {
+  if (!featureIds?.length) return false;
+  const spec = TRADE_LAYERS[layer];
+  if (!spec) return false;
+  return featureIds.some((id) => spec.features.find((f) => f.id === id)?.replacesBase);
 }

@@ -10,9 +10,11 @@ import { computeNetPaverArea, isNonPaverSurface } from "@/utils/paverAreaLogic";
 import {
   TRADE_LAYERS,
   tradeFeaturePrice,
+  tradeBaseReplaced,
   solarAreaPrice,
   solarPanelsForArea,
 } from "@/lib/design/siteTradeLayers";
+
 
 const layerLabel = (id: SiteLayerId) =>
   SITE_LAYERS.find((l) => l.id === id)?.label ?? id;
@@ -78,23 +80,50 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
     .map((s) => siteShapeOutline(s).map((p) => ({ x: p.x, y: p.y })));
 
 
-  const netPaved = (layer: SiteLayerId) =>
+  const netOf = (polys: { x: number; y: number }[][]) =>
     computeNetPaverArea({
-      deckPolygons: data.shapes
-        .filter((s) => s.layer === layer)
-        .map((s) => siteShapeOutline(s).map((p) => ({ x: p.x, y: p.y }))),
+      deckPolygons: polys,
       exclusionPolygons,
       pxPerFt: data.pxPerFt || 1,
     });
+
+  const netPaved = (layer: SiteLayerId) =>
+    netOf(
+      data.shapes
+        .filter((s) => s.layer === layer)
+        .map((s) => siteShapeOutline(s).map((p) => ({ x: p.x, y: p.y }))),
+    );
 
   const pavedLayers: SiteLayerId[] = ['deck', 'patio', 'driveway'];
   const netByLayer = new Map<SiteLayerId, number>(
     pavedLayers.map((l) => [l, netPaved(l)])
   );
 
+  /* Net area of each individual paved element — a deck priced at its selected
+     paver rate needs its own square footage, not the layer total. */
+  const netByShape = new Map<string, number>();
+  data.shapes
+    .filter((s) => pavedLayers.includes(s.layer))
+    .forEach((s) =>
+      netByShape.set(s.id, netOf([siteShapeOutline(s).map((p) => ({ x: p.x, y: p.y }))])),
+    );
+
+  /* Elements whose selected surface already includes the installed rate (a paver
+     on a deck) are taken out of the layer's base line — their surface is billed
+     once, at its published rate, on its own line below. */
+  const surfacedSqFt = new Map<SiteLayerId, number>();
+  data.shapes.forEach((s) => {
+    if (!tradeBaseReplaced(s.layer, s.features)) return;
+    surfacedSqFt.set(
+      s.layer,
+      (surfacedSqFt.get(s.layer) ?? 0) + (netByShape.get(s.id) ?? 0),
+    );
+  });
+
   SITE_LAYERS.forEach((l) => {
     const rate = SITE_RATES[l.id];
-    const sqFt = Math.round(netByLayer.get(l.id) ?? areas.byLayer[l.id] ?? 0);
+    const gross = netByLayer.get(l.id) ?? areas.byLayer[l.id] ?? 0;
+    const sqFt = Math.round(Math.max(0, gross - (surfacedSqFt.get(l.id) ?? 0)));
     if (!rate || sqFt <= 0) return;
     lines.push({
       label: l.label,
@@ -102,6 +131,7 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       amount: sqFt * rate,
     });
   });
+
 
 
   if (areas.fenceLinearFt > 0) {
@@ -138,7 +168,9 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       a += p.x * q.y - q.x * p.y;
       if (shape.closed || i < outline.length - 1) lf += Math.hypot(q.x - p.x, q.y - p.y);
     }
-    const sqFt = Math.abs(a / 2) / sq;
+    /* Paved elements are priced on their NET area, so a paver deck is never
+       billed under the pool, the spa or the tanning ledge. */
+    const sqFt = netByShape.get(shape.id) ?? Math.abs(a / 2) / sq;
     const linearFt = lf / (data.pxPerFt || 1);
     const amount = tradeFeaturePrice(shape.layer, shape.features, sqFt, linearFt);
     if (amount <= 0) return;
@@ -147,12 +179,14 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       .map((id) => spec?.features.find((f) => f.id === id)?.label)
       .filter(Boolean)
       .join(", ");
+    const surfaced = tradeBaseReplaced(shape.layer, shape.features);
     lines.push({
-      label: `${layerLabel(shape.layer)} — options`,
-      detail: names,
+      label: `${layerLabel(shape.layer)} — ${surfaced ? "surface & options" : "options"}`,
+      detail: surfaced ? `${Math.round(sqFt).toLocaleString()} sq ft · ${names}` : names,
       amount,
     });
   });
+
 
   const poolShape = data.shapes
     .filter((s) => s.layer === "pool")
