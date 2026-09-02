@@ -1309,6 +1309,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         {header}
         {canvasEl}
         {elementOptions}
+        {armedOptions}
         {underlayBar}
 
         {!readOnly && (
