@@ -48,6 +48,11 @@ function storeFor(categoryId: string) {
   return s;
 }
 
+/** Current drawing for a discipline, outside React (estimate edits read it). */
+export function getFlipBoardValue(categoryId: string): FlipBoardState {
+  return storeFor(categoryId).value;
+}
+
 export function setFlipBoardValue(categoryId: string, patch: Partial<FlipBoardState>) {
   const s = storeFor(categoryId);
   s.value = { ...s.value, ...patch };
