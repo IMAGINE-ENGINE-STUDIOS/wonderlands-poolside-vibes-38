@@ -910,7 +910,84 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   );
 
 
+  /* ── element options ──────────────────────────────────────────────────────
+     Selecting an element opens its own option drawer straight away: what it is,
+     its measured size, its geometry controls and its additional features. The
+     same selection is broadcast so the discipline's dossier opens on its
+     options tab, exactly like the boards inside the FLIP edition. */
+  const selectedMeasure = React.useMemo(() => {
+    if (!selectedShape) return null;
+    const pts = selectedShape.points;
+    const lenFt = polylineLength(pts, selectedShape.closed) / data.pxPerFt;
+    let a = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const q = pts[(i + 1) % pts.length];
+      a += p.x * q.y - q.x * p.y;
+    }
+    const sqFt = Math.abs(a / 2) / (data.pxPerFt * data.pxPerFt);
+    return { lenFt: Math.round(lenFt), sqFt: Math.round(sqFt), points: pts.length };
+  }, [selectedShape, data.pxPerFt]);
+
+  React.useEffect(() => {
+    if (!selectedShape || typeof window === 'undefined') return;
+    window.dispatchEvent(
+      new CustomEvent('wl:board-element-selected', {
+        detail: { layer: selectedShape.layer, label: layerMeta(selectedShape.layer).label },
+      }),
+    );
+  }, [selectedShape?.id, selectedShape?.layer]);
+
+  const elementOptions =
+    !readOnly && selectedShape ? (
+      <div className="rounded-2xl border border-border/50 bg-foreground/[0.03] p-3 backdrop-blur-xl">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+            <span className="h-2 w-2 rounded-full" style={{ background: layerMeta(selectedShape.layer).color }} />
+            {layerMeta(selectedShape.layer).label}
+          </span>
+          {selectedMeasure ? (
+            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              {layerMeta(selectedShape.layer).linear
+                ? `${selectedMeasure.lenFt} LF`
+                : `${selectedMeasure.sqFt.toLocaleString()} SF · ${selectedMeasure.lenFt} LF perimeter`}{' '}
+              · {selectedMeasure.points} points
+            </span>
+          ) : null}
+          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            {ctrl(
+              <>
+                <Spline className="h-3.5 w-3.5" /> {selectedShapeCurved ? 'Curved' : 'Straight'}
+              </>,
+              { on: selectedShapeCurved, onClick: toggleSelectedCurve },
+            )}
+            {ctrl(
+              <>
+                <Plus className="h-3.5 w-3.5" /> Point
+              </>,
+              { onClick: addVertexAfterSelected, disabled: selectedVertex === null },
+            )}
+            {ctrl(<Minus className="h-3.5 w-3.5" />, {
+              onClick: () => selectedVertex !== null && removeVertexFrom(selectedShape.id, selectedVertex),
+              disabled: selectedVertex === null,
+            })}
+            {ctrl(
+              <>
+                <Eraser className="h-3.5 w-3.5" /> Erase
+              </>,
+              { onClick: deleteSelected, danger: true },
+            )}
+          </div>
+        </div>
+        <p className="mt-2 border-t border-border/50 pt-2 text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+          Reassign this element
+        </p>
+        <div className="mt-1.5">{layerTags}</div>
+      </div>
+    ) : null;
+
   const underlayBar =
+
           underlay ? (
             <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-2 text-[11px]">
 
