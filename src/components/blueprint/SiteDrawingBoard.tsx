@@ -1109,7 +1109,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       <div className="flex h-full min-h-0 flex-col gap-2.5">
         {header}
         {canvasEl}
+        {elementOptions}
         {underlayBar}
+
         {!readOnly && (
           <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
