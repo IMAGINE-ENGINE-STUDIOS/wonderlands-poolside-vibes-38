@@ -8,7 +8,6 @@ import {
   Flower2,
   Grid2x2,
   Layers,
-  Ruler,
   Sun,
   Trees,
   Eraser,
