@@ -416,15 +416,15 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
 
       <Footer />
 
-      {/* ── The category's own drawing board, full screen ───────────────── */}
-      {boardOpen && (
+      {/* ── The open drawing board, full screen ────────────────────────── */}
+      {boardId && (
         <Suspense fallback={null}>
           <FlipEditorBoard
-            categoryId={categoryId}
+            categoryId={boardId}
             categoryLabel={categoryLabel}
             productName={model?.name}
             productPrice={base}
-            onClose={() => setBoardOpen(false)}
+            onClose={() => setBoardId(null)}
           />
         </Suspense>
       )}
