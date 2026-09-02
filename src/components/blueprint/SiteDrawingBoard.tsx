@@ -1721,11 +1721,21 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   /** The sheet header: what is drawn, what it costs, and every tool beside it. */
   const instrumentHeader =
     header || !readOnly ? (
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        {header ? <div className="min-w-0 max-w-full grow md:grow-0">{header}</div> : null}
-        {!readOnly ? <div className="min-w-0 w-full md:ml-auto md:w-auto md:flex-1">{toolButtons}</div> : null}
-      </div>
+      menuSide ? (
+        /* In a leaf the sheet header reads top to bottom: the live readout, then
+           one sliding line of instruments — never a block of wrapped buttons. */
+        <div className="flex shrink-0 flex-col gap-1.5">
+          {header ? <div className="min-w-0">{header}</div> : null}
+          {!readOnly ? <div className="min-w-0 w-full">{toolButtons}</div> : null}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          {header ? <div className="min-w-0 max-w-full grow md:grow-0">{header}</div> : null}
+          {!readOnly ? <div className="min-w-0 w-full md:ml-auto md:w-auto md:flex-1">{toolButtons}</div> : null}
+        </div>
+      )
     ) : null;
+
 
 
 
