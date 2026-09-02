@@ -930,8 +930,8 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
       {/* ── monthly production ── */}
       <div className={glass}>
         <div className="relative flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Production by month</p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[12px] uppercase tracking-[0.3em] text-muted-foreground">Production by month</p>
+          <p className="text-[13px] text-muted-foreground">
             {hover === null
               ? "kWh · dashed line is your household demand"
               : `${MONTH_NAMES[hover]} — ${nf.format(monthly[hover])} kWh`}
@@ -941,7 +941,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         <svg
           viewBox="0 0 360 140"
           preserveAspectRatio="none"
-          className="relative mt-4 h-36 w-full sm:h-44"
+          className="relative mt-5 h-44 w-full sm:h-56 xl:h-64"
           role="img"
           aria-label="Modelled monthly production against household demand"
         >
@@ -988,7 +988,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
                   y={133}
                   textAnchor="middle"
                   className="fill-muted-foreground"
-                  style={{ fontSize: 8, letterSpacing: 1 }}
+                  style={{ fontSize: 11, letterSpacing: 1.2 }}
                 >
                   {MONTHS[i]}
                 </text>
@@ -1011,28 +1011,28 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
 
       {/* ── per-face contribution ── */}
       <div className={glass}>
-        <p className="relative text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+        <p className="relative text-[12px] uppercase tracking-[0.3em] text-muted-foreground">
           Where the energy comes from
         </p>
-        <ul className="relative mt-3 space-y-2.5">
+        <ul className="relative mt-4 space-y-3">
           {contributions.map(({ layout, face }, i) => {
             const exposure = readExposure(face!, latitude);
             const pct = (layout.yearlyKwh / bestFaceKwh) * 100;
             return (
               <li
                 key={layout.faceId}
-                className="wl-fade rounded-xl border border-white/10 bg-background/20 px-3 py-2.5 backdrop-blur-md"
+                className="wl-fade rounded-2xl border border-white/15 bg-background/28 px-4 py-3.5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:border-amber-300/40 hover:bg-background/40"
                 style={{ animationDelay: `${0.1 + i * 0.07}s` }}
               >
-                <div className="flex items-baseline justify-between gap-3 text-[10px]">
-                  <span className="uppercase tracking-[0.2em] text-muted-foreground">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[13px]">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                     {compassLabel(face!.azimuthDeg)} · {layout.panels} modules
                   </span>
-                  <span className="shrink-0 font-light text-foreground">
+                  <span className="shrink-0 text-[17px] font-light tabular-nums text-foreground">
                     {nf.format(Math.round(layout.yearlyKwh))} kWh
                   </span>
                 </div>
-                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-foreground/10">
+                <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-foreground/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]">
                   <div
                     className="wl-grow h-full rounded-full"
                     style={{
@@ -1043,7 +1043,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
                     }}
                   />
                 </div>
-                <p className="mt-1 text-[9px] text-muted-foreground">
+                <p className="mt-2 text-[12px] text-muted-foreground">
                   {exposure.label} · {nf.format(Math.round(exposure.sunHours))} sun hours a year
                 </p>
               </li>
