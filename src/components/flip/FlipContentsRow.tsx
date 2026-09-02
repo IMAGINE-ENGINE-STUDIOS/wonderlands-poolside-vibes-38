@@ -16,10 +16,13 @@ export interface FlipContentsRowProps {
   name: string;
   priceLabel?: string;
   image?: string;
+  /** Flat swatch used when an option has no photograph (gelcoat colours). */
+  color?: string;
   description?: string;
   /** "light" prints on paper, "ink" prints over photography. */
   tone?: "light" | "ink";
-  onOpen: () => void;
+  /** Optional — informational rows (option chapters) simply open their leaf. */
+  onOpen?: () => void;
 }
 
 const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
@@ -27,6 +30,7 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
   name,
   priceLabel,
   image,
+  color,
   description,
   tone = "light",
   onOpen,
@@ -44,12 +48,14 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
     >
       <button
         type="button"
-        onClick={onOpen}
-        aria-label={`Open the ${name} page`}
+        onClick={() => (onOpen ? onOpen() : setOpen((o) => !o))}
+        aria-label={onOpen ? `Open the ${name} page` : `Preview ${name}`}
+        aria-expanded={onOpen ? undefined : open}
         className={`group flex w-full items-center gap-3 px-1 py-[7px] text-left transition-colors ${
           ink ? "hover:bg-white/12 focus-visible:bg-white/12" : "hover:bg-foreground/[0.04]"
         } focus-visible:outline-none`}
       >
+
         <span
           className={`w-6 shrink-0 font-serif text-[11px] tabular-nums ${
             ink ? "text-white/55 group-hover:text-white" : "text-muted-foreground"
