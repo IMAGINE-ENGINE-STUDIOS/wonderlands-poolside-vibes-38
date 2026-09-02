@@ -9,7 +9,7 @@ import {
 import { computeNetPaverArea, isNonPaverSurface } from "@/utils/paverAreaLogic";
 import {
   TRADE_LAYERS,
-  tradeFeaturePrice,
+  tradeFeatureLines,
   tradeBaseReplaced,
   solarAreaPrice,
   solarPanelsForArea,
