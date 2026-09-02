@@ -1619,7 +1619,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       {ctrl(<Minus className="h-3.5 w-3.5" />, {
         onClick: () => selected && selectedVertex !== null && removeVertexFrom(selected, selectedVertex),
         disabled: !selected || selectedVertex === null,
-        title: 'Remove the selected point',
+        title: 'Erase only the point you picked',
       })}
       {ctrl(<Undo2 className="h-3.5 w-3.5" />, {
         onClick: () => setDraft(p => p.slice(0, -1)),
