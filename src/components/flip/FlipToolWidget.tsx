@@ -406,45 +406,10 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
    */
   const half = part === "board-left" ? "left" : part === "board-right" ? "right" : null;
 
-  const staticPlate = (
-    <div className="flex h-full flex-col p-3 sm:p-4" {...lockHandlers}>
-      <div className="flex-1">
-        <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-          Wonderlands World — Design board
-        </p>
-        <p className="mt-3 font-serif text-2xl font-light leading-none">
-          {(isSite ? siteReadout : readout) || "Draw the plan"}
-        </p>
-        {livePrice > 0 && (
-          <p className="mt-2 font-serif text-xl font-light leading-none">{formatMoney(livePrice)}</p>
-        )}
-        <p className="mt-4 max-w-xs text-[10px] leading-relaxed text-muted-foreground">
-          The live board is on the facing page. Use it to draw, trace or configure; the price and dimensions
-          stay in sync across both leaves.
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 pt-4">
-        <button
-          onClick={() => setFull(true)}
-          className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
-        >
-          Enlarge <Maximize2 className="h-3 w-3" />
-        </button>
-        {onExpand && (
-          <button
-            onClick={onExpand}
-            className="inline-flex items-center gap-2 border border-border/60 px-3 py-1.5 text-[8px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
-          >
-            Editor board
-          </button>
-        )}
-      </div>
-    </div>
-  );
-
-  /* The live leaf: the drawing board, mounted once per spread. On a solar spread
-     the aerial map takes the LEFT leaf (map + tools + headers only) and the
-     collection takes the right. */
+  /* The live leaf: the drawing board, mounted once per spread. Every design
+     spread now follows the solar division — the live board (plus its header and
+     tools) takes the LEFT leaf, and the facing leaf carries the reading matter:
+     board tools, the live cost sheet and the calculators. */
   const boardLeaf = (mapOnly?: boolean) => (
     <div className="absolute inset-0 overflow-auto" {...lockHandlers}>
       <div className="flex h-full w-full flex-col p-3 sm:p-4">
@@ -463,29 +428,48 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
     </div>
   );
 
+  /**
+   * The facing leaf of a drawing spread: everything about the drawing that is
+   * read rather than drawn. It replaces the old near-empty static plate, which
+   * left half the spread looking broken.
+   */
+  const facingLeaf = (
+    <div className="absolute inset-0 overflow-y-auto" {...lockHandlers}>
+      <div className="divide-y divide-border/60">
+        <FlipBoardTools
+          categoryId={boardId}
+          title={modelName}
+          onEnlarge={() => setFull(true)}
+          onUpload={() => fileRef.current?.click()}
+          onExpand={onExpand}
+        />
+        <FlipBoardCost categoryId={boardId} />
+        <FlipBoardCalculators categoryId={boardId} />
+      </div>
+    </div>
+  );
+
   const isSolar = board.kind === "solar";
 
-  const halfBody = half === "left" ? (
-    <>{isSolar ? boardLeaf(true) : staticPlate}</>
-  ) : isSolar ? (
-    <>{solarOptionsLeaf}</>
-  ) : (
-    <>
-      {boardLeaf()}
+  const halfBody =
+    half === "left" ? (
+      <>{boardLeaf(isSolar)}</>
+    ) : (
+      <>
+        {isSolar ? solarOptionsLeaf : facingLeaf}
 
-
-      {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
-          the reader can still grab the corner and turn instead of only using the
-          arrows. Entering it releases the drawing lock. */}
-      {!holdsBookStill && (
-        <div
-          onPointerEnter={unlock}
-          title="Drag here to turn the page"
-          className="absolute inset-y-0 right-0 z-20 w-9 cursor-pointer"
-        />
-      )}
-    </>
-  );
+        {/* Flip margin: the outer edge of the leaf stays a page, not a canvas, so
+            the reader can still grab the corner and turn instead of only using the
+            arrows. Entering it releases the drawing lock. */}
+        {!holdsBookStill && (
+          <div
+            onPointerEnter={unlock}
+            title="Drag here to turn the page"
+            className="absolute inset-y-0 right-0 z-20 w-9 cursor-pointer"
+          />
+        )}
+      </>
+    );
 
   return (
     <div className={half ? "relative h-full w-full overflow-hidden" : "flex min-h-0 flex-1 flex-col"}>
@@ -496,6 +480,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
           {panel ?? <Suspense fallback={fallback}>{renderBoard(headerBlock)}</Suspense>}
         </div>
       )}
+
 
 
 
