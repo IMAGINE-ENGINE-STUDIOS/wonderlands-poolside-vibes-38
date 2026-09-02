@@ -10,9 +10,11 @@ import { computeNetPaverArea, isNonPaverSurface } from "@/utils/paverAreaLogic";
 import {
   TRADE_LAYERS,
   tradeFeaturePrice,
+  tradeBaseReplaced,
   solarAreaPrice,
   solarPanelsForArea,
 } from "@/lib/design/siteTradeLayers";
+
 
 const layerLabel = (id: SiteLayerId) =>
   SITE_LAYERS.find((l) => l.id === id)?.label ?? id;
