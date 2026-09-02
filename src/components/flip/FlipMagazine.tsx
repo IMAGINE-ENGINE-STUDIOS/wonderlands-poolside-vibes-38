@@ -1183,7 +1183,11 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       });
     }
 
-    list.push({
+    /* The Fiberglass edition opens straight on its landing leaf, then the
+       Contents as page 2 — its generic cover leaf is intentionally omitted. */
+    const skipCoverLeaf = category.id === "pools" && catalogs.length > 1;
+
+    if (!skipCoverLeaf) list.push({
 
       key: "cover",
       tone: "cover",
