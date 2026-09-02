@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import {
   Undo2,
   Trash2,
+  Eraser,
+  RotateCcw,
   MousePointer2,
   PenLine,
   ZoomIn,
