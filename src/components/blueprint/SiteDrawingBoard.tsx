@@ -710,7 +710,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.setLineDash([]);
 
       // vertices — round handles are curved, squares are hard corners
-      const showHandles = !readOnly && (mode === 'select' ? true : isDraft);
+      const showHandles = !readOnly && (mode === 'select' || mode === 'point' ? true : isDraft);
       const active = selected === shape.id && showHandles;
       shape.points.forEach((p, i) => {
         ctx.fillStyle = active ? (flags[i] ? '#0891b2' : '#f59e0b') : '#ffffff';
