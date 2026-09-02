@@ -76,9 +76,18 @@ const sunPosition = (latDeg: number, decDeg: number, hourAngleDeg: number) => {
   return { altitude: alt / RAD, azimuth: az };
 };
 
-/** Declination for a day-of-year (Cooper's equation). */
+/** Declination for a day-of-year (Cooper's equation) — fallback only. */
 const declination = (dayOfYear: number) =>
   23.45 * Math.sin(((360 / 365) * (dayOfYear - 81)) * RAD);
+
+/**
+ * True apparent solar declination for a calendar instant, taken from the same
+ * ephemeris that places the Moon, the planets and the stars on this plate. The
+ * solstice and equinox arcs are drawn from these figures, so their curvature is
+ * the sky's own — not a sine approximation of the calendar.
+ */
+const decAt = (year: number, month: number, day: number) =>
+  sunEquatorial(new Date(Date.UTC(year, month, day, 12, 0, 0))).dec;
 
 /** Path geometry of the sun dome plate (a wide mission-console sheet). */
 const DOME = { w: 720, h: 352, base: 262, left: 66, right: 686, top: 40 };
@@ -86,12 +95,25 @@ const DOME = { w: 720, h: 352, base: 262, left: 66, right: 686, top: 40 };
 const AZ_FROM = 52;
 const AZ_TO = 308;
 
-/** Project altitude/azimuth into the dome plate. */
+/**
+ * Project altitude/azimuth into the dome plate.
+ *
+ * The horizon is a circle seen from inside it, so the azimuth axis is projected
+ * orthographically about due south: a degree of azimuth near the meridian opens
+ * wide, a degree near the eastern or western edge foreshortens. That is what
+ * gives a sun path its true curvature — the arc rises steeply out of the horizon
+ * and rounds over at culmination, instead of the flat parabola a linear azimuth
+ * axis draws. Altitude stays equidistant so the 15° grid remains a ruler, and
+ * every body on the plate (sun, moon, planets, stars) shares this one geometry.
+ */
 const project = (azimuth: number, altitude: number) => {
-  const span = AZ_TO - AZ_FROM;
-  const t = Math.max(0, Math.min(1, (azimuth - AZ_FROM) / span));
+  const half = (AZ_TO - AZ_FROM) / 2; // 128° each side of south
+  const off = Math.max(-half, Math.min(half, azimuth - (AZ_FROM + half)));
+  /* sin() over the half-window: monotonic, and foreshortened at the edges. */
+  const u = Math.sin((off / half) * 90 * RAD);
+  const cx = (DOME.left + DOME.right) / 2;
   return {
-    x: DOME.left + t * (DOME.right - DOME.left),
+    x: cx + u * ((DOME.right - DOME.left) / 2),
     y: DOME.base - (Math.max(-12, altitude) / 90) * (DOME.base - DOME.top),
   };
 };
@@ -100,7 +122,7 @@ const project = (azimuth: number, altitude: number) => {
 /** Sample a full arc for a declination, keeping only daylight positions. */
 const arcPoints = (lat: number, dec: number) => {
   const pts: { x: number; y: number; altitude: number }[] = [];
-  for (let H = -180; H <= 180; H += 2) {
+  for (let H = -180; H <= 180; H += 1) {
     const { altitude, azimuth } = sunPosition(lat, dec, H);
     if (altitude < 0) continue;
     const p = project(azimuth, altitude);
@@ -109,8 +131,24 @@ const arcPoints = (lat: number, dec: number) => {
   return pts;
 };
 
-const toPath = (pts: { x: number; y: number }[]) =>
-  pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+/** Smooth the sampled arc into a Catmull-Rom curve so the culmination rounds. */
+const toPath = (pts: { x: number; y: number }[]) => {
+  if (pts.length < 3) return pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+  }
+  return d;
+};
+
 
 /* ── astronomical helpers ─────────────────────────────────────────────── */
 
