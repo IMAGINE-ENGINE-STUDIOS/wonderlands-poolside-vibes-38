@@ -728,7 +728,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   };
 
   const layerTags = (
-    <div className={menuSide ? 'flex flex-col gap-1.5' : 'flex flex-wrap gap-1.5'}>
+    <div className="flex flex-wrap gap-1.5">
+
 
               {SITE_LAYERS.map(l => (
                 <button
