@@ -180,8 +180,67 @@ const GlobalDesignBoard: React.FC = () => {
     </div>
   );
 
+  /* one control language everywhere: the trade gateway, at two densities */
+  const tradeCard = (t: Trade, i: number, compact = false) => {
+    const on = enabled.includes(t.id);
+    const isActive = t.id === activeTrade;
+    return (
+      <div
+        key={t.id}
+        className={cn(
+          "group relative overflow-hidden rounded-sm border p-3 backdrop-blur-xl transition-all duration-500",
+          compact && "w-[240px] shrink-0 snap-start",
+          isActive
+            ? "border-foreground bg-foreground/[0.07] shadow-[0_18px_45px_-30px_hsl(var(--foreground)/0.5)]"
+            : "border-border/50 bg-card/40 hover:border-foreground/70 hover:bg-card/60",
+        )}
+      >
+        <button type="button" onClick={() => setActiveTrade(t.id)} className="block w-full text-left">
+          <span className="flex items-baseline justify-between gap-3">
+            <span className="flex items-center gap-2 font-serif text-base font-light leading-tight sm:text-lg">
+              <t.Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              {t.label}
+            </span>
+            <span className="font-serif text-[11px] text-muted-foreground">0{i + 1}</span>
+          </span>
+          <span className="mt-2 block text-[11px] leading-snug text-muted-foreground">{t.note}</span>
+          <span className="mt-2 flex items-center justify-between gap-3 text-[8.5px] uppercase tracking-[0.28em] text-muted-foreground">
+            <span className="truncate">
+              {t.id === "solar"
+                ? "Proposal after survey"
+                : totals[t.id]
+                  ? `${money(totals[t.id])} as drawn`
+                  : "Nothing drawn yet"}
+            </span>
+            <ArrowRight className="h-3.5 w-3.5 shrink-0 transition-transform duration-500 group-hover:translate-x-1.5" />
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => toggleTrade(t.id)}
+          aria-pressed={on}
+          aria-label={`${on ? "Remove" : "Include"} ${t.label}`}
+          className={cn(
+            "mt-2 inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[8.5px] uppercase tracking-[0.28em] transition-colors duration-500",
+            on
+              ? "border-foreground bg-foreground text-background"
+              : "border-border/50 text-muted-foreground hover:border-foreground/70 hover:text-foreground",
+          )}
+        >
+          {on ? "In scope" : "Add to project"}
+        </button>
+        {!isActive && (
+          <span
+            aria-hidden
+            className="absolute bottom-0 left-0 h-px w-0 bg-foreground transition-all duration-700 group-hover:w-full"
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background">
       <Helmet>
         <title>Global Design Board | Wonderlands World</title>
         <meta
@@ -191,20 +250,35 @@ const GlobalDesignBoard: React.FC = () => {
         <link rel="canonical" href="https://www.wonderlandsworld.com/global-design-board" />
       </Helmet>
 
+      {/* atmosphere the glass reads against */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(90% 60% at 12% -10%, hsl(var(--primary) / 0.10), transparent 60%), radial-gradient(70% 55% at 100% 0%, hsl(var(--accent) / 0.10), transparent 62%), linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.5))",
+        }}
+      />
+
       {/* ── header ── */}
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1800px] flex-wrap items-center gap-3 px-4 py-3">
-          <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Home
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/70 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-[1800px] flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3 sm:px-5">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.28em] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Home
           </Link>
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold leading-tight">Global Design Board</h1>
-            <p className="text-xs text-muted-foreground">
-              One property, every trade — drawn, priced and permit-ready
+            <h1 className="font-serif text-xl font-light leading-none tracking-tight sm:text-2xl">
+              Global Design Board
+            </h1>
+            <p className="mt-1 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+              One property, every trade — drawn, priced, permit-ready
             </p>
           </div>
           {/* gateway controls — same control language as the boards below */}
-          <div className="board-console ml-auto flex flex-wrap items-center gap-2">
+          <div className="board-console ml-auto flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
               {enabled.length} trade{enabled.length === 1 ? "" : "s"} in scope
             </span>
@@ -221,11 +295,21 @@ const GlobalDesignBoard: React.FC = () => {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[1800px] gap-4 px-4 py-5 xl:grid-cols-[300px_minmax(0,1fr)]">
+      {/* the trade rail becomes a swipeable strip on small screens */}
+      <div className="border-b border-border/50 bg-background/55 backdrop-blur-2xl xl:hidden">
+        <div className="mx-auto max-w-[1800px] px-3 py-3 sm:px-5">
+          <p className="mb-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Trades</p>
+          <div className="flex snap-x gap-2 overflow-x-auto pb-1">
+            {TRADES.map((t, i) => tradeCard(t, i, true))}
+          </div>
+        </div>
+      </div>
+
+      <main className="mx-auto grid max-w-[1800px] gap-4 px-3 py-4 sm:px-5 sm:py-5 xl:grid-cols-[320px_minmax(0,1fr)]">
         {/* ── project + trade rail ── */}
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-xl">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Project</p>
+          <section className="glass-panel rounded-2xl p-4">
+            <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Project</p>
             <div className="mt-3 space-y-3">
               {field("Title", "title")}
               {field("Client", "clientName", "Homeowner name")}
@@ -233,93 +317,36 @@ const GlobalDesignBoard: React.FC = () => {
               {field("City / State / Zip", "cityStateZip")}
               {field("Job number", "jobNumber")}
               <div className="space-y-1">
-                <Label className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                <Label className="text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
                   Notes carried to the plan set
                 </Label>
                 <Textarea
                   value={meta.notes}
                   onChange={(e) => setMeta((prev) => ({ ...prev, notes: e.target.value }))}
                   rows={3}
-                  className="text-sm"
+                  className="bg-background/60 text-sm backdrop-blur-md"
                 />
               </div>
             </div>
           </section>
 
           {/* Trade gateways — the same glass gateway button as the FLIP edition */}
-          <section className="rounded-2xl border border-border/60 bg-card/60 p-2 backdrop-blur-xl">
-            <p className="px-2 pt-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Trades</p>
-            <div className="mt-2 space-y-1.5">
-              {TRADES.map((t, i) => {
-                const on = enabled.includes(t.id);
-                const isActive = t.id === activeTrade;
-                return (
-                  <div
-                    key={t.id}
-                    className={cn(
-                      "group relative overflow-hidden rounded-sm border p-3 transition-all duration-500",
-                      isActive
-                        ? "border-foreground bg-foreground/[0.06]"
-                        : "border-border/50 bg-foreground/[0.02] hover:border-foreground/70",
-                    )}
-                  >
-                    <button type="button" onClick={() => setActiveTrade(t.id)} className="block w-full text-left">
-                      <span className="flex items-baseline justify-between gap-3">
-                        <span className="flex items-center gap-2 font-serif text-lg font-light leading-none">
-                          <t.Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                          {t.label}
-                        </span>
-                        <span className="font-serif text-[11px] text-muted-foreground">0{i + 1}</span>
-                      </span>
-                      <span className="mt-2 block text-[11px] leading-snug text-muted-foreground">{t.note}</span>
-                      <span className="mt-2 flex items-center justify-between gap-3 text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">
-                        <span>
-                          {t.id === "solar"
-                            ? "Proposal after survey"
-                            : totals[t.id]
-                              ? `${money(totals[t.id])} as drawn`
-                              : "Nothing drawn yet"}
-                        </span>
-                        <ArrowRight className="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-1.5" />
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => toggleTrade(t.id)}
-                      aria-pressed={on}
-                      aria-label={`${on ? "Remove" : "Include"} ${t.label}`}
-                      className={cn(
-                        "mt-2 inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[8.5px] uppercase tracking-[0.28em] transition-colors duration-500",
-                        on
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border/50 text-muted-foreground hover:border-foreground/70 hover:text-foreground",
-                      )}
-                    >
-                      {on ? "In scope" : "Add to project"}
-                    </button>
-                    {!isActive && (
-                      <span
-                        aria-hidden
-                        className="absolute bottom-0 left-0 h-px w-0 bg-foreground transition-all duration-700 group-hover:w-full"
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          <section className="glass-panel hidden rounded-2xl p-2 xl:block">
+            <p className="px-2 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Trades</p>
+            <div className="mt-2 space-y-1.5">{TRADES.map((t, i) => tradeCard(t, i))}</div>
           </section>
 
-          <section className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-xl">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Project total</p>
-            <p className="mt-1 font-serif text-3xl font-light">{money(projectTotal)}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
+          <section className="glass-panel rounded-2xl p-4 xl:sticky xl:top-24">
+            <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Project total</p>
+            <p className="mt-1 font-serif text-4xl font-light tracking-tight">{money(projectTotal)}</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
               Turn-key, installed at the address. Solar is quoted separately after the roof survey.
             </p>
             <div className="mt-3 space-y-1">
               {TRADES.filter((t) => enabled.includes(t.id) && t.id !== "solar").map((t) => (
                 <div key={t.id} className="flex items-baseline justify-between gap-3 text-xs">
                   <span className="truncate text-muted-foreground">{t.label}</span>
-                  <span>{money(totals[t.id] || 0)}</span>
+                  <span className="tabular-nums">{money(totals[t.id] || 0)}</span>
                 </div>
               ))}
             </div>
@@ -336,10 +363,11 @@ const GlobalDesignBoard: React.FC = () => {
 
         {/* ── the live board for the selected trade ── */}
         <section className="min-w-0 space-y-4">
-          <div className="rounded-3xl border border-border/60 bg-card/50 p-3 backdrop-blur-xl sm:p-4">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="glass-panel rounded-3xl p-2.5 sm:p-4">
+            <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <Trees className="h-4 w-4 text-muted-foreground" />
-              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{active.label}</p>
+              <p className="font-serif text-lg font-light leading-none">{active.label}</p>
+              <span className="hidden h-px w-8 bg-foreground/25 sm:block" />
               <span className="text-[11px] text-muted-foreground">{active.note}</span>
               {!enabled.includes(active.id) && (
                 <span className="board-console ml-auto">
@@ -354,7 +382,7 @@ const GlobalDesignBoard: React.FC = () => {
           </div>
 
           {/* the discipline's own estimate, take-off, options, specs and process */}
-          <div className="overflow-hidden rounded-3xl border border-border/60 bg-card/50 backdrop-blur-xl">
+          <div className="glass-panel overflow-hidden rounded-3xl">
             <FlipBoardDossier key={`${active.boardId}-dossier`} categoryId={active.boardId} title={active.label} />
           </div>
         </section>
