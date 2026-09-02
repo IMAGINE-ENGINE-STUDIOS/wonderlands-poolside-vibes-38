@@ -296,6 +296,96 @@ const SunPathConsole: React.FC<{
   const am = airMass(readAlt);
   const shadow = readAlt > 1 ? 1 / Math.tan(readAlt * RAD) : Infinity;
 
+  /* ── the real sky at this instant ─────────────────────────────────────
+     The plate resolves the selected day and solar hour into a true UTC
+     instant, so the Moon, the planets and the catalogued stars sit where they
+     actually are for this latitude and longitude. */
+  const scene = React.useMemo(
+    () => sceneInstant(now.getFullYear(), doy, hours, lng),
+    [now, doy, hours, lng],
+  );
+
+  /** 0 = full daylight, 1 = astronomical night. Drives the OLED sky. */
+  const night = Math.max(0, Math.min(1, (-sun.altitude + 6) / 18));
+
+  const moon = React.useMemo(() => moonRead(scene, lat, lng), [scene, lat, lng]);
+  const moonXY = project(moon.azimuth, moon.altitude);
+
+  const planets = React.useMemo(
+    () =>
+      planetReads(scene, lat, lng)
+        .filter((p) => p.altitude > 0.5 && p.azimuth > AZ_FROM - 4 && p.azimuth < AZ_TO + 4)
+        .map((p) => ({ ...p, ...project(p.azimuth, p.altitude) })),
+    [scene, lat, lng],
+  );
+
+  const stars = React.useMemo(
+    () =>
+      BRIGHT_STARS.map((st) => {
+        const h = starHorizontal(st, scene, lat, lng);
+        return { ...st, ...h, ...project(h.azimuth, h.altitude) };
+      }).filter((st) => st.altitude > 1 && st.azimuth > AZ_FROM - 2 && st.azimuth < AZ_TO + 2),
+    [scene, lat, lng],
+  );
+
+  /* ── yearly accumulation ──────────────────────────────────────────────
+     A day's production is the annual figure spread by the Florida monthly
+     share; running the year integrates it day by day so the reader watches the
+     kilowatt-hours and the money bank up against their country's tariff. */
+  const dailyKwh = React.useCallback(
+    (day: number) => {
+      let m = 0;
+      DAY_OF_MONTH_START.forEach((start, i) => {
+        if (day >= start) m = i;
+      });
+      const days = (DAY_OF_MONTH_START[m + 1] ?? 366) - DAY_OF_MONTH_START[m];
+      return (yearlyKwh * FL_MONTH_SHARE[m]) / days;
+    },
+    [yearlyKwh],
+  );
+
+  const yearAccumulated = React.useMemo(() => {
+    let total = 0;
+    for (let d = 1; d <= Math.floor(yearDay); d++) total += dailyKwh(d);
+    return total;
+  }, [yearDay, dailyKwh]);
+
+  React.useEffect(() => {
+    if (!yearRun) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setYearDay(365);
+      setYearRun(false);
+      return;
+    }
+    let raf = 0;
+    let last = performance.now();
+    const tick = (t: number) => {
+      const dt = (t - last) / 1000;
+      last = t;
+      setYearDay((d) => {
+        const next = d + dt * 70; // a full year in roughly five seconds
+        if (next >= 365) {
+          setYearRun(false);
+          return 365;
+        }
+        return next;
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [yearRun]);
+
+  /* Following the simulation moves the sky with it. */
+  React.useEffect(() => {
+    if (!yearRun) return;
+    const d = Math.max(1, Math.round(yearDay));
+    setDoy(d);
+  }, [yearRun, yearDay]);
+
+  const yearMoney = yearAccumulated * tariff.rate;
+  const fullYearMoney = yearlyKwh * tariff.rate;
+
   const monthIdx = React.useMemo(() => {
     let m = 0;
     DAY_OF_MONTH_START.forEach((start, i) => {
