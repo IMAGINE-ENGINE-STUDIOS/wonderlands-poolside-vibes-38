@@ -1639,6 +1639,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         onMouseLeave={() => {
           endDrag();
           setHover(null);
+          setHoverShapeId(null);
         }}
         className="mx-auto block rounded-md border border-border bg-white"
         style={{
@@ -1656,7 +1657,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
           cursor: readOnly
             ? 'default'
             : mode === 'select'
-              ? 'pointer'
+              ? hoverShapeId
+                ? 'pointer'
+                : 'default'
               : mode === 'underlay'
                 ? 'move'
                 : 'crosshair',
@@ -1672,8 +1675,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             : mode === 'underlay'
               ? 'Drag the imported sheet to position it, then use Scale and Calibrate so the drawing matches real dimensions.'
               : mode === 'select'
-                ? 'Drag a corner to reshape, drag a line to move the whole element, click a layer chip to reassign it, Delete to remove.'
-                : 'Click to place corners, click the first corner (or press Enter / double-click) to close the shape.'}{' '}
+                ? 'Click an element — the paver deck, the pool, the cage — to open its own features and options: the paver, finish or screen you pick applies to that element only. Drag a corner to reshape, drag it to move, Delete to remove.'
+                : `Click to place corners, click the first corner (or press Enter / double-click) to close the shape. The ${layerMeta(layer).label.toLowerCase()} options armed below travel onto the element you are drawing.`}{' '}
+
           Drawn: {areas.propertySqFt.toLocaleString()} SF lot &middot; {areas.imperviousSqFt.toLocaleString()} SF impervious (
           {areas.imperviousPct}%) &middot; {areas.fenceLinearFt} LF barrier.
           {selectedShape ? ` Selected: ${layerMeta(selectedShape.layer).label}${selectedShape.importedFrom ? ` (imported from ${selectedShape.importedFrom})` : ''}.` : ''}
