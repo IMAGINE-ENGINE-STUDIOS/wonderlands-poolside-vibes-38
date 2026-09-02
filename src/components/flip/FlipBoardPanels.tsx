@@ -105,7 +105,17 @@ export function measureBoard(kind: Kind, state: FlipBoardState): Takeoff {
   };
 }
 
-type Line = { label: string; detail: string; amount: number };
+/* Site lines also carry the element / option they came from and the option's
+   photograph, so the project dossier can itemise them and offer an X. */
+type Line = {
+  label: string;
+  detail: string;
+  amount: number;
+  image?: string;
+  shapeId?: string;
+  featureId?: string;
+  layer?: string;
+};
 
 const Eyebrow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">{children}</p>

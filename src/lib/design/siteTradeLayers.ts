@@ -27,6 +27,31 @@ import { FENCE_HEIGHTS, FENCE_STYLES, FENCE_GATES, FENCE_ADDONS } from '@/data/f
 import { solarBatteries } from '@/data/solarHardware';
 import { getProductFeatures, type ProductType } from '@/config/productFeatures';
 
+/* ── option photography ───────────────────────────────────────────────────
+   Every tile on a drawing board shows a picture, exactly as Wonderlands Studio
+   prints on its product cards. Catalogues that ship their own imagery (pavers,
+   finishes, coping, turf) use it; the trades whose configurators are text-only
+   (cage, fencing, solar, deck extras, comfort options) borrow the same studio
+   photography used elsewhere on the site. ES6 imports only — never string paths. */
+import imgEnclosurePremium from '@/assets/enclosures/screen-enclosure-premium.webp';
+import imgEnclosureDeluxe from '@/assets/enclosures/screen-enclosure-deluxe.webp';
+import imgLanaiPremium from '@/assets/enclosures/lanai-premium.webp';
+import imgLanaiStandard from '@/assets/enclosures/lanai-standard.webp';
+import imgFencePanels from '@/assets/fencing/aluminum-fencing.webp';
+import imgFencePanel2 from '@/assets/fencing/aluminum-panel-2.webp';
+import imgFenceTexture from '@/assets/fencing/fence-texture.webp';
+import imgSolarArray from '@/assets/solar/solar-roof-array.jpg';
+import imgSolarBattery from '@/assets/solar/solar-battery-wall.jpg';
+import imgSolarInverter from '@/assets/solar/solar-inverter-charger.jpg';
+import imgTurfTexture from '@/assets/turf/grass-texture.avif';
+import imgDeckLuxury from '@/assets/deck/luxury-outdoor.webp';
+import imgDeckGarden from '@/assets/deck/garden.webp';
+import imgSpa from '@/assets/deck/spa.webp';
+import imgTanningLedge from '@/assets/deck/tanning-ledge.webp';
+import imgPergola from '@/assets/deck/pergola.webp';
+import imgLuxuryPool from '@/assets/deck/luxury-pool.webp';
+
+
 /** One selectable feature on a drawn element. */
 export interface TradeFeature {
   id: string;
@@ -164,7 +189,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
          covers, spas, ledges, pavers, enclosure and concrete construction */
       ...studioFeatures('pool', 'pool'),
       ...COPING_FEATURES('pool'),
-      { id: 'pool-waterline', label: 'Waterline tile band', perLinearFt: 28, group: 'Waterline' },
+      { id: 'pool-waterline', label: 'Waterline tile band', perLinearFt: 28, image: imgLuxuryPool, group: 'Waterline' },
     ],
   },
   spa: {
@@ -173,7 +198,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
     features: [
       /* identical to the studio spa card */
       ...studioFeatures('spa', 'spa'),
-      { id: 'spa-spillway', label: 'Spillway into the pool', flat: 3200, group: 'Equipment' },
+      { id: 'spa-spillway', label: 'Spillway into the pool', flat: 3200, image: imgSpa, group: 'Equipment' },
       ...COPING_FEATURES('spa'),
     ],
   },
@@ -183,10 +208,10 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
     features: [
       /* identical to the studio tanning-ledge card */
       ...studioFeatures('tanning-ledge', 'ledge'),
-      { id: 'ledge-loungers', label: 'In-water loungers', flat: 1850, group: 'Comfort' },
-      { id: 'ledge-umbrella', label: 'Umbrella sleeve & shade', flat: 1250, group: 'Comfort' },
-      { id: 'ledge-bubblers', label: 'Bubblers on the shelf', flat: 1350, group: 'Comfort' },
-      { id: 'ledge-finish', label: 'Pebble finish upgrade', perSqFt: 14, group: 'Finish' },
+      { id: 'ledge-loungers', label: 'In-water loungers', flat: 1850, image: imgTanningLedge, group: 'Comfort' },
+      { id: 'ledge-umbrella', label: 'Umbrella sleeve & shade', flat: 1250, image: imgPergola, group: 'Comfort' },
+      { id: 'ledge-bubblers', label: 'Bubblers on the shelf', flat: 1350, image: imgSpa, group: 'Comfort' },
+      { id: 'ledge-finish', label: 'Pebble finish upgrade', perSqFt: 14, image: imgLuxuryPool, group: 'Finish' },
       ...COPING_FEATURES('ledge'),
     ],
   },
@@ -201,6 +226,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: t.label,
         perSqFt: +(34 * (t.rateMultiplier - 1)).toFixed(2),
         hint: t.description,
+        image: imgEnclosurePremium,
         group: 'Cage type',
         exclusive: 'cage',
       })),
@@ -209,6 +235,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: r.label,
         perSqFt: r.pricePerSqFt,
         hint: r.description,
+        image: imgEnclosureDeluxe,
         group: 'Roof system',
         exclusive: 'roof',
       })),
@@ -217,6 +244,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: s.label,
         perSqFt: s.pricePerSqFt,
         hint: s.mesh,
+        image: imgLanaiPremium,
         group: 'Screen mesh',
         exclusive: 'screen',
       })),
@@ -225,6 +253,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: d.label,
         flat: d.price,
         hint: d.description,
+        image: imgLanaiStandard,
         group: 'Self-latching doors',
       })),
     ],
@@ -242,10 +271,10 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         group: 'Turf product',
         exclusive: 'turf-product',
       })),
-      { id: 'turf-pet', label: 'Pet-grade antimicrobial infill', perSqFt: 1.4, group: 'Base & infill' },
-      { id: 'turf-pad', label: 'Shock pad underlay', perSqFt: 2.1, group: 'Base & infill' },
-      { id: 'turf-bender', label: 'Bender board edging', perLinearFt: 6.5, group: 'Edging & drainage' },
-      { id: 'turf-drain', label: 'French drain under the field', perLinearFt: 22, group: 'Edging & drainage' },
+      { id: 'turf-pet', label: 'Pet-grade antimicrobial infill', perSqFt: 1.4, image: imgTurfTexture, group: 'Base & infill' },
+      { id: 'turf-pad', label: 'Shock pad underlay', perSqFt: 2.1, image: imgTurfTexture, group: 'Base & infill' },
+      { id: 'turf-bender', label: 'Bender board edging', perLinearFt: 6.5, image: imgDeckGarden, group: 'Edging & drainage' },
+      { id: 'turf-drain', label: 'French drain under the field', perLinearFt: 22, image: imgDeckGarden, group: 'Edging & drainage' },
     ],
   },
   solar: {
@@ -258,15 +287,16 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
           label: `${b.name} · ${b.usableKwh} kWh`,
           flat: b.price,
           hint: b.note,
+          image: imgSolarBattery,
           group: 'Storage',
           exclusive: 'battery',
         })),
-      { id: 'solar-critter', label: 'Critter guard', perLinearFt: 14, group: 'Array hardware' },
-      { id: 'solar-optimizer', label: 'Per-panel optimisers', perSqFt: 0.35, group: 'Array hardware' },
-      { id: 'solar-monitor', label: 'Production monitoring & app', flat: 850, group: 'Array hardware' },
-      { id: 'solar-tile', label: 'Tile-roof mounting kit', perSqFt: 1.1, group: 'Roof mounting', exclusive: 'mount' },
-      { id: 'solar-shingle', label: 'Shingle flashed mounting', perSqFt: 0.6, group: 'Roof mounting', exclusive: 'mount' },
-      { id: 'solar-metal', label: 'Standing-seam clamp mounting', perSqFt: 0.75, group: 'Roof mounting', exclusive: 'mount' },
+      { id: 'solar-critter', label: 'Critter guard', perLinearFt: 14, image: imgSolarArray, group: 'Array hardware' },
+      { id: 'solar-optimizer', label: 'Per-panel optimisers', perSqFt: 0.35, image: imgSolarInverter, group: 'Array hardware' },
+      { id: 'solar-monitor', label: 'Production monitoring & app', flat: 850, image: imgSolarInverter, group: 'Array hardware' },
+      { id: 'solar-tile', label: 'Tile-roof mounting kit', perSqFt: 1.1, image: imgSolarArray, group: 'Roof mounting', exclusive: 'mount' },
+      { id: 'solar-shingle', label: 'Shingle flashed mounting', perSqFt: 0.6, image: imgSolarArray, group: 'Roof mounting', exclusive: 'mount' },
+      { id: 'solar-metal', label: 'Standing-seam clamp mounting', perSqFt: 0.75, image: imgSolarArray, group: 'Roof mounting', exclusive: 'mount' },
     ],
   },
   deck: {
@@ -287,8 +317,8 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         replacesBase: true,
       })),
 
-      { id: 'deck-sealer', label: 'Penetrating sealer', perSqFt: 1.75, group: 'Deck options' },
-      { id: 'deck-drain', label: 'Deck drain', perLinearFt: 26, group: 'Deck options' },
+      { id: 'deck-sealer', label: 'Penetrating sealer', perSqFt: 1.75, image: imgDeckLuxury, group: 'Deck options' },
+      { id: 'deck-drain', label: 'Deck drain', perLinearFt: 26, image: imgDeckGarden, group: 'Deck options' },
     ],
   },
   fence: {
@@ -301,6 +331,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: h.label,
         perLinearFt: +(h.pricePerFt - (FENCE_HEIGHTS.find((x) => x.id === '48')?.pricePerFt ?? 45)).toFixed(2) || undefined,
         hint: h.note,
+        image: imgFencePanels,
         group: 'Height',
         exclusive: 'fence-height',
       })),
@@ -309,6 +340,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: s.label,
         perLinearFt: s.pricePerFtDelta || undefined,
         hint: s.description,
+        image: imgFencePanel2,
         group: 'Style',
         exclusive: 'fence-style',
       })),
@@ -317,6 +349,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: g.label,
         flat: g.price,
         hint: g.description,
+        image: imgFenceTexture,
         group: 'Gates',
       })),
       ...FENCE_ADDONS.map((a) => ({
@@ -325,6 +358,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         flat: a.pricing === 'each' ? a.price : undefined,
         perLinearFt: a.pricing === 'linear-ft' ? a.price : undefined,
         hint: a.description,
+        image: imgFenceTexture,
         group: 'Add-ons',
       })),
     ],
@@ -347,6 +381,36 @@ export function tradeFeaturePrice(
     if (!f) return sum;
     return sum + (f.flat ?? 0) + (f.perSqFt ?? 0) * sqFt + (f.perLinearFt ?? 0) * linearFt;
   }, 0);
+}
+
+/**
+ * One priced line per selected option, so the estimate itemises what was picked
+ * instead of hiding it inside a single "options" figure. Each line carries the
+ * feature id and its photograph, which is what lets the estimate print the tile
+ * and offer an X to take that option back off the element.
+ */
+export function tradeFeatureLines(
+  layer: string,
+  featureIds: string[] | undefined,
+  sqFt: number,
+  linearFt: number,
+): { id: string; label: string; detail: string; amount: number; image?: string; replacesBase?: boolean }[] {
+  if (!featureIds?.length) return [];
+  const spec = TRADE_LAYERS[layer];
+  if (!spec) return [];
+  return featureIds.flatMap((id) => {
+    const f = spec.features.find((x) => x.id === id);
+    if (!f) return [];
+    const amount = (f.flat ?? 0) + (f.perSqFt ?? 0) * sqFt + (f.perLinearFt ?? 0) * linearFt;
+    const detail = f.perSqFt
+      ? `${Math.round(sqFt).toLocaleString()} sq ft × $${f.perSqFt}/sq ft`
+      : f.perLinearFt
+        ? `${Math.round(linearFt).toLocaleString()} lf × $${f.perLinearFt}/lf`
+        : f.flat
+          ? `${f.group ?? 'Option'} · flat`
+          : (f.group ?? 'Included');
+    return [{ id: f.id, label: f.label, detail, amount, image: f.image, replacesBase: f.replacesBase }];
+  });
 }
 
 /**
