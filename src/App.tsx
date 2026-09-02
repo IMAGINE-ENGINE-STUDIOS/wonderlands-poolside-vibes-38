@@ -215,6 +215,9 @@ const App = () => {
             <Route path="/suites/saunas" element={<SaunaSuite />} />
             <Route path="/suites/spas" element={<SpaSuite />} />
             <Route path="/suites/tanning-ledges" element={<TanningLedgeSuite />} />
+            <Route path="/suites/enclosures" element={<EnclosureSuite />} />
+            <Route path="/suites/lanai" element={<EnclosureSuite />} />
+            <Route path="/suites/fencing" element={<EnclosureSuite />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
