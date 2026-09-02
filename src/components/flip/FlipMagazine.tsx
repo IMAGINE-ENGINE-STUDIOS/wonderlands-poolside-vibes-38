@@ -1247,37 +1247,22 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       body: "Every model in this edition, priced with delivery and installation at your address.",
       lockup: "Wonderlands World — FLIP",
       rightHeading: "Contents",
-      rightHint: "Tap to open",
+      rightHint: "Pose the mouse to preview · tap to open",
       right: () => (
         <ul className="h-full overflow-y-auto">
           {products.slice(0, 14).map((p, i) => (
-            <li key={p.id}>
-              <button
-                onClick={() =>
-                  turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
-                }
-                aria-label={`Open the ${p.name} page`}
-                className="group flex w-full cursor-pointer items-center gap-3 border-b border-white/15 px-2 py-[7px] text-left transition-colors hover:bg-white/12 focus-visible:bg-white/12 focus-visible:outline-none"
-              >
-                <span className="w-6 shrink-0 font-serif text-[11px] text-white/55 group-hover:text-white">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                {p.image ? (
-                  <img
-                    src={p.image}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="h-6 w-8 shrink-0 object-cover opacity-80 transition-opacity group-hover:opacity-100"
-                  />
-                ) : null}
-                <span className="min-w-0 flex-1 truncate text-[10.5px] uppercase tracking-[0.16em] text-white group-hover:underline group-hover:decoration-white/50 group-hover:underline-offset-4">
-                  {p.name}
-                </span>
-                <span className="shrink-0 font-serif text-[11px] text-white/80">{formatEntryPrice(p)}</span>
-                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/45 transition-transform group-hover:translate-x-[2px] group-hover:text-white" />
-              </button>
-            </li>
+            <FlipContentsRow
+              key={p.id}
+              index={i}
+              name={p.name}
+              priceLabel={formatEntryPrice(p)}
+              image={p.image}
+              description={[p.brand, p.meta].filter(Boolean).join(" · ")}
+              tone="ink"
+              onOpen={() =>
+                turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
+              }
+            />
           ))}
         </ul>
       ),
