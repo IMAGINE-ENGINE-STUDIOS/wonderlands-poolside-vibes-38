@@ -303,15 +303,10 @@ const GlobalDesignBoard: React.FC = () => {
         </div>
       </header>
 
-      {/* the trade rail becomes a swipeable strip on small screens */}
-      <div className="border-b border-border/50 bg-background/55 backdrop-blur-2xl xl:hidden">
-        <div className="mx-auto max-w-[1800px] px-3 py-3 sm:px-5">
-          <p className="mb-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Trades</p>
-          <div className="flex snap-x gap-2 overflow-x-auto pb-1">
-            {TRADES.map((t, i) => tradeCard(t, i, true))}
-          </div>
-        </div>
-      </div>
+      {/* The trades rail now lives in the left column at every width (it stacks
+          above the board on small screens), so elements and trades stay one
+          consolidated list instead of two competing menus. */}
+
 
       <main className="mx-auto grid max-w-[1800px] gap-4 px-3 py-4 sm:px-5 sm:py-5 xl:grid-cols-[320px_minmax(0,1fr)]">
         {/* ── project + trade rail ── */}
