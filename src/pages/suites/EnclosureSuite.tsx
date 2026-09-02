@@ -242,7 +242,7 @@ const EnclosureSuite = () => {
   }, [pathname]);
 
   const switcher = (
-    <nav aria-label="Choose a trade" className="flex flex-wrap gap-px bg-border/60">
+    <nav aria-label="Choose a trade" className="inline-flex w-fit max-w-full flex-wrap gap-px bg-border/60">
       {DISCIPLINES.map((d) => {
         const on = d.id === active.id;
         return (
