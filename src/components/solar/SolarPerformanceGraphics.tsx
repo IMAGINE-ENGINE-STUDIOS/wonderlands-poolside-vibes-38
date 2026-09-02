@@ -817,10 +817,63 @@ const SunPathConsole: React.FC<{
           />
         )}
 
-        {/* reference arcs */}
-        <path d={toPath(summer)} fill="none" stroke="#fbbf24" strokeWidth={1} strokeOpacity={0.5} strokeDasharray="5 5" />
-        <path d={toPath(equinox)} fill="none" stroke="#f97316" strokeWidth={0.9} strokeOpacity={0.4} strokeDasharray="5 5" />
-        <path d={toPath(winter)} fill="none" stroke="currentColor" strokeWidth={0.9} strokeOpacity={0.3} strokeDasharray="5 5" />
+        {/* Seasonal culminations — the June solstice, the equinoxes and the
+            December solstice, each drawn solid at its true declination with a
+            few sun stations along the curve so the reader can see how far the
+            culmination climbs between seasons. */}
+        {(
+          [
+            { pts: summer, c: "#fbbf24", w: 2, o: 0.92, l: "SUMMER SOLSTICE", s: "JUN 21", dec: seasonDec.summer },
+            { pts: equinox, c: "#38bdf8", w: 1.7, o: 0.82, l: "EQUINOX", s: "MAR 20 / SEP 22", dec: seasonDec.equinox },
+            { pts: winter, c: "#fb7185", w: 1.7, o: 0.78, l: "WINTER SOLSTICE", s: "DEC 21", dec: seasonDec.winter },
+          ] as const
+        ).map((arc) => {
+          if (arc.pts.length < 3) return null;
+          const apex = arc.pts.reduce((a, p) => (p.y < a.y ? p : a), arc.pts[0]);
+          const stations = [0.12, 0.3, 0.7, 0.88].map((t) => arc.pts[Math.round(t * (arc.pts.length - 1))]);
+          return (
+            <g key={arc.l}>
+              <path
+                d={toPath(arc.pts)}
+                fill="none"
+                stroke={arc.c}
+                strokeWidth={arc.w * 2.6}
+                strokeOpacity={0.16}
+                strokeLinecap="round"
+                filter="url(#wlSunGlow)"
+              />
+              <path
+                d={toPath(arc.pts)}
+                fill="none"
+                stroke={arc.c}
+                strokeWidth={arc.w}
+                strokeOpacity={arc.o}
+                strokeLinecap="round"
+              />
+              {stations.map((p, i) => (
+                <circle key={i} cx={p.x} cy={p.y} r={1.9} fill={arc.c} fillOpacity={0.85} />
+              ))}
+              <text
+                x={apex.x}
+                y={apex.y - 13}
+                textAnchor="middle"
+                style={{ fontSize: 10, letterSpacing: 1.6, fill: arc.c, opacity: 0.95 }}
+              >
+                {arc.l}
+              </text>
+              <text
+                x={apex.x}
+                y={apex.y - 3}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                style={{ fontSize: 8.5, letterSpacing: 1.1, opacity: 0.85 }}
+              >
+                {`${arc.s} · ${arc.dec >= 0 ? "+" : ""}${arc.dec.toFixed(1)}° DEC · ${(90 - Math.abs(lat - arc.dec)).toFixed(1)}° NOON`}
+              </text>
+            </g>
+          );
+        })}
+
 
         {/* today's flight path */}
         <path
