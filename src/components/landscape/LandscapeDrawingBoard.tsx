@@ -31,7 +31,7 @@ import {
   type LandscapeTakeoff,
 } from "@/lib/landscape/landscapeEstimate";
 import { drawnSpreadFt, resolvePick, type PlantSpec } from "@/lib/landscape/plantSpecs";
-import { hitVertexIndex, insertVertexAt, nearestSegment, removeVertex, toggleCurveFlag } from "@/utils/splineEditing";
+import { hitVertexIndex, removeVertex, toggleCurveFlag } from "@/utils/splineEditing";
 
 /**
  * Wonderlands Planting Studio — the landscape drawing board.

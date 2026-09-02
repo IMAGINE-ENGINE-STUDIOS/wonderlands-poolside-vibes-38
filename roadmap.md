@@ -13,7 +13,7 @@
 - [x] Wired into flipBoardStore, FLIP spread, editor board and the live cost leaf
 
 ## Global Design Board
-- [ ] New page based on the Blueprint Builder — one unified design surface for every trade
-- [ ] Every discipline mounts its real board (site/studio, screen enclosure, fencing, turf, planting, solar) with its own pencils, splines, tools, options and features
-- [ ] All pricing models load here (site/studio, enclosure, fence, turf, landscape, solar) into one project total
-- [ ] One-click "Load into Blueprint mode" — fills the blueprint builder from the global project
+- [x] New page at /global-design-board on the Blueprint Builder shell — one unified design surface for every trade
+- [x] Every discipline mounts its real board (site/studio, screen enclosure, fencing, turf, planting, solar) with its own pencils, splines, tools, options and features
+- [x] All pricing models load here (site/studio, enclosure, fence, turf, landscape, solar) into one project total
+- [x] One-click "Load into blueprint mode" — fills the blueprint builder (site plan, measured areas, scope) and badges the source
