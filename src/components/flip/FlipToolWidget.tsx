@@ -4,6 +4,8 @@ import { Maximize2, Upload, X, Loader2 } from "lucide-react";
 import { boardForCategory } from "./FlipEditorBoard";
 import { useFlipBoard, setFlipBoardValue, useFlipLock } from "./flipBoardStore";
 import { FlipBoardTools, FlipBoardCost, FlipBoardCalculators, useBoardEstimate } from "./FlipBoardPanels";
+import FlipBoardDossier from "./FlipBoardDossier";
+
 import {
   DEFAULT_PX_PER_FT,
   type SiteLayerId,
