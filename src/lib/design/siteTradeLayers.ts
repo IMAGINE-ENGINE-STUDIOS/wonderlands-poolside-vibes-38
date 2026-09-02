@@ -384,6 +384,36 @@ export function tradeFeaturePrice(
 }
 
 /**
+ * One priced line per selected option, so the estimate itemises what was picked
+ * instead of hiding it inside a single "options" figure. Each line carries the
+ * feature id and its photograph, which is what lets the estimate print the tile
+ * and offer an X to take that option back off the element.
+ */
+export function tradeFeatureLines(
+  layer: string,
+  featureIds: string[] | undefined,
+  sqFt: number,
+  linearFt: number,
+): { id: string; label: string; detail: string; amount: number; image?: string; replacesBase?: boolean }[] {
+  if (!featureIds?.length) return [];
+  const spec = TRADE_LAYERS[layer];
+  if (!spec) return [];
+  return featureIds.flatMap((id) => {
+    const f = spec.features.find((x) => x.id === id);
+    if (!f) return [];
+    const amount = (f.flat ?? 0) + (f.perSqFt ?? 0) * sqFt + (f.perLinearFt ?? 0) * linearFt;
+    const detail = f.perSqFt
+      ? `${Math.round(sqFt).toLocaleString()} sq ft × $${f.perSqFt}/sq ft`
+      : f.perLinearFt
+        ? `${Math.round(linearFt).toLocaleString()} lf × $${f.perLinearFt}/lf`
+        : f.flat
+          ? `${f.group ?? 'Option'} · flat`
+          : (f.group ?? 'Included');
+    return [{ id: f.id, label: f.label, detail, amount, image: f.image, replacesBase: f.replacesBase }];
+  });
+}
+
+/**
  * Does the element carry a surface option that already includes the layer base?
  * A paver on a deck is quoted at its published installed rate, so the $10/sq ft
  * concrete deck base is dropped for that element instead of being stacked on it.
