@@ -692,6 +692,29 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     };
   };
 
+  /* Wheel / trackpad-pinch zoom anchored under the cursor. React's onWheel is
+     passive, so the listener is attached natively. */
+  const viewRef = React.useRef(view);
+  viewRef.current = view;
+  React.useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      setView(v => {
+        const next = Math.max(0.25, Math.min(8, v.z * Math.exp(-dy * 0.0015)));
+        const k = next / v.z;
+        return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
+      });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
   const hitPoint = (p: EnclosurePoint) => layout.points.findIndex(pt => dist(pt, p) < 9);
   const hitSegment = (p: EnclosurePoint) => {
     let best = -1;
@@ -939,8 +962,11 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   const preset = (w: number, d: number) => {
     const widthPx = w * PX_PER_FT;
     const depthPx = d * PX_PER_FT;
-    const ox = Math.round((size.w - widthPx) / 2 / PX_PER_FT) * PX_PER_FT;
-    const oy = Math.round((size.h - depthPx) / 2 / PX_PER_FT) * PX_PER_FT;
+    /* centre the preset on what the camera is actually looking at */
+    const cxWorld = (size.w / 2 - view.x) / view.z;
+    const cyWorld = (size.h / 2 - view.y) / view.z;
+    const ox = Math.round((cxWorld - widthPx / 2) / PX_PER_FT) * PX_PER_FT;
+    const oy = Math.round((cyWorld - depthPx / 2) / PX_PER_FT) * PX_PER_FT;
     setSelection(null);
     onChange({
       points: [
