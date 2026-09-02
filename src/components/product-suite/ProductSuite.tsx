@@ -72,6 +72,19 @@ export interface ProductSuiteProps {
   models: SuiteModel[];
   /** Optional grouping label resolver for the carousel, e.g. brand */
   groupBy?: (model: SuiteModel) => string;
+  /**
+   * Rendered inside the masthead, under the standfirst. Suites that carry
+   * several disciplines (enclosures / lanai / fencing) print their discipline
+   * switcher here so the reader never leaves the page to change trade.
+   */
+  mastheadSlot?: React.ReactNode;
+  /**
+   * Extra drawing boards this suite can open besides its own discipline board.
+   * Each id is a `FlipEditorBoard` discipline id.
+   */
+  boards?: Array<{ id: string; label: string }>;
+  /** Printed after every figure for rate-based trades, e.g. "/sq ft". */
+  unitSuffix?: string;
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -85,7 +98,11 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
   blurb,
   models,
   groupBy,
+  mastheadSlot,
+  boards,
+  unitSuffix = "",
 }) => {
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addToCart, cartItems, syncItemConfig } = useShoppingCart();
