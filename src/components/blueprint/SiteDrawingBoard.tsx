@@ -774,10 +774,6 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       }
 
 
-      // label + area
-      if (shape.closed && !meta.linear && shape.points.length > 2) {
-        const cx = shape.points.reduce((s, p) => s + p.x, 0) / shape.points.length;
-        const cy = shape.points.reduce((s, p) => s + p.y, 0) / shape.points.length;
       /* CURVATURE HANDLES — one grab per run at its arc midpoint. Pull it and the
          run becomes a true circular arc; the radius is printed as you pull, and
          can be typed to the inch in the curvature inspector. Diamonds are live
@@ -821,6 +817,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         });
       }
 
+
+      // label + area
+      if (shape.closed && !meta.linear && shape.points.length > 2) {
+        const cx = shape.points.reduce((s, p) => s + p.x, 0) / shape.points.length;
+        const cy = shape.points.reduce((s, p) => s + p.y, 0) / shape.points.length;
         /* NET area: what the crew installs, with every overlap already cut out */
         const area = netArea(cropped) / (pxPerFt * pxPerFt);
         ctx.textAlign = 'center';
