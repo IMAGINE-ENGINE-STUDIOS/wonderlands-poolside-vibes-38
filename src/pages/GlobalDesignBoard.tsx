@@ -324,12 +324,14 @@ const GlobalDesignBoard: React.FC = () => {
                 </div>
               ))}
             </div>
-            <Button size="sm" className="mt-4 w-full" onClick={openBlueprint}>
-              Load into blueprint mode
-            </Button>
-            <Button size="sm" variant="ghost" className="mt-1.5 w-full text-destructive" onClick={resetProject}>
-              <Eraser className="mr-1 h-4 w-4" /> Erase &amp; reset project
-            </Button>
+            <div className="board-console mt-4 space-y-1.5">
+              <button type="button" className="w-full bg-primary" onClick={openBlueprint}>
+                Load into blueprint mode
+              </button>
+              <button type="button" className="w-full" onClick={resetProject}>
+                <Eraser className="mr-1.5 inline h-3.5 w-3.5" /> Erase &amp; reset project
+              </button>
+            </div>
           </section>
         </aside>
 
