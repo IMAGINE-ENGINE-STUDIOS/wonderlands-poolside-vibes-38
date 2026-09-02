@@ -791,12 +791,13 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
           ctx.save();
           ctx.translate(h.x, h.y);
           ctx.rotate(Math.PI / 4);
-          const r = on ? 5.5 : 4.2;
+          /* constant on-screen size, whatever the camera altitude */
+          const r = (on ? 5.6 : 4.4) / view.z;
           ctx.beginPath();
           ctx.rect(-r, -r, r * 2, r * 2);
           ctx.fillStyle = isArc ? '#0891b2' : 'rgba(255,255,255,0.95)';
           ctx.strokeStyle = on ? '#f59e0b' : '#0891b2';
-          ctx.lineWidth = on ? 2 : 1.3;
+          ctx.lineWidth = (on ? 2 : 1.3) / view.z;
           ctx.fill();
           ctx.stroke();
           ctx.restore();
@@ -1028,7 +1029,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       const b = shape.points[(i + 1) % shape.points.length];
       if (Math.hypot(b.x - a.x, b.y - a.y) < 22) continue;
       const h = arcMidpoint(a, b, spec.arcs[i]);
-      if (Math.hypot(h.x - p.x, h.y - p.y) <= 9) return { shapeId: shape.id, index: i };
+      /* grab radius is constant on screen, so the handle is as easy to catch
+         zoomed out over a whole lot as it is up close on a bench seat */
+      if (Math.hypot(h.x - p.x, h.y - p.y) <= 11 / viewRef.current.z) return { shapeId: shape.id, index: i };
     }
     return null;
   };
