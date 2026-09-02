@@ -52,9 +52,7 @@ export function solarSheetNote(i: SolarBlueprintInput): string {
   return [
     `SOLAR / UTILITY DATA — ${j.county.toUpperCase()} COUNTY`,
     `1. SERVING UTILITY: ${j.utility.toUpperCase()} (${j.utilityKind.toUpperCase()}).`,
-    `2. RETAIL ENERGY RATE USED: $${e.rate.toFixED_SAFE ?? e.rate.toFixed(3)}/KWH. FIXED CUSTOMER CHARGE $${j.fixedMonthlyUsd.toFixed(
-      2,
-    )}/MONTH.`,
+    `2. RETAIL ENERGY RATE USED: $${e.rate.toFixed(3)}/KWH. FIXED CUSTOMER CHARGE $${j.fixedMonthlyUsd.toFixed(2)}/MONTH.`,
     `3. EXPORT CREDIT: ${e.exportRuleLabel.toUpperCase()}. BLENDED VALUE OF PRODUCTION $${e.effectiveRate.toFixed(3)}/KWH.`,
     `4. FEDERAL CREDIT AND LOCAL INCENTIVES APPLIED: $${e.incentiveCash.toLocaleString()}. NET INSTALLED $${e.netCost.toLocaleString()}.`,
     `5. FLORIDA SALES TAX EXEMPT PER §212.08(7)(hh) F.S. ASSESSED VALUE EXCLUDED PER §193.624 F.S.`,
