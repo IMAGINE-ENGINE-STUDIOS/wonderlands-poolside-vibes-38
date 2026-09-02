@@ -1401,8 +1401,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         </div>
       )}
       {canvasEl}
-      {elementOptions}
-      {armedOptions}
+      {optionsInline}
+      {optionsPortal}
+
       {footNote}
     </div>
   );
