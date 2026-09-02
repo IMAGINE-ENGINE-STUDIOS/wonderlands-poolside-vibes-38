@@ -36,6 +36,23 @@ import {
 } from '@/utils/splineEditing';
 import { TRADE_LAYERS, tradeFeaturePrice, solarPanelsForArea } from '@/lib/design/siteTradeLayers';
 
+/**
+ * Toggle one additional feature on a layer. Options that belong to the same
+ * `exclusive` family (a paver surface, a fence height, a screen mesh) behave as
+ * a single choice, exactly like the standalone configurators.
+ */
+const applyFeatureToggle = (layer: string, current: string[], featureId: string): string[] => {
+  const spec = TRADE_LAYERS[layer];
+  const feature = spec?.features.find(f => f.id === featureId);
+  if (current.includes(featureId)) return current.filter(f => f !== featureId);
+  const siblings = feature?.exclusive
+    ? new Set(spec!.features.filter(f => f.exclusive === feature.exclusive).map(f => f.id))
+    : null;
+  const kept = siblings ? current.filter(id => !siblings.has(id)) : current;
+  return [...kept, featureId];
+};
+
+
 
 export type SiteLayerId =
   | 'property'
