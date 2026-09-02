@@ -17,10 +17,11 @@
  */
 
 import * as React from "react";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, X } from "lucide-react";
 import { useBoardEstimate, useProjectSpecs, FlipBoardCalculators } from "./FlipBoardPanels";
 import { resetFlipBoard } from "./flipBoardStore";
 import { getProjectPipeline } from "@/data/projectPipeline";
+import { isRemovableLine, removeEstimateLine, removeLineHint } from "@/lib/design/estimateEdit";
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
