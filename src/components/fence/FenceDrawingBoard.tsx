@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
 import useBoardDensity from '@/hooks/useBoardDensity';
 import { Badge } from '@/components/ui/badge';
-import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Plus, Spline, Minus } from 'lucide-react';
+import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Plus, Spline, Minus, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import {
   insertVertexAfter,
   insertVertexAt,
