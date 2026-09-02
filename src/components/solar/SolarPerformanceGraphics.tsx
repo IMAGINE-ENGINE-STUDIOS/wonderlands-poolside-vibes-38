@@ -607,36 +607,46 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
         )}
       </svg>
 
-      {/* mission roadmap ribbon */}
-      <div className="relative mt-4">
-        <div className="relative h-[3px] w-full rounded-full bg-foreground/10">
+      {/* mission roadmap ribbon — click any milestone to fly the clock there */}
+      <div className="relative mt-6">
+        <div className="relative h-[5px] w-full rounded-full bg-foreground/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]">
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400/60 via-amber-300 to-orange-400"
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400/70 via-amber-300 to-orange-400 transition-[width] duration-300"
             style={{ width: `${progress * 100}%` }}
           />
           <span
-            className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_12px_2px_rgba(251,191,36,0.7)]"
+            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_18px_4px_rgba(251,191,36,0.7)] transition-[left] duration-300"
             style={{ left: `${progress * 100}%` }}
           />
         </div>
-        <ol className="mt-2 grid grid-cols-4 gap-1.5 sm:grid-cols-7">
+        <ol className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
           {roadmap.map((r) => {
             const passed = hours >= r.t;
             return (
-              <li
-                key={r.l}
-                className={`rounded-lg border px-2 py-1.5 backdrop-blur-md transition ${
-                  passed ? "border-amber-300/35 bg-amber-300/10" : "border-white/10 bg-background/20"
-                }`}
-              >
-                <p className="text-[7.5px] uppercase tracking-[0.16em] text-muted-foreground">{r.l}</p>
-                <p
-                  className={`mt-0.5 text-[10px] font-light leading-none ${
-                    r.tone === "peak" ? "text-amber-200" : ""
+              <li key={r.l}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPlaying(false);
+                    setHours(Math.max(0, Math.min(24, r.t)));
+                  }}
+                  className={`w-full rounded-xl border px-3 py-2.5 text-left backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-amber-300/60 ${
+                    passed
+                      ? "border-amber-300/40 bg-amber-300/10 shadow-[0_10px_30px_-24px_rgba(251,191,36,0.9)]"
+                      : "border-white/12 bg-background/25"
                   }`}
                 >
-                  {clockLabel(r.t)}
-                </p>
+                  <span className="block text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                    {r.l}
+                  </span>
+                  <span
+                    className={`mt-1 block text-[15px] font-light leading-none tabular-nums ${
+                      r.tone === "peak" ? "text-amber-200" : ""
+                    }`}
+                  >
+                    {clockLabel(r.t)}
+                  </span>
+                </button>
               </li>
             );
           })}
@@ -644,28 +654,28 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
       </div>
 
       {/* telemetry read-out */}
-      <dl className="relative mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
+      <dl className="relative mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {[
-          { k: "Altitude", v: `${Math.max(0, readAlt).toFixed(1)}°` },
-          { k: "Azimuth", v: `${readAz.toFixed(0)}° ${compassLabel(readAz)}` },
-          { k: "Air mass", v: Number.isFinite(am) ? `${am.toFixed(2)} AM` : "—" },
-          { k: "Direct beam", v: `${dni.toFixed(2)} kW/m²` },
-          { k: "Global horiz.", v: `${ghi.toFixed(2)} kW/m²` },
-          { k: "Shadow ratio", v: Number.isFinite(shadow) ? `${shadow.toFixed(1)}×` : "—" },
+          { k: "Altitude", v: `${Math.max(0, readAlt).toFixed(1)}°`, h: "Height of the sun above the horizon" },
+          { k: "Azimuth", v: `${readAz.toFixed(0)}° ${compassLabel(readAz)}`, h: "Compass bearing of the sun" },
+          { k: "Air mass", v: Number.isFinite(am) ? `${am.toFixed(2)} AM` : "—", h: "Atmosphere the light travels through" },
+          { k: "Direct beam", v: `${dni.toFixed(2)} kW/m²`, h: "Clear-sky direct normal irradiance" },
+          { k: "Global horiz.", v: `${ghi.toFixed(2)} kW/m²`, h: "Total light on a flat surface" },
+          { k: "Shadow ratio", v: Number.isFinite(shadow) ? `${shadow.toFixed(1)}×` : "—", h: "Shadow length per unit of height" },
         ].map((t) => (
-          <div key={t.k} className={chip}>
-            <dt className="text-[7.5px] uppercase tracking-[0.24em] text-muted-foreground">{t.k}</dt>
-            <dd className="mt-0.5 text-[11px] font-light tabular-nums leading-none">{t.v}</dd>
+          <div key={t.k} className={chip} title={t.h}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{t.k}</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none">{t.v}</dd>
           </div>
         ))}
       </dl>
 
       {/* scrubbers */}
-      <div className="relative mt-3 grid gap-3 sm:grid-cols-2">
-        <label className="block">
-          <span className="flex items-baseline justify-between text-[8px] uppercase tracking-[0.24em] text-muted-foreground">
+      <div className="relative mt-5 grid gap-4 sm:grid-cols-2">
+        <label className="block rounded-2xl border border-white/12 bg-background/25 p-4 backdrop-blur-xl">
+          <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             <span>Day of year</span>
-            <span className="tabular-nums">{`DOY ${doy} · dec ${dec >= 0 ? "+" : ""}${dec.toFixed(1)}°`}</span>
+            <span className="tabular-nums text-foreground/80">{`DOY ${doy} · dec ${dec >= 0 ? "+" : ""}${dec.toFixed(1)}°`}</span>
           </span>
           <input
             type="range"
@@ -674,19 +684,19 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
             step={1}
             value={doy}
             onChange={(e) => setDoy(Number(e.target.value))}
-            className="mt-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-foreground/15 accent-amber-300"
+            className="wl-range mt-3 w-full cursor-pointer"
             aria-label="Day of year"
           />
-          <span className="mt-2 flex flex-wrap gap-1">
+          <span className="mt-3 flex flex-wrap gap-1.5">
             {DAY_OF_MONTH_START.map((start, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setDoy(start)}
-                className={`rounded-md border px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] transition ${
+                className={`rounded-lg border px-2.5 py-1.5 text-[11px] uppercase tracking-[0.1em] transition ${
                   monthIdx === i
-                    ? "border-amber-300/50 bg-amber-300/15 text-amber-100"
-                    : "border-white/10 bg-background/20 text-muted-foreground hover:text-foreground"
+                    ? "border-amber-300/55 bg-amber-300/15 text-amber-100"
+                    : "border-white/12 bg-background/25 text-muted-foreground hover:border-white/30 hover:text-foreground"
                 }`}
               >
                 {MONTH_NAMES[i].slice(0, 3)}
@@ -695,10 +705,10 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           </span>
         </label>
 
-        <label className="block">
-          <span className="flex items-baseline justify-between text-[8px] uppercase tracking-[0.24em] text-muted-foreground">
+        <label className="block rounded-2xl border border-white/12 bg-background/25 p-4 backdrop-blur-xl">
+          <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             <span>Solar clock</span>
-            <span className="tabular-nums">{`${daylight.toFixed(2)} h daylight`}</span>
+            <span className="tabular-nums text-foreground/80">{`${daylight.toFixed(2)} h daylight`}</span>
           </span>
           <input
             type="range"
@@ -710,18 +720,18 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
               setPlaying(false);
               setHours(Number(e.target.value));
             }}
-            className="mt-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-foreground/15 accent-amber-300"
+            className="wl-range mt-3 w-full cursor-pointer"
             aria-label="Hour of day"
           />
-          <span className="mt-2 flex flex-wrap gap-1.5 text-[8px] uppercase tracking-[0.16em] text-muted-foreground">
+          <span className="mt-3 flex flex-wrap gap-1.5 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
             {[
               { c: "#fde68a", l: "Selected day" },
               { c: "#fbbf24", l: "June solstice" },
               { c: "#f97316", l: "Equinox" },
               { c: "currentColor", l: "December solstice" },
             ].map((k) => (
-              <span key={k.l} className="flex items-center gap-1.5 rounded-md border border-white/10 bg-background/20 px-1.5 py-0.5">
-                <span className="h-[2px] w-3.5" style={{ backgroundColor: k.c, opacity: k.c === "currentColor" ? 0.45 : 1 }} />
+              <span key={k.l} className="flex items-center gap-2 rounded-lg border border-white/12 bg-background/25 px-2.5 py-1.5">
+                <span className="h-[3px] w-4 rounded-full" style={{ backgroundColor: k.c, opacity: k.c === "currentColor" ? 0.45 : 1 }} />
                 {k.l}
               </span>
             ))}
