@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
 import useBoardDensity from '@/hooks/useBoardDensity';
-import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, Square, X, Plus, Spline } from 'lucide-react';
+import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, X, Plus, Spline, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import { ENCLOSURE_DOORS, EnclosureDoorOption } from '@/data/screenEnclosureConfigurator';
 import {
   insertVertexAfter,
