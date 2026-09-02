@@ -255,9 +255,25 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    /* ULTRA HIGH-RES, CHEAP: the drawing logic keeps working in logical
+       CANVAS_W x CANVAS_H units, but the bitmap is allocated at the device
+       pixel ratio (capped at 2 so large 4K screens don't pay for a 3x buffer).
+       Everything below then renders crisp with zero extra draw calls. */
+    const dpr = Math.min(2, Math.max(1, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1));
+    const bw = Math.round(CANVAS_W * dpr);
+    const bh = Math.round(CANVAS_H * dpr);
+    if (canvas.width !== bw || canvas.height !== bh) {
+      canvas.width = bw;
+      canvas.height = bh;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
 
     // imported sheet underlay
     if (underlay && underlay.visible && imgRef.current) {
