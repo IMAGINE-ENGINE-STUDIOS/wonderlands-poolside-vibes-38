@@ -799,7 +799,8 @@ const GrassDrawingBoard: React.FC<Props> = ({
   return (
     <div className="space-y-3">
       {/* Toolbar */}
-      <div className="rounded-xl border border-white/40 bg-white/60 p-2 backdrop-blur-md">
+      {/* board-console: the FLIP gateway control language, shared by every board */}
+      <div className="board-console rounded-2xl border border-border/50 bg-background/55 p-2.5 backdrop-blur-xl">
       {header && <div className="px-1 pt-1 pb-3">{header}</div>}
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" size="sm" variant={tool === 'draw' ? 'default' : 'outline'} onClick={() => setTool('draw')} className="h-8">
