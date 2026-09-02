@@ -134,7 +134,7 @@ const SolarGeniusLeaf: React.FC = () => {
       panelWatts: panel.watts,
       yearOneKwh,
       installed: bom?.installed ?? 0,
-      batteryLabel: battery?.label,
+      batteryLabel: battery?.name,
       covering: session.covering,
       serviceRunFt: session.serviceRunFt,
     });
@@ -205,10 +205,10 @@ const SolarGeniusLeaf: React.FC = () => {
               <div key={label} className="rounded-2xl border border-border/60 bg-background/60 p-4 backdrop-blur">
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">{label}</p>
-                  <p className="font-serif text-xl font-light leading-none">{usd(r.netSavings)}</p>
+                  <p className="font-serif text-xl font-light leading-none">{usd(r.netBenefit)}</p>
                 </div>
                 <p className="mt-2 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {r.paybackYears > 0 ? `Payback ${r.paybackYears.toFixed(1)} yrs · ` : ""}
+                  {r.paybackYears ? `Payback ${r.paybackYears.toFixed(1)} yrs · ` : ""}
                   {r.lcoe > 0 ? `LCOE ${(r.lcoe * 100).toFixed(1)}¢/kWh` : "—"}
                 </p>
               </div>
