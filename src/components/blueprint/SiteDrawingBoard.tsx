@@ -1216,35 +1216,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             Armed for the next element
           </span>
         </div>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {armedSpec.features.map(f => {
-            const on = armedOn.includes(f.id);
-            return (
-              <span key={f.id} className="contents">
-                {ctrl(
-                  <>
-                    {f.label}
-                    {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
-                    {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
-                    {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
-                  </>,
-                  {
-                    on,
-                    title: f.hint,
-                    onClick: () =>
-                      setArmedFeatures(prev => {
-                        const cur = prev[layer] ?? [];
-                        return {
-                          ...prev,
-                          [layer]: cur.includes(f.id) ? cur.filter(id => id !== f.id) : [...cur, f.id],
-                        };
-                      }),
-                  },
-                )}
-              </span>
-            );
-          })}
-        </div>
+        {featureChips(armedSpec, armedOn, id =>
+          setArmedFeatures(prev => ({ ...prev, [layer]: applyFeatureToggle(layer, prev[layer] ?? [], id) })),
+        )}
+
         {armedSpec.note ? (
           <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{armedSpec.note}</p>
         ) : null}
