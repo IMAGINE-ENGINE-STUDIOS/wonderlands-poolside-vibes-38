@@ -982,7 +982,9 @@ export const useProductBookPages = ({
     /* option chapters — one illustrated page each, long lists continue on facing
        pages. Six rows is the most that fits under the preview plate without any
        option being clipped out of sight, so long catalogues simply get more pages. */
-    const PER_PAGE = 6;
+    /* five options per leaf — a printed page never scrolls, so any chapter with
+       more options simply continues onto as many new leaves as it needs. */
+    const PER_PAGE = 5;
     groups.forEach((g, i) => {
       const chunks: StudioOption[][] = [];
       for (let c = 0; c < g.items.length; c += PER_PAGE) chunks.push(g.items.slice(c, c + PER_PAGE));
