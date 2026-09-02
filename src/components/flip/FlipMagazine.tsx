@@ -1084,65 +1084,102 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     if (category.id === "pools" && catalogs.length > 1) {
       list.push({
         key: "fiberglass-landing",
+        tone: "cover",
         render: () => (
-          <div className="flex h-full w-full flex-col bg-background p-8 sm:p-10">
-            <div className="flex items-baseline justify-between gap-3">
-              <Eyebrow>Wonderlands World — FLIP</Eyebrow>
-              <Eyebrow className="hidden sm:block">The Fiberglass Edition</Eyebrow>
-            </div>
-            <h2 className="mt-2 font-serif text-4xl font-light leading-[0.95] sm:text-5xl">
-              Fiberglass
-              <br />
-              <span className="italic">pools</span>
-            </h2>
-            <div className="mt-3 h-px w-16 origin-left bg-foreground/40 animate-rule-draw" />
-            <p className="mt-3 max-w-lg text-[12px] leading-relaxed text-muted-foreground">
-              Two house catalogs in one edition — Latham and GlimmerGlass. Enter either catalog:
-              the models follow in price order, delivered and installed turnkey at your address.
-            </p>
+          <div className="relative h-full w-full overflow-hidden bg-neutral-950">
+            {/* Cinematic full-bleed plate — the edition's flagship water */}
+            {category.images[0] ? (
+              <img
+                src={category.images[0]}
+                alt={`${category.label} — the fiberglass edition`}
+                loading="eager"
+                decoding="async"
+                className="absolute inset-0 h-full w-full scale-105 object-cover opacity-70 [animation:flipKenBurns_22s_ease-out_both]"
+              />
+            ) : null}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/70" />
+            <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,rgba(255,255,255,0.16),transparent_60%)]" />
+            <style>{`@keyframes flipKenBurns{from{transform:scale(1.14) translateY(1.5%)}to{transform:scale(1.05) translateY(0)}}`}</style>
 
-            <div className="mt-5 grid min-h-0 flex-1 gap-4 sm:grid-cols-2">
-              {catalogs.map((c) => (
-                <button
-                  key={c.brand}
-                  onClick={() =>
-                    turnToPageWithMotion(at.products + c.start * 2, `${c.brand} catalog`, [
-                      c.models[0]?.image,
-                      ...(category.images ?? []),
-                    ].filter(Boolean) as string[])
-                  }
-                  className="group relative flex min-h-0 flex-col overflow-hidden border border-border/60 text-left transition-colors hover:border-foreground/40"
-                >
-                  <span className="relative block min-h-0 flex-1 overflow-hidden bg-muted">
+            <div className="relative flex h-full flex-col justify-between p-7 text-white sm:p-10">
+              {/* masthead */}
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-[8.5px] uppercase tracking-[0.45em] text-white/70">
+                  Wonderlands World — FLIP
+                </p>
+                <p className="hidden text-[8.5px] uppercase tracking-[0.45em] text-white/70 sm:block">
+                  The Fiberglass Edition
+                </p>
+              </div>
+
+              {/* headline */}
+              <div className="mt-6">
+                <p className="text-[8.5px] uppercase tracking-[0.5em] text-white/60">
+                  {catalogs.length} house catalogs · one edition
+                </p>
+                <h2 className="mt-3 font-serif text-[13vw] font-light leading-[0.82] tracking-[-0.02em] sm:text-6xl md:text-7xl">
+                  Fiberglass
+                  <br />
+                  <span className="italic text-white/70">pools</span>
+                </h2>
+                <div className="mt-4 h-px w-24 origin-left bg-white/50 animate-rule-draw" />
+                <p className="mt-4 max-w-md text-[12px] leading-relaxed text-white/75">
+                  Latham and GlimmerGlass, printed side by side. Choose a house and the models
+                  follow in price order — engineered, delivered and installed turnkey at your address.
+                </p>
+              </div>
+
+              {/* two gateways */}
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {catalogs.map((c, ci) => (
+                  <button
+                    key={c.brand}
+                    onClick={() =>
+                      turnToPageWithMotion(at.products + c.start * 2, `${c.brand} catalog`, [
+                        c.models[0]?.image,
+                        ...(category.images ?? []),
+                      ].filter(Boolean) as string[])
+                    }
+                    className="group relative overflow-hidden rounded-sm border border-white/25 bg-white/[0.06] p-4 text-left backdrop-blur-md transition-all duration-500 hover:border-white/70 hover:bg-white/[0.12]"
+                  >
                     {c.models[0]?.image ? (
                       <img
                         src={c.models[0].image}
-                        alt={c.brand}
+                        alt=""
+                        aria-hidden
                         loading="eager"
                         decoding="async"
-                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.06]"
+                        className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-35"
                       />
                     ) : null}
-                  </span>
-                  <span className="flex items-baseline justify-between gap-3 px-4 pt-3">
-                    <span className="font-serif text-xl font-light">{c.brand}</span>
-                    <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
-                      {c.models.length} models
+                    <span className="relative flex items-baseline justify-between gap-3">
+                      <span className="font-serif text-2xl font-light leading-none sm:text-3xl">
+                        {c.brand}
+                      </span>
+                      <span className="font-serif text-[11px] text-white/50">
+                        0{ci + 1}
+                      </span>
                     </span>
-                  </span>
-                  <span className="flex items-center justify-between gap-3 px-4 pb-3 pt-1.5 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                    From {formatEntryPrice(c.models[0]) || "On request"}
-                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                  </span>
-                </button>
-              ))}
-            </div>
+                    <span className="relative mt-3 flex items-center justify-between gap-3 text-[8.5px] uppercase tracking-[0.3em] text-white/70">
+                      <span>
+                        {c.models.length} models · from {formatEntryPrice(c.models[0]) || "on request"}
+                      </span>
+                      <ChevronRight className="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-1.5" />
+                    </span>
+                    <span className="absolute bottom-0 left-0 h-px w-0 bg-white transition-all duration-700 group-hover:w-full" />
+                  </button>
+                ))}
+              </div>
 
-            <p className="mt-4 border-t border-border/60 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-              {products.length ? `${products.length} models · ${groups.length} option chapters` : "Loading edition"}
-            </p>
+              <p className="mt-5 border-t border-white/20 pt-3 text-[8.5px] uppercase tracking-[0.35em] text-white/60">
+                {products.length
+                  ? `${products.length} models · ${groups.length} option chapters`
+                  : "Loading edition"}
+              </p>
+            </div>
           </div>
         ),
+
       });
     }
 
