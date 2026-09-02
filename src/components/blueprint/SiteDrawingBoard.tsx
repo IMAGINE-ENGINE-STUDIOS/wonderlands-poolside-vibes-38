@@ -1211,10 +1211,28 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     if (e.altKey || e.button === 2) {
       const vertex = hitVertex(raw);
       if (vertex) {
-        removeVertexFrom(vertex.shapeId, vertex.index);
+        /* Erasing a point is deliberate: the first click only picks the point,
+           a second Alt-click on that same picked point removes it. Nothing is
+           ever deleted just because the cursor passed over it. */
+        if (vertex.shapeId === selected && vertex.index === selectedVertex) {
+          removeVertexFrom(vertex.shapeId, vertex.index);
+        } else {
+          setSelected(vertex.shapeId);
+          setSelectedVertex(vertex.index);
+          setSelectedSegment(null);
+        }
         return;
       }
-      if (insertVertexNear({ x: snap(raw.x), y: snap(raw.y) })) return;
+      if (insertVertexNear(raw)) return;
+    }
+    /* Point tool: the ghost riding the spline is dropped where the designer sees it */
+    if (mode === 'point') {
+      const hit = insertGhost ?? nearestOnOutline(raw, 16 / viewRef.current.z);
+      if (hit) {
+        insertVertexOnOutline(hit.shapeId, hit.segment, hit.point);
+        setInsertGhost(null);
+      }
+      return;
     }
     if (mode !== 'select') return;
     /* the curvature diamond wins: pulling it bows the run into a true arc */
