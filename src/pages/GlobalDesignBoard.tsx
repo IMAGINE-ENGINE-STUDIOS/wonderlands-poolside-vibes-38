@@ -328,7 +328,13 @@ const GlobalDesignBoard: React.FC = () => {
                 />
               </div>
             </div>
+
+            {/* The drawn element's own additional features live here, in the
+                project column, instead of under the board — every catalogued
+                option, priced exactly as the studio and the FLIP book price it. */}
+            <div id="wl-board-options" className="mt-4 space-y-3 border-t border-border/50 pt-4 empty:mt-0 empty:border-0 empty:pt-0" />
           </section>
+
 
           {/* Trade gateways — the same glass gateway button as the FLIP edition */}
           <section className="glass-panel hidden rounded-2xl p-2 xl:block">
