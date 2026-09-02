@@ -85,6 +85,8 @@ const FlipBookPublished = lazy(() => import("./pages/FlipBookPublished"));
 const SaunaSuite = lazy(() => import("./pages/suites/SaunaSuite"));
 const SpaSuite = lazy(() => import("./pages/suites/SpaSuite"));
 const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"));
+/* Screen enclosures + lanai + fencing share one suite (three trades, one page) */
+const EnclosureSuite = lazy(() => import("./pages/suites/EnclosureSuite"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -213,6 +215,9 @@ const App = () => {
             <Route path="/suites/saunas" element={<SaunaSuite />} />
             <Route path="/suites/spas" element={<SpaSuite />} />
             <Route path="/suites/tanning-ledges" element={<TanningLedgeSuite />} />
+            <Route path="/suites/enclosures" element={<EnclosureSuite />} />
+            <Route path="/suites/lanai" element={<EnclosureSuite />} />
+            <Route path="/suites/fencing" element={<EnclosureSuite />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>

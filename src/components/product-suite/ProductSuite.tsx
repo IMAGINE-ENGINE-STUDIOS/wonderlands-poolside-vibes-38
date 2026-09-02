@@ -72,6 +72,19 @@ export interface ProductSuiteProps {
   models: SuiteModel[];
   /** Optional grouping label resolver for the carousel, e.g. brand */
   groupBy?: (model: SuiteModel) => string;
+  /**
+   * Rendered inside the masthead, under the standfirst. Suites that carry
+   * several disciplines (enclosures / lanai / fencing) print their discipline
+   * switcher here so the reader never leaves the page to change trade.
+   */
+  mastheadSlot?: React.ReactNode;
+  /**
+   * Extra drawing boards this suite can open besides its own discipline board.
+   * Each id is a `FlipEditorBoard` discipline id.
+   */
+  boards?: Array<{ id: string; label: string }>;
+  /** Printed after every figure for rate-based trades, e.g. "/sq ft". */
+  unitSuffix?: string;
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -85,7 +98,11 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
   blurb,
   models,
   groupBy,
+  mastheadSlot,
+  boards,
+  unitSuffix = "",
 }) => {
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addToCart, cartItems, syncItemConfig } = useShoppingCart();
@@ -100,7 +117,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
     `suite_${categoryId}_extras`,
     getDefaultExtras(productType),
   );
-  const [boardOpen, setBoardOpen] = React.useState(false);
+  /** Which drawing board is open — the discipline id, or null when closed. */
+  const [boardId, setBoardId] = React.useState<string | null>(null);
   const [quoteOpen, setQuoteOpen] = React.useState(false);
 
   const model = React.useMemo(
@@ -135,7 +153,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
     } as any);
     toast({
       title: "Added to cart",
-      description: `${model.name} — ${money(total)} delivered and installed.`,
+      description: `${model.name} — ${money(total)}${unitSuffix} delivered and installed.`,
       duration: 3000,
     });
   }, [model, cartId, modelName, base, categoryLabel, breakdown, total, addToCart, toast]);
@@ -196,6 +214,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
           <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">{eyebrow}</p>
           <h1 className="mt-4 max-w-4xl text-4xl font-light leading-[1.05] tracking-tight md:text-6xl">{title}</h1>
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">{blurb}</p>
+          {mastheadSlot && <div className="mt-8">{mastheadSlot}</div>}
         </div>
       </header>
 
@@ -214,7 +233,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                 {models.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     {groupBy ? `${groupBy(m)} · ` : ""}
-                    {m.name} — {money(m.price * priceMultiplier)}
+                    {m.name} — {money(m.price * priceMultiplier)}{unitSuffix}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -254,7 +273,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                           {/* Never repeat the group label already printed above */}
                           {(groupBy && groupBy(m) === m.meta ? m.dimensions : m.meta ?? m.dimensions) ?? ""}
                         </p>
-                        <p className="mt-3 text-sm">{money(m.price * priceMultiplier)}</p>
+                        <p className="mt-3 text-sm">{money(m.price * priceMultiplier)}{unitSuffix}</p>
                       </div>
                     </button>
                   </CarouselItem>
@@ -356,13 +375,36 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
               />
 
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                <Button variant="outline" className="rounded-none" onClick={() => setBoardOpen(true)}>
+                <Button variant="outline" className="rounded-none" onClick={() => setBoardId(categoryId)}>
                   Open the design board
                 </Button>
                 <Button variant="ghost" className="rounded-none" onClick={() => navigate("/wonderlands-studio")}>
                   Wonderlands Studio
                 </Button>
               </div>
+
+              {/* Every other drafting surface this suite carries (a lanai suite
+                  draws the roof, the screen cage and the fence line). */}
+              {!!boards?.length && (
+                <div className="mt-4">
+                  <p className="text-[9px] uppercase tracking-[0.32em] text-muted-foreground">
+                    Drawing boards
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {boards.map((b) => (
+                      <Button
+                        key={b.id}
+                        variant="outline"
+                        className="justify-start rounded-none text-[10px] uppercase tracking-[0.25em]"
+                        onClick={() => setBoardId(b.id)}
+                      >
+                        {b.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <p className="mt-4 text-[9px] leading-relaxed text-muted-foreground">
                 All prices include delivery, installation and the product as described.
               </p>
@@ -374,15 +416,15 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
 
       <Footer />
 
-      {/* ── The category's own drawing board, full screen ───────────────── */}
-      {boardOpen && (
+      {/* ── The open drawing board, full screen ────────────────────────── */}
+      {boardId && (
         <Suspense fallback={null}>
           <FlipEditorBoard
-            categoryId={categoryId}
+            categoryId={boardId}
             categoryLabel={categoryLabel}
             productName={model?.name}
             productPrice={base}
-            onClose={() => setBoardOpen(false)}
+            onClose={() => setBoardId(null)}
           />
         </Suspense>
       )}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import screenEnclosurePremium from "@/assets/enclosures/screen-enclosure-premium.webp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,6 +82,15 @@ const ScreenEnclosureSection = () => {
           eyebrow="Volume VII — Enclosure"
           title="Screen Enclosures"
           description="Premium screen systems that turn the pool deck into a protected, year-round room."
+          action={
+            <Link
+              to="/suites/enclosures"
+              className="inline-flex items-center gap-2 border-b border-foreground/40 pb-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground transition hover:border-foreground"
+            >
+              Open the Enclosure Suite
+              <span aria-hidden>&rarr;</span>
+            </Link>
+          }
         />
 
           <ProductScrollRow className="mb-8">

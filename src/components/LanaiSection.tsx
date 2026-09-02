@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -205,6 +206,15 @@ const LanaiSection = () => {
           eyebrow="Volume IX — Shade"
           title="Roof & Lanai Spaces"
           description="Aluminium frame lanai systems composing the perfect outdoor living room."
+          action={
+            <Link
+              to="/suites/lanai"
+              className="inline-flex items-center gap-2 border-b border-foreground/40 pb-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground transition hover:border-foreground"
+            >
+              Open the Lanai Suite
+              <span aria-hidden>&rarr;</span>
+            </Link>
+          }
         />
 
         {/* Lanai Options Grid */}

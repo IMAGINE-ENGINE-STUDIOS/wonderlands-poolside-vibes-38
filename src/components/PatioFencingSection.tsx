@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import aluminumFencing from "@/assets/fencing/aluminum-fencing.webp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -94,6 +95,15 @@ const PatioFencingSection = () => {
           eyebrow="Volume VIII — Boundary"
           title="Patio Fencing"
           description="Premium aluminium fencing with pool-code compliant gates — safety drawn with restraint."
+          action={
+            <Link
+              to="/suites/fencing"
+              className="inline-flex items-center gap-2 border-b border-foreground/40 pb-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground transition hover:border-foreground"
+            >
+              Open the Fencing Suite
+              <span aria-hidden>&rarr;</span>
+            </Link>
+          }
         />
 
           <ProductScrollRow className="mb-8">

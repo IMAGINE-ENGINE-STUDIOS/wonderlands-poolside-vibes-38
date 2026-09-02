@@ -6,6 +6,8 @@ interface EditorialSectionHeaderProps {
   title: string;
   /** Right-aligned standfirst copy */
   description?: string;
+  /** Optional right-column action (e.g. a link into the category's suite) */
+  action?: React.ReactNode;
   className?: string;
 }
 
@@ -14,7 +16,7 @@ interface EditorialSectionHeaderProps {
  * homepage. Serif display title on the left, hairline rule, standfirst on the
  * right — identical rhythm to the Wonderlands World Collection spread.
  */
-const EditorialSectionHeader = ({ eyebrow, title, description, className = "" }: EditorialSectionHeaderProps) => (
+const EditorialSectionHeader = ({ eyebrow, title, description, action, className = "" }: EditorialSectionHeaderProps) => (
   <div
     className={`mb-12 grid gap-6 border-b border-border/60 pb-10 text-left lg:mb-16 lg:grid-cols-[1fr_auto] lg:items-end ${className}`}
   >
@@ -26,8 +28,13 @@ const EditorialSectionHeader = ({ eyebrow, title, description, className = "" }:
         {title}
       </h2>
     </div>
-    {description && (
-      <p className="max-w-sm text-sm leading-relaxed text-muted-foreground lg:text-right">{description}</p>
+    {(description || action) && (
+      <div className="max-w-sm lg:text-right">
+        {description && (
+          <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+        )}
+        {action && <div className="mt-5 lg:flex lg:justify-end">{action}</div>}
+      </div>
     )}
   </div>
 );
