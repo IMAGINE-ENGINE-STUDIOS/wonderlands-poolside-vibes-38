@@ -739,9 +739,11 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
         if (sel.type === "plant") commit({ plantings: layout.plantings.filter((x) => x.id !== sel.id) });
         else if (sel.type === "vertex")
           commit({
-            beds: layout.beds.map((b) =>
-              b.id === sel.id ? { ...b, points: removeVertex(b.points, sel.index), curves: b.curves } : b,
-            ),
+            beds: layout.beds.map((b) => {
+              if (b.id !== sel.id) return b;
+              const next = removeVertex(b.points, sel.index, b.curves);
+              return { ...b, points: next.points, curves: next.curves };
+            }),
           });
         else commit({ beds: layout.beds.filter((b) => b.id !== sel.id) });
         setSel(null);
