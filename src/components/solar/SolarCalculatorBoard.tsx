@@ -173,6 +173,71 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
     [setSession],
   );
 
+  /* ── memory: the gallery of saved studies ──────────────────────────── */
+
+  /* The retired auto-capture mode may still sit in a reader's cache — fold it
+     back to idle so the board never boots into a mode that no longer exists. */
+  React.useEffect(() => {
+    if (mode === "auto") setMode("idle");
+  }, [mode, setMode]);
+
+  /** id of the gallery entry this session is currently mirrored into */
+  const entryIdRef = React.useRef<string | undefined>(undefined);
+
+  const persistProject = React.useCallback(() => {
+    if (!session.address || session.faces.length === 0) return;
+    const saved = saveSolarProject({
+      id: entryIdRef.current,
+      title: session.address,
+      session,
+      view,
+      summary: {
+        kwDc: production.kwDc,
+        yearlyKwh: production.yearlyKwhVerified ?? production.yearlyKwhModel,
+        netCost: bom.netCost,
+        faces: session.faces.length,
+      },
+    });
+    entryIdRef.current = saved.id;
+    return saved;
+  }, [session, view, production, bom.netCost]);
+
+  /* autosave: a study is checkpointed a few seconds after the work settles, so
+     a reload or a crash never costs a traced roof */
+  React.useEffect(() => {
+    if (!session.address || session.faces.length === 0) return;
+    const timer = window.setTimeout(persistProject, 3000);
+    return () => window.clearTimeout(timer);
+  }, [persistProject, session.address, session.faces]);
+
+  const saveCurrentProject = React.useCallback(() => {
+    const saved = persistProject();
+    toast(
+      saved
+        ? { title: "Study saved", description: `${saved.title} is in your gallery.` }
+        : { title: "Nothing to save yet", description: "Find an address and trace at least one roof plane." },
+    );
+  }, [persistProject, toast]);
+
+  const reloadProject = React.useCallback(
+    (entry: SolarProjectEntry) => {
+      entryIdRef.current = entry.id;
+      setSession(entry.session);
+      setQuery(entry.session.address);
+      setSuggestions([]);
+      setDraft([]);
+      setMode("idle");
+      setSelected("");
+      if (entry.view) setView(entry.view);
+      else if (entry.session.lat != null && entry.session.lng != null)
+        setView({ lat: entry.session.lat, lng: entry.session.lng, zoom: 20 });
+      toast({ title: "Study reloaded", description: entry.title });
+    },
+    [setSession, setView, setMode, toast],
+  );
+
+
+
   /* ── the edge function ─────────────────────────────────────────────── */
 
   const callSolar = React.useCallback(
