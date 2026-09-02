@@ -72,13 +72,13 @@ export const equatorialToHorizontal = (
   const dec = eq.dec * RAD;
   const sinAlt = Math.sin(dec) * Math.sin(lat) + Math.cos(dec) * Math.cos(lat) * Math.cos(H);
   const altitude = Math.asin(Math.max(-1, Math.min(1, sinAlt))) / RAD;
-  const az =
-    Math.atan2(
-      -Math.cos(dec) * Math.cos(lat === 0 ? 1e-9 : lat) * 0 - Math.sin(H) * Math.cos(dec),
-      Math.cos(H) * Math.cos(dec) * Math.sin(lat) - Math.sin(dec) * Math.cos(lat),
-    ) / RAD;
-  // atan2 above is measured from north through east once normalised
-  return { altitude, azimuth: norm360(az + 180) };
+  /* Azimuth measured from due south, positive west, then rotated to compass
+     bearing from north so it shares the plate's convention with the Sun. */
+  const azFromSouth = Math.atan2(
+    Math.sin(H),
+    Math.cos(H) * Math.sin(lat) - Math.tan(dec) * Math.cos(lat),
+  ) / RAD;
+  return { altitude, azimuth: norm360(azFromSouth + 180) };
 };
 
 /* ── the Sun ──────────────────────────────────────────────────────────── */
