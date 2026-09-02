@@ -141,6 +141,7 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       label: l.label,
       detail: `${sqFt.toLocaleString()} sq ft × $${rate}/sq ft`,
       amount: sqFt * rate,
+      layer: l.id,
     });
   });
 
@@ -151,6 +152,7 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       label: "Pool barrier",
       detail: `${areas.fenceLinearFt.toLocaleString()} lf × $${FENCE_RATE_PER_FT}/lf`,
       amount: areas.fenceLinearFt * FENCE_RATE_PER_FT,
+      layer: "fence",
     });
   }
 
@@ -163,11 +165,15 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       label: "Solar array",
       detail: `${panels} panels packed in ${solarSqFt.toLocaleString()} sq ft of roof plane`,
       amount: solarAreaPrice(solarSqFt),
+      layer: "solar",
     });
   }
 
   /* Additional features selected on each drawn element (cage roofs and screens,
-     turf infill, spa jets, pool heaters, solar batteries...). */
+     turf infill, spa jets, pool heaters, solar batteries...).
+     Each option gets its OWN priced line, tagged with the element and the option
+     it came from, so the estimate reads like a spec sheet and a single option can
+     be taken back off without touching the drawing. */
   const sq = (data.pxPerFt || 1) ** 2;
   data.shapes.forEach((shape) => {
     if (!shape.features?.length) return;
@@ -184,20 +190,20 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
        billed under the pool, the spa or the tanning ledge. */
     const sqFt = netByShape.get(shape.id) ?? Math.abs(a / 2) / sq;
     const linearFt = lf / (data.pxPerFt || 1);
-    const amount = tradeFeaturePrice(shape.layer, shape.features, sqFt, linearFt);
-    if (amount <= 0) return;
-    const spec = TRADE_LAYERS[shape.layer];
-    const names = shape.features
-      .map((id) => spec?.features.find((f) => f.id === id)?.label)
-      .filter(Boolean)
-      .join(", ");
-    const surfaced = tradeBaseReplaced(shape.layer, shape.features);
-    lines.push({
-      label: `${layerLabel(shape.layer)} — ${surfaced ? "surface & options" : "options"}`,
-      detail: surfaced ? `${Math.round(sqFt).toLocaleString()} sq ft · ${names}` : names,
-      amount,
+    tradeFeatureLines(shape.layer, shape.features, sqFt, linearFt).forEach((f) => {
+      if (f.amount <= 0) return;
+      lines.push({
+        label: `${layerLabel(shape.layer)} — ${f.label}`,
+        detail: f.replacesBase ? `${f.detail} · installed surface` : f.detail,
+        amount: f.amount,
+        image: f.image,
+        shapeId: shape.id,
+        featureId: f.id,
+        layer: shape.layer,
+      });
     });
   });
+
 
 
   const poolShape = data.shapes
