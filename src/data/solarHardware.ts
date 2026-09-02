@@ -233,7 +233,7 @@ export const rackingByCovering: Record<RoofCovering, RackingSpec> = {
     anchor: "Butyl-sealed rib mount through purlin",
     anchorsPerPanel: 3,
     costPerAnchor: 31,
-    railCostPerFt: 9,
+    railCostPerFt: 5.8,
     tiltKitPerPanel: 0,
     windNote: "Rib-crown mounts into purlins with butyl isolation, stainless fasteners.",
   },
