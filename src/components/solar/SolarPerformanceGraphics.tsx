@@ -882,6 +882,110 @@ const SunPathConsole: React.FC<{
           );
         })()}
 
+        {/* ── the Moon, at its true position, size and phase ── */}
+        {moon.altitude > -1 && (
+          <g opacity={Math.min(1, 0.25 + night)} className="transition-opacity duration-700">
+            {(() => {
+              /* The plate is not a fisheye, so the disc is drawn at a legible
+                 scale rather than its 0.5° angular size; the phase, limb
+                 orientation and position are the real ones. */
+              const r = 9.5;
+              const k = moon.illumination;
+              const rx = r * Math.abs(1 - 2 * k);
+              const outerSweep = moon.waxing ? 1 : 0;
+              const innerSweep = k > 0.5 ? outerSweep : 1 - outerSweep;
+              const lit = `M${moonXY.x},${moonXY.y - r} A${r},${r} 0 0 ${outerSweep} ${moonXY.x},${moonXY.y + r} A${rx},${r} 0 0 ${innerSweep} ${moonXY.x},${moonXY.y - r} Z`;
+              return (
+                <g
+                  onPointerEnter={() => setBody("Moon")}
+                  onPointerLeave={() => setBody(null)}
+                  style={{ cursor: "help" }}
+                >
+                  <circle cx={moonXY.x} cy={moonXY.y} r={r * 3.2} fill="url(#wlMoonHalo)" />
+                  {/* the unlit disc, earthshine faint */}
+                  <circle cx={moonXY.x} cy={moonXY.y} r={r} fill="#1b1f2e" opacity={0.85} />
+                  <path d={lit} fill="url(#wlMoonDisc)" />
+                  {/* maria — Imbrium, Serenitatis, Tranquillitatis, Crisium */}
+                  <g clipPath="none" opacity={0.34}>
+                    <ellipse cx={moonXY.x - r * 0.28} cy={moonXY.y - r * 0.3} rx={r * 0.3} ry={r * 0.24} fill="#6f6a5f" />
+                    <ellipse cx={moonXY.x + r * 0.12} cy={moonXY.y - r * 0.12} rx={r * 0.22} ry={r * 0.2} fill="#6f6a5f" />
+                    <ellipse cx={moonXY.x + r * 0.3} cy={moonXY.y + r * 0.2} rx={r * 0.18} ry={r * 0.16} fill="#6f6a5f" />
+                    <circle cx={moonXY.x + r * 0.58} cy={moonXY.y - r * 0.34} r={r * 0.12} fill="#6f6a5f" />
+                  </g>
+                  <circle cx={moonXY.x} cy={moonXY.y} r={r} fill="none" stroke="#e8eaff" strokeOpacity={0.22} strokeWidth={0.6} />
+                  {night > 0.2 && (
+                    <text
+                      x={moonXY.x}
+                      y={moonXY.y - r - 8}
+                      textAnchor="middle"
+                      className="fill-slate-200"
+                      style={{ fontSize: 10.5, letterSpacing: 1 }}
+                    >
+                      {`MOON · ${(k * 100).toFixed(0)}%`}
+                    </text>
+                  )}
+                </g>
+              );
+            })()}
+          </g>
+        )}
+
+        {/* ── naked-eye planets ── */}
+        <g opacity={Math.min(1, 0.15 + night * 1.1)} className="transition-opacity duration-700">
+          {planets.map((pl) => {
+            const r = Math.max(1.8, 4.4 - pl.magnitude * 0.5);
+            const fill =
+              pl.name === "Venus"
+                ? "url(#wlVenus)"
+                : pl.name === "Mars"
+                  ? "url(#wlMars)"
+                  : pl.name === "Jupiter"
+                    ? "url(#wlJupiter)"
+                    : pl.name === "Saturn"
+                      ? "url(#wlSaturn)"
+                      : "url(#wlMercury)";
+            return (
+              <g
+                key={pl.name}
+                onPointerEnter={() => setBody(pl.name)}
+                onPointerLeave={() => setBody(null)}
+                style={{ cursor: "help" }}
+              >
+                <circle cx={pl.x} cy={pl.y} r={r * 2.6} fill={pl.tint} opacity={0.1} />
+                {pl.name === "Saturn" && (
+                  <ellipse
+                    cx={pl.x}
+                    cy={pl.y}
+                    rx={r * 2.1}
+                    ry={r * 0.5}
+                    fill="none"
+                    stroke="#e6d3a2"
+                    strokeOpacity={0.65}
+                    strokeWidth={0.9}
+                    transform={`rotate(-14 ${pl.x} ${pl.y})`}
+                  />
+                )}
+                {pl.name === "Jupiter" && (
+                  <ellipse cx={pl.x + r * 0.3} cy={pl.y + r * 0.25} rx={r * 0.26} ry={r * 0.16} fill="#a4442c" opacity={0.8} />
+                )}
+                <circle cx={pl.x} cy={pl.y} r={r} fill={fill} />
+                <circle cx={pl.x} cy={pl.y} r={r} fill="none" stroke="#000" strokeOpacity={0.35} strokeWidth={0.4} />
+                {(night > 0.3 || body === pl.name) && (
+                  <text
+                    x={pl.x}
+                    y={pl.y - r - 7}
+                    textAnchor="middle"
+                    className="fill-slate-200"
+                    style={{ fontSize: 9.5, letterSpacing: 0.9, opacity: 0.85 }}
+                  >
+                    {pl.name.toUpperCase()}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </g>
+
         {/* live sun with ray crown and ground track */}
         {sun.altitude > 0 && (
           <g>
