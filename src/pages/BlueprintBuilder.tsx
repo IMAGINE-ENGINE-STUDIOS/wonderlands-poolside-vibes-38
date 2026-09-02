@@ -32,6 +32,8 @@ import {
   type ProjectTypeId,
 } from '@/data/blueprintJurisdictions';
 import { DEFAULT_POOL_ROW, SHEET_TEMPLATES } from '@/data/blueprintTemplates';
+import { BLUEPRINT_HANDOFF_KEY, type BlueprintHandoff } from '@/lib/design/globalDesignProject';
+import { cacheRead, cacheRemove } from '@/lib/uiCache';
 
 const today = () => new Date().toLocaleDateString('en-US');
 
@@ -124,6 +126,23 @@ const BlueprintBuilder: React.FC = () => {
   const sheets = resolved.filter(code => !data.disabledSheets.includes(code));
   const noteGroups = resolveNoteGroups(data.jurisdictionId, data.projectTypeId, sheets);
   const measured = measureSitePlan(data.site);
+
+  /* One-click hand-off from the GLOBAL DESIGN BOARD: the project arrives fully
+     drawn and measured, so blueprint mode opens filled in. */
+  const [handoffFrom, setHandoffFrom] = React.useState<string>('');
+  React.useEffect(() => {
+    const payload = cacheRead<BlueprintHandoff | null>(BLUEPRINT_HANDOFF_KEY, null);
+    if (!payload) return;
+    cacheRemove(BLUEPRINT_HANDOFF_KEY);
+    setData(prev => ({
+      ...prev,
+      site: payload.site,
+      existingAreas: { ...prev.existingAreas, ...payload.existingAreas },
+      project: { ...prev.project, ...payload.project },
+      scopeOfWork: payload.scopeOfWork.length ? payload.scopeOfWork : prev.scopeOfWork,
+    }));
+    setHandoffFrom(payload.project.title || 'Global Design Board');
+  }, [setData]);
 
   React.useEffect(() => {
     if (!sheets.includes(activeSheet) && sheets.length) setActiveSheet(sheets[0]);
@@ -220,9 +239,18 @@ const BlueprintBuilder: React.FC = () => {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {handoffFrom && (
+              <Badge className="text-xs">Loaded from {handoffFrom}</Badge>
+            )}
             <Badge variant="outline" className="text-xs">
               {readiness}% submittal ready
             </Badge>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/global-design-board">
+                <Ruler className="mr-1 h-4 w-4" /> Global design board
+              </Link>
+            </Button>
+
             <Button size="sm" variant="outline" onClick={() => handlePrint(false)}>
               <Printer className="mr-1 h-4 w-4" /> Print sheet
             </Button>

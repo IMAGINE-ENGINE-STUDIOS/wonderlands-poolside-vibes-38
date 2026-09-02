@@ -76,6 +76,9 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
   const [traced, setTraced] = useState(false);
   const [total, setTotal] = useState(0);
   const [plan, setPlan] = usePersistentState<SitePlanData>(
+    `flip_editor_board_site_${categoryId}`,
+    emptyPlan,
+  );
   /* the planting plan is cached like every other board, so the reader returns
      to the same beds and plants */
   const [landscape, setLandscape] = usePersistentState<LandscapeLayout>(
@@ -83,9 +86,7 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
     emptyLandscapeLayout(),
   );
   const [plantKey, setPlantKey] = usePersistentState<string>(`editor_plant_${categoryId}`, "");
-    `flip_editor_board_site_${categoryId}`,
-    emptyPlan,
-  );
+
   const boardHeight = useRef<number>(0);
 
   /* the wireframe traces itself, then the board rises in */
