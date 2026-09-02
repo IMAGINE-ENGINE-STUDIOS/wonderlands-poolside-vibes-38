@@ -530,11 +530,31 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       if (shape.points.length === 0) return;
       const flags = normalizeFlags(shape.curves, shape.points.length);
       const outline = siteShapeOutline(shape);
+      /* The chosen surface — paver, turf blade, pool finish — is painted into the
+         element with its catalogue photograph, tiled at roughly 2 ft, so a paver
+         change is visible on the sheet the instant it is selected. */
+      const surface = isDraft ? undefined : shapeSurfaceFeature(shape);
       tracePolyline(ctx, outline, shape.closed);
       if (shape.closed && !meta.linear) {
-        ctx.fillStyle = meta.color + '22';
+        const img = surface?.image ? surfaceImage(surface.image, () => setImgReady(n => n + 1)) : null;
+        let painted = false;
+        if (img && img.width && typeof DOMMatrix !== 'undefined') {
+          const pat = ctx.createPattern(img, 'repeat');
+          if (pat) {
+            const k = (pxPerFt * 2) / img.width;
+            pat.setTransform(new DOMMatrix([k, 0, 0, k, 0, 0]));
+            ctx.save();
+            ctx.globalAlpha = 0.9;
+            ctx.fillStyle = pat;
+            ctx.fill();
+            ctx.restore();
+            painted = true;
+          }
+        }
+        ctx.fillStyle = meta.color + (painted ? '14' : '22');
         ctx.fill();
       }
+
       /* Each trade keeps its own spline signature: cages and arrays are hatched
          planes, spa and ledge shells are dashed, the lot line stays chain-dot. */
       if (shape.closed && meta.hatch && !isDraft && outline.length > 2) {
