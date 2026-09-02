@@ -993,57 +993,67 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
 
   return (
     <div className="space-y-3">
-      {/* board-console: the FLIP gateway control language, shared by every board */}
-      <div className="board-console rounded-xl glass-tile p-2">
-      {header && <div className="px-1 pt-1 pb-3">{header}</div>}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} onClick={() => { setMode('draw'); setSelection(null); }}>
-          <Ruler className="h-3.5 w-3.5 mr-1" /> Draw footprint
-        </Button>
-        <Button size="sm" variant={mode === 'select' ? 'default' : 'ghost'} onClick={() => setMode('select')}>
-          <MousePointer2 className="h-3.5 w-3.5 mr-1" /> Select &amp; delete
-        </Button>
-        <Button size="sm" variant={mode === 'door' ? 'default' : 'ghost'} onClick={() => { setMode('door'); setSelection(null); }}>
-          <DoorOpen className="h-3.5 w-3.5 mr-1" /> Place door
-        </Button>
-        <Button size="sm" variant={mode === 'house' ? 'default' : 'ghost'} onClick={() => { setMode('house'); setSelection(null); }}>
-          <Home className="h-3.5 w-3.5 mr-1" /> Tag house wall
-        </Button>
-        <div className="mx-1 h-5 w-px bg-border/60" />
-        <Button size="sm" variant="ghost" onClick={addPointAfterSelected} disabled={selection?.type !== 'point'} title="Add a corner after the selected one (or click a wall run)">
-          <Plus className="h-3.5 w-3.5 mr-1" /> Add point
-        </Button>
-        <Button
-          size="sm"
-          variant={selectedPointCurved ? 'default' : 'ghost'}
-          onClick={toggleCurveOnSelected}
-          disabled={selection?.type !== 'point'}
-          title="Toggle curvature on the selected corner"
-        >
-          <Spline className="h-3.5 w-3.5 mr-1" /> {selectedPointCurved ? 'Curved point' : 'Corner point'}
-        </Button>
-        <div className="mx-1 h-5 w-px bg-border/60" />
+      {/* Slim instrument header — every tool is a glyph, its name lives in the
+          tooltip, and the sheet below keeps the rest of the screen. */}
+      <div className="board-console board-console-slim rounded-xl glass-tile px-2 py-1.5">
+        {header && <div className="px-0.5 pb-2">{header}</div>}
+        <div className="flex flex-wrap items-center gap-1">
+          <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} title="Draw footprint" aria-label="Draw footprint" onClick={() => { setMode('draw'); setSelection(null); }}>
+            <Ruler />
+          </Button>
+          <Button size="sm" variant={mode === 'select' ? 'default' : 'ghost'} title="Select & delete" aria-label="Select and delete" onClick={() => setMode('select')}>
+            <MousePointer2 />
+          </Button>
+          <Button size="sm" variant={mode === 'door' ? 'default' : 'ghost'} title="Place door" aria-label="Place door" onClick={() => { setMode('door'); setSelection(null); }}>
+            <DoorOpen />
+          </Button>
+          <Button size="sm" variant={mode === 'house' ? 'default' : 'ghost'} title="Tag house wall" aria-label="Tag house wall" onClick={() => { setMode('house'); setSelection(null); }}>
+            <Home />
+          </Button>
+          <div className="mx-0.5 h-4 w-px bg-border/60" />
+          <Button size="sm" variant="ghost" onClick={addPointAfterSelected} disabled={selection?.type !== 'point'} title="Add a corner after the selected one" aria-label="Add point">
+            <Plus />
+          </Button>
+          <Button size="sm" variant={selectedPointCurved ? 'default' : 'ghost'} onClick={toggleCurveOnSelected} disabled={selection?.type !== 'point'} title="Toggle curvature on the selected corner" aria-label="Curve corner">
+            <Spline />
+          </Button>
+          <div className="mx-0.5 h-4 w-px bg-border/60" />
+          <Button size="sm" variant="ghost" onClick={undo} title="Undo" aria-label="Undo">
+            <Undo2 />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={clear} title="Clear the sheet" aria-label="Clear">
+            <Trash2 />
+          </Button>
+          <div className="mx-0.5 h-4 w-px bg-border/60" />
+          {/* camera — a real zoom over the sheet */}
+          <Button size="sm" variant="ghost" onClick={() => zoomBy(1 / 1.25)} title="Zoom out" aria-label="Zoom out">
+            <ZoomOut />
+          </Button>
+          <Button size="sm" variant="ghost" className="has-label tabular-nums" onClick={fitSheet} title={`Fit the sheet — ${Math.round(size.w / (view.z * PX_PER_FT))} ft across`} aria-label="Fit sheet">
+            {Math.round(size.w / (view.z * PX_PER_FT))} ft
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => zoomBy(1.25)} title="Zoom in" aria-label="Zoom in">
+            <ZoomIn />
+          </Button>
+          {!compact && (
+            <>
+              <div className="mx-0.5 h-4 w-px bg-border/60" />
+              <Button size="sm" variant="outline" className="has-label" onClick={() => preset(30, 20)} title="30 x 20 preset cage">
+                30×20
+              </Button>
+              <Button size="sm" variant="outline" className="has-label" onClick={() => preset(40, 24)} title="40 x 24 preset cage">
+                40×24
+              </Button>
+            </>
+          )}
+          <span className="ml-auto">
+            <Button size="sm" variant="ghost" onClick={toggleDensity} aria-pressed={compact} title={compact ? 'Show all panels' : 'Compact view'} aria-label="Toggle panels">
+              {compact ? <Maximize2 /> : <Minimize2 />}
+            </Button>
+          </span>
+        </div>
+      </div>
 
-        <Button size="sm" variant="ghost" onClick={undo}>
-          <Undo2 className="h-3.5 w-3.5 mr-1" /> Undo
-        </Button>
-        <Button size="sm" variant="ghost" onClick={clear}>
-          <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
-        </Button>
-        {!compact && (
-          <>
-            <div className="mx-1 h-5 w-px bg-border/60" />
-            <Button size="sm" variant="outline" onClick={() => preset(30, 20)}>
-              <Square className="h-3.5 w-3.5 mr-1" /> 30 x 20
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => preset(40, 24)}>
-              <Square className="h-3.5 w-3.5 mr-1" /> 40 x 24
-            </Button>
-          </>
-        )}
-        <BoardDensityToggle compact={compact} onToggle={toggleDensity} className="ml-auto" />
-      </div>
-      </div>
 
       {/* Glass door carousel — pick a model, then click a wall to drop it in */}
       {mode === 'door' && (
