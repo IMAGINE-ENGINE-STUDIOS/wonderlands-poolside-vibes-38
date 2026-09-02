@@ -375,13 +375,36 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
               />
 
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                <Button variant="outline" className="rounded-none" onClick={() => setBoardOpen(true)}>
+                <Button variant="outline" className="rounded-none" onClick={() => setBoardId(categoryId)}>
                   Open the design board
                 </Button>
                 <Button variant="ghost" className="rounded-none" onClick={() => navigate("/wonderlands-studio")}>
                   Wonderlands Studio
                 </Button>
               </div>
+
+              {/* Every other drafting surface this suite carries (a lanai suite
+                  draws the roof, the screen cage and the fence line). */}
+              {!!boards?.length && (
+                <div className="mt-4">
+                  <p className="text-[9px] uppercase tracking-[0.32em] text-muted-foreground">
+                    Drawing boards
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {boards.map((b) => (
+                      <Button
+                        key={b.id}
+                        variant="outline"
+                        className="justify-start rounded-none text-[10px] uppercase tracking-[0.25em]"
+                        onClick={() => setBoardId(b.id)}
+                      >
+                        {b.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <p className="mt-4 text-[9px] leading-relaxed text-muted-foreground">
                 All prices include delivery, installation and the product as described.
               </p>
