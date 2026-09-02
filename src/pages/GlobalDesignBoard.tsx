@@ -147,6 +147,13 @@ const GlobalDesignBoard: React.FC = () => {
       trades: prev.trades.includes(id) ? prev.trades.filter((t) => t !== id) : [...prev.trades, id],
     }));
 
+  /** Erase every trade board and the project sheet, then start clean. */
+  const resetProject = () => {
+    if (!window.confirm("Erase every drawing and reset this project? This cannot be undone.")) return;
+    TRADES.forEach((t) => resetFlipBoard(t.boardId));
+    setMeta({ ...DEFAULT_GLOBAL_META });
+  };
+
   const openBlueprint = () => {
     /* every trade is priced from its own board, then summarised as scope */
     const merged = {
