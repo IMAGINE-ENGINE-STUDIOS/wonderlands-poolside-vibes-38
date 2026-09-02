@@ -153,10 +153,14 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
     lines,
     total: lines.reduce((sum, l) => sum + l.amount, 0),
     poolSqFt: Math.round(areas.byLayer.pool ?? 0),
-    deckSqFt: Math.round(areas.byLayer.deck ?? 0),
+    /* Deck square footage is always the NET paved figure: the pool shell, the
+       spa and the tanning ledge (plus turf, gravel and planting) are cut out of
+       the deck, so take-offs, $/sq ft and specs never bill paver under water. */
+    deckSqFt: Math.round(netByLayer.get('deck') ?? areas.byLayer.deck ?? 0),
     fenceLinearFt: areas.fenceLinearFt,
     poolDims: poolShape ? bboxFt(poolShape, data.pxPerFt) : null,
   };
+
 }
 
 export const formatMoney = (n: number) =>
