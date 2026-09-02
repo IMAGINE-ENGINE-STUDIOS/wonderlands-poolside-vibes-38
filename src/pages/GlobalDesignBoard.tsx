@@ -8,7 +8,6 @@ import {
   Flower2,
   Grid2x2,
   Layers,
-  Ruler,
   Sun,
   Trees,
   Eraser,
@@ -248,7 +247,7 @@ const GlobalDesignBoard: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-background">
       <Helmet>
         <title>Global Design Board | Wonderlands World</title>
         <meta
@@ -269,7 +268,7 @@ const GlobalDesignBoard: React.FC = () => {
       />
 
       {/* ── header ── */}
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/92 backdrop-blur-2xl">
+      <header className="shrink-0 border-b border-border/50 bg-background/92 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-[1800px] flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3 sm:px-5">
           <Link
             to="/"
@@ -293,9 +292,6 @@ const GlobalDesignBoard: React.FC = () => {
             <span className="text-[9px] uppercase tracking-[0.28em] text-foreground">
               {money(projectTotal)} installed
             </span>
-            <button type="button" onClick={() => navigate("/blueprint-builder")}>
-              <Ruler className="mr-1.5 inline h-3.5 w-3.5" /> Blueprint builder
-            </button>
             <button type="button" onClick={openBlueprint} className="bg-primary">
               Load into blueprint mode <ArrowRight className="ml-1.5 inline h-3.5 w-3.5" />
             </button>
@@ -308,9 +304,9 @@ const GlobalDesignBoard: React.FC = () => {
           consolidated list instead of two competing menus. */}
 
 
-      <main className="mx-auto grid max-w-[1800px] gap-4 px-3 py-4 sm:px-5 sm:py-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <main className="mx-auto flex h-full max-w-[1800px] flex-col gap-4 overflow-hidden px-3 py-4 sm:px-5 sm:py-5 xl:flex-row">
         {/* ── project + trade rail ── */}
-        <aside className="space-y-4">
+        <aside className="flex-[1.1] min-h-0 space-y-4 overflow-y-auto xl:h-full xl:w-80 xl:flex-none">
           {/* ── features & options ──
               The drawn element's own additional features now hold the top of the
               left rail — every catalogued option, priced exactly as the studio
@@ -407,9 +403,9 @@ const GlobalDesignBoard: React.FC = () => {
         </aside>
 
         {/* ── the live board for the selected trade ── */}
-        <section className="min-w-0 space-y-4">
-          <div className="glass-panel rounded-3xl p-2.5 sm:p-4">
-            <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <section className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
+          <div className="glass-panel flex flex-[2] min-h-0 flex-col gap-3 overflow-hidden rounded-3xl p-2.5 sm:p-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <Trees className="h-4 w-4 text-muted-foreground" />
               <p className="font-serif text-lg font-light leading-none">{active.label}</p>
               <span className="hidden h-px w-8 bg-foreground/25 sm:block" />
@@ -423,12 +419,14 @@ const GlobalDesignBoard: React.FC = () => {
               )}
             </div>
             {/* the discipline's real board: its pencils, splines, layers and tools */}
-            <FlipToolWidget key={active.boardId} categoryId={active.boardId} part="board" />
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <FlipToolWidget key={active.boardId} categoryId={active.boardId} part="board" />
+            </div>
           </div>
 
           {/* the WHOLE project: every trade's estimate, take-off & options,
               specifications and process in one live dossier */}
-          <div className="glass-panel overflow-hidden rounded-3xl">
+          <div className="glass-panel min-h-0 flex-1 overflow-y-auto rounded-3xl">
             <FlipProjectDossier
               trades={DOSSIER_TRADES}
               enabled={enabled}
