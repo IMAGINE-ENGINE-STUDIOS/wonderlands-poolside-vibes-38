@@ -22,6 +22,9 @@ import {
   Minus,
   Spline,
   Maximize2,
+  Scissors,
+  CircleDot,
+  CornerUpRight,
 
 
 } from 'lucide-react';
@@ -39,6 +42,30 @@ import {
   polylineLength,
   tracePolyline,
 } from '@/utils/splineEditing';
+import {
+  arcMetrics,
+  arcMidpoint,
+  bulgeForRadius,
+  bulgeFromPoint,
+  hasCurvature,
+  readSpec,
+  samplePathAdvanced,
+  sampleSegmentAdvanced,
+  segmentCount,
+  segmentKind,
+  segmentLength,
+  withValueAt,
+  MAX_BULGE,
+  DEFAULT_TENSION,
+} from '@/lib/design/curvature';
+import {
+  CROPPABLE_LAYERS,
+  cropRing,
+  cropRings,
+  cutsThrough,
+  netArea,
+  type CroppedShape,
+} from '@/lib/design/shapeCrop';
 import { TRADE_LAYERS, tradeFeaturePrice, solarPanelsForArea, type TradeFeature } from '@/lib/design/siteTradeLayers';
 
 /**
@@ -113,17 +140,49 @@ export interface SiteShape {
   closed: boolean;
   /** Per-point curvature flags — true renders that vertex as a smooth spline handle */
   curves?: boolean[];
+  /**
+   * Architect curvature. A segment is a TRUE CIRCULAR ARC when `arcs[i]` is set
+   * (signed bulge = sagitta ÷ chord, exactly like a DXF bulge), a corner is
+   * rounded by a tangent fillet of `fillets[i]` px, and spline runs bend with
+   * `tension[i]`. See `@/lib/design/curvature`.
+   */
+  arcs?: number[];
+  fillets?: number[];
+  tension?: number[];
+  /** Opt this element out of the cropping engine (draw it uncut). */
+  noCrop?: boolean;
   /** Additional features selected on this element (see TRADE_LAYERS) */
   features?: string[];
   /** Set when the shape came from an imported PDF/DXF/SVG plan */
   importedFrom?: string;
 }
 
-/** Curve-aware outline used for rendering and all measurements. */
+/**
+ * Curve-aware outline used for rendering and all measurements — arcs, tangent
+ * fillets and tensioned splines resolved into one polyline. Every consumer
+ * (canvas, hatch, area, perimeter, price, export) reads this, so the drawing and
+ * the estimate can never disagree.
+ */
 export const siteShapeOutline = (shape: SiteShape) =>
-  hasAnyCurve(shape.curves)
-    ? samplePath(shape.points, shape.closed, normalizeFlags(shape.curves, shape.points.length))
+  hasCurvature(shape, shape.points.length)
+    ? samplePathAdvanced(shape.points, shape.closed, shape)
     : shape.points;
+
+/**
+ * True overlap logic. A pool, spa, ledge or building dropped on a paver deck or
+ * a turf field CUTS it: the sheet paints the hole and the SF printed on the
+ * element is the net field the crew installs.
+ */
+export const croppedSiteShape = (shape: SiteShape, all: SiteShape[]): CroppedShape => {
+  const outline = siteShapeOutline(shape);
+  if (!shape.closed || shape.noCrop || !CROPPABLE_LAYERS.has(shape.layer) || outline.length < 3) {
+    return [[outline]];
+  }
+  const cutters = all
+    .filter(o => o.id !== shape.id && o.closed && o.points.length > 2 && cutsThrough(o.layer, shape.layer))
+    .map(siteShapeOutline);
+  return cropRing(outline, cutters);
+};
 
 /**
  * The surface option selected on an element — the paver on a deck, the blade on
@@ -341,6 +400,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
   const [selectedVertex, setSelectedVertex] = React.useState<number | null>(null);
+  /** The run (segment i → i+1) under the curvature inspector. */
+  const [selectedSegment, setSelectedSegment] = React.useState<number | null>(null);
+  /** True overlap logic: pools, spas, ledges and buildings cut deck and turf. */
+  const [cropping, setCropping] = React.useState(true);
   /* Element under the pointer while picking — the sheet lights it up so it is
      obvious that clicking the paver deck opens the paver book for that deck. */
   const [hoverShapeId, setHoverShapeId] = React.useState<string | null>(null);
@@ -350,6 +413,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const [calibration, setCalibration] = React.useState<{ x: number; y: number }[]>([]);
   const drag = React.useRef<
     | { kind: 'vertex'; shapeId: string; index: number }
+    | { kind: 'bulge'; shapeId: string; index: number }
     | { kind: 'shape'; shapeId: string; last: { x: number; y: number } }
     | { kind: 'underlay'; last: { x: number; y: number } }
     | null
@@ -547,7 +611,21 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
          element with its catalogue photograph, tiled at roughly 2 ft, so a paver
          change is visible on the sheet the instant it is selected. */
       const surface = isDraft ? undefined : shapeSurfaceFeature(shape);
-      tracePolyline(ctx, outline, shape.closed);
+      /* TRUE OVERLAP LOGIC — the deck / turf is cut around whatever sits on it.
+         `rings` is the surviving geometry: outer boundaries plus holes, filled
+         even-odd, so a pool reads as a real void in the paver field. */
+      const cropped = isDraft || !cropping ? ([[outline]] as CroppedShape) : croppedSiteShape(shape, data.shapes);
+      const rings = cropRings(cropped);
+      const isCut = rings.length > 1 || rings[0] !== outline;
+      const traceRings = () => {
+        ctx.beginPath();
+        rings.forEach(ring => {
+          ring.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+          ctx.closePath();
+        });
+      };
+      if (shape.closed && isCut) traceRings();
+      else tracePolyline(ctx, outline, shape.closed);
       if (shape.closed && !meta.linear) {
         const img = surface?.image ? surfaceImage(surface.image, () => setImgReady(n => n + 1)) : null;
         let painted = false;
@@ -559,18 +637,23 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             ctx.save();
             ctx.globalAlpha = 0.9;
             ctx.fillStyle = pat;
-            ctx.fill();
+            ctx.fill('evenodd');
             ctx.restore();
             painted = true;
           }
         }
         ctx.fillStyle = meta.color + (painted ? '14' : '22');
-        ctx.fill();
+        ctx.fill('evenodd');
       }
 
       /* Each trade keeps its own spline signature: cages and arrays are hatched
          planes, spa and ledge shells are dashed, the lot line stays chain-dot. */
       if (shape.closed && meta.hatch && !isDraft && outline.length > 2) {
+        /* Hatch is clipped to the *cropped* element, so the cage or array hatch
+           stops dead at a pool void instead of running through it. */
+        ctx.save();
+        traceRings();
+        ctx.clip('evenodd');
         /* Trade hatch, cut exactly to the polygon: each hatch line is trimmed by
            its real intersections with the outline (cheap scanline, no clipping
            state, so it stays crisp at any device pixel ratio). */
@@ -605,6 +688,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
           }
         }
         ctx.stroke();
+        ctx.restore();
         void span;
       }
       const hovered = !isDraft && hoverShapeId === shape.id && selected !== shape.id;
@@ -612,6 +696,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.lineWidth = selected === shape.id ? 3 : hovered ? 3 : meta.id === 'property' ? 2.5 : 2;
 
       ctx.setLineDash(isDraft ? [6, 4] : meta.dash ?? []);
+      if (shape.closed && isCut) traceRings();
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -641,8 +726,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         const a = shape.points[i];
         const b = shape.points[(i + 1) % shape.points.length];
         const chord = Math.hypot(b.x - a.x, b.y - a.y);
-        const curved = flags[i] || flags[(i + 1) % shape.points.length];
-        const segPts = curved ? sampleSegment(shape.points, shape.closed, flags, i) : [a, b];
+        const kind = segmentKind(shape.points, shape.closed, shape, i);
+        const curved = kind !== 'straight';
+        const segPts = curved ? sampleSegmentAdvanced(shape.points, shape.closed, shape, i) : [a, b];
         const len = curved ? polylineLength(segPts) : chord;
         const ft = len / pxPerFt;
         if (ft < 2 || chord < 24) continue;
@@ -671,7 +757,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         let angle = Math.atan2(dir.y, dir.x);
         if (angle > Math.PI / 2 || angle < -Math.PI / 2) angle += Math.PI;
 
-        const text = `${ft.toFixed(1)}'`;
+        /* an arc is dimensioned the way a drawing is: length, then its radius */
+        const bulge = readSpec(shape, shape.points.length).arcs[i];
+        const rFt = kind === 'arc' ? arcMetrics(chord, bulge).radiusPx / pxPerFt : 0;
+        const text = kind === 'arc' && rFt > 0 ? `${ft.toFixed(1)}'  R ${rFt.toFixed(1)}'` : `${ft.toFixed(1)}'`;
         ctx.save();
         ctx.translate(mid.x, mid.y);
         ctx.rotate(angle);
@@ -685,11 +774,57 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       }
 
 
+      /* CURVATURE HANDLES — one grab per run at its arc midpoint. Pull it and the
+         run becomes a true circular arc; the radius is printed as you pull, and
+         can be typed to the inch in the curvature inspector. Diamonds are live
+         arcs, hollow lozenges are straight runs waiting to be bowed. */
+      if (active && shape.points.length >= 2) {
+        const spec = readSpec(shape, shape.points.length);
+        const segs = segmentCount(shape.points.length, shape.closed);
+        for (let i = 0; i < segs; i++) {
+          const a = shape.points[i];
+          const b = shape.points[(i + 1) % shape.points.length];
+          if (Math.hypot(b.x - a.x, b.y - a.y) < 22) continue;
+          const isArc = Math.abs(spec.arcs[i]) > 1e-4;
+          const h = arcMidpoint(a, b, spec.arcs[i]);
+          const on = selectedSegment === i;
+          ctx.save();
+          ctx.translate(h.x, h.y);
+          ctx.rotate(Math.PI / 4);
+          /* constant on-screen size, whatever the camera altitude */
+          const r = (on ? 5.6 : 4.4) / view.z;
+          ctx.beginPath();
+          ctx.rect(-r, -r, r * 2, r * 2);
+          ctx.fillStyle = isArc ? '#0891b2' : 'rgba(255,255,255,0.95)';
+          ctx.strokeStyle = on ? '#f59e0b' : '#0891b2';
+          ctx.lineWidth = (on ? 2 : 1.3) / view.z;
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+        /* a filleted corner announces its radius, as a detail drawing would */
+        ctx.font = '600 11px ui-monospace, monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        shape.points.forEach((p, i) => {
+          const rFt = spec.fillets[i] / pxPerFt;
+          if (rFt < 0.2) return;
+          const label = `R ${rFt.toFixed(1)}'`;
+          const w = ctx.measureText(label).width;
+          ctx.fillStyle = 'rgba(255,255,255,0.94)';
+          ctx.fillRect(p.x + 8, p.y - 15, w + 6, 14);
+          ctx.fillStyle = '#0891b2';
+          ctx.fillText(label, p.x + 11, p.y - 8);
+        });
+      }
+
+
       // label + area
       if (shape.closed && !meta.linear && shape.points.length > 2) {
         const cx = shape.points.reduce((s, p) => s + p.x, 0) / shape.points.length;
         const cy = shape.points.reduce((s, p) => s + p.y, 0) / shape.points.length;
-        const area = polygonArea(outline) / (pxPerFt * pxPerFt);
+        /* NET area: what the crew installs, with every overlap already cut out */
+        const area = netArea(cropped) / (pxPerFt * pxPerFt);
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.lineWidth = 4;
@@ -792,6 +927,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     readOnly,
     calibration,
     view,
+    selectedSegment,
+    cropping,
   ]);
 
 
@@ -875,6 +1012,46 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       if (v >= 0) return { shapeId: shape.id, index: v };
     }
     return null;
+  };
+
+  /**
+   * Curvature handle under the pointer — the diamond at a run's arc midpoint.
+   * Only the selected element offers handles, exactly as a CAD seat does, so a
+   * dense sheet never fights the pointer.
+   */
+  const hitArcHandle = (p: { x: number; y: number }): { shapeId: string; index: number } | null => {
+    const shape = data.shapes.find(sh => sh.id === selected);
+    if (!shape || shape.points.length < 2) return null;
+    const spec = readSpec(shape, shape.points.length);
+    const segs = segmentCount(shape.points.length, shape.closed);
+    for (let i = 0; i < segs; i++) {
+      const a = shape.points[i];
+      const b = shape.points[(i + 1) % shape.points.length];
+      if (Math.hypot(b.x - a.x, b.y - a.y) < 22) continue;
+      const h = arcMidpoint(a, b, spec.arcs[i]);
+      /* grab radius is constant on screen, so the handle is as easy to catch
+         zoomed out over a whole lot as it is up close on a bench seat */
+      if (Math.hypot(h.x - p.x, h.y - p.y) <= 11 / viewRef.current.z) return { shapeId: shape.id, index: i };
+    }
+    return null;
+  };
+
+  /** Nearest run of a shape to the pointer, for the curvature inspector. */
+  const nearestSegmentIndex = (shape: SiteShape, p: { x: number; y: number }): number | null => {
+    const segs = segmentCount(shape.points.length, shape.closed);
+    let best: { i: number; d: number } | null = null;
+    for (let i = 0; i < segs; i++) {
+      const pts = sampleSegmentAdvanced(shape.points, shape.closed, shape, i);
+      for (let k = 1; k < pts.length; k++) {
+        const a = pts[k - 1];
+        const b = pts[k];
+        const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        const t = Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / (len * len)));
+        const d = Math.hypot(p.x - (a.x + t * (b.x - a.x)), p.y - (a.y + t * (b.y - a.y)));
+        if (!best || d < best.d) best = { i, d };
+      }
+    }
+    return best ? best.i : null;
   };
 
   const updateShape = (id: string, patch: (s: SiteShape) => SiteShape) => {
@@ -970,16 +1147,27 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       if (insertVertexNear({ x: snap(raw.x), y: snap(raw.y) })) return;
     }
     if (mode !== 'select') return;
+    /* the curvature diamond wins: pulling it bows the run into a true arc */
+    const handle = hitArcHandle(raw);
+    if (handle) {
+      setSelectedSegment(handle.index);
+      setSelectedVertex(null);
+      drag.current = { kind: 'bulge', ...handle };
+      return;
+    }
     const vertex = hitVertex(raw);
     if (vertex) {
       setSelected(vertex.shapeId);
       setSelectedVertex(vertex.index);
+      setSelectedSegment(null);
       drag.current = { kind: 'vertex', ...vertex };
       return;
     }
     const shapeId = hitTest(raw);
     setSelected(shapeId);
     setSelectedVertex(null);
+    const picked = shapeId ? data.shapes.find(sh => sh.id === shapeId) : null;
+    setSelectedSegment(picked ? nearestSegmentIndex(picked, raw) : null);
     if (shapeId) drag.current = { kind: 'shape', shapeId, last: raw };
   };
 
@@ -1012,6 +1200,24 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
           ...data,
           shapes: data.shapes.map(s =>
             s.id === active.shapeId ? { ...s, points: s.points.map((pt, i) => (i === active.index ? p : pt)) } : s
+          ),
+        });
+        return;
+      }
+      if (active.kind === 'bulge') {
+        const shape = data.shapes.find(sh => sh.id === active.shapeId);
+        if (!shape) return;
+        const a = shape.points[active.index];
+        const b = shape.points[(active.index + 1) % shape.points.length];
+        /* quarter-inch resolution on the sagitta keeps the pull smooth but exact */
+        let bulge = bulgeFromPoint(a, b, raw);
+        if (Math.abs(bulge) < 0.012) bulge = 0; // snap back to a dead straight run
+        onChange({
+          ...data,
+          shapes: data.shapes.map(sh =>
+            sh.id === active.shapeId
+              ? { ...sh, arcs: withValueAt(sh.arcs, sh.points.length, active.index, bulge) }
+              : sh,
           ),
         });
         return;
@@ -1286,6 +1492,20 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         danger: true,
         title: 'Reset — erase everything and start the project over',
       })}
+      {ctrl(<CornerUpRight className="h-3.5 w-3.5" />, {
+        on: selectedSegment !== null,
+        onClick: () => {
+          setMode('select');
+          if (selectedShape && selectedSegment === null) setSelectedSegment(0);
+        },
+        disabled: !selected,
+        title: 'Curvature — pick a run, then drag its diamond or type an exact radius',
+      })}
+      {ctrl(<Scissors className="h-3.5 w-3.5" />, {
+        on: cropping,
+        onClick: () => setCropping(c => !c),
+        title: 'Crop — pools, spas, ledges and buildings cut the deck and turf they sit on',
+      })}
       {ctrl(<Grid3X3 className="h-3.5 w-3.5" />, { on: showGrid, onClick: () => setShowGrid(g => !g), title: 'Grid' })}
       {/* REAL zoom — a view transform over the sheet. The drafting scale
           (px per foot) never changes, so nothing a customer drew is resized;
@@ -1330,17 +1550,19 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
      options tab, exactly like the boards inside the FLIP edition. */
   const selectedMeasure = React.useMemo(() => {
     if (!selectedShape) return null;
-    const pts = selectedShape.points;
-    const lenFt = polylineLength(pts, selectedShape.closed) / data.pxPerFt;
-    let a = 0;
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
-      const q = pts[(i + 1) % pts.length];
-      a += p.x * q.y - q.x * p.y;
-    }
-    const sqFt = Math.abs(a / 2) / (data.pxPerFt * data.pxPerFt);
-    return { lenFt: Math.round(lenFt), sqFt: Math.round(sqFt), points: pts.length };
-  }, [selectedShape, data.pxPerFt]);
+    /* arcs and fillets change both figures, and overlaps change the SF — read
+       the same geometry the sheet draws so the panel can never disagree */
+    const outline = siteShapeOutline(selectedShape);
+    const lenFt = polylineLength(outline, selectedShape.closed) / data.pxPerFt;
+    const shape = cropping ? croppedSiteShape(selectedShape, data.shapes) : ([[outline]] as CroppedShape);
+    const sqFt = netArea(shape) / (data.pxPerFt * data.pxPerFt);
+    return {
+      lenFt: Math.round(lenFt),
+      sqFt: Math.round(sqFt),
+      points: selectedShape.points.length,
+      cut: cropRings(shape).length > 1,
+    };
+  }, [selectedShape, data.pxPerFt, data.shapes, cropping]);
 
   React.useEffect(() => {
     if (!selectedShape || typeof window === 'undefined') return;
@@ -1437,6 +1659,170 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   };
 
 
+  /* ── ARCHITECT CURVATURE ────────────────────────────────────────────────
+     Every run of every element can be a dead-straight line, a TRUE CIRCULAR ARC
+     with a typed radius, or a tensioned spline; every corner can carry a tangent
+     fillet. Values are exact and read back in feet and inches, so the sheet is
+     as precise as a drafting seat — and the same numbers drive the estimate. */
+  const segCount = selectedShape ? segmentCount(selectedShape.points.length, selectedShape.closed) : 0;
+  const segIndex = selectedSegment !== null && selectedSegment < segCount ? selectedSegment : null;
+  const curvature = React.useMemo(() => {
+    if (!selectedShape || segIndex === null) return null;
+    const pts = selectedShape.points;
+    const a = pts[segIndex];
+    const b = pts[(segIndex + 1) % pts.length];
+    const spec = readSpec(selectedShape, pts.length);
+    const chord = Math.hypot(b.x - a.x, b.y - a.y);
+    const kind = segmentKind(pts, selectedShape.closed, selectedShape, segIndex);
+    const m = arcMetrics(chord, spec.arcs[segIndex]);
+    return {
+      kind,
+      bulge: spec.arcs[segIndex],
+      chordFt: chord / data.pxPerFt,
+      radiusFt: m.radiusPx / data.pxPerFt,
+      runFt: segmentLength(pts, selectedShape.closed, selectedShape, segIndex) / data.pxPerFt,
+      sweepDeg: (m.sweepRad * 180) / Math.PI,
+      chordPx: chord,
+    };
+  }, [selectedShape, segIndex, data.pxPerFt]);
+
+  const patchSelected = (patch: (sh: SiteShape) => SiteShape) => {
+    if (!selectedShape) return;
+    onChange({ ...data, shapes: data.shapes.map(sh => (sh.id === selectedShape.id ? patch(sh) : sh)) });
+  };
+  const setBulge = (bulge: number) => {
+    if (!selectedShape || segIndex === null) return;
+    const n = selectedShape.points.length;
+    patchSelected(sh => ({
+      ...sh,
+      arcs: withValueAt(sh.arcs, n, segIndex, Math.max(-MAX_BULGE, Math.min(MAX_BULGE, bulge))),
+      /* an arc owns its run — clear the spline flags that would fight it */
+      curves: bulge
+        ? (sh.curves ?? []).map((c, i) => (i === segIndex || i === (segIndex + 1) % n ? false : c))
+        : sh.curves,
+    }));
+  };
+  /** Type a radius in feet and the run resolves to that exact circle. */
+  const setRadiusFt = (ft: number) => {
+    if (!curvature || !Number.isFinite(ft)) return;
+    const rPx = ft * data.pxPerFt;
+    if (rPx < curvature.chordPx / 2) return; // a circle smaller than the chord cannot close
+    setBulge(bulgeForRadius(curvature.chordPx, rPx, curvature.bulge < 0 ? -1 : 1));
+  };
+  /** Tangent fillet on the selected corner, in feet. */
+  const setFilletFt = (ft: number) => {
+    if (!selectedShape || selectedVertex === null || !Number.isFinite(ft)) return;
+    const n = selectedShape.points.length;
+    patchSelected(sh => ({ ...sh, fillets: withValueAt(sh.fillets, n, selectedVertex, Math.max(0, ft) * data.pxPerFt) }));
+  };
+  const setTension = (t: number) => {
+    if (!selectedShape || selectedVertex === null) return;
+    const n = selectedShape.points.length;
+    patchSelected(sh => ({ ...sh, tension: withValueAt(sh.tension, n, selectedVertex, t, DEFAULT_TENSION) }));
+  };
+
+  const numField = (label: string, value: number, onCommit: (v: number) => void, step = 0.25, disabled = false) => (
+    <label className="flex items-center gap-1.5">
+      <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">{label}</span>
+      <input
+        type="number"
+        step={step}
+        min={0}
+        disabled={disabled}
+        defaultValue={Number.isFinite(value) ? Number(value.toFixed(2)) : 0}
+        key={`${label}-${value.toFixed(2)}`}
+        onBlur={e => onCommit(parseFloat(e.target.value))}
+        onKeyDown={e => e.key === 'Enter' && onCommit(parseFloat((e.target as HTMLInputElement).value))}
+        className="w-16 rounded-md border border-border/60 bg-background/70 px-1.5 py-0.5 text-[11px] tabular-nums text-foreground outline-none focus:border-primary/70 disabled:opacity-40"
+      />
+    </label>
+  );
+
+  const curvatureInspector =
+    !readOnly && selectedShape ? (
+      <div className="mt-2 border-t border-border/50 pt-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <p className="text-[9px] uppercase tracking-[0.24em] text-muted-foreground">Curvature</p>
+          {curvature ? (
+            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              Run {(segIndex ?? 0) + 1} of {segCount} · {curvature.runFt.toFixed(2)}′
+              {curvature.kind === 'arc' ? ` · R ${curvature.radiusFt.toFixed(2)}′ · ${curvature.sweepDeg.toFixed(1)}°` : ''}
+            </span>
+          ) : (
+            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+              Pick a run on the sheet — or drag a diamond handle to bow it
+            </span>
+          )}
+        </div>
+        {curvature ? (
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {ctrl('Straight', { on: curvature.kind === 'straight', onClick: () => setBulge(0) })}
+            {ctrl(
+              <>
+                <CircleDot className="h-3.5 w-3.5" /> Arc
+              </>,
+              {
+                on: curvature.kind === 'arc',
+                onClick: () => setBulge(curvature.bulge || 0.25),
+              },
+            )}
+            {ctrl(
+              <>
+                <Spline className="h-3.5 w-3.5" /> Spline
+              </>,
+              { on: curvature.kind === 'spline', onClick: toggleSelectedCurve },
+            )}
+            {numField('Radius ft', curvature.radiusFt, setRadiusFt, 0.25, curvature.kind !== 'arc')}
+            <input
+              type="range"
+              min={-90}
+              max={90}
+              value={Math.round(curvature.bulge * 100)}
+              onChange={e => setBulge(+e.target.value / 100)}
+              className="h-1 w-24 cursor-pointer accent-primary"
+              title="Bow this run — drag through centre for a dead straight line"
+            />
+            {ctrl('Flip', { onClick: () => setBulge(-curvature.bulge), disabled: curvature.kind !== 'arc' })}
+          </div>
+        ) : null}
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          {numField(
+            'Fillet ft',
+            selectedVertex !== null ? readSpec(selectedShape, selectedShape.points.length).fillets[selectedVertex] / data.pxPerFt : 0,
+            setFilletFt,
+            0.25,
+            selectedVertex === null,
+          )}
+          <label className="flex items-center gap-1.5" title="Spline tension at the selected point">
+            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">Tension</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              disabled={selectedVertex === null}
+              value={Math.round(
+                (selectedVertex !== null
+                  ? readSpec(selectedShape, selectedShape.points.length).tension[selectedVertex]
+                  : DEFAULT_TENSION) * 100,
+              )}
+              onChange={e => setTension(+e.target.value / 100)}
+              className="h-1 w-20 cursor-pointer accent-primary disabled:opacity-40"
+            />
+          </label>
+          {ctrl(
+            <>
+              <Scissors className="h-3.5 w-3.5" /> {selectedShape.noCrop ? 'Uncut' : 'Cut around overlaps'}
+            </>,
+            {
+              on: !selectedShape.noCrop,
+              onClick: () => patchSelected(sh => ({ ...sh, noCrop: !sh.noCrop })),
+              title: 'Overlapping pools, spas, ledges and buildings cut this element',
+            },
+          )}
+        </div>
+      </div>
+    ) : null;
+
   const elementOptions =
     !readOnly && selectedShape ? (
       <div className="rounded-2xl border border-border/50 bg-foreground/[0.03] p-3 backdrop-blur-xl">
@@ -1449,7 +1835,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
               {layerMeta(selectedShape.layer).linear
                 ? `${selectedMeasure.lenFt} LF`
-                : `${selectedMeasure.sqFt.toLocaleString()} SF · ${selectedMeasure.lenFt} LF perimeter`}{' '}
+                : `${selectedMeasure.sqFt.toLocaleString()} SF${selectedMeasure.cut ? ' net' : ''} · ${selectedMeasure.lenFt} LF perimeter`}{' '}
               · {selectedMeasure.points} points
             </span>
           ) : null}
@@ -1478,6 +1864,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             )}
           </div>
         </div>
+        {curvatureInspector}
         {tradeSpec ? (
           <div className="mt-2 border-t border-border/50 pt-2">
             <div className="flex flex-wrap items-baseline gap-x-3">

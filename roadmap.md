@@ -1,28 +1,15 @@
 # Roadmap
 
-## Solar spread (FLIP)
-- [x] Move the live aerial map to the left leaf of the solar spread
-- [x] Fill the facing leaf with the full solar collection (panels by brand, storage, racking/anchoring, companion systems, inclusions)
-- [ ] Roof capture: stop auto-dropping faces before the user clicks a roof
-- [ ] Roof capture: spline/perimeter tracing quality — outlines must follow the roof perimeter
-- [ ] Verify with Playwright screenshots
+## In progress
+_nothing open_
 
-## Landscaping (new concept)
-- [x] Planting Studio board: beds on the shared 10 px = 1 ft grid, real catalog plants drawn at mature canopy with foliage + flower colour
-- [x] Tools: plant / drift, hedge run, bed trace with rounded vertices, mass-plant bed, spacing rings, plant schedule
-- [x] Wired into flipBoardStore, FLIP spread, editor board and the live cost leaf
-
-## Global Design Board
-- [x] New page at /global-design-board on the Blueprint Builder shell — one unified design surface for every trade
-- [x] Every discipline mounts its real board (site/studio, screen enclosure, fencing, turf, planting, solar) with its own pencils, splines, tools, options and features
-- [x] All pricing models load here (site/studio, enclosure, fence, turf, landscape, solar) into one project total
-- [x] One-click "Load into blueprint mode" — fills the blueprint builder (site plan, measured areas, scope) and badges the source
-
-## Drawing boards (compact chrome)
-- [ ] Board toolbars become a small icon-only header; canvas takes most of the space
-- [ ] All boards open at 20 ft of view (same as the site board)
-
-## FLIP Builder V2 — palette controller
-- [ ] Manual colour pickers for every palette slot (not just the 10 preset editions)
-- [ ] Dozens of curated fonts to choose from for heading/body
-- [ ] Shuffle mixes colours + fonts into a unique edition every time
+## Done
+- [x] Architect curvature — DXF-exact circular arcs with typed radius, tangent
+      corner fillets, tensioned splines, draggable apex handles and a numeric
+      curvature inspector (`src/lib/design/curvature.ts`)
+- [x] Cropping tool — pools, spas, ledges and buildings cut the paver deck and
+      turf they sit on; SF and price read net (`src/lib/design/shapeCrop.ts`)
+- [x] Board tools moved into the sheet header (icon-only, mobile-friendly)
+- [x] Shared 70 ft default board altitude tuned for pool + patio work
+- [x] Global Design Board dossier aggregates every trade (estimate, take-off,
+      specifications, process, project payment schedule)
