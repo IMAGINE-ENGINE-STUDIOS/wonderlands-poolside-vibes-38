@@ -1264,7 +1264,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
           </p>
           <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
             <img
-              src={shots[1] ?? category.images[0]}
+              src={brandShot ?? shots[1] ?? category.images[0]}
               alt={`${category.label} detail`}
               loading="eager"
               decoding="async"
