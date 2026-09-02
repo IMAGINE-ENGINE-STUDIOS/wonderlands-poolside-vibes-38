@@ -1596,9 +1596,19 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         },
       })}
       {ctrl(<Plus className="h-3.5 w-3.5" />, {
-        onClick: addVertexAfterSelected,
-        disabled: !selected || selectedVertex === null,
-        title: 'Add a point after the selected one (or Alt-click a line to insert)',
+        on: mode === 'point',
+        onClick: () => {
+          if (mode === 'point') {
+            setMode('select');
+            setInsertGhost(null);
+            return;
+          }
+          setMode('point');
+          setDraft([]);
+          setHover(null);
+          setInsertGhost(null);
+        },
+        title: 'Add point — the new point rides the line under your cursor; click to drop it',
       })}
       {ctrl(<Spline className="h-3.5 w-3.5" />, {
         on: selectedShapeCurved,
