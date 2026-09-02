@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useSolarSession } from "@/components/solar/solarSession";
-import { computeProduction, computeSavings, type RoofFace } from "@/lib/solar/solarEngine";
+import { computeProduction, computeSavings, pathAreaSqFt, type RoofFace } from "@/lib/solar/solarEngine";
 import { buildSolarBom } from "@/lib/solar/solarBom";
 import { solarBatteries, solarPanels, FL_UTILITY_RATE } from "@/data/solarHardware";
 import { benchmarkRoof, screenFace } from "@/lib/solar/suitability";
@@ -65,13 +65,15 @@ const Movement: React.FC<{
 const SolarGenius: React.FC = () => {
   const [session] = useSolarSession();
 
-  /* The session stores plain saved faces; the engine wants RoofFace. */
-  const faces = React.useMemo<RoofFace[]>(
+  /* The session stores plain saved faces; the engine wants RoofFace, and the
+     plan area is recovered from the traced ring so the workstation never depends
+     on a stale number cached by an older version of the board. */
+  const geometryFaces = React.useMemo<RoofFace[]>(
     () =>
       session.faces.map((f) => ({
         id: f.id,
         path: f.path,
-        planAreaSqFt: f.path.length >= 3 ? 0 : 0,
+        planAreaSqFt: f.path.length >= 3 ? Math.round(pathAreaSqFt(f.path)) : 0,
         azimuthDeg: f.azimuthDeg,
         pitchDeg: f.pitchDeg,
         shadeFactor: f.shadeFactor,
@@ -81,14 +83,6 @@ const SolarGenius: React.FC = () => {
       })),
     [session.faces],
   );
-
-  /* plan area is recovered from the geometry so the workstation never depends on
-     a stale cached number written by an older board version */
-  const geometryFaces = React.useMemo<RoofFace[]>(() => {
-    // imported lazily to keep the module graph tidy at the top of the file
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return faces.map((f, i) => ({ ...f, planAreaSqFt: session.faces[i]?.path ? planArea(f) : 0 }));
-  }, [faces, session.faces]);
 
   const panel = solarPanels.find((p) => p.id === session.panelId) ?? solarPanels[0];
   const battery = solarBatteries.find((b) => b.id === session.batteryId) ?? solarBatteries[0];
@@ -247,8 +241,3 @@ const SolarGenius: React.FC = () => {
 };
 
 export default SolarGenius;
-
-/* Local helper kept at the foot of the file: the shoelace plan area of a face,
-   recovered from its traced ring. */
-import { pathAreaSqFt } from "@/lib/solar/solarEngine";
-const planArea = (f: RoofFace): number => (f.path.length >= 3 ? Math.round(pathAreaSqFt(f.path)) : 0);
