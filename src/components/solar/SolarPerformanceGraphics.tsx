@@ -136,33 +136,83 @@ const clockLabel = (hours: number) => {
 
 const DAY_OF_MONTH_START = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
 
-/** Deterministic pseudo-stars so the plate has a fixed night sky, not noise. */
-const STARS = Array.from({ length: 68 }, (_, i) => {
+/**
+ * Deterministic field of faint background stars — the sky's dust between the
+ * catalogued bright stars. Fixed seed so the plate never shimmers into noise on
+ * re-render, and each grain carries its own twinkle phase.
+ */
+const DUST = Array.from({ length: 260 }, (_, i) => {
   const a = Math.sin(i * 12.9898) * 43758.5453;
   const b = Math.sin(i * 78.233) * 12345.6789;
+  const c = Math.sin(i * 39.4265) * 9871.234;
+  const fa = a - Math.floor(a);
+  const fb = b - Math.floor(b);
+  const fc = c - Math.floor(c);
   return {
-    x: 12 + ((a - Math.floor(a)) * (DOME.w - 24)),
-    y: 8 + ((b - Math.floor(b)) * (DOME.base - 20)),
-    r: 0.35 + ((a - Math.floor(a)) * 0.9),
-    o: 0.15 + ((b - Math.floor(b)) * 0.5),
+    x: 4 + fa * (DOME.w - 8),
+    y: 4 + fb * (DOME.base - 12),
+    r: 0.22 + fc * 0.72,
+    o: 0.1 + fb * 0.55,
+    delay: (fc * 5).toFixed(2),
+    /* a faint colour spread — blue-white through amber, as the real sky reads */
+    tint: fc > 0.82 ? "#ffd9b0" : fc > 0.6 ? "#fff4e2" : "#dbe7ff",
   };
 });
+
+/** The Milky Way band, drawn as a soft diagonal wash across the plate. */
+const MILKY_WAY =
+  `M${-20},${DOME.base - 40} C${DOME.w * 0.24},${DOME.base - 150} ${DOME.w * 0.52},${DOME.top - 30} ${DOME.w + 20},${DOME.top - 90} L${DOME.w + 20},${DOME.top + 40} C${DOME.w * 0.55},${DOME.top + 96} ${DOME.w * 0.26},${DOME.base - 60} ${-20},${DOME.base + 20} Z`;
+
+/** Local clock offset for the site, approximated from its longitude. */
+const tzOffsetHours = (lng: number) => Math.round(lng / 15);
+
+/**
+ * The wall-clock instant the console is showing: the selected day of year and
+ * solar hour, resolved to a real UTC Date so the Moon, the planets and the star
+ * field can be placed astronomically rather than decoratively.
+ */
+const sceneInstant = (year: number, doy: number, hours: number, lng: number): Date =>
+  new Date(
+    Date.UTC(year, 0, 1) +
+      (doy - 1) * 86_400_000 +
+      (hours - tzOffsetHours(lng)) * 3_600_000,
+  );
 
 /**
  * SunPathConsole — a hyperdetailed, scrubbable sky chart for the site latitude.
  *
  * The plate draws the annual sun corridor (between both solstices), the arc for
  * the selected day with hour stations, civil twilight bands, the horizon and
- * compass rose, plus a live solar marker. Below it, a mission-roadmap ribbon
- * sequences the day's events (first light → sunrise → golden hour → solar noon
- * → golden hour → sunset → last light) with a travelling progress head.
+ * compass rose, plus a live solar marker. At night it becomes a real sky: the
+ * catalogued bright stars, the Milky Way, the Moon at its true position and
+ * phase, and the naked-eye planets with NASA-like disc tints. Below it, a
+ * mission-roadmap ribbon sequences the day's events, and a yearly simulation
+ * accumulates production against the selected country's electricity token.
  */
-const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }) => {
+const SunPathConsole: React.FC<{
+  lat: number;
+  /** Site longitude — sets the local clock and the sidereal sky */
+  lng?: number;
+  glass: string;
+  /** Modelled annual DC production, used by the yearly simulation */
+  yearlyKwh: number;
+}> = ({ lat, lng = -81.5, glass, yearlyKwh }) => {
   const now = React.useMemo(() => new Date(), []);
   const [doy, setDoy] = React.useState(() => dayOfYearOf(now));
   const [hours, setHours] = React.useState(() => now.getHours() + now.getMinutes() / 60);
   const [playing, setPlaying] = React.useState(false);
   const [station, setStation] = React.useState<number | null>(null);
+  const [body, setBody] = React.useState<string | null>(null);
+
+  /* ── yearly simulation ── */
+  const [yearRun, setYearRun] = React.useState(false);
+  const [yearDay, setYearDay] = React.useState(0);
+  const [tariffCode, setTariffCode] = usePersistentState<string>(
+    "solar.sky.tariff",
+    DEFAULT_TARIFF_CODE,
+  );
+  const tariff = tariffByCode(tariffCode);
+
 
   /* Play sweeps the day forward in solar time, then rolls into the next day. */
   React.useEffect(() => {
