@@ -119,37 +119,9 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
   const R = 54;
   const CIRC = 2 * Math.PI * R;
 
-  /* ── sun path for this latitude ── */
+  /* ── site latitude drives the astronomical console ── */
   const lat = latitude || 27;
-  const summer = React.useMemo(() => arcPoints(lat, declination(172)), [lat]);
-  const equinox = React.useMemo(() => arcPoints(lat, declination(80)), [lat]);
-  const winter = React.useMemo(() => arcPoints(lat, declination(355)), [lat]);
 
-  const today = React.useMemo(() => {
-    const now = new Date();
-    const doy = Math.floor(
-      (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000,
-    );
-    const hours = now.getHours() + now.getMinutes() / 60;
-    const dec = declination(doy);
-    const pos = sunPosition(lat, dec, (hours - 12) * 15);
-    return { ...pos, ...project(pos.azimuth, pos.altitude), dec, hours };
-  }, [lat]);
-
-  const noonAlt = React.useMemo(
-    () => Math.round(Math.max(...summer.map((p) => p.altitude))),
-    [summer],
-  );
-  const winterNoonAlt = React.useMemo(
-    () => Math.round(Math.max(...winter.map((p) => p.altitude))),
-    [winter],
-  );
-  const daylight = React.useMemo(() => {
-    // daylight hours today: hour angle at sunrise
-    const cosH = -Math.tan(lat * RAD) * Math.tan(today.dec * RAD);
-    const H = Math.acos(Math.max(-1, Math.min(1, cosH))) / RAD;
-    return (2 * H) / 15;
-  }, [lat, today.dec]);
 
   const contributions = React.useMemo(
     () =>
