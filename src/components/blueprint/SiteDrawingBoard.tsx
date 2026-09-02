@@ -288,10 +288,75 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const underlay = data.underlay;
   const pxPerFt = data.pxPerFt;
-  const gridFt = pxPerFt >= 8 ? 1 : pxPerFt >= 4 ? 5 : 10;
+
+  /* ── the camera ──────────────────────────────────────────────────────────
+     A real zoom: `z` scales the sheet on screen and `x`/`y` pan it. Drawn
+     geometry and the drafting scale are never touched, so a 14 ft pool stays
+     14 ft whether the camera shows 20 ft or 800 ft of land. */
+  const MIN_Z = 0.04;
+  const MAX_Z = 6;
+  const [view, setView] = React.useState({ z: 1, x: 0, y: 0 });
+  const viewRef = React.useRef(view);
+  viewRef.current = view;
+  const zoom = view.z;
+  const viewWidthFt = CANVAS_W / (pxPerFt * zoom);
+
+  const clampZ = (z: number) => Math.min(MAX_Z, Math.max(MIN_Z, z));
+
+  /** Zoom about a point in screen (sheet) space — the cursor, or the centre. */
+  const zoomAt = React.useCallback(
+    (factor: number, sx = CANVAS_W / 2, sy = CANVAS_H / 2) => {
+      setView(v => {
+        const z = clampZ(v.z * factor);
+        const k = z / v.z;
+        return { z, x: sx - (sx - v.x) * k, y: sy - (sy - v.y) * k };
+      });
+    },
+    [],
+  );
+  const zoomBy = (factor: number) => zoomAt(factor);
+
+  /* The slider is logarithmic so every notch feels the same at any distance. */
+  const zoomSlider = Math.round((Math.log(zoom / MIN_Z) / Math.log(MAX_Z / MIN_Z)) * 200 - 100);
+  const setZoomFromSlider = (v: number) =>
+    zoomAt(clampZ(MIN_Z * Math.pow(MAX_Z / MIN_Z, (v + 100) / 200)) / zoom);
+
+  /** Frame the drawing — or, on an empty sheet, the requested acreage. */
+  const fitView = React.useCallback(() => {
+    const pts = data.shapes.flatMap(s => s.points);
+    if (!pts.length) {
+      const wantFt = defaultViewWidthFt ?? CANVAS_W / pxPerFt;
+      const z = clampZ(CANVAS_W / (wantFt * pxPerFt));
+      setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
+      return;
+    }
+    const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+    const w = Math.max(40, Math.max(...xs) - Math.min(...xs));
+    const h = Math.max(40, Math.max(...ys) - Math.min(...ys));
+    const z = clampZ(Math.min((CANVAS_W * 0.86) / w, (CANVAS_H * 0.86) / h));
+    setView({
+      z,
+      x: CANVAS_W / 2 - ((Math.min(...xs) + Math.max(...xs)) / 2) * z,
+      y: CANVAS_H / 2 - ((Math.min(...ys) + Math.max(...ys)) / 2) * z,
+    });
+  }, [data.shapes, defaultViewWidthFt, pxPerFt]);
+
+  /* Open at the requested width of land (400 ft on the Global Design Board). */
+  const framed = React.useRef(false);
+  React.useEffect(() => {
+    if (framed.current || !defaultViewWidthFt) return;
+    framed.current = true;
+    const z = clampZ(CANVAS_W / (defaultViewWidthFt * pxPerFt));
+    setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
+  }, [defaultViewWidthFt, pxPerFt]);
+
+  /* Grid density follows what the camera can actually resolve on screen. */
+  const screenPxPerFt = pxPerFt * zoom;
+  const gridFt = screenPxPerFt >= 8 ? 1 : screenPxPerFt >= 4 ? 5 : screenPxPerFt >= 1.2 ? 10 : 25;
   const majorFt = gridFt * 5;
 
   const snap = (v: number) => Math.round(v / (pxPerFt * gridFt)) * (pxPerFt * gridFt);
+
 
   // Load / reload the underlay bitmap
   React.useEffect(() => {
