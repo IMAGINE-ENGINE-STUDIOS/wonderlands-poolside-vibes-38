@@ -40,7 +40,9 @@ const GrassDrawingBoard = lazy(() => import("@/components/grass/GrassDrawingBoar
 const LandscapeDrawingBoard = lazy(() => import("@/components/landscape/LandscapeDrawingBoard"));
 const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 /** The facing leaf of the solar spread — the whole panel/storage/racking collection. */
-const SolarOptionsLeaf = lazy(() => import("@/components/solar/SolarOptionsLeaf"));
+/* The solar spread's facing leaf is now the Solar Genius leaf (options plus the
+   NREL screen, the county tariff/tax/programme data and cash·loan·PPA). */
+const SolarGeniusLeaf = lazy(() => import("@/components/solar/genius/SolarGeniusLeaf"));
 
 const emptySite: SitePlanData = { shapes: [], pxPerFt: DEFAULT_PX_PER_FT };
 const emptyEnclosure: EnclosureLayout = { points: [], closed: false, features: {} };
@@ -520,7 +522,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
     <div className="absolute inset-0" {...lockHandlers}>
       <div className="flex h-full w-full flex-col p-3 sm:p-4">
         <Suspense fallback={fallback}>
-          <SolarOptionsLeaf />
+          <SolarGeniusLeaf />
         </Suspense>
       </div>
     </div>
