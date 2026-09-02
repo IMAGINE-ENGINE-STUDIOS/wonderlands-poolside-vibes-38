@@ -194,9 +194,18 @@ export const layoutFace = (face: RoofFace, panel: SolarPanelSpec, latitude = 27.
   const side = Math.sqrt(Math.max(0, sloped));
   const usableSqFt = Math.max(0, (side - 2 * SETBACK_FT) ** 2);
   const panelSqFt = panel.widthFt * panel.heightFt;
-  const packing = 0.86;
+  /**
+   * Real-roof packing factor. Calibrated against installed Florida jobs: the
+   * area a roof face reports is never all rackable once row gaps, staggered
+   * courses, hips, vent stacks, plumbing boots and the equipment path are
+   * taken out — measured installs fit roughly two thirds of the naive count,
+   * which is why paper designs of 47 modules end up as 36 on the roof.
+   */
+  const packing = 0.66;
+  /** Obstruction allowance per face — vents, boots, skylights, AC stands. */
+  const obstructionSqFt = 45;
   const panels =
-    face.excluded || exposure.band === "shaded" ? 0 : Math.max(0, Math.floor((usableSqFt * packing) / panelSqFt));
+    face.excluded || exposure.band === "shaded" ? 0 : Math.max(0, Math.floor((Math.max(0, usableSqFt - obstructionSqFt) * packing) / panelSqFt));
   const yearlyKwh = (panels * panel.watts * exposure.sunHours * 0.84) / 1000;
   return {
     faceId: face.id,

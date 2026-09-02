@@ -18,7 +18,7 @@ export interface SolarPanelSpec {
   widthFt: number;
   heightFt: number;
   efficiency: number;
-  /** Installed turnkey price per watt, everything in (module, labour, permit) */
+  /** Module + install-labour price per watt (racking, electrical and soft costs are separate BOM lines) */
   pricePerWatt: number;
   warrantyYears: number;
   note: string;
@@ -39,7 +39,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.42,
     heightFt: 5.63,
     efficiency: 0.206,
-    pricePerWatt: 3.1,
+    pricePerWatt: 1.62,
     warrantyYears: 25,
     note: "The house standard — all-black monocrystalline, flush mounted.",
   },
@@ -51,7 +51,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.48,
     heightFt: 6.2,
     efficiency: 0.219,
-    pricePerWatt: 3.35,
+    pricePerWatt: 1.72,
     warrantyYears: 25,
     note: "More watts per square foot — for roofs where space is the limit.",
   },
@@ -63,7 +63,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.72,
     heightFt: 7.55,
     efficiency: 0.228,
-    pricePerWatt: 3.55,
+    pricePerWatt: 1.8,
     warrantyYears: 30,
     note: "Estate-scale module with a thirty-year performance warranty.",
   },
@@ -77,7 +77,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.44,
     heightFt: 5.71,
     efficiency: 0.212,
-    pricePerWatt: 3.4,
+    pricePerWatt: 1.75,
     warrantyYears: 25,
     note: "Lead-free heterojunction cells — strong hot-climate temperature coefficient.",
   },
@@ -89,7 +89,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.65,
     heightFt: 6.17,
     efficiency: 0.226,
-    pricePerWatt: 3.6,
+    pricePerWatt: 1.85,
     warrantyYears: 25,
     note: "REC's highest-density residential module, all-black frame.",
   },
@@ -103,7 +103,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.47,
     heightFt: 5.75,
     efficiency: 0.204,
-    pricePerWatt: 3.0,
+    pricePerWatt: 1.55,
     warrantyYears: 25,
     note: "Value workhorse, built in Georgia — quick lead times in Florida.",
   },
@@ -115,7 +115,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.47,
     heightFt: 5.75,
     efficiency: 0.223,
-    pricePerWatt: 3.25,
+    pricePerWatt: 1.66,
     warrantyYears: 25,
     note: "N-type cells with a 0.25%/yr degradation rate.",
   },
@@ -129,7 +129,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.4,
     heightFt: 6.16,
     efficiency: 0.229,
-    pricePerWatt: 3.95,
+    pricePerWatt: 2.05,
     warrantyYears: 40,
     note: "Back-contact cells with a forty-year warranty — the top of the catalogue.",
   },
@@ -143,7 +143,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.7,
     heightFt: 6.4,
     efficiency: 0.221,
-    pricePerWatt: 2.85,
+    pricePerWatt: 1.45,
     warrantyYears: 25,
     note: "Best cost per watt for large roofs where space is not the constraint.",
   },
@@ -155,7 +155,7 @@ export const solarPanels: SolarPanelSpec[] = [
     widthFt: 3.75,
     heightFt: 7.71,
     efficiency: 0.223,
-    pricePerWatt: 2.7,
+    pricePerWatt: 1.38,
     warrantyYears: 25,
     note: "Commercial-format module for barns, lanai roofs and flat decks.",
   },
@@ -205,8 +205,8 @@ export const rackingByCovering: Record<RoofCovering, RackingSpec> = {
     label: "Asphalt shingle",
     anchor: "Lag-bolt flashed mount into rafter",
     anchorsPerPanel: 2,
-    costPerAnchor: 46,
-    railCostPerFt: 9.5,
+    costPerAnchor: 26,
+    railCostPerFt: 6,
     tiltKitPerPanel: 0,
     windNote: "Flashed penetrations at every rafter, 16 in on centre, sealed to FBC 7th ed.",
   },
@@ -214,8 +214,8 @@ export const rackingByCovering: Record<RoofCovering, RackingSpec> = {
     label: "Concrete or clay tile",
     anchor: "Tile hook with replacement pan and re-bedded tile",
     anchorsPerPanel: 3,
-    costPerAnchor: 78,
-    railCostPerFt: 11,
+    costPerAnchor: 30,
+    railCostPerFt: 6.5,
     tiltKitPerPanel: 0,
     windNote: "Tile hooks with lifted and re-bedded tile; broken tile replacement allowance included.",
   },
@@ -223,8 +223,8 @@ export const rackingByCovering: Record<RoofCovering, RackingSpec> = {
     label: "Standing-seam metal",
     anchor: "Non-penetrating seam clamp",
     anchorsPerPanel: 2,
-    costPerAnchor: 52,
-    railCostPerFt: 9,
+    costPerAnchor: 28,
+    railCostPerFt: 5.8,
     tiltKitPerPanel: 0,
     windNote: "Seam clamps — no penetrations, roof warranty preserved.",
   },
@@ -232,8 +232,8 @@ export const rackingByCovering: Record<RoofCovering, RackingSpec> = {
     label: "5V crimp / corrugated metal",
     anchor: "Butyl-sealed rib mount through purlin",
     anchorsPerPanel: 3,
-    costPerAnchor: 58,
-    railCostPerFt: 9,
+    costPerAnchor: 31,
+    railCostPerFt: 5.8,
     tiltKitPerPanel: 0,
     windNote: "Rib-crown mounts into purlins with butyl isolation, stainless fasteners.",
   },
@@ -241,18 +241,18 @@ export const rackingByCovering: Record<RoofCovering, RackingSpec> = {
     label: "Flat concrete deck",
     anchor: "Anchored tilt leg on flashed stanchion",
     anchorsPerPanel: 2,
-    costPerAnchor: 84,
-    railCostPerFt: 12,
-    tiltKitPerPanel: 96,
+    costPerAnchor: 44,
+    railCostPerFt: 7,
+    tiltKitPerPanel: 62,
     windNote: "10° tilt legs on anchored stanchions, engineered uplift calc per FBC.",
   },
   "flat-membrane": {
     label: "Flat TPO / modified bitumen",
     anchor: "Ballasted tray with membrane pad",
     anchorsPerPanel: 1,
-    costPerAnchor: 68,
-    railCostPerFt: 11,
-    tiltKitPerPanel: 110,
+    costPerAnchor: 38,
+    railCostPerFt: 6.8,
+    tiltKitPerPanel: 70,
     windNote: "Ballasted trays with slip pads; roofer-certified patches at every penetration.",
   },
 };
@@ -262,30 +262,30 @@ export const roofCoverings = Object.keys(rackingByCovering) as RoofCovering[];
 /** Balance-of-system line items — material and labour, priced per unit. */
 export const electricalRates = {
   /** PV wire between modules and the inverter */
-  dcWirePerFt: 1.35,
+  dcWirePerFt: 1.1,
   /** AC feeder from inverter to the service panel */
-  acFeederPerFt: 4.2,
+  acFeederPerFt: 3.4,
   /** EMT conduit run, installed */
-  conduitPerFt: 6.8,
+  conduitPerFt: 5.2,
   /** Rooftop rapid-shutdown optimiser per module (NEC 690.12) */
-  rapidShutdownPerPanel: 78,
+  rapidShutdownPerPanel: 55,
   /** String inverter, per kW AC */
-  inverterPerKwAc: 320,
+  inverterPerKwAc: 230,
   /** Combiner box with fused strings */
-  combinerBox: 460,
+  combinerBox: 380,
   /** Exterior DC and AC disconnects */
-  dcDisconnect: 240,
-  acDisconnect: 265,
+  dcDisconnect: 190,
+  acDisconnect: 205,
   /** Utility-facing production meter socket */
-  productionMeter: 310,
+  productionMeter: 260,
   /** Backfed breaker in the main panel */
-  backfedBreaker: 145,
+  backfedBreaker: 120,
   /** Battery transfer / critical-load subpanel */
   criticalLoadPanel: 1250,
   /** Grounding, labels, MC4s, misc consumables per panel */
-  balancePerPanel: 34,
+  balancePerPanel: 20,
   /** Monitoring gateway and commissioning */
-  monitoringGateway: 420,
+  monitoringGateway: 340,
   /** Engineering, permit and interconnection package */
   permitPackage: 1850,
 } as const;
