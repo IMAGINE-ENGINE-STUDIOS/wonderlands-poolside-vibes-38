@@ -41,6 +41,8 @@ import {
 } from "@/data/solarHardware";
 import SolarReportTabs from "./SolarReportTabs";
 import SolarPerformanceGraphics from "./SolarPerformanceGraphics";
+import SolarProjectGallery from "./SolarProjectGallery";
+import { saveSolarProject, type SolarProjectEntry } from "@/lib/solar/solarGallery";
 import StudioCartWidget from "@/components/StudioCartWidget";
 
 /**
@@ -170,6 +172,71 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
       setSession((s) => ({ ...s, faces: s.faces.map((f) => (f.id === id ? { ...f, ...next } : f)) })),
     [setSession],
   );
+
+  /* ── memory: the gallery of saved studies ──────────────────────────── */
+
+  /* The retired auto-capture mode may still sit in a reader's cache — fold it
+     back to idle so the board never boots into a mode that no longer exists. */
+  React.useEffect(() => {
+    if (mode === "auto") setMode("idle");
+  }, [mode, setMode]);
+
+  /** id of the gallery entry this session is currently mirrored into */
+  const entryIdRef = React.useRef<string | undefined>(undefined);
+
+  const persistProject = React.useCallback(() => {
+    if (!session.address || session.faces.length === 0) return;
+    const saved = saveSolarProject({
+      id: entryIdRef.current,
+      title: session.address,
+      session,
+      view,
+      summary: {
+        kwDc: production.kwDc,
+        yearlyKwh: production.yearlyKwhVerified ?? production.yearlyKwhModel,
+        netCost: bom.netCost,
+        faces: session.faces.length,
+      },
+    });
+    entryIdRef.current = saved.id;
+    return saved;
+  }, [session, view, production, bom.netCost]);
+
+  /* autosave: a study is checkpointed a few seconds after the work settles, so
+     a reload or a crash never costs a traced roof */
+  React.useEffect(() => {
+    if (!session.address || session.faces.length === 0) return;
+    const timer = window.setTimeout(persistProject, 3000);
+    return () => window.clearTimeout(timer);
+  }, [persistProject, session.address, session.faces]);
+
+  const saveCurrentProject = React.useCallback(() => {
+    const saved = persistProject();
+    toast(
+      saved
+        ? { title: "Study saved", description: `${saved.title} is in your gallery.` }
+        : { title: "Nothing to save yet", description: "Find an address and trace at least one roof plane." },
+    );
+  }, [persistProject, toast]);
+
+  const reloadProject = React.useCallback(
+    (entry: SolarProjectEntry) => {
+      entryIdRef.current = entry.id;
+      setSession(entry.session);
+      setQuery(entry.session.address);
+      setSuggestions([]);
+      setDraft([]);
+      setMode("idle");
+      setSelected("");
+      if (entry.view) setView(entry.view);
+      else if (entry.session.lat != null && entry.session.lng != null)
+        setView({ lat: entry.session.lat, lng: entry.session.lng, zoom: 20 });
+      toast({ title: "Study reloaded", description: entry.title });
+    },
+    [setSession, setView, setMode, toast],
+  );
+
+
 
   /* ── the edge function ─────────────────────────────────────────────── */
 
@@ -753,39 +820,26 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
 
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
+            {/* Auto flood-fill capture ("click a roof plane") is retired — it read
+                the photo unreliably and dropped planes before the reader clicked.
+                Hand tracing is now the single, predictable capture path. */}
             <button
               onClick={() => {
                 setDraft([]);
-                setMode(mode === "auto" ? "idle" : "auto");
+                setMode(mode === "manual" ? "idle" : "manual");
               }}
-              className={`inline-flex items-center gap-2 border px-3 py-2 text-[9px] uppercase tracking-[0.28em] transition-colors ${
-                mode === "auto" ? "border-foreground bg-foreground text-background" : "border-border/60 hover:border-foreground"
-              }`}
-            >
-              <Crosshair className="h-3.5 w-3.5" /> Click a roof plane
-            </button>
-            <button
-              onClick={() => setMode(mode === "manual" ? "idle" : "manual")}
               className={`inline-flex items-center gap-2 border px-3 py-2 text-[9px] uppercase tracking-[0.28em] transition-colors ${
                 mode === "manual" ? "border-foreground bg-foreground text-background" : "border-border/60 hover:border-foreground"
               }`}
             >
-              <Pencil className="h-3.5 w-3.5" /> Trace by hand
+              <Pencil className="h-3.5 w-3.5" /> Trace the roof
             </button>
-            {mode === "manual" && (
+            {mode === "manual" && draft.length >= 3 && (
               <button
                 onClick={finishManual}
                 className="border border-primary px-3 py-2 text-[9px] uppercase tracking-[0.28em] text-primary"
               >
-                Finish the outline
-              </button>
-            )}
-            {session.lat != null && (
-              <button
-                onClick={() => loadInsights(session.lat!, session.lng!)}
-                className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.28em] hover:border-foreground"
-              >
-                <Sun className="h-3.5 w-3.5" /> Re-read the roof
+                Close the plane
               </button>
             )}
             <button
@@ -798,7 +852,17 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
               Orange prime · yellow good · red shaded
             </span>
           </div>
+
+          {/* memory of previous studies — reload any earlier roof capture */}
+          <div className="mt-4">
+            <SolarProjectGallery
+              onReload={reloadProject}
+              onSaveCurrent={saveCurrentProject}
+              canSave={Boolean(session.address) && session.faces.length > 0}
+            />
+          </div>
         </div>
+
 
         {/* ── the build (hidden on the map-only leaf) ── */}
         {!mapOnly && (
