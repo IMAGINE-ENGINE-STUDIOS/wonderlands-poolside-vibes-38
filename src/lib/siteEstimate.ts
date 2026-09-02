@@ -168,7 +168,9 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       a += p.x * q.y - q.x * p.y;
       if (shape.closed || i < outline.length - 1) lf += Math.hypot(q.x - p.x, q.y - p.y);
     }
-    const sqFt = Math.abs(a / 2) / sq;
+    /* Paved elements are priced on their NET area, so a paver deck is never
+       billed under the pool, the spa or the tanning ledge. */
+    const sqFt = netByShape.get(shape.id) ?? Math.abs(a / 2) / sq;
     const linearFt = lf / (data.pxPerFt || 1);
     const amount = tradeFeaturePrice(shape.layer, shape.features, sqFt, linearFt);
     if (amount <= 0) return;
@@ -177,12 +179,14 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       .map((id) => spec?.features.find((f) => f.id === id)?.label)
       .filter(Boolean)
       .join(", ");
+    const surfaced = tradeBaseReplaced(shape.layer, shape.features);
     lines.push({
-      label: `${layerLabel(shape.layer)} — options`,
-      detail: names,
+      label: `${layerLabel(shape.layer)} — ${surfaced ? "surface & options" : "options"}`,
+      detail: surfaced ? `${Math.round(sqFt).toLocaleString()} sq ft · ${names}` : names,
       amount,
     });
   });
+
 
   const poolShape = data.shapes
     .filter((s) => s.layer === "pool")
