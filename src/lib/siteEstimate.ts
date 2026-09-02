@@ -64,10 +64,19 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
   const areas = measureSitePlan(data);
   const lines: SiteEstimateLine[] = [];
 
-  // Surfaces that need nothing underneath them are cut out of the paved layers.
+  /* Surfaces that need nothing underneath them are cut out of the paved layers.
+     Pool, spa and tanning-ledge shells are always deducted (by layer, not just
+     by keyword) so the paver deck is billed on its net area. */
+  const CUT_LAYERS: SiteLayerId[] = ['pool', 'spa', 'ledge', 'turf', 'gravel'];
   const exclusionPolygons = data.shapes
-    .filter((s) => isNonPaverSurface(s.layer) || isNonPaverSurface(layerLabel(s.layer)))
+    .filter(
+      (s) =>
+        CUT_LAYERS.includes(s.layer) ||
+        isNonPaverSurface(s.layer) ||
+        isNonPaverSurface(layerLabel(s.layer)),
+    )
     .map((s) => siteShapeOutline(s).map((p) => ({ x: p.x, y: p.y })));
+
 
   const netPaved = (layer: SiteLayerId) =>
     computeNetPaverArea({
@@ -153,10 +162,14 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
     lines,
     total: lines.reduce((sum, l) => sum + l.amount, 0),
     poolSqFt: Math.round(areas.byLayer.pool ?? 0),
-    deckSqFt: Math.round(areas.byLayer.deck ?? 0),
+    /* Deck square footage is always the NET paved figure: the pool shell, the
+       spa and the tanning ledge (plus turf, gravel and planting) are cut out of
+       the deck, so take-offs, $/sq ft and specs never bill paver under water. */
+    deckSqFt: Math.round(netByLayer.get('deck') ?? areas.byLayer.deck ?? 0),
     fenceLinearFt: areas.fenceLinearFt,
     poolDims: poolShape ? bboxFt(poolShape, data.pxPerFt) : null,
   };
+
 }
 
 export const formatMoney = (n: number) =>
