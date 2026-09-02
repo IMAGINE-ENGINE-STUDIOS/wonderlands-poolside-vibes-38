@@ -328,6 +328,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
   const [selectedVertex, setSelectedVertex] = React.useState<number | null>(null);
+  /* Element under the pointer while picking — the sheet lights it up so it is
+     obvious that clicking the paver deck opens the paver book for that deck. */
+  const [hoverShapeId, setHoverShapeId] = React.useState<string | null>(null);
+
 
   const [showGrid, setShowGrid] = React.useState(true);
   const [calibration, setCalibration] = React.useState<{ x: number; y: number }[]>([]);
