@@ -1066,6 +1066,48 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ? tradeFeaturePrice(selectedShape.layer, selectedShape.features, selectedMeasure.sqFt, selectedMeasure.lenFt)
       : 0;
 
+  /* Every catalogued option, filed under its heading, priced exactly as the
+     configurators and the FLIP book price it. Long catalogues (the paver book,
+     the fence book) scroll inside the drawer instead of pushing the board down. */
+  const featureChips = (
+    spec: (typeof TRADE_LAYERS)[string],
+    activeIds: string[],
+    onToggle: (id: string) => void,
+  ) => {
+    const groups: { name: string; items: typeof spec.features }[] = [];
+    spec.features.forEach(f => {
+      const name = f.group ?? 'Options';
+      const bucket = groups.find(g => g.name === name);
+      if (bucket) bucket.items.push(f);
+      else groups.push({ name, items: [f] });
+    });
+    return (
+      <div className="mt-1.5 max-h-[46vh] space-y-2 overflow-y-auto pr-1">
+        {groups.map(g => (
+          <div key={g.name}>
+            <p className="text-[8.5px] uppercase tracking-[0.26em] text-muted-foreground/80">{g.name}</p>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {g.items.map(f => (
+                <span key={f.id} className="contents">
+                  {ctrl(
+                    <>
+                      {f.label}
+                      {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
+                      {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
+                      {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
+                    </>,
+                    { on: activeIds.includes(f.id), onClick: () => onToggle(f.id), title: f.hint },
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+
   const elementOptions =
     !readOnly && selectedShape ? (
       <div className="rounded-2xl border border-border/50 bg-foreground/[0.03] p-3 backdrop-blur-xl">
