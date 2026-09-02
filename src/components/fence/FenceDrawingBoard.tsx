@@ -411,20 +411,20 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       {header && (
         <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
       )}
-      {/* board-console: the FLIP gateway control language, shared by every board */}
-      <div className="board-console flex flex-wrap items-center gap-2 rounded-2xl border border-border/50 bg-background/55 p-2.5 backdrop-blur-xl">
-        <Button size="sm" variant={mode === 'draw' ? 'default' : 'outline'} onClick={() => setMode('draw')}>
-          <Ruler className="h-3.5 w-3.5 mr-1" /> Draw run
+      {/* Slim instrument header — glyph tools, names in the tooltips */}
+      <div className="board-console board-console-slim flex flex-wrap items-center gap-1 rounded-xl border border-border/50 bg-background/55 px-2 py-1.5 backdrop-blur-xl">
+        <Button size="sm" variant={mode === 'draw' ? 'default' : 'outline'} onClick={() => setMode('draw')} title="Draw run" aria-label="Draw run">
+          <Ruler />
         </Button>
-        <Button size="sm" variant={mode === 'select' ? 'default' : 'outline'} onClick={() => setMode('select')}>
-          <MousePointer2 className="h-3.5 w-3.5 mr-1" /> Move posts
+        <Button size="sm" variant={mode === 'select' ? 'default' : 'outline'} onClick={() => setMode('select')} title="Move posts" aria-label="Move posts">
+          <MousePointer2 />
         </Button>
-        <Button size="sm" variant={mode === 'gate' ? 'default' : 'outline'} onClick={() => setMode('gate')}>
-          <DoorOpen className="h-3.5 w-3.5 mr-1" /> Mark gate
+        <Button size="sm" variant={mode === 'gate' ? 'default' : 'outline'} onClick={() => setMode('gate')} title="Mark gate" aria-label="Mark gate">
+          <DoorOpen />
         </Button>
-        <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
-        <Button size="sm" variant="outline" onClick={addPostAfterSelected} disabled={selectedIndex === null} title="Add a post after the selected one (or click a run)">
-          <Plus className="h-3.5 w-3.5 mr-1" /> Add point
+        <span className="mx-0.5 h-4 w-px bg-border" />
+        <Button size="sm" variant="outline" onClick={addPostAfterSelected} disabled={selectedIndex === null} title="Add a post after the selected one" aria-label="Add post">
+          <Plus />
         </Button>
         <Button
           size="sm"
@@ -432,14 +432,15 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
           onClick={toggleCurveOnSelected}
           disabled={selectedIndex === null}
           title="Toggle curvature on the selected post"
+          aria-label="Curve post"
         >
-          <Spline className="h-3.5 w-3.5 mr-1" /> {selectedIndex !== null && curves[selectedIndex] ? 'Curved point' : 'Corner point'}
+          <Spline />
         </Button>
-        <Button size="sm" variant="outline" onClick={() => selectedIndex !== null && removePostAt(selectedIndex)} disabled={selectedIndex === null}>
-          <Minus className="h-3.5 w-3.5 mr-1" /> Remove point
+        <Button size="sm" variant="outline" onClick={() => selectedIndex !== null && removePostAt(selectedIndex)} disabled={selectedIndex === null} title="Remove point" aria-label="Remove point">
+          <Minus />
         </Button>
-        <Button size="sm" variant="ghost" onClick={undo} disabled={!layout.points.length}>
-          <Undo2 className="h-3.5 w-3.5 mr-1" /> Undo
+        <Button size="sm" variant="ghost" onClick={undo} disabled={!layout.points.length} title="Undo" aria-label="Undo">
+          <Undo2 />
         </Button>
         <Button
           size="sm"
@@ -450,24 +451,40 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
             setSelectedIndex(null);
           }}
           disabled={!layout.points.length}
+          title="Clear the sheet"
+          aria-label="Clear"
         >
-          <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
+          <Trash2 />
+        </Button>
+        <span className="mx-0.5 h-4 w-px bg-border" />
+        {/* camera */}
+        <Button size="sm" variant="ghost" onClick={() => zoomBy(1 / 1.25)} title="Zoom out" aria-label="Zoom out">
+          <ZoomOut />
+        </Button>
+        <Button size="sm" variant="ghost" className="has-label tabular-nums" onClick={fitSheet} title="Fit the sheet" aria-label="Fit sheet">
+          {Math.round(size.w / (view.z * PX_PER_FT))} ft
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => zoomBy(1.25)} title="Zoom in" aria-label="Zoom in">
+          <ZoomIn />
         </Button>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1.5">
           {!compact && (
             <>
-              <Badge variant="secondary">{measurements.fenceFt.toLocaleString()} linear ft</Badge>
+              <Badge variant="secondary" className="text-[9px]">{measurements.fenceFt.toLocaleString()} lf</Badge>
               {layout.gateSegments.length > 0 && (
-                <Badge className="bg-primary text-primary-foreground">
-                  {layout.gateSegments.length} gate opening{layout.gateSegments.length > 1 ? 's' : ''} • {measurements.gateFt} ft
+                <Badge className="bg-primary text-[9px] text-primary-foreground">
+                  {layout.gateSegments.length} gate{layout.gateSegments.length > 1 ? 's' : ''} • {measurements.gateFt} ft
                 </Badge>
               )}
             </>
           )}
-          <BoardDensityToggle compact={compact} onToggle={toggleDensity} />
+          <Button size="sm" variant="ghost" onClick={toggleDensity} aria-pressed={compact} title={compact ? 'Show all panels' : 'Compact view'} aria-label="Toggle panels">
+            {compact ? <Maximize2 /> : <Minimize2 />}
+          </Button>
         </div>
       </div>
+
 
       <div ref={wrapRef} className="rounded-lg border overflow-hidden bg-card">
         <canvas
