@@ -1600,7 +1600,14 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
      (each with a tooltip) keep the strip one line on a desktop and a single
      comfortable, swipeable row on a phone. */
   const toolButtons = (
-    <div className="-mx-0.5 flex items-center gap-1 overflow-x-auto px-0.5 py-0.5 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible md:justify-end [&::-webkit-scrollbar]:hidden">
+    /* Inside a magazine leaf the instruments stay on one line and slide
+       sideways — a toolbar that wraps into three rows eats the drawing. */
+    <div
+      className={`-mx-0.5 flex items-center gap-1 overflow-x-auto px-0.5 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+        menuSide ? 'flex-nowrap justify-start md:justify-end' : 'sm:flex-wrap sm:overflow-visible md:justify-end'
+      }`}
+    >
+
       {onRequestImport ? ctrl(<ImageIcon className="h-3.5 w-3.5" />, { onClick: onRequestImport, title: 'Import a plan' }) : null}
       {/* Two separate instruments, exactly as the artificial-turf board: the pen
           traces new elements, the pointer picks a drawn one to change its
@@ -1714,11 +1721,21 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   /** The sheet header: what is drawn, what it costs, and every tool beside it. */
   const instrumentHeader =
     header || !readOnly ? (
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        {header ? <div className="min-w-0 max-w-full grow md:grow-0">{header}</div> : null}
-        {!readOnly ? <div className="min-w-0 w-full md:ml-auto md:w-auto md:flex-1">{toolButtons}</div> : null}
-      </div>
+      menuSide ? (
+        /* In a leaf the sheet header reads top to bottom: the live readout, then
+           one sliding line of instruments — never a block of wrapped buttons. */
+        <div className="flex shrink-0 flex-col gap-1.5">
+          {header ? <div className="min-w-0">{header}</div> : null}
+          {!readOnly ? <div className="min-w-0 w-full">{toolButtons}</div> : null}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          {header ? <div className="min-w-0 max-w-full grow md:grow-0">{header}</div> : null}
+          {!readOnly ? <div className="min-w-0 w-full md:ml-auto md:w-auto md:flex-1">{toolButtons}</div> : null}
+        </div>
+      )
     ) : null;
+
 
 
 
@@ -2288,9 +2305,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
      under it is drawing. Only the element palette stays docked below. */
   if (menuSide) {
     return (
-      <div className="flex h-full min-h-0 flex-col gap-2.5">
+      <div className="flex h-full min-h-0 flex-col gap-2">
         {instrumentHeader}
-        <div className="min-h-0 flex-1 overflow-hidden flex items-center justify-center">
+        {/* The drawing keeps the sheet: it takes every pixel the leaf has left and
+            never falls under a usable height, whatever the panels below carry. */}
+        <div className="flex min-h-[190px] flex-[1_1_auto] items-center justify-center overflow-hidden">
           {React.cloneElement(canvasEl, {
             style: {
               ...canvasEl.props.style,
@@ -2302,24 +2321,28 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             },
           })}
         </div>
-        {optionsInline}
-        {optionsPortal}
-        {elementsPortal}
-        {underlayBar}
+        {/* Options, elements and the note are reading matter under the drawing —
+            they scroll in their own band instead of squeezing the canvas. */}
+        <div className="max-h-[38%] min-h-0 shrink-0 space-y-2 overflow-y-auto pr-0.5">
+          {optionsInline}
+          {optionsPortal}
+          {elementsPortal}
+          {underlayBar}
 
-
-        {!readOnly && !elementsSlot && (
-          <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
-              {layerTags}
+          {!readOnly && !elementsSlot && (
+            <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
+                {layerTags}
+              </div>
             </div>
-          </div>
-        )}
-        {footNote}
+          )}
+          {footNote}
+        </div>
       </div>
     );
   }
+
 
 
   return (
