@@ -29,10 +29,6 @@ const GilmerPoolsSection = () => {
               <Waves className="h-4 w-4 mr-2" />
               Fiber Construction
             </Badge>
-            <Badge className="bg-gradient-to-r from-primary to-teal text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
-              <Clock className="h-4 w-4 mr-2" />
-              16+-Week Installation
-            </Badge>
           </div>
 
           {/* Pool Scroll */}
