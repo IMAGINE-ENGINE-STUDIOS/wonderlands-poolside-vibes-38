@@ -343,9 +343,11 @@ const GlobalDesignBoard: React.FC = () => {
               <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{active.label}</p>
               <span className="text-[11px] text-muted-foreground">{active.note}</span>
               {!enabled.includes(active.id) && (
-                <Button size="sm" variant="outline" className="ml-auto" onClick={() => toggleTrade(active.id)}>
-                  Add to project
-                </Button>
+                <span className="board-console ml-auto">
+                  <button type="button" onClick={() => toggleTrade(active.id)}>
+                    Add to project
+                  </button>
+                </span>
               )}
             </div>
             {/* the discipline's real board: its pencils, splines, layers and tools */}
