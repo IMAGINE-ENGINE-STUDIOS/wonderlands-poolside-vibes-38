@@ -2290,7 +2290,18 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     return (
       <div className="flex h-full min-h-0 flex-col gap-2.5">
         {instrumentHeader}
-        {canvasEl}
+        <div className="min-h-0 flex-1 overflow-hidden flex items-center justify-center">
+          {React.cloneElement(canvasEl, {
+            style: {
+              ...canvasEl.props.style,
+              width: 'auto',
+              height: 'auto',
+              minWidth: 0,
+              maxWidth: '100%',
+              maxHeight: '100%',
+            },
+          })}
+        </div>
         {optionsInline}
         {optionsPortal}
         {elementsPortal}
