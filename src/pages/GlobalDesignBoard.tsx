@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import usePersistentState from "@/hooks/usePersistentState";
 import FlipToolWidget from "@/components/flip/FlipToolWidget";
 import FlipBoardDossier from "@/components/flip/FlipBoardDossier";
-import { useBoardEstimate } from "@/components/flip/FlipBoardPanels";
+import { useBoardEstimate, FlipBoardCalculators } from "@/components/flip/FlipBoardPanels";
 import { useFlipBoard, resetFlipBoard } from "@/components/flip/flipBoardStore";
 import {
   DEFAULT_GLOBAL_META,
