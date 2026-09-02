@@ -308,32 +308,42 @@ const GlobalDesignBoard: React.FC = () => {
       <main className="mx-auto grid max-w-[1800px] gap-4 px-3 py-4 sm:px-5 sm:py-5 xl:grid-cols-[320px_minmax(0,1fr)]">
         {/* ── project + trade rail ── */}
         <aside className="space-y-4">
-          <section className="glass-panel rounded-2xl p-4">
-            <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Project</p>
-            <div className="mt-3 space-y-3">
-              {field("Title", "title")}
-              {field("Client", "clientName", "Homeowner name")}
-              {field("Address", "address", "Street address")}
-              {field("City / State / Zip", "cityStateZip")}
-              {field("Job number", "jobNumber")}
-              <div className="space-y-1">
-                <Label className="text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
-                  Notes carried to the plan set
-                </Label>
-                <Textarea
-                  value={meta.notes}
-                  onChange={(e) => setMeta((prev) => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
-                  className="bg-background/60 text-sm backdrop-blur-md"
-                />
-              </div>
-            </div>
+          {/* ── features & options ──
+              The drawn element's own additional features now hold the top of the
+              left rail — every catalogued option, priced exactly as the studio
+              and the FLIP book price it. The project title block still travels
+              to the plan set, so it is filed underneath, folded away. */}
+          <section className="glass-panel rounded-2xl p-4 xl:sticky xl:top-24">
+            <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+              Features &amp; options
+            </p>
+            <div id="wl-board-options" className="mt-3 space-y-3" />
 
-            {/* The drawn element's own additional features live here, in the
-                project column, instead of under the board — every catalogued
-                option, priced exactly as the studio and the FLIP book price it. */}
-            <div id="wl-board-options" className="mt-4 space-y-3 border-t border-border/50 pt-4 empty:mt-0 empty:border-0 empty:pt-0" />
+            <details className="mt-4 border-t border-border/50 pt-3">
+              <summary className="cursor-pointer list-none text-[9px] uppercase tracking-[0.3em] text-muted-foreground transition-colors hover:text-foreground">
+                Project title block
+              </summary>
+              <div className="mt-3 space-y-3">
+                {field("Title", "title")}
+                {field("Client", "clientName", "Homeowner name")}
+                {field("Address", "address", "Street address")}
+                {field("City / State / Zip", "cityStateZip")}
+                {field("Job number", "jobNumber")}
+                <div className="space-y-1">
+                  <Label className="text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
+                    Notes carried to the plan set
+                  </Label>
+                  <Textarea
+                    value={meta.notes}
+                    onChange={(e) => setMeta((prev) => ({ ...prev, notes: e.target.value }))}
+                    rows={3}
+                    className="bg-background/60 text-sm backdrop-blur-md"
+                  />
+                </div>
+              </div>
+            </details>
           </section>
+
 
 
           {/* Trade gateways — the same glass gateway button as the FLIP edition */}

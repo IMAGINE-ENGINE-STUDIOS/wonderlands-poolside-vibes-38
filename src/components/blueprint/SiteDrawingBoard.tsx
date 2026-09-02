@@ -20,6 +20,8 @@ import {
   Plus,
   Minus,
   Spline,
+  Maximize2,
+
 
 } from 'lucide-react';
 import {
@@ -240,7 +242,15 @@ interface Props {
    * tag strip above it — used on the FLIP dossier boards.
    */
   menuSide?: boolean;
+  /**
+   * How much land the camera should show across the sheet when the board opens
+   * (the Global Design Board asks for 400 ft of frontage). This moves the
+   * camera only — the drafting scale, and therefore every drawn dimension,
+   * is untouched.
+   */
+  defaultViewWidthFt?: number;
 }
+
 
 /**
  * Architect-style 2D site plan board. Draw the property boundary, the
@@ -249,7 +259,7 @@ interface Props {
  * grid as a calibratable underlay so an existing blueprint can be traced and
  * then edited like native geometry.
  */
-export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer, menuSide }) => {
+export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer, menuSide, defaultViewWidthFt }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const imgRef = React.useRef<HTMLImageElement | null>(null);
   const [imgReady, setImgReady] = React.useState(0);
@@ -277,13 +287,81 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     | { kind: 'underlay'; last: { x: number; y: number } }
     | null
   >(null);
+  /** Camera pan in progress (middle button or shift-drag), in client pixels. */
+  const pan = React.useRef<{ x: number; y: number } | null>(null);
+
 
   const underlay = data.underlay;
   const pxPerFt = data.pxPerFt;
-  const gridFt = pxPerFt >= 8 ? 1 : pxPerFt >= 4 ? 5 : 10;
+
+  /* ── the camera ──────────────────────────────────────────────────────────
+     A real zoom: `z` scales the sheet on screen and `x`/`y` pan it. Drawn
+     geometry and the drafting scale are never touched, so a 14 ft pool stays
+     14 ft whether the camera shows 20 ft or 800 ft of land. */
+  const MIN_Z = 0.04;
+  const MAX_Z = 6;
+  const [view, setView] = React.useState({ z: 1, x: 0, y: 0 });
+  const viewRef = React.useRef(view);
+  viewRef.current = view;
+  const zoom = view.z;
+  const viewWidthFt = CANVAS_W / (pxPerFt * zoom);
+
+  const clampZ = (z: number) => Math.min(MAX_Z, Math.max(MIN_Z, z));
+
+  /** Zoom about a point in screen (sheet) space — the cursor, or the centre. */
+  const zoomAt = React.useCallback(
+    (factor: number, sx = CANVAS_W / 2, sy = CANVAS_H / 2) => {
+      setView(v => {
+        const z = clampZ(v.z * factor);
+        const k = z / v.z;
+        return { z, x: sx - (sx - v.x) * k, y: sy - (sy - v.y) * k };
+      });
+    },
+    [],
+  );
+  const zoomBy = (factor: number) => zoomAt(factor);
+
+  /* The slider is logarithmic so every notch feels the same at any distance. */
+  const zoomSlider = Math.round((Math.log(zoom / MIN_Z) / Math.log(MAX_Z / MIN_Z)) * 200 - 100);
+  const setZoomFromSlider = (v: number) =>
+    zoomAt(clampZ(MIN_Z * Math.pow(MAX_Z / MIN_Z, (v + 100) / 200)) / zoom);
+
+  /** Frame the drawing — or, on an empty sheet, the requested acreage. */
+  const fitView = React.useCallback(() => {
+    const pts = data.shapes.flatMap(s => s.points);
+    if (!pts.length) {
+      const wantFt = defaultViewWidthFt ?? CANVAS_W / pxPerFt;
+      const z = clampZ(CANVAS_W / (wantFt * pxPerFt));
+      setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
+      return;
+    }
+    const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+    const w = Math.max(40, Math.max(...xs) - Math.min(...xs));
+    const h = Math.max(40, Math.max(...ys) - Math.min(...ys));
+    const z = clampZ(Math.min((CANVAS_W * 0.86) / w, (CANVAS_H * 0.86) / h));
+    setView({
+      z,
+      x: CANVAS_W / 2 - ((Math.min(...xs) + Math.max(...xs)) / 2) * z,
+      y: CANVAS_H / 2 - ((Math.min(...ys) + Math.max(...ys)) / 2) * z,
+    });
+  }, [data.shapes, defaultViewWidthFt, pxPerFt]);
+
+  /* Open at the requested width of land (400 ft on the Global Design Board). */
+  const framed = React.useRef(false);
+  React.useEffect(() => {
+    if (framed.current || !defaultViewWidthFt) return;
+    framed.current = true;
+    const z = clampZ(CANVAS_W / (defaultViewWidthFt * pxPerFt));
+    setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
+  }, [defaultViewWidthFt, pxPerFt]);
+
+  /* Grid density follows what the camera can actually resolve on screen. */
+  const screenPxPerFt = pxPerFt * zoom;
+  const gridFt = screenPxPerFt >= 8 ? 1 : screenPxPerFt >= 4 ? 5 : screenPxPerFt >= 1.2 ? 10 : 25;
   const majorFt = gridFt * 5;
 
   const snap = (v: number) => Math.round(v / (pxPerFt * gridFt)) * (pxPerFt * gridFt);
+
 
   // Load / reload the underlay bitmap
   React.useEffect(() => {
@@ -325,6 +403,16 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
+    /* Camera: everything below draws in sheet coordinates and the transform
+       moves/scales the paper. Line weights are divided by the zoom where they
+       matter so hairlines stay hairlines at any distance. */
+    ctx.setTransform(dpr * view.z, 0, 0, dpr * view.z, dpr * view.x, dpr * view.y);
+    const hair = 1 / view.z;
+    /* Visible sheet window, in sheet units — used to draw only the grid we see. */
+    const vx0 = -view.x / view.z;
+    const vy0 = -view.y / view.z;
+    const vx1 = (CANVAS_W - view.x) / view.z;
+    const vy1 = (CANVAS_H - view.y) / view.z;
 
     // imported sheet underlay
     if (underlay && underlay.visible && imgRef.current) {
@@ -340,8 +428,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.restore();
       if (!readOnly && mode === 'underlay') {
         ctx.strokeStyle = '#0891b2';
-        ctx.setLineDash([8, 5]);
-        ctx.lineWidth = 2;
+        ctx.setLineDash([8 * hair, 5 * hair]);
+        ctx.lineWidth = 2 * hair;
         ctx.strokeRect(
           underlay.x,
           underlay.y,
@@ -355,24 +443,25 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     if (showGrid) {
       const step = pxPerFt * gridFt;
       const majorStep = pxPerFt * majorFt;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = hair;
       ctx.globalAlpha = underlay?.visible ? 0.5 : 1;
-      for (let x = 0; x <= CANVAS_W; x += step) {
+      for (let x = Math.floor(vx0 / step) * step; x <= vx1; x += step) {
         ctx.strokeStyle = Math.abs(x % majorStep) < 0.01 ? '#d4d4d8' : '#f1f5f9';
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, CANVAS_H);
+        ctx.moveTo(x, vy0);
+        ctx.lineTo(x, vy1);
         ctx.stroke();
       }
-      for (let y = 0; y <= CANVAS_H; y += step) {
+      for (let y = Math.floor(vy0 / step) * step; y <= vy1; y += step) {
         ctx.strokeStyle = Math.abs(y % majorStep) < 0.01 ? '#d4d4d8' : '#f1f5f9';
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(CANVAS_W, y);
+        ctx.moveTo(vx0, y);
+        ctx.lineTo(vx1, y);
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
     }
+
 
     const renderShape = (shape: SiteShape, isDraft = false) => {
       const meta = layerMeta(shape.layer);
@@ -550,9 +639,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       });
     }
 
-    // scale bar
-    const barFt = 20;
-    const barPx = barFt * pxPerFt;
+    /* ── sheet furniture, drawn in screen space so it never zooms away ── */
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // scale bar — a round number of feet at the current camera distance
+    const barFt = [1, 2, 5, 10, 20, 50, 100, 200, 500].find(f => f * pxPerFt * view.z >= 90) ?? 1000;
+    const barPx = barFt * pxPerFt * view.z;
     ctx.strokeStyle = '#111827';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -590,7 +682,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     mode,
     readOnly,
     calibration,
+    view,
   ]);
+
 
   React.useEffect(() => {
     draw();
@@ -600,12 +694,34 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     onSnapshot(data.shapes.length || data.underlay ? canvas.toDataURL('image/png') : null);
   }, [draw, onSnapshot, data.shapes.length, data.underlay]);
 
+  /** Pointer → sheet coordinates, through the camera. */
   const toLocal = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const scaleX = CANVAS_W / rect.width;
-    const scaleY = CANVAS_H / rect.height;
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    const sx = ((e.clientX - rect.left) * CANVAS_W) / rect.width;
+    const sy = ((e.clientY - rect.top) * CANVAS_H) / rect.height;
+    const v = viewRef.current;
+    return { x: (sx - v.x) / v.z, y: (sy - v.y) / v.z };
   };
+
+  /* Wheel and trackpad-pinch zoom, anchored under the cursor. React's onWheel is
+     passive, so the listener is attached natively to keep preventDefault. */
+  React.useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      zoomAt(
+        Math.exp(-dy * 0.0018),
+        ((e.clientX - rect.left) * CANVAS_W) / rect.width,
+        ((e.clientY - rect.top) * CANVAS_H) / rect.height,
+      );
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [zoomAt]);
+
 
   const hitTest = (p: { x: number; y: number }): string | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
@@ -707,7 +823,13 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
+    /* Middle button or shift-drag pans the camera over the sheet. */
+    if (e.button === 1 || e.shiftKey) {
+      pan.current = { x: e.clientX, y: e.clientY };
+      return;
+    }
     const raw = toLocal(e);
+
     if (mode === 'underlay' && underlay && !underlay.locked) {
       drag.current = { kind: 'underlay', last: raw };
       return;
@@ -737,7 +859,17 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
+    if (pan.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const k = CANVAS_W / rect.width;
+      const dx = (e.clientX - pan.current.x) * k;
+      const dy = (e.clientY - pan.current.y) * k;
+      pan.current = { x: e.clientX, y: e.clientY };
+      setView(v => ({ ...v, x: v.x + dx, y: v.y + dy }));
+      return;
+    }
     const raw = toLocal(e);
+
     const active = drag.current;
     if (active) {
       if (active.kind === 'underlay' && underlay) {
@@ -780,7 +912,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const endDrag = () => {
     drag.current = null;
+    pan.current = null;
   };
+
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (readOnly) return;
@@ -1025,17 +1159,28 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         },
       )}
       {ctrl(<Grid3X3 className="h-3.5 w-3.5" />, { on: showGrid, onClick: () => setShowGrid(g => !g), title: 'Grid' })}
-      {ctrl(<ZoomOut className="h-3.5 w-3.5" />, {
-        onClick: () => onChange({ ...data, pxPerFt: Math.max(1, +(data.pxPerFt - 0.5).toFixed(1)) }),
-        title: 'Zoom out',
-      })}
-      <span className="w-20 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-        {data.pxPerFt} px/ft
+      {/* REAL zoom — a view transform over the sheet. The drafting scale
+          (px per foot) never changes, so nothing a customer drew is resized;
+          the camera simply moves closer or further from the paper. */}
+      {ctrl(<ZoomOut className="h-3.5 w-3.5" />, { onClick: () => zoomBy(1 / 1.25), title: 'Zoom out' })}
+      <input
+        type="range"
+        min={-100}
+        max={100}
+        value={zoomSlider}
+        onChange={e => setZoomFromSlider(+e.target.value)}
+        aria-label="Zoom"
+        className="h-1 w-28 cursor-pointer appearance-none rounded-full bg-foreground/15 accent-foreground"
+      />
+      {ctrl(<ZoomIn className="h-3.5 w-3.5" />, { onClick: () => zoomBy(1.25), title: 'Zoom in' })}
+      <span className="w-24 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+        {Math.round(viewWidthFt).toLocaleString()} ft across
       </span>
-      {ctrl(<ZoomIn className="h-3.5 w-3.5" />, {
-        onClick: () => onChange({ ...data, pxPerFt: Math.min(24, +(data.pxPerFt + 0.5).toFixed(1)) }),
-        title: 'Zoom in',
+      {ctrl(<Maximize2 className="h-3.5 w-3.5" />, {
+        onClick: fitView,
+        title: data.shapes.length ? 'Fit the drawing to the sheet' : `Fit ${Math.round(defaultViewWidthFt ?? CANVAS_W / pxPerFt)} ft of land`,
       })}
+
     </div>
   );
 
