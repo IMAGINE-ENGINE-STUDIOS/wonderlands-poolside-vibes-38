@@ -710,6 +710,19 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     setSelected(null);
   };
 
+  /** Erase the whole drawing — geometry, imported sheet, draft and selection. */
+  const resetProject = () => {
+    if (typeof window !== 'undefined' && (data.shapes.length || underlay)) {
+      if (!window.confirm('Erase this drawing and start the project over? This cannot be undone.')) return;
+    }
+    setDraft([]);
+    setCalibration([]);
+    setSelected(null);
+    setSelectedVertex(null);
+    onChange({ ...data, shapes: [], underlay: undefined });
+  };
+
+
   const assignSelectedLayer = (id: SiteLayerId) => {
     if (!selected) return;
     onChange({
