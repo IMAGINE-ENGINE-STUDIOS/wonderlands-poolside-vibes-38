@@ -205,19 +205,20 @@ const GlobalDesignBoard: React.FC = () => {
               One property, every trade — drawn, priced and permit-ready
             </p>
           </div>
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="text-xs">
+          {/* gateway controls — same control language as the boards below */}
+          <div className="board-console ml-auto flex flex-wrap items-center gap-2">
+            <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
               {enabled.length} trade{enabled.length === 1 ? "" : "s"} in scope
-            </Badge>
-            <Badge className="text-xs">{money(projectTotal)} installed</Badge>
-            <Button size="sm" variant="outline" asChild>
-              <Link to="/blueprint-builder">
-                <Ruler className="mr-1 h-4 w-4" /> Blueprint builder
-              </Link>
-            </Button>
-            <Button size="sm" onClick={openBlueprint}>
-              Load into blueprint mode <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
+            </span>
+            <span className="text-[9px] uppercase tracking-[0.28em] text-foreground">
+              {money(projectTotal)} installed
+            </span>
+            <button type="button" onClick={() => navigate("/blueprint-builder")}>
+              <Ruler className="mr-1.5 inline h-3.5 w-3.5" /> Blueprint builder
+            </button>
+            <button type="button" onClick={openBlueprint} className="bg-primary">
+              Load into blueprint mode <ArrowRight className="ml-1.5 inline h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
       </header>
