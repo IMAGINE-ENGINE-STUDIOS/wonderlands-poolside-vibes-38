@@ -415,8 +415,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         ctx.stroke();
       });
 
-      // segment dimensions — arc length on curved runs, offset perpendicular so text never sits on the line
-      ctx.font = 'bold 14px ui-monospace, monospace';
+      /* Segment dimensions — architectural convention: the figure rides ON the
+         run itself, rotated to the line and centred at its true midpoint, with
+         a knockout halo so the line reads through. Corners stay clean. */
+      ctx.font = '600 13px ui-monospace, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const segCount = shape.closed ? shape.points.length : shape.points.length - 1;
@@ -428,21 +430,45 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         const segPts = curved ? sampleSegment(shape.points, shape.closed, flags, i) : [a, b];
         const len = curved ? polylineLength(segPts) : chord;
         const ft = len / pxPerFt;
-        if (ft < 3 || chord < 1) continue;
-        const mid = segPts[Math.floor(segPts.length / 2)];
-        const nx = -(b.y - a.y) / chord;
-        const ny = (b.x - a.x) / chord;
-        const off = 14;
-        const tx = mid.x + nx * off;
-        const ty = mid.y + ny * off;
+        if (ft < 2 || chord < 24) continue;
+
+        /* true midpoint of the run — half the arc length along the samples */
+        let mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        let dir = { x: (b.x - a.x) / chord, y: (b.y - a.y) / chord };
+        if (curved && segPts.length > 1) {
+          const half = len / 2;
+          let walked = 0;
+          for (let k = 1; k < segPts.length; k++) {
+            const p0 = segPts[k - 1];
+            const p1 = segPts[k];
+            const d = Math.hypot(p1.x - p0.x, p1.y - p0.y) || 1e-6;
+            if (walked + d >= half) {
+              const t = (half - walked) / d;
+              mid = { x: p0.x + (p1.x - p0.x) * t, y: p0.y + (p1.y - p0.y) * t };
+              dir = { x: (p1.x - p0.x) / d, y: (p1.y - p0.y) / d };
+              break;
+            }
+            walked += d;
+          }
+        }
+
+        /* keep the figure upright — never read upside down */
+        let angle = Math.atan2(dir.y, dir.x);
+        if (angle > Math.PI / 2 || angle < -Math.PI / 2) angle += Math.PI;
+
         const text = `${ft.toFixed(1)}'`;
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = 'rgba(255,255,255,0.92)';
-        ctx.lineJoin = 'round';
-        ctx.strokeText(text, tx, ty);
-        ctx.fillStyle = '#1e293b';
-        ctx.fillText(text, tx, ty);
+        ctx.save();
+        ctx.translate(mid.x, mid.y);
+        ctx.rotate(angle);
+        const w = ctx.measureText(text).width;
+        /* knock the run out behind the figure so the dimension sits in the line */
+        ctx.fillStyle = 'rgba(255,255,255,0.94)';
+        ctx.fillRect(-w / 2 - 4, -7.5, w + 8, 15);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText(text, 0, 0.5);
+        ctx.restore();
       }
+
 
       // label + area
       if (shape.closed && !meta.linear && shape.points.length > 2) {
