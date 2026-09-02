@@ -540,7 +540,10 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
 const select =
   "w-full border border-border/60 bg-transparent px-2 py-1.5 text-[10px] uppercase tracking-[0.2em] focus:outline-none";
 
-export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categoryId }) => {
+export const FlipBoardCalculators: React.FC<{ categoryId: string; bare?: boolean }> = ({
+  categoryId,
+  bare = false,
+}) => {
   const { board, options, setOptions, takeoff, total, perSqFt, areaSqFt, runFt, poolSqFt } =
     useBoardEstimate(categoryId);
   const set = (patch: Partial<OptionState>) => setOptions((p) => ({ ...p, ...patch }));
@@ -571,11 +574,15 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
   const stepBtn = "border border-border/60 p-1 transition-colors hover:bg-foreground hover:text-background";
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden p-6 sm:p-8">
-      <Eyebrow>Calculators & options</Eyebrow>
-      <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Tune the estimate</h3>
+    <div className={bare ? "w-full" : "flex h-full w-full flex-col overflow-hidden p-6 sm:p-8"}>
+      {!bare && (
+        <>
+          <Eyebrow>Calculators &amp; options</Eyebrow>
+          <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Tune the estimate</h3>
+        </>
+      )}
 
-      <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className={bare ? "w-full" : "mt-3 min-h-0 flex-1 overflow-y-auto pr-1"}>
         <Row label="Measured take-off">
           <div className="grid grid-cols-2 gap-2">
             <label className="block">
@@ -800,6 +807,7 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
           </Row>
         )}
 
+        {!bare && (
         <Row label={board.kind === "solar" ? "Proposal" : "Running total"}>
 
           {board.kind === "solar" ? (
@@ -820,9 +828,10 @@ export const FlipBoardCalculators: React.FC<{ categoryId: string }> = ({ categor
             </>
           )}
         </Row>
+        )}
       </div>
 
-      {board.kind !== "solar" && (
+      {!bare && board.kind !== "solar" && (
         <p className="mt-3 border-t border-border/50 pt-3 text-[9px] leading-relaxed text-muted-foreground">
           Figures update live with the drawing. All prices include delivery, installation and the product as described.
         </p>

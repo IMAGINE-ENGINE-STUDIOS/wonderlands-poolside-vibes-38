@@ -728,7 +728,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   };
 
   const layerTags = (
-    <div className={menuSide ? 'flex flex-col gap-1.5' : 'flex flex-wrap gap-1.5'}>
+    <div className="flex flex-wrap gap-1.5">
+
 
               {SITE_LAYERS.map(l => (
                 <button
@@ -958,28 +959,32 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         </p>
   ) : null;
 
-  /* FLIP dossier layout — the drawing keeps the page, every control lives in a
-     menu column on the right and nothing is tagged across the header. */
+  /* FLIP dossier layout — the drawing takes the full width of the leaf and every
+     control lives in a glass console docked BELOW the canvas, so the board is as
+     wide as the page allows instead of losing a column to a sidebar. */
   if (menuSide) {
     return (
-      <div className="flex h-full min-h-0 gap-3">
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          {header}
-          {canvasEl}
-          {underlayBar}
-          {footNote}
-        </div>
+      <div className="flex h-full min-h-0 flex-col gap-2.5">
+        {header}
+        {canvasEl}
+        {underlayBar}
         {!readOnly && (
-          <aside className="flex w-44 shrink-0 flex-col gap-2 overflow-y-auto rounded-xl border border-border/60 bg-background/60 p-2 backdrop-blur-md sm:w-52">
-            <p className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Elements</p>
-            {layerTags}
-            <p className="mt-1 text-[9px] uppercase tracking-[0.28em] text-muted-foreground">Tools</p>
-            {toolButtons}
-          </aside>
+          <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
+              {layerTags}
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/50 pt-2">
+              <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Tools</span>
+              {toolButtons}
+            </div>
+          </div>
         )}
+        {footNote}
       </div>
     );
   }
+
 
   return (
     <div className="space-y-3">
