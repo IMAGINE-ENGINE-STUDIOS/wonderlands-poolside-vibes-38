@@ -1063,6 +1063,11 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     const list: Page[] = [];
     const at = { products: 0 };
     const shots = [...category.images, ...products.slice(0, 8).map((p) => p.image)].filter(Boolean) as string[];
+    /* Editorial plate for the studio letter: prefer a real Latham pool photo
+       over a finish/material swatch so the leaf reads as a built pool. */
+    const brandShot = products.find(
+      (p) => /latham/i.test(p.brand ?? "") && !!p.image,
+    )?.image;
 
     /* Catalogs printed inside this edition, in the order the models appear.
        Fiberglass carries two (Latham & GlimmerGlass); every other edition
@@ -1183,7 +1188,11 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       });
     }
 
-    list.push({
+    /* The Fiberglass edition opens straight on its landing leaf, then the
+       Contents as page 2 — its generic cover leaf is intentionally omitted. */
+    const skipCoverLeaf = category.id === "pools" && catalogs.length > 1;
+
+    if (!skipCoverLeaf) list.push({
 
       key: "cover",
       tone: "cover",
@@ -1260,7 +1269,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
           </p>
           <div className="relative mt-5 min-h-0 flex-1 overflow-hidden">
             <img
-              src={shots[1] ?? category.images[0]}
+              src={brandShot ?? shots[1] ?? category.images[0]}
               alt={`${category.label} detail`}
               loading="eager"
               decoding="async"
