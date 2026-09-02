@@ -297,6 +297,9 @@ const GlobalDesignBoard: React.FC = () => {
             <Button size="sm" className="mt-4 w-full" onClick={openBlueprint}>
               Load into blueprint mode
             </Button>
+            <Button size="sm" variant="ghost" className="mt-1.5 w-full text-destructive" onClick={resetProject}>
+              <Eraser className="mr-1 h-4 w-4" /> Erase &amp; reset project
+            </Button>
           </section>
         </aside>
 
