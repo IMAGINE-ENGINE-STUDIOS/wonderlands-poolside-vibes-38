@@ -17,3 +17,12 @@
 - [x] Every discipline mounts its real board (site/studio, screen enclosure, fencing, turf, planting, solar) with its own pencils, splines, tools, options and features
 - [x] All pricing models load here (site/studio, enclosure, fence, turf, landscape, solar) into one project total
 - [x] One-click "Load into blueprint mode" — fills the blueprint builder (site plan, measured areas, scope) and badges the source
+
+## Drawing boards (compact chrome)
+- [ ] Board toolbars become a small icon-only header; canvas takes most of the space
+- [ ] All boards open at 20 ft of view (same as the site board)
+
+## FLIP Builder V2 — palette controller
+- [ ] Manual colour pickers for every palette slot (not just the 10 preset editions)
+- [ ] Dozens of curated fonts to choose from for heading/body
+- [ ] Shuffle mixes colours + fonts into a unique edition every time

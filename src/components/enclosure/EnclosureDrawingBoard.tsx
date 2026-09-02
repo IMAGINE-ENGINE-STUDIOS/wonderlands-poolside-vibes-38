@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
 import useBoardDensity from '@/hooks/useBoardDensity';
-import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, Square, X, Plus, Spline } from 'lucide-react';
+import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Home, X, Plus, Spline, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import { ENCLOSURE_DOORS, EnclosureDoorOption } from '@/data/screenEnclosureConfigurator';
 import {
   insertVertexAfter,
@@ -76,6 +75,8 @@ interface Props {
 }
 
 const PX_PER_FT = 10;
+/** Default framing for every drawing board: 20 ft of frontage across the sheet. */
+const VIEW_WIDTH_FT = 20;
 const GRID_FT = 1;
 const MAJOR_FT = 5;
 const DEFAULT_DOOR_ID = 'single-36-sl';
@@ -234,6 +235,10 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   const [doorTypeId, setDoorTypeId] = React.useState<string>(DEFAULT_DOOR_ID);
   const [selection, setSelection] = React.useState<Selection>(null);
   const { compact, toggle: toggleDensity } = useBoardDensity();
+  /* Camera over the sheet: `z` scales it on screen, `x`/`y` pan it. The drafting
+     scale never changes — 10 px is always one foot in the stored geometry. */
+  const [view, setView] = React.useState({ z: 1, x: 0, y: 0 });
+  const framedRef = React.useRef(false);
 
   React.useEffect(() => {
     const el = wrapRef.current;
@@ -244,6 +249,26 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  /* Every board opens on 20 ft of frontage, exactly like the site studio. */
+  React.useEffect(() => {
+    if (framedRef.current || !size.w) return;
+    framedRef.current = true;
+    const z = Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT)));
+    setView({ z, x: 0, y: 0 });
+  }, [size.w]);
+
+  const clampZ = (z: number) => Math.max(0.25, Math.min(8, z));
+  /** Zoom about the centre of the sheet, keeping that point still. */
+  const zoomBy = (factor: number) =>
+    setView(v => {
+      const next = clampZ(v.z * factor);
+      const k = next / v.z;
+      const px = size.w / 2;
+      const py = size.h / 2;
+      return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
+    });
+  const fitSheet = () => setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
 
   const curves = React.useMemo(() => normalizeFlags(layout.curves, layout.points.length), [layout.curves, layout.points.length]);
 
@@ -404,22 +429,32 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, size.w, size.h);
 
-    for (let x = 0; x <= size.w; x += GRID_FT * PX_PER_FT) {
+    /* camera: everything below is drawn in sheet (world) coordinates */
+    const Z = view.z;
+    ctx.translate(view.x, view.y);
+    ctx.scale(Z, Z);
+    const step = GRID_FT * PX_PER_FT;
+    const wx0 = Math.floor(-view.x / Z / step) * step;
+    const wx1 = wx0 + size.w / Z + step;
+    const wy0 = Math.floor(-view.y / Z / step) * step;
+    const wy1 = wy0 + size.h / Z + step;
+
+    for (let x = wx0; x <= wx1; x += step) {
       const major = Math.round(x / PX_PER_FT) % MAJOR_FT === 0;
       ctx.strokeStyle = major ? gridMajor : gridMinor;
-      ctx.lineWidth = major ? 1 : 0.5;
+      ctx.lineWidth = (major ? 1 : 0.5) / Z;
       ctx.beginPath();
-      ctx.moveTo(x + 0.5, 0);
-      ctx.lineTo(x + 0.5, size.h);
+      ctx.moveTo(x, wy0);
+      ctx.lineTo(x, wy1);
       ctx.stroke();
     }
-    for (let y = 0; y <= size.h; y += GRID_FT * PX_PER_FT) {
+    for (let y = wy0; y <= wy1; y += step) {
       const major = Math.round(y / PX_PER_FT) % MAJOR_FT === 0;
       ctx.strokeStyle = major ? gridMajor : gridMinor;
-      ctx.lineWidth = major ? 1 : 0.5;
+      ctx.lineWidth = (major ? 1 : 0.5) / Z;
       ctx.beginPath();
-      ctx.moveTo(0, y + 0.5);
-      ctx.lineTo(size.w, y + 0.5);
+      ctx.moveTo(wx0, y);
+      ctx.lineTo(wx1, y);
       ctx.stroke();
     }
 
@@ -556,7 +591,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     // draw labels last, skipping any that would overlap an already placed one
     const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
     labels.forEach(l => {
-      ctx.font = '600 10px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `600 ${10 / Z}px ui-sans-serif, system-ui, sans-serif`;
       const w = ctx.measureText(l.text).width + 8;
       const h = 14;
       const box = { x: l.x - w / 2, y: l.y - h / 2, w, h };
@@ -580,11 +615,11 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       const cx = layout.points.reduce((s, p) => s + p.x, 0) / layout.points.length;
       const cy = layout.points.reduce((s, p) => s + p.y, 0) / layout.points.length;
       const label = `${takeoff.areaSqFt.toLocaleString()} SQ FT`;
-      ctx.font = '700 14px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `700 ${14 / Z}px ui-sans-serif, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillStyle = textColor;
       ctx.fillText(label, cx, cy);
-      ctx.font = '500 11px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `500 ${11 / Z}px ui-sans-serif, system-ui, sans-serif`;
       ctx.fillText(`${takeoff.widthFt.toFixed(1)} ft x ${takeoff.depthFt.toFixed(1)} ft envelope`, cx, cy + 16);
     }
 
@@ -599,7 +634,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = textColor;
-      ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `600 ${11 / Z}px ui-sans-serif, system-ui, sans-serif`;
       ctx.textAlign = 'left';
       ctx.fillText(`${(dist(last, hover) / PX_PER_FT).toFixed(1)} ft`, hover.x + 10, hover.y - 8);
     }
@@ -609,21 +644,21 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       const pointSelected = selection?.type === 'point' && selection.index === i;
       if (pointSelected) {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 10 / Z, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
         ctx.fill();
       }
-      const r = i === dragIndex || pointSelected ? 7 : 5;
+      const r = (i === dragIndex || pointSelected ? 7 : 5) / Z;
       ctx.beginPath();
       if (curves[i]) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
       else ctx.rect(p.x - r, p.y - r, r * 2, r * 2);
       ctx.fillStyle = pointSelected ? SELECT_COLOR : curves[i] ? '#0891b2' : i === 0 ? '#f97066' : wallColor;
       ctx.fill();
       ctx.strokeStyle = bg;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 / Z;
       ctx.stroke();
     });
-  }, [layout, segments, curves, size, hover, mode, dragIndex, frameColorHex, takeoff, selection]);
+  }, [layout, segments, curves, size, hover, mode, dragIndex, frameColorHex, takeoff, selection, view]);
 
 
   // ---- snapshot export (footprint plan for cart / quote) ----
@@ -649,12 +684,35 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   // ---- interaction ----
   const toLocal = (e: React.MouseEvent): EnclosurePoint => {
     const rect = canvasRef.current!.getBoundingClientRect();
-    const raw = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const raw = { x: (e.clientX - rect.left - view.x) / view.z, y: (e.clientY - rect.top - view.y) / view.z };
     return {
       x: Math.round(raw.x / PX_PER_FT) * PX_PER_FT,
       y: Math.round(raw.y / PX_PER_FT) * PX_PER_FT,
     };
   };
+
+  /* Wheel / trackpad-pinch zoom anchored under the cursor. React's onWheel is
+     passive, so the listener is attached natively. */
+  const viewRef = React.useRef(view);
+  viewRef.current = view;
+  React.useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      setView(v => {
+        const next = Math.max(0.25, Math.min(8, v.z * Math.exp(-dy * 0.0015)));
+        const k = next / v.z;
+        return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
+      });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   const hitPoint = (p: EnclosurePoint) => layout.points.findIndex(pt => dist(pt, p) < 9);
   const hitSegment = (p: EnclosurePoint) => {
@@ -903,8 +961,11 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   const preset = (w: number, d: number) => {
     const widthPx = w * PX_PER_FT;
     const depthPx = d * PX_PER_FT;
-    const ox = Math.round((size.w - widthPx) / 2 / PX_PER_FT) * PX_PER_FT;
-    const oy = Math.round((size.h - depthPx) / 2 / PX_PER_FT) * PX_PER_FT;
+    /* centre the preset on what the camera is actually looking at */
+    const cxWorld = (size.w / 2 - view.x) / view.z;
+    const cyWorld = (size.h / 2 - view.y) / view.z;
+    const ox = Math.round((cxWorld - widthPx / 2) / PX_PER_FT) * PX_PER_FT;
+    const oy = Math.round((cyWorld - depthPx / 2) / PX_PER_FT) * PX_PER_FT;
     setSelection(null);
     onChange({
       points: [
@@ -931,57 +992,67 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
 
   return (
     <div className="space-y-3">
-      {/* board-console: the FLIP gateway control language, shared by every board */}
-      <div className="board-console rounded-xl glass-tile p-2">
-      {header && <div className="px-1 pt-1 pb-3">{header}</div>}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} onClick={() => { setMode('draw'); setSelection(null); }}>
-          <Ruler className="h-3.5 w-3.5 mr-1" /> Draw footprint
-        </Button>
-        <Button size="sm" variant={mode === 'select' ? 'default' : 'ghost'} onClick={() => setMode('select')}>
-          <MousePointer2 className="h-3.5 w-3.5 mr-1" /> Select &amp; delete
-        </Button>
-        <Button size="sm" variant={mode === 'door' ? 'default' : 'ghost'} onClick={() => { setMode('door'); setSelection(null); }}>
-          <DoorOpen className="h-3.5 w-3.5 mr-1" /> Place door
-        </Button>
-        <Button size="sm" variant={mode === 'house' ? 'default' : 'ghost'} onClick={() => { setMode('house'); setSelection(null); }}>
-          <Home className="h-3.5 w-3.5 mr-1" /> Tag house wall
-        </Button>
-        <div className="mx-1 h-5 w-px bg-border/60" />
-        <Button size="sm" variant="ghost" onClick={addPointAfterSelected} disabled={selection?.type !== 'point'} title="Add a corner after the selected one (or click a wall run)">
-          <Plus className="h-3.5 w-3.5 mr-1" /> Add point
-        </Button>
-        <Button
-          size="sm"
-          variant={selectedPointCurved ? 'default' : 'ghost'}
-          onClick={toggleCurveOnSelected}
-          disabled={selection?.type !== 'point'}
-          title="Toggle curvature on the selected corner"
-        >
-          <Spline className="h-3.5 w-3.5 mr-1" /> {selectedPointCurved ? 'Curved point' : 'Corner point'}
-        </Button>
-        <div className="mx-1 h-5 w-px bg-border/60" />
+      {/* Slim instrument header — every tool is a glyph, its name lives in the
+          tooltip, and the sheet below keeps the rest of the screen. */}
+      <div className="board-console board-console-slim rounded-xl glass-tile px-2 py-1.5">
+        {header && <div className="px-0.5 pb-2">{header}</div>}
+        <div className="flex flex-wrap items-center gap-1">
+          <Button size="sm" variant={mode === 'draw' ? 'default' : 'ghost'} title="Draw footprint" aria-label="Draw footprint" onClick={() => { setMode('draw'); setSelection(null); }}>
+            <Ruler />
+          </Button>
+          <Button size="sm" variant={mode === 'select' ? 'default' : 'ghost'} title="Select & delete" aria-label="Select and delete" onClick={() => setMode('select')}>
+            <MousePointer2 />
+          </Button>
+          <Button size="sm" variant={mode === 'door' ? 'default' : 'ghost'} title="Place door" aria-label="Place door" onClick={() => { setMode('door'); setSelection(null); }}>
+            <DoorOpen />
+          </Button>
+          <Button size="sm" variant={mode === 'house' ? 'default' : 'ghost'} title="Tag house wall" aria-label="Tag house wall" onClick={() => { setMode('house'); setSelection(null); }}>
+            <Home />
+          </Button>
+          <div className="mx-0.5 h-4 w-px bg-border/60" />
+          <Button size="sm" variant="ghost" onClick={addPointAfterSelected} disabled={selection?.type !== 'point'} title="Add a corner after the selected one" aria-label="Add point">
+            <Plus />
+          </Button>
+          <Button size="sm" variant={selectedPointCurved ? 'default' : 'ghost'} onClick={toggleCurveOnSelected} disabled={selection?.type !== 'point'} title="Toggle curvature on the selected corner" aria-label="Curve corner">
+            <Spline />
+          </Button>
+          <div className="mx-0.5 h-4 w-px bg-border/60" />
+          <Button size="sm" variant="ghost" onClick={undo} title="Undo" aria-label="Undo">
+            <Undo2 />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={clear} title="Clear the sheet" aria-label="Clear">
+            <Trash2 />
+          </Button>
+          <div className="mx-0.5 h-4 w-px bg-border/60" />
+          {/* camera — a real zoom over the sheet */}
+          <Button size="sm" variant="ghost" onClick={() => zoomBy(1 / 1.25)} title="Zoom out" aria-label="Zoom out">
+            <ZoomOut />
+          </Button>
+          <Button size="sm" variant="ghost" className="has-label tabular-nums" onClick={fitSheet} title={`Fit the sheet — ${Math.round(size.w / (view.z * PX_PER_FT))} ft across`} aria-label="Fit sheet">
+            {Math.round(size.w / (view.z * PX_PER_FT))} ft
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => zoomBy(1.25)} title="Zoom in" aria-label="Zoom in">
+            <ZoomIn />
+          </Button>
+          {!compact && (
+            <>
+              <div className="mx-0.5 h-4 w-px bg-border/60" />
+              <Button size="sm" variant="outline" className="has-label" onClick={() => preset(30, 20)} title="30 x 20 preset cage">
+                30×20
+              </Button>
+              <Button size="sm" variant="outline" className="has-label" onClick={() => preset(40, 24)} title="40 x 24 preset cage">
+                40×24
+              </Button>
+            </>
+          )}
+          <span className="ml-auto">
+            <Button size="sm" variant="ghost" onClick={toggleDensity} aria-pressed={compact} title={compact ? 'Show all panels' : 'Compact view'} aria-label="Toggle panels">
+              {compact ? <Maximize2 /> : <Minimize2 />}
+            </Button>
+          </span>
+        </div>
+      </div>
 
-        <Button size="sm" variant="ghost" onClick={undo}>
-          <Undo2 className="h-3.5 w-3.5 mr-1" /> Undo
-        </Button>
-        <Button size="sm" variant="ghost" onClick={clear}>
-          <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
-        </Button>
-        {!compact && (
-          <>
-            <div className="mx-1 h-5 w-px bg-border/60" />
-            <Button size="sm" variant="outline" onClick={() => preset(30, 20)}>
-              <Square className="h-3.5 w-3.5 mr-1" /> 30 x 20
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => preset(40, 24)}>
-              <Square className="h-3.5 w-3.5 mr-1" /> 40 x 24
-            </Button>
-          </>
-        )}
-        <BoardDensityToggle compact={compact} onToggle={toggleDensity} className="ml-auto" />
-      </div>
-      </div>
 
       {/* Glass door carousel — pick a model, then click a wall to drop it in */}
       {mode === 'door' && (

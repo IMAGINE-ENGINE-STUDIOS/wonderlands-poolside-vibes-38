@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
 import useBoardDensity from '@/hooks/useBoardDensity';
 import { Badge } from '@/components/ui/badge';
-import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Plus, Spline, Minus } from 'lucide-react';
+import { Undo2, Trash2, DoorOpen, MousePointer2, Ruler, Plus, Spline, Minus, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import {
   insertVertexAfter,
   insertVertexAt,
@@ -41,6 +40,8 @@ interface FenceDrawingBoardProps {
 }
 
 const PX_PER_FT = 10;
+/** Every drawing board opens on 20 ft of frontage. */
+const VIEW_WIDTH_FT = 20;
 const GRID_FT = 1;
 const MAJOR_FT = 5;
 
@@ -56,6 +57,41 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
   const [hover, setHover] = React.useState<FencePoint | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 520 });
   const wrapRef = React.useRef<HTMLDivElement | null>(null);
+  /* Camera over the sheet — the drafting scale stays 10 px = 1 ft. */
+  const [view, setView] = React.useState({ z: 1, x: 0, y: 0 });
+  const framedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (framedRef.current || !size.w) return;
+    framedRef.current = true;
+    setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
+  }, [size.w]);
+  const zoomBy = (factor: number) =>
+    setView(v => {
+      const next = Math.max(0.25, Math.min(8, v.z * factor));
+      const k = next / v.z;
+      const px = size.w / 2;
+      const py = size.h / 2;
+      return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
+    });
+  const fitSheet = () => setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
+  React.useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      setView(v => {
+        const next = Math.max(0.25, Math.min(8, v.z * Math.exp(-dy * 0.0015)));
+        const k = next / v.z;
+        return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
+      });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
 
   React.useEffect(() => {
@@ -124,23 +160,33 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, size.w, size.h);
 
+    /* camera: the sheet below is drawn in world coordinates */
+    const Z = view.z;
+    ctx.translate(view.x, view.y);
+    ctx.scale(Z, Z);
+    const gstep = GRID_FT * PX_PER_FT;
+    const wx0 = Math.floor(-view.x / Z / gstep) * gstep;
+    const wx1 = wx0 + size.w / Z + gstep;
+    const wy0 = Math.floor(-view.y / Z / gstep) * gstep;
+    const wy1 = wy0 + size.h / Z + gstep;
+
     // grid
-    for (let x = 0; x <= size.w; x += GRID_FT * PX_PER_FT) {
+    for (let x = wx0; x <= wx1; x += gstep) {
       const major = Math.round(x / PX_PER_FT) % MAJOR_FT === 0;
       ctx.strokeStyle = major ? gridMajor : gridMinor;
-      ctx.lineWidth = major ? 1 : 0.5;
+      ctx.lineWidth = (major ? 1 : 0.5) / Z;
       ctx.beginPath();
-      ctx.moveTo(x + 0.5, 0);
-      ctx.lineTo(x + 0.5, size.h);
+      ctx.moveTo(x, wy0);
+      ctx.lineTo(x, wy1);
       ctx.stroke();
     }
-    for (let y = 0; y <= size.h; y += GRID_FT * PX_PER_FT) {
+    for (let y = wy0; y <= wy1; y += gstep) {
       const major = Math.round(y / PX_PER_FT) % MAJOR_FT === 0;
       ctx.strokeStyle = major ? gridMajor : gridMinor;
-      ctx.lineWidth = major ? 1 : 0.5;
+      ctx.lineWidth = (major ? 1 : 0.5) / Z;
       ctx.beginPath();
-      ctx.moveTo(0, y + 0.5);
-      ctx.lineTo(size.w, y + 0.5);
+      ctx.moveTo(wx0, y);
+      ctx.lineTo(wx1, y);
       ctx.stroke();
     }
 
@@ -192,16 +238,16 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
         const mx = mid.x;
         const my = mid.y;
         const label = `${ft.toFixed(1)} ft${isGate ? ' • GATE' : ''}`;
-        ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
-        const w = ctx.measureText(label).width + 8;
+        ctx.font = `600 ${11 / Z}px ui-sans-serif, system-ui, sans-serif`;
+        const w = ctx.measureText(label).width + 8 / Z;
         ctx.fillStyle = bg;
-        ctx.fillRect(mx - w / 2, my - 16, w, 15);
+        ctx.fillRect(mx - w / 2, my - 16 / Z, w, 15 / Z);
         ctx.strokeStyle = gridMajor;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(mx - w / 2, my - 16, w, 15);
+        ctx.lineWidth = 1 / Z;
+        ctx.strokeRect(mx - w / 2, my - 16 / Z, w, 15 / Z);
         ctx.fillStyle = textColor;
         ctx.textAlign = 'center';
-        ctx.fillText(label, mx, my - 5);
+        ctx.fillText(label, mx, my - 5 / Z);
       }
     });
 
@@ -210,8 +256,8 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
     if (mode === 'draw' && hover && layout.points.length > 0 && !layout.closed) {
       const last = layout.points[layout.points.length - 1];
       ctx.strokeStyle = '#0891b2';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2 / Z;
+      ctx.setLineDash([5 / Z, 5 / Z]);
       ctx.beginPath();
       ctx.moveTo(last.x, last.y);
       ctx.lineTo(hover.x, hover.y);
@@ -219,31 +265,31 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       ctx.setLineDash([]);
       const ft = dist(last, hover) / PX_PER_FT;
       ctx.fillStyle = textColor;
-      ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `600 ${11 / Z}px ui-sans-serif, system-ui, sans-serif`;
       ctx.textAlign = 'left';
-      ctx.fillText(`${ft.toFixed(1)} ft`, hover.x + 10, hover.y - 8);
+      ctx.fillText(`${ft.toFixed(1)} ft`, hover.x + 10 / Z, hover.y - 8 / Z);
     }
 
     // posts — round = curvature handle, square = hard corner
     layout.points.forEach((p, i) => {
       const active = i === dragIndex || i === selectedIndex;
-      const r = active ? 7 : 5;
+      const r = (active ? 7 : 5) / Z;
       ctx.beginPath();
       if (curves[i]) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
       else ctx.rect(p.x - r, p.y - r, r * 2, r * 2);
       ctx.fillStyle = i === selectedIndex ? '#f59e0b' : curves[i] ? '#0891b2' : i === 0 ? '#f97066' : colorHex;
       ctx.fill();
       ctx.strokeStyle = bg;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 / Z;
       ctx.stroke();
     });
-  }, [layout, segments, curves, size, hover, mode, dragIndex, selectedIndex, colorHex]);
+  }, [layout, segments, curves, size, hover, mode, dragIndex, selectedIndex, colorHex, view]);
 
 
   // ---- interaction ----
   const toLocal = (e: React.MouseEvent): FencePoint => {
     const rect = canvasRef.current!.getBoundingClientRect();
-    const raw = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const raw = { x: (e.clientX - rect.left - view.x) / view.z, y: (e.clientY - rect.top - view.y) / view.z };
     return {
       x: Math.round(raw.x / PX_PER_FT) * PX_PER_FT,
       y: Math.round(raw.y / PX_PER_FT) * PX_PER_FT,
@@ -364,20 +410,20 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       {header && (
         <div className="rounded-xl border border-border/60 bg-background/60 p-3 backdrop-blur-md">{header}</div>
       )}
-      {/* board-console: the FLIP gateway control language, shared by every board */}
-      <div className="board-console flex flex-wrap items-center gap-2 rounded-2xl border border-border/50 bg-background/55 p-2.5 backdrop-blur-xl">
-        <Button size="sm" variant={mode === 'draw' ? 'default' : 'outline'} onClick={() => setMode('draw')}>
-          <Ruler className="h-3.5 w-3.5 mr-1" /> Draw run
+      {/* Slim instrument header — glyph tools, names in the tooltips */}
+      <div className="board-console board-console-slim flex flex-wrap items-center gap-1 rounded-xl border border-border/50 bg-background/55 px-2 py-1.5 backdrop-blur-xl">
+        <Button size="sm" variant={mode === 'draw' ? 'default' : 'outline'} onClick={() => setMode('draw')} title="Draw run" aria-label="Draw run">
+          <Ruler />
         </Button>
-        <Button size="sm" variant={mode === 'select' ? 'default' : 'outline'} onClick={() => setMode('select')}>
-          <MousePointer2 className="h-3.5 w-3.5 mr-1" /> Move posts
+        <Button size="sm" variant={mode === 'select' ? 'default' : 'outline'} onClick={() => setMode('select')} title="Move posts" aria-label="Move posts">
+          <MousePointer2 />
         </Button>
-        <Button size="sm" variant={mode === 'gate' ? 'default' : 'outline'} onClick={() => setMode('gate')}>
-          <DoorOpen className="h-3.5 w-3.5 mr-1" /> Mark gate
+        <Button size="sm" variant={mode === 'gate' ? 'default' : 'outline'} onClick={() => setMode('gate')} title="Mark gate" aria-label="Mark gate">
+          <DoorOpen />
         </Button>
-        <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
-        <Button size="sm" variant="outline" onClick={addPostAfterSelected} disabled={selectedIndex === null} title="Add a post after the selected one (or click a run)">
-          <Plus className="h-3.5 w-3.5 mr-1" /> Add point
+        <span className="mx-0.5 h-4 w-px bg-border" />
+        <Button size="sm" variant="outline" onClick={addPostAfterSelected} disabled={selectedIndex === null} title="Add a post after the selected one" aria-label="Add post">
+          <Plus />
         </Button>
         <Button
           size="sm"
@@ -385,14 +431,15 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
           onClick={toggleCurveOnSelected}
           disabled={selectedIndex === null}
           title="Toggle curvature on the selected post"
+          aria-label="Curve post"
         >
-          <Spline className="h-3.5 w-3.5 mr-1" /> {selectedIndex !== null && curves[selectedIndex] ? 'Curved point' : 'Corner point'}
+          <Spline />
         </Button>
-        <Button size="sm" variant="outline" onClick={() => selectedIndex !== null && removePostAt(selectedIndex)} disabled={selectedIndex === null}>
-          <Minus className="h-3.5 w-3.5 mr-1" /> Remove point
+        <Button size="sm" variant="outline" onClick={() => selectedIndex !== null && removePostAt(selectedIndex)} disabled={selectedIndex === null} title="Remove point" aria-label="Remove point">
+          <Minus />
         </Button>
-        <Button size="sm" variant="ghost" onClick={undo} disabled={!layout.points.length}>
-          <Undo2 className="h-3.5 w-3.5 mr-1" /> Undo
+        <Button size="sm" variant="ghost" onClick={undo} disabled={!layout.points.length} title="Undo" aria-label="Undo">
+          <Undo2 />
         </Button>
         <Button
           size="sm"
@@ -403,24 +450,40 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
             setSelectedIndex(null);
           }}
           disabled={!layout.points.length}
+          title="Clear the sheet"
+          aria-label="Clear"
         >
-          <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
+          <Trash2 />
+        </Button>
+        <span className="mx-0.5 h-4 w-px bg-border" />
+        {/* camera */}
+        <Button size="sm" variant="ghost" onClick={() => zoomBy(1 / 1.25)} title="Zoom out" aria-label="Zoom out">
+          <ZoomOut />
+        </Button>
+        <Button size="sm" variant="ghost" className="has-label tabular-nums" onClick={fitSheet} title="Fit the sheet" aria-label="Fit sheet">
+          {Math.round(size.w / (view.z * PX_PER_FT))} ft
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => zoomBy(1.25)} title="Zoom in" aria-label="Zoom in">
+          <ZoomIn />
         </Button>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1.5">
           {!compact && (
             <>
-              <Badge variant="secondary">{measurements.fenceFt.toLocaleString()} linear ft</Badge>
+              <Badge variant="secondary" className="text-[9px]">{measurements.fenceFt.toLocaleString()} lf</Badge>
               {layout.gateSegments.length > 0 && (
-                <Badge className="bg-primary text-primary-foreground">
-                  {layout.gateSegments.length} gate opening{layout.gateSegments.length > 1 ? 's' : ''} • {measurements.gateFt} ft
+                <Badge className="bg-primary text-[9px] text-primary-foreground">
+                  {layout.gateSegments.length} gate{layout.gateSegments.length > 1 ? 's' : ''} • {measurements.gateFt} ft
                 </Badge>
               )}
             </>
           )}
-          <BoardDensityToggle compact={compact} onToggle={toggleDensity} />
+          <Button size="sm" variant="ghost" onClick={toggleDensity} aria-pressed={compact} title={compact ? 'Show all panels' : 'Compact view'} aria-label="Toggle panels">
+            {compact ? <Maximize2 /> : <Minimize2 />}
+          </Button>
         </div>
       </div>
+
 
       <div ref={wrapRef} className="rounded-lg border overflow-hidden bg-card">
         <canvas
