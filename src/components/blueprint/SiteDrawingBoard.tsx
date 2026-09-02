@@ -1600,7 +1600,14 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
      (each with a tooltip) keep the strip one line on a desktop and a single
      comfortable, swipeable row on a phone. */
   const toolButtons = (
-    <div className="-mx-0.5 flex items-center gap-1 overflow-x-auto px-0.5 py-0.5 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible md:justify-end [&::-webkit-scrollbar]:hidden">
+    /* Inside a magazine leaf the instruments stay on one line and slide
+       sideways — a toolbar that wraps into three rows eats the drawing. */
+    <div
+      className={`-mx-0.5 flex items-center gap-1 overflow-x-auto px-0.5 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+        menuSide ? 'flex-nowrap justify-start md:justify-end' : 'sm:flex-wrap sm:overflow-visible md:justify-end'
+      }`}
+    >
+
       {onRequestImport ? ctrl(<ImageIcon className="h-3.5 w-3.5" />, { onClick: onRequestImport, title: 'Import a plan' }) : null}
       {/* Two separate instruments, exactly as the artificial-turf board: the pen
           traces new elements, the pointer picks a drawn one to change its
