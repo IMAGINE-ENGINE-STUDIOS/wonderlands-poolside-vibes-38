@@ -426,7 +426,7 @@ const GlobalDesignBoard: React.FC = () => {
 
           {/* the WHOLE project: every trade's estimate, take-off & options,
               specifications and process in one live dossier */}
-          <div className="glass-panel overflow-hidden rounded-3xl">
+          <div className="glass-panel min-h-0 flex-1 overflow-hidden rounded-3xl">
             <FlipProjectDossier
               trades={DOSSIER_TRADES}
               enabled={enabled}
