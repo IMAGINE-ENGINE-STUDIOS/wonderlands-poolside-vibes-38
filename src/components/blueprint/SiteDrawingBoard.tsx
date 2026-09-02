@@ -257,7 +257,7 @@ interface Props {
  * grid as a calibratable underlay so an existing blueprint can be traced and
  * then edited like native geometry.
  */
-export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer, menuSide }) => {
+export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, readOnly, height, onRequestImport, header, defaultLayer, menuSide, defaultViewWidthFt }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const imgRef = React.useRef<HTMLImageElement | null>(null);
   const [imgReady, setImgReady] = React.useState(0);
