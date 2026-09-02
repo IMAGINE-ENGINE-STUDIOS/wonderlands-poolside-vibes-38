@@ -41,6 +41,8 @@ import {
 } from "@/data/solarHardware";
 import SolarReportTabs from "./SolarReportTabs";
 import SolarPerformanceGraphics from "./SolarPerformanceGraphics";
+import SolarProjectGallery from "./SolarProjectGallery";
+import { saveSolarProject, type SolarProjectEntry } from "@/lib/solar/solarGallery";
 import StudioCartWidget from "@/components/StudioCartWidget";
 
 /**
