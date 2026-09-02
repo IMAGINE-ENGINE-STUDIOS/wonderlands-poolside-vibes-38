@@ -1387,7 +1387,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       setMode('draw');
       return;
     }
-    if (mode === 'select') return;
+    if (mode === 'select' || mode === 'point') return;
     const p = { x: snap(raw.x), y: snap(raw.y) };
     // clicking the first vertex closes the polygon
     if (draft.length > 2) {
