@@ -30,7 +30,6 @@ import {
 } from 'lucide-react';
 import {
   hitVertexIndex,
-  insertVertexAt,
   insertVertexAfter,
   removeVertex,
   normalizeFlags,
