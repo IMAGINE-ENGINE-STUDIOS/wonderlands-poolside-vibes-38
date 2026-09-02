@@ -1105,59 +1105,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       ),
     });
 
-    /* ------------------------- FIBERGLASS — TWO CATALOGS ---------------------- */
-    if (category.id === "pools" && catalogs.length > 1) {
-      list.push({
-        key: "catalogs",
-        render: () => (
-          <div className="flex h-full w-full flex-col p-8 sm:p-10">
-            <Eyebrow>The Fiberglass Edition</Eyebrow>
-            <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">Two catalogs</h3>
-            <p className="mt-3 max-w-md text-[12px] leading-relaxed text-muted-foreground">
-              Every engineered shell we install, gathered in one edition. Enter either house
-              catalog — the models follow in price order, delivered and installed turnkey.
-            </p>
-            <div className="mt-5 grid min-h-0 flex-1 gap-4 sm:grid-cols-2">
-              {catalogs.map((c) => (
-                <button
-                  key={c.brand}
-                  onClick={() =>
-                    turnToPageWithMotion(at.products + c.start * 2, `${c.brand} catalog`, [
-                      c.models[0]?.image,
-                      ...(category.images ?? []),
-                    ].filter(Boolean) as string[])
-                  }
-                  className="group relative flex min-h-0 flex-col overflow-hidden border border-border/60 text-left"
-                >
-                  <span className="relative block min-h-0 flex-1 overflow-hidden bg-muted">
-                    {c.models[0]?.image ? (
-                      <img
-                        src={c.models[0].image}
-                        alt={c.brand}
-                        loading="eager"
-                        decoding="async"
-                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.06]"
-                      />
-                    ) : null}
-                    <span className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  </span>
-                  <span className="flex items-baseline justify-between gap-3 px-4 pt-3">
-                    <span className="font-serif text-xl font-light">{c.brand}</span>
-                    <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
-                      {c.models.length} models
-                    </span>
-                  </span>
-                  <span className="flex items-center justify-between gap-3 px-4 pb-3 pt-1.5 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                    From {formatEntryPrice(c.models[0]) || "On request"}
-                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ),
-      });
-    }
+
+
 
     list.push({
       key: "contents",
