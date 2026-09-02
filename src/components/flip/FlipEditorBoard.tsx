@@ -18,9 +18,10 @@ const SiteDrawingBoard = lazy(() => import("@/components/blueprint/SiteDrawingBo
 const FenceConfigurator = lazy(() => import("@/components/fence/FenceConfigurator"));
 const EnclosureConfigurator = lazy(() => import("@/components/enclosure/EnclosureConfigurator"));
 const GrassConfigurator = lazy(() => import("@/components/grass/GrassConfigurator"));
+const LandscapeDrawingBoard = lazy(() => import("@/components/landscape/LandscapeDrawingBoard"));
 const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 
-export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass" | "solar";
+export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass" | "landscape" | "solar";
 
 
 /** Which board serves each discipline. */
@@ -32,7 +33,11 @@ const BOARDS: Record<string, { kind: EditorBoardKind; name: string; note: string
   saunas: { kind: "site", name: "Sauna Pad Board", note: "Lay out the pad, clearances and the walk to the cabin." },
   pavers: { kind: "site", name: "Hardscape Board", note: "Draw the field and border, measured by square foot." },
   "artificial-grass": { kind: "grass", name: "Turf Drawing Board", note: "Trace the lawn and read seams, base and cost." },
-  landscaping: { kind: "site", name: "Landscape Board", note: "Beds, canopy and irrigation drawn to the property." },
+  landscaping: {
+    kind: "landscape",
+    name: "Planting Studio",
+    note: "Trace the beds, then set real plants drawn at mature canopy — in flower.",
+  },
   "screen-enclosures": { kind: "enclosure", name: "Enclosure Drawing Board", note: "Mansard or gable, engineered to Florida wind load." },
   "patio-fencing": { kind: "fence", name: "Fence Board", note: "Runs, gates and self-latching pool doors to code." },
   lanai: { kind: "site", name: "Lanai Board", note: "Projection, columns and the covered footprint." },
