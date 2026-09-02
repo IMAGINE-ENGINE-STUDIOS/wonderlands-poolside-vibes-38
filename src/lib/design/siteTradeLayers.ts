@@ -348,3 +348,15 @@ export function tradeFeaturePrice(
     return sum + (f.flat ?? 0) + (f.perSqFt ?? 0) * sqFt + (f.perLinearFt ?? 0) * linearFt;
   }, 0);
 }
+
+/**
+ * Does the element carry a surface option that already includes the layer base?
+ * A paver on a deck is quoted at its published installed rate, so the $10/sq ft
+ * concrete deck base is dropped for that element instead of being stacked on it.
+ */
+export function tradeBaseReplaced(layer: string, featureIds: string[] | undefined): boolean {
+  if (!featureIds?.length) return false;
+  const spec = TRADE_LAYERS[layer];
+  if (!spec) return false;
+  return featureIds.some((id) => spec.features.find((f) => f.id === id)?.replacesBase);
+}
