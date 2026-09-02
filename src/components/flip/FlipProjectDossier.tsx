@@ -163,46 +163,103 @@ export const FlipProjectDossier: React.FC<{
 
       <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
         {tab === "estimate" && (
-          <div className="space-y-5">
-            {drawn.map((r) => (
-              <section key={r.trade.id}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() => onActiveChange?.(r.trade.id)}
-                    className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {r.trade.label}
-                  </button>
-                  <span className="font-serif text-base font-light">
-                    {r.trade.priceHidden ? "On request" : r.inScope ? money(r.est.total) : "Not in scope"}
-                  </span>
-                </div>
-                <ul className="mt-1.5 space-y-1.5">
-                  {r.est.lines.map((l, i) => (
-                    <li
-                      key={`${l.label}-${i}`}
-                      className="flex items-baseline justify-between gap-3 rounded-xl border border-border/40 bg-background/40 px-3 py-2 backdrop-blur-md"
-                    >
-                      <span className="min-w-0">
-                        <span className="block text-[10px] uppercase tracking-[0.22em]">{l.label}</span>
-                        <span className="block truncate text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-                          {l.detail}
-                        </span>
-                      </span>
-                      <span className="shrink-0 font-serif text-base font-light">
-                        {r.trade.priceHidden ? "—" : money(l.amount)}
-                      </span>
-                    </li>
-                  ))}
-                  {!r.est.lines.length && (
-                    <li className="rounded-xl border border-dashed border-border/60 px-3 py-2.5 text-[10px] text-muted-foreground">
-                      Drawn, priced after the survey.
-                    </li>
+          <div className="space-y-4">
+            {drawn.map((r) => {
+              const base = r.est.lines.filter((l) => !l.featureId);
+              const options = r.est.lines.filter((l) => l.featureId);
+              const optionTotal = options.reduce((s, l) => s + l.amount, 0);
+
+              const row = (l: (typeof r.est.lines)[number], i: number) => (
+                <li
+                  key={`${l.label}-${i}`}
+                  className="group/line relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border/45 bg-background/55 px-3 py-2.5 shadow-[0_16px_44px_-38px_rgba(8,12,24,0.7)] backdrop-blur-xl transition-colors hover:border-foreground/45"
+                >
+                  {l.image ? (
+                    <img
+                      loading="lazy"
+                      decoding="async"
+                      src={l.image}
+                      alt={l.label}
+                      className="h-11 w-11 shrink-0 rounded-xl object-cover ring-1 ring-border/50"
+                    />
+                  ) : (
+                    <span className="h-11 w-11 shrink-0 rounded-xl bg-foreground/[0.05] ring-1 ring-border/40" />
                   )}
-                </ul>
-              </section>
-            ))}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[10.5px] uppercase tracking-[0.2em]">{l.label}</span>
+                    <span className="block truncate text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                      {l.detail}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-serif text-base font-light tabular-nums">
+                    {r.trade.priceHidden ? "—" : money(l.amount)}
+                  </span>
+                  {isRemovableLine(l) ? (
+                    <button
+                      type="button"
+                      title={removeLineHint(l)}
+                      aria-label={removeLineHint(l)}
+                      onClick={() => removeEstimateLine(r.trade.boardId, l)}
+                      className="ml-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ) : (
+                    <span className="ml-1 h-7 w-7 shrink-0" />
+                  )}
+                </li>
+              );
+
+              return (
+                <section
+                  key={r.trade.id}
+                  className="rounded-3xl border border-border/50 bg-gradient-to-b from-foreground/[0.045] to-transparent p-3 backdrop-blur-xl sm:p-4"
+                >
+                  <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+                    <button
+                      type="button"
+                      onClick={() => onActiveChange?.(r.trade.id)}
+                      className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {r.trade.label}
+                    </button>
+                    <span className="font-serif text-xl font-light tabular-nums">
+                      {r.trade.priceHidden ? "On request" : r.inScope ? money(r.est.total) : "Not in scope"}
+                    </span>
+                  </div>
+
+                  {base.length > 0 && (
+                    <>
+                      <p className="mt-3 text-[8.5px] uppercase tracking-[0.32em] text-muted-foreground/80">
+                        Built as drawn
+                      </p>
+                      <ul className="mt-1.5 space-y-1.5">{base.map(row)}</ul>
+                    </>
+                  )}
+
+                  {options.length > 0 && (
+                    <>
+                      <div className="mt-3 flex items-baseline justify-between gap-3">
+                        <p className="text-[8.5px] uppercase tracking-[0.32em] text-muted-foreground/80">
+                          Selected options — {options.length}
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground tabular-nums">
+                          {r.trade.priceHidden ? "—" : `+${money(optionTotal)}`}
+                        </p>
+                      </div>
+                      <ul className="mt-1.5 space-y-1.5">{options.map(row)}</ul>
+                    </>
+                  )}
+
+                  {!r.est.lines.length && (
+                    <p className="mt-3 rounded-2xl border border-dashed border-border/60 px-3 py-2.5 text-[10px] text-muted-foreground">
+                      Drawn, priced after the survey.
+                    </p>
+                  )}
+                </section>
+              );
+            })}
+
 
             {!drawn.length && (
               <p className="rounded-xl border border-dashed border-border/60 px-3 py-4 text-[10px] leading-relaxed text-muted-foreground">
