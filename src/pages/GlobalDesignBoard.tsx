@@ -261,7 +261,7 @@ const GlobalDesignBoard: React.FC = () => {
       />
 
       {/* ── header ── */}
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/70 backdrop-blur-2xl">
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/92 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-[1800px] flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3 sm:px-5">
           <Link
             to="/"
