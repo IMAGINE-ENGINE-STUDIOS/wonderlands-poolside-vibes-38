@@ -365,7 +365,7 @@ const GlobalDesignBoard: React.FC = () => {
             </p>
             <div className="mt-2 space-y-1.5">
               {TRADES.map((t, i) => (
-                <React.Fragment key={t.id}>
+                <div key={t.id} className="space-y-1.5">
                   {tradeCard(t, i)}
                   {t.id === active.id && t.id === "site" && (
                     <div className="board-console rounded-xl border border-border/40 bg-background/40 p-2">
@@ -375,7 +375,7 @@ const GlobalDesignBoard: React.FC = () => {
                       <div id="wl-board-elements" />
                     </div>
                   )}
-                </React.Fragment>
+                </div>
               ))}
             </div>
           </section>
