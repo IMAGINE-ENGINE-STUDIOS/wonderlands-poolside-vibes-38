@@ -30,7 +30,6 @@ import {
 } from 'lucide-react';
 import {
   hitVertexIndex,
-  insertVertexAt,
   insertVertexAfter,
   removeVertex,
   normalizeFlags,
@@ -344,7 +343,12 @@ export function measureSitePlan(data: SitePlanData): SiteAreas {
   };
 }
 
-type Mode = 'draw' | 'select' | 'underlay' | 'calibrate';
+/**
+ * Board tools. `point` is the architect's insert-vertex tool: a ghost point
+ * rides the outline under the cursor, sliding along the spline, and clicking
+ * drops the new vertex exactly where the ghost sits.
+ */
+type Mode = 'draw' | 'select' | 'underlay' | 'calibrate' | 'point';
 
 interface Props {
   data: SitePlanData;
@@ -411,6 +415,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const [showGrid, setShowGrid] = React.useState(true);
   const [calibration, setCalibration] = React.useState<{ x: number; y: number }[]>([]);
+  /** Ghost vertex riding the outline under the cursor while the point tool is armed. */
+  const [insertGhost, setInsertGhost] = React.useState<
+    { shapeId: string; segment: number; point: { x: number; y: number } } | null
+  >(null);
   const drag = React.useRef<
     | { kind: 'vertex'; shapeId: string; index: number }
     | { kind: 'bulge'; shapeId: string; index: number }
@@ -701,7 +709,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.setLineDash([]);
 
       // vertices — round handles are curved, squares are hard corners
-      const showHandles = !readOnly && (mode === 'select' ? true : isDraft);
+      const showHandles = !readOnly && (mode === 'select' || mode === 'point' ? true : isDraft);
       const active = selected === shape.id && showHandles;
       shape.points.forEach((p, i) => {
         ctx.fillStyle = active ? (flags[i] ? '#0891b2' : '#f59e0b') : '#ffffff';
@@ -863,6 +871,34 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       renderShape({ id: 'draft', layer, points: preview, closed: false }, true);
     }
 
+    /* GHOST VERTEX — the point tool's anchor. It rides the outline under the
+       cursor, sliding along the run, so the designer sees exactly where the new
+       point will land before clicking. Constant on-screen size at any altitude. */
+    if (!readOnly && mode === 'point' && insertGhost) {
+      const g = insertGhost.point;
+      const r = 6 / view.z;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.fill();
+      ctx.strokeStyle = '#0891b2';
+      ctx.lineWidth = 2 / view.z;
+      ctx.stroke();
+      /* crosshair so the anchor reads as a drafting insertion, not a handle */
+      ctx.beginPath();
+      ctx.moveTo(g.x - r * 1.9, g.y);
+      ctx.lineTo(g.x + r * 1.9, g.y);
+      ctx.moveTo(g.x, g.y - r * 1.9);
+      ctx.lineTo(g.x, g.y + r * 1.9);
+      ctx.strokeStyle = 'rgba(8,145,178,0.75)';
+      ctx.lineWidth = 1.2 / view.z;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+
+
     // calibration line
     if (calibration.length) {
       const pts = hover && calibration.length === 1 ? [...calibration, hover] : calibration;
@@ -929,6 +965,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     view,
     selectedSegment,
     cropping,
+    insertGhost,
   ]);
 
 
@@ -1058,18 +1095,79 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     onChange({ ...data, shapes: data.shapes.map(s => (s.id === id ? patch(s) : s)) });
   };
 
-  /** Drop a new vertex on the nearest run of a shape. */
-  const insertVertexNear = (p: { x: number; y: number }): boolean => {
-    for (let i = data.shapes.length - 1; i >= 0; i--) {
-      const shape = data.shapes[i];
-      const res = insertVertexAt(shape.points, shape.closed, p, 10, normalizeFlags(shape.curves, shape.points.length));
-      if (!res) continue;
-      updateShape(shape.id, s => ({ ...s, points: res.points, curves: res.curves }));
-      setSelected(shape.id);
-      setSelectedVertex(res.index);
-      return true;
+  /**
+   * Closest point ON the drawn outline — the true sampled spline, so the ghost
+   * follows a bowed arc exactly as it follows a straight run. Preference goes to
+   * the selected element, then to whatever run is nearest the cursor.
+   */
+  const nearestOnOutline = (
+    p: { x: number; y: number },
+    tolerance: number,
+  ): { shapeId: string; segment: number; point: { x: number; y: number }; distance: number } | null => {
+    let best: { shapeId: string; segment: number; point: { x: number; y: number }; distance: number } | null = null;
+    for (const shape of data.shapes) {
+      if (shape.points.length < 2) continue;
+      const segs = segmentCount(shape.points.length, shape.closed);
+      for (let i = 0; i < segs; i++) {
+        const pts = sampleSegmentAdvanced(shape.points, shape.closed, shape, i);
+        for (let k = 1; k < pts.length; k++) {
+          const a = pts[k - 1];
+          const b = pts[k];
+          const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+          const t = Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / (len * len)));
+          const proj = { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
+          const d = Math.hypot(p.x - proj.x, p.y - proj.y);
+          /* the selected element wins ties comfortably, as a CAD seat does */
+          const weighted = shape.id === selected ? d * 0.6 : d;
+          if (d <= tolerance && (!best || weighted < best.distance)) {
+            best = { shapeId: shape.id, segment: i, point: proj, distance: weighted };
+          }
+        }
+      }
     }
-    return false;
+    return best;
+  };
+
+  /** Widen a per-point / per-run numeric spec when a vertex is spliced in. */
+  const spliceSpec = (arr: number[] | undefined, n: number, at: number, fallback = 0): number[] | undefined => {
+    if (!arr?.length) return arr;
+    const out = new Array(n).fill(fallback) as number[];
+    for (let i = 0; i < Math.min(n, arr.length); i++) out[i] = arr[i];
+    out.splice(at, 0, fallback);
+    return out;
+  };
+
+  /** Drop the ghost vertex onto its run, splitting that run in two. */
+  const insertVertexOnOutline = (shapeId: string, segment: number, point: { x: number; y: number }) => {
+    const shape = data.shapes.find(s => s.id === shapeId);
+    if (!shape) return;
+    const n = shape.points.length;
+    const at = segment + 1;
+    const points = [...shape.points];
+    points.splice(at, 0, point);
+    const flags = normalizeFlags(shape.curves, n);
+    /* the new point inherits the curvature of the run it was dropped on */
+    flags.splice(at, 0, !!(flags[segment] || flags[(segment + 1) % n]));
+    updateShape(shapeId, s => ({
+      ...s,
+      points,
+      curves: flags,
+      /* both halves of a bowed run restart straight — the designer re-bows each */
+      arcs: spliceSpec(s.arcs, n, at),
+      fillets: spliceSpec(s.fillets, n, at),
+      tension: spliceSpec(s.tension, n, at, DEFAULT_TENSION),
+    }));
+    setSelected(shapeId);
+    setSelectedVertex(at);
+    setSelectedSegment(null);
+  };
+
+  /** Drop a new vertex on the nearest run of a shape (Alt-click shortcut). */
+  const insertVertexNear = (p: { x: number; y: number }): boolean => {
+    const hit = nearestOnOutline(p, 12 / viewRef.current.z);
+    if (!hit) return false;
+    insertVertexOnOutline(hit.shapeId, hit.segment, hit.point);
+    return true;
   };
 
   const removeVertexFrom = (shapeId: string, index: number) => {
@@ -1141,10 +1239,28 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     if (e.altKey || e.button === 2) {
       const vertex = hitVertex(raw);
       if (vertex) {
-        removeVertexFrom(vertex.shapeId, vertex.index);
+        /* Erasing a point is deliberate: the first click only picks the point,
+           a second Alt-click on that same picked point removes it. Nothing is
+           ever deleted just because the cursor passed over it. */
+        if (vertex.shapeId === selected && vertex.index === selectedVertex) {
+          removeVertexFrom(vertex.shapeId, vertex.index);
+        } else {
+          setSelected(vertex.shapeId);
+          setSelectedVertex(vertex.index);
+          setSelectedSegment(null);
+        }
         return;
       }
-      if (insertVertexNear({ x: snap(raw.x), y: snap(raw.y) })) return;
+      if (insertVertexNear(raw)) return;
+    }
+    /* Point tool: the ghost riding the spline is dropped where the designer sees it */
+    if (mode === 'point') {
+      const hit = insertGhost ?? nearestOnOutline(raw, 16 / viewRef.current.z);
+      if (hit) {
+        insertVertexOnOutline(hit.shapeId, hit.segment, hit.point);
+        setInsertGhost(null);
+      }
+      return;
     }
     if (mode !== 'select') return;
     /* the curvature diamond wins: pulling it bows the run into a true arc */
@@ -1239,6 +1355,25 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       setHover(raw);
       return;
     }
+    if (mode === 'point') {
+      /* the new point is anchored to the cursor AND to the spline: it slides
+         along the run nearest the pointer so the designer chooses exactly where
+         it lands before committing */
+      const hit = nearestOnOutline(raw, 26 / viewRef.current.z);
+      setInsertGhost(prev => {
+        if (!hit) return prev ? null : prev;
+        if (
+          prev &&
+          prev.shapeId === hit.shapeId &&
+          prev.segment === hit.segment &&
+          Math.hypot(prev.point.x - hit.point.x, prev.point.y - hit.point.y) < 0.05
+        )
+          return prev;
+        return { shapeId: hit.shapeId, segment: hit.segment, point: hit.point };
+      });
+      setHoverShapeId(prev => (prev === (hit?.shapeId ?? null) ? prev : hit?.shapeId ?? null));
+      return;
+    }
     if (mode === 'select') {
       /* light up whatever the pointer is over so it is obvious which element
          will take the option change on the next click */
@@ -1280,7 +1415,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       setMode('draw');
       return;
     }
-    if (mode === 'select') return;
+    if (mode === 'select' || mode === 'point') return;
     const p = { x: snap(raw.x), y: snap(raw.y) };
     // clicking the first vertex closes the polygon
     if (draft.length > 2) {
@@ -1460,9 +1595,19 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         },
       })}
       {ctrl(<Plus className="h-3.5 w-3.5" />, {
-        onClick: addVertexAfterSelected,
-        disabled: !selected || selectedVertex === null,
-        title: 'Add a point after the selected one (or Alt-click a line to insert)',
+        on: mode === 'point',
+        onClick: () => {
+          if (mode === 'point') {
+            setMode('select');
+            setInsertGhost(null);
+            return;
+          }
+          setMode('point');
+          setDraft([]);
+          setHover(null);
+          setInsertGhost(null);
+        },
+        title: 'Add point — the new point rides the line under your cursor; click to drop it',
       })}
       {ctrl(<Spline className="h-3.5 w-3.5" />, {
         on: selectedShapeCurved,
@@ -1473,7 +1618,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       {ctrl(<Minus className="h-3.5 w-3.5" />, {
         onClick: () => selected && selectedVertex !== null && removeVertexFrom(selected, selectedVertex),
         disabled: !selected || selectedVertex === null,
-        title: 'Remove the selected point',
+        title: 'Erase only the point you picked',
       })}
       {ctrl(<Undo2 className="h-3.5 w-3.5" />, {
         onClick: () => setDraft(p => p.slice(0, -1)),
@@ -1850,7 +1995,21 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
               <>
                 <Plus className="h-3.5 w-3.5" /> Point
               </>,
-              { onClick: addVertexAfterSelected, disabled: selectedVertex === null },
+              {
+                on: mode === 'point',
+                /* arms the sliding ghost point instead of blindly appending one */
+                onClick: () => {
+                  if (mode === 'point') {
+                    setMode('select');
+                    setInsertGhost(null);
+                    return;
+                  }
+                  setMode('point');
+                  setDraft([]);
+                  setHover(null);
+                  setInsertGhost(null);
+                },
+              },
             )}
             {ctrl(<Minus className="h-3.5 w-3.5" />, {
               onClick: () => selectedVertex !== null && removeVertexFrom(selectedShape.id, selectedVertex),
@@ -2041,7 +2200,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
                 : 'default'
               : mode === 'underlay'
                 ? 'move'
-                : 'crosshair',
+                : mode === 'point'
+                  ? insertGhost
+                    ? 'copy'
+                    : 'crosshair'
+                  : 'crosshair',
         }}
 
       />
@@ -2053,9 +2216,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             ? 'Click two points with a known distance on the imported sheet, then type the real length in feet to set the scale.'
             : mode === 'underlay'
               ? 'Drag the imported sheet to position it, then use Scale and Calibrate so the drawing matches real dimensions.'
-              : mode === 'select'
-                ? 'Click an element — the paver deck, the pool, the cage — to open its own features and options: the paver, finish or screen you pick applies to that element only. Drag a corner to reshape, drag it to move, Delete to remove.'
-                : `Click to place corners, click the first corner (or press Enter / double-click) to close the shape. The ${layerMeta(layer).label.toLowerCase()} options armed below travel onto the element you are drawing.`}{' '}
+              : mode === 'point'
+                ? 'Add point — the new point is anchored to your cursor and to the outline, sliding along the line (straight or bowed). Click to drop it exactly where you see it. Erase removes only the point you picked first.'
+                : mode === 'select'
+                  ? 'Click an element — the paver deck, the pool, the cage — to open its own features and options: the paver, finish or screen you pick applies to that element only. Drag a corner to reshape, drag it to move, Delete to remove.'
+                  : `Click to place corners, click the first corner (or press Enter / double-click) to close the shape. The ${layerMeta(layer).label.toLowerCase()} options armed below travel onto the element you are drawing.`}{' '}
 
           Drawn: {areas.propertySqFt.toLocaleString()} SF lot &middot; {areas.imperviousSqFt.toLocaleString()} SF impervious (
           {areas.imperviousPct}%) &middot; {areas.fenceLinearFt} LF barrier.
