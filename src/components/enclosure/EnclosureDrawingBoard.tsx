@@ -76,6 +76,8 @@ interface Props {
 }
 
 const PX_PER_FT = 10;
+/** Default framing for every drawing board: 20 ft of frontage across the sheet. */
+const VIEW_WIDTH_FT = 20;
 const GRID_FT = 1;
 const MAJOR_FT = 5;
 const DEFAULT_DOOR_ID = 'single-36-sl';
@@ -234,6 +236,10 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   const [doorTypeId, setDoorTypeId] = React.useState<string>(DEFAULT_DOOR_ID);
   const [selection, setSelection] = React.useState<Selection>(null);
   const { compact, toggle: toggleDensity } = useBoardDensity();
+  /* Camera over the sheet: `z` scales it on screen, `x`/`y` pan it. The drafting
+     scale never changes — 10 px is always one foot in the stored geometry. */
+  const [view, setView] = React.useState({ z: 1, x: 0, y: 0 });
+  const framedRef = React.useRef(false);
 
   React.useEffect(() => {
     const el = wrapRef.current;
@@ -244,6 +250,26 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  /* Every board opens on 20 ft of frontage, exactly like the site studio. */
+  React.useEffect(() => {
+    if (framedRef.current || !size.w) return;
+    framedRef.current = true;
+    const z = Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT)));
+    setView({ z, x: 0, y: 0 });
+  }, [size.w]);
+
+  const clampZ = (z: number) => Math.max(0.25, Math.min(8, z));
+  /** Zoom about the centre of the sheet, keeping that point still. */
+  const zoomBy = (factor: number) =>
+    setView(v => {
+      const next = clampZ(v.z * factor);
+      const k = next / v.z;
+      const px = size.w / 2;
+      const py = size.h / 2;
+      return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
+    });
+  const fitSheet = () => setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
 
   const curves = React.useMemo(() => normalizeFlags(layout.curves, layout.points.length), [layout.curves, layout.points.length]);
 
@@ -404,22 +430,32 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, size.w, size.h);
 
-    for (let x = 0; x <= size.w; x += GRID_FT * PX_PER_FT) {
+    /* camera: everything below is drawn in sheet (world) coordinates */
+    const Z = view.z;
+    ctx.translate(view.x, view.y);
+    ctx.scale(Z, Z);
+    const step = GRID_FT * PX_PER_FT;
+    const wx0 = Math.floor(-view.x / Z / step) * step;
+    const wx1 = wx0 + size.w / Z + step;
+    const wy0 = Math.floor(-view.y / Z / step) * step;
+    const wy1 = wy0 + size.h / Z + step;
+
+    for (let x = wx0; x <= wx1; x += step) {
       const major = Math.round(x / PX_PER_FT) % MAJOR_FT === 0;
       ctx.strokeStyle = major ? gridMajor : gridMinor;
-      ctx.lineWidth = major ? 1 : 0.5;
+      ctx.lineWidth = (major ? 1 : 0.5) / Z;
       ctx.beginPath();
-      ctx.moveTo(x + 0.5, 0);
-      ctx.lineTo(x + 0.5, size.h);
+      ctx.moveTo(x, wy0);
+      ctx.lineTo(x, wy1);
       ctx.stroke();
     }
-    for (let y = 0; y <= size.h; y += GRID_FT * PX_PER_FT) {
+    for (let y = wy0; y <= wy1; y += step) {
       const major = Math.round(y / PX_PER_FT) % MAJOR_FT === 0;
       ctx.strokeStyle = major ? gridMajor : gridMinor;
-      ctx.lineWidth = major ? 1 : 0.5;
+      ctx.lineWidth = (major ? 1 : 0.5) / Z;
       ctx.beginPath();
-      ctx.moveTo(0, y + 0.5);
-      ctx.lineTo(size.w, y + 0.5);
+      ctx.moveTo(wx0, y);
+      ctx.lineTo(wx1, y);
       ctx.stroke();
     }
 
@@ -556,7 +592,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
     // draw labels last, skipping any that would overlap an already placed one
     const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
     labels.forEach(l => {
-      ctx.font = '600 10px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `600 ${10 / Z}px ui-sans-serif, system-ui, sans-serif`;
       const w = ctx.measureText(l.text).width + 8;
       const h = 14;
       const box = { x: l.x - w / 2, y: l.y - h / 2, w, h };
@@ -580,11 +616,11 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       const cx = layout.points.reduce((s, p) => s + p.x, 0) / layout.points.length;
       const cy = layout.points.reduce((s, p) => s + p.y, 0) / layout.points.length;
       const label = `${takeoff.areaSqFt.toLocaleString()} SQ FT`;
-      ctx.font = '700 14px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `700 ${14 / Z}px ui-sans-serif, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillStyle = textColor;
       ctx.fillText(label, cx, cy);
-      ctx.font = '500 11px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `500 ${11 / Z}px ui-sans-serif, system-ui, sans-serif`;
       ctx.fillText(`${takeoff.widthFt.toFixed(1)} ft x ${takeoff.depthFt.toFixed(1)} ft envelope`, cx, cy + 16);
     }
 
@@ -599,7 +635,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = textColor;
-      ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `600 ${11 / Z}px ui-sans-serif, system-ui, sans-serif`;
       ctx.textAlign = 'left';
       ctx.fillText(`${(dist(last, hover) / PX_PER_FT).toFixed(1)} ft`, hover.x + 10, hover.y - 8);
     }
@@ -609,21 +645,21 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       const pointSelected = selection?.type === 'point' && selection.index === i;
       if (pointSelected) {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 10 / Z, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
         ctx.fill();
       }
-      const r = i === dragIndex || pointSelected ? 7 : 5;
+      const r = (i === dragIndex || pointSelected ? 7 : 5) / Z;
       ctx.beginPath();
       if (curves[i]) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
       else ctx.rect(p.x - r, p.y - r, r * 2, r * 2);
       ctx.fillStyle = pointSelected ? SELECT_COLOR : curves[i] ? '#0891b2' : i === 0 ? '#f97066' : wallColor;
       ctx.fill();
       ctx.strokeStyle = bg;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 / Z;
       ctx.stroke();
     });
-  }, [layout, segments, curves, size, hover, mode, dragIndex, frameColorHex, takeoff, selection]);
+  }, [layout, segments, curves, size, hover, mode, dragIndex, frameColorHex, takeoff, selection, view]);
 
 
   // ---- snapshot export (footprint plan for cart / quote) ----
@@ -649,7 +685,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   // ---- interaction ----
   const toLocal = (e: React.MouseEvent): EnclosurePoint => {
     const rect = canvasRef.current!.getBoundingClientRect();
-    const raw = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const raw = { x: (e.clientX - rect.left - view.x) / view.z, y: (e.clientY - rect.top - view.y) / view.z };
     return {
       x: Math.round(raw.x / PX_PER_FT) * PX_PER_FT,
       y: Math.round(raw.y / PX_PER_FT) * PX_PER_FT,
