@@ -7,6 +7,12 @@ import {
   type SiteShape,
 } from "@/components/blueprint/SiteDrawingBoard";
 import { computeNetPaverArea, isNonPaverSurface } from "@/utils/paverAreaLogic";
+import {
+  TRADE_LAYERS,
+  tradeFeaturePrice,
+  solarAreaPrice,
+  solarPanelsForArea,
+} from "@/lib/design/siteTradeLayers";
 
 const layerLabel = (id: SiteLayerId) =>
   SITE_LAYERS.find((l) => l.id === id)?.label ?? id;
@@ -20,11 +26,15 @@ const layerLabel = (id: SiteLayerId) =>
  */
 
 export const SITE_RATES: Partial<Record<SiteLayerId, number>> = {
-  pool: 280,
+  pool: TRADE_LAYERS.pool.rate ?? 280,
+  spa: TRADE_LAYERS.spa.rate ?? 320,
+  ledge: TRADE_LAYERS.ledge.rate ?? 320,
   deck: 10,
   patio: 10,
   driveway: 10,
   equipment: 10,
+  enclosure: TRADE_LAYERS.enclosure.rate ?? 34,
+  turf: TRADE_LAYERS.turf.rate ?? 12,
 };
 /** Aluminium pool barrier, per linear foot */
 export const FENCE_RATE_PER_FT = 50;
@@ -92,6 +102,48 @@ export function computeSiteEstimate(data: SitePlanData): SiteEstimate {
       amount: areas.fenceLinearFt * FENCE_RATE_PER_FT,
     });
   }
+
+  /* Solar arrays are priced by the panels that actually pack inside the drawn
+     roof plane (66% fill), not by raw square footage. */
+  const solarSqFt = Math.round(areas.byLayer.solar ?? 0);
+  if (solarSqFt > 0) {
+    const panels = solarPanelsForArea(solarSqFt);
+    lines.push({
+      label: "Solar array",
+      detail: `${panels} panels packed in ${solarSqFt.toLocaleString()} sq ft of roof plane`,
+      amount: solarAreaPrice(solarSqFt),
+    });
+  }
+
+  /* Additional features selected on each drawn element (cage roofs and screens,
+     turf infill, spa jets, pool heaters, solar batteries...). */
+  const sq = (data.pxPerFt || 1) ** 2;
+  data.shapes.forEach((shape) => {
+    if (!shape.features?.length) return;
+    const outline = siteShapeOutline(shape).map((p) => ({ x: p.x, y: p.y }));
+    let a = 0;
+    let lf = 0;
+    for (let i = 0; i < outline.length; i++) {
+      const p = outline[i];
+      const q = outline[(i + 1) % outline.length];
+      a += p.x * q.y - q.x * p.y;
+      if (shape.closed || i < outline.length - 1) lf += Math.hypot(q.x - p.x, q.y - p.y);
+    }
+    const sqFt = Math.abs(a / 2) / sq;
+    const linearFt = lf / (data.pxPerFt || 1);
+    const amount = tradeFeaturePrice(shape.layer, shape.features, sqFt, linearFt);
+    if (amount <= 0) return;
+    const spec = TRADE_LAYERS[shape.layer];
+    const names = shape.features
+      .map((id) => spec?.features.find((f) => f.id === id)?.label)
+      .filter(Boolean)
+      .join(", ");
+    lines.push({
+      label: `${layerLabel(shape.layer)} — options`,
+      detail: names,
+      amount,
+    });
+  });
 
   const poolShape = data.shapes
     .filter((s) => s.layer === "pool")
