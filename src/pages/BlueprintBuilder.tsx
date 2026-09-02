@@ -99,6 +99,12 @@ const PRINT_CSS = `
 }
 `;
 
+/** Where a solar/utility note belongs: the electrical sheet if the set has one. */
+const solarNoteSheet = (p: BlueprintProject): string => {
+  const codes = resolveSheets(p.jurisdictionId, p.projectTypeId).filter(c => !p.disabledSheets.includes(c));
+  return codes.find(c => /^E/i.test(c)) ?? codes[0] ?? 'A1';
+};
+
 const Field: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string }> = ({
   label,
   value,
