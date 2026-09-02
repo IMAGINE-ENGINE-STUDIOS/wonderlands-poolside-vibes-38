@@ -149,7 +149,24 @@ export const moonRead = (date: Date, latDeg: number, lngDeg: number): MoonRead =
   const elong = norm360(lon - sun.lon);
   const phase = elong / 360;
   const illumination = (1 - Math.cos(elong * RAD)) / 2;
-  const idx = Math.round(phase * 8) % 8;
+  /* Name from the lit fraction and the direction of travel, so a 65%-lit
+     waning moon reads as a waning gibbous rather than a quarter. */
+  const idx =
+    illumination < 0.02
+      ? 0
+      : illumination > 0.98
+        ? 4
+        : elong < 180
+          ? illumination < 0.46
+            ? 1
+            : illumination < 0.54
+              ? 2
+              : 3
+          : illumination > 0.54
+            ? 5
+            : illumination > 0.46
+              ? 6
+              : 7;
 
   return {
     ...hor,
