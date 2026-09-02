@@ -66,18 +66,22 @@ const sunPosition = (latDeg: number, decDeg: number, hourAngleDeg: number) => {
 const declination = (dayOfYear: number) =>
   23.45 * Math.sin(((360 / 365) * (dayOfYear - 81)) * RAD);
 
-/** Path geometry of the sun dome plate. */
-const DOME = { w: 360, h: 176, base: 148, left: 26, right: 334, top: 22 };
+/** Path geometry of the sun dome plate (a wide mission-console sheet). */
+const DOME = { w: 720, h: 320, base: 246, left: 54, right: 686, top: 34 };
+/** Azimuth window drawn across the plate: ENE → WNW. */
+const AZ_FROM = 52;
+const AZ_TO = 308;
 
 /** Project altitude/azimuth into the dome plate. */
 const project = (azimuth: number, altitude: number) => {
-  const span = 300 - 60; // azimuth 60°(ENE) → 300°(WNW)
-  const t = Math.max(0, Math.min(1, (azimuth - 60) / span));
+  const span = AZ_TO - AZ_FROM;
+  const t = Math.max(0, Math.min(1, (azimuth - AZ_FROM) / span));
   return {
     x: DOME.left + t * (DOME.right - DOME.left),
-    y: DOME.base - (Math.max(0, altitude) / 90) * (DOME.base - DOME.top),
+    y: DOME.base - (Math.max(-12, altitude) / 90) * (DOME.base - DOME.top),
   };
 };
+
 
 /** Sample a full arc for a declination, keeping only daylight positions. */
 const arcPoints = (lat: number, dec: number) => {
@@ -93,6 +97,591 @@ const arcPoints = (lat: number, dec: number) => {
 
 const toPath = (pts: { x: number; y: number }[]) =>
   pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+
+/* ── astronomical helpers ─────────────────────────────────────────────── */
+
+/** Kasten–Young relative optical air mass for a solar altitude in degrees. */
+const airMass = (altDeg: number) =>
+  altDeg <= 0
+    ? Infinity
+    : 1 / (Math.sin(altDeg * RAD) + 0.50572 * Math.pow(altDeg + 6.07995, -1.6364));
+
+/** Clear-sky direct normal irradiance (kW/m²) from air mass — Meinel model. */
+const dniFor = (altDeg: number) => {
+  const am = airMass(altDeg);
+  if (!Number.isFinite(am)) return 0;
+  return 1.353 * Math.pow(0.7, Math.pow(am, 0.678));
+};
+
+/** Hour angle of sunrise (deg) for a latitude and declination. */
+const sunriseHourAngle = (latDeg: number, decDeg: number) => {
+  const cosH = -Math.tan(latDeg * RAD) * Math.tan(decDeg * RAD);
+  return Math.acos(Math.max(-1, Math.min(1, cosH))) / RAD;
+};
+
+/** Day-of-year of a Date. */
+const dayOfYearOf = (d: Date) =>
+  Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 86_400_000);
+
+const clockLabel = (hours: number) => {
+  const h24 = ((hours % 24) + 24) % 24;
+  const h = Math.floor(h24);
+  const m = Math.round((h24 - h) * 60);
+  const mm = m === 60 ? 0 : m;
+  const hh = m === 60 ? (h + 1) % 24 : h;
+  const suffix = hh >= 12 ? "PM" : "AM";
+  const h12 = hh % 12 === 0 ? 12 : hh % 12;
+  return `${h12}:${String(mm).padStart(2, "0")} ${suffix}`;
+};
+
+const DAY_OF_MONTH_START = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+
+/** Deterministic pseudo-stars so the plate has a fixed night sky, not noise. */
+const STARS = Array.from({ length: 68 }, (_, i) => {
+  const a = Math.sin(i * 12.9898) * 43758.5453;
+  const b = Math.sin(i * 78.233) * 12345.6789;
+  return {
+    x: 12 + ((a - Math.floor(a)) * (DOME.w - 24)),
+    y: 8 + ((b - Math.floor(b)) * (DOME.base - 20)),
+    r: 0.35 + ((a - Math.floor(a)) * 0.9),
+    o: 0.15 + ((b - Math.floor(b)) * 0.5),
+  };
+});
+
+/**
+ * SunPathConsole — a hyperdetailed, scrubbable sky chart for the site latitude.
+ *
+ * The plate draws the annual sun corridor (between both solstices), the arc for
+ * the selected day with hour stations, civil twilight bands, the horizon and
+ * compass rose, plus a live solar marker. Below it, a mission-roadmap ribbon
+ * sequences the day's events (first light → sunrise → golden hour → solar noon
+ * → golden hour → sunset → last light) with a travelling progress head.
+ */
+const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }) => {
+  const now = React.useMemo(() => new Date(), []);
+  const [doy, setDoy] = React.useState(() => dayOfYearOf(now));
+  const [hours, setHours] = React.useState(() => now.getHours() + now.getMinutes() / 60);
+  const [playing, setPlaying] = React.useState(false);
+  const [station, setStation] = React.useState<number | null>(null);
+
+  /* Play sweeps the day forward in solar time, then rolls into the next day. */
+  React.useEffect(() => {
+    if (!playing) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    let last = performance.now();
+    const tick = (t: number) => {
+      const dt = (t - last) / 1000;
+      last = t;
+      setHours((h) => {
+        const next = h + dt * 3; // 3 solar hours per second
+        if (next >= 24) {
+          setDoy((d) => (d % 365) + 1);
+          return next - 24;
+        }
+        return next;
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [playing]);
+
+  const dec = React.useMemo(() => declination(doy), [doy]);
+
+  const dayArc = React.useMemo(() => arcPoints(lat, dec), [lat, dec]);
+  const summer = React.useMemo(() => arcPoints(lat, declination(172)), [lat]);
+  const winter = React.useMemo(() => arcPoints(lat, declination(355)), [lat]);
+  const equinox = React.useMemo(() => arcPoints(lat, declination(80)), [lat]);
+
+  /* Hour stations along today's arc — the "waypoints" of the flight path. */
+  const stations = React.useMemo(() => {
+    const out: { h: number; x: number; y: number; altitude: number; azimuth: number }[] = [];
+    for (let h = 4; h <= 20; h += 1) {
+      const pos = sunPosition(lat, dec, (h - 12) * 15);
+      if (pos.altitude < 1.5) continue;
+      out.push({ h, ...project(pos.azimuth, pos.altitude), ...pos });
+    }
+    return out;
+  }, [lat, dec]);
+
+  const sun = React.useMemo(() => {
+    const pos = sunPosition(lat, dec, (hours - 12) * 15);
+    return { ...pos, ...project(pos.azimuth, pos.altitude) };
+  }, [lat, dec, hours]);
+
+  const H = React.useMemo(() => sunriseHourAngle(lat, dec), [lat, dec]);
+  const sunrise = 12 - H / 15;
+  const sunset = 12 + H / 15;
+  const daylight = sunset - sunrise;
+  const civilH = React.useMemo(() => {
+    const cosH =
+      (Math.sin(-6 * RAD) - Math.sin(lat * RAD) * Math.sin(dec * RAD)) /
+      (Math.cos(lat * RAD) * Math.cos(dec * RAD));
+    return Math.acos(Math.max(-1, Math.min(1, cosH))) / RAD;
+  }, [lat, dec]);
+  const firstLight = 12 - civilH / 15;
+  const lastLight = 12 + civilH / 15;
+
+  const noonAlt = 90 - Math.abs(lat - dec);
+  const readAlt = station !== null ? stations[station].altitude : sun.altitude;
+  const readAz = station !== null ? stations[station].azimuth : sun.azimuth;
+  const readHour = station !== null ? stations[station].h : hours;
+  const dni = dniFor(readAlt);
+  const ghi = Math.max(0, dni * Math.sin(Math.max(0, readAlt) * RAD) * 1.08);
+  const am = airMass(readAlt);
+  const shadow = readAlt > 1 ? 1 / Math.tan(readAlt * RAD) : Infinity;
+
+  const monthIdx = React.useMemo(() => {
+    let m = 0;
+    DAY_OF_MONTH_START.forEach((start, i) => {
+      if (doy >= start) m = i;
+    });
+    return m;
+  }, [doy]);
+
+  /* Annual corridor: summer arc out, winter arc back. */
+  const corridor = React.useMemo(() => {
+    if (summer.length < 2 || winter.length < 2) return "";
+    return `${toPath(summer)} L${[...winter].reverse().map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L")} Z`;
+  }, [summer, winter]);
+
+  const sunriseX = project(sunPosition(lat, dec, -H).azimuth, 0).x;
+  const sunsetX = project(sunPosition(lat, dec, H).azimuth, 0).x;
+
+  const roadmap = [
+    { l: "First light", t: firstLight, tone: "muted" as const },
+    { l: "Sunrise", t: sunrise, tone: "warm" as const },
+    { l: "Golden hour ends", t: sunrise + 1, tone: "muted" as const },
+    { l: "Solar noon", t: 12, tone: "peak" as const },
+    { l: "Golden hour", t: sunset - 1, tone: "muted" as const },
+    { l: "Sunset", t: sunset, tone: "warm" as const },
+    { l: "Last light", t: lastLight, tone: "muted" as const },
+  ];
+  const progress = Math.max(0, Math.min(1, (hours - firstLight) / (lastLight - firstLight)));
+
+  const chip =
+    "rounded-lg border border-white/10 bg-background/25 px-2.5 py-1.5 backdrop-blur-md";
+
+  return (
+    <div className={glass}>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(120% 140% at 50% 130%, rgba(249,115,22,0.16), transparent 58%), radial-gradient(80% 90% at 6% -10%, rgba(79,70,229,0.22), transparent 62%), radial-gradient(70% 80% at 96% 0%, rgba(56,189,248,0.12), transparent 60%)",
+        }}
+      />
+
+      {/* header */}
+      <div className="relative flex flex-wrap items-end justify-between gap-x-5 gap-y-2">
+        <div>
+          <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
+            Solar ephemeris · sky console
+          </p>
+          <p className="mt-1 text-sm font-light">
+            {`${MONTH_NAMES[monthIdx]} ${doy - DAY_OF_MONTH_START[monthIdx] + 1} · ${clockLabel(readHour)}`}
+            <span className="text-muted-foreground">{` · lat ${lat.toFixed(2)}°`}</span>
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 text-[9px] uppercase tracking-[0.22em]">
+          <button
+            type="button"
+            onClick={() => setPlaying((p) => !p)}
+            className="rounded-full border border-white/20 bg-background/30 px-3 py-1.5 backdrop-blur-md transition hover:border-amber-300/60 hover:text-amber-200"
+          >
+            {playing ? "Pause transit" : "Run transit"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const d = new Date();
+              setPlaying(false);
+              setDoy(dayOfYearOf(d));
+              setHours(d.getHours() + d.getMinutes() / 60);
+              setStation(null);
+            }}
+            className="rounded-full border border-white/15 bg-background/20 px-3 py-1.5 text-muted-foreground backdrop-blur-md transition hover:text-foreground"
+          >
+            Now
+          </button>
+        </div>
+      </div>
+
+      {/* plate */}
+      <svg
+        viewBox={`0 0 ${DOME.w} ${DOME.h}`}
+        className="relative mt-3 w-full select-none"
+        role="img"
+        aria-label={`Sun path chart for latitude ${lat.toFixed(2)} degrees on day ${doy}`}
+      >
+        <defs>
+          <linearGradient id="wlSkyDome" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1e1b4b" stopOpacity="0.45" />
+            <stop offset="60%" stopColor="#0f172a" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#f97316" stopOpacity="0.1" />
+          </linearGradient>
+          <linearGradient id="wlCorridor" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#f97316" stopOpacity="0.04" />
+          </linearGradient>
+          <linearGradient id="wlIntensity" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.4" />
+            <stop offset="60%" stopColor="#f97316" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="wlTwilight" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#0f172a" stopOpacity="0.05" />
+          </linearGradient>
+          <filter id="wlSunGlow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="5" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* sky field */}
+        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlSkyDome)" />
+        <g aria-hidden opacity={sun.altitude > 0 ? 0.35 : 0.9} className="transition-opacity duration-700">
+          {STARS.map((s, i) => (
+            <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#e0e7ff" opacity={s.o} />
+          ))}
+        </g>
+
+        {/* twilight wedges outside the daylight window */}
+        <rect
+          x={DOME.left}
+          y={DOME.top}
+          width={Math.max(0, sunriseX - DOME.left)}
+          height={DOME.base - DOME.top}
+          fill="url(#wlTwilight)"
+        />
+        <rect
+          x={sunsetX}
+          y={DOME.top}
+          width={Math.max(0, DOME.right - sunsetX)}
+          height={DOME.base - DOME.top}
+          fill="url(#wlTwilight)"
+        />
+
+        {/* altitude grid every 15° */}
+        {[0, 15, 30, 45, 60, 75, 90].map((a) => {
+          const y = DOME.base - (a / 90) * (DOME.base - DOME.top);
+          const major = a % 30 === 0;
+          return (
+            <g key={a}>
+              <line
+                x1={DOME.left}
+                x2={DOME.right}
+                y1={y}
+                y2={y}
+                stroke="currentColor"
+                strokeOpacity={a === 0 ? 0.34 : major ? 0.12 : 0.07}
+                strokeWidth={a === 0 ? 1.1 : 0.6}
+                strokeDasharray={a === 0 ? undefined : major ? "3 6" : "1 7"}
+              />
+              <text x={10} y={y + 3} className="fill-muted-foreground" style={{ fontSize: 8, letterSpacing: 1 }}>
+                {a}°
+              </text>
+            </g>
+          );
+        })}
+
+        {/* compass rose along the horizon */}
+        {[
+          { az: 60, l: "ENE" },
+          { az: 90, l: "E" },
+          { az: 120, l: "ESE" },
+          { az: 150, l: "SSE" },
+          { az: 180, l: "S" },
+          { az: 210, l: "SSW" },
+          { az: 240, l: "WSW" },
+          { az: 270, l: "W" },
+          { az: 300, l: "WNW" },
+        ].map(({ az, l }) => {
+          const { x } = project(az, 0);
+          const cardinal = l.length === 1;
+          return (
+            <g key={l}>
+              <line
+                x1={x}
+                x2={x}
+                y1={DOME.top}
+                y2={DOME.base}
+                stroke="currentColor"
+                strokeOpacity={cardinal ? 0.1 : 0.05}
+                strokeWidth={0.6}
+              />
+              <line x1={x} x2={x} y1={DOME.base} y2={DOME.base + (cardinal ? 7 : 4)} stroke="currentColor" strokeOpacity={0.3} strokeWidth={0.8} />
+              <text
+                x={x}
+                y={DOME.base + 20}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                style={{ fontSize: cardinal ? 9 : 7, letterSpacing: 1.6, opacity: cardinal ? 1 : 0.7 }}
+              >
+                {l}
+              </text>
+              <text x={x} y={DOME.base + 31} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6, letterSpacing: 1 }}>
+                {`${az}°`}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* annual corridor between the solstices */}
+        {corridor && <path d={corridor} fill="url(#wlCorridor)" stroke="none" />}
+
+        {/* irradiance wash below today's arc */}
+        {dayArc.length > 1 && (
+          <path
+            d={`${toPath(dayArc)} L${dayArc[dayArc.length - 1].x.toFixed(1)},${DOME.base} L${dayArc[0].x.toFixed(1)},${DOME.base} Z`}
+            fill="url(#wlIntensity)"
+          />
+        )}
+
+        {/* reference arcs */}
+        <path d={toPath(summer)} fill="none" stroke="#fbbf24" strokeWidth={1} strokeOpacity={0.5} strokeDasharray="5 5" />
+        <path d={toPath(equinox)} fill="none" stroke="#f97316" strokeWidth={0.9} strokeOpacity={0.4} strokeDasharray="5 5" />
+        <path d={toPath(winter)} fill="none" stroke="currentColor" strokeWidth={0.9} strokeOpacity={0.3} strokeDasharray="5 5" />
+
+        {/* today's flight path */}
+        <path
+          className="wl-arc"
+          d={toPath(dayArc)}
+          fill="none"
+          stroke="#fde68a"
+          strokeWidth={2}
+          strokeLinecap="round"
+          filter="url(#wlSunGlow)"
+        />
+
+        {/* hour stations */}
+        {stations.map((s, i) => (
+          <g
+            key={s.h}
+            onPointerEnter={() => setStation(i)}
+            onPointerLeave={() => setStation(null)}
+            style={{ cursor: "pointer" }}
+          >
+            <circle cx={s.x} cy={s.y} r={9} fill="transparent" />
+            <circle
+              cx={s.x}
+              cy={s.y}
+              r={station === i ? 3.4 : 1.9}
+              fill={station === i ? "#fde68a" : "#fbbf24"}
+              opacity={station === i ? 1 : 0.75}
+              className="transition-all duration-200"
+            />
+            {(s.h % 2 === 0 || station === i) && (
+              <text
+                x={s.x}
+                y={s.y - 8}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                style={{ fontSize: 6.8, letterSpacing: 0.8 }}
+              >
+                {clockLabel(s.h).replace(":00", "")}
+              </text>
+            )}
+          </g>
+        ))}
+
+        {/* horizon terminators */}
+        {[
+          { x: sunriseX, l: `SUNRISE ${clockLabel(sunrise)}`, anchor: "start" as const },
+          { x: sunsetX, l: `SUNSET ${clockLabel(sunset)}`, anchor: "end" as const },
+        ].map((t) => (
+          <g key={t.l}>
+            <line x1={t.x} x2={t.x} y1={DOME.base - 26} y2={DOME.base} stroke="#fbbf24" strokeOpacity={0.6} strokeWidth={0.9} strokeDasharray="2 3" />
+            <text
+              x={t.anchor === "start" ? t.x + 4 : t.x - 4}
+              y={DOME.base - 30}
+              textAnchor={t.anchor}
+              className="fill-muted-foreground"
+              style={{ fontSize: 6.4, letterSpacing: 1.4 }}
+            >
+              {t.l}
+            </text>
+          </g>
+        ))}
+
+        {/* solar noon column */}
+        {(() => {
+          const p = project(180, noonAlt);
+          return (
+            <g>
+              <line x1={p.x} x2={p.x} y1={p.y} y2={DOME.base} stroke="#fde68a" strokeOpacity={0.28} strokeWidth={0.8} strokeDasharray="2 4" />
+              <text x={p.x} y={p.y - 12} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6.6, letterSpacing: 1.4 }}>
+                {`CULMINATION ${noonAlt.toFixed(1)}°`}
+              </text>
+            </g>
+          );
+        })()}
+
+        {/* live sun with ray crown and ground track */}
+        {sun.altitude > 0 && (
+          <g>
+            <line x1={sun.x} x2={sun.x} y1={sun.y} y2={DOME.base} stroke="#fbbf24" strokeOpacity={0.3} strokeWidth={0.8} />
+            <line x1={DOME.left} x2={sun.x} y1={sun.y} y2={sun.y} stroke="#fbbf24" strokeOpacity={0.18} strokeWidth={0.6} strokeDasharray="2 4" />
+            <g filter="url(#wlSunGlow)">
+              {Array.from({ length: 12 }, (_, i) => {
+                const a = (i * 30) * RAD;
+                return (
+                  <line
+                    key={i}
+                    x1={sun.x + Math.cos(a) * 7}
+                    y1={sun.y + Math.sin(a) * 7}
+                    x2={sun.x + Math.cos(a) * 12}
+                    y2={sun.y + Math.sin(a) * 12}
+                    stroke="#fbbf24"
+                    strokeOpacity={0.5}
+                    strokeWidth={0.9}
+                  />
+                );
+              })}
+              <circle className="wl-pulse" cx={sun.x} cy={sun.y} r={8} fill="#fbbf24" opacity={0.35} />
+              <circle cx={sun.x} cy={sun.y} r={4.4} fill="#fef3c7" />
+            </g>
+            <circle cx={sun.x} cy={DOME.base} r={2} fill="#f97316" opacity={0.7} />
+          </g>
+        )}
+        {sun.altitude <= 0 && (
+          <text x={DOME.w / 2} y={DOME.top + 14} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8, letterSpacing: 2 }}>
+            SUN BELOW HORIZON · ARRAY IDLE
+          </text>
+        )}
+      </svg>
+
+      {/* mission roadmap ribbon */}
+      <div className="relative mt-4">
+        <div className="relative h-[3px] w-full rounded-full bg-foreground/10">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400/60 via-amber-300 to-orange-400"
+            style={{ width: `${progress * 100}%` }}
+          />
+          <span
+            className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_12px_2px_rgba(251,191,36,0.7)]"
+            style={{ left: `${progress * 100}%` }}
+          />
+        </div>
+        <ol className="mt-2 grid grid-cols-4 gap-1.5 sm:grid-cols-7">
+          {roadmap.map((r) => {
+            const passed = hours >= r.t;
+            return (
+              <li
+                key={r.l}
+                className={`rounded-lg border px-2 py-1.5 backdrop-blur-md transition ${
+                  passed ? "border-amber-300/35 bg-amber-300/10" : "border-white/10 bg-background/20"
+                }`}
+              >
+                <p className="text-[7.5px] uppercase tracking-[0.16em] text-muted-foreground">{r.l}</p>
+                <p
+                  className={`mt-0.5 text-[10px] font-light leading-none ${
+                    r.tone === "peak" ? "text-amber-200" : ""
+                  }`}
+                >
+                  {clockLabel(r.t)}
+                </p>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
+      {/* telemetry read-out */}
+      <dl className="relative mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
+        {[
+          { k: "Altitude", v: `${Math.max(0, readAlt).toFixed(1)}°` },
+          { k: "Azimuth", v: `${readAz.toFixed(0)}° ${compassLabel(readAz)}` },
+          { k: "Air mass", v: Number.isFinite(am) ? `${am.toFixed(2)} AM` : "—" },
+          { k: "Direct beam", v: `${dni.toFixed(2)} kW/m²` },
+          { k: "Global horiz.", v: `${ghi.toFixed(2)} kW/m²` },
+          { k: "Shadow ratio", v: Number.isFinite(shadow) ? `${shadow.toFixed(1)}×` : "—" },
+        ].map((t) => (
+          <div key={t.k} className={chip}>
+            <dt className="text-[7.5px] uppercase tracking-[0.24em] text-muted-foreground">{t.k}</dt>
+            <dd className="mt-0.5 text-[11px] font-light tabular-nums leading-none">{t.v}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {/* scrubbers */}
+      <div className="relative mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="flex items-baseline justify-between text-[8px] uppercase tracking-[0.24em] text-muted-foreground">
+            <span>Day of year</span>
+            <span className="tabular-nums">{`DOY ${doy} · dec ${dec >= 0 ? "+" : ""}${dec.toFixed(1)}°`}</span>
+          </span>
+          <input
+            type="range"
+            min={1}
+            max={365}
+            step={1}
+            value={doy}
+            onChange={(e) => setDoy(Number(e.target.value))}
+            className="mt-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-foreground/15 accent-amber-300"
+            aria-label="Day of year"
+          />
+          <span className="mt-2 flex flex-wrap gap-1">
+            {DAY_OF_MONTH_START.map((start, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setDoy(start)}
+                className={`rounded-md border px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] transition ${
+                  monthIdx === i
+                    ? "border-amber-300/50 bg-amber-300/15 text-amber-100"
+                    : "border-white/10 bg-background/20 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {MONTH_NAMES[i].slice(0, 3)}
+              </button>
+            ))}
+          </span>
+        </label>
+
+        <label className="block">
+          <span className="flex items-baseline justify-between text-[8px] uppercase tracking-[0.24em] text-muted-foreground">
+            <span>Solar clock</span>
+            <span className="tabular-nums">{`${daylight.toFixed(2)} h daylight`}</span>
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={24}
+            step={0.05}
+            value={hours}
+            onChange={(e) => {
+              setPlaying(false);
+              setHours(Number(e.target.value));
+            }}
+            className="mt-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-foreground/15 accent-amber-300"
+            aria-label="Hour of day"
+          />
+          <span className="mt-2 flex flex-wrap gap-1.5 text-[8px] uppercase tracking-[0.16em] text-muted-foreground">
+            {[
+              { c: "#fde68a", l: "Selected day" },
+              { c: "#fbbf24", l: "June solstice" },
+              { c: "#f97316", l: "Equinox" },
+              { c: "currentColor", l: "December solstice" },
+            ].map((k) => (
+              <span key={k.l} className="flex items-center gap-1.5 rounded-md border border-white/10 bg-background/20 px-1.5 py-0.5">
+                <span className="h-[2px] w-3.5" style={{ backgroundColor: k.c, opacity: k.c === "currentColor" ? 0.45 : 1 }} />
+                {k.l}
+              </span>
+            ))}
+          </span>
+        </label>
+      </div>
+    </div>
+  );
+};
+
 
 export const SolarPerformanceGraphics: React.FC<Props> = ({
   production,
@@ -119,37 +708,9 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
   const R = 54;
   const CIRC = 2 * Math.PI * R;
 
-  /* ── sun path for this latitude ── */
+  /* ── site latitude drives the astronomical console ── */
   const lat = latitude || 27;
-  const summer = React.useMemo(() => arcPoints(lat, declination(172)), [lat]);
-  const equinox = React.useMemo(() => arcPoints(lat, declination(80)), [lat]);
-  const winter = React.useMemo(() => arcPoints(lat, declination(355)), [lat]);
 
-  const today = React.useMemo(() => {
-    const now = new Date();
-    const doy = Math.floor(
-      (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000,
-    );
-    const hours = now.getHours() + now.getMinutes() / 60;
-    const dec = declination(doy);
-    const pos = sunPosition(lat, dec, (hours - 12) * 15);
-    return { ...pos, ...project(pos.azimuth, pos.altitude), dec, hours };
-  }, [lat]);
-
-  const noonAlt = React.useMemo(
-    () => Math.round(Math.max(...summer.map((p) => p.altitude))),
-    [summer],
-  );
-  const winterNoonAlt = React.useMemo(
-    () => Math.round(Math.max(...winter.map((p) => p.altitude))),
-    [winter],
-  );
-  const daylight = React.useMemo(() => {
-    // daylight hours today: hour angle at sunrise
-    const cosH = -Math.tan(lat * RAD) * Math.tan(today.dec * RAD);
-    const H = Math.acos(Math.max(-1, Math.min(1, cosH))) / RAD;
-    return (2 * H) / 15;
-  }, [lat, today.dec]);
 
   const contributions = React.useMemo(
     () =>
@@ -287,128 +848,9 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* ── sun path dome ── */}
-      <div className={glass}>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-70"
-          style={{
-            background:
-              "radial-gradient(90% 120% at 50% 120%, rgba(249,115,22,0.14), transparent 62%), radial-gradient(70% 80% at 8% 0%, rgba(99,102,241,0.14), transparent 60%)",
-          }}
-        />
-        <div className="relative">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-              Sun path &amp; intensity
-            </p>
-            <p className="text-[10px] text-muted-foreground">
-              {`Solar noon ${noonAlt}° in June · ${winterNoonAlt}° in December · ${daylight.toFixed(1)} h daylight today`}
-            </p>
-          </div>
+      {/* ── astronomical sun-path console ── */}
+      <SunPathConsole lat={lat} glass={glass} />
 
-          <svg
-            viewBox={`0 0 ${DOME.w} ${DOME.h}`}
-            className="mt-3 w-full"
-            role="img"
-            aria-label={`Sun path arcs for latitude ${lat.toFixed(2)} degrees, with today's solar position`}
-          >
-            <defs>
-              <linearGradient id="wlIntensity" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.42" />
-                <stop offset="55%" stopColor="#f97316" stopOpacity="0.16" />
-                <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
-              </linearGradient>
-              <filter id="wlSunGlow" x="-60%" y="-60%" width="220%" height="220%">
-                <feGaussianBlur stdDeviation="4" result="b" />
-                <feMerge>
-                  <feMergeNode in="b" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
-            {/* altitude grid */}
-            {[0, 30, 60, 90].map((a) => {
-              const y = DOME.base - (a / 90) * (DOME.base - DOME.top);
-              return (
-                <g key={a}>
-                  <line
-                    x1={DOME.left}
-                    x2={DOME.right}
-                    y1={y}
-                    y2={y}
-                    stroke="currentColor"
-                    strokeOpacity={a === 0 ? 0.3 : 0.1}
-                    strokeWidth={a === 0 ? 1 : 0.6}
-                    strokeDasharray={a === 0 ? undefined : "2 5"}
-                  />
-                  <text x={4} y={y + 3} className="fill-muted-foreground" style={{ fontSize: 7 }}>
-                    {a}°
-                  </text>
-                </g>
-              );
-            })}
-
-            {/* azimuth ticks */}
-            {[
-              { az: 90, l: "E" },
-              { az: 135, l: "SE" },
-              { az: 180, l: "S" },
-              { az: 225, l: "SW" },
-              { az: 270, l: "W" },
-            ].map(({ az, l }) => {
-              const { x } = project(az, 0);
-              return (
-                <g key={l}>
-                  <line x1={x} x2={x} y1={DOME.top} y2={DOME.base} stroke="currentColor" strokeOpacity={0.07} strokeWidth={0.6} />
-                  <text x={x} y={DOME.base + 14} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 7.5, letterSpacing: 1.5 }}>
-                    {l}
-                  </text>
-                </g>
-              );
-            })}
-
-            {/* irradiance wash under the summer arc */}
-            {summer.length > 1 && (
-              <path
-                d={`${toPath(summer)} L${summer[summer.length - 1].x.toFixed(1)},${DOME.base} L${summer[0].x.toFixed(1)},${DOME.base} Z`}
-                fill="url(#wlIntensity)"
-              />
-            )}
-
-            {/* arcs */}
-            <path className="wl-arc" style={{ animationDelay: "0.1s" }} d={toPath(summer)} fill="none" stroke="#fbbf24" strokeWidth={1.6} strokeLinecap="round" />
-            <path className="wl-arc" style={{ animationDelay: "0.3s" }} d={toPath(equinox)} fill="none" stroke="#f97316" strokeWidth={1.3} strokeLinecap="round" strokeOpacity={0.85} />
-            <path className="wl-arc" style={{ animationDelay: "0.5s" }} d={toPath(winter)} fill="none" stroke="currentColor" strokeOpacity={0.45} strokeWidth={1.1} strokeDasharray="4 4" strokeLinecap="round" />
-
-            {/* live sun */}
-            {today.altitude > 0 ? (
-              <g filter="url(#wlSunGlow)">
-                <circle className="wl-pulse" cx={today.x} cy={today.y} r={6} fill="#fbbf24" opacity={0.4} />
-                <circle cx={today.x} cy={today.y} r={3.4} fill="#fde68a" />
-              </g>
-            ) : (
-              <text x={DOME.w / 2} y={DOME.top + 6} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 7.5, letterSpacing: 1.6 }}>
-                NIGHT · SUN BELOW HORIZON
-              </text>
-            )}
-          </svg>
-
-          <ul className="mt-3 grid grid-cols-3 gap-2 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-            {[
-              { c: "#fbbf24", l: "June solstice" },
-              { c: "#f97316", l: "Equinox" },
-              { c: "currentColor", l: "December solstice" },
-            ].map((k) => (
-              <li key={k.l} className="flex items-center gap-2 rounded-lg border border-white/10 bg-background/20 px-2 py-1.5 backdrop-blur-md">
-                <span className="h-[2px] w-4 shrink-0" style={{ backgroundColor: k.c, opacity: k.c === "currentColor" ? 0.45 : 1 }} />
-                <span className="truncate">{k.l}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
 
       {/* ── monthly production ── */}
       <div className={glass}>
