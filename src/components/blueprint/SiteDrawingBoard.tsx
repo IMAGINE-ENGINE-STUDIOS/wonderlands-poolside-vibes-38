@@ -1958,16 +1958,20 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
               className="h-1 w-20 cursor-pointer accent-primary disabled:opacity-40"
             />
           </label>
-          {ctrl(
-            <>
-              <Scissors className="h-3.5 w-3.5" /> {selectedShape.noCrop ? 'Uncut' : 'Cut around overlaps'}
-            </>,
-            {
-              on: !selectedShape.noCrop,
-              onClick: () => patchSelected(sh => ({ ...sh, noCrop: !sh.noCrop })),
-              title: 'Overlapping pools, spas, ledges and buildings cut this element',
-            },
-          )}
+          {/* Cutting is automatic; this is only the rare override for a surface
+              the crew really does run underneath something. */}
+          {CROPPABLE_LAYERS.has(selectedShape.layer)
+            ? ctrl(
+                <>
+                  <Scissors className="h-3.5 w-3.5" /> {selectedShape.noCrop ? 'Drawn uncut' : 'Auto-cut around water'}
+                </>,
+                {
+                  on: !selectedShape.noCrop,
+                  onClick: () => patchSelected(sh => ({ ...sh, noCrop: !sh.noCrop })),
+                  title: 'Pools, spas, tanning ledges and structures automatically open this surface — switch off to lay it underneath',
+                },
+              )
+            : null}
         </div>
       </div>
     ) : null;
