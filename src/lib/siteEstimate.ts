@@ -41,7 +41,19 @@ export const SITE_RATES: Partial<Record<SiteLayerId, number>> = {
 /** Aluminium pool barrier, per linear foot */
 export const FENCE_RATE_PER_FT = 50;
 
-export type SiteEstimateLine = { label: string; detail: string; amount: number };
+export type SiteEstimateLine = {
+  label: string;
+  detail: string;
+  amount: number;
+  /** Option photograph, so the estimate can print the same tile as the board */
+  image?: string;
+  /** Drawn element this line belongs to — an X on the line erases it */
+  shapeId?: string;
+  /** Selected option this line prices — an X on the line takes the option off */
+  featureId?: string;
+  /** Layer whose base rate this line prices */
+  layer?: SiteLayerId;
+};
 
 export type SiteEstimate = {
   lines: SiteEstimateLine[];
