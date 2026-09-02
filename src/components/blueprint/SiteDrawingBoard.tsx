@@ -217,6 +217,19 @@ export const CANVAS_H = 720;
  * dimensions at a workable drafting scale (~1/2" = 1'-0" on screen).
  */
 export const DEFAULT_VIEW_HEIGHT_FT = 28;
+
+/**
+ * Default camera altitude, in real feet of frontage across the sheet.
+ *
+ * This board is used above all to lay out pools and the patio around them. A
+ * 16 x 36 shell with a generous 12 ft deck on every side measures about 60 x 40
+ * ft, so 70 ft across (about 43 ft deep on this sheet) opens with the whole
+ * pool-and-patio composition on the paper, dimensions legible, and still leaves
+ * room to draw. Whole-lot work — the 160 ft frontages and 400 ft depths our
+ * customers own — is one press of Fit away, and the camera the customer leaves
+ * behind is remembered for every board.
+ */
+export const DEFAULT_VIEW_WIDTH_FT = 70;
 export const DEFAULT_PX_PER_FT = +(CANVAS_H / DEFAULT_VIEW_HEIGHT_FT).toFixed(2); // 25.7 px/ft
 
 const layerMeta = (id: SiteLayerId) => SITE_LAYERS.find(l => l.id === id) || SITE_LAYERS[0];
@@ -384,7 +397,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const fitView = React.useCallback(() => {
     const pts = data.shapes.flatMap(s => s.points);
     if (!pts.length) {
-      const wantFt = defaultViewWidthFt ?? CANVAS_W / pxPerFt;
+      const wantFt = defaultViewWidthFt ?? DEFAULT_VIEW_WIDTH_FT;
       const z = clampZ(CANVAS_W / (wantFt * pxPerFt));
       setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
       return;
@@ -407,7 +420,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   React.useEffect(() => {
     if (framed.current) return;
     framed.current = true;
-    const wantFt = boardAltitudeFtOr(defaultViewWidthFt ?? CANVAS_W / pxPerFt);
+    const wantFt = boardAltitudeFtOr(defaultViewWidthFt ?? DEFAULT_VIEW_WIDTH_FT);
     const z = clampZ(CANVAS_W / (wantFt * pxPerFt));
     setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
   }, [defaultViewWidthFt, pxPerFt]);
@@ -1293,7 +1306,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       </span>
       {ctrl(<Maximize2 className="h-3.5 w-3.5" />, {
         onClick: fitView,
-        title: data.shapes.length ? 'Fit the drawing to the sheet' : `Fit ${Math.round(defaultViewWidthFt ?? CANVAS_W / pxPerFt)} ft of land`,
+        title: data.shapes.length ? 'Fit the drawing to the sheet' : `Fit ${Math.round(defaultViewWidthFt ?? DEFAULT_VIEW_WIDTH_FT)} ft of land`,
       })}
 
     </div>
