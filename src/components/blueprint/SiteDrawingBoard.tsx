@@ -125,6 +125,55 @@ export const siteShapeOutline = (shape: SiteShape) =>
     ? samplePath(shape.points, shape.closed, normalizeFlags(shape.curves, shape.points.length))
     : shape.points;
 
+/**
+ * The surface option selected on an element — the paver on a deck, the blade on
+ * a turf field, the finish on a pool. It is the option that must be *visible* on
+ * the sheet, so the board paints the element with its real catalogue photograph
+ * instead of a flat colour. Exclusive options win (a surface is one choice).
+ */
+export const shapeSurfaceFeature = (shape: SiteShape): TradeFeature | undefined => {
+  const spec = TRADE_LAYERS[shape.layer];
+  if (!spec || !shape.features?.length) return undefined;
+  const picked = shape.features
+    .map(id => spec.features.find(f => f.id === id))
+    .filter((f): f is TradeFeature => !!f && !!f.image);
+  return picked.find(f => f.exclusive) ?? picked[0];
+};
+
+/* Catalogue photographs used as canvas fills, loaded once and shared by every
+   board on the page. `crossOrigin` keeps the sheet exportable (toDataURL). */
+const surfaceImages = new Map<string, HTMLImageElement>();
+const surfaceLoading = new Set<string>();
+const surfaceImage = (src: string, onLoad: () => void): HTMLImageElement | null => {
+  const hit = surfaceImages.get(src);
+  if (hit) return hit;
+  if (!surfaceLoading.has(src)) {
+    surfaceLoading.add(src);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      surfaceImages.set(src, img);
+      surfaceLoading.delete(src);
+      onLoad();
+    };
+    img.onerror = () => surfaceLoading.delete(src);
+    img.src = src;
+  }
+  return null;
+};
+
+/** Is a point inside the polygon? Lets a click anywhere on the deck select it. */
+const pointInPolygon = (pts: { x: number; y: number }[], p: { x: number; y: number }) => {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const a = pts[i];
+    const b = pts[j];
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y || 1e-9) + a.x) inside = !inside;
+  }
+  return inside;
+};
+
+
 
 /** Imported raster plan placed behind the drawing, used to trace over */
 export interface SiteUnderlay {
