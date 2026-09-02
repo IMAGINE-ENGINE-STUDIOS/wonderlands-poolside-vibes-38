@@ -1025,17 +1025,28 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         },
       )}
       {ctrl(<Grid3X3 className="h-3.5 w-3.5" />, { on: showGrid, onClick: () => setShowGrid(g => !g), title: 'Grid' })}
-      {ctrl(<ZoomOut className="h-3.5 w-3.5" />, {
-        onClick: () => onChange({ ...data, pxPerFt: Math.max(1, +(data.pxPerFt - 0.5).toFixed(1)) }),
-        title: 'Zoom out',
-      })}
-      <span className="w-20 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-        {data.pxPerFt} px/ft
+      {/* REAL zoom — a view transform over the sheet. The drafting scale
+          (px per foot) never changes, so nothing a customer drew is resized;
+          the camera simply moves closer or further from the paper. */}
+      {ctrl(<ZoomOut className="h-3.5 w-3.5" />, { onClick: () => zoomBy(1 / 1.25), title: 'Zoom out' })}
+      <input
+        type="range"
+        min={-100}
+        max={100}
+        value={zoomSlider}
+        onChange={e => setZoomFromSlider(+e.target.value)}
+        aria-label="Zoom"
+        className="h-1 w-28 cursor-pointer appearance-none rounded-full bg-foreground/15 accent-foreground"
+      />
+      {ctrl(<ZoomIn className="h-3.5 w-3.5" />, { onClick: () => zoomBy(1.25), title: 'Zoom in' })}
+      <span className="w-24 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+        {Math.round(viewWidthFt).toLocaleString()} ft across
       </span>
-      {ctrl(<ZoomIn className="h-3.5 w-3.5" />, {
-        onClick: () => onChange({ ...data, pxPerFt: Math.min(24, +(data.pxPerFt + 0.5).toFixed(1)) }),
-        title: 'Zoom in',
+      {ctrl(<Maximize2 className="h-3.5 w-3.5" />, {
+        onClick: fitView,
+        title: data.shapes.length ? 'Fit the drawing to the sheet' : `Fit ${Math.round(defaultViewWidthFt ?? CANVAS_W / pxPerFt)} ft of land`,
       })}
+
     </div>
   );
 
