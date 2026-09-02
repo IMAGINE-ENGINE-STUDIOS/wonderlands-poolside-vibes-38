@@ -398,6 +398,16 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
+    /* Camera: everything below draws in sheet coordinates and the transform
+       moves/scales the paper. Line weights are divided by the zoom where they
+       matter so hairlines stay hairlines at any distance. */
+    ctx.setTransform(dpr * view.z, 0, 0, dpr * view.z, dpr * view.x, dpr * view.y);
+    const hair = 1 / view.z;
+    /* Visible sheet window, in sheet units — used to draw only the grid we see. */
+    const vx0 = -view.x / view.z;
+    const vy0 = -view.y / view.z;
+    const vx1 = (CANVAS_W - view.x) / view.z;
+    const vy1 = (CANVAS_H - view.y) / view.z;
 
     // imported sheet underlay
     if (underlay && underlay.visible && imgRef.current) {
@@ -413,8 +423,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ctx.restore();
       if (!readOnly && mode === 'underlay') {
         ctx.strokeStyle = '#0891b2';
-        ctx.setLineDash([8, 5]);
-        ctx.lineWidth = 2;
+        ctx.setLineDash([8 * hair, 5 * hair]);
+        ctx.lineWidth = 2 * hair;
         ctx.strokeRect(
           underlay.x,
           underlay.y,
@@ -428,24 +438,25 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     if (showGrid) {
       const step = pxPerFt * gridFt;
       const majorStep = pxPerFt * majorFt;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = hair;
       ctx.globalAlpha = underlay?.visible ? 0.5 : 1;
-      for (let x = 0; x <= CANVAS_W; x += step) {
+      for (let x = Math.floor(vx0 / step) * step; x <= vx1; x += step) {
         ctx.strokeStyle = Math.abs(x % majorStep) < 0.01 ? '#d4d4d8' : '#f1f5f9';
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, CANVAS_H);
+        ctx.moveTo(x, vy0);
+        ctx.lineTo(x, vy1);
         ctx.stroke();
       }
-      for (let y = 0; y <= CANVAS_H; y += step) {
+      for (let y = Math.floor(vy0 / step) * step; y <= vy1; y += step) {
         ctx.strokeStyle = Math.abs(y % majorStep) < 0.01 ? '#d4d4d8' : '#f1f5f9';
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(CANVAS_W, y);
+        ctx.moveTo(vx0, y);
+        ctx.lineTo(vx1, y);
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
     }
+
 
     const renderShape = (shape: SiteShape, isDraft = false) => {
       const meta = layerMeta(shape.layer);
