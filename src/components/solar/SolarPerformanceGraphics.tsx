@@ -291,12 +291,31 @@ const SunPathConsole: React.FC<{
     return () => cancelAnimationFrame(raf);
   }, [playing]);
 
-  const dec = React.useMemo(() => declination(doy), [doy]);
+  /* Today's declination read from the ephemeris (Cooper's sine only covers the
+     case where the year is somehow unavailable), and the three seasonal arcs
+     taken at the real solstice and equinox instants of the displayed year. */
+  const year = now.getFullYear();
+  const dec = React.useMemo(() => {
+    const d = new Date(Date.UTC(year, 0, 1, 12, 0, 0));
+    d.setUTCDate(doy);
+    const real = sunEquatorial(d).dec;
+    return Number.isFinite(real) ? real : declination(doy);
+  }, [doy, year]);
+
+  const seasonDec = React.useMemo(
+    () => ({
+      summer: decAt(year, 5, 21), // June solstice
+      equinox: decAt(year, 2, 20), // March equinox
+      winter: decAt(year, 11, 21), // December solstice
+    }),
+    [year],
+  );
 
   const dayArc = React.useMemo(() => arcPoints(lat, dec), [lat, dec]);
-  const summer = React.useMemo(() => arcPoints(lat, declination(172)), [lat]);
-  const winter = React.useMemo(() => arcPoints(lat, declination(355)), [lat]);
-  const equinox = React.useMemo(() => arcPoints(lat, declination(80)), [lat]);
+  const summer = React.useMemo(() => arcPoints(lat, seasonDec.summer), [lat, seasonDec.summer]);
+  const winter = React.useMemo(() => arcPoints(lat, seasonDec.winter), [lat, seasonDec.winter]);
+  const equinox = React.useMemo(() => arcPoints(lat, seasonDec.equinox), [lat, seasonDec.equinox]);
+
 
   /* Hour stations along today's arc — the "waypoints" of the flight path. */
   const stations = React.useMemo(() => {
