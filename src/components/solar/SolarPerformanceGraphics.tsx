@@ -67,7 +67,7 @@ const declination = (dayOfYear: number) =>
   23.45 * Math.sin(((360 / 365) * (dayOfYear - 81)) * RAD);
 
 /** Path geometry of the sun dome plate (a wide mission-console sheet). */
-const DOME = { w: 720, h: 320, base: 246, left: 54, right: 686, top: 34 };
+const DOME = { w: 720, h: 352, base: 262, left: 66, right: 686, top: 40 };
 /** Azimuth window drawn across the plate: ENE → WNW. */
 const AZ_FROM = 52;
 const AZ_TO = 308;
@@ -261,7 +261,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
   const progress = Math.max(0, Math.min(1, (hours - firstLight) / (lastLight - firstLight)));
 
   const chip =
-    "rounded-lg border border-white/10 bg-background/25 px-2.5 py-1.5 backdrop-blur-md";
+    "group rounded-xl border border-white/15 bg-background/30 px-3 py-2.5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:border-amber-300/45 hover:bg-background/45";
 
   return (
     <div className={glass}>
@@ -275,21 +275,26 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
       />
 
       {/* header */}
-      <div className="relative flex flex-wrap items-end justify-between gap-x-5 gap-y-2">
+      <div className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
-          <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
+          <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
             Solar ephemeris · sky console
           </p>
-          <p className="mt-1 text-sm font-light">
+          <p className="mt-1.5 text-lg font-light leading-tight sm:text-xl">
             {`${MONTH_NAMES[monthIdx]} ${doy - DAY_OF_MONTH_START[monthIdx] + 1} · ${clockLabel(readHour)}`}
             <span className="text-muted-foreground">{` · lat ${lat.toFixed(2)}°`}</span>
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 text-[9px] uppercase tracking-[0.22em]">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em]">
           <button
             type="button"
             onClick={() => setPlaying((p) => !p)}
-            className="rounded-full border border-white/20 bg-background/30 px-3 py-1.5 backdrop-blur-md transition hover:border-amber-300/60 hover:text-amber-200"
+            aria-pressed={playing}
+            className={`rounded-full border px-4 py-2 backdrop-blur-xl transition ${
+              playing
+                ? "border-amber-300/60 bg-amber-300/15 text-amber-100"
+                : "border-white/20 bg-background/35 hover:border-amber-300/60 hover:text-amber-200"
+            }`}
           >
             {playing ? "Pause transit" : "Run transit"}
           </button>
@@ -302,7 +307,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
               setHours(d.getHours() + d.getMinutes() / 60);
               setStation(null);
             }}
-            className="rounded-full border border-white/15 bg-background/20 px-3 py-1.5 text-muted-foreground backdrop-blur-md transition hover:text-foreground"
+            className="rounded-full border border-white/15 bg-background/25 px-4 py-2 text-muted-foreground backdrop-blur-xl transition hover:border-white/35 hover:text-foreground"
           >
             Now
           </button>
@@ -312,7 +317,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
       {/* plate */}
       <svg
         viewBox={`0 0 ${DOME.w} ${DOME.h}`}
-        className="relative mt-3 w-full select-none"
+        className="relative mt-4 w-full select-none"
         role="img"
         aria-label={`Sun path chart for latitude ${lat.toFixed(2)} degrees on day ${doy}`}
       >
@@ -384,7 +389,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
                 strokeWidth={a === 0 ? 1.1 : 0.6}
                 strokeDasharray={a === 0 ? undefined : major ? "3 6" : "1 7"}
               />
-              <text x={10} y={y + 3} className="fill-muted-foreground" style={{ fontSize: 8, letterSpacing: 1 }}>
+              <text x={12} y={y + 4} className="fill-muted-foreground" style={{ fontSize: 12, letterSpacing: 0.5 }}>
                 {a}°
               </text>
             </g>
@@ -416,17 +421,17 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
                 strokeOpacity={cardinal ? 0.1 : 0.05}
                 strokeWidth={0.6}
               />
-              <line x1={x} x2={x} y1={DOME.base} y2={DOME.base + (cardinal ? 7 : 4)} stroke="currentColor" strokeOpacity={0.3} strokeWidth={0.8} />
+              <line x1={x} x2={x} y1={DOME.base} y2={DOME.base + (cardinal ? 9 : 5)} stroke="currentColor" strokeOpacity={0.3} strokeWidth={0.8} />
               <text
                 x={x}
-                y={DOME.base + 20}
+                y={DOME.base + 26}
                 textAnchor="middle"
-                className="fill-muted-foreground"
-                style={{ fontSize: cardinal ? 9 : 7, letterSpacing: 1.6, opacity: cardinal ? 1 : 0.7 }}
+                className={cardinal ? "fill-foreground" : "fill-muted-foreground"}
+                style={{ fontSize: cardinal ? 14 : 11, letterSpacing: 1.4, opacity: cardinal ? 0.95 : 0.72 }}
               >
                 {l}
               </text>
-              <text x={x} y={DOME.base + 31} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6, letterSpacing: 1 }}>
+              <text x={x} y={DOME.base + 40} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 9.5, letterSpacing: 0.6, opacity: 0.7 }}>
                 {`${az}°`}
               </text>
             </g>
@@ -460,30 +465,41 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           filter="url(#wlSunGlow)"
         />
 
-        {/* hour stations */}
+        {/* hour stations — hover to inspect, click to jump the solar clock */}
         {stations.map((s, i) => (
           <g
             key={s.h}
             onPointerEnter={() => setStation(i)}
             onPointerLeave={() => setStation(null)}
+            onClick={() => {
+              setPlaying(false);
+              setHours(s.h);
+              setStation(null);
+            }}
             style={{ cursor: "pointer" }}
+            role="button"
+            tabIndex={-1}
+            aria-label={`${clockLabel(s.h)} — altitude ${s.altitude.toFixed(0)} degrees`}
           >
-            <circle cx={s.x} cy={s.y} r={9} fill="transparent" />
+            <circle cx={s.x} cy={s.y} r={14} fill="transparent" />
+            {station === i && (
+              <circle cx={s.x} cy={s.y} r={9} fill="#fde68a" opacity={0.16} />
+            )}
             <circle
               cx={s.x}
               cy={s.y}
-              r={station === i ? 3.4 : 1.9}
+              r={station === i ? 5 : 2.8}
               fill={station === i ? "#fde68a" : "#fbbf24"}
-              opacity={station === i ? 1 : 0.75}
+              opacity={station === i ? 1 : 0.8}
               className="transition-all duration-200"
             />
             {(s.h % 2 === 0 || station === i) && (
               <text
                 x={s.x}
-                y={s.y - 8}
+                y={s.y - 13}
                 textAnchor="middle"
-                className="fill-muted-foreground"
-                style={{ fontSize: 6.8, letterSpacing: 0.8 }}
+                className={station === i ? "fill-foreground" : "fill-muted-foreground"}
+                style={{ fontSize: station === i ? 12 : 10.5, letterSpacing: 0.4 }}
               >
                 {clockLabel(s.h).replace(":00", "")}
               </text>
@@ -491,19 +507,53 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           </g>
         ))}
 
+        {/* hovered station tooltip — a floating glass tag inside the plate */}
+        {station !== null && stations[station] && (
+          <g pointerEvents="none" className="wl-fade">
+            {(() => {
+              const s = stations[station];
+              const w = 150;
+              const h = 52;
+              const x = Math.max(DOME.left, Math.min(DOME.right - w, s.x - w / 2));
+              const above = s.y > DOME.top + 80;
+              const y = above ? s.y - h - 26 : s.y + 24;
+              return (
+                <>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={w}
+                    height={h}
+                    rx={10}
+                    fill="rgba(8,12,24,0.66)"
+                    stroke="rgba(253,230,138,0.45)"
+                    strokeWidth={1}
+                  />
+                  <text x={x + 12} y={y + 20} className="fill-foreground" style={{ fontSize: 13 }}>
+                    {clockLabel(s.h)}
+                  </text>
+                  <text x={x + 12} y={y + 38} className="fill-muted-foreground" style={{ fontSize: 11 }}>
+                    {`${s.altitude.toFixed(0)}° alt · ${s.azimuth.toFixed(0)}° ${compassLabel(s.azimuth)}`}
+                  </text>
+                </>
+              );
+            })()}
+          </g>
+        )}
+
         {/* horizon terminators */}
         {[
           { x: sunriseX, l: `SUNRISE ${clockLabel(sunrise)}`, anchor: "start" as const },
           { x: sunsetX, l: `SUNSET ${clockLabel(sunset)}`, anchor: "end" as const },
         ].map((t) => (
           <g key={t.l}>
-            <line x1={t.x} x2={t.x} y1={DOME.base - 26} y2={DOME.base} stroke="#fbbf24" strokeOpacity={0.6} strokeWidth={0.9} strokeDasharray="2 3" />
+            <line x1={t.x} x2={t.x} y1={DOME.base - 30} y2={DOME.base} stroke="#fbbf24" strokeOpacity={0.6} strokeWidth={1} strokeDasharray="2 3" />
             <text
-              x={t.anchor === "start" ? t.x + 4 : t.x - 4}
-              y={DOME.base - 30}
+              x={t.anchor === "start" ? t.x + 6 : t.x - 6}
+              y={DOME.base - 36}
               textAnchor={t.anchor}
-              className="fill-muted-foreground"
-              style={{ fontSize: 6.4, letterSpacing: 1.4 }}
+              className="fill-amber-200"
+              style={{ fontSize: 10.5, letterSpacing: 1 }}
             >
               {t.l}
             </text>
@@ -516,7 +566,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           return (
             <g>
               <line x1={p.x} x2={p.x} y1={p.y} y2={DOME.base} stroke="#fde68a" strokeOpacity={0.28} strokeWidth={0.8} strokeDasharray="2 4" />
-              <text x={p.x} y={p.y - 12} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6.6, letterSpacing: 1.4 }}>
+              <text x={p.x} y={p.y - 16} textAnchor="middle" className="fill-foreground" style={{ fontSize: 10.5, letterSpacing: 1, opacity: 0.8 }}>
                 {`CULMINATION ${noonAlt.toFixed(1)}°`}
               </text>
             </g>
@@ -551,42 +601,52 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           </g>
         )}
         {sun.altitude <= 0 && (
-          <text x={DOME.w / 2} y={DOME.top + 14} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8, letterSpacing: 2 }}>
+          <text x={DOME.w / 2} y={DOME.top + 16} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 12.5, letterSpacing: 2 }}>
             SUN BELOW HORIZON · ARRAY IDLE
           </text>
         )}
       </svg>
 
-      {/* mission roadmap ribbon */}
-      <div className="relative mt-4">
-        <div className="relative h-[3px] w-full rounded-full bg-foreground/10">
+      {/* mission roadmap ribbon — click any milestone to fly the clock there */}
+      <div className="relative mt-6">
+        <div className="relative h-[5px] w-full rounded-full bg-foreground/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]">
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400/60 via-amber-300 to-orange-400"
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400/70 via-amber-300 to-orange-400 transition-[width] duration-300"
             style={{ width: `${progress * 100}%` }}
           />
           <span
-            className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_12px_2px_rgba(251,191,36,0.7)]"
+            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_18px_4px_rgba(251,191,36,0.7)] transition-[left] duration-300"
             style={{ left: `${progress * 100}%` }}
           />
         </div>
-        <ol className="mt-2 grid grid-cols-4 gap-1.5 sm:grid-cols-7">
+        <ol className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
           {roadmap.map((r) => {
             const passed = hours >= r.t;
             return (
-              <li
-                key={r.l}
-                className={`rounded-lg border px-2 py-1.5 backdrop-blur-md transition ${
-                  passed ? "border-amber-300/35 bg-amber-300/10" : "border-white/10 bg-background/20"
-                }`}
-              >
-                <p className="text-[7.5px] uppercase tracking-[0.16em] text-muted-foreground">{r.l}</p>
-                <p
-                  className={`mt-0.5 text-[10px] font-light leading-none ${
-                    r.tone === "peak" ? "text-amber-200" : ""
+              <li key={r.l}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPlaying(false);
+                    setHours(Math.max(0, Math.min(24, r.t)));
+                  }}
+                  className={`w-full rounded-xl border px-3 py-2.5 text-left backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-amber-300/60 ${
+                    passed
+                      ? "border-amber-300/40 bg-amber-300/10 shadow-[0_10px_30px_-24px_rgba(251,191,36,0.9)]"
+                      : "border-white/12 bg-background/25"
                   }`}
                 >
-                  {clockLabel(r.t)}
-                </p>
+                  <span className="block text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                    {r.l}
+                  </span>
+                  <span
+                    className={`mt-1 block text-[15px] font-light leading-none tabular-nums ${
+                      r.tone === "peak" ? "text-amber-200" : ""
+                    }`}
+                  >
+                    {clockLabel(r.t)}
+                  </span>
+                </button>
               </li>
             );
           })}
@@ -594,28 +654,28 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
       </div>
 
       {/* telemetry read-out */}
-      <dl className="relative mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
+      <dl className="relative mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {[
-          { k: "Altitude", v: `${Math.max(0, readAlt).toFixed(1)}°` },
-          { k: "Azimuth", v: `${readAz.toFixed(0)}° ${compassLabel(readAz)}` },
-          { k: "Air mass", v: Number.isFinite(am) ? `${am.toFixed(2)} AM` : "—" },
-          { k: "Direct beam", v: `${dni.toFixed(2)} kW/m²` },
-          { k: "Global horiz.", v: `${ghi.toFixed(2)} kW/m²` },
-          { k: "Shadow ratio", v: Number.isFinite(shadow) ? `${shadow.toFixed(1)}×` : "—" },
+          { k: "Altitude", v: `${Math.max(0, readAlt).toFixed(1)}°`, h: "Height of the sun above the horizon" },
+          { k: "Azimuth", v: `${readAz.toFixed(0)}° ${compassLabel(readAz)}`, h: "Compass bearing of the sun" },
+          { k: "Air mass", v: Number.isFinite(am) ? `${am.toFixed(2)} AM` : "—", h: "Atmosphere the light travels through" },
+          { k: "Direct beam", v: `${dni.toFixed(2)} kW/m²`, h: "Clear-sky direct normal irradiance" },
+          { k: "Global horiz.", v: `${ghi.toFixed(2)} kW/m²`, h: "Total light on a flat surface" },
+          { k: "Shadow ratio", v: Number.isFinite(shadow) ? `${shadow.toFixed(1)}×` : "—", h: "Shadow length per unit of height" },
         ].map((t) => (
-          <div key={t.k} className={chip}>
-            <dt className="text-[7.5px] uppercase tracking-[0.24em] text-muted-foreground">{t.k}</dt>
-            <dd className="mt-0.5 text-[11px] font-light tabular-nums leading-none">{t.v}</dd>
+          <div key={t.k} className={chip} title={t.h}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{t.k}</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none">{t.v}</dd>
           </div>
         ))}
       </dl>
 
       {/* scrubbers */}
-      <div className="relative mt-3 grid gap-3 sm:grid-cols-2">
-        <label className="block">
-          <span className="flex items-baseline justify-between text-[8px] uppercase tracking-[0.24em] text-muted-foreground">
+      <div className="relative mt-5 grid gap-4 sm:grid-cols-2">
+        <label className="block rounded-2xl border border-white/12 bg-background/25 p-4 backdrop-blur-xl">
+          <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             <span>Day of year</span>
-            <span className="tabular-nums">{`DOY ${doy} · dec ${dec >= 0 ? "+" : ""}${dec.toFixed(1)}°`}</span>
+            <span className="tabular-nums text-foreground/80">{`DOY ${doy} · dec ${dec >= 0 ? "+" : ""}${dec.toFixed(1)}°`}</span>
           </span>
           <input
             type="range"
@@ -624,19 +684,19 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
             step={1}
             value={doy}
             onChange={(e) => setDoy(Number(e.target.value))}
-            className="mt-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-foreground/15 accent-amber-300"
+            className="wl-range mt-3 w-full cursor-pointer"
             aria-label="Day of year"
           />
-          <span className="mt-2 flex flex-wrap gap-1">
+          <span className="mt-3 flex flex-wrap gap-1.5">
             {DAY_OF_MONTH_START.map((start, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setDoy(start)}
-                className={`rounded-md border px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] transition ${
+                className={`rounded-lg border px-2.5 py-1.5 text-[11px] uppercase tracking-[0.1em] transition ${
                   monthIdx === i
-                    ? "border-amber-300/50 bg-amber-300/15 text-amber-100"
-                    : "border-white/10 bg-background/20 text-muted-foreground hover:text-foreground"
+                    ? "border-amber-300/55 bg-amber-300/15 text-amber-100"
+                    : "border-white/12 bg-background/25 text-muted-foreground hover:border-white/30 hover:text-foreground"
                 }`}
               >
                 {MONTH_NAMES[i].slice(0, 3)}
@@ -645,10 +705,10 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           </span>
         </label>
 
-        <label className="block">
-          <span className="flex items-baseline justify-between text-[8px] uppercase tracking-[0.24em] text-muted-foreground">
+        <label className="block rounded-2xl border border-white/12 bg-background/25 p-4 backdrop-blur-xl">
+          <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             <span>Solar clock</span>
-            <span className="tabular-nums">{`${daylight.toFixed(2)} h daylight`}</span>
+            <span className="tabular-nums text-foreground/80">{`${daylight.toFixed(2)} h daylight`}</span>
           </span>
           <input
             type="range"
@@ -660,18 +720,18 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
               setPlaying(false);
               setHours(Number(e.target.value));
             }}
-            className="mt-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-foreground/15 accent-amber-300"
+            className="wl-range mt-3 w-full cursor-pointer"
             aria-label="Hour of day"
           />
-          <span className="mt-2 flex flex-wrap gap-1.5 text-[8px] uppercase tracking-[0.16em] text-muted-foreground">
+          <span className="mt-3 flex flex-wrap gap-1.5 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
             {[
               { c: "#fde68a", l: "Selected day" },
               { c: "#fbbf24", l: "June solstice" },
               { c: "#f97316", l: "Equinox" },
               { c: "currentColor", l: "December solstice" },
             ].map((k) => (
-              <span key={k.l} className="flex items-center gap-1.5 rounded-md border border-white/10 bg-background/20 px-1.5 py-0.5">
-                <span className="h-[2px] w-3.5" style={{ backgroundColor: k.c, opacity: k.c === "currentColor" ? 0.45 : 1 }} />
+              <span key={k.l} className="flex items-center gap-2 rounded-lg border border-white/12 bg-background/25 px-2.5 py-1.5">
+                <span className="h-[3px] w-4 rounded-full" style={{ backgroundColor: k.c, opacity: k.c === "currentColor" ? 0.45 : 1 }} />
                 {k.l}
               </span>
             ))}
@@ -727,21 +787,21 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
 
   if (!production.panels) {
     return (
-      <div className="rounded-2xl border border-white/15 bg-foreground/[0.04] p-6 text-center backdrop-blur-xl">
-        <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Performance</p>
-        <p className="mt-3 text-sm font-light text-muted-foreground">
+      <div className="rounded-3xl border border-white/15 bg-foreground/[0.05] p-8 text-center backdrop-blur-2xl">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Performance</p>
+        <p className="mt-3 text-base font-light text-muted-foreground">
           Trace a roof face to model production.
         </p>
       </div>
     );
   }
 
-  /* shared glass shell */
+  /* shared glass shell — deeper frost, inner light line, ultra-wide friendly */
   const glass =
-    "relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-foreground/[0.06] to-foreground/[0.02] p-4 backdrop-blur-xl shadow-[0_18px_50px_-30px_rgba(8,12,24,0.7)] sm:p-5";
+    "relative overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-b from-foreground/[0.09] to-foreground/[0.02] p-5 backdrop-blur-2xl shadow-[0_28px_70px_-38px_rgba(8,12,24,0.85),inset_0_1px_0_rgba(255,255,255,0.12)] transition-shadow duration-500 hover:shadow-[0_34px_90px_-38px_rgba(8,12,24,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] sm:p-7";
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-4 sm:space-y-5">
       {/* keyframes are local so the figure carries its own motion */}
       <style>{`
         @keyframes wlSolarRing { from { stroke-dashoffset: ${CIRC}; } }
@@ -759,6 +819,21 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         .wl-fade { animation: wlSolarFade .7s ease-out both; }
         .wl-pulse { transform-box: fill-box; transform-origin: center; animation: wlSolarPulse 2.6s ease-in-out infinite; }
         .wl-drift { animation: wlSolarDrift 18s ease-in-out infinite alternate; }
+
+        /* generous, glassy scrubbers — big enough to grab on a touch screen */
+        .wl-range { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 999px;
+          background: linear-gradient(90deg, rgba(99,102,241,.45), rgba(251,191,36,.55), rgba(249,115,22,.5));
+          box-shadow: inset 0 1px 3px rgba(0,0,0,.45); outline: none; }
+        .wl-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+          height: 22px; width: 22px; border-radius: 999px; background: #fef3c7;
+          border: 1px solid rgba(255,255,255,.7);
+          box-shadow: 0 0 0 5px rgba(251,191,36,.18), 0 6px 16px rgba(0,0,0,.45);
+          transition: transform .18s ease, box-shadow .18s ease; cursor: grab; }
+        .wl-range::-webkit-slider-thumb:hover { transform: scale(1.12); box-shadow: 0 0 0 8px rgba(251,191,36,.24), 0 8px 20px rgba(0,0,0,.5); }
+        .wl-range::-moz-range-thumb { height: 20px; width: 20px; border-radius: 999px; background: #fef3c7;
+          border: 1px solid rgba(255,255,255,.7); box-shadow: 0 0 0 5px rgba(251,191,36,.18); cursor: grab; }
+        .wl-range:focus-visible { box-shadow: inset 0 1px 3px rgba(0,0,0,.45), 0 0 0 2px rgba(251,191,36,.7); }
+
         @media (prefers-reduced-motion: reduce) {
           .wl-ring, .wl-bar, .wl-grow, .wl-line, .wl-arc, .wl-fade, .wl-pulse, .wl-drift { animation: none; }
         }
@@ -775,10 +850,10 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
               "radial-gradient(120% 90% at 12% 0%, rgba(249,115,22,0.16), transparent 60%), radial-gradient(80% 70% at 95% 100%, rgba(56,189,248,0.12), transparent 65%)",
           }}
         />
-        <div className="relative grid gap-5 sm:grid-cols-[minmax(0,168px)_1fr] sm:items-center">
+        <div className="relative grid gap-6 sm:grid-cols-[minmax(0,200px)_1fr] sm:items-center xl:grid-cols-[minmax(0,240px)_1fr]">
           <svg
             viewBox="0 0 140 140"
-            className="mx-auto h-32 w-32 sm:h-40 sm:w-40"
+            className="mx-auto h-40 w-40 sm:h-48 sm:w-48 xl:h-56 xl:w-56"
             role="img"
             aria-label={`Array covers ${offset}% of the household demand`}
           >
@@ -813,18 +888,18 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
               transform="rotate(-90 70 70)"
               filter="url(#wlGaugeGlow)"
             />
-            <text x="70" y="66" textAnchor="middle" className="fill-foreground" style={{ fontSize: 24, fontWeight: 300 }}>
+            <text x="70" y="68" textAnchor="middle" className="fill-foreground" style={{ fontSize: 32, fontWeight: 300 }}>
               {savings.offsetPercent}%
             </text>
-            <text x="70" y="82" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6.4, letterSpacing: 2 }}>
+            <text x="70" y="86" textAnchor="middle" className="fill-foreground" style={{ fontSize: 9, letterSpacing: 1.8, opacity: 0.75 }}>
               OF YOUR BILL
             </text>
-            <text x="70" y="95" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 5.6, letterSpacing: 1.6 }}>
+            <text x="70" y="100" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8, letterSpacing: 1.4 }}>
               {`LAT ${lat.toFixed(2)}°`}
             </text>
           </svg>
 
-          <dl className="grid grid-cols-2 gap-2 sm:gap-2.5">
+          <dl className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-3">
             {[
               { k: "System", v: `${production.kwDc.toFixed(2)} kW`, s: `${production.panels} modules` },
               { k: "Per year", v: `${nf.format(yearly)} kWh`, s: production.yearlyKwhVerified ? "Measured by satellite" : "Modelled" },
@@ -836,12 +911,12 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
             ].map((row, i) => (
               <div
                 key={row.k}
-                className="wl-fade rounded-xl border border-white/10 bg-background/20 px-3 py-2.5 backdrop-blur-md"
+                className="wl-fade rounded-2xl border border-white/15 bg-background/28 px-4 py-3.5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:-translate-y-0.5 hover:border-amber-300/40 hover:bg-background/40"
                 style={{ animationDelay: `${0.1 + i * 0.08}s` }}
               >
-                <dt className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground">{row.k}</dt>
-                <dd className="mt-1 text-base font-light leading-none sm:text-lg">{row.v}</dd>
-                {row.s && <dd className="mt-1 text-[10px] text-muted-foreground">{row.s}</dd>}
+                <dt className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">{row.k}</dt>
+                <dd className="mt-1.5 text-2xl font-light leading-none tabular-nums sm:text-[26px]">{row.v}</dd>
+                {row.s && <dd className="mt-1.5 text-[12px] text-muted-foreground">{row.s}</dd>}
               </div>
             ))}
           </dl>
@@ -855,8 +930,8 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
       {/* ── monthly production ── */}
       <div className={glass}>
         <div className="relative flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Production by month</p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[12px] uppercase tracking-[0.3em] text-muted-foreground">Production by month</p>
+          <p className="text-[13px] text-muted-foreground">
             {hover === null
               ? "kWh · dashed line is your household demand"
               : `${MONTH_NAMES[hover]} — ${nf.format(monthly[hover])} kWh`}
@@ -866,7 +941,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         <svg
           viewBox="0 0 360 140"
           preserveAspectRatio="none"
-          className="relative mt-4 h-36 w-full sm:h-44"
+          className="relative mt-5 h-44 w-full sm:h-56 xl:h-64"
           role="img"
           aria-label="Modelled monthly production against household demand"
         >
@@ -913,7 +988,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
                   y={133}
                   textAnchor="middle"
                   className="fill-muted-foreground"
-                  style={{ fontSize: 8, letterSpacing: 1 }}
+                  style={{ fontSize: 11, letterSpacing: 1.2 }}
                 >
                   {MONTHS[i]}
                 </text>
@@ -936,28 +1011,28 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
 
       {/* ── per-face contribution ── */}
       <div className={glass}>
-        <p className="relative text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+        <p className="relative text-[12px] uppercase tracking-[0.3em] text-muted-foreground">
           Where the energy comes from
         </p>
-        <ul className="relative mt-3 space-y-2.5">
+        <ul className="relative mt-4 space-y-3">
           {contributions.map(({ layout, face }, i) => {
             const exposure = readExposure(face!, latitude);
             const pct = (layout.yearlyKwh / bestFaceKwh) * 100;
             return (
               <li
                 key={layout.faceId}
-                className="wl-fade rounded-xl border border-white/10 bg-background/20 px-3 py-2.5 backdrop-blur-md"
+                className="wl-fade rounded-2xl border border-white/15 bg-background/28 px-4 py-3.5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:border-amber-300/40 hover:bg-background/40"
                 style={{ animationDelay: `${0.1 + i * 0.07}s` }}
               >
-                <div className="flex items-baseline justify-between gap-3 text-[10px]">
-                  <span className="uppercase tracking-[0.2em] text-muted-foreground">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[13px]">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                     {compassLabel(face!.azimuthDeg)} · {layout.panels} modules
                   </span>
-                  <span className="shrink-0 font-light text-foreground">
+                  <span className="shrink-0 text-[17px] font-light tabular-nums text-foreground">
                     {nf.format(Math.round(layout.yearlyKwh))} kWh
                   </span>
                 </div>
-                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-foreground/10">
+                <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full bg-foreground/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]">
                   <div
                     className="wl-grow h-full rounded-full"
                     style={{
@@ -968,7 +1043,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
                     }}
                   />
                 </div>
-                <p className="mt-1 text-[9px] text-muted-foreground">
+                <p className="mt-2 text-[12px] text-muted-foreground">
                   {exposure.label} · {nf.format(Math.round(exposure.sunHours))} sun hours a year
                 </p>
               </li>
