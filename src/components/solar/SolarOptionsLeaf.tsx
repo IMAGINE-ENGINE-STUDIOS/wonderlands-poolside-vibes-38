@@ -1,5 +1,4 @@
 import * as React from "react";
-import { usePersistentState } from "@/hooks/usePersistentState";
 import {
   rackingByCovering,
   roofCoverings,
@@ -9,7 +8,7 @@ import {
   type RoofCovering,
 } from "@/data/solarHardware";
 import { SOLAR_INCLUDED, solarProducts } from "@/data/solarData";
-import { SOLAR_SESSION_KEY, emptySolarSession, type SolarSession } from "./solarSession";
+import { useSolarSession, type SolarSession } from "./solarSession";
 
 /**
  * The product leaf of the Total Solar spread.
@@ -35,7 +34,7 @@ const rowClass = (active: boolean) =>
   }`;
 
 const SolarOptionsLeaf: React.FC = () => {
-  const [session, setSession] = usePersistentState<SolarSession>(SOLAR_SESSION_KEY, emptySolarSession);
+  const [session, setSession] = useSolarSession();
   const patch = React.useCallback(
     (next: Partial<SolarSession>) => setSession((s) => ({ ...s, ...next })),
     [setSession],

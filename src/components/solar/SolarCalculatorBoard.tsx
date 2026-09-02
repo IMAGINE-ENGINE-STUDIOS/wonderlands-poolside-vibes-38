@@ -63,8 +63,8 @@ type Mode = "idle" | "auto" | "manual";
 /* the session shape, defaults and cache key are shared with the facing
    product-options leaf — see ./solarSession */
 import {
-  SOLAR_SESSION_KEY,
   emptySolarSession as emptySession,
+  useSolarSession,
   type SavedFace,
   type SolarSession,
 } from "./solarSession";
@@ -95,7 +95,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
   const { toast } = useToast();
   const cart = useOptionalShoppingCart();
 
-  const [session, setSession] = usePersistentState<SolarSession>(SOLAR_SESSION_KEY, emptySession);
+  const [session, setSession] = useSolarSession();
   const [query, setQuery] = React.useState(session.address);
   const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
   const [typing, setTyping] = React.useState(false);
