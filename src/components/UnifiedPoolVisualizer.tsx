@@ -517,17 +517,27 @@ export function UnifiedPoolVisualizer({
       })
     );
 
-    poolLights.forEach((l, i) =>
-      lines.push({ name: `Pool Light ${i + 1}`, price: FEATURE_COSTS.light ?? 0 })
-    );
+    /* The scene always ships two courtesy lights ('light-default-*') so the pool
+       renders at night. Those are part of the base build, not add-ons, so they
+       are never billed — only lights the customer actually placed are quoted. */
+    poolLights
+      .filter(l => !l.id.startsWith('light-default-'))
+      .forEach((l, i) =>
+        lines.push({ name: `Pool Light ${i + 1}`, price: FEATURE_COSTS.light ?? 0 })
+      );
 
-    terrainAssets.forEach(a =>
-      lines.push({ name: `${a.name} (${a.type})`, price: (a as any).price ?? 0 })
-    );
+    /* Terrain / imported 3D props only appear when they carry a real price —
+       zero-cost decor would otherwise clutter the quote with $0 lines. */
+    terrainAssets.forEach(a => {
+      const price = (a as any).price ?? 0;
+      if (price > 0) lines.push({ name: `${a.name} (${a.type})`, price });
+    });
 
-    assets3D.forEach(a =>
-      lines.push({ name: `${a.name}${a.type ? ` (${a.type})` : ''}`, price: (a as any).price ?? 0 })
-    );
+    assets3D.forEach(a => {
+      const price = (a as any).price ?? 0;
+      if (price > 0) lines.push({ name: `${a.name}${a.type ? ` (${a.type})` : ''}`, price });
+    });
+
 
     return lines;
   }, [poolStairs, poolChairs, contourSeating, poolLights, terrainAssets, assets3D]);
