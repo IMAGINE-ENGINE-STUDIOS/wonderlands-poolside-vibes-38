@@ -634,9 +634,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       });
     }
 
-    // scale bar
-    const barFt = 20;
-    const barPx = barFt * pxPerFt;
+    /* ── sheet furniture, drawn in screen space so it never zooms away ── */
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // scale bar — a round number of feet at the current camera distance
+    const barFt = [1, 2, 5, 10, 20, 50, 100, 200, 500].find(f => f * pxPerFt * view.z >= 90) ?? 1000;
+    const barPx = barFt * pxPerFt * view.z;
     ctx.strokeStyle = '#111827';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -674,7 +677,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     mode,
     readOnly,
     calibration,
+    view,
   ]);
+
 
   React.useEffect(() => {
     draw();
