@@ -1,14 +1,15 @@
 /**
- * Wonderlands Solar — animated performance graphics.
+ * Wonderlands Solar — astronomic performance instrumentation.
  *
- * Three responsive SVG figures that read the calculator's live production:
- *   1. an offset ring gauge — how much of the household bill the array covers,
- *   2. a monthly kWh curve with grow-in bars — Florida's seasonal shape,
- *   3. a per-roof-face contribution ledger, coloured by the same sun-exposure
- *      bands the aerial uses, so the plate and the map always agree.
+ * A glassmorphic, mission-console style read-out of the live calculator:
+ *   1. an orbital offset gauge — how much of the household bill the array covers,
+ *   2. a sun-path dome — solstice/equinox arcs for the site latitude with a live
+ *      solar marker and an irradiance intensity wash beneath the summer arc,
+ *   3. a monthly kWh telemetry chart against household demand,
+ *   4. a per-roof-face contribution ledger coloured by the aerial's exposure bands.
  *
- * Everything scales with its container (viewBox + preserveAspectRatio), and all
- * motion is CSS so it stays cheap and respects `prefers-reduced-motion`.
+ * All figures are viewBox-driven so they scale fluidly; motion is CSS only and
+ * respects `prefers-reduced-motion`.
  */
 
 import * as React from "react";
@@ -43,6 +44,55 @@ interface Props {
 }
 
 const nf = new Intl.NumberFormat("en-US");
+const RAD = Math.PI / 180;
+
+/* ── solar geometry ───────────────────────────────────────────────────── */
+
+/** Solar altitude + azimuth for a latitude, declination and hour angle (deg). */
+const sunPosition = (latDeg: number, decDeg: number, hourAngleDeg: number) => {
+  const lat = latDeg * RAD;
+  const dec = decDeg * RAD;
+  const H = hourAngleDeg * RAD;
+  const sinAlt = Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(H);
+  const alt = Math.asin(Math.max(-1, Math.min(1, sinAlt)));
+  const cosAz =
+    (Math.sin(dec) - Math.sin(alt) * Math.sin(lat)) / (Math.cos(alt) * Math.cos(lat) || 1e-6);
+  let az = Math.acos(Math.max(-1, Math.min(1, cosAz))) / RAD; // from north
+  if (hourAngleDeg > 0) az = 360 - az;
+  return { altitude: alt / RAD, azimuth: az };
+};
+
+/** Declination for a day-of-year (Cooper's equation). */
+const declination = (dayOfYear: number) =>
+  23.45 * Math.sin(((360 / 365) * (dayOfYear - 81)) * RAD);
+
+/** Path geometry of the sun dome plate. */
+const DOME = { w: 360, h: 176, base: 148, left: 26, right: 334, top: 22 };
+
+/** Project altitude/azimuth into the dome plate. */
+const project = (azimuth: number, altitude: number) => {
+  const span = 300 - 60; // azimuth 60°(ENE) → 300°(WNW)
+  const t = Math.max(0, Math.min(1, (azimuth - 60) / span));
+  return {
+    x: DOME.left + t * (DOME.right - DOME.left),
+    y: DOME.base - (Math.max(0, altitude) / 90) * (DOME.base - DOME.top),
+  };
+};
+
+/** Sample a full arc for a declination, keeping only daylight positions. */
+const arcPoints = (lat: number, dec: number) => {
+  const pts: { x: number; y: number; altitude: number }[] = [];
+  for (let H = -180; H <= 180; H += 2) {
+    const { altitude, azimuth } = sunPosition(lat, dec, H);
+    if (altitude < 0) continue;
+    const p = project(azimuth, altitude);
+    pts.push({ ...p, altitude });
+  }
+  return pts;
+};
+
+const toPath = (pts: { x: number; y: number }[]) =>
+  pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
 
 export const SolarPerformanceGraphics: React.FC<Props> = ({
   production,
@@ -69,6 +119,38 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
   const R = 54;
   const CIRC = 2 * Math.PI * R;
 
+  /* ── sun path for this latitude ── */
+  const lat = latitude || 27;
+  const summer = React.useMemo(() => arcPoints(lat, declination(172)), [lat]);
+  const equinox = React.useMemo(() => arcPoints(lat, declination(80)), [lat]);
+  const winter = React.useMemo(() => arcPoints(lat, declination(355)), [lat]);
+
+  const today = React.useMemo(() => {
+    const now = new Date();
+    const doy = Math.floor(
+      (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000,
+    );
+    const hours = now.getHours() + now.getMinutes() / 60;
+    const dec = declination(doy);
+    const pos = sunPosition(lat, dec, (hours - 12) * 15);
+    return { ...pos, ...project(pos.azimuth, pos.altitude), dec, hours };
+  }, [lat]);
+
+  const noonAlt = React.useMemo(
+    () => Math.round(Math.max(...summer.map((p) => p.altitude))),
+    [summer],
+  );
+  const winterNoonAlt = React.useMemo(
+    () => Math.round(Math.max(...winter.map((p) => p.altitude))),
+    [winter],
+  );
+  const daylight = React.useMemo(() => {
+    // daylight hours today: hour angle at sunrise
+    const cosH = -Math.tan(lat * RAD) * Math.tan(today.dec * RAD);
+    const H = Math.acos(Math.max(-1, Math.min(1, cosH))) / RAD;
+    return (2 * H) / 15;
+  }, [lat, today.dec]);
+
   const contributions = React.useMemo(
     () =>
       production.layouts
@@ -84,7 +166,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
 
   if (!production.panels) {
     return (
-      <div className="border border-border/60 p-6 text-center">
+      <div className="rounded-2xl border border-white/15 bg-foreground/[0.04] p-6 text-center backdrop-blur-xl">
         <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Performance</p>
         <p className="mt-3 text-sm font-light text-muted-foreground">
           Trace a roof face to model production.
@@ -93,72 +175,244 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
     );
   }
 
+  /* shared glass shell */
+  const glass =
+    "relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-foreground/[0.06] to-foreground/[0.02] p-4 backdrop-blur-xl shadow-[0_18px_50px_-30px_rgba(8,12,24,0.7)] sm:p-5";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* keyframes are local so the figure carries its own motion */}
       <style>{`
         @keyframes wlSolarRing { from { stroke-dashoffset: ${CIRC}; } }
         @keyframes wlSolarBar  { from { transform: scaleY(0); } }
         @keyframes wlSolarGrow { from { transform: scaleX(0); } }
         @keyframes wlSolarLine { from { stroke-dashoffset: 1200; } }
+        @keyframes wlSolarArc  { from { stroke-dashoffset: 900; } }
         @keyframes wlSolarFade { from { opacity: 0; transform: translateY(6px); } }
+        @keyframes wlSolarPulse { 0%,100% { opacity:.35; transform: scale(1);} 50% { opacity:.9; transform: scale(1.35);} }
+        @keyframes wlSolarDrift { from { transform: translateX(-4%); } to { transform: translateX(4%); } }
         .wl-ring { animation: wlSolarRing 1.6s cubic-bezier(.22,.9,.2,1) both; }
         .wl-bar  { transform-origin: bottom; animation: wlSolarBar .9s cubic-bezier(.22,.9,.2,1) both; }
         .wl-line { stroke-dasharray: 1200; animation: wlSolarLine 1.8s ease-out .3s both; }
+        .wl-arc  { stroke-dasharray: 900; animation: wlSolarArc 2.2s ease-out both; }
         .wl-fade { animation: wlSolarFade .7s ease-out both; }
+        .wl-pulse { transform-box: fill-box; transform-origin: center; animation: wlSolarPulse 2.6s ease-in-out infinite; }
+        .wl-drift { animation: wlSolarDrift 18s ease-in-out infinite alternate; }
         @media (prefers-reduced-motion: reduce) {
-          .wl-ring, .wl-bar, .wl-grow, .wl-line, .wl-fade { animation: none; }
+          .wl-ring, .wl-bar, .wl-grow, .wl-line, .wl-arc, .wl-fade, .wl-pulse, .wl-drift { animation: none; }
         }
       `}</style>
 
-      {/* ── headline gauge + figures ── */}
-      <div className="grid gap-4 border border-border/60 p-4 sm:grid-cols-[minmax(0,150px)_1fr] sm:items-center">
-        <svg viewBox="0 0 140 140" className="mx-auto h-32 w-32 sm:h-36 sm:w-36" role="img"
-          aria-label={`Array covers ${offset}% of the household demand`}>
-          <circle cx="70" cy="70" r={R} fill="none" stroke="currentColor" strokeOpacity={0.12} strokeWidth={9} />
-          <circle
-            className="wl-ring"
-            cx="70"
-            cy="70"
-            r={R}
-            fill="none"
-            stroke="#f97316"
-            strokeWidth={9}
-            strokeLinecap="round"
-            strokeDasharray={CIRC}
-            strokeDashoffset={CIRC * (1 - offset / 100)}
-            transform="rotate(-90 70 70)"
-          />
-          <text x="70" y="66" textAnchor="middle" className="fill-foreground" style={{ fontSize: 24, fontWeight: 300 }}>
-            {savings.offsetPercent}%
-          </text>
-          <text x="70" y="84" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 7, letterSpacing: 2 }}>
-            OF YOUR BILL
-          </text>
-        </svg>
+      {/* ── headline gauge + telemetry ── */}
+      <div className={glass}>
+        {/* starfield wash */}
+        <div
+          aria-hidden
+          className="wl-drift pointer-events-none absolute inset-0 opacity-50"
+          style={{
+            background:
+              "radial-gradient(120% 90% at 12% 0%, rgba(249,115,22,0.16), transparent 60%), radial-gradient(80% 70% at 95% 100%, rgba(56,189,248,0.12), transparent 65%)",
+          }}
+        />
+        <div className="relative grid gap-5 sm:grid-cols-[minmax(0,168px)_1fr] sm:items-center">
+          <svg
+            viewBox="0 0 140 140"
+            className="mx-auto h-32 w-32 sm:h-40 sm:w-40"
+            role="img"
+            aria-label={`Array covers ${offset}% of the household demand`}
+          >
+            <defs>
+              <linearGradient id="wlGaugeGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" />
+                <stop offset="55%" stopColor="#f97316" />
+                <stop offset="100%" stopColor="#fb7185" />
+              </linearGradient>
+              <filter id="wlGaugeGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="3.4" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            {/* orbit rings */}
+            <circle cx="70" cy="70" r={R + 12} fill="none" stroke="currentColor" strokeOpacity={0.07} strokeWidth={0.7} strokeDasharray="1 5" />
+            <circle cx="70" cy="70" r={R} fill="none" stroke="currentColor" strokeOpacity={0.12} strokeWidth={7} />
+            <circle
+              className="wl-ring"
+              cx="70"
+              cy="70"
+              r={R}
+              fill="none"
+              stroke="url(#wlGaugeGrad)"
+              strokeWidth={7}
+              strokeLinecap="round"
+              strokeDasharray={CIRC}
+              strokeDashoffset={CIRC * (1 - offset / 100)}
+              transform="rotate(-90 70 70)"
+              filter="url(#wlGaugeGlow)"
+            />
+            <text x="70" y="66" textAnchor="middle" className="fill-foreground" style={{ fontSize: 24, fontWeight: 300 }}>
+              {savings.offsetPercent}%
+            </text>
+            <text x="70" y="82" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6.4, letterSpacing: 2 }}>
+              OF YOUR BILL
+            </text>
+            <text x="70" y="95" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 5.6, letterSpacing: 1.6 }}>
+              {`LAT ${lat.toFixed(2)}°`}
+            </text>
+          </svg>
 
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-          {[
-            { k: "System", v: `${production.kwDc.toFixed(2)} kW`, s: `${production.panels} modules` },
-            { k: "Per year", v: `${nf.format(yearly)} kWh`, s: production.yearlyKwhVerified ? "Measured by satellite" : "Modelled" },
-            { k: "Per month", v: `${nf.format(production.monthlyKwh)} kWh`, s: `Home uses ${nf.format(demandPerMonth)} kWh` },
-            { k: "25 years", v: `${nf.format(Math.round(production.lifetimeKwh25 / 1000))} MWh`, s: "After degradation" },
-            ...(showMoney
-              ? [{ k: "Year one", v: `$${nf.format(savings.yearOneSavings)}`, s: savings.paybackYears ? `Payback ${savings.paybackYears} yrs` : "" }]
-              : []),
-          ].map((row, i) => (
-            <div key={row.k} className="wl-fade" style={{ animationDelay: `${0.1 + i * 0.08}s` }}>
-              <dt className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground">{row.k}</dt>
-              <dd className="mt-1 text-lg font-light leading-none">{row.v}</dd>
-              {row.s && <dd className="mt-1 text-[10px] text-muted-foreground">{row.s}</dd>}
-            </div>
-          ))}
-        </dl>
+          <dl className="grid grid-cols-2 gap-2 sm:gap-2.5">
+            {[
+              { k: "System", v: `${production.kwDc.toFixed(2)} kW`, s: `${production.panels} modules` },
+              { k: "Per year", v: `${nf.format(yearly)} kWh`, s: production.yearlyKwhVerified ? "Measured by satellite" : "Modelled" },
+              { k: "Per month", v: `${nf.format(production.monthlyKwh)} kWh`, s: `Home uses ${nf.format(demandPerMonth)} kWh` },
+              { k: "25 years", v: `${nf.format(Math.round(production.lifetimeKwh25 / 1000))} MWh`, s: "After degradation" },
+              ...(showMoney
+                ? [{ k: "Year one", v: `$${nf.format(savings.yearOneSavings)}`, s: savings.paybackYears ? `Payback ${savings.paybackYears} yrs` : "" }]
+                : []),
+            ].map((row, i) => (
+              <div
+                key={row.k}
+                className="wl-fade rounded-xl border border-white/10 bg-background/20 px-3 py-2.5 backdrop-blur-md"
+                style={{ animationDelay: `${0.1 + i * 0.08}s` }}
+              >
+                <dt className="text-[8px] uppercase tracking-[0.3em] text-muted-foreground">{row.k}</dt>
+                <dd className="mt-1 text-base font-light leading-none sm:text-lg">{row.v}</dd>
+                {row.s && <dd className="mt-1 text-[10px] text-muted-foreground">{row.s}</dd>}
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+
+      {/* ── sun path dome ── */}
+      <div className={glass}>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-70"
+          style={{
+            background:
+              "radial-gradient(90% 120% at 50% 120%, rgba(249,115,22,0.14), transparent 62%), radial-gradient(70% 80% at 8% 0%, rgba(99,102,241,0.14), transparent 60%)",
+          }}
+        />
+        <div className="relative">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+              Sun path &amp; intensity
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {`Solar noon ${noonAlt}° in June · ${winterNoonAlt}° in December · ${daylight.toFixed(1)} h daylight today`}
+            </p>
+          </div>
+
+          <svg
+            viewBox={`0 0 ${DOME.w} ${DOME.h}`}
+            className="mt-3 w-full"
+            role="img"
+            aria-label={`Sun path arcs for latitude ${lat.toFixed(2)} degrees, with today's solar position`}
+          >
+            <defs>
+              <linearGradient id="wlIntensity" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.42" />
+                <stop offset="55%" stopColor="#f97316" stopOpacity="0.16" />
+                <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+              </linearGradient>
+              <filter id="wlSunGlow" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="4" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            {/* altitude grid */}
+            {[0, 30, 60, 90].map((a) => {
+              const y = DOME.base - (a / 90) * (DOME.base - DOME.top);
+              return (
+                <g key={a}>
+                  <line
+                    x1={DOME.left}
+                    x2={DOME.right}
+                    y1={y}
+                    y2={y}
+                    stroke="currentColor"
+                    strokeOpacity={a === 0 ? 0.3 : 0.1}
+                    strokeWidth={a === 0 ? 1 : 0.6}
+                    strokeDasharray={a === 0 ? undefined : "2 5"}
+                  />
+                  <text x={4} y={y + 3} className="fill-muted-foreground" style={{ fontSize: 7 }}>
+                    {a}°
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* azimuth ticks */}
+            {[
+              { az: 90, l: "E" },
+              { az: 135, l: "SE" },
+              { az: 180, l: "S" },
+              { az: 225, l: "SW" },
+              { az: 270, l: "W" },
+            ].map(({ az, l }) => {
+              const { x } = project(az, 0);
+              return (
+                <g key={l}>
+                  <line x1={x} x2={x} y1={DOME.top} y2={DOME.base} stroke="currentColor" strokeOpacity={0.07} strokeWidth={0.6} />
+                  <text x={x} y={DOME.base + 14} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 7.5, letterSpacing: 1.5 }}>
+                    {l}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* irradiance wash under the summer arc */}
+            {summer.length > 1 && (
+              <path
+                d={`${toPath(summer)} L${summer[summer.length - 1].x.toFixed(1)},${DOME.base} L${summer[0].x.toFixed(1)},${DOME.base} Z`}
+                fill="url(#wlIntensity)"
+              />
+            )}
+
+            {/* arcs */}
+            <path className="wl-arc" style={{ animationDelay: "0.1s" }} d={toPath(summer)} fill="none" stroke="#fbbf24" strokeWidth={1.6} strokeLinecap="round" />
+            <path className="wl-arc" style={{ animationDelay: "0.3s" }} d={toPath(equinox)} fill="none" stroke="#f97316" strokeWidth={1.3} strokeLinecap="round" strokeOpacity={0.85} />
+            <path className="wl-arc" style={{ animationDelay: "0.5s" }} d={toPath(winter)} fill="none" stroke="currentColor" strokeOpacity={0.45} strokeWidth={1.1} strokeDasharray="4 4" strokeLinecap="round" />
+
+            {/* live sun */}
+            {today.altitude > 0 ? (
+              <g filter="url(#wlSunGlow)">
+                <circle className="wl-pulse" cx={today.x} cy={today.y} r={6} fill="#fbbf24" opacity={0.4} />
+                <circle cx={today.x} cy={today.y} r={3.4} fill="#fde68a" />
+              </g>
+            ) : (
+              <text x={DOME.w / 2} y={DOME.top + 6} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 7.5, letterSpacing: 1.6 }}>
+                NIGHT · SUN BELOW HORIZON
+              </text>
+            )}
+          </svg>
+
+          <ul className="mt-3 grid grid-cols-3 gap-2 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+            {[
+              { c: "#fbbf24", l: "June solstice" },
+              { c: "#f97316", l: "Equinox" },
+              { c: "currentColor", l: "December solstice" },
+            ].map((k) => (
+              <li key={k.l} className="flex items-center gap-2 rounded-lg border border-white/10 bg-background/20 px-2 py-1.5 backdrop-blur-md">
+                <span className="h-[2px] w-4 shrink-0" style={{ backgroundColor: k.c, opacity: k.c === "currentColor" ? 0.45 : 1 }} />
+                <span className="truncate">{k.l}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       {/* ── monthly production ── */}
-      <div className="border border-border/60 p-4">
-        <div className="flex items-baseline justify-between">
+      <div className={glass}>
+        <div className="relative flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Production by month</p>
           <p className="text-[10px] text-muted-foreground">
             {hover === null
@@ -170,10 +424,20 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         <svg
           viewBox="0 0 360 140"
           preserveAspectRatio="none"
-          className="mt-4 h-40 w-full"
+          className="relative mt-4 h-36 w-full sm:h-44"
           role="img"
           aria-label="Modelled monthly production against household demand"
         >
+          <defs>
+            <linearGradient id="wlBarCover" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fbbf24" />
+              <stop offset="100%" stopColor="#f97316" stopOpacity="0.55" />
+            </linearGradient>
+            <linearGradient id="wlBarShort" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#94a3b8" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#94a3b8" stopOpacity="0.25" />
+            </linearGradient>
+          </defs>
           {/* demand reference */}
           <line
             x1="0"
@@ -199,7 +463,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
                   y={120 - h}
                   width={w * 0.56}
                   height={Math.max(1, h)}
-                  fill={covers ? "#f97316" : "#facc15"}
+                  fill={covers ? "url(#wlBarCover)" : "url(#wlBarShort)"}
                   opacity={hover === null || hover === i ? 1 : 0.45}
                 />
                 <text
@@ -229,27 +493,31 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
       </div>
 
       {/* ── per-face contribution ── */}
-      <div className="border border-border/60 p-4">
-        <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+      <div className={glass}>
+        <p className="relative text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
           Where the energy comes from
         </p>
-        <ul className="mt-3 space-y-2.5">
+        <ul className="relative mt-3 space-y-2.5">
           {contributions.map(({ layout, face }, i) => {
             const exposure = readExposure(face!, latitude);
             const pct = (layout.yearlyKwh / bestFaceKwh) * 100;
             return (
-              <li key={layout.faceId} className="wl-fade" style={{ animationDelay: `${0.1 + i * 0.07}s` }}>
-                <div className="flex items-baseline justify-between text-[10px]">
+              <li
+                key={layout.faceId}
+                className="wl-fade rounded-xl border border-white/10 bg-background/20 px-3 py-2.5 backdrop-blur-md"
+                style={{ animationDelay: `${0.1 + i * 0.07}s` }}
+              >
+                <div className="flex items-baseline justify-between gap-3 text-[10px]">
                   <span className="uppercase tracking-[0.2em] text-muted-foreground">
                     {compassLabel(face!.azimuthDeg)} · {layout.panels} modules
                   </span>
-                  <span className="font-light text-foreground">
+                  <span className="shrink-0 font-light text-foreground">
                     {nf.format(Math.round(layout.yearlyKwh))} kWh
                   </span>
                 </div>
-                <div className="mt-1 h-1.5 w-full bg-muted">
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-foreground/10">
                   <div
-                    className="wl-grow h-full"
+                    className="wl-grow h-full rounded-full"
                     style={{
                       width: `${pct}%`,
                       backgroundColor: exposure.color,
