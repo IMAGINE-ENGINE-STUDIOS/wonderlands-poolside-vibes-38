@@ -1228,9 +1228,19 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       ? tradeFeaturePrice(selectedShape.layer, selectedShape.features, selectedMeasure.sqFt, selectedMeasure.lenFt)
       : 0;
 
-  /* Every catalogued option, filed under its heading, priced exactly as the
-     configurators and the FLIP book price it. Long catalogues (the paver book,
-     the fence book) scroll inside the drawer instead of pushing the board down. */
+  /* Every catalogued option, filed under its heading, presented exactly as
+     Wonderlands Studio presents it: photograph, title, price. Titles, prices
+     and images all come from the studio catalogues via TRADE_LAYERS, so a tile
+     here and a tile on the studio product card are the same product.
+     Long catalogues (the paver book, the fence book) scroll inside the drawer
+     instead of pushing the board down. */
+  const priceLabel = (f: { perSqFt?: number; perLinearFt?: number; flat?: number }) => {
+    if (f.perSqFt) return `+$${f.perSqFt}/sq ft`;
+    if (f.perLinearFt) return `+$${f.perLinearFt}/lf`;
+    if (f.flat) return `+$${f.flat.toLocaleString()}`;
+    return 'Included';
+  };
+
   const featureChips = (
     spec: (typeof TRADE_LAYERS)[string],
     activeIds: string[],
@@ -1244,24 +1254,52 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       else groups.push({ name, items: [f] });
     });
     return (
-      <div className="mt-1.5 max-h-[46vh] space-y-2 overflow-y-auto pr-1">
+      <div className="mt-1.5 max-h-[46vh] space-y-3 overflow-y-auto pr-1">
         {groups.map(g => (
           <div key={g.name}>
             <p className="text-[8.5px] uppercase tracking-[0.26em] text-muted-foreground/80">{g.name}</p>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              {g.items.map(f => (
-                <span key={f.id} className="contents">
-                  {ctrl(
-                    <>
-                      {f.label}
-                      {f.perSqFt ? <span className="opacity-60">+${f.perSqFt}/sf</span> : null}
-                      {f.perLinearFt ? <span className="opacity-60">+${f.perLinearFt}/lf</span> : null}
-                      {f.flat ? <span className="opacity-60">+${f.flat.toLocaleString()}</span> : null}
-                    </>,
-                    { on: activeIds.includes(f.id), onClick: () => onToggle(f.id), title: f.hint },
-                  )}
-                </span>
-              ))}
+            <div className="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+              {g.items.map(f => {
+                const on = activeIds.includes(f.id);
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    title={f.hint}
+                    aria-pressed={on}
+                    onClick={() => onToggle(f.id)}
+                    className={`flex flex-col overflow-hidden border p-1.5 text-left transition-all duration-300 ${
+                      on
+                        ? 'border-foreground bg-foreground/[0.07]'
+                        : 'border-border/60 bg-foreground/[0.02] hover:border-foreground/70'
+                    }`}
+                  >
+                    <span className="mb-1 flex h-14 w-full items-center justify-center overflow-hidden bg-muted/40">
+                      {f.image ? (
+                        <img
+                          loading="lazy"
+                          decoding="async"
+                          src={f.image}
+                          alt={f.label}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="px-1 text-center text-[8px] uppercase tracking-[0.18em] text-muted-foreground">
+                          {f.label}
+                        </span>
+                      )}
+                    </span>
+                    <span className="line-clamp-2 text-[9.5px] font-light leading-tight">{f.label}</span>
+                    <span
+                      className={`mt-0.5 text-[9px] uppercase tracking-[0.16em] ${
+                        on ? 'text-foreground' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {priceLabel(f)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
