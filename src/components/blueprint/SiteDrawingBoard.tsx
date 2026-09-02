@@ -416,6 +416,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
 
   const [showGrid, setShowGrid] = React.useState(true);
   const [calibration, setCalibration] = React.useState<{ x: number; y: number }[]>([]);
+  /** Ghost vertex riding the outline under the cursor while the point tool is armed. */
+  const [insertGhost, setInsertGhost] = React.useState<
+    { shapeId: string; segment: number; point: { x: number; y: number } } | null
+  >(null);
   const drag = React.useRef<
     | { kind: 'vertex'; shapeId: string; index: number }
     | { kind: 'bulge'; shapeId: string; index: number }
