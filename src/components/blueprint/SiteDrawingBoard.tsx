@@ -2278,6 +2278,12 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const optionsInline = optionsSlot ? null : optionPanels;
   const optionsPortal = optionsSlot ? createPortal(optionPanels, optionsSlot) : null;
 
+  /* The element palette is portalled into the host page's TRADES rail when one
+     is offered (`#wl-board-elements`), so elements and trades are a single
+     consolidated list instead of two competing menus. */
+  const elementsPortal =
+    !readOnly && elementsSlot ? createPortal(layerList(true), elementsSlot) : null;
+
   /* FLIP dossier layout — the tools ride in the sheet header, so everything
      under it is drawing. Only the element palette stays docked below. */
   if (menuSide) {
@@ -2287,10 +2293,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         {canvasEl}
         {optionsInline}
         {optionsPortal}
+        {elementsPortal}
         {underlayBar}
 
 
-        {!readOnly && (
+        {!readOnly && !elementsSlot && (
           <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <span className="text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">Elements</span>
@@ -2313,10 +2320,11 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
               {instrumentHeader}
             </div>
           )}
-          <div className="flex flex-wrap items-center gap-2">{layerTags}</div>
+          {elementsSlot ? null : <div className="flex flex-wrap items-center gap-2">{layerTags}</div>}
           {underlayBar}
         </div>
       )}
+      {elementsPortal}
       {canvasEl}
       {optionsInline}
       {optionsPortal}
