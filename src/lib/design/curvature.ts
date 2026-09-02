@@ -139,28 +139,29 @@ export function arcMidpoint(a: CPt, b: CPt, bulge: number): CPt {
 export function sampleArc(a: CPt, b: CPt, bulge: number, steps = STEPS): CPt[] {
   const chord = dist(a, b);
   if (chord < 1e-6 || Math.abs(bulge) < 1e-6) return [a, b];
-  const { radiusPx, sweepRad, sign } = arcMetrics(chord, bulge);
+  const { radiusPx, sweepRad, sagittaPx, sign } = arcMetrics(chord, bulge);
   const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   const ux = (b.x - a.x) / chord;
   const uy = (b.y - a.y) / chord;
-  /* centre sits on the chord normal, opposite the bow */
-  const h = Math.sqrt(Math.max(0, radiusPx * radiusPx - (chord / 2) * (chord / 2)));
-  const away = Math.abs(bulge) > 0.5 ? -1 : 1; // major arcs put the centre past the chord
-  const c = { x: mid.x + -uy * -sign * h * away, y: mid.y + ux * -sign * h * away };
-  let a0 = Math.atan2(a.y - c.y, a.x - c.x);
-  const a1 = Math.atan2(b.y - c.y, b.x - c.x);
-  let delta = a1 - a0;
-  const target = sweepRad * sign;
-  /* walk the arc in the direction the bulge asks for, with the right sweep */
-  while (delta - target > Math.PI) delta -= 2 * Math.PI;
-  while (target - delta > Math.PI) delta += 2 * Math.PI;
-  const out: CPt[] = [];
+  /* right-hand normal of the chord: the bow leans this way for a +bulge */
+  const nx = -uy;
+  const ny = ux;
+  /* the apex the designer sees, and the centre sitting opposite it */
+  const apex = { x: mid.x + nx * sagittaPx * sign, y: mid.y + ny * sagittaPx * sign };
+  const d = Math.sqrt(Math.max(0, radiusPx * radiusPx - (chord / 2) * (chord / 2)));
+  const c = { x: mid.x - nx * d * sign, y: mid.y - ny * d * sign };
+  const a0 = Math.atan2(a.y - c.y, a.x - c.x);
+  /* sweep whichever way actually passes through the apex — no wrap guesswork */
+  const at = (t: number) => ({ x: c.x + radiusPx * Math.cos(t), y: c.y + radiusPx * Math.sin(t) });
+  const cw = at(a0 + sweepRad / 2);
+  const ccw = at(a0 - sweepRad / 2);
+  const delta = dist(cw, apex) <= dist(ccw, apex) ? sweepRad : -sweepRad;
   const n = Math.max(6, Math.min(96, Math.round(steps * Math.max(0.35, sweepRad / Math.PI))));
-  for (let i = 0; i <= n; i++) {
-    const t = a0 + (delta * i) / n;
-    out.push({ x: c.x + radiusPx * Math.cos(t), y: c.y + radiusPx * Math.sin(t) });
-  }
-  void a0;
+  const out: CPt[] = [];
+  for (let i = 0; i <= n; i++) out.push(at(a0 + (delta * i) / n));
+  /* land exactly on the drawn corners, whatever the floating-point drift */
+  out[0] = a;
+  out[out.length - 1] = b;
   return out;
 }
 
@@ -280,7 +281,7 @@ export function filletAt(
   const phi = Math.PI - theta;
   const chord = dist(pIn, pOut);
   const sag = r * (1 - Math.cos(phi / 2));
-  const bulge = chord > 1e-6 ? Math.min(MAX_BULGE, sag / chord) * (cross > 0 ? -1 : 1) : 0;
+  const bulge = chord > 1e-6 ? Math.min(MAX_BULGE, (2 * sag) / chord) * (cross > 0 ? -1 : 1) : 0;
   return { arc: sampleArc(pIn, pOut, bulge, 24), trimIn: tangent, trimOut: tangent };
 }
 
