@@ -363,8 +363,9 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
           header={header}
           defaultLayer={DEFAULT_LAYER[categoryId] ?? "pool"}
           menuSide={!fullScreen}
-          /* The one-stop project board opens on 20 ft of frontage. */
-          defaultViewWidthFt={boardId.includes("global-design") ? 20 : undefined}
+          /* Every board opens at the shared pool-and-patio altitude
+             (DEFAULT_VIEW_WIDTH_FT); whole-lot work is one press of Fit away. */
+
 
           onRequestImport={fullScreen ? () => fileRef.current?.click() : undefined}
         />
