@@ -140,9 +140,13 @@ export interface SiteAreas {
 export const CANVAS_W = 1180;
 export const CANVAS_H = 720;
 
-/** Default view height in real feet — the canvas shows 50 ft top to bottom. */
-export const DEFAULT_VIEW_HEIGHT_FT = 50;
-export const DEFAULT_PX_PER_FT = +(CANVAS_H / DEFAULT_VIEW_HEIGHT_FT).toFixed(2); // 14.4 px/ft
+/**
+ * Default view height in real feet. 50 ft read far too small — a 14 ft pool was
+ * a thumbnail on the sheet. 28 ft top to bottom puts a pool, its deck and the
+ * dimensions at a workable drafting scale (~1/2" = 1'-0" on screen).
+ */
+export const DEFAULT_VIEW_HEIGHT_FT = 28;
+export const DEFAULT_PX_PER_FT = +(CANVAS_H / DEFAULT_VIEW_HEIGHT_FT).toFixed(2); // 25.7 px/ft
 
 const layerMeta = (id: SiteLayerId) => SITE_LAYERS.find(l => l.id === id) || SITE_LAYERS[0];
 
