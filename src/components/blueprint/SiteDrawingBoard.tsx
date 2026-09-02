@@ -689,12 +689,34 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     onSnapshot(data.shapes.length || data.underlay ? canvas.toDataURL('image/png') : null);
   }, [draw, onSnapshot, data.shapes.length, data.underlay]);
 
+  /** Pointer → sheet coordinates, through the camera. */
   const toLocal = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const scaleX = CANVAS_W / rect.width;
-    const scaleY = CANVAS_H / rect.height;
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    const sx = ((e.clientX - rect.left) * CANVAS_W) / rect.width;
+    const sy = ((e.clientY - rect.top) * CANVAS_H) / rect.height;
+    const v = viewRef.current;
+    return { x: (sx - v.x) / v.z, y: (sy - v.y) / v.z };
   };
+
+  /* Wheel and trackpad-pinch zoom, anchored under the cursor. React's onWheel is
+     passive, so the listener is attached natively to keep preventDefault. */
+  React.useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      zoomAt(
+        Math.exp(-dy * 0.0018),
+        ((e.clientX - rect.left) * CANVAS_W) / rect.width,
+        ((e.clientY - rect.top) * CANVAS_H) / rect.height,
+      );
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [zoomAt]);
+
 
   const hitTest = (p: { x: number; y: number }): string | null => {
     for (let i = data.shapes.length - 1; i >= 0; i--) {
