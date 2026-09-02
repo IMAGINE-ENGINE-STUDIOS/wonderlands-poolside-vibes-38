@@ -1539,35 +1539,60 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     </button>
   );
 
-  const layerTags = (
-    <div className="flex flex-wrap gap-1.5">
+  /** How many elements of each kind are already on the sheet. */
+  const layerCounts = React.useMemo(() => {
+    const m: Partial<Record<SiteLayerId, number>> = {};
+    data.shapes.forEach(s => {
+      m[s.layer] = (m[s.layer] ?? 0) + 1;
+    });
+    return m;
+  }, [data.shapes]);
+
+  /** Arm an element: reassign the picked one, or load the pencil for a new one. */
+  const armLayer = (id: SiteLayerId) => {
+    setLayer(id);
+    if (selected) assignSelectedLayer(id);
+    else {
+      setMode('draw');
+      setDraft([]);
+    }
+  };
+
+  /**
+   * The element palette. `stacked` renders it as the gateway list the Global
+   * Design Board files inside its TRADES rail — the site's elements and the
+   * project's trades read as one continuous list of what is in scope.
+   */
+  const layerList = (stacked = false) => (
+    <div className={stacked ? 'space-y-1.5' : 'flex flex-wrap gap-1.5'}>
       {SITE_LAYERS.map(l => {
         const on = layer === l.id && mode === 'draw';
+        const count = layerCounts[l.id] ?? 0;
         return (
           <button
             key={l.id}
             type="button"
-            onClick={() => {
-              setLayer(l.id);
-              if (selected) assignSelectedLayer(l.id);
-              else {
-                setMode('draw');
-                setDraft([]);
-              }
-            }}
-            className={`${CTRL} ${on ? CTRL_ON : CTRL_OFF}`}
+            onClick={() => armLayer(l.id)}
+            className={`${CTRL} ${on ? CTRL_ON : CTRL_OFF} ${stacked ? 'w-full justify-start' : ''}`}
           >
             <span
               className="h-2 w-2 rounded-full ring-1 ring-inset ring-black/10"
               style={{ background: l.color }}
             />
             {l.label}
+            {stacked ? (
+              <span className={`ml-auto tabular-nums ${on ? 'opacity-80' : 'text-muted-foreground/70'}`}>
+                {count ? `${count} drawn` : '—'}
+              </span>
+            ) : null}
             {!on && sweep}
           </button>
         );
       })}
     </div>
   );
+
+  const layerTags = layerList();
 
   /* ── instrument header ────────────────────────────────────────────────────
      The tools live in the sheet's own header, in the empty band beside the
