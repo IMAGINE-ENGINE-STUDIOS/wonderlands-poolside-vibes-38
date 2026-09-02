@@ -67,7 +67,7 @@ const declination = (dayOfYear: number) =>
   23.45 * Math.sin(((360 / 365) * (dayOfYear - 81)) * RAD);
 
 /** Path geometry of the sun dome plate (a wide mission-console sheet). */
-const DOME = { w: 720, h: 320, base: 246, left: 54, right: 686, top: 34 };
+const DOME = { w: 720, h: 352, base: 262, left: 66, right: 686, top: 40 };
 /** Azimuth window drawn across the plate: ENE → WNW. */
 const AZ_FROM = 52;
 const AZ_TO = 308;
@@ -261,7 +261,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
   const progress = Math.max(0, Math.min(1, (hours - firstLight) / (lastLight - firstLight)));
 
   const chip =
-    "rounded-lg border border-white/10 bg-background/25 px-2.5 py-1.5 backdrop-blur-md";
+    "group rounded-xl border border-white/15 bg-background/30 px-3 py-2.5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:border-amber-300/45 hover:bg-background/45";
 
   return (
     <div className={glass}>
@@ -275,21 +275,26 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
       />
 
       {/* header */}
-      <div className="relative flex flex-wrap items-end justify-between gap-x-5 gap-y-2">
+      <div className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
-          <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
+          <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
             Solar ephemeris · sky console
           </p>
-          <p className="mt-1 text-sm font-light">
+          <p className="mt-1.5 text-lg font-light leading-tight sm:text-xl">
             {`${MONTH_NAMES[monthIdx]} ${doy - DAY_OF_MONTH_START[monthIdx] + 1} · ${clockLabel(readHour)}`}
             <span className="text-muted-foreground">{` · lat ${lat.toFixed(2)}°`}</span>
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 text-[9px] uppercase tracking-[0.22em]">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em]">
           <button
             type="button"
             onClick={() => setPlaying((p) => !p)}
-            className="rounded-full border border-white/20 bg-background/30 px-3 py-1.5 backdrop-blur-md transition hover:border-amber-300/60 hover:text-amber-200"
+            aria-pressed={playing}
+            className={`rounded-full border px-4 py-2 backdrop-blur-xl transition ${
+              playing
+                ? "border-amber-300/60 bg-amber-300/15 text-amber-100"
+                : "border-white/20 bg-background/35 hover:border-amber-300/60 hover:text-amber-200"
+            }`}
           >
             {playing ? "Pause transit" : "Run transit"}
           </button>
@@ -302,7 +307,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
               setHours(d.getHours() + d.getMinutes() / 60);
               setStation(null);
             }}
-            className="rounded-full border border-white/15 bg-background/20 px-3 py-1.5 text-muted-foreground backdrop-blur-md transition hover:text-foreground"
+            className="rounded-full border border-white/15 bg-background/25 px-4 py-2 text-muted-foreground backdrop-blur-xl transition hover:border-white/35 hover:text-foreground"
           >
             Now
           </button>
@@ -312,7 +317,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
       {/* plate */}
       <svg
         viewBox={`0 0 ${DOME.w} ${DOME.h}`}
-        className="relative mt-3 w-full select-none"
+        className="relative mt-4 w-full select-none"
         role="img"
         aria-label={`Sun path chart for latitude ${lat.toFixed(2)} degrees on day ${doy}`}
       >
