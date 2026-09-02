@@ -25,7 +25,9 @@ import {
   moonRead,
   planetReads,
   starHorizontal,
+  sunEquatorial,
 } from "@/lib/solar/astronomy";
+
 import {
   DEFAULT_TARIFF_CODE,
   ELECTRICITY_TARIFFS,
@@ -76,9 +78,18 @@ const sunPosition = (latDeg: number, decDeg: number, hourAngleDeg: number) => {
   return { altitude: alt / RAD, azimuth: az };
 };
 
-/** Declination for a day-of-year (Cooper's equation). */
+/** Declination for a day-of-year (Cooper's equation) — fallback only. */
 const declination = (dayOfYear: number) =>
   23.45 * Math.sin(((360 / 365) * (dayOfYear - 81)) * RAD);
+
+/**
+ * True apparent solar declination for a calendar instant, taken from the same
+ * ephemeris that places the Moon, the planets and the stars on this plate. The
+ * solstice and equinox arcs are drawn from these figures, so their curvature is
+ * the sky's own — not a sine approximation of the calendar.
+ */
+const decAt = (year: number, month: number, day: number) =>
+  sunEquatorial(new Date(Date.UTC(year, month, day, 12, 0, 0))).dec;
 
 /** Path geometry of the sun dome plate (a wide mission-console sheet). */
 const DOME = { w: 720, h: 352, base: 262, left: 66, right: 686, top: 40 };
@@ -86,12 +97,25 @@ const DOME = { w: 720, h: 352, base: 262, left: 66, right: 686, top: 40 };
 const AZ_FROM = 52;
 const AZ_TO = 308;
 
-/** Project altitude/azimuth into the dome plate. */
+/**
+ * Project altitude/azimuth into the dome plate.
+ *
+ * The horizon is a circle seen from inside it, so the azimuth axis is projected
+ * orthographically about due south: a degree of azimuth near the meridian opens
+ * wide, a degree near the eastern or western edge foreshortens. That is what
+ * gives a sun path its true curvature — the arc rises steeply out of the horizon
+ * and rounds over at culmination, instead of the flat parabola a linear azimuth
+ * axis draws. Altitude stays equidistant so the 15° grid remains a ruler, and
+ * every body on the plate (sun, moon, planets, stars) shares this one geometry.
+ */
 const project = (azimuth: number, altitude: number) => {
-  const span = AZ_TO - AZ_FROM;
-  const t = Math.max(0, Math.min(1, (azimuth - AZ_FROM) / span));
+  const half = (AZ_TO - AZ_FROM) / 2; // 128° each side of south
+  const off = Math.max(-half, Math.min(half, azimuth - (AZ_FROM + half)));
+  /* sin() over the half-window: monotonic, and foreshortened at the edges. */
+  const u = Math.sin((off / half) * 90 * RAD);
+  const cx = (DOME.left + DOME.right) / 2;
   return {
-    x: DOME.left + t * (DOME.right - DOME.left),
+    x: cx + u * ((DOME.right - DOME.left) / 2),
     y: DOME.base - (Math.max(-12, altitude) / 90) * (DOME.base - DOME.top),
   };
 };
@@ -100,7 +124,7 @@ const project = (azimuth: number, altitude: number) => {
 /** Sample a full arc for a declination, keeping only daylight positions. */
 const arcPoints = (lat: number, dec: number) => {
   const pts: { x: number; y: number; altitude: number }[] = [];
-  for (let H = -180; H <= 180; H += 2) {
+  for (let H = -180; H <= 180; H += 1) {
     const { altitude, azimuth } = sunPosition(lat, dec, H);
     if (altitude < 0) continue;
     const p = project(azimuth, altitude);
@@ -109,8 +133,24 @@ const arcPoints = (lat: number, dec: number) => {
   return pts;
 };
 
-const toPath = (pts: { x: number; y: number }[]) =>
-  pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+/** Smooth the sampled arc into a Catmull-Rom curve so the culmination rounds. */
+const toPath = (pts: { x: number; y: number }[]) => {
+  if (pts.length < 3) return pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+  }
+  return d;
+};
+
 
 /* ── astronomical helpers ─────────────────────────────────────────────── */
 
@@ -251,12 +291,31 @@ const SunPathConsole: React.FC<{
     return () => cancelAnimationFrame(raf);
   }, [playing]);
 
-  const dec = React.useMemo(() => declination(doy), [doy]);
+  /* Today's declination read from the ephemeris (Cooper's sine only covers the
+     case where the year is somehow unavailable), and the three seasonal arcs
+     taken at the real solstice and equinox instants of the displayed year. */
+  const year = now.getFullYear();
+  const dec = React.useMemo(() => {
+    const d = new Date(Date.UTC(year, 0, 1, 12, 0, 0));
+    d.setUTCDate(doy);
+    const real = sunEquatorial(d).dec;
+    return Number.isFinite(real) ? real : declination(doy);
+  }, [doy, year]);
+
+  const seasonDec = React.useMemo(
+    () => ({
+      summer: decAt(year, 5, 21), // June solstice
+      equinox: decAt(year, 2, 20), // March equinox
+      winter: decAt(year, 11, 21), // December solstice
+    }),
+    [year],
+  );
 
   const dayArc = React.useMemo(() => arcPoints(lat, dec), [lat, dec]);
-  const summer = React.useMemo(() => arcPoints(lat, declination(172)), [lat]);
-  const winter = React.useMemo(() => arcPoints(lat, declination(355)), [lat]);
-  const equinox = React.useMemo(() => arcPoints(lat, declination(80)), [lat]);
+  const summer = React.useMemo(() => arcPoints(lat, seasonDec.summer), [lat, seasonDec.summer]);
+  const winter = React.useMemo(() => arcPoints(lat, seasonDec.winter), [lat, seasonDec.winter]);
+  const equinox = React.useMemo(() => arcPoints(lat, seasonDec.equinox), [lat, seasonDec.equinox]);
+
 
   /* Hour stations along today's arc — the "waypoints" of the flight path. */
   const stations = React.useMemo(() => {
@@ -758,10 +817,63 @@ const SunPathConsole: React.FC<{
           />
         )}
 
-        {/* reference arcs */}
-        <path d={toPath(summer)} fill="none" stroke="#fbbf24" strokeWidth={1} strokeOpacity={0.5} strokeDasharray="5 5" />
-        <path d={toPath(equinox)} fill="none" stroke="#f97316" strokeWidth={0.9} strokeOpacity={0.4} strokeDasharray="5 5" />
-        <path d={toPath(winter)} fill="none" stroke="currentColor" strokeWidth={0.9} strokeOpacity={0.3} strokeDasharray="5 5" />
+        {/* Seasonal culminations — the June solstice, the equinoxes and the
+            December solstice, each drawn solid at its true declination with a
+            few sun stations along the curve so the reader can see how far the
+            culmination climbs between seasons. */}
+        {(
+          [
+            { pts: summer, c: "#fbbf24", w: 2, o: 0.92, l: "SUMMER SOLSTICE", s: "JUN 21", dec: seasonDec.summer },
+            { pts: equinox, c: "#38bdf8", w: 1.7, o: 0.82, l: "EQUINOX", s: "MAR 20 / SEP 22", dec: seasonDec.equinox },
+            { pts: winter, c: "#fb7185", w: 1.7, o: 0.78, l: "WINTER SOLSTICE", s: "DEC 21", dec: seasonDec.winter },
+          ] as const
+        ).map((arc) => {
+          if (arc.pts.length < 3) return null;
+          const apex = arc.pts.reduce((a, p) => (p.y < a.y ? p : a), arc.pts[0]);
+          const stations = [0.12, 0.3, 0.7, 0.88].map((t) => arc.pts[Math.round(t * (arc.pts.length - 1))]);
+          return (
+            <g key={arc.l}>
+              <path
+                d={toPath(arc.pts)}
+                fill="none"
+                stroke={arc.c}
+                strokeWidth={arc.w * 2.6}
+                strokeOpacity={0.16}
+                strokeLinecap="round"
+                filter="url(#wlSunGlow)"
+              />
+              <path
+                d={toPath(arc.pts)}
+                fill="none"
+                stroke={arc.c}
+                strokeWidth={arc.w}
+                strokeOpacity={arc.o}
+                strokeLinecap="round"
+              />
+              {stations.map((p, i) => (
+                <circle key={i} cx={p.x} cy={p.y} r={1.9} fill={arc.c} fillOpacity={0.85} />
+              ))}
+              <text
+                x={apex.x}
+                y={apex.y - 13}
+                textAnchor="middle"
+                style={{ fontSize: 10, letterSpacing: 1.6, fill: arc.c, opacity: 0.95 }}
+              >
+                {arc.l}
+              </text>
+              <text
+                x={apex.x}
+                y={apex.y - 3}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                style={{ fontSize: 8.5, letterSpacing: 1.1, opacity: 0.85 }}
+              >
+                {`${arc.s} · ${arc.dec >= 0 ? "+" : ""}${arc.dec.toFixed(1)}° DEC · ${(90 - Math.abs(lat - arc.dec)).toFixed(1)}° NOON`}
+              </text>
+            </g>
+          );
+        })}
+
 
         {/* today's flight path */}
         <path
