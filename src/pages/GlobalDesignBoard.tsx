@@ -419,7 +419,9 @@ const GlobalDesignBoard: React.FC = () => {
               )}
             </div>
             {/* the discipline's real board: its pencils, splines, layers and tools */}
-            <FlipToolWidget key={active.boardId} categoryId={active.boardId} part="board" />
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <FlipToolWidget key={active.boardId} categoryId={active.boardId} part="board" />
+            </div>
           </div>
 
           {/* the WHOLE project: every trade's estimate, take-off & options,
