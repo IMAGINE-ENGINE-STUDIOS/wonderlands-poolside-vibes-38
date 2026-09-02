@@ -1212,13 +1212,37 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
             { onClick: onRequestImport },
           )
         : null}
+      {/* Two separate instruments, exactly as the artificial-turf board: the pen
+          traces new elements, the pointer picks a drawn one to change its
+          options (click the paver deck to change its paver). */}
       {ctrl(
         <>
-          {mode === 'select' ? <MousePointer2 className="h-3.5 w-3.5" /> : <PenLine className="h-3.5 w-3.5" />}
-          {mode === 'select' ? 'Select' : 'Draw'}
+          <PenLine className="h-3.5 w-3.5" /> Draw
         </>,
-        { on: mode === 'select', onClick: () => setMode(mode === 'select' ? 'draw' : 'select') },
+        {
+          on: mode === 'draw',
+          title: 'Trace a new element on the armed layer',
+          onClick: () => {
+            setMode('draw');
+            setHoverShapeId(null);
+          },
+        },
       )}
+      {ctrl(
+        <>
+          <MousePointer2 className="h-3.5 w-3.5" /> Pick
+        </>,
+        {
+          on: mode === 'select',
+          title: 'Pick a drawn element to open its features and options',
+          onClick: () => {
+            setMode('select');
+            setDraft([]);
+            setHover(null);
+          },
+        },
+      )}
+
       {ctrl(
         <>
           <Ruler className="h-3.5 w-3.5" /> Calibrate
