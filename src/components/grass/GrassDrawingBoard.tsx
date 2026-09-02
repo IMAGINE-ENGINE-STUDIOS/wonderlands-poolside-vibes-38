@@ -302,19 +302,20 @@ const GrassDrawingBoard: React.FC<Props> = ({
   const [selection, setSelection] = React.useState<Selection>(null);
   const [hover, setHover] = React.useState<GrassPoint | null>(null);
   const [view, setView] = React.useState({ zoom: 1, ox: 40, oy: 30 });
-  /* publish this board's altitude so every other board opens level with it */
-  React.useEffect(() => {
-    if (size.w) setBoardAltitudeFt(size.w / (view.zoom * PX_PER_FT));
-  }, [view.zoom, size.w]);
   const dragRef = React.useRef<{ mode: 'point' | 'pan'; id?: string; index?: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 540 });
-  /* frame 20 ft of the sheet as soon as the board is measured */
+  /* frame the altitude last flown on any board — see lib/design/boardAltitude */
   const framedRef = React.useRef(false);
   React.useEffect(() => {
     if (framedRef.current || !size.w) return;
     framedRef.current = true;
     setView(v => ({ ...v, zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (boardAltitudeFtOr(VIEW_WIDTH_FT) * PX_PER_FT))) }));
   }, [size.w]);
+  /* …and publish this board's altitude so every other board opens level with it */
+  React.useEffect(() => {
+    if (size.w) setBoardAltitudeFt(size.w / (view.zoom * PX_PER_FT));
+  }, [view.zoom, size.w]);
+
 
   // Grass textures for pattern fills — product photos carry a white studio border,
   // so we trim it and mirror the crop into a seamless tile (no white seam lines).
