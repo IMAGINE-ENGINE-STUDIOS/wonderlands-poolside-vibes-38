@@ -77,6 +77,21 @@ export const solarAreaPrice = (sqFt: number) =>
  */
 const SHELL_BASE = 80;
 
+/**
+ * The whole coping catalogue, at its published $/linear ft, offered on any shell
+ * layer — one choice only, exactly as the studio and the FLIP book present it.
+ */
+const COPING_FEATURES = (prefix: string): TradeFeature[] =>
+  copingTypes.map((c) => ({
+    id: `${prefix}-coping-${c.id}`,
+    label: c.name,
+    perLinearFt: c.basePrice,
+    hint: c.description,
+    group: 'Coping',
+    exclusive: `${prefix}-coping`,
+  }));
+
+
 export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
   pool: {
     rate: SHELL_BASE * 3.5,
