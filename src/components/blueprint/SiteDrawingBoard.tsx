@@ -1298,7 +1298,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         value={zoomSlider}
         onChange={e => setZoomFromSlider(+e.target.value)}
         aria-label="Zoom"
-        className="hidden h-1 w-24 shrink-0 cursor-pointer appearance-none rounded-full bg-foreground/15 accent-foreground sm:block"
+        className="hidden h-1 w-24 shrink-0 cursor-pointer appearance-none rounded-full bg-foreground/15 accent-foreground lg:block"
       />
       {ctrl(<ZoomIn className="h-3.5 w-3.5" />, { onClick: () => zoomBy(1.25), title: 'Zoom in' })}
       <span className="shrink-0 whitespace-nowrap px-1 text-center text-[8.5px] uppercase tracking-[0.16em] text-muted-foreground">
