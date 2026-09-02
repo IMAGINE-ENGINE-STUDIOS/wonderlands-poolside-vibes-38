@@ -41,6 +41,8 @@ interface FenceDrawingBoardProps {
 }
 
 const PX_PER_FT = 10;
+/** Every drawing board opens on 20 ft of frontage. */
+const VIEW_WIDTH_FT = 20;
 const GRID_FT = 1;
 const MAJOR_FT = 5;
 
@@ -56,6 +58,41 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
   const [hover, setHover] = React.useState<FencePoint | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 520 });
   const wrapRef = React.useRef<HTMLDivElement | null>(null);
+  /* Camera over the sheet — the drafting scale stays 10 px = 1 ft. */
+  const [view, setView] = React.useState({ z: 1, x: 0, y: 0 });
+  const framedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (framedRef.current || !size.w) return;
+    framedRef.current = true;
+    setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
+  }, [size.w]);
+  const zoomBy = (factor: number) =>
+    setView(v => {
+      const next = Math.max(0.25, Math.min(8, v.z * factor));
+      const k = next / v.z;
+      const px = size.w / 2;
+      const py = size.h / 2;
+      return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
+    });
+  const fitSheet = () => setView({ z: Math.max(0.25, Math.min(8, size.w / (VIEW_WIDTH_FT * PX_PER_FT))), x: 0, y: 0 });
+  React.useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      setView(v => {
+        const next = Math.max(0.25, Math.min(8, v.z * Math.exp(-dy * 0.0015)));
+        const k = next / v.z;
+        return { z: next, x: px - (px - v.x) * k, y: py - (py - v.y) * k };
+      });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
 
   React.useEffect(() => {
@@ -124,23 +161,33 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, size.w, size.h);
 
+    /* camera: the sheet below is drawn in world coordinates */
+    const Z = view.z;
+    ctx.translate(view.x, view.y);
+    ctx.scale(Z, Z);
+    const gstep = GRID_FT * PX_PER_FT;
+    const wx0 = Math.floor(-view.x / Z / gstep) * gstep;
+    const wx1 = wx0 + size.w / Z + gstep;
+    const wy0 = Math.floor(-view.y / Z / gstep) * gstep;
+    const wy1 = wy0 + size.h / Z + gstep;
+
     // grid
-    for (let x = 0; x <= size.w; x += GRID_FT * PX_PER_FT) {
+    for (let x = wx0; x <= wx1; x += gstep) {
       const major = Math.round(x / PX_PER_FT) % MAJOR_FT === 0;
       ctx.strokeStyle = major ? gridMajor : gridMinor;
-      ctx.lineWidth = major ? 1 : 0.5;
+      ctx.lineWidth = (major ? 1 : 0.5) / Z;
       ctx.beginPath();
-      ctx.moveTo(x + 0.5, 0);
-      ctx.lineTo(x + 0.5, size.h);
+      ctx.moveTo(x, wy0);
+      ctx.lineTo(x, wy1);
       ctx.stroke();
     }
-    for (let y = 0; y <= size.h; y += GRID_FT * PX_PER_FT) {
+    for (let y = wy0; y <= wy1; y += gstep) {
       const major = Math.round(y / PX_PER_FT) % MAJOR_FT === 0;
       ctx.strokeStyle = major ? gridMajor : gridMinor;
-      ctx.lineWidth = major ? 1 : 0.5;
+      ctx.lineWidth = (major ? 1 : 0.5) / Z;
       ctx.beginPath();
-      ctx.moveTo(0, y + 0.5);
-      ctx.lineTo(size.w, y + 0.5);
+      ctx.moveTo(wx0, y);
+      ctx.lineTo(wx1, y);
       ctx.stroke();
     }
 
@@ -192,16 +239,16 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
         const mx = mid.x;
         const my = mid.y;
         const label = `${ft.toFixed(1)} ft${isGate ? ' • GATE' : ''}`;
-        ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
-        const w = ctx.measureText(label).width + 8;
+        ctx.font = `600 ${11 / Z}px ui-sans-serif, system-ui, sans-serif`;
+        const w = ctx.measureText(label).width + 8 / Z;
         ctx.fillStyle = bg;
-        ctx.fillRect(mx - w / 2, my - 16, w, 15);
+        ctx.fillRect(mx - w / 2, my - 16 / Z, w, 15 / Z);
         ctx.strokeStyle = gridMajor;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(mx - w / 2, my - 16, w, 15);
+        ctx.lineWidth = 1 / Z;
+        ctx.strokeRect(mx - w / 2, my - 16 / Z, w, 15 / Z);
         ctx.fillStyle = textColor;
         ctx.textAlign = 'center';
-        ctx.fillText(label, mx, my - 5);
+        ctx.fillText(label, mx, my - 5 / Z);
       }
     });
 
@@ -210,8 +257,8 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
     if (mode === 'draw' && hover && layout.points.length > 0 && !layout.closed) {
       const last = layout.points[layout.points.length - 1];
       ctx.strokeStyle = '#0891b2';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2 / Z;
+      ctx.setLineDash([5 / Z, 5 / Z]);
       ctx.beginPath();
       ctx.moveTo(last.x, last.y);
       ctx.lineTo(hover.x, hover.y);
@@ -219,31 +266,31 @@ const FenceDrawingBoard = ({ layout, onChange, onMeasure, colorHex = '#111827', 
       ctx.setLineDash([]);
       const ft = dist(last, hover) / PX_PER_FT;
       ctx.fillStyle = textColor;
-      ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+      ctx.font = `600 ${11 / Z}px ui-sans-serif, system-ui, sans-serif`;
       ctx.textAlign = 'left';
-      ctx.fillText(`${ft.toFixed(1)} ft`, hover.x + 10, hover.y - 8);
+      ctx.fillText(`${ft.toFixed(1)} ft`, hover.x + 10 / Z, hover.y - 8 / Z);
     }
 
     // posts — round = curvature handle, square = hard corner
     layout.points.forEach((p, i) => {
       const active = i === dragIndex || i === selectedIndex;
-      const r = active ? 7 : 5;
+      const r = (active ? 7 : 5) / Z;
       ctx.beginPath();
       if (curves[i]) ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
       else ctx.rect(p.x - r, p.y - r, r * 2, r * 2);
       ctx.fillStyle = i === selectedIndex ? '#f59e0b' : curves[i] ? '#0891b2' : i === 0 ? '#f97066' : colorHex;
       ctx.fill();
       ctx.strokeStyle = bg;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 / Z;
       ctx.stroke();
     });
-  }, [layout, segments, curves, size, hover, mode, dragIndex, selectedIndex, colorHex]);
+  }, [layout, segments, curves, size, hover, mode, dragIndex, selectedIndex, colorHex, view]);
 
 
   // ---- interaction ----
   const toLocal = (e: React.MouseEvent): FencePoint => {
     const rect = canvasRef.current!.getBoundingClientRect();
-    const raw = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const raw = { x: (e.clientX - rect.left - view.x) / view.z, y: (e.clientY - rect.top - view.y) / view.z };
     return {
       x: Math.round(raw.x / PX_PER_FT) * PX_PER_FT,
       y: Math.round(raw.y / PX_PER_FT) * PX_PER_FT,
