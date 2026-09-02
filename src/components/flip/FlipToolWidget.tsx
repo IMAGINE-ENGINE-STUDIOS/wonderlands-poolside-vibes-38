@@ -434,18 +434,14 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
    * left half the spread looking broken.
    */
   const facingLeaf = (
-    <div className="absolute inset-0 overflow-y-auto" {...lockHandlers}>
-      <div className="divide-y divide-border/60">
-        <FlipBoardTools
-          categoryId={boardId}
-          title={modelName}
-          onEnlarge={() => setFull(true)}
-          onUpload={() => fileRef.current?.click()}
-          onExpand={onExpand}
-        />
-        <FlipBoardCost categoryId={boardId} />
-        <FlipBoardCalculators categoryId={boardId} />
-      </div>
+    <div className="absolute inset-0 overflow-hidden" {...lockHandlers}>
+      <FlipBoardDossier
+        categoryId={boardId}
+        title={modelName}
+        onEnlarge={() => setFull(true)}
+        onUpload={() => fileRef.current?.click()}
+        onExpand={onExpand}
+      />
     </div>
   );
 
