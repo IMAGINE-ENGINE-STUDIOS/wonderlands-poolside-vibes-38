@@ -393,10 +393,15 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   /* Additional features armed per trade before anything is drawn — the options
      of the armed element are always on screen, not hidden behind a selection. */
   const [armedFeatures, setArmedFeatures] = React.useState<Partial<Record<SiteLayerId, string[]>>>({});
-  /* Host page may offer a project column for the options drawers */
+  /* Host page may offer a project column for the options drawers, and a slot
+     inside its TRADES rail for the element palette — on the Global Design Board
+     the elements ARE the site trade, so the two live as one list. */
   const [optionsSlot, setOptionsSlot] = React.useState<HTMLElement | null>(null);
+  const [elementsSlot, setElementsSlot] = React.useState<HTMLElement | null>(null);
   React.useEffect(() => {
-    setOptionsSlot(typeof document === 'undefined' ? null : document.getElementById('wl-board-options'));
+    if (typeof document === 'undefined') return;
+    setOptionsSlot(document.getElementById('wl-board-options'));
+    setElementsSlot(document.getElementById('wl-board-elements'));
   }, []);
 
   const [mode, setMode] = React.useState<Mode>('draw');
