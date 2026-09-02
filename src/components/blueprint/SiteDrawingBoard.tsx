@@ -1020,9 +1020,17 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       setHover(raw);
       return;
     }
+    if (mode === 'select') {
+      /* light up whatever the pointer is over so it is obvious which element
+         will take the option change on the next click */
+      const over = hitTest(raw);
+      setHoverShapeId(prev => (prev === over ? prev : over));
+      return;
+    }
     if (mode !== 'draw' || !draft.length) return;
     setHover({ x: snap(raw.x), y: snap(raw.y) });
   };
+
 
   const endDrag = () => {
     drag.current = null;
