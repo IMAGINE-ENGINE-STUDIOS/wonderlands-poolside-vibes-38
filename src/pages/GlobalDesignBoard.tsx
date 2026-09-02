@@ -403,9 +403,9 @@ const GlobalDesignBoard: React.FC = () => {
         </aside>
 
         {/* ── the live board for the selected trade ── */}
-        <section className="min-w-0 space-y-4">
-          <div className="glass-panel rounded-3xl p-2.5 sm:p-4">
-            <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <section className="flex min-h-0 w-full flex-col gap-4 overflow-hidden">
+          <div className="glass-panel flex flex-[2] min-h-0 flex-col gap-3 overflow-hidden rounded-3xl p-2.5 sm:p-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <Trees className="h-4 w-4 text-muted-foreground" />
               <p className="font-serif text-lg font-light leading-none">{active.label}</p>
               <span className="hidden h-px w-8 bg-foreground/25 sm:block" />
