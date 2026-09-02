@@ -4,6 +4,7 @@ import { DEFAULT_PX_PER_FT, type SitePlanData } from "@/components/blueprint/Sit
 import type { EnclosureLayout } from "@/components/enclosure/EnclosureDrawingBoard";
 import type { FenceLayout } from "@/components/fence/FenceDrawingBoard";
 import type { GrassLayout } from "@/components/grass/GrassDrawingBoard";
+import { emptyLandscapeLayout, type LandscapeLayout } from "@/lib/landscape/landscapeEstimate";
 
 /**
  * One shared drawing per discipline, so the board printed on the left leaf of a
@@ -17,6 +18,10 @@ export type FlipBoardState = {
   fence: FenceLayout;
   grass: GrassLayout;
   grassId: string;
+  /** Planting plan — beds and every plant placed on them */
+  landscape: LandscapeLayout;
+  /** Catalog plant armed on the planting board, as `plantId|variantId|size` */
+  plantKey: string;
 };
 
 const emptyState = (): FlipBoardState => ({
@@ -25,6 +30,8 @@ const emptyState = (): FlipBoardState => ({
   fence: { points: [], closed: false, gateSegments: [] },
   grass: { areas: [] },
   grassId: "",
+  landscape: emptyLandscapeLayout(),
+  plantKey: "",
 });
 
 const stores = new Map<string, { value: FlipBoardState; subs: Set<() => void> }>();
@@ -34,7 +41,8 @@ const keyFor = (categoryId: string) => `flip_board_${categoryId}`;
 function storeFor(categoryId: string) {
   let s = stores.get(categoryId);
   if (!s) {
-    s = { value: cacheRead<FlipBoardState>(keyFor(categoryId), emptyState()), subs: new Set() };
+    const stored = cacheRead<FlipBoardState>(keyFor(categoryId), emptyState());
+    s = { value: { ...emptyState(), ...stored }, subs: new Set() };
     stores.set(categoryId, s);
   }
   return s;

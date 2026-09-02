@@ -6,6 +6,7 @@ import {
   DEFAULT_PX_PER_FT,
   type SitePlanData,
 } from "@/components/blueprint/SiteDrawingBoard";
+import { emptyLandscapeLayout, type LandscapeLayout } from "@/lib/landscape/landscapeEstimate";
 
 /**
  * FLIP → Editor Board.
@@ -18,9 +19,10 @@ const SiteDrawingBoard = lazy(() => import("@/components/blueprint/SiteDrawingBo
 const FenceConfigurator = lazy(() => import("@/components/fence/FenceConfigurator"));
 const EnclosureConfigurator = lazy(() => import("@/components/enclosure/EnclosureConfigurator"));
 const GrassConfigurator = lazy(() => import("@/components/grass/GrassConfigurator"));
+const LandscapeDrawingBoard = lazy(() => import("@/components/landscape/LandscapeDrawingBoard"));
 const SolarCalculatorBoard = lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 
-export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass" | "solar";
+export type EditorBoardKind = "site" | "fence" | "enclosure" | "grass" | "landscape" | "solar";
 
 
 /** Which board serves each discipline. */
@@ -32,7 +34,11 @@ const BOARDS: Record<string, { kind: EditorBoardKind; name: string; note: string
   saunas: { kind: "site", name: "Sauna Pad Board", note: "Lay out the pad, clearances and the walk to the cabin." },
   pavers: { kind: "site", name: "Hardscape Board", note: "Draw the field and border, measured by square foot." },
   "artificial-grass": { kind: "grass", name: "Turf Drawing Board", note: "Trace the lawn and read seams, base and cost." },
-  landscaping: { kind: "site", name: "Landscape Board", note: "Beds, canopy and irrigation drawn to the property." },
+  landscaping: {
+    kind: "landscape",
+    name: "Planting Studio",
+    note: "Trace the beds, then set real plants drawn at mature canopy — in flower.",
+  },
   "screen-enclosures": { kind: "enclosure", name: "Enclosure Drawing Board", note: "Mansard or gable, engineered to Florida wind load." },
   "patio-fencing": { kind: "fence", name: "Fence Board", note: "Runs, gates and self-latching pool doors to code." },
   lanai: { kind: "site", name: "Lanai Board", note: "Projection, columns and the covered footprint." },
@@ -70,6 +76,13 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
   const [traced, setTraced] = useState(false);
   const [total, setTotal] = useState(0);
   const [plan, setPlan] = usePersistentState<SitePlanData>(
+  /* the planting plan is cached like every other board, so the reader returns
+     to the same beds and plants */
+  const [landscape, setLandscape] = usePersistentState<LandscapeLayout>(
+    `editor_landscape_${categoryId}`,
+    emptyLandscapeLayout(),
+  );
+  const [plantKey, setPlantKey] = usePersistentState<string>(`editor_plant_${categoryId}`, "");
     `flip_editor_board_site_${categoryId}`,
     emptyPlan,
   );
@@ -174,6 +187,14 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
             ) : board.kind === "grass" ? (
               <GrassConfigurator initialGrassName={productName} onTotalChange={setTotal} />
 
+            ) : board.kind === "landscape" ? (
+              <LandscapeDrawingBoard
+                layout={landscape}
+                onChange={setLandscape}
+                activePlantKey={plantKey}
+                onActivePlantChange={setPlantKey}
+                onMeasure={(t) => setTotal(t.total)}
+              />
             ) : board.kind === "fence" ? (
               <FenceConfigurator onTotalChange={setTotal} />
             ) : board.kind === "enclosure" ? (
