@@ -1514,7 +1514,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               </div>
               <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">{g.title}</h3>
               <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-muted-foreground">{g.note}</p>
-              <ul className="mt-5 min-h-0 flex-1 overflow-y-auto">
+              <ul className="mt-5 min-h-0 flex-1 overflow-hidden">
+
                 {chunk.map((o, oi) => (
                   <FlipContentsRow
                     key={o.label}
