@@ -1347,6 +1347,36 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         .wl-fade { animation: wlSolarFade .7s ease-out both; }
         .wl-pulse { transform-box: fill-box; transform-origin: center; animation: wlSolarPulse 2.6s ease-in-out infinite; }
         .wl-drift { animation: wlSolarDrift 18s ease-in-out infinite alternate; }
+        @keyframes wlTwinkle { 0%,100% { opacity: .28; } 45% { opacity: 1; } }
+        .wl-twinkle { animation: wlTwinkle 4.5s ease-in-out infinite; }
+
+        /* instrument keys — hard-edged mission controls, SpaceX console style */
+        .wl-key { position: relative; display: inline-flex; align-items: center; gap: .55rem;
+          padding: .62rem 1.05rem; border-radius: 6px; font-size: 11px; letter-spacing: .22em;
+          text-transform: uppercase; color: rgba(255,255,255,.9);
+          border: 1px solid rgba(255,255,255,.22);
+          background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.02));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 10px 26px -18px rgba(0,0,0,.9);
+          backdrop-filter: blur(18px); overflow: hidden;
+          transition: border-color .2s ease, transform .2s ease, box-shadow .25s ease, color .2s ease; }
+        .wl-key::after { content: ''; position: absolute; inset: 0; opacity: 0;
+          background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,.28) 50%, transparent 80%);
+          transition: opacity .3s ease; }
+        .wl-key:hover { transform: translateY(-1px); border-color: rgba(251,191,36,.7);
+          color: #fef3c7; box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 14px 34px -18px rgba(251,191,36,.55); }
+        .wl-key:hover::after { opacity: 1; }
+        .wl-key:active { transform: translateY(0); }
+        .wl-key:focus-visible { outline: none; border-color: rgba(251,191,36,.9);
+          box-shadow: 0 0 0 2px rgba(251,191,36,.45); }
+        .wl-key-glyph { display: inline-flex; align-items: center; justify-content: center;
+          height: 20px; width: 20px; border-radius: 4px; color: currentColor;
+          border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); }
+        .wl-key-label { line-height: 1; }
+        .wl-key-live { border-color: rgba(251,191,36,.75); color: #fff7e0;
+          background: linear-gradient(180deg, rgba(251,191,36,.3), rgba(249,115,22,.12));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 16px 40px -20px rgba(251,191,36,.8); }
+        .wl-key-ghost { color: rgba(255,255,255,.62); border-color: rgba(255,255,255,.14);
+          background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0)); }
 
         /* generous, glassy scrubbers — big enough to grab on a touch screen */
         .wl-range { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 999px;
@@ -1363,7 +1393,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         .wl-range:focus-visible { box-shadow: inset 0 1px 3px rgba(0,0,0,.45), 0 0 0 2px rgba(251,191,36,.7); }
 
         @media (prefers-reduced-motion: reduce) {
-          .wl-ring, .wl-bar, .wl-grow, .wl-line, .wl-arc, .wl-fade, .wl-pulse, .wl-drift { animation: none; }
+          .wl-ring, .wl-bar, .wl-grow, .wl-line, .wl-arc, .wl-fade, .wl-pulse, .wl-drift, .wl-twinkle { animation: none; }
         }
       `}</style>
 
@@ -1452,7 +1482,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
       </div>
 
       {/* ── astronomical sun-path console ── */}
-      <SunPathConsole lat={lat} glass={glass} />
+      <SunPathConsole lat={lat} glass={glass} yearlyKwh={yearly} />
 
 
       {/* ── monthly production ── */}
