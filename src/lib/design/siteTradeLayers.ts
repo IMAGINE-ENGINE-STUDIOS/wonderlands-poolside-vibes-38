@@ -22,6 +22,9 @@ import {
   ENCLOSURE_TYPES,
 } from '@/data/screenEnclosureConfigurator';
 import { artificialGrassOptions, getGrassPricePerSqFt } from '@/data/artificialGrassData';
+import { paverTypes, copingTypes } from '@/data/paverData';
+import { FENCE_HEIGHTS, FENCE_STYLES, FENCE_GATES, FENCE_ADDONS } from '@/data/fenceConfigurator';
+import { solarBatteries } from '@/data/solarHardware';
 
 /** One selectable feature on a drawn element. */
 export interface TradeFeature {
@@ -34,6 +37,14 @@ export interface TradeFeature {
   /** Flat added price (doors, heaters, controls) */
   flat?: number;
   hint?: string;
+  /** Heading this option is filed under in the options drawer */
+  group?: string;
+  /**
+   * Options sharing an `exclusive` key are a single choice (a surface, a height,
+   * a screen mesh) — picking one clears the rest, exactly as the standalone
+   * configurators and the FLIP book behave.
+   */
+  exclusive?: string;
 }
 
 export interface TradeLayerSpec {
@@ -45,6 +56,7 @@ export interface TradeLayerSpec {
   note?: string;
   features: TradeFeature[];
 }
+
 
 const PANEL_WATTS = 400;
 const PANEL_SQFT = 21.3;
