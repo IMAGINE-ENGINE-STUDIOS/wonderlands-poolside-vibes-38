@@ -1,4 +1,5 @@
 import * as React from "react";
+import { screenFace } from "@/lib/solar/suitability";
 import { Loader2, Crosshair, MapPin, Pencil, RotateCcw, Search, Trash2, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -965,6 +966,8 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
                 const engineFace: RoofFace = { ...f, planAreaSqFt: pathAreaSqFt(f.path) };
                 const exposure = readExposure(engineFace, session.lat ?? FL_LAT);
                 const layout = production.layouts.find((l) => l.faceId === f.id);
+                /* The four published NREL tests, run live against this traced face. */
+                const screen = screenFace(engineFace, session.lat ?? FL_LAT);
                 const open = f.id === selected;
                 return (
                   <div key={f.id} className={`border ${open ? "border-foreground" : "border-border/50"}`}>
@@ -978,6 +981,18 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
                       </span>
                       <span className="ml-auto text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
                         {Math.round(engineFace.planAreaSqFt)} SF · {layout?.panels ?? 0} panels
+                      </span>
+                      <span
+                        title={screen.headline}
+                        className={`shrink-0 border px-1.5 py-0.5 text-[8px] uppercase tracking-[0.2em] ${
+                          screen.verdict === "suitable"
+                            ? "border-emerald-500/60 text-emerald-600"
+                            : screen.verdict === "marginal"
+                              ? "border-amber-500/60 text-amber-600"
+                              : "border-destructive/60 text-destructive"
+                        }`}
+                      >
+                        NREL {screen.verdict}
                       </span>
                     </button>
 
@@ -1027,6 +1042,25 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
                           {exposure.label} · {exposure.sunHours.toLocaleString()} sun hours · longest span{" "}
                           {Math.round(pathSpanFt(f.path))} ft
                         </p>
+
+                        {/* NREL 2016 rooftop-potential screen — shading, tilt, azimuth, contiguous area. */}
+                        <div className="border border-border/50 p-2">
+                          <p className="text-[8px] uppercase tracking-[0.24em] text-muted-foreground">
+                            NREL screen · {screen.verdict}
+                          </p>
+                          <div className="mt-1.5 space-y-1">
+                            {screen.criteria.map((c) => (
+                              <div key={c.id} className="flex items-baseline gap-2 text-[9px]">
+                                <span className={c.pass ? "text-emerald-600" : "text-destructive"}>
+                                  {c.pass ? "PASS" : "FAIL"}
+                                </span>
+                                <span className="uppercase tracking-[0.16em] text-muted-foreground">{c.label}</span>
+                                <span className="ml-auto font-mono">{c.reading}</span>
+                                <span className="text-muted-foreground">/ {c.threshold}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                         <div className="flex gap-2">
                           <button
                             onClick={() => updateFace(f.id, { excluded: !f.excluded })}

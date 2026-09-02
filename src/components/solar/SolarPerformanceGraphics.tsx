@@ -599,9 +599,9 @@ const SunPathConsole: React.FC<{
           </filter>
           {/* OLED night — true black at the zenith so the stars carry the plate */}
           <linearGradient id="wlOled" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#000000" />
-            <stop offset="55%" stopColor="#02030a" />
-            <stop offset="100%" stopColor="#0a1024" />
+            <stop offset="0%" stopColor="#03060f" />
+            <stop offset="55%" stopColor="#061024" />
+            <stop offset="100%" stopColor="#0b1c3c" />
           </linearGradient>
           <radialGradient id="wlMilky" cx="50%" cy="50%" r="60%">
             <stop offset="0%" stopColor="#cbd5ff" stopOpacity="0.16" />
@@ -657,7 +657,7 @@ const SunPathConsole: React.FC<{
         </defs>
 
         {/* sky field — an OLED night that fades into the daylight wash */}
-        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="#000208" opacity={night} />
+        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="#04091a" opacity={night} />
         <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlOled)" opacity={night * 0.92} />
         <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlSkyDome)" opacity={1 - night * 0.55} />
 
@@ -740,6 +740,78 @@ const SunPathConsole: React.FC<{
           height={DOME.base - DOME.top}
           fill="url(#wlTwilight)"
         />
+
+        {/* -------------------------------------------------------------
+            RADIAL COMPASS GRID + OBSERVER
+            The reference sheet reads the sky from the observer outward: the
+            altitude rings are concentric about the house, the azimuth spokes
+            radiate from it. Geometry stays tied to project(), so every ring
+            still lands on the same dome the ephemeris draws into.
+        ------------------------------------------------------------- */}
+        <g aria-hidden>
+          {[15, 30, 45, 60, 75, 90].map((a) => {
+            const ring = Array.from({ length: 73 }, (_, i) => project(60 + (i * (300 - 60)) / 72, a));
+            const d = `M${ring.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join("L")}`;
+            const major = a % 30 === 0;
+            return (
+              <path
+                key={`ring-${a}`}
+                d={d}
+                fill="none"
+                stroke="#7dd3fc"
+                strokeOpacity={major ? 0.16 : 0.09}
+                strokeWidth={major ? 0.8 : 0.55}
+                strokeDasharray={major ? undefined : "2 8"}
+              />
+            );
+          })}
+          {[60, 90, 120, 150, 180, 210, 240, 270, 300].map((az) => {
+            const spoke = Array.from({ length: 25 }, (_, i) => project(az, (i * 90) / 24));
+            const d = `M${spoke.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join("L")}`;
+            return (
+              <path
+                key={`spoke-${az}`}
+                d={d}
+                fill="none"
+                stroke="#7dd3fc"
+                strokeOpacity={az % 90 === 0 ? 0.14 : 0.07}
+                strokeWidth={0.55}
+                strokeDasharray="2 9"
+              />
+            );
+          })}
+
+          {/* the observer's house, centred on the horizon due south */}
+          {(() => {
+            const { x } = project(180, 0);
+            const y = DOME.base;
+            const w = Math.min(150, (DOME.right - DOME.left) * 0.12);
+            const h = w * 0.44;
+            const roof = h * 0.62;
+            return (
+              <g transform={`translate(${x} ${y})`}>
+                <ellipse cx={0} cy={2} rx={w * 0.78} ry={h * 0.18} fill="#38bdf8" opacity={0.12} />
+                <path
+                  d={`M${-w / 2},0 L${-w / 2},${-h} L0,${-h - roof} L${w / 2},${-h} L${w / 2},0 Z`}
+                  fill="#0b1c3c"
+                  fillOpacity={0.9}
+                  stroke="#e2e8f5"
+                  strokeOpacity={0.75}
+                  strokeWidth={1.2}
+                />
+                <path
+                  d={`M${-w / 2},${-h} L0,${-h - roof} L${w / 2},${-h}`}
+                  fill="#fbbf24"
+                  fillOpacity={0.16}
+                  stroke="#fbbf24"
+                  strokeOpacity={0.5}
+                  strokeWidth={1}
+                />
+                <rect x={-w * 0.1} y={-h * 0.62} width={w * 0.2} height={h * 0.62} fill="#38bdf8" fillOpacity={0.22} />
+              </g>
+            );
+          })()}
+        </g>
 
         {/* altitude grid every 15° */}
         {[0, 15, 30, 45, 60, 75, 90].map((a) => {

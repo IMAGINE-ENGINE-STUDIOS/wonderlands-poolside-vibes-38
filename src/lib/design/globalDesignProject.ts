@@ -236,6 +236,8 @@ export interface BlueprintHandoff {
     jobNumber: string;
   };
   scopeOfWork: string[];
+  /** Solar / utility note block written by Solar Genius (county rates, taxes, programs) */
+  solarNote?: string;
 }
 
 /**

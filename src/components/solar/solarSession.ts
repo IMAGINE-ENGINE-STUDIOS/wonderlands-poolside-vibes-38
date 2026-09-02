@@ -30,6 +30,10 @@ export interface SolarSession {
   covering: RoofCovering;
   monthlyBill: number;
   serviceRunFt: number;
+  /** County jurisdiction id — drives rates, taxes, programs (null = resolve from address) */
+  countyId?: string | null;
+  /** Retail rate keyed from the customer's own bill, $/kWh (null = county tariff) */
+  rateOverride?: number | null;
 }
 
 /** Cache key — one live solar session shared across every leaf and page. */
@@ -47,6 +51,8 @@ export const emptySolarSession: SolarSession = {
   covering: "shingle",
   monthlyBill: 320,
   serviceRunFt: 45,
+  countyId: null,
+  rateOverride: null,
 };
 
 /* ------------------------------------------------------------------ *

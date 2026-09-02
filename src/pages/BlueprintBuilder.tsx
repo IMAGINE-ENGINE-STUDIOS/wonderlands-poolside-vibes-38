@@ -99,6 +99,12 @@ const PRINT_CSS = `
 }
 `;
 
+/** Where a solar/utility note belongs: the electrical sheet if the set has one. */
+const solarNoteSheet = (p: BlueprintProject): string => {
+  const codes = resolveSheets(p.jurisdictionId, p.projectTypeId).filter(c => !p.disabledSheets.includes(c));
+  return codes.find(c => /^E/i.test(c)) ?? codes[0] ?? 'A1';
+};
+
 const Field: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string }> = ({
   label,
   value,
@@ -130,6 +136,7 @@ const BlueprintBuilder: React.FC = () => {
   /* One-click hand-off from the GLOBAL DESIGN BOARD: the project arrives fully
      drawn and measured, so blueprint mode opens filled in. */
   const [handoffFrom, setHandoffFrom] = React.useState<string>('');
+  const [solarNote, setSolarNote] = React.useState<string>('');
   React.useEffect(() => {
     const payload = cacheRead<BlueprintHandoff | null>(BLUEPRINT_HANDOFF_KEY, null);
     if (!payload) return;
@@ -140,7 +147,14 @@ const BlueprintBuilder: React.FC = () => {
       existingAreas: { ...prev.existingAreas, ...payload.existingAreas },
       project: { ...prev.project, ...payload.project },
       scopeOfWork: payload.scopeOfWork.length ? payload.scopeOfWork : prev.scopeOfWork,
+      /* Solar Genius hands the electrical/utility story across: county tariff,
+         export rule, tax exemptions, programmes and fees. It lands on the
+         electrical sheet when one is enabled, otherwise on the first sheet. */
+      sheetNotes: payload.solarNote
+        ? { ...prev.sheetNotes, [solarNoteSheet(prev)]: payload.solarNote }
+        : prev.sheetNotes,
     }));
+    if (payload.solarNote) setSolarNote(payload.solarNote);
     setHandoffFrom(payload.project.title || 'Global Design Board');
   }, [setData]);
 

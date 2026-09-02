@@ -9,6 +9,9 @@ import { buildSolarBom } from "@/lib/solar/solarBom";
 import { solarBatteries, solarPanels, FL_UTILITY_RATE } from "@/data/solarHardware";
 import { benchmarkRoof, screenFace } from "@/lib/solar/suitability";
 import { REFERENCE_SOURCES } from "@/data/nrelRooftopPotential";
+import { findJurisdictionById, resolveJurisdiction } from "@/data/floridaSolarJurisdictions";
+import { computeJurisdictionEconomics } from "@/lib/solar/jurisdictionIncentives";
+import { loadSolarIntoBlueprint } from "@/lib/solar/solarBlueprint";
 
 /**
  * Solar Genius — the national-data solar workstation.
@@ -29,6 +32,7 @@ import { REFERENCE_SOURCES } from "@/data/nrelRooftopPotential";
 
 const SolarCalculatorBoard = React.lazy(() => import("@/components/solar/SolarCalculatorBoard"));
 const SuitabilityScreen = React.lazy(() => import("@/components/solar/genius/SuitabilityScreen"));
+const JurisdictionLeaf = React.lazy(() => import("@/components/solar/genius/JurisdictionLeaf"));
 const NationalBenchmark = React.lazy(() => import("@/components/solar/genius/NationalBenchmark"));
 const AnalysisDeck = React.lazy(() => import("@/components/solar/genius/AnalysisDeck"));
 const PresentationLeaf = React.lazy(() => import("@/components/solar/genius/PresentationLeaf"));
@@ -63,7 +67,7 @@ const Movement: React.FC<{
 );
 
 const SolarGenius: React.FC = () => {
-  const [session] = useSolarSession();
+  const [session, setSession] = useSolarSession();
 
   /* The session stores plain saved faces; the engine wants RoofFace, and the
      plan area is recovered from the traced ring so the workstation never depends
@@ -131,6 +135,44 @@ const SolarGenius: React.FC = () => {
     [geometryFaces, production, screens, yearlyKwh],
   );
 
+  /* The jurisdiction: county tariff, export rule, taxes, programmes, penalties.
+     Resolved from the traced address unless the dealer picked a county, and
+     always overridable from the customer's own bill. Everything downstream — the
+     analysis deck, the presentation sheet and the blueprint notes — prices at the
+     BLENDED value of production this county actually pays, not at a flat rate. */
+  const jurisdiction = session.countyId
+    ? findJurisdictionById(session.countyId)
+    : resolveJurisdiction(session.address);
+
+  const economics = React.useMemo(
+    () =>
+      computeJurisdictionEconomics({
+        jurisdiction,
+        yearOneKwh: yearlyKwh,
+        householdKwh: savings.householdKwhPerYear,
+        installed: bom?.installed ?? 0,
+        rateOverride: session.rateOverride ?? null,
+      }),
+    [jurisdiction, yearlyKwh, savings.householdKwhPerYear, bom, session.rateOverride],
+  );
+
+  const sendToBlueprint = React.useCallback(() => {
+    const route = loadSolarIntoBlueprint({
+      address: session.address,
+      economics,
+      kwDc: production.kwDc,
+      kwAc: production.kwAc,
+      panels: production.panels,
+      panelWatts: panel.watts,
+      yearOneKwh: yearlyKwh,
+      installed: bom?.installed ?? 0,
+      batteryLabel: battery?.name,
+      covering: session.covering,
+      serviceRunFt: session.serviceRunFt,
+    });
+    window.open(route, "_blank", "noopener");
+  }, [session, economics, production, panel, yearlyKwh, bom, battery]);
+
   const measured = {
     installed: bom?.installed ?? 0,
     yearOneKwh: yearlyKwh,
@@ -139,7 +181,9 @@ const SolarGenius: React.FC = () => {
     panelWatts: panel.watts,
     specificYield: production.kwDc > 0 ? Math.round(yearlyKwh / production.kwDc) : 0,
     pricePerWatt: bom?.costPerWatt ?? panel.pricePerWatt,
-    utilityRate: FL_UTILITY_RATE,
+    /* The county's blended value of a produced kWh — self-consumption at retail,
+       exports at whatever this utility actually credits. */
+    utilityRate: economics.effectiveRate || FL_UTILITY_RATE,
   };
 
   return (
@@ -209,6 +253,22 @@ const SolarGenius: React.FC = () => {
 
         <Movement
           index="III"
+          title="County, tariff and tax"
+          standfirst="Where the roof is decides what it earns. The serving utility, the retail rate and the fixed charge solar can never offset; the export rule — 1:1 net metering under the PSC rule, or a municipal net-billing rider that pays avoided cost; the federal credit and the two Florida exemptions with their statutes; local rebates, co-op loans and PACE districts; and the penalties that quietly remove value."
+        >
+          <JurisdictionLeaf
+            address={session.address}
+            countyId={session.countyId ?? null}
+            rateOverride={session.rateOverride ?? null}
+            economics={economics}
+            onCountyChange={(id) => setSession((s) => ({ ...s, countyId: id }))}
+            onRateChange={(rate) => setSession((s) => ({ ...s, rateOverride: rate }))}
+            onSendToBlueprint={sendToBlueprint}
+          />
+        </Movement>
+
+        <Movement
+          index="IV"
           title="Analysis deck"
           standfirst="The economics, worked openly. Cash, loan and power purchase on one footing, a sensitivity grid that shows which assumption actually moves the deal, the 50/80/100/120% offset ladder priced from the measured design, and saved scenarios for side-by-side comparison."
         >
@@ -216,7 +276,7 @@ const SolarGenius: React.FC = () => {
         </Movement>
 
         <Movement
-          index="IV"
+          index="V"
           title="Presentation"
           standfirst="One study, two readings: a plain-language sheet the homeowner keeps, and a dealer sheet — behind the WONDERMAGIC passcode — carrying the bill of materials, the electrical takeoff and the cost per watt."
         >
