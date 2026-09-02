@@ -1495,7 +1495,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
        Every additional feature now prints as a slide-open row (the same gesture
        as the contents rows): posing the mouse reveals the studio photograph and
        a short description of the option, so no chapter is text only. */
-    const PER_OPT_PAGE = 10;
+    const PER_OPT_PAGE = 5;
     groups.forEach((g: any, gi) => {
       const items: any[] = (g.items?.length ? g.items : (g.options ?? []).map((label: string) => ({ label })));
       const chunks: any[][] = [];
