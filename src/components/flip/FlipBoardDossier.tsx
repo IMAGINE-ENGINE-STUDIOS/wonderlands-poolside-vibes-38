@@ -15,7 +15,7 @@ import {
   useProjectSpecs,
   FlipBoardCalculators,
 } from "./FlipBoardPanels";
-import { resetFlipBoard } from "@/lib/flip/flipBoardStore";
+import { resetFlipBoard } from "./flipBoardStore";
 import { getProjectPipeline } from "@/data/projectPipeline";
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
