@@ -389,7 +389,7 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
                 strokeWidth={a === 0 ? 1.1 : 0.6}
                 strokeDasharray={a === 0 ? undefined : major ? "3 6" : "1 7"}
               />
-              <text x={10} y={y + 3} className="fill-muted-foreground" style={{ fontSize: 8, letterSpacing: 1 }}>
+              <text x={12} y={y + 4} className="fill-muted-foreground" style={{ fontSize: 12, letterSpacing: 0.5 }}>
                 {a}°
               </text>
             </g>
@@ -421,17 +421,17 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
                 strokeOpacity={cardinal ? 0.1 : 0.05}
                 strokeWidth={0.6}
               />
-              <line x1={x} x2={x} y1={DOME.base} y2={DOME.base + (cardinal ? 7 : 4)} stroke="currentColor" strokeOpacity={0.3} strokeWidth={0.8} />
+              <line x1={x} x2={x} y1={DOME.base} y2={DOME.base + (cardinal ? 9 : 5)} stroke="currentColor" strokeOpacity={0.3} strokeWidth={0.8} />
               <text
                 x={x}
-                y={DOME.base + 20}
+                y={DOME.base + 26}
                 textAnchor="middle"
-                className="fill-muted-foreground"
-                style={{ fontSize: cardinal ? 9 : 7, letterSpacing: 1.6, opacity: cardinal ? 1 : 0.7 }}
+                className={cardinal ? "fill-foreground" : "fill-muted-foreground"}
+                style={{ fontSize: cardinal ? 14 : 11, letterSpacing: 1.4, opacity: cardinal ? 0.95 : 0.72 }}
               >
                 {l}
               </text>
-              <text x={x} y={DOME.base + 31} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 6, letterSpacing: 1 }}>
+              <text x={x} y={DOME.base + 40} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 9.5, letterSpacing: 0.6, opacity: 0.7 }}>
                 {`${az}°`}
               </text>
             </g>
