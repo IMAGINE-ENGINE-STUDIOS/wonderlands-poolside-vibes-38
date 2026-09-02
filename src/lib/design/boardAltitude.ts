@@ -33,6 +33,17 @@ const read = (): number => {
 /** Read the remembered altitude without subscribing (for first-mount framing). */
 export const readBoardAltitudeFt = (): number => read();
 
+/**
+ * The remembered altitude when the draughtsman has set one, otherwise the
+ * board's own default (e.g. the Global Design Board's 400 ft of frontage).
+ */
+export function boardAltitudeFtOr(fallbackFt: number): number {
+  if (current != null) return current;
+  const stored = cacheRead<number>(KEY, -1);
+  if (Number.isFinite(stored) && stored > 0) return read();
+  return clamp(fallbackFt);
+}
+
 /** Remember the altitude the draughtsman is now flying at. */
 export function setBoardAltitudeFt(ft: number) {
   if (!Number.isFinite(ft) || ft <= 0) return;
