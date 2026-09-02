@@ -247,41 +247,63 @@ const GlobalDesignBoard: React.FC = () => {
             </div>
           </section>
 
+          {/* Trade gateways — the same glass gateway button as the FLIP edition */}
           <section className="rounded-2xl border border-border/60 bg-card/60 p-2 backdrop-blur-xl">
             <p className="px-2 pt-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Trades</p>
-            <div className="mt-2 space-y-1">
-              {TRADES.map((t) => {
+            <div className="mt-2 space-y-1.5">
+              {TRADES.map((t, i) => {
                 const on = enabled.includes(t.id);
                 const isActive = t.id === activeTrade;
                 return (
                   <div
                     key={t.id}
                     className={cn(
-                      "flex items-start gap-2 rounded-xl border px-2.5 py-2 transition-colors",
-                      isActive ? "border-foreground bg-muted/60" : "border-transparent hover:bg-muted/40",
+                      "group relative overflow-hidden rounded-sm border p-3 transition-all duration-500",
+                      isActive
+                        ? "border-foreground bg-foreground/[0.06]"
+                        : "border-border/50 bg-foreground/[0.02] hover:border-foreground/70",
                     )}
                   >
-                    <input
-                      type="checkbox"
-                      checked={on}
-                      onChange={() => toggleTrade(t.id)}
-                      aria-label={`Include ${t.label}`}
-                      className="mt-1"
-                    />
-                    <button type="button" onClick={() => setActiveTrade(t.id)} className="min-w-0 flex-1 text-left">
-                      <span className="flex items-center gap-1.5 text-sm font-medium">
-                        <t.Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                        {t.label}
+                    <button type="button" onClick={() => setActiveTrade(t.id)} className="block w-full text-left">
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span className="flex items-center gap-2 font-serif text-lg font-light leading-none">
+                          <t.Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                          {t.label}
+                        </span>
+                        <span className="font-serif text-[11px] text-muted-foreground">0{i + 1}</span>
                       </span>
-                      <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">{t.note}</span>
-                      <span className="mt-1 block text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                        {t.id === "solar"
-                          ? "Proposal after survey"
-                          : totals[t.id]
-                            ? `${money(totals[t.id])} as drawn`
-                            : "Nothing drawn yet"}
+                      <span className="mt-2 block text-[11px] leading-snug text-muted-foreground">{t.note}</span>
+                      <span className="mt-2 flex items-center justify-between gap-3 text-[8.5px] uppercase tracking-[0.3em] text-muted-foreground">
+                        <span>
+                          {t.id === "solar"
+                            ? "Proposal after survey"
+                            : totals[t.id]
+                              ? `${money(totals[t.id])} as drawn`
+                              : "Nothing drawn yet"}
+                        </span>
+                        <ArrowRight className="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-1.5" />
                       </span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleTrade(t.id)}
+                      aria-pressed={on}
+                      aria-label={`${on ? "Remove" : "Include"} ${t.label}`}
+                      className={cn(
+                        "mt-2 inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[8.5px] uppercase tracking-[0.28em] transition-colors duration-500",
+                        on
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border/50 text-muted-foreground hover:border-foreground/70 hover:text-foreground",
+                      )}
+                    >
+                      {on ? "In scope" : "Add to project"}
+                    </button>
+                    {!isActive && (
+                      <span
+                        aria-hidden
+                        className="absolute bottom-0 left-0 h-px w-0 bg-foreground transition-all duration-700 group-hover:w-full"
+                      />
+                    )}
                   </div>
                 );
               })}
