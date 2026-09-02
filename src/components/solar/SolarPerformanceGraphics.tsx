@@ -20,6 +20,20 @@ import {
   compassLabel,
   readExposure,
 } from "@/lib/solar/solarEngine";
+import {
+  BRIGHT_STARS,
+  moonRead,
+  planetReads,
+  starHorizontal,
+} from "@/lib/solar/astronomy";
+import {
+  DEFAULT_TARIFF_CODE,
+  ELECTRICITY_TARIFFS,
+  formatTariffMoney,
+  tariffByCode,
+} from "@/data/electricityTariffs";
+import { usePersistentState } from "@/hooks/usePersistentState";
+
 
 /**
  * Share of annual production per month for peninsular Florida — long, bright
@@ -136,33 +150,83 @@ const clockLabel = (hours: number) => {
 
 const DAY_OF_MONTH_START = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
 
-/** Deterministic pseudo-stars so the plate has a fixed night sky, not noise. */
-const STARS = Array.from({ length: 68 }, (_, i) => {
+/**
+ * Deterministic field of faint background stars — the sky's dust between the
+ * catalogued bright stars. Fixed seed so the plate never shimmers into noise on
+ * re-render, and each grain carries its own twinkle phase.
+ */
+const DUST = Array.from({ length: 260 }, (_, i) => {
   const a = Math.sin(i * 12.9898) * 43758.5453;
   const b = Math.sin(i * 78.233) * 12345.6789;
+  const c = Math.sin(i * 39.4265) * 9871.234;
+  const fa = a - Math.floor(a);
+  const fb = b - Math.floor(b);
+  const fc = c - Math.floor(c);
   return {
-    x: 12 + ((a - Math.floor(a)) * (DOME.w - 24)),
-    y: 8 + ((b - Math.floor(b)) * (DOME.base - 20)),
-    r: 0.35 + ((a - Math.floor(a)) * 0.9),
-    o: 0.15 + ((b - Math.floor(b)) * 0.5),
+    x: 4 + fa * (DOME.w - 8),
+    y: 4 + fb * (DOME.base - 12),
+    r: 0.22 + fc * 0.72,
+    o: 0.1 + fb * 0.55,
+    delay: (fc * 5).toFixed(2),
+    /* a faint colour spread — blue-white through amber, as the real sky reads */
+    tint: fc > 0.82 ? "#ffd9b0" : fc > 0.6 ? "#fff4e2" : "#dbe7ff",
   };
 });
+
+/** The Milky Way band, drawn as a soft diagonal wash across the plate. */
+const MILKY_WAY =
+  `M${-20},${DOME.base - 40} C${DOME.w * 0.24},${DOME.base - 150} ${DOME.w * 0.52},${DOME.top - 30} ${DOME.w + 20},${DOME.top - 90} L${DOME.w + 20},${DOME.top + 40} C${DOME.w * 0.55},${DOME.top + 96} ${DOME.w * 0.26},${DOME.base - 60} ${-20},${DOME.base + 20} Z`;
+
+/** Local clock offset for the site, approximated from its longitude. */
+const tzOffsetHours = (lng: number) => Math.round(lng / 15);
+
+/**
+ * The wall-clock instant the console is showing: the selected day of year and
+ * solar hour, resolved to a real UTC Date so the Moon, the planets and the star
+ * field can be placed astronomically rather than decoratively.
+ */
+const sceneInstant = (year: number, doy: number, hours: number, lng: number): Date =>
+  new Date(
+    Date.UTC(year, 0, 1) +
+      (doy - 1) * 86_400_000 +
+      (hours - tzOffsetHours(lng)) * 3_600_000,
+  );
 
 /**
  * SunPathConsole — a hyperdetailed, scrubbable sky chart for the site latitude.
  *
  * The plate draws the annual sun corridor (between both solstices), the arc for
  * the selected day with hour stations, civil twilight bands, the horizon and
- * compass rose, plus a live solar marker. Below it, a mission-roadmap ribbon
- * sequences the day's events (first light → sunrise → golden hour → solar noon
- * → golden hour → sunset → last light) with a travelling progress head.
+ * compass rose, plus a live solar marker. At night it becomes a real sky: the
+ * catalogued bright stars, the Milky Way, the Moon at its true position and
+ * phase, and the naked-eye planets with NASA-like disc tints. Below it, a
+ * mission-roadmap ribbon sequences the day's events, and a yearly simulation
+ * accumulates production against the selected country's electricity token.
  */
-const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }) => {
+const SunPathConsole: React.FC<{
+  lat: number;
+  /** Site longitude — sets the local clock and the sidereal sky */
+  lng?: number;
+  glass: string;
+  /** Modelled annual DC production, used by the yearly simulation */
+  yearlyKwh: number;
+}> = ({ lat, lng = -81.5, glass, yearlyKwh }) => {
   const now = React.useMemo(() => new Date(), []);
   const [doy, setDoy] = React.useState(() => dayOfYearOf(now));
   const [hours, setHours] = React.useState(() => now.getHours() + now.getMinutes() / 60);
   const [playing, setPlaying] = React.useState(false);
   const [station, setStation] = React.useState<number | null>(null);
+  const [body, setBody] = React.useState<string | null>(null);
+
+  /* ── yearly simulation ── */
+  const [yearRun, setYearRun] = React.useState(false);
+  const [yearDay, setYearDay] = React.useState(0);
+  const [tariffCode, setTariffCode] = usePersistentState<string>(
+    "solar.sky.tariff",
+    DEFAULT_TARIFF_CODE,
+  );
+  const tariff = tariffByCode(tariffCode);
+
 
   /* Play sweeps the day forward in solar time, then rolls into the next day. */
   React.useEffect(() => {
@@ -232,6 +296,96 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
   const am = airMass(readAlt);
   const shadow = readAlt > 1 ? 1 / Math.tan(readAlt * RAD) : Infinity;
 
+  /* ── the real sky at this instant ─────────────────────────────────────
+     The plate resolves the selected day and solar hour into a true UTC
+     instant, so the Moon, the planets and the catalogued stars sit where they
+     actually are for this latitude and longitude. */
+  const scene = React.useMemo(
+    () => sceneInstant(now.getFullYear(), doy, hours, lng),
+    [now, doy, hours, lng],
+  );
+
+  /** 0 = full daylight, 1 = astronomical night. Drives the OLED sky. */
+  const night = Math.max(0, Math.min(1, (-sun.altitude + 6) / 18));
+
+  const moon = React.useMemo(() => moonRead(scene, lat, lng), [scene, lat, lng]);
+  const moonXY = project(moon.azimuth, moon.altitude);
+
+  const planets = React.useMemo(
+    () =>
+      planetReads(scene, lat, lng)
+        .filter((p) => p.altitude > 0.5 && p.azimuth > AZ_FROM - 4 && p.azimuth < AZ_TO + 4)
+        .map((p) => ({ ...p, ...project(p.azimuth, p.altitude) })),
+    [scene, lat, lng],
+  );
+
+  const stars = React.useMemo(
+    () =>
+      BRIGHT_STARS.map((st) => {
+        const h = starHorizontal(st, scene, lat, lng);
+        return { ...st, ...h, ...project(h.azimuth, h.altitude) };
+      }).filter((st) => st.altitude > 1 && st.azimuth > AZ_FROM - 2 && st.azimuth < AZ_TO + 2),
+    [scene, lat, lng],
+  );
+
+  /* ── yearly accumulation ──────────────────────────────────────────────
+     A day's production is the annual figure spread by the Florida monthly
+     share; running the year integrates it day by day so the reader watches the
+     kilowatt-hours and the money bank up against their country's tariff. */
+  const dailyKwh = React.useCallback(
+    (day: number) => {
+      let m = 0;
+      DAY_OF_MONTH_START.forEach((start, i) => {
+        if (day >= start) m = i;
+      });
+      const days = (DAY_OF_MONTH_START[m + 1] ?? 366) - DAY_OF_MONTH_START[m];
+      return (yearlyKwh * FL_MONTH_SHARE[m]) / days;
+    },
+    [yearlyKwh],
+  );
+
+  const yearAccumulated = React.useMemo(() => {
+    let total = 0;
+    for (let d = 1; d <= Math.floor(yearDay); d++) total += dailyKwh(d);
+    return total;
+  }, [yearDay, dailyKwh]);
+
+  React.useEffect(() => {
+    if (!yearRun) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setYearDay(365);
+      setYearRun(false);
+      return;
+    }
+    let raf = 0;
+    let last = performance.now();
+    const tick = (t: number) => {
+      const dt = (t - last) / 1000;
+      last = t;
+      setYearDay((d) => {
+        const next = d + dt * 70; // a full year in roughly five seconds
+        if (next >= 365) {
+          setYearRun(false);
+          return 365;
+        }
+        return next;
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [yearRun]);
+
+  /* Following the simulation moves the sky with it. */
+  React.useEffect(() => {
+    if (!yearRun) return;
+    const d = Math.max(1, Math.round(yearDay));
+    setDoy(d);
+  }, [yearRun, yearDay]);
+
+  const yearMoney = yearAccumulated * tariff.rate;
+  const fullYearMoney = yearlyKwh * tariff.rate;
+
   const monthIdx = React.useMemo(() => {
     let m = 0;
     DAY_OF_MONTH_START.forEach((start, i) => {
@@ -285,34 +439,71 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
             <span className="text-muted-foreground">{` · lat ${lat.toFixed(2)}°`}</span>
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em]">
+        {/* mission controls — hard-edged instrument keys, SpaceX console style */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={() => setPlaying((p) => !p)}
             aria-pressed={playing}
-            className={`rounded-full border px-4 py-2 backdrop-blur-xl transition ${
-              playing
-                ? "border-amber-300/60 bg-amber-300/15 text-amber-100"
-                : "border-white/20 bg-background/35 hover:border-amber-300/60 hover:text-amber-200"
-            }`}
+            className={`wl-key group ${playing ? "wl-key-live" : ""}`}
           >
-            {playing ? "Pause transit" : "Run transit"}
+            <span aria-hidden className="wl-key-glyph">
+              {playing ? (
+                <svg viewBox="0 0 12 12" width="11" height="11">
+                  <rect x="1.5" y="1" width="3" height="10" rx="0.6" fill="currentColor" />
+                  <rect x="7.5" y="1" width="3" height="10" rx="0.6" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 12 12" width="11" height="11">
+                  <path d="M2 1l9 5-9 5z" fill="currentColor" />
+                </svg>
+              )}
+            </span>
+            <span className="wl-key-label">{playing ? "Pause transit" : "Run transit"}</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setYearDay(0);
+              setYearRun((r) => !r);
+              setPlaying(false);
+            }}
+            aria-pressed={yearRun}
+            className={`wl-key ${yearRun ? "wl-key-live" : ""}`}
+          >
+            <span aria-hidden className="wl-key-glyph">
+              <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.3">
+                <circle cx="6" cy="6" r="4.4" />
+                <path d="M6 2.6V6l2.4 1.5" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="wl-key-label">{yearRun ? "Halt year" : "Simulate year"}</span>
+          </button>
+
           <button
             type="button"
             onClick={() => {
               const d = new Date();
               setPlaying(false);
+              setYearRun(false);
               setDoy(dayOfYearOf(d));
               setHours(d.getHours() + d.getMinutes() / 60);
               setStation(null);
             }}
-            className="rounded-full border border-white/15 bg-background/25 px-4 py-2 text-muted-foreground backdrop-blur-xl transition hover:border-white/35 hover:text-foreground"
+            className="wl-key wl-key-ghost"
           >
-            Now
+            <span aria-hidden className="wl-key-glyph">
+              <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.3">
+                <circle cx="6" cy="6" r="4.4" />
+                <path d="M6 0.6v2M6 9.4v2M0.6 6h2M9.4 6h2" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="wl-key-label">Now</span>
           </button>
         </div>
       </div>
+
 
       {/* plate */}
       <svg
@@ -347,15 +538,133 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+          {/* OLED night — true black at the zenith so the stars carry the plate */}
+          <linearGradient id="wlOled" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#000000" />
+            <stop offset="55%" stopColor="#02030a" />
+            <stop offset="100%" stopColor="#0a1024" />
+          </linearGradient>
+          <radialGradient id="wlMilky" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor="#cbd5ff" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#cbd5ff" stopOpacity="0" />
+          </radialGradient>
+          <filter id="wlMilkyBlur" x="-20%" y="-40%" width="140%" height="200%">
+            <feGaussianBlur stdDeviation="16" />
+          </filter>
+          <filter id="wlStarBloom" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur stdDeviation="1.6" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          {/* Lunar disc — a NASA-like maria pattern, lit from the true limb */}
+          <radialGradient id="wlMoonDisc" cx="38%" cy="34%" r="72%">
+            <stop offset="0%" stopColor="#fdfcf7" />
+            <stop offset="62%" stopColor="#e6e2d6" />
+            <stop offset="100%" stopColor="#b9b4a6" />
+          </radialGradient>
+          <radialGradient id="wlMoonHalo" cx="50%" cy="50%" r="50%">
+            <stop offset="55%" stopColor="#e8eaff" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#e8eaff" stopOpacity="0" />
+          </radialGradient>
+          {/* Planet discs — banded and tinted after the NASA imagery */}
+          <radialGradient id="wlVenus" cx="36%" cy="32%" r="76%">
+            <stop offset="0%" stopColor="#fffaf0" />
+            <stop offset="100%" stopColor="#e4c98f" />
+          </radialGradient>
+          <radialGradient id="wlMars" cx="36%" cy="32%" r="76%">
+            <stop offset="0%" stopColor="#f0a06a" />
+            <stop offset="60%" stopColor="#c1440e" />
+            <stop offset="100%" stopColor="#7d2b09" />
+          </radialGradient>
+          <linearGradient id="wlJupiter" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#efdcc0" />
+            <stop offset="26%" stopColor="#c99a6d" />
+            <stop offset="42%" stopColor="#f2e2c6" />
+            <stop offset="58%" stopColor="#b97f52" />
+            <stop offset="74%" stopColor="#e8d3b2" />
+            <stop offset="100%" stopColor="#a97a52" />
+          </linearGradient>
+          <linearGradient id="wlSaturn" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f3e6c4" />
+            <stop offset="50%" stopColor="#e0c893" />
+            <stop offset="100%" stopColor="#bda06d" />
+          </linearGradient>
+          <radialGradient id="wlMercury" cx="36%" cy="32%" r="76%">
+            <stop offset="0%" stopColor="#e4ded4" />
+            <stop offset="100%" stopColor="#8f887c" />
+          </radialGradient>
         </defs>
 
-        {/* sky field */}
-        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlSkyDome)" />
-        <g aria-hidden opacity={sun.altitude > 0 ? 0.35 : 0.9} className="transition-opacity duration-700">
-          {STARS.map((s, i) => (
-            <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#e0e7ff" opacity={s.o} />
+        {/* sky field — an OLED night that fades into the daylight wash */}
+        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="#000208" opacity={night} />
+        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlOled)" opacity={night * 0.92} />
+        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlSkyDome)" opacity={1 - night * 0.55} />
+
+        {/* Milky Way — a soft band, only readable once the sky goes dark */}
+        <g aria-hidden opacity={night * 0.85} className="transition-opacity duration-700">
+          <path d={MILKY_WAY} fill="url(#wlMilky)" filter="url(#wlMilkyBlur)" />
+        </g>
+
+        {/* background star dust */}
+        <g aria-hidden opacity={0.25 + night * 0.75} className="transition-opacity duration-700">
+          {DUST.map((s, i) => (
+            <circle
+              key={i}
+              className="wl-twinkle"
+              style={{ animationDelay: `${s.delay}s` }}
+              cx={s.x}
+              cy={s.y}
+              r={s.r}
+              fill={s.tint}
+              opacity={s.o}
+            />
           ))}
         </g>
+
+        {/* catalogued bright stars at their true altitude and azimuth */}
+        <g aria-hidden opacity={Math.min(1, 0.18 + night * 0.95)} className="transition-opacity duration-700">
+          {stars.map((st) => {
+            const r = Math.max(0.9, 2.9 - st.mag * 0.62);
+            return (
+              <g key={st.name}>
+                <circle cx={st.x} cy={st.y} r={r} fill={st.color} filter="url(#wlStarBloom)" />
+                {st.mag < 0.9 && night > 0.45 && (
+                  <>
+                    <line
+                      x1={st.x - r * 3}
+                      x2={st.x + r * 3}
+                      y1={st.y}
+                      y2={st.y}
+                      stroke={st.color}
+                      strokeOpacity={0.35}
+                      strokeWidth={0.5}
+                    />
+                    <line
+                      x1={st.x}
+                      x2={st.x}
+                      y1={st.y - r * 3}
+                      y2={st.y + r * 3}
+                      stroke={st.color}
+                      strokeOpacity={0.35}
+                      strokeWidth={0.5}
+                    />
+                    <text
+                      x={st.x + r + 5}
+                      y={st.y + 3.5}
+                      className="fill-slate-300"
+                      style={{ fontSize: 9.5, letterSpacing: 0.6, opacity: 0.75 }}
+                    >
+                      {st.name.toUpperCase()}
+                    </text>
+                  </>
+                )}
+              </g>
+            );
+          })}
+        </g>
+
 
         {/* twilight wedges outside the daylight window */}
         <rect
@@ -573,6 +882,110 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           );
         })()}
 
+        {/* ── the Moon, at its true position, size and phase ── */}
+        {moon.altitude > -1 && (
+          <g opacity={Math.min(1, 0.25 + night)} className="transition-opacity duration-700">
+            {(() => {
+              /* The plate is not a fisheye, so the disc is drawn at a legible
+                 scale rather than its 0.5° angular size; the phase, limb
+                 orientation and position are the real ones. */
+              const r = 9.5;
+              const k = moon.illumination;
+              const rx = r * Math.abs(1 - 2 * k);
+              const outerSweep = moon.waxing ? 1 : 0;
+              const innerSweep = k > 0.5 ? outerSweep : 1 - outerSweep;
+              const lit = `M${moonXY.x},${moonXY.y - r} A${r},${r} 0 0 ${outerSweep} ${moonXY.x},${moonXY.y + r} A${rx},${r} 0 0 ${innerSweep} ${moonXY.x},${moonXY.y - r} Z`;
+              return (
+                <g
+                  onPointerEnter={() => setBody("Moon")}
+                  onPointerLeave={() => setBody(null)}
+                  style={{ cursor: "help" }}
+                >
+                  <circle cx={moonXY.x} cy={moonXY.y} r={r * 3.2} fill="url(#wlMoonHalo)" />
+                  {/* the unlit disc, earthshine faint */}
+                  <circle cx={moonXY.x} cy={moonXY.y} r={r} fill="#1b1f2e" opacity={0.85} />
+                  <path d={lit} fill="url(#wlMoonDisc)" />
+                  {/* maria — Imbrium, Serenitatis, Tranquillitatis, Crisium */}
+                  <g clipPath="none" opacity={0.34}>
+                    <ellipse cx={moonXY.x - r * 0.28} cy={moonXY.y - r * 0.3} rx={r * 0.3} ry={r * 0.24} fill="#6f6a5f" />
+                    <ellipse cx={moonXY.x + r * 0.12} cy={moonXY.y - r * 0.12} rx={r * 0.22} ry={r * 0.2} fill="#6f6a5f" />
+                    <ellipse cx={moonXY.x + r * 0.3} cy={moonXY.y + r * 0.2} rx={r * 0.18} ry={r * 0.16} fill="#6f6a5f" />
+                    <circle cx={moonXY.x + r * 0.58} cy={moonXY.y - r * 0.34} r={r * 0.12} fill="#6f6a5f" />
+                  </g>
+                  <circle cx={moonXY.x} cy={moonXY.y} r={r} fill="none" stroke="#e8eaff" strokeOpacity={0.22} strokeWidth={0.6} />
+                  {night > 0.2 && (
+                    <text
+                      x={moonXY.x}
+                      y={moonXY.y - r - 8}
+                      textAnchor="middle"
+                      className="fill-slate-200"
+                      style={{ fontSize: 10.5, letterSpacing: 1 }}
+                    >
+                      {`MOON · ${(k * 100).toFixed(0)}%`}
+                    </text>
+                  )}
+                </g>
+              );
+            })()}
+          </g>
+        )}
+
+        {/* ── naked-eye planets ── */}
+        <g opacity={Math.min(1, 0.15 + night * 1.1)} className="transition-opacity duration-700">
+          {planets.map((pl) => {
+            const r = Math.max(1.8, 4.4 - pl.magnitude * 0.5);
+            const fill =
+              pl.name === "Venus"
+                ? "url(#wlVenus)"
+                : pl.name === "Mars"
+                  ? "url(#wlMars)"
+                  : pl.name === "Jupiter"
+                    ? "url(#wlJupiter)"
+                    : pl.name === "Saturn"
+                      ? "url(#wlSaturn)"
+                      : "url(#wlMercury)";
+            return (
+              <g
+                key={pl.name}
+                onPointerEnter={() => setBody(pl.name)}
+                onPointerLeave={() => setBody(null)}
+                style={{ cursor: "help" }}
+              >
+                <circle cx={pl.x} cy={pl.y} r={r * 2.6} fill={pl.tint} opacity={0.1} />
+                {pl.name === "Saturn" && (
+                  <ellipse
+                    cx={pl.x}
+                    cy={pl.y}
+                    rx={r * 2.1}
+                    ry={r * 0.5}
+                    fill="none"
+                    stroke="#e6d3a2"
+                    strokeOpacity={0.65}
+                    strokeWidth={0.9}
+                    transform={`rotate(-14 ${pl.x} ${pl.y})`}
+                  />
+                )}
+                {pl.name === "Jupiter" && (
+                  <ellipse cx={pl.x + r * 0.3} cy={pl.y + r * 0.25} rx={r * 0.26} ry={r * 0.16} fill="#a4442c" opacity={0.8} />
+                )}
+                <circle cx={pl.x} cy={pl.y} r={r} fill={fill} />
+                <circle cx={pl.x} cy={pl.y} r={r} fill="none" stroke="#000" strokeOpacity={0.35} strokeWidth={0.4} />
+                {(night > 0.3 || body === pl.name) && (
+                  <text
+                    x={pl.x}
+                    y={pl.y - r - 7}
+                    textAnchor="middle"
+                    className="fill-slate-200"
+                    style={{ fontSize: 9.5, letterSpacing: 0.9, opacity: 0.85 }}
+                  >
+                    {pl.name.toUpperCase()}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </g>
+
         {/* live sun with ray crown and ground track */}
         {sun.altitude > 0 && (
           <g>
@@ -738,6 +1151,121 @@ const SunPathConsole: React.FC<{ lat: number; glass: string }> = ({ lat, glass }
           </span>
         </label>
       </div>
+
+      {/* ── night-sky ephemeris ── */}
+      <div className="relative mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className={chip} title={`${moon.phaseName} · ${(moon.illumination * 100).toFixed(0)}% lit`}>
+          <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Moon</dt>
+          <dd className="mt-1 text-[15px] font-light leading-tight">
+            {moon.phaseName}
+            <span className="block text-[11px] text-muted-foreground tabular-nums">
+              {`${(moon.illumination * 100).toFixed(0)}% lit · ${moon.altitude > 0 ? `${moon.altitude.toFixed(0)}° up` : "below horizon"}`}
+            </span>
+          </dd>
+        </div>
+        <div className={chip} title="Distance to the Moon at this instant">
+          <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Lunar range</dt>
+          <dd className="mt-1 text-[15px] font-light tabular-nums leading-tight">
+            {`${nf.format(Math.round(moon.distanceKm))} km`}
+            <span className="block text-[11px] text-muted-foreground">{`${moon.diameterDeg.toFixed(2)}° disc`}</span>
+          </dd>
+        </div>
+        <div className={chip} title="Naked-eye planets above the horizon in this window of sky">
+          <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Planets up</dt>
+          <dd className="mt-1 text-[15px] font-light leading-tight">
+            {planets.length ? planets.map((p) => p.name).join(" · ") : "None in view"}
+          </dd>
+        </div>
+        <div className={chip} title="Darkness of the sky, from full daylight to astronomical night">
+          <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Sky state</dt>
+          <dd className="mt-1 text-[15px] font-light leading-tight">
+            {night >= 0.95 ? "Astronomical night" : night > 0.35 ? "Twilight" : night > 0.02 ? "Civil dusk" : "Daylight"}
+            <span className="block text-[11px] text-muted-foreground tabular-nums">
+              {`${(night * 100).toFixed(0)}% dark`}
+            </span>
+          </dd>
+        </div>
+      </div>
+
+      {/* ── yearly simulation & electricity token ── */}
+      <div className="relative mt-4 rounded-2xl border border-white/12 bg-background/25 p-4 backdrop-blur-xl sm:p-5">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+              Yearly simulation
+            </p>
+            <p className="mt-1 text-base font-light">
+              {`Day ${Math.max(1, Math.round(yearDay))} of 365`}
+              <span className="text-muted-foreground">{` · ${MONTH_NAMES[monthIdx]}`}</span>
+            </p>
+          </div>
+          <label className="min-w-[220px] flex-1 sm:max-w-xs">
+            <span className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Electricity token
+            </span>
+            <select
+              value={tariffCode}
+              onChange={(e) => setTariffCode(e.target.value)}
+              className="mt-1.5 w-full rounded-xl border border-white/15 bg-background/60 px-3 py-2 text-sm font-light outline-none transition focus:border-amber-300/60"
+            >
+              {ELECTRICITY_TARIFFS.map((t) => (
+                <option key={t.code} value={t.code}>
+                  {`${t.country} — ${formatTariffMoney(t.rate, t)}/kWh`}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1 block text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+              {tariff.grid}
+            </span>
+          </label>
+        </div>
+
+        {/* accumulation bar */}
+        <div className="mt-4 h-[6px] w-full overflow-hidden rounded-full bg-foreground/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-400/70 via-amber-300 to-orange-400"
+            style={{ width: `${(Math.min(365, yearDay) / 365) * 100}%` }}
+          />
+        </div>
+
+        <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className={chip}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Accumulated</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none">{`${nf.format(Math.round(yearAccumulated))} kWh`}</dd>
+          </div>
+          <div className={chip}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Full year</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none">{`${nf.format(Math.round(yearlyKwh))} kWh`}</dd>
+          </div>
+          <div className={chip}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Value banked</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none text-amber-200">
+              {formatTariffMoney(yearMoney, tariff)}
+            </dd>
+          </div>
+          <div className={chip}>
+            <dt className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Year value</dt>
+            <dd className="mt-1 text-[17px] font-light tabular-nums leading-none">
+              {formatTariffMoney(fullYearMoney, tariff)}
+            </dd>
+          </div>
+        </dl>
+
+        <input
+          type="range"
+          min={0}
+          max={365}
+          step={1}
+          value={Math.round(yearDay)}
+          onChange={(e) => {
+            setYearRun(false);
+            setYearDay(Number(e.target.value));
+            setDoy(Math.max(1, Number(e.target.value)));
+          }}
+          className="wl-range mt-4 w-full cursor-pointer"
+          aria-label="Simulated day of the year"
+        />
+      </div>
     </div>
   );
 };
@@ -819,6 +1347,36 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         .wl-fade { animation: wlSolarFade .7s ease-out both; }
         .wl-pulse { transform-box: fill-box; transform-origin: center; animation: wlSolarPulse 2.6s ease-in-out infinite; }
         .wl-drift { animation: wlSolarDrift 18s ease-in-out infinite alternate; }
+        @keyframes wlTwinkle { 0%,100% { opacity: .28; } 45% { opacity: 1; } }
+        .wl-twinkle { animation: wlTwinkle 4.5s ease-in-out infinite; }
+
+        /* instrument keys — hard-edged mission controls, SpaceX console style */
+        .wl-key { position: relative; display: inline-flex; align-items: center; gap: .55rem;
+          padding: .62rem 1.05rem; border-radius: 6px; font-size: 11px; letter-spacing: .22em;
+          text-transform: uppercase; color: hsl(var(--foreground) / .92);
+          border: 1px solid hsl(var(--foreground) / .22);
+          background: linear-gradient(180deg, hsl(var(--foreground) / .10), hsl(var(--foreground) / .02));
+          box-shadow: inset 0 1px 0 hsl(var(--background) / .5), 0 10px 26px -18px hsl(var(--foreground) / .5);
+          backdrop-filter: blur(18px); overflow: hidden;
+          transition: border-color .2s ease, transform .2s ease, box-shadow .25s ease, color .2s ease; }
+        .wl-key::after { content: ''; position: absolute; inset: 0; opacity: 0;
+          background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,.28) 50%, transparent 80%);
+          transition: opacity .3s ease; }
+        .wl-key:hover { transform: translateY(-1px); border-color: rgba(217,119,6,.75);
+          color: hsl(var(--foreground)); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 14px 34px -18px rgba(251,191,36,.55); }
+        .wl-key:hover::after { opacity: 1; }
+        .wl-key:active { transform: translateY(0); }
+        .wl-key:focus-visible { outline: none; border-color: rgba(251,191,36,.9);
+          box-shadow: 0 0 0 2px rgba(251,191,36,.45); }
+        .wl-key-glyph { display: inline-flex; align-items: center; justify-content: center;
+          height: 20px; width: 20px; border-radius: 4px; color: currentColor;
+          border: 1px solid hsl(var(--foreground) / .2); background: hsl(var(--foreground) / .08); }
+        .wl-key-label { line-height: 1; }
+        .wl-key-live { border-color: rgba(217,119,6,.85); color: hsl(var(--foreground));
+          background: linear-gradient(180deg, rgba(251,191,36,.42), rgba(249,115,22,.18));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 16px 40px -20px rgba(251,191,36,.8); }
+        .wl-key-ghost { color: hsl(var(--muted-foreground)); border-color: hsl(var(--foreground) / .16);
+          background: linear-gradient(180deg, hsl(var(--foreground) / .05), transparent); }
 
         /* generous, glassy scrubbers — big enough to grab on a touch screen */
         .wl-range { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 999px;
@@ -835,7 +1393,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
         .wl-range:focus-visible { box-shadow: inset 0 1px 3px rgba(0,0,0,.45), 0 0 0 2px rgba(251,191,36,.7); }
 
         @media (prefers-reduced-motion: reduce) {
-          .wl-ring, .wl-bar, .wl-grow, .wl-line, .wl-arc, .wl-fade, .wl-pulse, .wl-drift { animation: none; }
+          .wl-ring, .wl-bar, .wl-grow, .wl-line, .wl-arc, .wl-fade, .wl-pulse, .wl-drift, .wl-twinkle { animation: none; }
         }
       `}</style>
 
@@ -924,7 +1482,7 @@ export const SolarPerformanceGraphics: React.FC<Props> = ({
       </div>
 
       {/* ── astronomical sun-path console ── */}
-      <SunPathConsole lat={lat} glass={glass} />
+      <SunPathConsole lat={lat} glass={glass} yearlyKwh={yearly} />
 
 
       {/* ── monthly production ── */}
