@@ -1234,61 +1234,164 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       caption: `${category.label} — Florida engineered`,
     });
 
-    /* index spread — a visual plate index. The written contents table lives on
-       its own leaf earlier in the edition, so this spread never repeats it:
-       here the collection is indexed by photography alone. */
-    pushSpread(list, {
-      key: `index-${category.id}`,
-      image: shots[3] ?? shots[0] ?? category.images[0],
-      tone: "ink",
-      eyebrow: "The Collection",
-      title: "Plate index",
-      titleItalic: category.label,
-      body: "The edition indexed by photograph — every model, priced with delivery and installation at your address.",
-      lockup: "Wonderlands World — FLIP",
-      rightHeading: "Plates",
-      rightHint: "Tap a plate to open its pages",
-      right: () => (
-        <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-0.5 sm:grid-cols-3">
-          {products.slice(0, 18).map((p, i) => (
+    /* ------------------------------ INDEX SPREAD ------------------------------
+       Printed on paper — no ink plate, no black overlay. The written contents
+       table lives on its own leaf earlier in the edition, so this spread never
+       repeats it: here the collection is indexed by photography.
+
+       Layout: left leaf is a masthead + one full-height feature plate with the
+       lead model; right leaf is an asymmetric mosaic of the remaining plates,
+       each captioned with its number, name and price. Both leaves use the paper
+       tokens (background / foreground / border) so the index reads light. */
+    if (list.length % 2 === 1) {
+      list.push({
+        key: `index-pad-${category.id}`,
+        render: () => (
+          <div className="flex h-full w-full flex-col justify-end bg-background p-8 sm:p-10">
+            <div className="relative min-h-0 flex-1 overflow-hidden">
+              <img
+                src={shots[3] ?? shots[0] ?? category.images[0]}
+                alt={`${category.label} plate`}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+            <p className="mt-3 text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+              {category.label} — plate
+            </p>
+          </div>
+        ),
+      });
+    }
+
+    const lead = products[0];
+
+    list.push({
+      key: `index-left-${category.id}`,
+      render: () => (
+        <div className="flex h-full w-full flex-col bg-background p-8 sm:p-10">
+          <div className="flex items-baseline justify-between gap-3">
+            <Eyebrow>The Collection</Eyebrow>
+            <Eyebrow className="hidden sm:block">Index</Eyebrow>
+          </div>
+          <h3 className="mt-2 font-serif text-4xl font-light leading-[0.95] sm:text-5xl">
+            Plate
+            <br />
+            <span className="italic">index</span>
+          </h3>
+          <div className="mt-3 h-px w-16 origin-left bg-foreground/40 animate-rule-draw" />
+          <p className="mt-4 max-w-[38ch] text-[11px] leading-relaxed text-muted-foreground">
+            {category.label} — the edition indexed by photograph. Every model is priced with delivery
+            and installation at your address.
+          </p>
+
+          {lead ? (
             <button
-              key={p.id}
               type="button"
               onClick={() =>
-                turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
+                turnToPageWithMotion(at.products, lead.name, [lead.image, ...(category.images ?? [])])
               }
-              title={`Open ${p.name}`}
-              className="group relative aspect-[4/5] overflow-hidden ring-1 ring-white/15 transition-all duration-500 hover:ring-white/70"
+              title={`Open ${lead.name}`}
+              className="group mt-5 flex min-h-0 flex-1 flex-col text-left"
             >
-              {p.image ? (
-                <img
-                  src={p.image}
-                  alt={p.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.08]"
-                />
-              ) : null}
-              <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
-              <span className="absolute right-1.5 top-1 font-serif text-[9px] tabular-nums text-white/60">
-                {String(i + 1).padStart(2, "0")}
+              <span className="relative block min-h-0 flex-1 overflow-hidden ring-1 ring-border">
+                {lead.image ? (
+                  <img
+                    src={lead.image}
+                    alt={lead.name}
+                    loading="eager"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] ease-out group-hover:scale-[1.06]"
+                  />
+                ) : null}
               </span>
-              <span className="absolute inset-x-1.5 bottom-1.5 block text-left">
-                <span className="block truncate text-[8.5px] uppercase tracking-[0.2em] text-white">
-                  {p.name}
+              <span className="mt-2 flex items-baseline justify-between gap-3 border-t border-border/60 pt-2">
+                <span className="truncate text-[10.5px] uppercase tracking-[0.2em] text-foreground">
+                  <span className="mr-2 font-serif tabular-nums text-muted-foreground">01</span>
+                  {lead.name}
                 </span>
-                <span className="mt-0.5 block font-serif text-[10px] text-white/75">
-                  {formatEntryPrice(p) || "On request"}
+                <span className="shrink-0 font-serif text-[12px] text-foreground">
+                  {formatEntryPrice(lead) || "On request"}
                 </span>
               </span>
             </button>
-          ))}
-          {!products.length && (
-            <p className="text-[10px] text-white/70">Composing plates…</p>
-          )}
+          ) : null}
+
+          <div className="mt-4 flex items-end justify-between gap-4 border-t border-border/60 pt-3">
+            <p className="text-[8px] uppercase tracking-[0.4em] text-muted-foreground">
+              Wonderlands World — FLIP
+            </p>
+            <p className="font-serif text-[11px] text-muted-foreground">
+              {String(products.length || 0).padStart(2, "0")} models
+            </p>
+          </div>
         </div>
       ),
     });
+
+    list.push({
+      key: `index-right-${category.id}`,
+      render: () => (
+        <div className="flex h-full w-full flex-col bg-background p-8 sm:p-10">
+          <div className="flex items-baseline justify-between gap-3 border-b border-border/60 pb-2">
+            <Eyebrow>Plates</Eyebrow>
+            <p className="text-[8px] uppercase tracking-[0.28em] text-muted-foreground">
+              Tap a plate to open its pages
+            </p>
+          </div>
+
+          <div className="mt-3 grid min-h-0 flex-1 auto-rows-fr grid-cols-2 gap-2.5 sm:grid-cols-3">
+            {products.slice(1, 13).map((p, i) => {
+              /* asymmetric mosaic — every fifth plate is printed double width */
+              const wide = i % 5 === 0;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() =>
+                    turnToPageWithMotion(
+                      at.products + (i + 1) * 2,
+                      p.name,
+                      [p.image, ...(category.images ?? [])],
+                    )
+                  }
+                  title={`Open ${p.name}`}
+                  className={`group flex flex-col text-left ${wide ? "sm:col-span-2" : ""}`}
+                >
+                  <span className="relative block min-h-0 flex-1 overflow-hidden ring-1 ring-border transition-shadow duration-500 group-hover:ring-foreground/40">
+                    {p.image ? (
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.07]"
+                      />
+                    ) : null}
+                    <span className="absolute left-1.5 top-1.5 bg-background/90 px-1.5 py-0.5 font-serif text-[9px] tabular-nums text-foreground">
+                      {String(i + 2).padStart(2, "0")}
+                    </span>
+                  </span>
+                  <span className="mt-1.5 block truncate text-[9px] uppercase tracking-[0.18em] text-foreground">
+                    {p.name}
+                  </span>
+                  <span className="block font-serif text-[10.5px] text-muted-foreground">
+                    {formatEntryPrice(p) || "On request"}
+                  </span>
+                </button>
+              );
+            })}
+            {!products.length && <p className="text-[10px] text-muted-foreground">Composing plates…</p>}
+          </div>
+
+          <p className="mt-3 border-t border-border/60 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+            {category.label} — photographed on site in Florida
+          </p>
+        </div>
+      ),
+    });
+
 
 
     /* -------------------------------- GALLERY --------------------------------- */
