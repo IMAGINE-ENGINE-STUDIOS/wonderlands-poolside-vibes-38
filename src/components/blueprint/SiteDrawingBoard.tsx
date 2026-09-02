@@ -1995,7 +1995,21 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
               <>
                 <Plus className="h-3.5 w-3.5" /> Point
               </>,
-              { onClick: addVertexAfterSelected, disabled: selectedVertex === null },
+              {
+                on: mode === 'point',
+                /* arms the sliding ghost point instead of blindly appending one */
+                onClick: () => {
+                  if (mode === 'point') {
+                    setMode('select');
+                    setInsertGhost(null);
+                    return;
+                  }
+                  setMode('point');
+                  setDraft([]);
+                  setHover(null);
+                  setInsertGhost(null);
+                },
+              },
             )}
             {ctrl(<Minus className="h-3.5 w-3.5" />, {
               onClick: () => selectedVertex !== null && removeVertexFrom(selectedShape.id, selectedVertex),
