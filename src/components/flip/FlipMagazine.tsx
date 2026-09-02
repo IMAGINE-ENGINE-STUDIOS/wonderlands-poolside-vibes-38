@@ -466,7 +466,17 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     () => mergeStudioGroups(categoryId, OPTION_GROUPS[categoryId] ?? fallbackGroups),
     [categoryId],
   );
-  const products = useMemo(() => (entries ?? []).slice(0, MAX_MODELS), [entries]);
+  /* The Fiberglass edition holds two catalogs — Latham and GlimmerGlass. The
+     models are printed catalog by catalog (Latham first, each priced low to
+     high) so the intro leaf can send the reader straight into either one. */
+  const products = useMemo(() => {
+    const list = (entries ?? []).slice(0, MAX_MODELS);
+    if (categoryId !== "pools") return list;
+    const rank = (b?: string) => ((b ?? "").toLowerCase().includes("latham") ? 0 : 1);
+    return [...list].sort(
+      (a, b) => rank(a.brand) - rank(b.brand) || (a.price ?? 0) - (b.price ?? 0),
+    );
+  }, [entries, categoryId]);
 
   // Pages ahead of the reader: decode their plates before the flip happens.
   useEffect(() => {
