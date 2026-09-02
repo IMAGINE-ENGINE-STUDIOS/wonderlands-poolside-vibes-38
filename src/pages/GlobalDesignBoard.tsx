@@ -11,6 +11,7 @@ import {
   Ruler,
   Sun,
   Trees,
+  Eraser,
   Waves,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import usePersistentState from "@/hooks/usePersistentState";
 import FlipToolWidget from "@/components/flip/FlipToolWidget";
 import FlipBoardDossier from "@/components/flip/FlipBoardDossier";
 import { useBoardEstimate } from "@/components/flip/FlipBoardPanels";
-import { useFlipBoard } from "@/components/flip/flipBoardStore";
+import { useFlipBoard, resetFlipBoard } from "@/components/flip/flipBoardStore";
 import {
   DEFAULT_GLOBAL_META,
   computeGlobalEstimate,
