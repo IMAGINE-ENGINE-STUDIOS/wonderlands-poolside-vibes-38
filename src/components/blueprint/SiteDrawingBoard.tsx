@@ -1327,6 +1327,25 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       setHover(raw);
       return;
     }
+    if (mode === 'point') {
+      /* the new point is anchored to the cursor AND to the spline: it slides
+         along the run nearest the pointer so the designer chooses exactly where
+         it lands before committing */
+      const hit = nearestOnOutline(raw, 26 / viewRef.current.z);
+      setInsertGhost(prev => {
+        if (!hit) return prev ? null : prev;
+        if (
+          prev &&
+          prev.shapeId === hit.shapeId &&
+          prev.segment === hit.segment &&
+          Math.hypot(prev.point.x - hit.point.x, prev.point.y - hit.point.y) < 0.05
+        )
+          return prev;
+        return { shapeId: hit.shapeId, segment: hit.segment, point: hit.point };
+      });
+      setHoverShapeId(prev => (prev === (hit?.shapeId ?? null) ? prev : hit?.shapeId ?? null));
+      return;
+    }
     if (mode === 'select') {
       /* light up whatever the pointer is over so it is obvious which element
          will take the option change on the next click */
