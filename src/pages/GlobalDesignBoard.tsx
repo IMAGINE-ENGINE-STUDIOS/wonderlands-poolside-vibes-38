@@ -356,11 +356,30 @@ const GlobalDesignBoard: React.FC = () => {
 
 
 
-          {/* Trade gateways — the same glass gateway button as the FLIP edition */}
-          <section className="glass-panel hidden rounded-2xl p-2 xl:block">
-            <p className="px-2 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Trades</p>
-            <div className="mt-2 space-y-1.5">{TRADES.map((t, i) => tradeCard(t, i))}</div>
+          {/* Trades & elements — one list: the trade gateways, and directly under
+              the active trade the site board's own element palette (portalled
+              into #wl-board-elements). */}
+          <section className="glass-panel rounded-2xl p-2">
+            <p className="px-2 pt-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+              Trades &amp; elements
+            </p>
+            <div className="mt-2 space-y-1.5">
+              {TRADES.map((t, i) => (
+                <React.Fragment key={t.id}>
+                  {tradeCard(t, i)}
+                  {t.id === active.id && t.id === "site" && (
+                    <div className="board-console rounded-xl border border-border/40 bg-background/40 p-2">
+                      <p className="px-1 pb-1.5 text-[8.5px] uppercase tracking-[0.28em] text-muted-foreground">
+                        Elements on the sheet
+                      </p>
+                      <div id="wl-board-elements" />
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           </section>
+
 
           <section className="glass-panel rounded-2xl p-4 xl:sticky xl:top-24">
             <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Project total</p>
