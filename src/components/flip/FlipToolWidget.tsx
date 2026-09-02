@@ -392,6 +392,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
       site,
       setSite,
       categoryId,
+      boardId,
     ],
   );
 
