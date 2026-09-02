@@ -7,16 +7,22 @@
  * an X on each line — removing a line is a real edit of the drawing, never a
  * cosmetic hide, so the take-off, specs and payment schedule all follow.
  */
-import type { SiteEstimateLine } from "@/lib/siteEstimate";
+/** Any priced estimate row, wherever it was rendered from. */
+export type EditableLine = {
+  label: string;
+  shapeId?: string;
+  featureId?: string;
+  layer?: string;
+};
 import type { SitePlanData } from "@/components/blueprint/SiteDrawingBoard";
 import { getFlipBoardValue, setFlipBoardValue } from "@/components/flip/flipBoardStore";
 
 /** Can this line be taken off the estimate by the reader? */
-export const isRemovableLine = (line: SiteEstimateLine) =>
+export const isRemovableLine = (line: EditableLine) =>
   Boolean(line.featureId || line.shapeId || line.layer);
 
 /** Plain-language label for the X button's tooltip. */
-export const removeLineHint = (line: SiteEstimateLine) =>
+export const removeLineHint = (line: EditableLine) =>
   line.featureId
     ? `Remove ${line.label} from this element`
     : `Erase every ${line.label.toLowerCase()} element drawn on the sheet`;
@@ -26,7 +32,7 @@ export const removeLineHint = (line: SiteEstimateLine) =>
  * - option line → the option comes off that one element
  * - base line   → every element on that layer is erased
  */
-export function removeEstimateLine(boardId: string, line: SiteEstimateLine) {
+export function removeEstimateLine(boardId: string, line: EditableLine) {
   const site = getFlipBoardValue(boardId).site as SitePlanData;
   if (!site?.shapes?.length) return;
 
