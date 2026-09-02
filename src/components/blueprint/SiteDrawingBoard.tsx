@@ -1343,6 +1343,18 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
         </p>
   ) : null;
 
+  /* The options drawers are rendered into the page's project column when one is
+     offered (`#wl-board-options`, as on the Global Design Board), so the drawing
+     keeps the full width of the leaf. Without a slot they stay under the board. */
+  const optionPanels = (
+    <>
+      {elementOptions}
+      {armedOptions}
+    </>
+  );
+  const optionsInline = optionsSlot ? null : optionPanels;
+  const optionsPortal = optionsSlot ? createPortal(optionPanels, optionsSlot) : null;
+
   /* FLIP dossier layout — the drawing takes the full width of the leaf and every
      control lives in a glass console docked BELOW the canvas, so the board is as
      wide as the page allows instead of losing a column to a sidebar. */
@@ -1351,9 +1363,10 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       <div className="flex h-full min-h-0 flex-col gap-2.5">
         {header}
         {canvasEl}
-        {elementOptions}
-        {armedOptions}
+        {optionsInline}
+        {optionsPortal}
         {underlayBar}
+
 
         {!readOnly && (
           <div className="rounded-2xl border border-border/50 bg-background/55 p-2.5 shadow-[0_18px_50px_-34px_rgba(8,12,24,0.55)] backdrop-blur-xl">
