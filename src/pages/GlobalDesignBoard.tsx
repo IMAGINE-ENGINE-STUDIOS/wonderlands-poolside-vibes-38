@@ -304,7 +304,7 @@ const GlobalDesignBoard: React.FC = () => {
           consolidated list instead of two competing menus. */}
 
 
-      <main className="mx-auto grid max-w-[1800px] gap-4 px-3 py-4 sm:px-5 sm:py-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <main className="mx-auto grid h-full max-w-[1800px] gap-4 overflow-hidden px-3 py-4 sm:px-5 sm:py-5 xl:grid-cols-[320px_minmax(0,1fr)]">
         {/* ── project + trade rail ── */}
         <aside className="space-y-4">
           {/* ── features & options ──
