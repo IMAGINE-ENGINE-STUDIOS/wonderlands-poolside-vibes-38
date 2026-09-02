@@ -287,6 +287,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     | { kind: 'underlay'; last: { x: number; y: number } }
     | null
   >(null);
+  /** Camera pan in progress (middle button or shift-drag), in client pixels. */
+  const pan = React.useRef<{ x: number; y: number } | null>(null);
+
 
   const underlay = data.underlay;
   const pxPerFt = data.pxPerFt;
