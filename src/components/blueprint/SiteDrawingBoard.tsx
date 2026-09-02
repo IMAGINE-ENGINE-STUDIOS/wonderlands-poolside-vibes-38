@@ -231,6 +231,9 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const imgRef = React.useRef<HTMLImageElement | null>(null);
   const [imgReady, setImgReady] = React.useState(0);
   const [layer, setLayer] = React.useState<SiteLayerId>(defaultLayer ?? 'property');
+  /* Additional features armed per trade before anything is drawn — the options
+     of the armed element are always on screen, not hidden behind a selection. */
+  const [armedFeatures, setArmedFeatures] = React.useState<Partial<Record<SiteLayerId, string[]>>>({});
   const [mode, setMode] = React.useState<Mode>('draw');
   const [draft, setDraft] = React.useState<{ x: number; y: number }[]>([]);
   const [hover, setHover] = React.useState<{ x: number; y: number } | null>(null);
