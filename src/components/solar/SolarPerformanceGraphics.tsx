@@ -25,7 +25,9 @@ import {
   moonRead,
   planetReads,
   starHorizontal,
+  sunEquatorial,
 } from "@/lib/solar/astronomy";
+
 import {
   DEFAULT_TARIFF_CODE,
   ELECTRICITY_TARIFFS,
