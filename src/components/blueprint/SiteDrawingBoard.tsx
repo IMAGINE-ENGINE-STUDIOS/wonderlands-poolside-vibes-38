@@ -966,6 +966,7 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     view,
     selectedSegment,
     cropping,
+    insertGhost,
   ]);
 
 
