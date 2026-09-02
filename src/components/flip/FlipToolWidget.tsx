@@ -364,7 +364,7 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
           defaultLayer={DEFAULT_LAYER[categoryId] ?? "pool"}
           menuSide={!fullScreen}
           /* The one-stop project board opens on 400 ft of frontage. */
-          defaultViewWidthFt={categoryId.includes("global-design") ? 400 : undefined}
+          defaultViewWidthFt={boardId.includes("global-design") ? 400 : undefined}
 
           onRequestImport={fullScreen ? () => fileRef.current?.click() : undefined}
         />
