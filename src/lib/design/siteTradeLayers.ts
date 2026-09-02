@@ -25,6 +25,7 @@ import { artificialGrassOptions, getGrassPricePerSqFt } from '@/data/artificialG
 import { paverTypes, copingTypes } from '@/data/paverData';
 import { FENCE_HEIGHTS, FENCE_STYLES, FENCE_GATES, FENCE_ADDONS } from '@/data/fenceConfigurator';
 import { solarBatteries } from '@/data/solarHardware';
+import { getProductFeatures, type ProductType } from '@/config/productFeatures';
 
 /** One selectable feature on a drawn element. */
 export interface TradeFeature {
@@ -39,6 +40,12 @@ export interface TradeFeature {
   hint?: string;
   /** Heading this option is filed under in the options drawer */
   group?: string;
+  /**
+   * Photograph shown on the option tile. Sourced from the same catalogue image
+   * Wonderlands Studio prints on its product cards, so a tile on the board and
+   * a tile in the studio are the same picture.
+   */
+  image?: string;
   /**
    * Options sharing an `exclusive` key are a single choice (a surface, a height,
    * a screen mesh) — picking one clears the rest, exactly as the standalone
@@ -87,22 +94,68 @@ const COPING_FEATURES = (prefix: string): TradeFeature[] =>
     label: c.name,
     perLinearFt: c.basePrice,
     hint: c.description,
+    image: c.image,
     group: 'Coping',
     exclusive: `${prefix}-coping`,
   }));
 
+
+
+/**
+ * Studio option catalogues, verbatim
+ * ---------------------------------
+ * Shell layers (pool, spa, tanning ledge) offer the *same* additional features
+ * Wonderlands Studio prints on the product card: identical titles, identical
+ * prices and identical photographs. `getProductFeatures` is the studio's own
+ * configuration, so nothing is re-typed here — selection options become one
+ * exclusive choice per group, area options are priced per square foot and
+ * boolean / quantity options become a flat toggle.
+ */
+const slug = (v: string) =>
+  v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+const studioFeatures = (productType: ProductType, prefix: string): TradeFeature[] => {
+  const out: TradeFeature[] = [];
+  getProductFeatures(productType).forEach((f) => {
+    const group = f.label;
+    if ((f.type === 'selection' || f.type === 'area') && f.options?.length) {
+      const perArea = f.type === 'area';
+      f.options.forEach((o) => {
+        if (!o.name) return;
+        out.push({
+          id: `${prefix}-${f.id}-${slug(String(o.name))}`,
+          label: String(o.name),
+          ...(perArea ? { perSqFt: o.price || undefined } : { flat: o.price || undefined }),
+          image: o.image,
+          hint: o.description,
+          group,
+          exclusive: `${prefix}-${f.id}`,
+        });
+      });
+      return;
+    }
+    if (f.type === 'boolean' || f.type === 'quantity') {
+      out.push({
+        id: `${prefix}-${f.id}`,
+        label: f.label,
+        flat: f.basePrice || undefined,
+        image: f.image,
+        hint: f.description,
+        group: 'Equipment',
+      });
+    }
+  });
+  return out;
+};
 
 export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
   pool: {
     rate: SHELL_BASE * 3.5,
     note: 'Fiberglass or concrete shell, excavation, plumbing, equipment set and start-up.',
     features: [
-      { id: 'pool-heater', label: 'Heat pump heater', flat: 6800, group: 'Equipment' },
-      { id: 'pool-salt', label: 'Salt chlorine system', flat: 2450, group: 'Equipment' },
-      { id: 'pool-lights', label: 'Colour LED lighting', flat: 1450, hint: 'Per light, gradient cycle default', group: 'Equipment' },
-      { id: 'pool-jets', label: 'Deck jets / bubblers', flat: 1250, group: 'Equipment' },
-      { id: 'pool-cover', label: 'Automatic safety cover', flat: 14500, group: 'Equipment' },
-      { id: 'pool-cleaner', label: 'Robotic cleaner', flat: 1650, group: 'Equipment' },
+      /* identical to the studio pool card: finishes, liners, tiles, heaters,
+         covers, spas, ledges, pavers, enclosure and concrete construction */
+      ...studioFeatures('pool', 'pool'),
       ...COPING_FEATURES('pool'),
       { id: 'pool-waterline', label: 'Waterline tile band', perLinearFt: 28, group: 'Waterline' },
     ],
@@ -111,11 +164,9 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
     rate: SHELL_BASE * 4,
     note: 'Spa shell with dedicated heater, blower and controls — 4x studio multiplier.',
     features: [
+      /* identical to the studio spa card */
+      ...studioFeatures('spa', 'spa'),
       { id: 'spa-spillway', label: 'Spillway into the pool', flat: 3200, group: 'Equipment' },
-      { id: 'spa-jets', label: 'Therapy jet package', flat: 2400, group: 'Equipment' },
-      { id: 'spa-blower', label: 'Air blower', flat: 1150, group: 'Equipment' },
-      { id: 'spa-heater', label: 'Gas heater (fast heat)', flat: 5400, group: 'Equipment' },
-      { id: 'spa-control', label: 'App automation & controls', flat: 2100, group: 'Equipment' },
       ...COPING_FEATURES('spa'),
     ],
   },
@@ -123,6 +174,8 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
     rate: SHELL_BASE * 4,
     note: 'Tanning ledge / sun shelf at 8–12 in of water — 4x studio multiplier.',
     features: [
+      /* identical to the studio tanning-ledge card */
+      ...studioFeatures('tanning-ledge', 'ledge'),
       { id: 'ledge-loungers', label: 'In-water loungers', flat: 1850, group: 'Comfort' },
       { id: 'ledge-umbrella', label: 'Umbrella sleeve & shade', flat: 1250, group: 'Comfort' },
       { id: 'ledge-bubblers', label: 'Bubblers on the shelf', flat: 1350, group: 'Comfort' },
@@ -178,6 +231,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: `${g.name} blade colour`,
         /* every catalogued turf is priced at its own published rate */
         perSqFt: +(getGrassPricePerSqFt(g.name) - getGrassPricePerSqFt()).toFixed(2) || undefined,
+        image: g.image,
         group: 'Turf product',
         exclusive: 'turf-product',
       })),
@@ -218,6 +272,7 @@ export const TRADE_LAYERS: Record<string, TradeLayerSpec> = {
         label: p.name,
         perSqFt: p.basePrice,
         hint: p.description,
+        image: p.image,
         group: 'Paver selection',
         exclusive: 'deck-surface',
       })),
