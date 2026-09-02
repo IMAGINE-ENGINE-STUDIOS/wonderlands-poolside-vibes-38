@@ -716,16 +716,31 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
     if (tool === "hedge") finishHedge();
   };
 
-  const onWheel = (ev: React.WheelEvent) => {
-    ev.preventDefault();
+  /* wheel / trackpad pinch — scaled by delta magnitude so one flick cannot
+     compound to the zoom limits, anchored under the cursor. */
+  const wheelRef = React.useRef<(e: WheelEvent) => void>(() => {});
+  wheelRef.current = (ev: WheelEvent) => {
     const rect = canvasRef.current!.getBoundingClientRect();
     const cx = ev.clientX - rect.left;
     const cy = ev.clientY - rect.top;
-    const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * (ev.deltaY < 0 ? 1.1 : 1 / 1.1)));
+    const dy = ev.deltaY * (ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? 100 : 1);
+    const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * Math.exp(-dy * 0.0015)));
     const k = next / zoom;
     setPan((prev) => ({ x: cx - (cx - prev.x) * k, y: cy - (cy - prev.y) * k }));
     setZoom(next);
   };
+  /* React's onWheel is passive, so preventDefault needs a native listener */
+  React.useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      e.preventDefault();
+      wheelRef.current(e);
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, []);
+
 
   /* keyboard: Enter finishes, Delete removes, C rounds a bed corner */
   React.useEffect(() => {
