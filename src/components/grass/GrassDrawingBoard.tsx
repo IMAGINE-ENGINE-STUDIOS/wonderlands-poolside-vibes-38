@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import BoardDensityToggle from '@/components/drawing/BoardDensityToggle';
 import useBoardDensity from '@/hooks/useBoardDensity';
 import {
   MousePointer2,
@@ -13,6 +12,9 @@ import {
   CornerDownRight,
   Sparkles,
   Maximize2,
+  Minimize2,
+  ZoomIn,
+  ZoomOut,
   Plus,
   Spline,
 } from 'lucide-react';
@@ -81,7 +83,9 @@ interface Props {
 
 const PX_PER_FT = 10;
 const MIN_ZOOM = 0.25;
-const MAX_ZOOM = 4;
+const MAX_ZOOM = 8;
+/** Every drawing board opens on 20 ft of frontage. */
+const VIEW_WIDTH_FT = 20;
 const HIT_PX = 9;
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -299,6 +303,13 @@ const GrassDrawingBoard: React.FC<Props> = ({
   const [view, setView] = React.useState({ zoom: 1, ox: 40, oy: 30 });
   const dragRef = React.useRef<{ mode: 'point' | 'pan'; id?: string; index?: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 540 });
+  /* frame 20 ft of the sheet as soon as the board is measured */
+  const framedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (framedRef.current || !size.w) return;
+    framedRef.current = true;
+    setView(v => ({ ...v, zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, size.w / (VIEW_WIDTH_FT * PX_PER_FT))) }));
+  }, [size.w]);
 
   // Grass textures for pattern fills — product photos carry a white studio border,
   // so we trim it and mirror the crop into a seamless tile (no white seam lines).
