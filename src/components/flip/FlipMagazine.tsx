@@ -1234,39 +1234,62 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       caption: `${category.label} — Florida engineered`,
     });
 
-    /* index spread — contents set over full imagery */
+    /* index spread — a visual plate index. The written contents table lives on
+       its own leaf earlier in the edition, so this spread never repeats it:
+       here the collection is indexed by photography alone. */
     pushSpread(list, {
       key: `index-${category.id}`,
       image: shots[3] ?? shots[0] ?? category.images[0],
-      /* ink tone: the photograph drops back so the contents rows stay legible and
-         the spread no longer reads as a repeat of the statement opener */
       tone: "ink",
       eyebrow: "The Collection",
-      title: "Index",
+      title: "Plate index",
       titleItalic: category.label,
-      body: "Every model in this edition, priced with delivery and installation at your address.",
+      body: "The edition indexed by photograph — every model, priced with delivery and installation at your address.",
       lockup: "Wonderlands World — FLIP",
-      rightHeading: "Contents",
-      rightHint: "Pose the mouse to preview · tap to open",
+      rightHeading: "Plates",
+      rightHint: "Tap a plate to open its pages",
       right: () => (
-        <ul className="h-full overflow-y-auto">
-          {products.slice(0, 14).map((p, i) => (
-            <FlipContentsRow
+        <div className="grid h-full grid-cols-2 gap-2 overflow-y-auto pr-0.5 sm:grid-cols-3">
+          {products.slice(0, 18).map((p, i) => (
+            <button
               key={p.id}
-              index={i}
-              name={p.name}
-              priceLabel={formatEntryPrice(p)}
-              image={p.image}
-              description={[p.brand, p.meta].filter(Boolean).join(" · ")}
-              tone="ink"
-              onOpen={() =>
+              type="button"
+              onClick={() =>
                 turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
               }
-            />
+              title={`Open ${p.name}`}
+              className="group relative aspect-[4/5] overflow-hidden ring-1 ring-white/15 transition-all duration-500 hover:ring-white/70"
+            >
+              {p.image ? (
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.08]"
+                />
+              ) : null}
+              <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
+              <span className="absolute right-1.5 top-1 font-serif text-[9px] tabular-nums text-white/60">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="absolute inset-x-1.5 bottom-1.5 block text-left">
+                <span className="block truncate text-[8.5px] uppercase tracking-[0.2em] text-white">
+                  {p.name}
+                </span>
+                <span className="mt-0.5 block font-serif text-[10px] text-white/75">
+                  {formatEntryPrice(p) || "On request"}
+                </span>
+              </span>
+            </button>
           ))}
-        </ul>
+          {!products.length && (
+            <p className="text-[10px] text-white/70">Composing plates…</p>
+          )}
+        </div>
       ),
     });
+
 
     /* -------------------------------- GALLERY --------------------------------- */
     const galleryAt = list.length;
