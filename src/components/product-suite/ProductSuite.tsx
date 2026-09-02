@@ -214,6 +214,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
           <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">{eyebrow}</p>
           <h1 className="mt-4 max-w-4xl text-4xl font-light leading-[1.05] tracking-tight md:text-6xl">{title}</h1>
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">{blurb}</p>
+          {mastheadSlot && <div className="mt-8">{mastheadSlot}</div>}
         </div>
       </header>
 
