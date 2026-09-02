@@ -75,11 +75,19 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
             {priceLabel}
           </span>
         ) : null}
-        <ArrowUpRight
-          className={`h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-[2px] ${
-            ink ? "text-white/45 group-hover:text-white" : "text-muted-foreground"
-          }`}
-        />
+        {onOpen ? (
+          <ArrowUpRight
+            className={`h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-[2px] ${
+              ink ? "text-white/45 group-hover:text-white" : "text-muted-foreground"
+            }`}
+          />
+        ) : (
+          <ChevronDown
+            className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ${open ? "rotate-180" : ""} ${
+              ink ? "text-white/45 group-hover:text-white" : "text-muted-foreground"
+            }`}
+          />
+        )}
       </button>
 
       {/* the slide-open leaf: image + description */}
@@ -100,7 +108,14 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
                   open ? "scale-100" : "scale-105"
                 } ${ink ? "ring-1 ring-white/20" : "ring-1 ring-border/50"}`}
               />
+            ) : color ? (
+              <span
+                aria-hidden
+                style={{ backgroundColor: color }}
+                className={`h-14 w-20 shrink-0 ${ink ? "ring-1 ring-white/20" : "ring-1 ring-border/50"}`}
+              />
             ) : null}
+
             <p
               className={`min-w-0 text-[10.5px] leading-relaxed ${
                 ink ? "text-white/75" : "text-muted-foreground"
