@@ -835,7 +835,7 @@ const LandscapeDrawingBoard: React.FC<Props> = ({
           dragRef.current = null;
         }}
         onDoubleClick={onDoubleClick}
-        onWheel={onWheel}
+        />
       />
       <div className="pointer-events-none absolute bottom-2 left-2 flex flex-wrap gap-2 text-[8px] uppercase tracking-[0.28em] text-muted-foreground">
         <span className="rounded-full border border-border/50 bg-background/80 px-2 py-1 backdrop-blur">
