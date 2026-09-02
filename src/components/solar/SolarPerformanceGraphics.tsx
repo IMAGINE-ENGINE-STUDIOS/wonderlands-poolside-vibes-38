@@ -439,34 +439,71 @@ const SunPathConsole: React.FC<{
             <span className="text-muted-foreground">{` · lat ${lat.toFixed(2)}°`}</span>
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em]">
+        {/* mission controls — hard-edged instrument keys, SpaceX console style */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={() => setPlaying((p) => !p)}
             aria-pressed={playing}
-            className={`rounded-full border px-4 py-2 backdrop-blur-xl transition ${
-              playing
-                ? "border-amber-300/60 bg-amber-300/15 text-amber-100"
-                : "border-white/20 bg-background/35 hover:border-amber-300/60 hover:text-amber-200"
-            }`}
+            className={`wl-key group ${playing ? "wl-key-live" : ""}`}
           >
-            {playing ? "Pause transit" : "Run transit"}
+            <span aria-hidden className="wl-key-glyph">
+              {playing ? (
+                <svg viewBox="0 0 12 12" width="11" height="11">
+                  <rect x="1.5" y="1" width="3" height="10" rx="0.6" fill="currentColor" />
+                  <rect x="7.5" y="1" width="3" height="10" rx="0.6" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 12 12" width="11" height="11">
+                  <path d="M2 1l9 5-9 5z" fill="currentColor" />
+                </svg>
+              )}
+            </span>
+            <span className="wl-key-label">{playing ? "Pause transit" : "Run transit"}</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setYearDay(0);
+              setYearRun((r) => !r);
+              setPlaying(false);
+            }}
+            aria-pressed={yearRun}
+            className={`wl-key ${yearRun ? "wl-key-live" : ""}`}
+          >
+            <span aria-hidden className="wl-key-glyph">
+              <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.3">
+                <circle cx="6" cy="6" r="4.4" />
+                <path d="M6 2.6V6l2.4 1.5" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="wl-key-label">{yearRun ? "Halt year" : "Simulate year"}</span>
+          </button>
+
           <button
             type="button"
             onClick={() => {
               const d = new Date();
               setPlaying(false);
+              setYearRun(false);
               setDoy(dayOfYearOf(d));
               setHours(d.getHours() + d.getMinutes() / 60);
               setStation(null);
             }}
-            className="rounded-full border border-white/15 bg-background/25 px-4 py-2 text-muted-foreground backdrop-blur-xl transition hover:border-white/35 hover:text-foreground"
+            className="wl-key wl-key-ghost"
           >
-            Now
+            <span aria-hidden className="wl-key-glyph">
+              <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.3">
+                <circle cx="6" cy="6" r="4.4" />
+                <path d="M6 0.6v2M6 9.4v2M0.6 6h2M9.4 6h2" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="wl-key-label">Now</span>
           </button>
         </div>
       </div>
+
 
       {/* plate */}
       <svg
