@@ -19,6 +19,7 @@ import FlipCart from "./FlipCart";
 import { useProductBookPages } from "./FlipProductBook";
 import { pushSpread } from "./FlipSpread";
 import FlipIndexV6 from "./FlipIndexV6";
+import FlipContentsRow from "./FlipContentsRow";
 
 
 /** Placeholder so the dossier page hook can run unconditionally. */
