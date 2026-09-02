@@ -130,6 +130,7 @@ const BlueprintBuilder: React.FC = () => {
   /* One-click hand-off from the GLOBAL DESIGN BOARD: the project arrives fully
      drawn and measured, so blueprint mode opens filled in. */
   const [handoffFrom, setHandoffFrom] = React.useState<string>('');
+  const [solarNote, setSolarNote] = React.useState<string>('');
   React.useEffect(() => {
     const payload = cacheRead<BlueprintHandoff | null>(BLUEPRINT_HANDOFF_KEY, null);
     if (!payload) return;
@@ -140,7 +141,14 @@ const BlueprintBuilder: React.FC = () => {
       existingAreas: { ...prev.existingAreas, ...payload.existingAreas },
       project: { ...prev.project, ...payload.project },
       scopeOfWork: payload.scopeOfWork.length ? payload.scopeOfWork : prev.scopeOfWork,
+      /* Solar Genius hands the electrical/utility story across: county tariff,
+         export rule, tax exemptions, programmes and fees. It lands on the
+         electrical sheet when one is enabled, otherwise on the first sheet. */
+      sheetNotes: payload.solarNote
+        ? { ...prev.sheetNotes, [solarNoteSheet(prev)]: payload.solarNote }
+        : prev.sheetNotes,
     }));
+    if (payload.solarNote) setSolarNote(payload.solarNote);
     setHandoffFrom(payload.project.title || 'Global Design Board');
   }, [setData]);
 
