@@ -1,3 +1,4 @@
+import { boardAltitudeFtOr, setBoardAltitudeFt } from '@/lib/design/boardAltitude';
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 
@@ -346,14 +347,22 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     });
   }, [data.shapes, defaultViewWidthFt, pxPerFt]);
 
-  /* Open at the requested width of land (400 ft on the Global Design Board). */
+  /* Open at the altitude the draughtsman last flew at on ANY board, falling
+     back to this board's own default width of land (400 ft on the Global Design
+     Board) the very first time. */
   const framed = React.useRef(false);
   React.useEffect(() => {
-    if (framed.current || !defaultViewWidthFt) return;
+    if (framed.current) return;
     framed.current = true;
-    const z = clampZ(CANVAS_W / (defaultViewWidthFt * pxPerFt));
+    const wantFt = boardAltitudeFtOr(defaultViewWidthFt ?? CANVAS_W / pxPerFt);
+    const z = clampZ(CANVAS_W / (wantFt * pxPerFt));
     setView({ z, x: (CANVAS_W * (1 - z)) / 2, y: (CANVAS_H * (1 - z)) / 2 });
   }, [defaultViewWidthFt, pxPerFt]);
+
+  /* Every zoom here becomes the altitude every other board opens at. */
+  React.useEffect(() => {
+    setBoardAltitudeFt(viewWidthFt);
+  }, [viewWidthFt]);
 
   /* Grid density follows what the camera can actually resolve on screen. */
   const screenPxPerFt = pxPerFt * zoom;
