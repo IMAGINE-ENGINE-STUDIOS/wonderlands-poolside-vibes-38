@@ -90,14 +90,24 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
         )}
       </button>
 
-      {/* the slide-open leaf: image + description */}
+      {/* the slide-open leaf: image + description — the whole drawer is part of
+          the control, so clicking the plate or the description opens the page
+          exactly like clicking the title line. */}
       <div
         className="grid transition-[grid-template-rows,opacity] duration-500 ease-out"
         style={{ gridTemplateRows: open ? "1fr" : "0fr", opacity: open ? 1 : 0 }}
         aria-hidden={!open}
       >
         <div className="overflow-hidden">
-          <div className="flex gap-3 px-1 pb-2.5 pt-0.5">
+          <div
+            role={onOpen ? "button" : undefined}
+            tabIndex={-1}
+            onClick={() => (onOpen ? onOpen() : setOpen((o) => !o))}
+            className={`flex gap-3 px-1 pb-2.5 pt-0.5 ${onOpen ? "cursor-pointer" : "cursor-default"} ${
+              ink ? "hover:bg-white/12" : "hover:bg-foreground/[0.04]"
+            }`}
+          >
+
             {image ? (
               <img
                 src={image}
