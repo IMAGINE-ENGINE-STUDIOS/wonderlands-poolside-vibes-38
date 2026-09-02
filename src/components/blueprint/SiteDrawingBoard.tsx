@@ -406,8 +406,14 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
   const [selectedVertex, setSelectedVertex] = React.useState<number | null>(null);
   /** The run (segment i → i+1) under the curvature inspector. */
   const [selectedSegment, setSelectedSegment] = React.useState<number | null>(null);
-  /** True overlap logic: pools, spas, ledges and buildings cut deck and turf. */
-  const [cropping, setCropping] = React.useState(true);
+  /**
+   * True overlap logic is AUTOMATIC — it is how a site is actually built, not a
+   * preference. A pool, spa, tanning ledge or building drawn on top of a paver
+   * deck, patio, driveway, gravel field or artificial turf always cuts an
+   * opening in it, so the painted sheet and the priced SF are the net field the
+   * crew installs. One element at a time can still be opted out (`noCrop`).
+   */
+  const cropping = true;
   /* Element under the pointer while picking — the sheet lights it up so it is
      obvious that clicking the paver deck opens the paver book for that deck. */
   const [hoverShapeId, setHoverShapeId] = React.useState<string | null>(null);
