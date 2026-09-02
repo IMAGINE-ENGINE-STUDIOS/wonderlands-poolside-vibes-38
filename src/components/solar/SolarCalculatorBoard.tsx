@@ -753,39 +753,26 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
 
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
+            {/* Auto flood-fill capture ("click a roof plane") is retired — it read
+                the photo unreliably and dropped planes before the reader clicked.
+                Hand tracing is now the single, predictable capture path. */}
             <button
               onClick={() => {
                 setDraft([]);
-                setMode(mode === "auto" ? "idle" : "auto");
+                setMode(mode === "manual" ? "idle" : "manual");
               }}
-              className={`inline-flex items-center gap-2 border px-3 py-2 text-[9px] uppercase tracking-[0.28em] transition-colors ${
-                mode === "auto" ? "border-foreground bg-foreground text-background" : "border-border/60 hover:border-foreground"
-              }`}
-            >
-              <Crosshair className="h-3.5 w-3.5" /> Click a roof plane
-            </button>
-            <button
-              onClick={() => setMode(mode === "manual" ? "idle" : "manual")}
               className={`inline-flex items-center gap-2 border px-3 py-2 text-[9px] uppercase tracking-[0.28em] transition-colors ${
                 mode === "manual" ? "border-foreground bg-foreground text-background" : "border-border/60 hover:border-foreground"
               }`}
             >
-              <Pencil className="h-3.5 w-3.5" /> Trace by hand
+              <Pencil className="h-3.5 w-3.5" /> Trace the roof
             </button>
-            {mode === "manual" && (
+            {mode === "manual" && draft.length >= 3 && (
               <button
                 onClick={finishManual}
                 className="border border-primary px-3 py-2 text-[9px] uppercase tracking-[0.28em] text-primary"
               >
-                Finish the outline
-              </button>
-            )}
-            {session.lat != null && (
-              <button
-                onClick={() => loadInsights(session.lat!, session.lng!)}
-                className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.28em] hover:border-foreground"
-              >
-                <Sun className="h-3.5 w-3.5" /> Re-read the roof
+                Close the plane
               </button>
             )}
             <button
@@ -798,7 +785,17 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
               Orange prime · yellow good · red shaded
             </span>
           </div>
+
+          {/* memory of previous studies — reload any earlier roof capture */}
+          <div className="mt-4">
+            <SolarProjectGallery
+              onReload={reloadProject}
+              onSaveCurrent={saveCurrentProject}
+              canSave={Boolean(session.address) && session.faces.length > 0}
+            />
+          </div>
         </div>
+
 
         {/* ── the build (hidden on the map-only leaf) ── */}
         {!mapOnly && (
