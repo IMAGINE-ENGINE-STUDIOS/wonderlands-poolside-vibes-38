@@ -538,15 +538,133 @@ const SunPathConsole: React.FC<{
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+          {/* OLED night — true black at the zenith so the stars carry the plate */}
+          <linearGradient id="wlOled" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#000000" />
+            <stop offset="55%" stopColor="#02030a" />
+            <stop offset="100%" stopColor="#0a1024" />
+          </linearGradient>
+          <radialGradient id="wlMilky" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor="#cbd5ff" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#cbd5ff" stopOpacity="0" />
+          </radialGradient>
+          <filter id="wlMilkyBlur" x="-20%" y="-40%" width="140%" height="200%">
+            <feGaussianBlur stdDeviation="16" />
+          </filter>
+          <filter id="wlStarBloom" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur stdDeviation="1.6" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          {/* Lunar disc — a NASA-like maria pattern, lit from the true limb */}
+          <radialGradient id="wlMoonDisc" cx="38%" cy="34%" r="72%">
+            <stop offset="0%" stopColor="#fdfcf7" />
+            <stop offset="62%" stopColor="#e6e2d6" />
+            <stop offset="100%" stopColor="#b9b4a6" />
+          </radialGradient>
+          <radialGradient id="wlMoonHalo" cx="50%" cy="50%" r="50%">
+            <stop offset="55%" stopColor="#e8eaff" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#e8eaff" stopOpacity="0" />
+          </radialGradient>
+          {/* Planet discs — banded and tinted after the NASA imagery */}
+          <radialGradient id="wlVenus" cx="36%" cy="32%" r="76%">
+            <stop offset="0%" stopColor="#fffaf0" />
+            <stop offset="100%" stopColor="#e4c98f" />
+          </radialGradient>
+          <radialGradient id="wlMars" cx="36%" cy="32%" r="76%">
+            <stop offset="0%" stopColor="#f0a06a" />
+            <stop offset="60%" stopColor="#c1440e" />
+            <stop offset="100%" stopColor="#7d2b09" />
+          </radialGradient>
+          <linearGradient id="wlJupiter" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#efdcc0" />
+            <stop offset="26%" stopColor="#c99a6d" />
+            <stop offset="42%" stopColor="#f2e2c6" />
+            <stop offset="58%" stopColor="#b97f52" />
+            <stop offset="74%" stopColor="#e8d3b2" />
+            <stop offset="100%" stopColor="#a97a52" />
+          </linearGradient>
+          <linearGradient id="wlSaturn" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f3e6c4" />
+            <stop offset="50%" stopColor="#e0c893" />
+            <stop offset="100%" stopColor="#bda06d" />
+          </linearGradient>
+          <radialGradient id="wlMercury" cx="36%" cy="32%" r="76%">
+            <stop offset="0%" stopColor="#e4ded4" />
+            <stop offset="100%" stopColor="#8f887c" />
+          </radialGradient>
         </defs>
 
-        {/* sky field */}
-        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlSkyDome)" />
-        <g aria-hidden opacity={sun.altitude > 0 ? 0.35 : 0.9} className="transition-opacity duration-700">
-          {STARS.map((s, i) => (
-            <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#e0e7ff" opacity={s.o} />
+        {/* sky field — an OLED night that fades into the daylight wash */}
+        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="#000208" opacity={night} />
+        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlOled)" opacity={night * 0.92} />
+        <rect x={0} y={0} width={DOME.w} height={DOME.base} fill="url(#wlSkyDome)" opacity={1 - night * 0.55} />
+
+        {/* Milky Way — a soft band, only readable once the sky goes dark */}
+        <g aria-hidden opacity={night * 0.85} className="transition-opacity duration-700">
+          <path d={MILKY_WAY} fill="url(#wlMilky)" filter="url(#wlMilkyBlur)" />
+        </g>
+
+        {/* background star dust */}
+        <g aria-hidden opacity={0.25 + night * 0.75} className="transition-opacity duration-700">
+          {DUST.map((s, i) => (
+            <circle
+              key={i}
+              className="wl-twinkle"
+              style={{ animationDelay: `${s.delay}s` }}
+              cx={s.x}
+              cy={s.y}
+              r={s.r}
+              fill={s.tint}
+              opacity={s.o}
+            />
           ))}
         </g>
+
+        {/* catalogued bright stars at their true altitude and azimuth */}
+        <g aria-hidden opacity={Math.min(1, 0.18 + night * 0.95)} className="transition-opacity duration-700">
+          {stars.map((st) => {
+            const r = Math.max(0.9, 2.9 - st.mag * 0.62);
+            return (
+              <g key={st.name}>
+                <circle cx={st.x} cy={st.y} r={r} fill={st.color} filter="url(#wlStarBloom)" />
+                {st.mag < 0.9 && night > 0.45 && (
+                  <>
+                    <line
+                      x1={st.x - r * 3}
+                      x2={st.x + r * 3}
+                      y1={st.y}
+                      y2={st.y}
+                      stroke={st.color}
+                      strokeOpacity={0.35}
+                      strokeWidth={0.5}
+                    />
+                    <line
+                      x1={st.x}
+                      x2={st.x}
+                      y1={st.y - r * 3}
+                      y2={st.y + r * 3}
+                      stroke={st.color}
+                      strokeOpacity={0.35}
+                      strokeWidth={0.5}
+                    />
+                    <text
+                      x={st.x + r + 5}
+                      y={st.y + 3.5}
+                      className="fill-slate-300"
+                      style={{ fontSize: 9.5, letterSpacing: 0.6, opacity: 0.75 }}
+                    >
+                      {st.name.toUpperCase()}
+                    </text>
+                  </>
+                )}
+              </g>
+            );
+          })}
+        </g>
+
 
         {/* twilight wedges outside the daylight window */}
         <rect
