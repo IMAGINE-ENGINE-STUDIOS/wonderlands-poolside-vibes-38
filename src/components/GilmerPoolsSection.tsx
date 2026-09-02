@@ -3,7 +3,7 @@ import { gilmerPools } from "@/data/gilmerPools";
 import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import ProductScrollRow from "./ProductScrollRow";
 import { Badge } from "@/components/ui/badge";
-import { Waves, Shield, Clock } from "lucide-react";
+import { Waves, Shield } from "lucide-react";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 const sortedPools = [...gilmerPools].sort((a, b) => a.price - b.price);
 
@@ -28,10 +28,6 @@ const GilmerPoolsSection = () => {
             <Badge className="bg-gradient-to-r from-teal to-primary text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
               <Waves className="h-4 w-4 mr-2" />
               Fiber Construction
-            </Badge>
-            <Badge className="bg-gradient-to-r from-primary to-teal text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
-              <Clock className="h-4 w-4 mr-2" />
-              16+-Week Installation
             </Badge>
           </div>
 
