@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import usePersistentState from "@/hooks/usePersistentState";
 import FlipToolWidget from "@/components/flip/FlipToolWidget";
 import FlipBoardDossier from "@/components/flip/FlipBoardDossier";
-import { useBoardEstimate } from "@/components/flip/FlipBoardPanels";
+import { useBoardEstimate, FlipBoardCalculators } from "@/components/flip/FlipBoardPanels";
 import { useFlipBoard, resetFlipBoard } from "@/components/flip/flipBoardStore";
 import {
   DEFAULT_GLOBAL_META,
@@ -317,7 +317,14 @@ const GlobalDesignBoard: React.FC = () => {
             <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
               Features &amp; options
             </p>
+            {/* the site board portals its element options into this slot */}
             <div id="wl-board-options" className="mt-3 space-y-3" />
+            {/* every other trade shows its own calculators & options here */}
+            {active.id !== "site" && (
+              <div className="mt-3 max-h-[60vh] overflow-y-auto pr-1">
+                <FlipBoardCalculators key={active.boardId} categoryId={active.boardId} bare />
+              </div>
+            )}
 
             <details className="mt-4 border-t border-border/50 pt-3">
               <summary className="cursor-pointer list-none text-[9px] uppercase tracking-[0.3em] text-muted-foreground transition-colors hover:text-foreground">
