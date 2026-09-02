@@ -1064,6 +1064,17 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     const at = { products: 0 };
     const shots = [...category.images, ...products.slice(0, 8).map((p) => p.image)].filter(Boolean) as string[];
 
+    /* Catalogs printed inside this edition, in the order the models appear.
+       Fiberglass carries two (Latham & GlimmerGlass); every other edition
+       resolves to one and the intro leaf is skipped. */
+    const catalogs: { brand: string; start: number; models: typeof products }[] = [];
+    products.forEach((p, i) => {
+      const brand = p.brand?.trim() || category.label;
+      const last = catalogs[catalogs.length - 1];
+      if (last && last.brand === brand) last.models.push(p);
+      else catalogs.push({ brand, start: i, models: [p] });
+    });
+
 
     list.push({
       key: "cover",
