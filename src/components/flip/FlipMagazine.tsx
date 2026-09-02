@@ -19,6 +19,7 @@ import FlipCart from "./FlipCart";
 import { useProductBookPages } from "./FlipProductBook";
 import { pushSpread } from "./FlipSpread";
 import FlipIndexV6 from "./FlipIndexV6";
+import FlipContentsRow from "./FlipContentsRow";
 
 
 /** Placeholder so the dossier page hook can run unconditionally. */
@@ -465,7 +466,17 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     () => mergeStudioGroups(categoryId, OPTION_GROUPS[categoryId] ?? fallbackGroups),
     [categoryId],
   );
-  const products = useMemo(() => (entries ?? []).slice(0, MAX_MODELS), [entries]);
+  /* The Fiberglass edition holds two catalogs — Latham and GlimmerGlass. The
+     models are printed catalog by catalog (Latham first, each priced low to
+     high) so the intro leaf can send the reader straight into either one. */
+  const products = useMemo(() => {
+    const list = (entries ?? []).slice(0, MAX_MODELS);
+    if (categoryId !== "pools") return list;
+    const rank = (b?: string) => ((b ?? "").toLowerCase().includes("latham") ? 0 : 1);
+    return [...list].sort(
+      (a, b) => rank(a.brand) - rank(b.brand) || (a.price ?? 0) - (b.price ?? 0),
+    );
+  }, [entries, categoryId]);
 
   // Pages ahead of the reader: decode their plates before the flip happens.
   useEffect(() => {
@@ -1053,6 +1064,17 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
     const at = { products: 0 };
     const shots = [...category.images, ...products.slice(0, 8).map((p) => p.image)].filter(Boolean) as string[];
 
+    /* Catalogs printed inside this edition, in the order the models appear.
+       Fiberglass carries two (Latham & GlimmerGlass); every other edition
+       resolves to one and the intro leaf is skipped. */
+    const catalogs: { brand: string; start: number; models: typeof products }[] = [];
+    products.forEach((p, i) => {
+      const brand = p.brand?.trim() || category.label;
+      const last = catalogs[catalogs.length - 1];
+      if (last && last.brand === brand) last.models.push(p);
+      else catalogs.push({ brand, start: i, models: [p] });
+    });
+
 
     list.push({
       key: "cover",
@@ -1083,32 +1105,84 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       ),
     });
 
+    /* ------------------------- FIBERGLASS — TWO CATALOGS ---------------------- */
+    if (category.id === "pools" && catalogs.length > 1) {
+      list.push({
+        key: "catalogs",
+        render: () => (
+          <div className="flex h-full w-full flex-col p-8 sm:p-10">
+            <Eyebrow>The Fiberglass Edition</Eyebrow>
+            <h3 className="mt-2 font-serif text-3xl font-light leading-tight sm:text-4xl">Two catalogs</h3>
+            <p className="mt-3 max-w-md text-[12px] leading-relaxed text-muted-foreground">
+              Every engineered shell we install, gathered in one edition. Enter either house
+              catalog — the models follow in price order, delivered and installed turnkey.
+            </p>
+            <div className="mt-5 grid min-h-0 flex-1 gap-4 sm:grid-cols-2">
+              {catalogs.map((c) => (
+                <button
+                  key={c.brand}
+                  onClick={() =>
+                    turnToPageWithMotion(at.products + c.start * 2, `${c.brand} catalog`, [
+                      c.models[0]?.image,
+                      ...(category.images ?? []),
+                    ].filter(Boolean) as string[])
+                  }
+                  className="group relative flex min-h-0 flex-col overflow-hidden border border-border/60 text-left"
+                >
+                  <span className="relative block min-h-0 flex-1 overflow-hidden bg-muted">
+                    {c.models[0]?.image ? (
+                      <img
+                        src={c.models[0].image}
+                        alt={c.brand}
+                        loading="eager"
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.06]"
+                      />
+                    ) : null}
+                    <span className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  </span>
+                  <span className="flex items-baseline justify-between gap-3 px-4 pt-3">
+                    <span className="font-serif text-xl font-light">{c.brand}</span>
+                    <span className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
+                      {c.models.length} models
+                    </span>
+                  </span>
+                  <span className="flex items-center justify-between gap-3 px-4 pb-3 pt-1.5 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                    From {formatEntryPrice(c.models[0]) || "On request"}
+                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ),
+      });
+    }
+
     list.push({
       key: "contents",
       render: () => (
         <div className="flex h-full w-full flex-col p-8 sm:p-10">
           <Eyebrow>Contents</Eyebrow>
           <h3 className="mt-2 font-serif text-3xl font-light leading-tight">{category.label}</h3>
-          <ul className="mt-5 min-h-0 flex-1 overflow-hidden">
+          <ul className="mt-5 min-h-0 flex-1 overflow-y-auto">
             {products.map((p, i) => (
-              <li key={p.id}>
-                <button
-                  onClick={() =>
-                    turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
-                  }
-                  className="flex w-full items-baseline justify-between gap-4 border-t border-border/50 py-[7px] text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
-                >
-                  <span className="truncate text-foreground">
-                    {String(i + 1).padStart(2, "0")} — {p.name}
-                  </span>
-                  <span className="shrink-0">{formatEntryPrice(p)}</span>
-                </button>
-              </li>
+              <FlipContentsRow
+                key={p.id}
+                index={i}
+                name={p.name}
+                priceLabel={formatEntryPrice(p)}
+                image={p.image}
+                description={[p.brand, p.meta].filter(Boolean).join(" · ")}
+                onOpen={() =>
+                  turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
+                }
+              />
             ))}
             {!products.length && <li className="pt-6 text-[11px] text-muted-foreground">Composing pages…</li>}
           </ul>
           <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-            {products.length} models · option chapters follow the collection
+            {products.length} models · pose the mouse on a line to preview it
           </p>
         </div>
       ),
@@ -1173,37 +1247,22 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       body: "Every model in this edition, priced with delivery and installation at your address.",
       lockup: "Wonderlands World — FLIP",
       rightHeading: "Contents",
-      rightHint: "Tap to open",
+      rightHint: "Pose the mouse to preview · tap to open",
       right: () => (
         <ul className="h-full overflow-y-auto">
           {products.slice(0, 14).map((p, i) => (
-            <li key={p.id}>
-              <button
-                onClick={() =>
-                  turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
-                }
-                aria-label={`Open the ${p.name} page`}
-                className="group flex w-full cursor-pointer items-center gap-3 border-b border-white/15 px-2 py-[7px] text-left transition-colors hover:bg-white/12 focus-visible:bg-white/12 focus-visible:outline-none"
-              >
-                <span className="w-6 shrink-0 font-serif text-[11px] text-white/55 group-hover:text-white">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                {p.image ? (
-                  <img
-                    src={p.image}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="h-6 w-8 shrink-0 object-cover opacity-80 transition-opacity group-hover:opacity-100"
-                  />
-                ) : null}
-                <span className="min-w-0 flex-1 truncate text-[10.5px] uppercase tracking-[0.16em] text-white group-hover:underline group-hover:decoration-white/50 group-hover:underline-offset-4">
-                  {p.name}
-                </span>
-                <span className="shrink-0 font-serif text-[11px] text-white/80">{formatEntryPrice(p)}</span>
-                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/45 transition-transform group-hover:translate-x-[2px] group-hover:text-white" />
-              </button>
-            </li>
+            <FlipContentsRow
+              key={p.id}
+              index={i}
+              name={p.name}
+              priceLabel={formatEntryPrice(p)}
+              image={p.image}
+              description={[p.brand, p.meta].filter(Boolean).join(" · ")}
+              tone="ink"
+              onOpen={() =>
+                turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
+              }
+            />
           ))}
         </ul>
       ),
