@@ -86,6 +86,8 @@ const AdminClientManager = () => {
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [cityFilter, setCityFilter] = useState<string>('all');
+  const [zipFilter, setZipFilter] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -672,6 +674,11 @@ const AdminClientManager = () => {
     }
   }, [selectedClient, isDetailsOpen]);
 
+  // Unique sorted list of cities for the location filter dropdown
+  const uniqueCities = Array.from(new Set(
+    clients.map(c => (c.address_city || '').trim()).filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b));
+
   const filteredClients = clients.filter(client => {
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
     const searchLower = searchTerm.toLowerCase();
@@ -682,7 +689,16 @@ const AdminClientManager = () => {
       (client.phone && client.phone.includes(searchTerm)) ||
       (client.location_region && client.location_region.toLowerCase().includes(searchLower));
     
-    return matchesStatus && matchesSearch;
+    // Location (city) filter — matches city or region
+    const matchesCity = cityFilter === 'all' ||
+      (client.address_city || '').trim().toLowerCase() === cityFilter.toLowerCase() ||
+      (client.location_region || '').trim().toLowerCase() === cityFilter.toLowerCase();
+
+    // ZIP code filter — prefix match so partial ZIPs (e.g. "322") work
+    const matchesZip = !zipFilter.trim() ||
+      (client.address_zip || '').trim().startsWith(zipFilter.trim());
+
+    return matchesStatus && matchesSearch && matchesCity && matchesZip;
   });
 
   const getStatusBadge = (status: string) => {
@@ -828,6 +844,27 @@ const AdminClientManager = () => {
                 <SelectItem value="lost">Lost</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={cityFilter} onValueChange={setCityFilter}>
+              <SelectTrigger className="w-full md:w-48 holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                <MapPin className="h-4 w-4 mr-2 text-cyan-400" />
+                <SelectValue placeholder="All locations" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {uniqueCities.map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative w-full md:w-36">
+              <MapPin className="absolute left-3 top-3 h-4 w-4 text-cyan-400" />
+              <Input
+                placeholder="ZIP code..."
+                value={zipFilter}
+                onChange={(e) => setZipFilter(e.target.value)}
+                className="pl-10 holographic-panel border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono"
+              />
+            </div>
             <Button 
               onClick={fetchClients} 
               variant="outline" 
