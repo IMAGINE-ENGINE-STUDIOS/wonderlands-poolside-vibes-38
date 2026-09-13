@@ -35,6 +35,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTriggerAutomation } from '@/hooks/useTriggerAutomation';
 import { format } from 'date-fns';
+import ClientMapDialog from '@/components/admin/ClientMapDialog';
+
 
 interface Client {
   id: string;
@@ -88,6 +90,8 @@ const AdminClientManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cityFilter, setCityFilter] = useState<string>('all');
   const [zipFilter, setZipFilter] = useState('');
+  const [isMapOpen, setIsMapOpen] = useState(false);
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -865,6 +869,14 @@ const AdminClientManager = () => {
                 className="pl-10 holographic-panel border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono"
               />
             </div>
+            <Button
+              onClick={() => setIsMapOpen(true)}
+              className="holographic-panel neon-border-cyan text-cyan-300 hover:bg-cyan-500/20 font-mono"
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              VIEW MAP
+            </Button>
+
             <Button 
               onClick={fetchClients} 
               variant="outline" 
@@ -873,6 +885,7 @@ const AdminClientManager = () => {
               <RefreshCw className="h-4 w-4 mr-2" />
               REFRESH
             </Button>
+
             
             <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
               <DialogTrigger asChild>
@@ -1693,7 +1706,11 @@ const AdminClientManager = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Free OpenStreetMap client map with distance-to-base ranking */}
+      <ClientMapDialog open={isMapOpen} onOpenChange={setIsMapOpen} clients={filteredClients} />
     </div>
+
   );
 };
 
