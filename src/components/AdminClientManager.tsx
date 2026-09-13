@@ -865,6 +865,14 @@ const AdminClientManager = () => {
                 className="pl-10 holographic-panel border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono"
               />
             </div>
+            <Button
+              onClick={() => setIsMapOpen(true)}
+              className="holographic-panel neon-border-cyan text-cyan-300 hover:bg-cyan-500/20 font-mono"
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              VIEW MAP
+            </Button>
+
             <Button 
               onClick={fetchClients} 
               variant="outline" 
@@ -873,6 +881,7 @@ const AdminClientManager = () => {
               <RefreshCw className="h-4 w-4 mr-2" />
               REFRESH
             </Button>
+
             
             <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
               <DialogTrigger asChild>
