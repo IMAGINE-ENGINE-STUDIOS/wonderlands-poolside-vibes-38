@@ -90,6 +90,8 @@ const AdminClientManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cityFilter, setCityFilter] = useState<string>('all');
   const [zipFilter, setZipFilter] = useState('');
+  const [isMapOpen, setIsMapOpen] = useState(false);
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
