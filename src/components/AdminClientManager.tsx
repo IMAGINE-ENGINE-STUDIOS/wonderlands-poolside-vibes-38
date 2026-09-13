@@ -1706,7 +1706,11 @@ const AdminClientManager = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Free OpenStreetMap client map with distance-to-base ranking */}
+      <ClientMapDialog open={isMapOpen} onOpenChange={setIsMapOpen} clients={filteredClients} />
     </div>
+
   );
 };
 
