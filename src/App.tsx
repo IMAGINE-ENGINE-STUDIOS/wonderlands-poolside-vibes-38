@@ -91,6 +91,7 @@ const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"))
 /* Screen enclosures + lanai + fencing share one suite (three trades, one page) */
 const EnclosureSuite = lazy(() => import("./pages/suites/EnclosureSuite"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const MapProbe = lazy(() => import("./pages/MapProbe"));
 
 // Loading fallback component
 const LoadingFallback = () => (
