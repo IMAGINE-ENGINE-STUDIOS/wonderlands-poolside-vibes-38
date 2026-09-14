@@ -94,15 +94,27 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
   );
 
   /* ---------- map instance ----------
-   * Leaflet stamps `_leaflet_id` on the container; React StrictMode mounts
-   * effects twice, so we clear the stamp before re-initialising to avoid the
-   * "Map container is already initialized" failure (blank map panel).
-   * A ResizeObserver keeps tiles sized correctly inside the dialog/fullscreen. */
-  useEffect(() => {
-    if (!open) return;
-    const node = mapNodeRef.current;
-    console.log("MAPDBG", { open, node: !!node, hasMap: !!mapRef.current, Lmap: typeof (L as any)?.map });
-    if (!node || mapRef.current) return;
+   * The dialog content lives in a Radix portal that mounts in a later commit,
+   * so a plain effect + ref runs while the container is still null (map never
+   * built = blank panel). A callback ref builds the map exactly when the node
+   * attaches, and `mapReady` re-runs the marker effects afterwards.
+   * ResizeObserver keeps tiles sized inside the dialog and in fullscreen. */
+  const [mapReady, setMapReady] = useState(false);
+  const roRef = useRef<ResizeObserver | null>(null);
+
+  const attachMap = useCallback((node: HTMLDivElement | null) => {
+    mapNodeRef.current = node;
+    if (!node) {
+      roRef.current?.disconnect();
+      roRef.current = null;
+      mapRef.current?.remove();
+      mapRef.current = null;
+      markersRef.current.clear();
+      homeMarkerRef.current = null;
+      setMapReady(false);
+      return;
+    }
+    if (mapRef.current) return;
     delete (node as unknown as { _leaflet_id?: number })._leaflet_id;
     node.innerHTML = '';
     const map = L.map(node, { center: [28.07, -81.79], zoom: 9, zoomControl: true });
@@ -111,18 +123,12 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
       maxZoom: 19,
     }).addTo(map);
     mapRef.current = map;
-    const raf = requestAnimationFrame(() => map.invalidateSize());
+    requestAnimationFrame(() => map.invalidateSize());
     const ro = new ResizeObserver(() => map.invalidateSize());
     ro.observe(node);
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      map.remove();
-      mapRef.current = null;
-      markersRef.current.clear();
-      homeMarkerRef.current = null;
-    };
-  }, [open]);
+    roRef.current = ro;
+    setMapReady(true);
+  }, []);
 
   /* ---------- geocode home ZIP ---------- */
   useEffect(() => {
