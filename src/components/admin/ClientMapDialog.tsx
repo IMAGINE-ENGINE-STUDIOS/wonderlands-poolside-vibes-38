@@ -101,6 +101,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
   useEffect(() => {
     if (!open) return;
     const node = mapNodeRef.current;
+    console.log("MAPDBG", { open, node: !!node, hasMap: !!mapRef.current, Lmap: typeof (L as any)?.map });
     if (!node || mapRef.current) return;
     delete (node as unknown as { _leaflet_id?: number })._leaflet_id;
     node.innerHTML = '';
