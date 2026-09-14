@@ -91,7 +91,6 @@ const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"))
 /* Screen enclosures + lanai + fencing share one suite (three trades, one page) */
 const EnclosureSuite = lazy(() => import("./pages/suites/EnclosureSuite"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const MapProbe = lazy(() => import("./pages/MapProbe"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -225,7 +224,6 @@ const App = () => {
             <Route path="/suites/enclosures" element={<EnclosureSuite />} />
             <Route path="/suites/lanai" element={<EnclosureSuite />} />
             <Route path="/suites/fencing" element={<EnclosureSuite />} />
-            <Route path="/__map-probe" element={<MapProbe />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
