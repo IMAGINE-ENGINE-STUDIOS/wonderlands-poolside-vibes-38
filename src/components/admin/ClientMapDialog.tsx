@@ -208,7 +208,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
         markersRef.current.set(c.id, m);
       }
     });
-  }, [withDistance, selectedId]);
+  }, [withDistance, selectedId, mapReady]);
 
   /* ---------- home marker ---------- */
   useEffect(() => {
@@ -228,7 +228,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
         .bindPopup(`<strong>Your base</strong><br/>ZIP ${homeZip}`);
     }
     map.setView([home.lat, home.lon], 10);
-  }, [home, homeZip]);
+  }, [home, homeZip, mapReady]);
 
   const focusClient = useCallback((c: Located) => {
     setSelectedId(c.id);
@@ -306,7 +306,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
           </div>
 
           <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-            <div ref={mapNodeRef} className="flex-1 min-h-[300px]" />
+            <div ref={attachMap} className="flex-1 min-h-[300px]" />
             <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-cyan-500/20 overflow-y-auto">
               {withDistance.map(c => (
                 <button
