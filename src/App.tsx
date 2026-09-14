@@ -224,6 +224,7 @@ const App = () => {
             <Route path="/suites/enclosures" element={<EnclosureSuite />} />
             <Route path="/suites/lanai" element={<EnclosureSuite />} />
             <Route path="/suites/fencing" element={<EnclosureSuite />} />
+            <Route path="/__map-probe" element={<MapProbe />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
