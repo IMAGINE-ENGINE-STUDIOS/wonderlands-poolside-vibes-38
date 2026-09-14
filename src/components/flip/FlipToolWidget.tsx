@@ -364,9 +364,14 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
     (header: React.ReactNode, fullScreen?: boolean, mapOnly?: boolean) => {
       if (board.kind === "solar")
         return (
-          <div className="space-y-3">
+          <div className="flex h-full min-h-0 flex-col gap-3">
             {header}
-            <SolarCalculatorBoard height={fullScreen ? 560 : 380} mapOnly={mapOnly} />
+            {/* The leaf is fixed-height and never scrolls, so the board itself
+                must: everything under the header (address bar, aerial, gallery,
+                the build column) lives in one scrollable region. */}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+              <SolarCalculatorBoard height={fullScreen ? 560 : 380} mapOnly={mapOnly} />
+            </div>
           </div>
         );
       if (board.kind === "enclosure")
