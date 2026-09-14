@@ -93,19 +93,29 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
     [clients]
   );
 
-  /* ---------- map instance ---------- */
+  /* ---------- map instance ----------
+   * Leaflet stamps `_leaflet_id` on the container; React StrictMode mounts
+   * effects twice, so we clear the stamp before re-initialising to avoid the
+   * "Map container is already initialized" failure (blank map panel).
+   * A ResizeObserver keeps tiles sized correctly inside the dialog/fullscreen. */
   useEffect(() => {
     if (!open) return;
     const node = mapNodeRef.current;
     if (!node || mapRef.current) return;
+    delete (node as unknown as { _leaflet_id?: number })._leaflet_id;
+    node.innerHTML = '';
     const map = L.map(node, { center: [28.07, -81.79], zoom: 9, zoomControl: true });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(map);
     mapRef.current = map;
-    setTimeout(() => map.invalidateSize(), 200);
+    const raf = requestAnimationFrame(() => map.invalidateSize());
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(node);
     return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
       markersRef.current.clear();
