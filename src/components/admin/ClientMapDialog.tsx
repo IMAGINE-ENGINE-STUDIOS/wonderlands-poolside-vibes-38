@@ -93,25 +93,42 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
     [clients]
   );
 
-  /* ---------- map instance ---------- */
-  useEffect(() => {
-    if (!open) return;
-    const node = mapNodeRef.current;
-    if (!node || mapRef.current) return;
+  /* ---------- map instance ----------
+   * The dialog content lives in a Radix portal that mounts in a later commit,
+   * so a plain effect + ref runs while the container is still null (map never
+   * built = blank panel). A callback ref builds the map exactly when the node
+   * attaches, and `mapReady` re-runs the marker effects afterwards.
+   * ResizeObserver keeps tiles sized inside the dialog and in fullscreen. */
+  const [mapReady, setMapReady] = useState(false);
+  const roRef = useRef<ResizeObserver | null>(null);
+
+  const attachMap = useCallback((node: HTMLDivElement | null) => {
+    mapNodeRef.current = node;
+    if (!node) {
+      roRef.current?.disconnect();
+      roRef.current = null;
+      mapRef.current?.remove();
+      mapRef.current = null;
+      markersRef.current.clear();
+      homeMarkerRef.current = null;
+      setMapReady(false);
+      return;
+    }
+    if (mapRef.current) return;
+    delete (node as unknown as { _leaflet_id?: number })._leaflet_id;
+    node.innerHTML = '';
     const map = L.map(node, { center: [28.07, -81.79], zoom: 9, zoomControl: true });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(map);
     mapRef.current = map;
-    setTimeout(() => map.invalidateSize(), 200);
-    return () => {
-      map.remove();
-      mapRef.current = null;
-      markersRef.current.clear();
-      homeMarkerRef.current = null;
-    };
-  }, [open]);
+    requestAnimationFrame(() => map.invalidateSize());
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(node);
+    roRef.current = ro;
+    setMapReady(true);
+  }, []);
 
   /* ---------- geocode home ZIP ---------- */
   useEffect(() => {
@@ -191,7 +208,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
         markersRef.current.set(c.id, m);
       }
     });
-  }, [withDistance, selectedId]);
+  }, [withDistance, selectedId, mapReady]);
 
   /* ---------- home marker ---------- */
   useEffect(() => {
@@ -211,7 +228,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
         .bindPopup(`<strong>Your base</strong><br/>ZIP ${homeZip}`);
     }
     map.setView([home.lat, home.lon], 10);
-  }, [home, homeZip]);
+  }, [home, homeZip, mapReady]);
 
   const focusClient = useCallback((c: Located) => {
     setSelectedId(c.id);
@@ -289,7 +306,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
           </div>
 
           <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-            <div ref={mapNodeRef} className="flex-1 min-h-[300px]" />
+            <div ref={attachMap} className="flex-1 min-h-[300px]" />
             <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-cyan-500/20 overflow-y-auto">
               {withDistance.map(c => (
                 <button
