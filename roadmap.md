@@ -1,7 +1,10 @@
 # Roadmap
 
 ## In progress
-_nothing open_
+- [ ] Add FLIP V8 and make it the home-page edition
+- [ ] Disable V8 page-turn effects and gesture-based navigation
+- [ ] Calm V8 index motion and keep arrow navigation
+- [ ] Verify desktop/mobile behavior and preview build
 
 ## Done
 - [x] Architect curvature — DXF-exact circular arcs with typed radius, tangent
