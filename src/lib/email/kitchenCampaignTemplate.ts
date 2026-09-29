@@ -1,6 +1,6 @@
-import heroAsset from '@/assets/campaigns/email-kitchen-island.jpg.asset.json';
-import detailAsset from '@/assets/campaigns/email-kitchen-detail.jpg.asset.json';
-import milanKitchenAsset from '@/assets/campaigns/milan-outdoor-kitchen.jpg.asset.json';
+import heroAsset from '@/assets/campaigns/kitchen-real-black-cabana.jpg.asset.json';
+import detailAsset from '@/assets/campaigns/kitchen-real-indigo.jpg.asset.json';
+import milanKitchenAsset from '@/assets/campaigns/kitchen-real-concrete.jpg.asset.json';
 
 /**
  * Wonderlands Outdoor Kitchens — editorial luxury email.
