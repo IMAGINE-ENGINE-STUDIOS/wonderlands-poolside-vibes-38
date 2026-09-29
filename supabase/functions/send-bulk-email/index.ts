@@ -123,11 +123,12 @@ serve(async (req: Request) => {
       .from("clients")
       .select(`
         id, first_name, last_name, email, phone, address_city, address_state,
-        assigned_sales_rep_id,
+        assigned_sales_rep_id, unsubscribe_token,
         sales_rep:profiles!clients_assigned_sales_rep_id_fkey(
           first_name, last_name, email
         )
-      `);
+      `)
+      .eq("email_unsubscribed", false); // never email clients who unsubscribed
 
     if (client_ids && client_ids.length > 0) {
       clientsQuery = clientsQuery.in("id", client_ids);
@@ -215,6 +216,14 @@ serve(async (req: Request) => {
           htmlContent = htmlContent + signature;
         }
 
+        // Unsubscribe footer — one-click link per client (see unsubscribe function)
+        const unsubUrl = `https://wonderlandsworld.com/unsubscribe?t=${client.unsubscribe_token}`;
+        const oneClickUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe?t=${client.unsubscribe_token}`;
+        const footer = `<div style="text-align:center;padding:18px;font:12px/1.6 Arial,sans-serif;color:#9ca3af;">You receive these emails as a Wonderlands World client. <a href="${unsubUrl}" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a></div>`;
+        htmlContent = htmlContent.includes('</body>')
+          ? htmlContent.replace('</body>', `${footer}</body>`)
+          : htmlContent + footer;
+
         console.log(`Sending to ${client.email} (${client.first_name}) from ${salesRepName}...`);
 
         const emailResponse = await resend.emails.send({
@@ -222,6 +231,10 @@ serve(async (req: Request) => {
           to: [client.email],
           subject: subject,
           html: htmlContent,
+          headers: {
+            "List-Unsubscribe": `<${oneClickUrl}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
         });
 
         if (emailResponse.error) {

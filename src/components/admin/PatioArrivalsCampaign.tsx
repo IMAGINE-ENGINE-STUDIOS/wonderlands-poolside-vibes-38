@@ -26,6 +26,7 @@ export default function PatioArrivalsCampaign() {
       fields={FIELDS}
       buildHtml={buildPatioArrivalsHtml}
       buildSubject={buildPatioArrivalsSubject}
+      scheduleKey="patio-arrivals"
     />
   );
 }

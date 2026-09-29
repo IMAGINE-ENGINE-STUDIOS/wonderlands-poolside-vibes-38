@@ -29,6 +29,7 @@ export default function SolarCampaign() {
       fields={FIELDS}
       buildHtml={buildSolarCampaignHtml}
       buildSubject={buildSolarCampaignSubject}
+      scheduleKey="solar"
     />
   );
 }
