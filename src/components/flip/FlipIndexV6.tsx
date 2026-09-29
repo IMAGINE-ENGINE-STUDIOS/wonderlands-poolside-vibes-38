@@ -242,7 +242,7 @@ export default function FlipIndexV6({ items, onOpen, calm = false }: Props) {
                   alt={it.label}
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform ${calm ? "" : "duration-[1200ms] group-hover:scale-110"}`}
+                  className={`absolute inset-0 h-full w-full object-cover transition-transform ${calm ? "" : "duration-[1200ms] group-hover:scale-110"}`}
                 />
                 <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                 <span className="absolute inset-x-1.5 bottom-1 block truncate text-left font-serif text-[10px] font-light leading-tight text-white sm:text-xs">
