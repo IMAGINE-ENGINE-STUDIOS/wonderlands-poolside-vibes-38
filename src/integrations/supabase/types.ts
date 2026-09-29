@@ -527,6 +527,8 @@ export type Database = {
           assigned_sales_rep_id: string | null
           created_at: string | null
           email: string
+          email_unsubscribed: boolean
+          email_unsubscribed_at: string | null
           first_name: string
           id: string
           interests: Json | null
@@ -541,6 +543,7 @@ export type Database = {
           status: string | null
           survey_file_url: string | null
           survey_uploaded: boolean | null
+          unsubscribe_token: string
           updated_at: string | null
         }
         Insert: {
@@ -551,6 +554,8 @@ export type Database = {
           assigned_sales_rep_id?: string | null
           created_at?: string | null
           email: string
+          email_unsubscribed?: boolean
+          email_unsubscribed_at?: string | null
           first_name: string
           id?: string
           interests?: Json | null
@@ -565,6 +570,7 @@ export type Database = {
           status?: string | null
           survey_file_url?: string | null
           survey_uploaded?: boolean | null
+          unsubscribe_token?: string
           updated_at?: string | null
         }
         Update: {
@@ -575,6 +581,8 @@ export type Database = {
           assigned_sales_rep_id?: string | null
           created_at?: string | null
           email?: string
+          email_unsubscribed?: boolean
+          email_unsubscribed_at?: string | null
           first_name?: string
           id?: string
           interests?: Json | null
@@ -589,6 +597,7 @@ export type Database = {
           status?: string | null
           survey_file_url?: string | null
           survey_uploaded?: boolean | null
+          unsubscribe_token?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -1167,6 +1176,69 @@ export type Database = {
           total_quote_value?: number | null
           total_quotes?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_email_rotation: {
+        Row: {
+          campaign_key: string
+          html: string
+          id: string
+          is_active: boolean
+          position: number
+          subject: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_key: string
+          html: string
+          id?: string
+          is_active?: boolean
+          position?: number
+          subject: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_key?: string
+          html?: string
+          id?: string
+          is_active?: boolean
+          position?: number
+          subject?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_email_sends: {
+        Row: {
+          campaign_key: string
+          created_at: string
+          failed: number
+          send_date: string
+          status: string
+          successful: number
+          title: string | null
+        }
+        Insert: {
+          campaign_key: string
+          created_at?: string
+          failed?: number
+          send_date: string
+          status?: string
+          successful?: number
+          title?: string | null
+        }
+        Update: {
+          campaign_key?: string
+          created_at?: string
+          failed?: number
+          send_date?: string
+          status?: string
+          successful?: number
+          title?: string | null
         }
         Relationships: []
       }
