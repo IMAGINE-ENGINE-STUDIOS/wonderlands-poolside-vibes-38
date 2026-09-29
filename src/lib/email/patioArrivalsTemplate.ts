@@ -1,5 +1,4 @@
-import kitchenAsset from '@/assets/campaigns/email-outdoor-kitchen.jpg.asset.json';
-import saunaAsset from '@/assets/campaigns/email-sauna-real.jpg.asset.json';
+import kitchenAsset from '@/assets/campaigns/milan-outdoor-kitchen.jpg.asset.json';
 import saunaBannerAsset from '@/assets/campaigns/email-sauna-banner.jpg.asset.json';
 
 /**
@@ -11,8 +10,9 @@ import saunaBannerAsset from '@/assets/campaigns/email-sauna-banner.jpg.asset.js
  * filled per recipient by the existing `send-bulk-email` edge function.
  *
  * Every image URL is absolute and publicly reachable (emails can't load
- * site-relative paths): all three are the website's own kitchen and sauna
- * photos, hosted on the Lovable asset CDN.
+ * site-relative paths). All three are photos the website already shows:
+ * the sauna banner, the Milan campaign kitchen, and the Salem sauna from the
+ * sauna catalog.
  */
 
 const SITE = 'https://wonderlandsworld.com';
@@ -47,7 +47,7 @@ export const PATIO_ARRIVALS_DEFAULTS: PatioArrivalsConfig = {
     'Barrel and cabin saunas by Almost Heaven in Canadian cedar, with electric or wood heaters. Delivered, set and wired on your patio — heat, then plunge.',
   heroImage: abs(saunaBannerAsset.url),
   kitchenImage: abs(kitchenAsset.url),
-  saunaImage: abs(saunaAsset.url),
+  saunaImage: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Sunset_Salem_Sauna.jpg',
   appointmentLink: 'https://calendly.com/wonderlandsworlds/30min',
   whatsappLink: 'https://wa.me/12392570637',
   phone: '+1 (239) 257-0637',
