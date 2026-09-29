@@ -25,7 +25,7 @@ export default function SolarCampaign() {
     <EditorialCampaign
       title="Wonderlands Solar — Editorial Campaign"
       description="Luxury magazine email for solar arrays, home batteries and solar pool heating, with a free roof study offer. Personalised per client with their sales rep's signature."
-      defaults={SOLAR_CAMPAIGN_DEFAULTS as unknown as Record<string, unknown> & SolarCampaignConfig}
+      defaults={SOLAR_CAMPAIGN_DEFAULTS}
       fields={FIELDS}
       buildHtml={buildSolarCampaignHtml}
       buildSubject={buildSolarCampaignSubject}

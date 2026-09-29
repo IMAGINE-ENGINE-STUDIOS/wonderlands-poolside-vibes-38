@@ -34,7 +34,7 @@ interface Props<C> {
   buildSubject: (cfg: C) => string;
 }
 
-export default function EditorialCampaign<C extends Record<string, unknown>>({
+export default function EditorialCampaign<C extends object>({
   title, description, defaults, fields, buildHtml, buildSubject,
 }: Props<C>) {
   const [cfg, setCfg] = useState<C>(defaults);
@@ -97,9 +97,9 @@ export default function EditorialCampaign<C extends Record<string, unknown>>({
             <div key={f.key} className={`space-y-2 ${f.rows ? 'md:col-span-2' : ''}`}>
               <Label className="text-slate-300">{f.label}</Label>
               {f.rows ? (
-                <Textarea rows={f.rows} value={String(cfg[f.key] ?? '')} onChange={e => setCfg({ ...cfg, [f.key]: e.target.value })} />
+                <Textarea rows={f.rows} value={String((cfg[f.key] as unknown) ?? "")} />
               ) : (
-                <Input value={String(cfg[f.key] ?? '')} onChange={e => setCfg({ ...cfg, [f.key]: e.target.value })} />
+                <Input value={String((cfg[f.key] as unknown) ?? "")} />
               )}
             </div>
           ))}

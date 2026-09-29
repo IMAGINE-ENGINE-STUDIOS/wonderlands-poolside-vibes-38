@@ -22,7 +22,7 @@ export default function PatioArrivalsCampaign() {
     <EditorialCampaign
       title="New Arrivals — Outdoor Kitchens & Saunas"
       description={'Editorial magazine email: "Add on to your patio experience." Personalised per client with their sales rep\'s signature.'}
-      defaults={PATIO_ARRIVALS_DEFAULTS as unknown as Record<string, unknown> & PatioArrivalsConfig}
+      defaults={PATIO_ARRIVALS_DEFAULTS}
       fields={FIELDS}
       buildHtml={buildPatioArrivalsHtml}
       buildSubject={buildPatioArrivalsSubject}
