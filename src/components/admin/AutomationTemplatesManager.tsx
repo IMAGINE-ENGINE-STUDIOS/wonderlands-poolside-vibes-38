@@ -15,6 +15,7 @@ import MilanOfferCampaign from './MilanOfferCampaign';
 import PatioArrivalsCampaign from './PatioArrivalsCampaign';
 import SolarCampaign from './SolarCampaign';
 import KitchenCampaign from './KitchenCampaign';
+import DailyCampaignSchedule from './DailyCampaignSchedule';
 
 interface MessageTemplate {
   id: string;
@@ -184,6 +185,7 @@ export default function AutomationTemplatesManager() {
   return (
     <div className="space-y-6">
       {/* Featured campaign — Milan Collection premium offer email */}
+      <DailyCampaignSchedule />
       <KitchenCampaign />
       <SolarCampaign />
       <PatioArrivalsCampaign />

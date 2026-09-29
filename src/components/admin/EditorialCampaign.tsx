@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { saveToDailySchedule } from './DailyCampaignSchedule';
 
 /**
  * EditorialCampaign — shared admin panel for magazine-style email campaigns
@@ -32,10 +33,12 @@ interface Props<C> {
   fields: EditorialField<C>[];
   buildHtml: (cfg: C) => string;
   buildSubject: (cfg: C) => string;
+  /** Key in the daily 10:00 schedule; enables "Add to daily schedule". */
+  scheduleKey?: string;
 }
 
 export default function EditorialCampaign<C extends object>({
-  title, description, defaults, fields, buildHtml, buildSubject,
+  title, description, defaults, fields, buildHtml, buildSubject, scheduleKey,
 }: Props<C>) {
   const [cfg, setCfg] = useState<C>(defaults);
   const [clients, setClients] = useState<ClientRow[]>([]);
@@ -141,6 +144,14 @@ export default function EditorialCampaign<C extends object>({
             {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
             {mode === 'all' ? 'Send to all clients' : `Send to ${selectedIds.length}`}
           </Button>
+          {scheduleKey && (
+            <Button variant="outline" onClick={async () => {
+              const err = await saveToDailySchedule(scheduleKey, title, subject, html);
+              toast(err ? 'Could not save to the daily schedule' : 'Saved — this version will be used in the daily schedule');
+            }}>
+              Add to daily schedule
+            </Button>
+          )}
         </div>
       </CardContent>
 

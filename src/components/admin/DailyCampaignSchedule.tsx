@@ -18,7 +18,7 @@ import { buildPatioArrivalsHtml, buildPatioArrivalsSubject, PATIO_ARRIVALS_DEFAU
  */
 
 type Row = { campaign_key: string; title: string; position: number; is_active: boolean; updated_at: string };
-type Send = { send_date: string; title: string | null; successful: number; failed: number; status: string };
+type Send = { send_date: string; campaign_key: string; title: string | null; successful: number; failed: number; status: string };
 
 // Default rotation — the editorial campaigns, in order.
 const DEFAULTS = [
@@ -42,7 +42,7 @@ export default function DailyCampaignSchedule() {
   const load = useCallback(async () => {
     const [{ data: r }, { data: s }] = await Promise.all([
       supabase.from('daily_email_rotation').select('campaign_key,title,position,is_active,updated_at').order('position').order('campaign_key'),
-      supabase.from('daily_email_sends').select('send_date,title,successful,failed,status').order('send_date', { ascending: false }).limit(7),
+      supabase.from('daily_email_sends').select('send_date,campaign_key,title,successful,failed,status').order('send_date', { ascending: false }).limit(7),
     ]);
     setRows((r as Row[]) || []);
     setSends((s as Send[]) || []);
@@ -70,7 +70,7 @@ export default function DailyCampaignSchedule() {
   };
 
   const active = rows.filter(r => r.is_active);
-  const lastKey = sends[0] ? rows.find(r => r.title === sends[0].title)?.campaign_key : undefined;
+  const lastKey = sends[0]?.campaign_key;
   const nextIdx = active.length ? (active.findIndex(r => r.campaign_key === lastKey) + 1) % active.length : -1;
 
   return (

@@ -29,6 +29,7 @@ export default function KitchenCampaign() {
       fields={FIELDS}
       buildHtml={buildKitchenCampaignHtml}
       buildSubject={buildKitchenCampaignSubject}
+      scheduleKey="kitchens"
     />
   );
 }

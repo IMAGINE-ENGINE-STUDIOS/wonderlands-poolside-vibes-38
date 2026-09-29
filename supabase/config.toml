@@ -62,3 +62,9 @@ verify_jwt = false
 
 [functions.transcribe-audio]
 verify_jwt = false
+
+[functions.unsubscribe]
+verify_jwt = false
+
+[functions.daily-campaign]
+verify_jwt = false
