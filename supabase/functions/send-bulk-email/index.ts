@@ -162,14 +162,10 @@ serve(async (req: Request) => {
           continue;
         }
 
-        // Get sales rep info
-        const salesRep = client.sales_rep as { first_name: string | null; last_name: string | null; email: string } | null;
-        const salesRepFirstName = salesRep?.first_name || '';
-        const salesRepLastName = salesRep?.last_name || '';
-        const salesRepName = salesRepLastName 
-          ? `${salesRepFirstName} ${salesRepLastName}`.trim() 
-          : salesRepFirstName || 'Your Sales Representative';
-        const salesRepEmail = salesRep?.email || 'sales@wonderlandsworld.com';
+        // Seller identity is fixed for every email: Ricardo, +1 (239) 257-0637,
+        // wonderlandsworlds@gmail.com (fills {{sales_rep_name}} / {{sales_rep_email}}).
+        const salesRepName = 'Ricardo';
+        const salesRepEmail = 'wonderlandsworlds@gmail.com';
 
         // Replace variables in template
         let subject = template.subject || "Special Offer from Wonderlands World";
@@ -203,7 +199,7 @@ serve(async (req: Request) => {
         const signature = `
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; font-weight: 600; color: #1f2937;">${salesRepName}</p>
-            <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Sales Representative - Wonderlands World</p>
+            <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Wonderlands World</p>
             <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">${salesRepEmail}</p>
             <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">+1 (239) 257-0637</p>
           </div>
@@ -227,7 +223,8 @@ serve(async (req: Request) => {
         console.log(`Sending to ${client.email} (${client.first_name}) from ${salesRepName}...`);
 
         const emailResponse = await resend.emails.send({
-          from: `${salesRepName} - Wonderlands Pools <sales@wonderlandsworld.com>`,
+          from: `Ricardo - Wonderlands World <sales@wonderlandsworld.com>`,
+          reply_to: salesRepEmail,
           to: [client.email],
           subject: subject,
           html: htmlContent,

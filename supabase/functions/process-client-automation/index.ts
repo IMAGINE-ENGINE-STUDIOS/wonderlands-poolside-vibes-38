@@ -39,10 +39,8 @@ function replaceVariables(text: string, client: ClientData, salesRep?: SalesRepD
   // Build sales rep name
   const salesRepFirstName = salesRep?.first_name || '';
   const salesRepLastName = salesRep?.last_name || '';
-  const salesRepName = salesRepLastName 
-    ? `${salesRepFirstName} ${salesRepLastName}`.trim() 
-    : salesRepFirstName || 'Your Sales Representative';
-  const salesRepEmail = salesRep?.email || 'sales@wonderlandsworld.com';
+  const salesRepName = 'Ricardo'; // fixed seller identity for all client emails
+  const salesRepEmail = 'wonderlandsworlds@gmail.com';
   
   return text
     .replace(/{first_name}/g, firstName)
@@ -70,8 +68,9 @@ function generateSalesRepSignature(salesRep?: SalesRepData | null): string {
   if (!salesRep) {
     return `
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-        <p style="margin: 0; font-weight: 600; color: #1f2937;">The Wonderlands World Team</p>
-        <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">sales@wonderlandsworld.com</p>
+        <p style="margin: 0; font-weight: 600; color: #1f2937;">Ricardo</p>
+        <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Wonderlands World</p>
+        <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">wonderlandsworlds@gmail.com</p>
         <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">+1 (239) 257-0637</p>
       </div>
     `;
@@ -79,15 +78,13 @@ function generateSalesRepSignature(salesRep?: SalesRepData | null): string {
   
   const salesRepFirstName = salesRep.first_name || '';
   const salesRepLastName = salesRep.last_name || '';
-  const salesRepName = salesRepLastName 
-    ? `${salesRepFirstName} ${salesRepLastName}`.trim() 
-    : salesRepFirstName || 'Your Sales Representative';
+  const salesRepName = 'Ricardo'; // fixed seller identity for all client emails
   
   return `
     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       <p style="margin: 0; font-weight: 600; color: #1f2937;">${salesRepName}</p>
-      <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Sales Representative - Wonderlands World</p>
-      <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">${salesRep.email}</p>
+      <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Wonderlands World</p>
+      <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">wonderlandsworlds@gmail.com</p>
       <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">+1 (239) 257-0637</p>
     </div>
   `;
