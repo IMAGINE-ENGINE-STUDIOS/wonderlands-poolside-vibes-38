@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
                 Building dreams, one project at a time.
               </p>
               <p style="margin: 0; font-size: 11px; color: #9ca3af;">
-                Questions? Contact us at <a href="mailto:sales@wonderlandsworld.com" style="color: #f97066; text-decoration: none;">sales@wonderlandsworld.com</a>
+                Questions? Contact us at <a href="mailto:wonderlandsworlds@gmail.com" style="color: #f97066; text-decoration: none;">wonderlandsworlds@gmail.com</a>
                  or call <a href="tel:+12392570637" style="color: #f97066; text-decoration: none;">+1 (239) 257-0637</a>
               </p>
             </td>

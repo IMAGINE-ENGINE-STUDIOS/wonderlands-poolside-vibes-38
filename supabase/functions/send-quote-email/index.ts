@@ -300,7 +300,7 @@ const handler = async (req: Request): Promise<Response> => {
                             </td>
                             <td style="color: rgba(255,255,255,0.3);">|</td>
                             <td style="padding: 0 8px;">
-                              <a href="mailto:info@wonderlandsworld.com" style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; text-decoration: none;">Email</a>
+                              <a href="mailto:wonderlandsworlds@gmail.com" style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; text-decoration: none;">Email</a>
                             </td>
                           </tr>
                         </table>
