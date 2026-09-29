@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import MilanOfferCampaign from './MilanOfferCampaign';
+import PatioArrivalsCampaign from './PatioArrivalsCampaign';
 
 interface MessageTemplate {
   id: string;
@@ -181,6 +182,7 @@ export default function AutomationTemplatesManager() {
   return (
     <div className="space-y-6">
       {/* Featured campaign — Milan Collection premium offer email */}
+      <PatioArrivalsCampaign />
       <MilanOfferCampaign />
 
       <div className="flex items-center justify-between">
