@@ -43,9 +43,9 @@ export const KITCHEN_CAMPAIGN_DEFAULTS: KitchenCampaignConfig = {
   grillTitle: 'Fire & Grill',
   grillCopy:
     'Built-in stainless grills, wood-fired pizza ovens and storage made for the Florida climate.',
-  loungeTitle: 'Dining by the Water',
+  loungeTitle: 'Designed for Hosting',
   loungeCopy:
-    'Kitchen, dining and pool designed together, so hosting feels effortless from the first plate to the last light.',
+    'Kitchen, dining and patio designed together, so hosting feels effortless from the first plate to the last light.',
   heroImage: abs(heroAsset.url),
   detailImage: abs(detailAsset.url),
   loungeImage: abs(milanKitchenAsset.url),
