@@ -1,4 +1,5 @@
 import kitchenAsset from '@/assets/campaigns/milan-outdoor-kitchen.jpg.asset.json';
+import saunaBannerAsset from '@/assets/campaigns/email-sauna-banner.jpg.asset.json';
 
 /**
  * "New Arrivals — Add on to your patio experience" editorial email.
@@ -9,8 +10,9 @@ import kitchenAsset from '@/assets/campaigns/milan-outdoor-kitchen.jpg.asset.jso
  * filled per recipient by the existing `send-bulk-email` edge function.
  *
  * Every image URL is absolute and publicly reachable (emails can't load
- * site-relative paths): the kitchen comes from our hosted campaign asset,
- * the saunas from Almost Heaven's official CDN (same images as the catalog).
+ * site-relative paths). All three are photos the website already shows:
+ * the sauna banner, the Milan campaign kitchen, and the Salem sauna from the
+ * sauna catalog.
  */
 
 const SITE = 'https://wonderlandsworld.com';
@@ -43,10 +45,9 @@ export const PATIO_ARRIVALS_DEFAULTS: PatioArrivalsConfig = {
   saunaTitle: 'The Outdoor Sauna',
   saunaCopy:
     'Barrel and cabin saunas by Almost Heaven in Canadian cedar, with electric or wood heaters. Delivered, set and wired on your patio — heat, then plunge.',
-  heroImage: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Sunset_Salem_Sauna.jpg',
+  heroImage: abs(saunaBannerAsset.url),
   kitchenImage: abs(kitchenAsset.url),
-  saunaImage:
-    'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Indoek-Harvia-AlmostHeaven-Matt-Titone-Ventura--276_-_Copy_1.jpg',
+  saunaImage: 'https://cdn.shopify.com/s/files/1/0555/6355/0889/files/Sunset_Salem_Sauna.jpg',
   appointmentLink: 'https://calendly.com/wonderlandsworlds/30min',
   whatsappLink: 'https://wa.me/12392570637',
   phone: '+1 (239) 257-0637',
