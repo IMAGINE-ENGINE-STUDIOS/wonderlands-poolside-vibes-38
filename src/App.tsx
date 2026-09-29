@@ -69,6 +69,7 @@ const GalleryFilesPage = lazy(() => import("./pages/GalleryFilesPage"));
 const LandscapingPage = lazy(() => import("./pages/LandscapingPage"));
 const SharedGalleryView = lazy(() => import("./pages/SharedGalleryView"));
 const OfferPage = lazy(() => import("./pages/OfferPage"));
+const UnsubscribePage = lazy(() => import("./pages/Unsubscribe"));
 const DesignProposals = lazy(() => import("./pages/DesignProposals"));
 const About = lazy(() => import("./pages/About"));
 const Consultation = lazy(() => import("./pages/Consultation"));
@@ -200,6 +201,7 @@ const App = () => {
             <Route path="/landscaping" element={<LandscapingPage />} />
             <Route path="/Landscaping" element={<LandscapingPage />} />
             <Route path="/offer/:id" element={<OfferPage />} />
+            <Route path="/unsubscribe" element={<UnsubscribePage />} />
             <Route path="/design" element={<DesignProposals />} />
             <Route path="/about" element={<About />} />
             <Route path="/consultation" element={<Consultation />} />

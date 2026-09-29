@@ -217,7 +217,7 @@ serve(async (req: Request) => {
         }
 
         // Unsubscribe footer — one-click link per client (see unsubscribe function)
-        const unsubUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe?t=${client.unsubscribe_token}`;
+        const unsubUrl = `${Deno.env.get("SUPABASE_URL")}/__SITE__${client.unsubscribe_token}`;
         const footer = `<div style="text-align:center;padding:18px;font:12px/1.6 Arial,sans-serif;color:#9ca3af;">You receive these emails as a Wonderlands World client. <a href="${unsubUrl}" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a></div>`;
         htmlContent = htmlContent.includes('</body>')
           ? htmlContent.replace('</body>', `${footer}</body>`)
