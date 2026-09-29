@@ -1,4 +1,4 @@
-import kitchenAsset from '@/assets/campaigns/milan-outdoor-kitchen.jpg.asset.json';
+import kitchenAsset from '@/assets/campaigns/kitchen-real-sarasota.jpg.asset.json';
 import saunaBannerAsset from '@/assets/campaigns/email-sauna-banner.jpg.asset.json';
 
 /**
