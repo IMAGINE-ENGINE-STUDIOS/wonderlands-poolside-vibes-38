@@ -378,18 +378,25 @@ const PRICED_LEAF = /price|product|option|feature|estimate|board|dossier|model/i
 
 type Anchors = { index: number; features: number; code: number; gallery: number; estimate: number };
 
-const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?: boolean }> = ({
+const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideHeader?: boolean }> = ({
   variant = "v4",
   hideHeader = false,
 }) => {
-  const isV5 = variant === "v5" || variant === "v6" || variant === "v7";
-  const isV6 = variant === "v6" || variant === "v7";
+  const isV5 = variant === "v5" || variant === "v6" || variant === "v7" || variant === "v8";
+  const isV6 = variant === "v6" || variant === "v7" || variant === "v8";
   /* V7 — The Narrated Edition: the corner narrator reads whichever leaf is open */
-  const isV7 = variant === "v7";
+  const isV7 = variant === "v7" || variant === "v8";
+  /* V8 — Calm edition: no page-curl/riffle motion, arrows are the only way to turn */
+  const isV8 = variant === "v8";
 
   const bookRef = useRef<any>(null);
   /* Shared page-flip transition motion — played on every category / product open */
-  const flipMotion = usePageFlipTransMotion();
+  const flipMotionRaw = usePageFlipTransMotion();
+  // V8 silences the riffle: play() becomes a no-op so every open lands instantly.
+  const flipMotion = useMemo(
+    () => (isV8 ? { ...flipMotionRaw, active: false, play: () => {} } : flipMotionRaw),
+    [isV8, flipMotionRaw],
+  );
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
@@ -525,9 +532,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       // Turn under the riffle so the reader lands on the page as it clears.
       jumpTimer.current = window.setTimeout(() => {
         bookRef.current?.pageFlip()?.turnToPage(target);
-      }, 420);
+      }, isV8 ? 0 : 420);
     },
-    [flipMotion],
+    [flipMotion, isV8],
   );
   useEffect(() => () => { if (jumpTimer.current) window.clearTimeout(jumpTimer.current); }, []);
 
@@ -945,7 +952,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
       tone: isV6 ? "cover" : undefined,
       render: () =>
         isV6 ? (
-          <FlipIndexV6 items={ITEMS} onOpen={openCategory} />
+          <FlipIndexV6 items={ITEMS} onOpen={openCategory} calm={isV8} />
         ) : (
           <div className="flex h-full w-full flex-col px-5 py-6 sm:px-8 sm:py-8">
             <div className="flex items-baseline justify-between gap-3">
@@ -2230,16 +2237,16 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7"; hideHeader?:
               showCover={false}
               usePortrait={portrait}
               mobileScrollSupport
-              drawShadow
-              flippingTime={880}
+              drawShadow={!isV8}
+              flippingTime={isV8 ? 1 : 880}
               maxShadowOpacity={0.5}
               startPage={Math.min(startPageRef.current, Math.max(pages.length - 1, 0))}
               startZIndex={0}
               autoSize={false}
               clickEventForward={false}
-              useMouseEvents={!flipLocked}
-              swipeDistance={30}
-              showPageCorners={!flipLocked}
+              useMouseEvents={!flipLocked && !isV8}
+              swipeDistance={isV8 ? 100000 : 30}
+              showPageCorners={!flipLocked && !isV8}
               disableFlipByClick
               style={{}}
               className="shadow-[0_50px_110px_-30px_rgba(0,0,0,0.55)]"

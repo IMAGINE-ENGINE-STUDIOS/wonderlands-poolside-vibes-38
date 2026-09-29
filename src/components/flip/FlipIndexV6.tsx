@@ -14,6 +14,8 @@ export type FlipIndexItem = {
 type Props = {
   items: FlipIndexItem[];
   onOpen: (id: string) => void;
+  /** V8 calm mode: no parallax, wheel, hover-select or long zooms. */
+  calm?: boolean;
 };
 
 /**
@@ -22,7 +24,7 @@ type Props = {
  * Full-bleed stage with parallax, a snap deck of plates at the base, a numeric
  * chapter rail, and keyboard / wheel / drag navigation.
  */
-export default function FlipIndexV6({ items, onOpen }: Props) {
+export default function FlipIndexV6({ items, onOpen, calm = false }: Props) {
   const [active, setActive] = useState(0);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const deckRef = useRef<HTMLDivElement | null>(null);
@@ -44,7 +46,7 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
     if (!deck || !el) return;
     deck.scrollTo({
       left: el.offsetLeft - deck.clientWidth / 2 + el.clientWidth / 2,
-      behavior: "smooth",
+      behavior: calm ? "auto" : "smooth",
     });
   }, [active]);
 
@@ -68,6 +70,7 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
   }, [go, item, onOpen]);
 
   const onWheel = (e: React.WheelEvent) => {
+    if (calm) return;
     const now = Date.now();
     if (now - wheelLock.current < 320) return;
     if (Math.abs(e.deltaY) < 12 && Math.abs(e.deltaX) < 12) return;
@@ -76,6 +79,7 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
   };
 
   const onMove = (e: React.PointerEvent) => {
+    if (calm) return;
     const r = stageRef.current?.getBoundingClientRect();
     if (!r) return;
     setTilt({
@@ -110,12 +114,14 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
           loading={i < 3 ? "eager" : "lazy"}
           decoding="async"
           aria-hidden={i !== active}
-          className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-[1100ms] ease-out ${
+          className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] ${calm ? "duration-300" : "duration-[1100ms]"} ease-out ${
             i === active ? "opacity-100" : "opacity-0"
           }`}
           style={{
             transform:
-              i === active
+              calm
+                ? undefined
+                : i === active
                 ? `scale(1.12) translate3d(${tilt.x * -14}px, ${tilt.y * -10}px, 0)`
                 : "scale(1.2)",
           }}
@@ -181,7 +187,7 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
         </div>
 
         {/* active discipline */}
-        <div key={item.id} className="max-w-[26rem] animate-fade-in text-white">
+        <div key={item.id} className={`max-w-[26rem] text-white ${calm ? "" : "animate-fade-in"}`}>
           <p className="font-serif text-[11px] tabular-nums tracking-[0.3em] text-white/60">
             {chapter} / {String(count).padStart(2, "0")}
           </p>
@@ -223,7 +229,7 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
                 key={it.id}
                 data-plate={i}
                 onClick={() => (i === active ? onOpen(it.id) : setActive(i))}
-                onMouseEnter={() => setActive(i)}
+                onMouseEnter={calm ? undefined : () => setActive(i)}
                 title={i === active ? `Open ${it.label}` : it.label}
                 className={`group relative shrink-0 snap-center overflow-hidden rounded-md ring-1 transition-all duration-500 ease-out ${
                   i === active
@@ -236,7 +242,7 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
                   alt={it.label}
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] group-hover:scale-110"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform ${calm ? "" : "duration-[1200ms] group-hover:scale-110"}`}
                 />
                 <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                 <span className="absolute inset-x-1.5 bottom-1 block truncate text-left font-serif text-[10px] font-light leading-tight text-white sm:text-xs">
@@ -249,7 +255,7 @@ export default function FlipIndexV6({ items, onOpen }: Props) {
             ))}
           </div>
           <p className="mt-1 text-[8px] uppercase leading-relaxed tracking-[0.22em] text-white/45 sm:text-[9px] sm:tracking-[0.3em]">
-            Drag the deck · arrows or scroll to travel · click a plate twice to enter
+            {calm ? "Use the arrows to browse · click a plate twice to enter" : "Drag the deck · arrows or scroll to travel · click a plate twice to enter"}
           </p>
         </div>
       </div>
