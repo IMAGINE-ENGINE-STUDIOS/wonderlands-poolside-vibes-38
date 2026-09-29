@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import MilanOfferCampaign from './MilanOfferCampaign';
 import PatioArrivalsCampaign from './PatioArrivalsCampaign';
+import SolarCampaign from './SolarCampaign';
 
 interface MessageTemplate {
   id: string;
@@ -182,6 +183,7 @@ export default function AutomationTemplatesManager() {
   return (
     <div className="space-y-6">
       {/* Featured campaign — Milan Collection premium offer email */}
+      <SolarCampaign />
       <PatioArrivalsCampaign />
       <MilanOfferCampaign />
 
