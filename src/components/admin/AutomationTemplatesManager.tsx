@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import MilanOfferCampaign from './MilanOfferCampaign';
 import PatioArrivalsCampaign from './PatioArrivalsCampaign';
 import SolarCampaign from './SolarCampaign';
+import KitchenCampaign from './KitchenCampaign';
 
 interface MessageTemplate {
   id: string;
@@ -183,6 +184,7 @@ export default function AutomationTemplatesManager() {
   return (
     <div className="space-y-6">
       {/* Featured campaign — Milan Collection premium offer email */}
+      <KitchenCampaign />
       <SolarCampaign />
       <PatioArrivalsCampaign />
       <MilanOfferCampaign />
