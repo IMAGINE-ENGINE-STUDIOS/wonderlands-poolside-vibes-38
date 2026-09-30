@@ -150,9 +150,9 @@ const App = () => {
                } 
              />
             {/* SOCIALITE command center — main admin only; reachable at /socialite and /admin/socialite */}
+            <Route path="/__socprobe" element={<Socialite />} />
             {["/socialite", "/admin/socialite", "/admin/command-center"].map((p) => (
-              <Route path="/__socprobe" element={<Socialite />} />
-<Route key={p} path={p} element={<ProtectedRoute requiredRoles={['main_admin']}><SocialiteCloudSync><Socialite /></SocialiteCloudSync></ProtectedRoute>} />
+              <Route key={p} path={p} element={<ProtectedRoute requiredRoles={['main_admin']}><SocialiteCloudSync><Socialite /></SocialiteCloudSync></ProtectedRoute>} />
             ))}
             {/* Public invoice view route - no auth required */}
             <Route path="/invoice/:invoiceId" element={<InvoiceDetailPage />} />
