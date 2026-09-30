@@ -1,6 +1,7 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
+import { useNavigate } from "react-router-dom";
 import FlipPageTabs from "./FlipPageTabs";
 // NOTE: FlipCornerHint removed per user request — the page-curl hint in the corner was not looking good.
 import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMotion";
@@ -400,6 +401,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
   );
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
+  const navigate = useNavigate();
+  /* design board opened straight from a home-page discipline card */
+  const [homeBoard, setHomeBoard] = useState<{ id: string; label: string } | null>(null);
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
   const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category.v2", ITEMS[0].id);
   /* Page position persists as the reader navigates, but load always starts at the Index. */
@@ -2374,6 +2378,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
           productPrice={dossier?.price ?? undefined}
           onClose={closeBoard}
         />
+      )}
+      {homeBoard && (
+        <FlipEditorBoard categoryId={homeBoard.id} categoryLabel={homeBoard.label} onClose={() => setHomeBoard(null)} />
       )}
     </section>
   );
