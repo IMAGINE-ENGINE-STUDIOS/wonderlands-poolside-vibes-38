@@ -1073,7 +1073,7 @@ Use 2 hashtags max when promo present`;
     ];
     const fn = enhancements[Math.floor(Math.random() * enhancements.length)];
     setPostText(fn(postText.slice(0, 300)));
-    showToast("Enhanced with Llama 3.2 — more engaging", "success");
+    showToast("Caption enhanced", "success");
   }, [postText, showToast]);
 
   const generateAiVariations = useCallback(() => {
@@ -1802,7 +1802,7 @@ Use 2 hashtags max when promo present`;
                           onClick={enhanceWithLlama}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-black text-[11px] font-semibold border border-white hover:bg-zinc-100 transition"
                         >
-                          <WandSparkles className="w-3.5 h-3.5" /> Enhance with Llama
+                          <WandSparkles className="w-3.5 h-3.5" /> Enhance caption
                         </button>
                       </div>
                     </div>
@@ -2315,9 +2315,6 @@ Use 2 hashtags max when promo present`;
               {/* Header */}
               <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6 flex flex-wrap gap-4 items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-xl grid place-items-center ${automationEnabled ? "bg-emerald-500 text-black" : "bg-zinc-900 border border-zinc-800 text-zinc-400"}`}>
-                    <Bot className="w-5 h-5" />
-                  </div>
                   <div>
                     <h1 className="text-[18px] font-semibold tracking-tight flex items-center gap-2">
                       Automation Bot • Auto-create & Auto-post
@@ -2353,9 +2350,7 @@ Use 2 hashtags max when promo present`;
                   {/* Context & Brain */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center gap-2.5 mb-5">
-                      <div className="w-8 h-8 rounded-xl bg-white text-black grid place-items-center"><Brain className="w-4 h-4" /></div>
                       <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Context & Brain — What should the bot know?</h2>
-                      <span className="ml-auto text-[10px] mono px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-500">Llama 3.2</span>
                     </div>
 
                     <div className="space-y-4">
@@ -2436,7 +2431,6 @@ Use 2 hashtags max when promo present`;
                   {/* Promotions • Offers bot can use */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5">
                     <div className="flex items-center gap-2.5 mb-5">
-                      <div className="w-8 h-8 rounded-xl bg-white text-black grid place-items-center">%</div>
                       <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Promotions • Offers bot can use</h2>
                       <span className="ml-auto text-[10px] mono px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-500">{promotions.length} saved</span>
                     </div>
@@ -2530,7 +2524,6 @@ Use 2 hashtags max when promo present`;
                   {/* Frequency */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center gap-2.5 mb-5">
-                      <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><Timer className="w-4 h-4" /></div>
                       <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Frequency • Day / Week / Month</h2>
                       <span className="ml-auto text-[11px] mono text-zinc-500">{autoStats.totalPreview} posts / {autoMode} preview</span>
                     </div>
@@ -2664,7 +2657,6 @@ Use 2 hashtags max when promo present`;
                   {/* Bot Actions */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center gap-2.5 mb-5">
-                      <div className="w-8 h-8 rounded-xl bg-white text-black grid place-items-center"><Cpu className="w-4 h-4" /></div>
                       <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Bot Actions</h2>
                     </div>
 
@@ -2699,7 +2691,6 @@ Use 2 hashtags max when promo present`;
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><History className="w-4 h-4" /></div>
                         <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Automation Queue • Last 5</h2>
                       </div>
                       <button onClick={()=>setView("queue")} className="text-[11px] text-zinc-500 hover:text-zinc-300">View all →</button>
