@@ -3491,6 +3491,39 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_credentials: {
+        Row: {
+          account_id: string | null
+          extra_id: string | null
+          platform: string
+          token_cipher: string
+          token_hint: string | null
+          updated_at: string
+          updated_by: string | null
+          verified_name: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          extra_id?: string | null
+          platform: string
+          token_cipher: string
+          token_hint?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          verified_name?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          extra_id?: string | null
+          platform?: string
+          token_cipher?: string
+          token_hint?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          verified_name?: string | null
+        }
+        Relationships: []
+      }
       socialite_state: {
         Row: {
           key: string
