@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.daily-campaign]
 verify_jwt = false
+
+[functions.socialite-api]
+verify_jwt = false
