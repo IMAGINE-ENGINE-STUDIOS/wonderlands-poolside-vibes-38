@@ -3491,10 +3491,51 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          last_channel: string | null
+          last_sent_at: string | null
+          name: string
+          owner_id: string
+          phone: string | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_channel?: string | null
+          last_sent_at?: string | null
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_channel?: string | null
+          last_sent_at?: string | null
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       socialite_credentials: {
         Row: {
           account_id: string | null
           extra_id: string | null
+          id: string
+          owner_id: string | null
           platform: string
           token_cipher: string
           token_hint: string | null
@@ -3505,6 +3546,8 @@ export type Database = {
         Insert: {
           account_id?: string | null
           extra_id?: string | null
+          id?: string
+          owner_id?: string | null
           platform: string
           token_cipher: string
           token_hint?: string | null
@@ -3515,6 +3558,8 @@ export type Database = {
         Update: {
           account_id?: string | null
           extra_id?: string | null
+          id?: string
+          owner_id?: string | null
           platform?: string
           token_cipher?: string
           token_hint?: string | null

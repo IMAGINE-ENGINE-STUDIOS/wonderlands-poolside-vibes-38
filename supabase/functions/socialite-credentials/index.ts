@@ -1,8 +1,8 @@
-// SOCIALITE credentials — main admin saves/removes social keys from the website UI.
+// SOCIALITE credentials — each signed-in user saves their own/removes social keys from the website UI.
 // Tokens are verified against the provider, encrypted, and never returned to the browser.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
-import { admin, encrypt, requireMainAdmin } from "../_shared/socialiteVault.ts";
+import { admin, encrypt, requireUser } from "../_shared/socialiteVault.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const PLATFORMS = ["facebook", "instagram", "threads", "x", "tiktok", "youtube"] as const;
@@ -53,7 +53,7 @@ async function verify(platform: string, accountId: string, token: string): Promi
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  const auth = await requireMainAdmin(req);
+  const auth = await requireUser(req);
   if ("error" in auth) return json({ error: auth.error }, auth.status);
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: "Invalid request", details: parsed.error.flatten().fieldErrors }, 400);
@@ -61,16 +61,17 @@ Deno.serve(async (req) => {
   const db = admin();
 
   if (b.action === "status") {
-    const { data } = await db.from("socialite_credentials").select("platform, account_id, token_hint, verified_name, updated_at");
+    const { data } = await db.from("socialite_credentials").select("platform, account_id, token_hint, verified_name, updated_at").eq("owner_id", auth.userId);
     return json({ accounts: data ?? [] });
   }
   if (b.action === "remove") {
-    await db.from("socialite_credentials").delete().eq("platform", b.platform);
+    await db.from("socialite_credentials").delete().eq("platform", b.platform).eq("owner_id", auth.userId);
     return json({ ok: true });
   }
   const v = await verify(b.platform, b.account_id, b.token);
   if (!v.ok) return json({ ok: false, error: v.error || "The key was rejected" });
   const { error } = await db.from("socialite_credentials").upsert({
+    owner_id: auth.userId,
     platform: b.platform,
     account_id: b.account_id || null,
     extra_id: b.extra_id || null,
@@ -79,7 +80,7 @@ Deno.serve(async (req) => {
     verified_name: v.name ?? null,
     updated_by: auth.userId,
     updated_at: new Date().toISOString(),
-  });
+  }, { onConflict: "owner_id,platform" });
   if (error) return json({ ok: false, error: "Could not save" }, 500);
   return json({ ok: true, name: v.name ?? null });
 });

@@ -104,7 +104,7 @@ export default function EditorialCampaign<C extends object>({
     <Card className="bg-slate-900/60 border-slate-800">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-cyan-300">
-          <Mail className="h-5 w-5" /> {title}
+          {title}
         </CardTitle>
         <CardDescription className="text-slate-400">{description}</CardDescription>
       </CardHeader>

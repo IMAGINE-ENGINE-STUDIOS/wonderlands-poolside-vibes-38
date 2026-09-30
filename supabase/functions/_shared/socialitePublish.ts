@@ -27,18 +27,18 @@ async function xAuthHeader(method: string, url: string, ck: string, cs: string, 
   return "OAuth " + Object.keys(o).sort().map((k) => `${pct(k)}="${pct(o[k])}"`).join(", ");
 }
 
-async function postOne(p: string, text: string, media: string[]): Promise<any> {
+async function postOne(p: string, text: string, media: string[], owner: string): Promise<any> {
   const m = media[0];
   if (p === "facebook") {
-    const fb = await getCredential("facebook");
+    const fb = await getCredential("facebook", owner);
     if (!fb?.accountId) return { error: "Facebook not connected" };
     const url = m ? `${G}/${fb.accountId}/${isVideo(m) ? "videos" : "photos"}` : `${G}/${fb.accountId}/feed`;
     const q = new URLSearchParams({ access_token: fb.token, ...(m ? (isVideo(m) ? { file_url: m, description: text } : { url: m, caption: text }) : { message: text }) });
     return (await fetch(url, { method: "POST", body: q })).json();
   }
   if (p === "instagram") {
-    const ig = await getCredential("instagram");
-    const token = ig?.token || (await getCredential("facebook"))?.token;
+    const ig = await getCredential("instagram", owner);
+    const token = ig?.token || (await getCredential("facebook", owner))?.token;
     if (!ig?.accountId || !token) return { error: "Instagram not connected" };
     if (!m) return { error: "Instagram needs an image or video" };
     const c = await (await fetch(`${G}/${ig.accountId}/media`, { method: "POST", body: new URLSearchParams({ ...(isVideo(m) ? { media_type: "REELS", video_url: m } : { image_url: m }), caption: text, access_token: token }) })).json();
@@ -47,7 +47,7 @@ async function postOne(p: string, text: string, media: string[]): Promise<any> {
     return (await fetch(`${G}/${ig.accountId}/media_publish`, { method: "POST", body: new URLSearchParams({ creation_id: c.id, access_token: token }) })).json();
   }
   if (p === "threads") {
-    const t = await getCredential("threads");
+    const t = await getCredential("threads", owner);
     if (!t?.accountId) return { error: "Threads not connected" };
     const T = "https://graph.threads.net/v1.0";
     const body = new URLSearchParams({ text: text.slice(0, 500), access_token: t.token, media_type: m ? (isVideo(m) ? "VIDEO" : "IMAGE") : "TEXT", ...(m ? (isVideo(m) ? { video_url: m } : { image_url: m }) : {}) });
@@ -57,7 +57,7 @@ async function postOne(p: string, text: string, media: string[]): Promise<any> {
     return (await fetch(`${T}/${t.accountId}/threads_publish`, { method: "POST", body: new URLSearchParams({ creation_id: c.id, access_token: t.token }) })).json();
   }
   if (p === "x") {
-    const x = await getCredential("x");
+    const x = await getCredential("x", owner);
     if (!x) return { error: "X not connected" };
     const [ck, cs, at, as] = x.token.split(":");
     if (!ck || !cs || !at || !as) return { error: "X needs 4 keys: API key, API secret, access token, access secret" };
@@ -67,7 +67,7 @@ async function postOne(p: string, text: string, media: string[]): Promise<any> {
     return r.ok ? j : { error: j?.detail || j?.title || "X rejected the post" };
   }
   if (p === "tiktok") {
-    const t = await getCredential("tiktok");
+    const t = await getCredential("tiktok", owner);
     if (!t) return { error: "TikTok not connected" };
     if (!m) return { error: "TikTok needs a video or photo" };
     const H = { Authorization: `Bearer ${t.token}`, "Content-Type": "application/json; charset=UTF-8" };
@@ -78,7 +78,7 @@ async function postOne(p: string, text: string, media: string[]): Promise<any> {
     return j?.error?.code && j.error.code !== "ok" ? { error: j.error.message || j.error.code } : j;
   }
   if (p === "youtube") {
-    const y = await getCredential("youtube");
+    const y = await getCredential("youtube", owner);
     if (!y) return { error: "YouTube not connected" };
     if (!isVideo(m)) return { error: "YouTube needs a video (.mp4)" };
     const vid = await fetch(m!);
@@ -97,10 +97,11 @@ async function postOne(p: string, text: string, media: string[]): Promise<any> {
   return { error: "Unknown platform" };
 }
 
-export async function publishAll(text: string, platforms: string[], media: string[]) {
+/** Publishes with the keys of `owner` (the SOCIALITE user who posts). */
+export async function publishAll(text: string, platforms: string[], media: string[], owner: string) {
   const results: Record<string, any> = {};
   await Promise.all(platforms.map(async (p) => {
-    try { results[p] = await postOne(p, text, media); } catch (e) { results[p] = { error: (e as Error).message }; }
+    try { results[p] = await postOne(p, text, media, owner); } catch (e) { results[p] = { error: (e as Error).message }; }
   }));
   const errs = Object.entries(results).filter(([, r]) => r?.error).map(([k, r]) => `${k}: ${typeof r.error === "string" ? r.error : r.error.message}`);
   return { success: !errs.length && platforms.length > 0, results, error: errs.join(" · ") || undefined };

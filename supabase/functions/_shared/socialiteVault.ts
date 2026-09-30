@@ -39,8 +39,20 @@ export async function requireMainAdmin(req: Request) {
   return { userId: u.user.id } as const;
 }
 
-export async function getCredential(platform: string) {
-  const { data } = await admin().from("socialite_credentials").select("*").eq("platform", platform).maybeSingle();
+/** Verifies the caller is signed in (any SOCIALITE user). */
+export async function requireUser(req: Request) {
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+  });
+  const { data: u } = await sb.auth.getUser();
+  if (!u?.user) return { error: "Sign in required", status: 401 } as const;
+  const { data: isAdmin } = await sb.rpc("is_main_admin");
+  return { userId: u.user.id, isAdmin: !!isAdmin, email: u.user.email ?? "" } as const;
+}
+
+/** Each user's own keys (owner_id). */
+export async function getCredential(platform: string, ownerId: string) {
+  const { data } = await admin().from("socialite_credentials").select("*").eq("platform", platform).eq("owner_id", ownerId).maybeSingle();
   if (!data) return null;
   return { accountId: data.account_id as string | null, extraId: data.extra_id as string | null, token: await decrypt(data.token_cipher) };
 }

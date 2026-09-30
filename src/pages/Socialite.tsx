@@ -216,7 +216,7 @@ export default function Socialite() {
   // Company sections (clients, quotes, messaging, keys, admin) are main-admin only.
   const { profile: authProfile } = useAuth();
   const isOwner = authProfile?.role === "main_admin";
-  const STAFF_ONLY = new Set(["messaging", "quotes", "sendtimes", "clients", "accounts", "admin", "datacontrol"]);
+  const STAFF_ONLY = new Set(["quotes", "sendtimes", "clients", "admin", "datacontrol"]);
   const canSee = (id: string) => isOwner || !STAFF_ONLY.has(id);
   const [scheduleAt, setScheduleAt] = useState(() => {
     const d = new Date();
@@ -3019,7 +3019,7 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {isOwner && view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
+          {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
 
           {view === "settings" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
@@ -3062,7 +3062,7 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {isOwner && view === "messaging" && <SocialiteMessaging />}
+          {view === "messaging" && <SocialiteMessaging isOwner={isOwner} />}
           {isOwner && view === "quotes" && <SocialiteQuotesInvoices />}
           {isOwner && view === "clients" && <SocialiteClients />}
           {isOwner && view === "sendtimes" && <SocialiteScheduled />}

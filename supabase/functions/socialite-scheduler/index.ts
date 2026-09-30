@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     let result: any;
     try {
       const p = row.payload ?? {};
-      if (row.kind === "post") result = await publishAll(String(p.text ?? ""), p.platforms ?? [], p.media ?? []);
+      if (row.kind === "post") result = await publishAll(String(p.text ?? ""), p.platforms ?? [], p.media ?? [], row.created_by);
       else if (row.kind === "email") result = await call("send-bulk-email", p);
       else if (row.kind === "sms" || row.kind === "whatsapp") {
         const fn = row.kind === "sms" ? "send-sms" : "send-whatsapp";
