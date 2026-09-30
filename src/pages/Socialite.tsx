@@ -2948,6 +2948,8 @@ Use 2 hashtags max when promo present`;
                   })}
                 </div>
               </div>
+              {/* Timed sends (posts, email, SMS, WhatsApp, calls) now live in the calendar. */}
+              <div className="-mx-4 lg:-mx-8 mt-4"><SocialiteScheduled /></div>
             </div>
           )}
 
