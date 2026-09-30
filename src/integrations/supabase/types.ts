@@ -3491,6 +3491,60 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_ai_config: {
+        Row: {
+          base_url: string | null
+          enabled: boolean
+          id: number
+          image_model: string | null
+          key_cipher: string | null
+          key_hint: string | null
+          model: string | null
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          base_url?: string | null
+          enabled?: boolean
+          id?: number
+          image_model?: string | null
+          key_cipher?: string | null
+          key_hint?: string | null
+          model?: string | null
+          provider?: string
+          updated_at?: string
+        }
+        Update: {
+          base_url?: string | null
+          enabled?: boolean
+          id?: number
+          image_model?: string | null
+          key_cipher?: string | null
+          key_hint?: string | null
+          model?: string | null
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      socialite_billing_config: {
+        Row: {
+          config: Json
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       socialite_contacts: {
         Row: {
           created_at: string
@@ -3569,6 +3623,72 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_credit_ledger: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          delta: number
+          id: string
+          reason: string
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_usd?: number
+          created_at?: string
+          delta: number
+          id?: string
+          reason: string
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          delta?: number
+          id?: string
+          reason?: string
+          stripe_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      socialite_plans: {
+        Row: {
+          active: boolean
+          features: string[]
+          id: string
+          limits: Json
+          monthly_price: number
+          name: string
+          sort: number
+          updated_at: string
+          yearly_price: number
+        }
+        Insert: {
+          active?: boolean
+          features?: string[]
+          id: string
+          limits?: Json
+          monthly_price?: number
+          name: string
+          sort?: number
+          updated_at?: string
+          yearly_price?: number
+        }
+        Update: {
+          active?: boolean
+          features?: string[]
+          id?: string
+          limits?: Json
+          monthly_price?: number
+          name?: string
+          sort?: number
+          updated_at?: string
+          yearly_price?: number
+        }
+        Relationships: []
+      }
       socialite_scheduled: {
         Row: {
           created_at: string
@@ -3623,6 +3743,75 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      socialite_subscriptions: {
+        Row: {
+          ai_addon: boolean
+          ai_addon_subscription_id: string | null
+          current_period_end: string | null
+          plan_id: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_addon?: boolean
+          ai_addon_subscription_id?: string | null
+          current_period_end?: string | null
+          plan_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_addon?: boolean
+          ai_addon_subscription_id?: string | null
+          current_period_end?: string | null
+          plan_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      socialite_usage: {
+        Row: {
+          created_at: string
+          credits: number
+          id: string
+          kind: string
+          meta: Json
+          units: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits?: number
+          id?: string
+          kind: string
+          meta?: Json
+          units?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          id?: string
+          kind?: string
+          meta?: Json
+          units?: number
+          user_id?: string
         }
         Relationships: []
       }
