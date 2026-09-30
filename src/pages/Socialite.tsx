@@ -1,8 +1,10 @@
 /**
- * Command Center — admin-only social posting hub (ported from PostFlow v7).
+ * SOCIALITE — admin-only command center: social posting + email, SMS & call campaigns.
  * Composer, queue, calendar, automation bot, analytics, clients, message templates.
  * State is cached in localStorage (pf_* keys). Real Meta posting needs META secrets + edge function.
  */
+import { supabase } from "@/integrations/supabase/client";
+import SocialiteMessaging from "@/components/socialite/SocialiteMessaging";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
   AtSign,
@@ -95,7 +97,7 @@ type PlatformId = typeof PLATFORMS[number]["id"];
 
 const sampleSvg = (bg: string, txt?: string) =>
   `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='${bg}'/><stop offset='100%' stop-color='#111'/></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Inter' font-size='20' opacity='0.9'>${(txt || "PostFlow").slice(0, 28)}</text></svg>`
+    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='${bg}'/><stop offset='100%' stop-color='#111'/></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Inter' font-size='20' opacity='0.9'>${(txt || "Socialite").slice(0, 28)}</text></svg>`
   )}`;
 
 const OE = {
@@ -175,8 +177,8 @@ type ClientWorkspace = { id: string; name: string; logoUrl: string; brandColor: 
 type TeamRole = "Admin" | "Editor" | "Client" | "Viewer";
 type TeamMember = { id: string; email: string; role: TeamRole; createdAt: string };
 
-const HASHTAGS = ["#contentcreator", "#socialmedia", "#brandbuilding", "#creatoreconomy", "#aesthetic", "#minimal", "#design", "#postflow"];
-const MENTIONS = ["@alexrivera", "@postflow.studio", "@creatorhub", "@design.daily"];
+const HASHTAGS = ["#contentcreator", "#socialmedia", "#brandbuilding", "#creatoreconomy", "#aesthetic", "#minimal", "#design", "#socialite"];
+const MENTIONS: string[] = [];
 const TONES: Tone[] = ["Professional", "Casual", "Edgy", "Funny", "Luxe", "Minimal"];
 const GOAL_OPTIONS = ["More engagement", "Drive sales", "Build community", "Go viral", "Educate audience", "Brand awareness"];
 const TIMEZONES = [
@@ -194,14 +196,12 @@ function formatSize(n: number) {
   return `${(n / 1024 / 1024).toFixed(2)} MB`;
 }
 
-export default function CommandCenter() {
+export default function Socialite() {
   // core nav - ADDED automation + admin
-  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol">("composer");
+  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging">("dashboard");
   const [selected, setSelected] = useState<PlatformId[]>(["instagram", "x"]);
-  const [postText, setPostText] = useState(
-    `Just launched our new visual system — minimal, bold, built for creators who post daily. Thoughts? 👇\n\n#design #postflow`
-  );
-  const [media, setMedia] = useState<MediaItem[]>([{ url: OE.img1, type: "image" }]);
+  const [postText, setPostText] = useState("");
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [scheduleMode, setScheduleMode] = useState<"now" | "best" | "schedule" | "queue">("best");
   const [scheduleAt, setScheduleAt] = useState(() => {
@@ -218,41 +218,7 @@ export default function CommandCenter() {
         return arr.map((p: any) => ({ ...p, scheduledAt: new Date(p.scheduledAt) }));
       }
     } catch {}
-    return [
-      {
-        id: "1",
-        text: "New collection drop is LIVE 🔥 Limited edition prints available now. Link in bio. #streetwear #drop",
-        platforms: ["instagram", "facebook", "threads"] as PlatformId[],
-        scheduledAt: new Date(Date.now() + 7200000),
-        media: [{ url: OE.img1, type: "image" }],
-        status: "scheduled",
-      },
-      {
-        id: "2",
-        text: "Behind the scenes: how we shot the campaign in Tokyo at 4am. Full vlog on TikTok 🗼",
-        platforms: ["tiktok", "x"] as PlatformId[],
-        scheduledAt: new Date(Date.now() + 93600000),
-        media: [{ url: OE.img2, type: "image" }],
-        status: "queued",
-      },
-      {
-        id: "3",
-        text: "Your weekly reminder: creativity is a muscle. Post anyway. Ship anyway. 🧠⚡",
-        platforms: ["threads", "x", "facebook"] as PlatformId[],
-        scheduledAt: new Date(Date.now() + 172800000),
-        media: [],
-        status: "scheduled",
-      },
-      {
-        id: "4",
-        text: "POV: your feed finally has taste. Swipe for the full lookbook →",
-        platforms: ["instagram"] as PlatformId[],
-        scheduledAt: new Date(Date.now() - 18000000),
-        media: [{ url: OE.img3, type: "image" }],
-        status: "posted",
-        engagement: { likes: 3421, comments: 89, shares: 112 },
-      },
-    ];
+    return [];
   });
   const [aiVariations, setAiVariations] = useState<string[]>([]);
   const [showHashtags, setShowHashtags] = useState(false);
@@ -263,7 +229,7 @@ export default function CommandCenter() {
       const raw = localStorage.getItem("pf_profile");
       if (raw) return JSON.parse(raw);
     } catch {}
-    return { name: "Alex Rivera", email: "alex@postflow.studio", avatar: OE.avatar };
+    return { name: "Ricardo", email: "wonderlandsworlds@gmail.com", avatar: "" };
   });
   const [settings, setSettings] = useState(() => {
     try {
@@ -291,7 +257,7 @@ export default function CommandCenter() {
     try { return JSON.parse(localStorage.getItem("pf_automation_enabled") || "false"); } catch { return false; }
   });
   const [brandContext, setBrandContext] = useState<string>(() => {
-    try { return localStorage.getItem("pf_automation_context") || "We are PostFlow Studio, a minimal streetwear & design brand for Gen Z creators. Edgy, bold, daily drop culture. Audience: 18-28yo creators, designers, founders who ship fast. Voice: concise, punchy, confident."; } catch { return "We are PostFlow Studio, a minimal streetwear & design brand for Gen Z creators. Edgy, bold, daily drop culture."; }
+    try { return localStorage.getItem("pf_automation_context") || ""; } catch { return ""; }
   });
   const [selectedTones, setSelectedTones] = useState<Tone[]>(() => {
     try { const r = localStorage.getItem("pf_automation_tones"); return r ? JSON.parse(r) : ["Minimal", "Edgy"] as Tone[]; } catch { return ["Minimal", "Edgy"] as Tone[]; }
@@ -546,8 +512,8 @@ Use 2 hashtags max when promo present`;
     return "";
   });
   const [utmTemplate, setUtmTemplate] = useState<string>(() => {
-    try { const raw = localStorage.getItem("pf_money_engine"); if (raw) return JSON.parse(raw).utmTemplate || "utm_source=postflow&utm_medium=social&utm_campaign={{promo}}"; } catch {}
-    return "utm_source=postflow&utm_medium=social&utm_campaign={{promo}}";
+    try { const raw = localStorage.getItem("pf_money_engine"); if (raw) return JSON.parse(raw).utmTemplate || "utm_source=socialite&utm_medium=social&utm_campaign={{promo}}"; } catch {}
+    return "utm_source=socialite&utm_medium=social&utm_campaign={{promo}}";
   });
   const [promoRedemptions, setPromoRedemptions] = useState<Record<string, number>>(() => {
     try { const raw = localStorage.getItem("pf_promo_redemptions"); if (raw) return JSON.parse(raw); } catch {}
@@ -637,14 +603,14 @@ Use 2 hashtags max when promo present`;
         const parsed = JSON.parse(raw);
         return {
           enabled: !!parsed.enabled,
-          platformName: parsed.platformName || "PostFlow",
+          platformName: parsed.platformName || "Socialite",
           logoUrl: parsed.logoUrl || "",
           primaryColor: parsed.primaryColor || "#ffffff",
           hideBranding: !!parsed.hideBranding,
         };
       }
     } catch {}
-    return { enabled: false, platformName: "PostFlow", logoUrl: "", primaryColor: "#ffffff", hideBranding: false };
+    return { enabled: false, platformName: "Socialite", logoUrl: "", primaryColor: "#ffffff", hideBranding: false };
   });
   const [clientPortalOpen, setClientPortalOpen] = useState(false);
   const [selectedClientForPortal, setSelectedClientForPortal] = useState<ClientWorkspace | null>(null);
@@ -1223,7 +1189,7 @@ Use 2 hashtags max when promo present`;
       "This is how we", "The secret to", "Why we", "We tested", "Real talk:"
     ];
     const ctas = [" Thoughts? 👇", " Link in bio.", " Drop your take 👇", " Thoughts?", " ⚡", " 🔥", " Tap to shop.", " Save this for later."];
-    const hashtagPool = kwArr.map(k=>`#${k.replace(/\s+/g,"")}` ).concat(["#postflow","#design","#creatoreconomy"]);
+    const hashtagPool = kwArr.map(k=>`#${k.replace(/\s+/g,"")}` ).concat(["#socialite","#design","#creatoreconomy"]);
 
     const newPosts: QueuePost[] = [];
     let currentDate = new Date();
@@ -1415,7 +1381,7 @@ Use 2 hashtags max when promo present`;
           text: caption,
           platforms: [...autoPlatforms],
           scheduledAt: scheduled,
-          media: Math.random()>0.3 ? [{ url: OE.img1, type: "image" as const }] : [],
+          media: [],
           status: "scheduled",
           isAuto: true,
         });
@@ -1438,10 +1404,11 @@ Use 2 hashtags max when promo present`;
   }, [brandContext, selectedTones, topics, selectedGoals, keywords, autoMode, postsPerDay, postsPerWeek, postsPerMonth, autoPlatforms, useBestTime, timeSlots, getBestTimeForDate, showToast, promotions, allowPromoUse, botLogicEnabled, botLogicRules, promoUsageMode, promoPlatforms, promoCooldownHours, promoUrgencyDays, promoHashtagLimit, maxPromosPerDay, excludeTopics, perPromoOverrides, queue]);
 
   const publishQueueItem = useCallback(async (post: QueuePost) => {
-    // mock publish
-    await new Promise(r=>setTimeout(r, 400));
-    setQueue(q=>q.map(p=>p.id===post.id ? { ...p, status: "posted" as const, engagement: { likes: Math.floor(100+Math.random()*800), comments: Math.floor(5+Math.random()*40), shares: Math.floor(2+Math.random()*30)} } : p));
-    showToast(`Auto-posted: ${post.text.slice(0,40)}… → ${post.platforms.join(", ")}`, "success");
+    // Real publish via edge function (Meta Graph API). Stays queued if accounts are not connected.
+    const { data, error } = await supabase.functions.invoke("socialite-publish", { body: { text: post.text, platforms: post.platforms, media: post.media.map(m=>m.url) } });
+    if (error || !data?.success) { showToast(data?.error || "Connect Facebook & Instagram in Accounts to publish", "error"); return; }
+    setQueue(q=>q.map(p=>p.id===post.id ? { ...p, status: "posted" as const } : p));
+    showToast(`Posted → ${post.platforms.join(", ")}`, "success");
   }, [showToast]);
 
   // Bot auto-post checker + auto-generate interval
@@ -1592,11 +1559,11 @@ Use 2 hashtags max when promo present`;
             <img src={whiteLabelConfig.logoUrl} alt={whiteLabelConfig.platformName} className="w-9 h-9 rounded-xl object-cover bg-white border border-zinc-800" />
           ) : (
             <div className="w-9 h-9 rounded-xl bg-white text-black grid place-items-center font-bold text-[18px] tracking-tighter" style={whiteLabelConfig.enabled ? { background: whiteLabelConfig.primaryColor, color: '#000' } : {}}>
-              {(whiteLabelConfig.enabled ? whiteLabelConfig.platformName : 'PostFlow').charAt(0)}
+              {(whiteLabelConfig.enabled ? whiteLabelConfig.platformName : 'Socialite').charAt(0)}
             </div>
           )}
           <div>
-            <div className="font-semibold text-[15px] leading-none tracking-tight">{whiteLabelConfig.enabled ? whiteLabelConfig.platformName : 'PostFlow'}</div>
+            <div className="font-semibold text-[15px] leading-none tracking-tight">{whiteLabelConfig.enabled ? whiteLabelConfig.platformName : 'Socialite'}</div>
             <div className="text-[11px] text-zinc-500 mono mt-1">{whiteLabelConfig.enabled && whiteLabelConfig.hideBranding ? 'v2.4 • White-label' : 'v2.4 • PRO'}</div>
           </div>
         </div>
@@ -1606,6 +1573,7 @@ Use 2 hashtags max when promo present`;
             { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
             { id: "composer", label: "Composer", icon: PenTool },
             { id: "automation", label: "Automation", icon: Bot },
+            { id: "messaging", label: "Email · SMS · Calls", icon: MessageCircle },
             { id: "calendar", label: "Calendar", icon: CalendarDays },
             { id: "queue", label: "Queue", icon: ChartColumn, badge: scheduledCount },
             { id: "analytics", label: "Analytics", icon: TrendingUp },
@@ -1709,7 +1677,7 @@ Use 2 hashtags max when promo present`;
         <div className="lg:hidden sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0b]/80 border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-white text-black grid place-items-center font-bold">P</div>
-            <span className="font-semibold">PostFlow</span>
+            <span className="font-semibold">Socialite</span>
           </div>
         <div className="flex gap-1 overflow-x-auto">
             {[
@@ -2216,7 +2184,7 @@ Use 2 hashtags max when promo present`;
                           <div className="p-0">
                             <div className="flex items-center gap-2 px-4 py-3">
                               <img src={profile.avatar} className="w-7 h-7 rounded-full bg-zinc-800" alt="" />
-                              <span className="text-[12.5px] font-semibold">alexrivera.studio</span>
+                              <span className="text-[12.5px] font-semibold">{profile.name}</span>
                               <Ellipsis className="w-4 h-4 ml-auto text-zinc-500" />
                             </div>
                             {media[0] && (
@@ -2225,7 +2193,7 @@ Use 2 hashtags max when promo present`;
                             <div className="p-3 space-y-2">
                               <div className="flex gap-3 text-[18px]">♡ 💬 ✈</div>
                               <p className="text-[12.5px] leading-[1.5] line-clamp-3">
-                                <span className="font-semibold">alexrivera.studio</span> {postText.slice(0, 120)}
+                                <span className="font-semibold">{profile.name}</span> {postText.slice(0, 120)}
                               </p>
                               {settings.firstComment && <p className="text-[11px] text-zinc-500">First comment: 🔗 link in bio • hashtags</p>}
                             </div>
@@ -2237,7 +2205,7 @@ Use 2 hashtags max when promo present`;
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5">
                                 <span className="text-[13px] font-semibold">{profile.name}</span>
-                                <span className="text-[12px] text-zinc-500">@alexrivera • now</span>
+                                <span className="text-[12px] text-zinc-500">@{profile.name} • now</span>
                               </div>
                               <p className="text-[13px] leading-[1.5] mt-1 whitespace-pre-wrap break-words">{settings.crossAdapt ? postText.slice(0, 280) : postText.slice(0, 260)}</p>
                               {media[0] && <img src={media[0].url} alt="" className="mt-3 rounded-[14px] w-full aspect-[16/10] object-cover border border-zinc-800" />}
@@ -2248,7 +2216,7 @@ Use 2 hashtags max when promo present`;
                           <div className="p-4 flex gap-3">
                             <img src={profile.avatar} className="w-8 h-8 rounded-full bg-zinc-800" alt="" />
                             <div className="flex-1 min-w-0">
-                              <span className="text-[13px] font-semibold">alexrivera</span> <span className="text-[11px] text-zinc-500">• 2m</span>
+                              <span className="text-[13px] font-semibold">{profile.name}</span> <span className="text-[11px] text-zinc-500">• 2m</span>
                               <p className="text-[13px] mt-1 leading-[1.5] whitespace-pre-wrap">{postText.slice(0, 450)}</p>
                             </div>
                           </div>
@@ -2258,7 +2226,7 @@ Use 2 hashtags max when promo present`;
                             <div className="flex gap-2.5">
                               <img src={profile.avatar} className="w-9 h-9 rounded-full bg-zinc-800" alt="" />
                               <div>
-                                <div className="text-[13px] font-semibold">PostFlow Studio</div>
+                                <div className="text-[13px] font-semibold">{profile.name}</div>
                                 <div className="text-[11px] text-zinc-500">Sponsored • 🌎</div>
                               </div>
                             </div>
@@ -3065,7 +3033,7 @@ Use 2 hashtags max when promo present`;
                     <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${p.bg} grid place-items-center text-white`}>{p.icon}</div>
                     <div className="flex-1">
                       <div className="text-[14px] font-medium">{p.name}</div>
-                      <div className="text-[12px] text-zinc-500">{p.connected ? `Connected as @alexrivera.studio • token valid` : "Not connected • connect to enable posting"}</div>
+                      <div className="text-[12px] text-zinc-500">{p.connected ? `Connected as @{profile.name} • token valid` : "Not connected • connect to enable posting"}</div>
                     </div>
                     <button onClick={() => showToast(`${p.name} - manage in Accounts tab`, "success")} className="px-4 py-2 rounded-full text-[12px] font-semibold border bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black transition">{p.connected ? "Reconnect" : "Connect"}</button>
                   </div>
@@ -3121,6 +3089,8 @@ Use 2 hashtags max when promo present`;
               </div>
             </div>
           )}
+
+          {view === "messaging" && <SocialiteMessaging />}
 
           {view === "datacontrol" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
@@ -3226,7 +3196,7 @@ Use 2 hashtags max when promo present`;
                           const url = URL.createObjectURL(blob);
                           const a = document.createElement("a");
                           a.href = url;
-                          a.download = `postflow-export-${Date.now()}.json`;
+                          a.download = `socialite-export-${Date.now()}.json`;
                           a.click();
                           URL.revokeObjectURL(url);
                           showToast("Exported JSON", "success");
