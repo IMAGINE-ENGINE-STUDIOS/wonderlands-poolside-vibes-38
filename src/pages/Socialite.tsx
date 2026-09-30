@@ -2342,7 +2342,7 @@ Use 2 hashtags max when promo present`;
                 <div className="flex items-center gap-3">
                   <div>
                     <h1 className="text-[18px] font-semibold tracking-tight flex items-center gap-2">
-                      Automation Bot • Auto-create & Auto-post
+                      Automation
                       {automationEnabled && <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 text-[10px] mono uppercase">Live</span>}
                     </h1>
                     <div className="text-[12px] text-zinc-500 mt-0.5">
@@ -2390,7 +2390,7 @@ Use 2 hashtags max when promo present`;
                   {/* Context & Brain */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center gap-2.5 mb-5">
-                      <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Context & Brain — What should the bot know?</h2>
+                      <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">What should the bot know?</h2>
                     </div>
 
                     <div className="space-y-4">
@@ -2404,7 +2404,7 @@ Use 2 hashtags max when promo present`;
                         />
                         <div className="mt-2 flex justify-between text-[11px] mono text-zinc-500">
                           <span>{brandContext.length} chars • used for caption generation</span>
-                          <button onClick={()=>{ localStorage.setItem("pf_automation_context", brandContext); showToast("Context saved to pf_automation_context", "success"); }} className="px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 transition">Save context</button>
+                          <button onClick={()=>{ localStorage.setItem("pf_automation_context", brandContext); showToast("Context saved", "success"); }} className="px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 transition">Save context</button>
                         </div>
                       </div>
 
@@ -2460,20 +2460,20 @@ Use 2 hashtags max when promo present`;
                           localStorage.setItem("pf_automation_topics", JSON.stringify(topics));
                           localStorage.setItem("pf_automation_goals", JSON.stringify(selectedGoals));
                           localStorage.setItem("pf_automation_keywords", keywords);
-                          showToast("Brain saved — pf_automation_context updated", "success");
+                          showToast("Saved", "success");
                         }catch{ showToast("Save failed", "error"); }
                       }} className="w-full py-3 rounded-xl bg-white text-black font-semibold text-[13px] flex items-center justify-center gap-2 hover:bg-zinc-100 transition">
-                      <Cpu className="w-4 h-4" /> Save Context • pf_automation_context
+                      <Cpu className="w-4 h-4" /> Save
                       </button>
                     </div>
                   </div>
                   </>)}
 
                   {autoStep === "offers" && (<>
-                  {/* Promotions • Offers bot can use */}
+                  {/* Offers the bot can use */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5">
                     <div className="flex items-center gap-2.5 mb-5">
-                      <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Promotions • Offers bot can use</h2>
+                      <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Offers the bot can use</h2>
                       <span className="ml-auto text-[10px] mono px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-500">{promotions.length} saved</span>
                     </div>
 
@@ -2568,7 +2568,7 @@ Use 2 hashtags max when promo present`;
                   {/* Frequency */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center gap-2.5 mb-5">
-                      <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Frequency • Day / Week / Month</h2>
+                      <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">How often</h2>
                       <span className="ml-auto text-[11px] mono text-zinc-500">{autoStats.totalPreview} posts / {autoMode} preview</span>
                     </div>
 
@@ -2609,7 +2609,7 @@ Use 2 hashtags max when promo present`;
                       <div className="space-y-3">
                         <div>
                           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                            <label className="text-[11px] mono uppercase tracking-widest text-zinc-300 block">Best Time Slots - Choose multiple (e.g., 8pm, 9am, 3pm)</label>
+                            <label className="text-[11px] mono uppercase tracking-widest text-zinc-300 block">Posting times</label>
                             <TimezoneSelect value={autoTz} onChange={setAutoTz} />
                           </div>
                           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
@@ -2730,7 +2730,7 @@ Use 2 hashtags max when promo present`;
                         <div className="flex justify-between text-[11px] mono"><span className="text-zinc-500">Last run</span><span className="text-zinc-300">{lastGeneratedAt ? lastGeneratedAt.toLocaleString() : "never"}</span></div>
                         <div className="flex justify-between text-[11px] mono"><span className="text-zinc-500">Next run</span><span className="text-zinc-300">{nextRunAt ? nextRunAt.toLocaleString() : "—"}</span></div>
                         <div className="flex justify-between text-[11px] mono"><span className="text-zinc-500">Auto-post</span><span className={autoPostEnabled ? "text-emerald-300" : "text-zinc-500"}>{autoPostEnabled ? "ON • publishQueueItem" : "OFF • queue only"}</span></div>
-                        <div className="flex justify-between text-[11px] mono"><span className="text-zinc-500">Config</span><span className="text-zinc-300">pf_automation_*</span></div>
+                        <div className="flex justify-between text-[11px] mono"><span className="text-zinc-500">Config</span><span className="text-zinc-300">saved to your account</span></div>
                       </div>
                     </div>
                   </div>
@@ -2739,7 +2739,7 @@ Use 2 hashtags max when promo present`;
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2.5">
-                        <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Automation Queue • Last 5</h2>
+                        <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-300">Latest bot posts</h2>
                       </div>
                       <button onClick={()=>setView("queue")} className="text-[11px] text-zinc-500 hover:text-zinc-300">View all →</button>
                     </div>
