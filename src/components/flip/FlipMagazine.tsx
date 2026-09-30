@@ -386,7 +386,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
   const isV6 = variant === "v6" || variant === "v7" || variant === "v8";
   /* V7 — The Narrated Edition: the corner narrator reads whichever leaf is open */
   const isV7 = variant === "v7" || variant === "v8";
-  /* V8 — Calm edition: no page-curl/riffle motion, arrows are the only way to turn */
+  /* V8 — page-curl animation on, but arrows are the only way to turn (no drag/swipe/corners) */
   const isV8 = variant === "v8";
 
   const bookRef = useRef<any>(null);
@@ -2237,8 +2237,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
               showCover={false}
               usePortrait={portrait}
               mobileScrollSupport
-              drawShadow={!isV8}
-              flippingTime={isV8 ? 1 : 880}
+              drawShadow
+              flippingTime={880}
               maxShadowOpacity={0.5}
               startPage={Math.min(startPageRef.current, Math.max(pages.length - 1, 0))}
               startZIndex={0}
