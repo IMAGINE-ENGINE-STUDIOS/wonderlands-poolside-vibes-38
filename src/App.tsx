@@ -39,6 +39,7 @@ const lazyWithRetry = <T extends React.ComponentType<any>>(
 // Lazy load non-critical route components
 const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"), 'admin-dashboard-import-retry');
 const TwilioPOC = lazy(() => import("./pages/TwilioPOC"));
+const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const EcommerceTemplate = lazy(() => import("./pages/EcommerceTemplate"));
 const AuthPage = lazy(() => import("./components/AuthPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -147,6 +148,14 @@ const App = () => {
                  </ProtectedRoute>
                } 
              />
+            <Route
+              path="/admin/command-center"
+              element={
+                <ProtectedRoute requiredRoles={['main_admin']}>
+                  <CommandCenter />
+                </ProtectedRoute>
+              }
+            />
             {/* Public invoice view route - no auth required */}
             <Route path="/invoice/:invoiceId" element={<InvoiceDetailPage />} />
             <Route 

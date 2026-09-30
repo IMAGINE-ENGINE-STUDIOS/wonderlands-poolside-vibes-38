@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, MessageSquare, Phone, PhoneCall, Plus, Edit, Trash2, Save, X, Eye } from 'lucide-react';
+import { Mail, MessageSquare, Phone, PhoneCall, Plus, Edit, Trash2, Save, X, Eye, Send } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -184,6 +184,20 @@ export default function AutomationTemplatesManager() {
 
   return (
     <div className="space-y-6">
+      {/* Command Center — full social posting hub on its own page */}
+      <a
+        href="/admin/command-center"
+        className="flex items-center justify-between rounded-xl border border-cyan-500/30 bg-gray-900/60 p-4 hover:border-cyan-400/60 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <Send className="h-5 w-5 text-cyan-300" />
+          <div>
+            <div className="font-semibold text-cyan-300">Command Center</div>
+            <div className="text-xs text-cyan-400/60">Compose, schedule and auto-post to Facebook & Instagram</div>
+          </div>
+        </div>
+        <span className="text-sm text-cyan-300">Open →</span>
+      </a>
       {/* Featured campaign — Milan Collection premium offer email */}
       <DailyCampaignSchedule />
       <KitchenCampaign />
