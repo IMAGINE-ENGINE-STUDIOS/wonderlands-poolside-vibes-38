@@ -117,7 +117,7 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[70] bg-background">
+    <div className={`fixed inset-0 ${quoteOpen ? `}z-40" : "z-[70]"} bg-background">
       {/* traced wireframe — drawn from all four corners */}
       <svg
         aria-hidden
