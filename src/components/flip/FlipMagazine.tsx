@@ -535,7 +535,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
         bookRef.current?.pageFlip()?.turnToPage(target);
       }, 420);
     },
-    [flipMotion, isV8],
+    [flipMotion],
   );
   useEffect(() => () => { if (jumpTimer.current) window.clearTimeout(jumpTimer.current); }, []);
 
@@ -1880,7 +1880,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
       anchors: { index: 1, gallery: galleryAt, code: galleryAt + 1, features: featuresAt, estimate: estimateAt },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart, turnToPageWithMotion]);
+  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart, turnToPageWithMotion, openDossier]);
 
   /* Dossier pages are composed here and rendered in this same flipbook —
      opening "More" never spawns a second book. */
