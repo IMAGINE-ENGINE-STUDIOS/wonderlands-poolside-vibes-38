@@ -23,6 +23,7 @@ import EditorialFeatureConfigurator, {
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { ALL_BOARDS } from "@/lib/suiteRoutes";
 
 /**
  * Product Suite (shared shell)
@@ -99,9 +100,15 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
   models,
   groupBy,
   mastheadSlot,
-  boards,
+  boards: boardsProp,
   unitSuffix = "",
 }) => {
+  /* every suite also carries every other discipline's drawing board */
+  const boards = React.useMemo(() => {
+    const own = boardsProp ?? [];
+    const seen = new Set([categoryId, ...own.map((b) => b.id)]);
+    return [...own, ...ALL_BOARDS.filter((b) => !seen.has(b.id))];
+  }, [boardsProp, categoryId]);
 
   const navigate = useNavigate();
   const { toast } = useToast();

@@ -90,6 +90,7 @@ const FlipPagesFile = lazy(() => import("./pages/FlipPagesFile"));
 const FlipBookPublished = lazy(() => import("./pages/FlipBookPublished"));
 /* Per-category configuration suites (dropdown + carousel options + board) */
 const SaunaSuite = lazy(() => import("./pages/suites/SaunaSuite"));
+const CategorySuite = lazy(() => import("./pages/suites/CategorySuite"));
 const SpaSuite = lazy(() => import("./pages/suites/SpaSuite"));
 const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"));
 /* Screen enclosures + lanai + fencing share one suite (three trades, one page) */
@@ -235,6 +236,7 @@ const App = () => {
             <Route path="/suites/enclosures" element={<EnclosureSuite />} />
             <Route path="/suites/lanai" element={<EnclosureSuite />} />
             <Route path="/suites/fencing" element={<EnclosureSuite />} />
+            <Route path="/suites/:category" element={<CategorySuite />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>

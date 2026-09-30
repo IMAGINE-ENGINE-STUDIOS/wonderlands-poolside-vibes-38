@@ -1,6 +1,7 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
+import { useNavigate } from "react-router-dom";
 import FlipPageTabs from "./FlipPageTabs";
 // NOTE: FlipCornerHint removed per user request — the page-curl hint in the corner was not looking good.
 import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMotion";
@@ -10,6 +11,7 @@ import { ITEMS } from "@/components/FlipIndex";
 import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
 import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
 import FlipSearch from "@/components/flip/FlipSearch";
+import { suiteRoute, DEDICATED_SUITES } from "@/lib/suiteRoutes";
 import FlipNarratorConsole from "@/components/flip/FlipNarratorConsole";
 import usePersistentState from "@/hooks/usePersistentState";
 import { setNarratorContext } from "@/lib/narratorStore";
@@ -399,6 +401,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
   );
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
+  const navigate = useNavigate();
+  /* design board opened straight from a home-page discipline card */
+  const [homeBoard, setHomeBoard] = useState<{ id: string; label: string } | null>(null);
   const [mode, setMode] = usePersistentState<"home" | "category">("flip.mag.mode", "home");
   const [categoryId, setCategoryId] = usePersistentState<string>("flip.mag.category.v2", ITEMS[0].id);
   /* Page position persists as the reader navigates, but load always starts at the Index. */
@@ -1051,6 +1056,24 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
               Open the {it.label} edition
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
+            {/* Suite page (model picker + board + quote) and the discipline's own design board */}
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <a
+                href={suiteRoute(it.id)}
+                onClick={(e) => { e.preventDefault(); navigate(suiteRoute(it.id)); }}
+                className="inline-flex items-center justify-between border border-foreground/60 px-3 py-2 text-[9px] uppercase tracking-[0.28em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                {DEDICATED_SUITES[it.id] ? "Open the suite" : "Suite & quote"}
+                <ChevronRight className="h-3 w-3" />
+              </a>
+              <button
+                onClick={() => setHomeBoard({ id: it.id, label: it.label })}
+                className="inline-flex items-center justify-between border border-foreground/60 px-3 py-2 text-[9px] uppercase tracking-[0.28em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                Design board
+                <ChevronRight className="h-3 w-3 rotate-90" />
+              </button>
+            </div>
           </div>
         ),
       });
@@ -2355,6 +2378,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
           productPrice={dossier?.price ?? undefined}
           onClose={closeBoard}
         />
+      )}
+      {homeBoard && (
+        <FlipEditorBoard categoryId={homeBoard.id} categoryLabel={homeBoard.label} onClose={() => setHomeBoard(null)} />
       )}
     </section>
   );
