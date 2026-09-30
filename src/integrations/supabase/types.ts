@@ -3524,6 +3524,45 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_scheduled: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          payload: Json
+          result: Json | null
+          send_at: string
+          status: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          payload?: Json
+          result?: Json | null
+          send_at: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          payload?: Json
+          result?: Json | null
+          send_at?: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       socialite_state: {
         Row: {
           key: string
