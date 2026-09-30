@@ -17,10 +17,18 @@ const DEFS = [
   { id: "instagram", name: "Instagram Business", bg: "from-[#f09433] via-[#e6683c] to-[#dc2743]", icon: <Instagram className="w-4 h-4" />, live: true,
     idLabel: "Instagram Business account ID", tokenLabel: "Access token (the Page token works)",
     help: "Graph API Explorer → GET me/accounts?fields=instagram_business_account gives the ID. Needs instagram_content_publish." },
-  { id: "threads", name: "Threads", bg: "from-zinc-800 to-black", icon: <AtSign className="w-4 h-4" />, idLabel: "Account ID", tokenLabel: "Access token" },
-  { id: "x", name: "X", bg: "from-zinc-800 to-black", icon: <span className="font-bold text-[13px]">𝕏</span>, idLabel: "Username", tokenLabel: "Access token" },
-  { id: "tiktok", name: "TikTok", bg: "from-[#00f2ea] via-black to-[#ff0050]", icon: <span>♪</span>, idLabel: "Account ID", tokenLabel: "Access token" },
-  { id: "youtube", name: "YouTube", bg: "from-[#FF0000] to-[#cc0000]", icon: <Youtube className="w-4 h-4" />, idLabel: "Channel ID", tokenLabel: "Access token" },
+  { id: "threads", name: "Threads", bg: "from-zinc-800 to-black", icon: <AtSign className="w-4 h-4" />, live: true,
+    idLabel: "Threads user ID", tokenLabel: "Threads access token",
+    help: "Meta for Developers → your app → Threads API. Generate a long-lived token with threads_basic + threads_content_publish; GET graph.threads.net/v1.0/me gives the user ID." },
+  { id: "x", name: "X", bg: "from-zinc-800 to-black", icon: <span className="font-bold text-[13px]">𝕏</span>, live: true,
+    idLabel: "Username (optional)", tokenLabel: "API key:API secret:Access token:Access secret",
+    help: "developer.x.com → your app → set permissions to Read and Write, then regenerate the Access token & secret. Paste all 4 values joined with a colon (:). Text posts only." },
+  { id: "tiktok", name: "TikTok", bg: "from-[#00f2ea] via-black to-[#ff0050]", icon: <span>♪</span>, live: true,
+    idLabel: "Account name (optional)", tokenLabel: "User access token",
+    help: "developers.tiktok.com → Content Posting API (video.publish). Media must be a public https link on a domain verified in TikTok. Tokens last 24 hours — update when it expires." },
+  { id: "youtube", name: "YouTube", bg: "from-[#FF0000] to-[#cc0000]", icon: <Youtube className="w-4 h-4" />, live: true,
+    idLabel: "Channel ID (optional)", tokenLabel: "OAuth access token",
+    help: "Google OAuth Playground → YouTube Data API v3 → youtube.upload scope → exchange for an access token. Posts need an .mp4 link. Google tokens last 1 hour." },
 ] as const;
 
 export default function SocialiteAccounts({ onChange }: { onChange?: (s: Set<string>) => void }) {
