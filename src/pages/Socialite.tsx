@@ -106,9 +106,6 @@ const sampleSvg = (bg: string, txt?: string) =>
   )}`;
 
 const OE = {
-  img1: sampleSvg("#f09433", "Drop 01"),
-  img2: sampleSvg("#00f2ea", "Studio"),
-  img3: sampleSvg("#27272a", "Lookbook"),
   avatar: `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='#27272a'/><circle cx='50' cy='40' r='20' fill='#fafafa'/><path d='M15 85 Q50 65 85 85' fill='#fafafa'/></svg>`)}`,
 };
 
@@ -797,20 +794,12 @@ Use 2 hashtags max when promo present`;
     return updated;
   }, [showToast]);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      const posted = queue.filter((p) => p.status === "posted");
-      if (posted.length === 0) return;
-      const randomPost = posted[Math.floor(Math.random() * posted.length)];
-      syncEngagement(randomPost);
-    }, 30000);
-    return () => clearInterval(id);
-  }, [queue, syncEngagement]);
+  // (removed) random 30s "engagement sync" — it only produced fake toasts. Real metrics only.
 
   // ===== PHASE 5 - Performance Brain Logic =====
   const calcCtr = (likes: number, comments: number) => {
     const base = likes > 0 ? (comments / Math.max(1, likes)) * 100 + (likes / 1000) * 0.8 : 0;
-    return Math.min(8, Math.max(0.2, base + Math.random()*0.6));
+    return likes > 0 ? Math.min(8, base) : 0; // real numbers only, no random noise
   };
   const getSlotLabel = (slot: string) => {
     const opt = TIME_SLOT_OPTIONS.find(o=>o.value===slot);
@@ -906,8 +895,7 @@ Use 2 hashtags max when promo present`;
     // also include promos with zero posts but enabled
     promotions.forEach(pr=>{
       if (!promoMap.has(pr.code) && pr.enabled) {
-        const mockLikes = 0;
-        promoMap.set(pr.code, { likes: [mockLikes], ctrs: [calcCtr(mockLikes, 10)], count: 0, title: pr.title, discount: pr.discount });
+        promoMap.set(pr.code, { likes: [0], ctrs: [0], count: 0, title: pr.title, discount: pr.discount });
       }
     });
     const promos: PromoInsight[] = Array.from(promoMap.entries()).map(([code, data])=>{
@@ -2128,7 +2116,7 @@ Use 2 hashtags max when promo present`;
                               d.setDate(base.getDate() + i * 7);
                               return {
                                 id: (Date.now() + i * 1000).toString(),
-                                text: postText || "Weekly motivational post — creativity is a muscle. Post anyway. 🧠⚡",
+                                text: postText,
                                 platforms: [...selected] as PlatformId[],
                                 scheduledAt: d,
                                 media: [...media],
