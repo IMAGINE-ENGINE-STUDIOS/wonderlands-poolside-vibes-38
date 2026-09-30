@@ -16,6 +16,8 @@ interface InvoiceGeneratorProps {
   isOpen: boolean;
   onClose: () => void;
   quotationId?: string;
+  /** When set, called after saving instead of navigating to the invoice page. */
+  onCreated?: (invoiceId: string) => void;
 }
 
 interface LineItem {
@@ -26,7 +28,7 @@ interface LineItem {
   amount: number;
 }
 
-const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProps) => {
+const InvoiceGenerator = ({ isOpen, onClose, quotationId, onCreated }: InvoiceGeneratorProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -105,64 +107,48 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
       if (error) throw error;
 
       if (data) {
-        // Calculate discount based on difference between sum of items and total quote
-        const selectedOptions = data.selected_options ? (
-          typeof data.selected_options === 'string' 
-            ? JSON.parse(data.selected_options) 
-            : data.selected_options
-        ) : {};
-        
-        const optionsTotal: number = (Object.values(selectedOptions) as any[]).reduce((sum: number, opt: any) => {
-          return sum + (Number(opt?.price) || 0);
-        }, 0);
-        
+        // selected_options is saved as { options: PoolOption[], customItems: [] } by the quote tool
+        // (older quotes stored a flat object). Normalise both shapes into one list.
+        const raw = data.selected_options
+          ? (typeof data.selected_options === 'string' ? JSON.parse(data.selected_options) : data.selected_options)
+          : {};
+        const optionList: any[] = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.options) || Array.isArray(raw?.customItems)
+            ? [...(raw.options || []), ...(raw.customItems || [])]
+            : Object.values(raw || {});
+        const priced = optionList
+          .map((o: any) => ({ name: o?.name || o?.label || o?.description, price: Number(o?.price) || 0 }))
+          .filter((o) => o.name && o.price > 0);
+
         const poolPrice: number = Number(data.pool_price) || 0;
-        const itemsSubtotal: number = poolPrice + optionsTotal;
-        
-        const totalQuote: number = Number(data.total_quote_amount) || itemsSubtotal;
-        const calculatedDiscount: number = itemsSubtotal > totalQuote ? itemsSubtotal - totalQuote : 0;
-        const discountPercent: number = itemsSubtotal > 0 ? (calculatedDiscount / itemsSubtotal) * 100 : 0;
-        
-        setFormData({
-          ...formData,
+        const totalQuote: number = Number(data.total_quote_amount) || 0;
+        const items: LineItem[] = [];
+        if (data.pool_model) {
+          items.push({ id: "pool", description: `${data.pool_model} Pool Installation`, quantity: 1, rate: poolPrice, amount: poolPrice });
+        }
+        priced.forEach((o, i) => items.push({ id: `option-${i}`, description: o.name, quantity: 1, rate: o.price, amount: o.price }));
+
+        // The quote total is the source of truth: put any remaining difference
+        // (deck, extras, manual overrides) on its own line, or as a discount.
+        const itemsSum = items.reduce((s, i) => s + i.amount, 0);
+        let discount = 0;
+        if (totalQuote > itemsSum + 0.5) {
+          const diff = Math.round((totalQuote - itemsSum) * 100) / 100;
+          items.push({ id: "scope", description: itemsSum ? "Installation, deck & added features" : `${data.pool_model || "Project"} — complete scope per quote`, quantity: 1, rate: diff, amount: diff });
+        } else if (itemsSum > totalQuote && totalQuote > 0) {
+          discount = itemsSum - totalQuote;
+        }
+
+        setFormData((prev) => ({
+          ...prev,
           customerName: data.name || "",
           customerEmail: data.email || "",
           customerPhone: data.phone || "",
           customerAddress: data.address || "",
-          discountAmount: calculatedDiscount,
-          discountPercent: discountPercent,
-        });
-
-        // Convert quote to line items
-        const items: LineItem[] = [];
-        
-        if (data.pool_model) {
-          items.push({
-            id: "pool",
-            description: `${data.pool_model} Pool Installation`,
-            quantity: 1,
-            rate: data.pool_price || 0,
-            amount: data.pool_price || 0,
-          });
-        }
-
-        if (data.selected_options) {
-          const options = typeof data.selected_options === 'string' 
-            ? JSON.parse(data.selected_options) 
-            : data.selected_options;
-          
-          Object.values(options || {}).forEach((option: any, index: number) => {
-            if (option?.name && option?.price) {
-              items.push({
-                id: `option-${index}`,
-                description: option.name,
-                quantity: 1,
-                rate: option.price,
-                amount: option.price,
-              });
-            }
-          });
-        }
+          discountAmount: discount,
+          discountPercent: 0,
+        }));
 
         setLineItems(items.length > 0 ? items : [{ id: "1", description: "", quantity: 1, rate: 0, amount: 0 }]);
       }
@@ -231,8 +217,8 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
         user_id: user?.id || null,
         customer_name: formData.customerName,
         customer_email: formData.customerEmail,
-        customer_phone: formData.customerPhone,
-        customer_address: formData.customerAddress,
+        customer_phone: formData.customerPhone || "",
+        customer_address: formData.customerAddress || "",
         invoice_date: formData.invoiceDate,
         due_date: formData.dueDate,
         line_items: JSON.parse(JSON.stringify(lineItems)),
@@ -278,8 +264,8 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
       });
 
       try { localStorage.removeItem(INVOICE_CACHE_KEY); } catch {}
-      onClose();
-      navigate(`/admin/invoices/${invoice.id}`);
+      if (onCreated) onCreated(invoice.id);
+      else { onClose(); navigate(`/admin/invoices/${invoice.id}`); }
     } catch (error: any) {
       console.error('Error creating invoice:', error);
       toast({

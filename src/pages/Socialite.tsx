@@ -5,6 +5,9 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteMessaging from "@/components/socialite/SocialiteMessaging";
+import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
+import SocialiteQuotesInvoices from "@/components/socialite/SocialiteQuotesInvoices";
+import { Receipt as ReceiptIcon, MessageCircle as MsgIcon } from "lucide-react";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
   AtSign,
@@ -198,7 +201,13 @@ function formatSize(n: number) {
 
 export default function Socialite() {
   // core nav - ADDED automation + admin
-  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging">("dashboard");
+  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes">("dashboard");
+  // Real connection status from the encrypted key vault (SOCIALITE → Accounts)
+  const [liveAccounts, setLiveAccounts] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    supabase.functions.invoke("socialite-credentials", { body: { action: "status" } })
+      .then(({ data }) => setLiveAccounts(new Set((data?.accounts ?? []).map((a: any) => a.platform))));
+  }, []);
   const [selected, setSelected] = useState<PlatformId[]>(["instagram", "x"]);
   const [postText, setPostText] = useState("");
   const [media, setMedia] = useState<MediaItem[]>([]);
@@ -1554,6 +1563,7 @@ Use 2 hashtags max when promo present`;
             { id: "composer", label: "Composer", icon: PenTool },
             { id: "automation", label: "Automation", icon: Bot },
             { id: "messaging", label: "Email · SMS · Calls", icon: MessageCircle },
+            { id: "quotes", label: "Quotes & Invoices", icon: ReceiptIcon },
             { id: "calendar", label: "Calendar", icon: CalendarDays },
             { id: "queue", label: "Queue", icon: ChartColumn, badge: scheduledCount },
             { id: "analytics", label: "Analytics", icon: TrendingUp },
@@ -1591,7 +1601,7 @@ Use 2 hashtags max when promo present`;
                 <div key={p.id} className="flex items-center gap-2.5">
                   <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${p.bg} grid place-items-center text-white`}>{p.icon}</div>
                   <span className="text-[12.5px] text-zinc-300 flex-1">{p.name}</span>
-                  <div className={`w-2 h-2 rounded-full ${p.connected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" : "bg-zinc-600"}`} />
+                  <div className={`w-2 h-2 rounded-full ${liveAccounts.has(p.id) ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" : "bg-zinc-600"}`} />
                 </div>
               ))}
             </div>
@@ -1663,6 +1673,8 @@ Use 2 hashtags max when promo present`;
             {[
               { id: "composer", icon: PenTool },
               { id: "automation", icon: Bot },
+              { id: "messaging", icon: MsgIcon },
+              { id: "quotes", icon: ReceiptIcon },
               { id: "queue", icon: ChartColumn },
               { id: "calendar", icon: CalendarDays },
               { id: "analytics", icon: TrendingUp },
@@ -1765,7 +1777,7 @@ Use 2 hashtags max when promo present`;
                           <div className={`w-5 h-5 rounded-full grid place-items-center border transition ${active ? "bg-black text-white border-black" : "border-zinc-700 text-transparent"}`}>
                             <Check className="w-3 h-3" />
                           </div>
-                          {!p.connected && (
+                          {!liveAccounts.has(p.id) && (
                             <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 text-black grid place-items-center">
                               <CircleAlert className="w-3 h-3" />
                             </div>
@@ -2982,7 +2994,7 @@ Use 2 hashtags max when promo present`;
               <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-6">
                 <h3 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-400 mb-6">Performance by platform ({analyticsRange})</h3>
                 <div className="space-y-4">
-                  {PLATFORMS.filter((p) => p.connected).map((p) => { const eng = queue.filter(q=>q.status==="posted" && q.platforms.includes(p.id)).reduce((t,q)=>t+(q.engagement?.likes||0)+(q.engagement?.comments||0)+(q.engagement?.shares||0),0); const maxEng = Math.max(1, ...PLATFORMS.map(pp=>queue.filter(q=>q.status==="posted" && q.platforms.includes(pp.id)).reduce((t,q)=>t+(q.engagement?.likes||0)+(q.engagement?.comments||0)+(q.engagement?.shares||0),0))); return (
+                  {PLATFORMS.filter((p) => liveAccounts.has(p.id)).map((p) => { const eng = queue.filter(q=>q.status==="posted" && q.platforms.includes(p.id)).reduce((t,q)=>t+(q.engagement?.likes||0)+(q.engagement?.comments||0)+(q.engagement?.shares||0),0); const maxEng = Math.max(1, ...PLATFORMS.map(pp=>queue.filter(q=>q.status==="posted" && q.platforms.includes(pp.id)).reduce((t,q)=>t+(q.engagement?.likes||0)+(q.engagement?.comments||0)+(q.engagement?.shares||0),0))); return (
                     <div key={p.id} className="flex items-center gap-4">
                       <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${p.bg} grid place-items-center text-white`}>{p.icon}</div>
                       <div className="w-[90px] text-[13px]">{p.name}</div>
@@ -2995,30 +3007,7 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {view === "accounts" && (
-            <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
-              <h1 className="text-[22px] font-semibold">Accounts • App {META_APP_ID}</h1>
-              <div className="grid gap-3">
-                {PLATFORMS.map((p) => (
-                  <div key={p.id} className="rounded-[18px] border border-zinc-800 bg-[#161617] p-5 flex items-center gap-4">
-                    <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${p.bg} grid place-items-center text-white`}>{p.icon}</div>
-                    <div className="flex-1">
-                      <div className="text-[14px] font-medium">{p.name}</div>
-                      <div className="text-[12px] text-zinc-500">{p.connected ? `Connected as @{profile.name} • token valid` : "Not connected • connect to enable posting"}</div>
-                    </div>
-                    <button onClick={() => showToast(`${p.name} - manage in Accounts tab`, "success")} className="px-4 py-2 rounded-full text-[12px] font-semibold border bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black transition">{p.connected ? "Reconnect" : "Connect"}</button>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-[16px] border border-dashed border-zinc-700 p-5 flex gap-3">
-                <div className="w-9 h-9 rounded-xl bg-zinc-900 grid place-items-center"><Facebook className="w-4 h-4" /></div>
-                <div>
-                  <div className="text-[13px] font-medium">Mock OAuth flow • Tokens in localStorage pf_* keys</div>
-                  <div className="text-[12px] text-zinc-500 mt-1 leading-[1.5]">Connecting opens a simulated auth window — tokens stored in localStorage pf_* keys. Use Data Control to clear.</div>
-                </div>
-              </div>
-            </div>
-          )}
+          {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
 
           {view === "settings" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
@@ -3062,6 +3051,7 @@ Use 2 hashtags max when promo present`;
           )}
 
           {view === "messaging" && <SocialiteMessaging />}
+          {view === "quotes" && <SocialiteQuotesInvoices />}
 
           {view === "datacontrol" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
