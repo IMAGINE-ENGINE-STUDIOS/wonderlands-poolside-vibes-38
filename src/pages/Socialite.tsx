@@ -903,7 +903,7 @@ Use 2 hashtags max when promo present`;
       const avgLikes = data.likes.reduce((a,b)=>a+b,0)/Math.max(1,data.likes.length);
       const avgCtr = data.ctrs.reduce((a,b)=>a+b,0)/Math.max(1,data.ctrs.length);
       const score = avgLikes*0.6 + avgCtr*110 + data.count*15;
-      const redemptions = Math.floor(avgLikes * (0.08 + Math.random()*0.07));
+      const redemptions = 0;
       return { code, title: data.title, discount: data.discount, avgLikes, avgCtr, count: data.count, redemptions, score };
     }).sort((a,b)=>b.score-a.score);
 
@@ -936,7 +936,7 @@ Use 2 hashtags max when promo present`;
     const bestSlotCtr = slots[0]?.avgCtr?.toFixed(1) || "4.2";
     const secondCtr = slots[1]?.avgCtr?.toFixed(1) || "2.1";
     const promoStr = topPromo ? `use ${topPromo} on ${autoPlatforms.includes("instagram" as PlatformId) ? "Instagram" : autoPlatforms[0] || "Instagram"}` : "use promo on Instagram";
-    const engagementLift = Math.floor(25 + Math.random()*25);
+    const engagementLift = 0;
     const recommendation = `Bot learned: Move 60% of posts to ${bestSlotLabel} + ${secondSlotLabel} (${bestSlotCtr}% CTR vs ${secondCtr}%) + ${promoStr} = +${engagementLift}% engagement. Top topic: ${topTopic || "product launch"} • Tone: ${topTone || "Minimal"} • ${topSlots.join(", ")} perform 2x better.`;
 
     const brain: PerformanceBrainData = {
