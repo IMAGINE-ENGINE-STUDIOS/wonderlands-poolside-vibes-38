@@ -10,6 +10,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { admin } from "../_shared/socialiteVault.ts";
 import { publishAll } from "../_shared/socialitePublish.ts";
 import { sendToContacts } from "../_shared/contactSend.ts";
+import { meter } from "../_shared/socialiteBilling.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const URL_ = Deno.env.get("SUPABASE_URL")!;
@@ -30,7 +31,21 @@ Deno.serve(async (req) => {
     let result: any;
     try {
       const p = row.payload ?? {};
-      if (row.kind === "post") result = await publishAll(String(p.text ?? ""), p.platforms ?? [], p.media ?? [], row.created_by);
+      // Metered kinds (user posts / own-contact sends) are charged at actual send time.
+      const mKind = row.kind === "post" ? "posts" : row.kind === "contact" ? p.channel : null;
+      const mUnits = row.kind === "post" ? (p.platforms ?? []).length : (p.contact_ids ?? []).length;
+      let isAdm = false;
+      if (mKind && row.created_by) {
+        const { data: pr } = await db.from("profiles").select("role").eq("id", row.created_by).maybeSingle();
+        isAdm = pr?.role === "main_admin";
+        const pre = await meter(row.created_by, isAdm, mKind, mUnits, {}, true);
+        if (!pre.ok) throw new Error(pre.reason);
+      }
+      if (row.kind === "post") {
+        result = await publishAll(String(p.text ?? ""), p.platforms ?? [], p.media ?? [], row.created_by);
+        const n = (result?.results ?? []).filter((x: any) => x?.success).length;
+        if (n) await meter(row.created_by, isAdm, "posts", n, { via: "schedule" });
+      }
       else if (row.kind === "email") result = await call("send-bulk-email", p);
       else if (row.kind === "sms" || row.kind === "whatsapp") {
         const fn = row.kind === "sms" ? "send-sms" : "send-whatsapp";
@@ -49,6 +64,7 @@ Deno.serve(async (req) => {
         result = { success: failed === 0, sent, failed };
       } else if (row.kind === "contact") {
         const r = await sendToContacts(row.created_by, "", p.channel, (p.contact_ids ?? []).slice(0, 200), String(p.subject ?? ""), String(p.message ?? ""));
+        if (r.successful) await meter(row.created_by, isAdm, p.channel, r.successful, { via: "schedule" });
         result = { success: r.failed === 0, ...r };
       } else result = { success: false, error: "Unknown kind" };
     } catch (e) { result = { success: false, error: (e as Error).message }; }

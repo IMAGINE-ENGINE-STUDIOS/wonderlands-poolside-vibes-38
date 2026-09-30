@@ -101,6 +101,8 @@ Deno.serve(async (req) => {
       const b = await body(req, PostIn);
       const at = future(b.send_at);
       if (at) {
+        const chk = await meter(owner, isAdmin, "posts", b.platforms.length, {}, true);
+        if (!chk.ok) throw new ApiError(402, chk.reason);
         const { data } = await db.from("socialite_scheduled").insert({ kind: "post", created_by: owner, send_at: at, timezone: b.timezone, payload: { text: b.text, platforms: b.platforms, media: b.media } }).select("id, send_at, status").single();
         status = 202; out = { scheduled: data };
       } else {
@@ -116,6 +118,8 @@ Deno.serve(async (req) => {
       const b = await body(req, MsgIn);
       const at = future(b.send_at);
       if (at) {
+        const chk = await meter(owner, isAdmin, b.channel, b.contact_ids.length, {}, true);
+        if (!chk.ok) throw new ApiError(402, chk.reason);
         const { data } = await db.from("socialite_scheduled").insert({ kind: "contact", created_by: owner, send_at: at, timezone: b.timezone, payload: { channel: b.channel, contact_ids: b.contact_ids, subject: b.subject, message: b.message } }).select("id, send_at, status").single();
         status = 202; out = { scheduled: data };
       } else {
