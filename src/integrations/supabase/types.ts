@@ -3527,6 +3527,75 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string
+          last_used_at: string | null
+          name: string
+          owner_id: string
+          prefix: string
+          revoked_at: string | null
+          scopes: string[]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash: string
+          last_used_at?: string | null
+          name: string
+          owner_id: string
+          prefix: string
+          revoked_at?: string | null
+          scopes?: string[]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string
+          last_used_at?: string | null
+          name?: string
+          owner_id?: string
+          prefix?: string
+          revoked_at?: string | null
+          scopes?: string[]
+        }
+        Relationships: []
+      }
+      socialite_api_requests: {
+        Row: {
+          created_at: string
+          id: number
+          ip_hash: string | null
+          key_id: string
+          method: string
+          owner_id: string
+          path: string
+          status: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          ip_hash?: string | null
+          key_id: string
+          method: string
+          owner_id: string
+          path: string
+          status: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          ip_hash?: string | null
+          key_id?: string
+          method?: string
+          owner_id?: string
+          path?: string
+          status?: number
+        }
+        Relationships: []
+      }
       socialite_billing_config: {
         Row: {
           config: Json

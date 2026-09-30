@@ -7,6 +7,7 @@ import SocialiteInsights from "@/components/socialite/SocialiteInsights";
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteMessaging from "@/components/socialite/SocialiteMessaging";
 import SocialiteBilling from "@/components/socialite/SocialiteBilling";
+import SocialiteApi from "@/components/socialite/SocialiteApi";
 import SocialiteGenius from "@/components/socialite/SocialiteGenius";
 import SocialiteSettings from "@/components/socialite/SocialiteSettings";
 import SocialiteDataControl from "@/components/socialite/SocialiteDataControl";
@@ -206,7 +207,7 @@ function formatSize(n: number) {
 
 export default function Socialite() {
   // core nav - ADDED automation + admin
-  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes" | "billing" | "genius">("dashboard");
+  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes" | "billing" | "genius" | "api">("dashboard");
   // Real connection status from the encrypted key vault (SOCIALITE → Accounts)
   const [liveAccounts, setLiveAccounts] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -1596,6 +1597,7 @@ Use 2 hashtags max when promo present`;
             { id: "accounts", label: "Accounts", icon: Facebook },
             { id: "genius", label: "Genius", icon: PenTool },
             { id: "billing", label: "Plan & billing", icon: ReceiptIcon },
+            { id: "api", label: "API", icon: Database },
             { id: "settings", label: "Settings", icon: Settings },
             { id: "admin", label: "Admin", icon: ShieldAlert },
             { id: "datacontrol", label: "Data Control", icon: Database },
@@ -2988,6 +2990,7 @@ Use 2 hashtags max when promo present`;
 
           {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} isOwner={isOwner} />}
           {view === "billing" && <SocialiteBilling />}
+          {view === "api" && <SocialiteApi />}
           {view === "genius" && (
             <SocialiteGenius
               queueSummary={`${queue.length} posts in queue, ${queue.filter((q) => q.status === "posted").length} posted; top platforms: ${Array.from(new Set(queue.flatMap((q) => q.platforms))).join(", ") || "none"}`}
