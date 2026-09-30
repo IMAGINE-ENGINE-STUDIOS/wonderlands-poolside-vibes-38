@@ -41,6 +41,7 @@ const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"), 'ad
 const TwilioPOC = lazy(() => import("./pages/TwilioPOC"));
 const Socialite = lazy(() => import("./pages/Socialite"));
 import SocialiteCloudSync from "./components/socialite/SocialiteCloudSync";
+import { SocialiteGate } from "./components/socialite/SocialiteAuth";
 const EcommerceTemplate = lazy(() => import("./pages/EcommerceTemplate"));
 const AuthPage = lazy(() => import("./components/AuthPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -149,8 +150,10 @@ const App = () => {
                  </ProtectedRoute>
                } 
              />
-            {/* SOCIALITE command center — main admin only; reachable at /socialite and /admin/socialite */}
-            {["/socialite", "/admin/socialite", "/admin/command-center"].map((p) => (
+            {/* SOCIALITE — own sign in/up (same Wonderlands account). Any signed-in user;
+                company sections inside are main-admin only. /admin/* aliases stay admin-only. */}
+            <Route path="/socialite" element={<SocialiteGate><SocialiteCloudSync><Socialite /></SocialiteCloudSync></SocialiteGate>} />
+            {["/admin/socialite", "/admin/command-center"].map((p) => (
               <Route key={p} path={p} element={<ProtectedRoute requiredRoles={['main_admin']}><SocialiteCloudSync><Socialite /></SocialiteCloudSync></ProtectedRoute>} />
             ))}
             {/* Public invoice view route - no auth required */}

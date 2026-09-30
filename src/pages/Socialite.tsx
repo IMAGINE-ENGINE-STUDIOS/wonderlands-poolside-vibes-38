@@ -9,6 +9,10 @@ import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
 import SocialiteQuotesInvoices from "@/components/socialite/SocialiteQuotesInvoices";
 import SocialiteClients from "@/components/socialite/SocialiteClients";
 import SocialiteAdmin from "@/components/socialite/SocialiteAdmin";
+import { useAuth } from "@/contexts/AuthContext";
+import SocialiteScheduled from "@/components/socialite/SocialiteScheduled";
+import SendTimePicker from "@/components/socialite/SendTimePicker";
+import { scheduleSend, getSavedTz, fmtIn } from "@/lib/socialite/sendTime";
 import { Receipt as ReceiptIcon, MessageCircle as MsgIcon } from "lucide-react";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
@@ -100,15 +104,7 @@ const TIME_SLOT_OPTIONS: { label: string; value: string }[] = [
 
 type PlatformId = typeof PLATFORMS[number]["id"];
 
-const sampleSvg = (bg: string, txt?: string) =>
-  `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='${bg}'/><stop offset='100%' stop-color='#111'/></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Inter' font-size='20' opacity='0.9'>${(txt || "Socialite").slice(0, 28)}</text></svg>`
-  )}`;
-
 const OE = {
-  img1: sampleSvg("#f09433", "Drop 01"),
-  img2: sampleSvg("#00f2ea", "Studio"),
-  img3: sampleSvg("#27272a", "Lookbook"),
   avatar: `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='#27272a'/><circle cx='50' cy='40' r='20' fill='#fafafa'/><path d='M15 85 Q50 65 85 85' fill='#fafafa'/></svg>`)}`,
 };
 
@@ -127,6 +123,7 @@ type QueuePost = {
   engagement?: { likes: number; comments: number; shares: number };
   performance?: PerformanceData;
   retryCount?: number;
+  serverId?: string; // set when the server scheduler owns sending
   isAuto?: boolean;
   _metaTopic?: string;
   _metaTone?: Tone;
@@ -203,7 +200,7 @@ function formatSize(n: number) {
 
 export default function Socialite() {
   // core nav - ADDED automation + admin
-  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes">("dashboard");
+  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes">("dashboard");
   // Real connection status from the encrypted key vault (SOCIALITE → Accounts)
   const [liveAccounts, setLiveAccounts] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -215,11 +212,17 @@ export default function Socialite() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [scheduleMode, setScheduleMode] = useState<"now" | "best" | "schedule" | "queue">("best");
+  const [sendTz, setSendTz] = useState(getSavedTz);
+  // Company sections (clients, quotes, messaging, keys, admin) are main-admin only.
+  const { profile: authProfile } = useAuth();
+  const isOwner = authProfile?.role === "main_admin";
+  const STAFF_ONLY = new Set(["messaging", "quotes", "sendtimes", "clients", "accounts", "admin", "datacontrol"]);
+  const canSee = (id: string) => isOwner || !STAFF_ONLY.has(id);
   const [scheduleAt, setScheduleAt] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     d.setHours(19, 0, 0, 0);
-    return d.toISOString().slice(0, 16);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); // local wall time
   });
   const [queue, setQueue] = useState<QueuePost[]>(() => {
     try {
@@ -797,20 +800,12 @@ Use 2 hashtags max when promo present`;
     return updated;
   }, [showToast]);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      const posted = queue.filter((p) => p.status === "posted");
-      if (posted.length === 0) return;
-      const randomPost = posted[Math.floor(Math.random() * posted.length)];
-      syncEngagement(randomPost);
-    }, 30000);
-    return () => clearInterval(id);
-  }, [queue, syncEngagement]);
+  // (removed) random 30s "engagement sync" — it only produced fake toasts. Real metrics only.
 
   // ===== PHASE 5 - Performance Brain Logic =====
   const calcCtr = (likes: number, comments: number) => {
     const base = likes > 0 ? (comments / Math.max(1, likes)) * 100 + (likes / 1000) * 0.8 : 0;
-    return Math.min(8, Math.max(0.2, base + Math.random()*0.6));
+    return likes > 0 ? Math.min(8, base) : 0; // real numbers only, no random noise
   };
   const getSlotLabel = (slot: string) => {
     const opt = TIME_SLOT_OPTIONS.find(o=>o.value===slot);
@@ -906,8 +901,7 @@ Use 2 hashtags max when promo present`;
     // also include promos with zero posts but enabled
     promotions.forEach(pr=>{
       if (!promoMap.has(pr.code) && pr.enabled) {
-        const mockLikes = 0;
-        promoMap.set(pr.code, { likes: [mockLikes], ctrs: [calcCtr(mockLikes, 10)], count: 0, title: pr.title, discount: pr.discount });
+        promoMap.set(pr.code, { likes: [0], ctrs: [0], count: 0, title: pr.title, discount: pr.discount });
       }
     });
     const promos: PromoInsight[] = Array.from(promoMap.entries()).map(([code, data])=>{
@@ -1418,7 +1412,7 @@ Use 2 hashtags max when promo present`;
 
     const check = async () => {
       const now = new Date();
-      const due = queue.filter(p=>p.status==="scheduled" && p.scheduledAt <= now);
+      const due = queue.filter(p=>p.status==="scheduled" && !p.serverId && p.scheduledAt <= now);
       if (autoPostEnabled) {
         for (const post of due) {
           if (post.isAuto || autoPlatforms.some(pl=>post.platforms.includes(pl))) {
@@ -1460,7 +1454,18 @@ Use 2 hashtags max when promo present`;
       showToast("Add caption and platforms", "error");
       return;
     }
-    const when = scheduleMode === "now" ? new Date() : scheduleMode === "best" ? getBestTime() : new Date(scheduleAt);
+    let when = scheduleMode === "now" ? new Date() : scheduleMode === "best" ? getBestTime() : new Date(scheduleAt);
+    let serverId: string | undefined;
+    if (scheduleMode === "schedule" || scheduleMode === "best") {
+      // Hand the post to the server scheduler so it goes out even with this page closed.
+      const local = scheduleMode === "schedule" ? scheduleAt : new Date(when.getTime() - when.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      const tz = scheduleMode === "schedule" ? sendTz : Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const pub = media.map((m) => m.url).filter((u) => /^https:\/\//.test(u));
+      try {
+        const res = await scheduleSend("post", { text: postText, platforms: [...selected], media: pub }, local, tz);
+        serverId = res.id; when = res.when;
+      } catch (e: any) { showToast(e.message || "Could not schedule", "error"); return; }
+    }
     const newPost: QueuePost = {
       id: Date.now().toString(),
       text: postText,
@@ -1470,6 +1475,7 @@ Use 2 hashtags max when promo present`;
       attachedFiles: [...attachedFiles],
       status: scheduleMode === "now" ? "queued" : "scheduled",
       retryCount: 0,
+      serverId,
     };
     if (scheduleMode === "now") {
       // Real publish: add to queue first, then publishQueueItem flips it to "posted" only on Meta success.
@@ -1479,13 +1485,13 @@ Use 2 hashtags max when promo present`;
     } else {
       setQueue((q) => [newPost, ...q]);
       const ytNote = selected.includes("youtube" as PlatformId) ? " • YT best: Sat 2pm / Fri 3pm" : "";
-      showToast(`Scheduled for ${when.toLocaleString()}${ytNote}`, "success");
+      showToast(`Scheduled for ${fmtIn(when, scheduleMode === "schedule" ? sendTz : Intl.DateTimeFormat().resolvedOptions().timeZone)}${ytNote}`, "success");
     }
     setPostText("");
     setMedia([]);
     setAttachedFiles([]);
     setAiVariations([]);
-  }, [postText, selected, scheduleMode, getBestTime, scheduleAt, media, attachedFiles, showToast]);
+  }, [postText, selected, scheduleMode, getBestTime, scheduleAt, sendTz, media, attachedFiles, showToast]);
 
   const filteredQueue = useMemo(() => {
     let q = queue;
@@ -1568,13 +1574,14 @@ Use 2 hashtags max when promo present`;
             { id: "quotes", label: "Quotes & Invoices", icon: ReceiptIcon },
             { id: "calendar", label: "Calendar", icon: CalendarDays },
             { id: "queue", label: "Queue", icon: ChartColumn, badge: scheduledCount },
+            { id: "sendtimes", label: "Send Times", icon: Clock },
             { id: "analytics", label: "Analytics", icon: TrendingUp },
             { id: "clients", label: "Clients", icon: Users },
             { id: "accounts", label: "Accounts", icon: Facebook },
             { id: "settings", label: "Settings", icon: Settings },
             { id: "admin", label: "Admin", icon: ShieldAlert },
             { id: "datacontrol", label: "Data Control", icon: Database },
-          ].map((it) => (
+          ].filter((it) => canSee(it.id)).map((it) => (
             <button
               key={it.id}
               onClick={() => setView(it.id as any)}
@@ -1678,13 +1685,14 @@ Use 2 hashtags max when promo present`;
               { id: "messaging", icon: MsgIcon },
               { id: "quotes", icon: ReceiptIcon },
               { id: "queue", icon: ChartColumn },
+              { id: "sendtimes", icon: Clock },
               { id: "calendar", icon: CalendarDays },
               { id: "analytics", icon: TrendingUp },
               { id: "clients", icon: Users },
               { id: "accounts", icon: Facebook },
               { id: "admin", icon: ShieldAlert },
               { id: "datacontrol", icon: Database },
-            ].map((it) => (
+            ].filter((it) => canSee(it.id)).map((it) => (
               <button
                 key={it.id}
                 onClick={() => setView(it.id as any)}
@@ -2116,7 +2124,9 @@ Use 2 hashtags max when promo present`;
                   </div>
                   {(scheduleMode === "schedule" || scheduleMode === "best") && (
                     <div className="flex gap-3">
-                      <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className="flex-1 bg-[#0f0f10] border border-zinc-800 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-zinc-600" />
+                      <div className="flex-1">{scheduleMode === "schedule"
+                        ? <SendTimePicker value={scheduleAt} onChange={setScheduleAt} tz={sendTz} onTzChange={setSendTz} />
+                        : <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className="w-full bg-[#0f0f10] border border-zinc-800 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-zinc-600" />}</div>
                       <button
                         onClick={() => {
                           const newVal = !settings.recurring;
@@ -2128,7 +2138,7 @@ Use 2 hashtags max when promo present`;
                               d.setDate(base.getDate() + i * 7);
                               return {
                                 id: (Date.now() + i * 1000).toString(),
-                                text: postText || "Weekly motivational post — creativity is a muscle. Post anyway. 🧠⚡",
+                                text: postText,
                                 platforms: [...selected] as PlatformId[],
                                 scheduledAt: d,
                                 media: [...media],
@@ -3009,7 +3019,7 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
+          {isOwner && view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
 
           {view === "settings" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
@@ -3052,12 +3062,13 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {view === "messaging" && <SocialiteMessaging />}
-          {view === "quotes" && <SocialiteQuotesInvoices />}
-          {view === "clients" && <SocialiteClients />}
-          {view === "admin" && <SocialiteAdmin />}
+          {isOwner && view === "messaging" && <SocialiteMessaging />}
+          {isOwner && view === "quotes" && <SocialiteQuotesInvoices />}
+          {isOwner && view === "clients" && <SocialiteClients />}
+          {isOwner && view === "sendtimes" && <SocialiteScheduled />}
+          {isOwner && view === "admin" && <SocialiteAdmin />}
 
-          {view === "datacontrol" && (
+          {isOwner && view === "datacontrol" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><Database className="w-5 h-5" /></div>

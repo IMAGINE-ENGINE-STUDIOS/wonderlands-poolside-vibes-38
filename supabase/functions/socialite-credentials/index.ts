@@ -31,7 +31,21 @@ async function verify(platform: string, accountId: string, token: string): Promi
       const r = await (await fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(accountId)}?fields=username&access_token=${encodeURIComponent(token)}`)).json();
       return r.error ? { ok: false, error: r.error.message } : { ok: true, name: r.username };
     }
-    return { ok: true }; // other platforms: stored for when publishing is added
+    if (platform === "threads") {
+      if (!accountId) return { ok: false, error: "Threads user ID is required" };
+      const r = await (await fetch(`https://graph.threads.net/v1.0/me?fields=username&access_token=${encodeURIComponent(token)}`)).json();
+      return r.error ? { ok: false, error: r.error.message } : { ok: true, name: r.username };
+    }
+    if (platform === "x" && token.split(":").length !== 4) return { ok: false, error: "Paste 4 values joined by colons: API key:API secret:Access token:Access secret" };
+    if (platform === "youtube") {
+      const r = await (await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true", { headers: { Authorization: `Bearer ${token}` } })).json();
+      return r.error ? { ok: false, error: r.error.message } : { ok: true, name: r.items?.[0]?.snippet?.title };
+    }
+    if (platform === "tiktok") {
+      const r = await (await fetch("https://open.tiktokapis.com/v2/user/info/?fields=display_name", { headers: { Authorization: `Bearer ${token}` } })).json();
+      return r.error?.code && r.error.code !== "ok" ? { ok: false, error: r.error.message || r.error.code } : { ok: true, name: r.data?.user?.display_name };
+    }
+    return { ok: true };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }

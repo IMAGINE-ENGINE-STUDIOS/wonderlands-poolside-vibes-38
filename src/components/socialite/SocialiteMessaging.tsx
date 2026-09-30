@@ -8,6 +8,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Mail, MessageSquare, PhoneCall, Send, Search, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AutomationTemplatesManager from "@/components/admin/AutomationTemplatesManager";
+import SendTimePicker from "./SendTimePicker";
+import { scheduleSend, getSavedTz, fmtIn } from "@/lib/socialite/sendTime";
 
 type Tab = "email" | "sms" | "whatsapp" | "calls";
 type Channel = Exclude<Tab, "email">;
@@ -33,6 +35,10 @@ function Composer({ channel }: { channel: Channel }) {
   const [sign, setSign] = useState(true);
   const [progress, setProgress] = useState<{ done: number; total: number; ok: number } | null>(null);
   const [log, setLog] = useState<LogRow[]>([]);
+  const [later, setLater] = useState(false);
+  const [at, setAt] = useState("");
+  const [tz, setTz] = useState(getSavedTz);
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     if (!clientCache) supabase.from("clients").select("id, first_name, last_name, phone, email")
@@ -63,6 +69,13 @@ function Composer({ channel }: { channel: Channel }) {
     const targets = clients.filter(c => picked.has(c.id) && c.phone);
     if (!message.trim() || !targets.length) return;
     const verb = channel === "calls" ? "Call" : channel === "whatsapp" ? "WhatsApp" : "Text";
+    if (later && channel !== "calls") {
+      try {
+        const res = await scheduleSend(channel, { messages: targets.map(c => ({ to: c.phone, message: finalText(c), recipientName: `${c.first_name} ${c.last_name}` })) }, at, tz);
+        setNote(`Scheduled ${targets.length} for ${fmtIn(res.when, tz)} — see Send Times.`);
+      } catch (e: any) { setNote(e.message); }
+      return;
+    }
     if (!confirm(`${verb} ${targets.length} client(s)?`)) return;
     let done = 0, ok = 0;
     setProgress({ done, total: targets.length, ok });
@@ -135,9 +148,20 @@ function Composer({ channel }: { channel: Channel }) {
             </div>
           )}
           <div className="text-[11px] text-zinc-500 mono">{len} chars{channel === "sms" ? ` · ${segments} segment${segments > 1 ? "s" : ""} per text` : ""} · {picked.size} selected</div>
-          <button disabled={sending || !picked.size || !message.trim()} onClick={send}
+          {channel !== "calls" && (
+            <div className="space-y-2">
+              <div className="flex gap-1.5">
+                {[["Send now", false], ["Schedule", true]].map(([l, v]) => (
+                  <button key={String(l)} onClick={() => setLater(v as boolean)} className={`text-[11px] px-3 py-1 rounded-full ${later === v ? "bg-white text-black" : "bg-zinc-900 border border-zinc-800 text-zinc-400"}`}>{l as string}</button>
+                ))}
+              </div>
+              {later && <SendTimePicker value={at} onChange={setAt} tz={tz} onTzChange={setTz} />}
+            </div>
+          )}
+          {note && <div className="text-[12px] text-zinc-400">{note}</div>}
+          <button disabled={sending || !picked.size || !message.trim() || (later && channel !== "calls" && !at)} onClick={send}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-white text-black text-[13px] font-semibold disabled:opacity-40">
-            <Send className="w-4 h-4" /> {sending ? `Sending ${progress!.done}/${progress!.total}…` : channel === "calls" ? "Start calls" : channel === "whatsapp" ? "Send WhatsApp" : "Send texts"}
+            <Send className="w-4 h-4" /> {sending ? `Sending ${progress!.done}/${progress!.total}…` : later && channel !== "calls" ? "Schedule" : channel === "calls" ? "Start calls" : channel === "whatsapp" ? "Send WhatsApp" : "Send texts"}
           </button>
           {progress && (
             <div>
