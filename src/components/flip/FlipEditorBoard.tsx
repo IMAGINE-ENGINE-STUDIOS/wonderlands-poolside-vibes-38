@@ -219,7 +219,7 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
         pool={null}
         isOpen={quoteOpen}
         onClose={() => setQuoteOpen(false)}
-        customProduct={{ name: productName ? `${categoryLabel} — ${productName}` : `${categoryLabel} — board design`, price: Math.max(total, productPrice ?? 0), type: "scene" }}
+        customProduct={{ name: productName ? `${categoryLabel} — ${productName}` : `${categoryLabel} — board design`, price: Math.max(total, productPrice ?? 0), type: categoryLabel }}
       />
     </div>
   );
