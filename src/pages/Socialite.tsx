@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import SocialiteMessaging from "@/components/socialite/SocialiteMessaging";
 import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
 import SocialiteQuotesInvoices from "@/components/socialite/SocialiteQuotesInvoices";
+import SocialiteClients from "@/components/socialite/SocialiteClients";
+import SocialiteAdmin from "@/components/socialite/SocialiteAdmin";
 import { Receipt as ReceiptIcon, MessageCircle as MsgIcon } from "lucide-react";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
@@ -3052,6 +3054,8 @@ Use 2 hashtags max when promo present`;
 
           {view === "messaging" && <SocialiteMessaging />}
           {view === "quotes" && <SocialiteQuotesInvoices />}
+          {view === "clients" && <SocialiteClients />}
+          {view === "admin" && <SocialiteAdmin />}
 
           {view === "datacontrol" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
