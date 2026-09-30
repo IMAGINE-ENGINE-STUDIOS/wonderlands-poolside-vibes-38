@@ -35,7 +35,7 @@ function Composer({ channel }: { channel: Channel }) {
   const [log, setLog] = useState<LogRow[]>([]);
 
   useEffect(() => {
-    if (!clientCache) supabase.from("clients").select("id, first_name, last_name, phone, email, city")
+    if (!clientCache) supabase.from("clients").select("id, first_name, last_name, phone, email")
       .not("phone", "is", null).order("first_name").limit(1000)
       .then(({ data }) => { clientCache = (data as ClientRow[]) || []; setClients(clientCache); });
   }, []);
