@@ -45,7 +45,7 @@ const channelColors = {
   voice: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
 };
 
-export default function AutomationTemplatesManager() {
+export default function AutomationTemplatesManager({ embedded = false }: { embedded?: boolean }) {
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -185,19 +185,19 @@ export default function AutomationTemplatesManager() {
   return (
     <div className="space-y-6">
       {/* Command Center — full social posting hub on its own page */}
-      <a
-        href="/admin/command-center"
+      {!embedded && <a
+        href="/socialite"
         className="flex items-center justify-between rounded-xl border border-cyan-500/30 bg-gray-900/60 p-4 hover:border-cyan-400/60 transition-colors"
       >
         <div className="flex items-center gap-3">
           <Send className="h-5 w-5 text-cyan-300" />
           <div>
-            <div className="font-semibold text-cyan-300">Command Center</div>
-            <div className="text-xs text-cyan-400/60">Compose, schedule and auto-post to Facebook & Instagram</div>
+            <div className="font-semibold text-cyan-300">SOCIALITE</div>
+            <div className="text-xs text-cyan-400/60">Social posting, email, SMS & calls — one command center</div>
           </div>
         </div>
         <span className="text-sm text-cyan-300">Open →</span>
-      </a>
+      </a>}
       {/* Featured campaign — Milan Collection premium offer email */}
       <DailyCampaignSchedule />
       <KitchenCampaign />
