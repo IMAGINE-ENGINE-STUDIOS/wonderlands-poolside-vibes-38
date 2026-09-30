@@ -9,6 +9,9 @@ import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
 import SocialiteQuotesInvoices from "@/components/socialite/SocialiteQuotesInvoices";
 import SocialiteClients from "@/components/socialite/SocialiteClients";
 import SocialiteAdmin from "@/components/socialite/SocialiteAdmin";
+import SocialiteScheduled from "@/components/socialite/SocialiteScheduled";
+import SendTimePicker from "@/components/socialite/SendTimePicker";
+import { scheduleSend, getSavedTz, fmtIn } from "@/lib/socialite/sendTime";
 import { Receipt as ReceiptIcon, MessageCircle as MsgIcon } from "lucide-react";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
@@ -119,6 +122,7 @@ type QueuePost = {
   engagement?: { likes: number; comments: number; shares: number };
   performance?: PerformanceData;
   retryCount?: number;
+  serverId?: string; // set when the server scheduler owns sending
   isAuto?: boolean;
   _metaTopic?: string;
   _metaTone?: Tone;
@@ -195,7 +199,7 @@ function formatSize(n: number) {
 
 export default function Socialite() {
   // core nav - ADDED automation + admin
-  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes">("dashboard");
+  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes">("dashboard");
   // Real connection status from the encrypted key vault (SOCIALITE → Accounts)
   const [liveAccounts, setLiveAccounts] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -207,6 +211,7 @@ export default function Socialite() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [scheduleMode, setScheduleMode] = useState<"now" | "best" | "schedule" | "queue">("best");
+  const [sendTz, setSendTz] = useState(getSavedTz);
   const [scheduleAt, setScheduleAt] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -1401,7 +1406,7 @@ Use 2 hashtags max when promo present`;
 
     const check = async () => {
       const now = new Date();
-      const due = queue.filter(p=>p.status==="scheduled" && p.scheduledAt <= now);
+      const due = queue.filter(p=>p.status==="scheduled" && !p.serverId && p.scheduledAt <= now);
       if (autoPostEnabled) {
         for (const post of due) {
           if (post.isAuto || autoPlatforms.some(pl=>post.platforms.includes(pl))) {
@@ -1443,7 +1448,18 @@ Use 2 hashtags max when promo present`;
       showToast("Add caption and platforms", "error");
       return;
     }
-    const when = scheduleMode === "now" ? new Date() : scheduleMode === "best" ? getBestTime() : new Date(scheduleAt);
+    let when = scheduleMode === "now" ? new Date() : scheduleMode === "best" ? getBestTime() : new Date(scheduleAt);
+    let serverId: string | undefined;
+    if (scheduleMode === "schedule" || scheduleMode === "best") {
+      // Hand the post to the server scheduler so it goes out even with this page closed.
+      const local = scheduleMode === "schedule" ? scheduleAt : new Date(when.getTime() - when.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      const tz = scheduleMode === "schedule" ? sendTz : Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const pub = media.map((m) => m.url).filter((u) => /^https:\/\//.test(u));
+      try {
+        const res = await scheduleSend("post", { text: postText, platforms: [...selected], media: pub }, local, tz);
+        serverId = res.id; when = res.when;
+      } catch (e: any) { showToast(e.message || "Could not schedule", "error"); return; }
+    }
     const newPost: QueuePost = {
       id: Date.now().toString(),
       text: postText,
@@ -1453,6 +1469,7 @@ Use 2 hashtags max when promo present`;
       attachedFiles: [...attachedFiles],
       status: scheduleMode === "now" ? "queued" : "scheduled",
       retryCount: 0,
+      serverId,
     };
     if (scheduleMode === "now") {
       // Real publish: add to queue first, then publishQueueItem flips it to "posted" only on Meta success.
@@ -1462,13 +1479,13 @@ Use 2 hashtags max when promo present`;
     } else {
       setQueue((q) => [newPost, ...q]);
       const ytNote = selected.includes("youtube" as PlatformId) ? " • YT best: Sat 2pm / Fri 3pm" : "";
-      showToast(`Scheduled for ${when.toLocaleString()}${ytNote}`, "success");
+      showToast(`Scheduled for ${fmtIn(when, scheduleMode === "schedule" ? sendTz : Intl.DateTimeFormat().resolvedOptions().timeZone)}${ytNote}`, "success");
     }
     setPostText("");
     setMedia([]);
     setAttachedFiles([]);
     setAiVariations([]);
-  }, [postText, selected, scheduleMode, getBestTime, scheduleAt, media, attachedFiles, showToast]);
+  }, [postText, selected, scheduleMode, getBestTime, scheduleAt, sendTz, media, attachedFiles, showToast]);
 
   const filteredQueue = useMemo(() => {
     let q = queue;
@@ -1551,6 +1568,7 @@ Use 2 hashtags max when promo present`;
             { id: "quotes", label: "Quotes & Invoices", icon: ReceiptIcon },
             { id: "calendar", label: "Calendar", icon: CalendarDays },
             { id: "queue", label: "Queue", icon: ChartColumn, badge: scheduledCount },
+            { id: "sendtimes", label: "Send Times", icon: Clock },
             { id: "analytics", label: "Analytics", icon: TrendingUp },
             { id: "clients", label: "Clients", icon: Users },
             { id: "accounts", label: "Accounts", icon: Facebook },
@@ -1661,6 +1679,7 @@ Use 2 hashtags max when promo present`;
               { id: "messaging", icon: MsgIcon },
               { id: "quotes", icon: ReceiptIcon },
               { id: "queue", icon: ChartColumn },
+              { id: "sendtimes", icon: Clock },
               { id: "calendar", icon: CalendarDays },
               { id: "analytics", icon: TrendingUp },
               { id: "clients", icon: Users },
@@ -2099,7 +2118,9 @@ Use 2 hashtags max when promo present`;
                   </div>
                   {(scheduleMode === "schedule" || scheduleMode === "best") && (
                     <div className="flex gap-3">
-                      <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className="flex-1 bg-[#0f0f10] border border-zinc-800 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-zinc-600" />
+                      <div className="flex-1">{scheduleMode === "schedule"
+                        ? <SendTimePicker value={scheduleAt} onChange={setScheduleAt} tz={sendTz} onTzChange={setSendTz} />
+                        : <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className="w-full bg-[#0f0f10] border border-zinc-800 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-zinc-600" />}</div>
                       <button
                         onClick={() => {
                           const newVal = !settings.recurring;
@@ -3038,6 +3059,7 @@ Use 2 hashtags max when promo present`;
           {view === "messaging" && <SocialiteMessaging />}
           {view === "quotes" && <SocialiteQuotesInvoices />}
           {view === "clients" && <SocialiteClients />}
+          {view === "sendtimes" && <SocialiteScheduled />}
           {view === "admin" && <SocialiteAdmin />}
 
           {view === "datacontrol" && (
