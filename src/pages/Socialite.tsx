@@ -12,7 +12,8 @@ import SocialiteAdmin from "@/components/socialite/SocialiteAdmin";
 import { useAuth } from "@/contexts/AuthContext";
 import SocialiteScheduled from "@/components/socialite/SocialiteScheduled";
 import SendTimePicker from "@/components/socialite/SendTimePicker";
-import { scheduleSend, getSavedTz, fmtIn } from "@/lib/socialite/sendTime";
+import { scheduleSend, getSavedTz, fmtIn, zonedToDate, SEND_TIMEZONES, TZ_KEY } from "@/lib/socialite/sendTime";
+import TimezoneSelect from "@/components/socialite/TimezoneSelect";
 import { Receipt as ReceiptIcon, MessageCircle as MsgIcon } from "lucide-react";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
@@ -300,6 +301,13 @@ export default function Socialite() {
   });
   const [timeStart, setTimeStart] = useState<string>(() => localStorage.getItem("pf_automation_time_start") || "09:00");
   const [timeEnd, setTimeEnd] = useState<string>(() => localStorage.getItem("pf_automation_time_end") || "20:00");
+  // Automation posting hours are read in this time zone (synced via pf_*).
+  const [autoTz, setAutoTz] = useState<string>(() => localStorage.getItem("pf_automation_tz") || getSavedTz());
+  useEffect(() => { localStorage.setItem("pf_automation_tz", autoTz); }, [autoTz]);
+  // Calendar shows days/times in this time zone.
+  const [calTz, setCalTz] = useState<string>(() => localStorage.getItem("pf_calendar_tz") || getSavedTz());
+  useEffect(() => { localStorage.setItem("pf_calendar_tz", calTz); }, [calTz]);
+  const dayIn = (d: Date, tz: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
   const [timeSlots, setTimeSlots] = useState<string[]>(() => {
     try {
       const rawSlots = localStorage.getItem("pf_automation_slots");
@@ -1162,8 +1170,11 @@ Use 2 hashtags max when promo present`;
         best.setHours(Math.floor(total/60), total%60,0,0);
       }
     }
-    return best;
-  }, [autoPlatforms, selected, useBestTime, timeStart, timeEnd, timeSlots]);
+    // Re-read the chosen wall-clock time in the automation time zone.
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const zoned = zonedToDate(`${best.getFullYear()}-${pad(best.getMonth() + 1)}-${pad(best.getDate())}T${pad(best.getHours())}:${pad(best.getMinutes())}`, autoTz);
+    return isNaN(zoned.getTime()) ? best : zoned;
+  }, [autoPlatforms, selected, useBestTime, timeStart, timeEnd, timeSlots, autoTz]);
 
   // ===== AUTOMATION LOGIC =====
   const generateAutomatedPosts = useCallback(async (countOverride?: number) => {
@@ -1574,7 +1585,6 @@ Use 2 hashtags max when promo present`;
             { id: "quotes", label: "Quotes & Invoices", icon: ReceiptIcon },
             { id: "calendar", label: "Calendar", icon: CalendarDays },
             { id: "queue", label: "Queue", icon: ChartColumn, badge: scheduledCount },
-            { id: "sendtimes", label: "Send Times", icon: Clock },
             { id: "analytics", label: "Analytics", icon: TrendingUp },
             { id: "clients", label: "Clients", icon: Users },
             { id: "accounts", label: "Accounts", icon: Facebook },
@@ -1685,7 +1695,6 @@ Use 2 hashtags max when promo present`;
               { id: "messaging", icon: MsgIcon },
               { id: "quotes", icon: ReceiptIcon },
               { id: "queue", icon: ChartColumn },
-              { id: "sendtimes", icon: Clock },
               { id: "calendar", icon: CalendarDays },
               { id: "analytics", icon: TrendingUp },
               { id: "clients", icon: Users },
@@ -2579,7 +2588,10 @@ Use 2 hashtags max when promo present`;
 
                       <div className="space-y-3">
                         <div>
-                          <label className="text-[11px] mono uppercase tracking-widest text-zinc-300 mb-2 block">Best Time Slots - Choose multiple (e.g., 8pm, 9am, 3pm)</label>
+                          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <label className="text-[11px] mono uppercase tracking-widest text-zinc-300 block">Best Time Slots - Choose multiple (e.g., 8pm, 9am, 3pm)</label>
+                            <TimezoneSelect value={autoTz} onChange={setAutoTz} />
+                          </div>
                           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
                             {TIME_SLOT_OPTIONS.map(opt=>{
                               const isSelected = timeSlots.includes(opt.value);
@@ -2890,6 +2902,7 @@ Use 2 hashtags max when promo present`;
               <div className="flex items-center justify-between mb-6">
                 <h1 className="text-[22px] font-semibold tracking-tight">Content Calendar</h1>
                 <div className="flex items-center gap-2">
+                  <TimezoneSelect value={calTz} onChange={setCalTz} />
                   <button onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))} className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 grid place-items-center hover:bg-zinc-800 transition"><ChevronLeft className="w-4 h-4" /></button>
                   <span className="px-3 py-1.5 rounded-full bg-white text-black text-[12px] font-semibold mono">{calendarDate.toLocaleString("default", { month: "long", year: "numeric" })}</span>
                   <button onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))} className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 grid place-items-center hover:bg-zinc-800 transition"><ChevronRight className="w-4 h-4" /></button>
@@ -2904,7 +2917,8 @@ Use 2 hashtags max when promo present`;
                 <div className="grid grid-cols-7 auto-rows-[110px] lg:auto-rows-[132px]">
                   {cal.map((date, idx) => {
                     if (!date) return <div key={idx} className="border-r border-b border-zinc-800/60 bg-[#0f0f10]/50" />;
-                    const posts = queue.filter((p) => p.scheduledAt.getDate() === date.getDate() && p.scheduledAt.getMonth() === date.getMonth() && p.scheduledAt.getFullYear() === date.getFullYear());
+                    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+                    const posts = queue.filter((p) => dayIn(p.scheduledAt, calTz) === key);
                     const isToday = new Date().toDateString() === date.toDateString();
                     const isSelected = selectedDate?.toDateString() === date.toDateString();
                     return (
@@ -2923,6 +2937,7 @@ Use 2 hashtags max when promo present`;
                           {posts.slice(0, 3).map((p) => (
                             <div key={p.id} className="text-[10px] px-1.5 py-1 rounded-md bg-zinc-800 truncate flex items-center gap-1 w-full">
                               <span className={`w-1.5 h-1.5 rounded-full ${p.status === "posted" ? "bg-emerald-400" : p.isAuto ? "bg-purple-400" : "bg-white"}`} />
+                              <span className="mono text-zinc-400 shrink-0">{p.scheduledAt.toLocaleTimeString([], { timeZone: calTz, hour: "numeric", minute: "2-digit" })}</span>
                               <span className="truncate">{p.text.slice(0, 22)}</span>
                             </div>
                           ))}
@@ -3065,7 +3080,7 @@ Use 2 hashtags max when promo present`;
           {view === "messaging" && <SocialiteMessaging isOwner={isOwner} />}
           {isOwner && view === "quotes" && <SocialiteQuotesInvoices />}
           {isOwner && view === "clients" && <SocialiteClients />}
-          {isOwner && view === "sendtimes" && <SocialiteScheduled />}
+          
           {isOwner && view === "admin" && <SocialiteAdmin />}
 
           {isOwner && view === "datacontrol" && (
