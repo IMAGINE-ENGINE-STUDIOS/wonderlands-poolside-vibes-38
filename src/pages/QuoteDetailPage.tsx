@@ -149,7 +149,11 @@ const QuoteDetailPage = () => {
             <Printer className="h-4 w-4 mr-2" />
             Print Quote
           </Button>
+          <Button onClick={() => setShowInvoiceGenerator(true)}>
+            Create Invoice
+          </Button>
         </div>
+        <InvoiceGenerator isOpen={showInvoiceGenerator} onClose={() => setShowInvoiceGenerator(false)} quotationId={quote.id} />
       </div>
 
       {/* Quote Content - Exact match to SurveyQuoteTool format */}

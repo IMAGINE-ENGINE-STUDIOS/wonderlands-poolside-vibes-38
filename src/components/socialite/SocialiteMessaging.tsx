@@ -12,7 +12,7 @@ import AutomationTemplatesManager from "@/components/admin/AutomationTemplatesMa
 type Tab = "email" | "sms" | "whatsapp" | "calls";
 type Channel = Exclude<Tab, "email">;
 interface ClientRow { id: string; first_name: string; last_name: string; phone: string | null; email: string; city?: string | null }
-interface LogRow { id: string; channel: string; recipient_name: string | null; recipient_phone: string | null; status: string; created_at: string }
+interface LogRow { id: string; channel: string; recipient: string; status: string; created_at: string }
 
 const FN: Record<Channel, string> = { sms: "send-sms", whatsapp: "send-whatsapp", calls: "make-voice-call" };
 const LOG_CH: Record<Channel, string> = { sms: "sms", whatsapp: "whatsapp", calls: "voice" };
@@ -41,7 +41,7 @@ function Composer({ channel }: { channel: Channel }) {
   }, []);
 
   const loadLog = () => (supabase as any).from("communication_logs")
-    .select("id, channel, recipient_name, recipient_phone, status, created_at")
+    .select("id, channel, recipient, status, created_at")
     .eq("channel", LOG_CH[channel]).order("created_at", { ascending: false }).limit(12)
     .then(({ data }: any) => setLog(data || []));
   useEffect(() => { loadLog(); }, [channel]);
@@ -154,7 +154,7 @@ function Composer({ channel }: { channel: Channel }) {
               {log.map(l => (
                 <div key={l.id} className="flex items-center gap-2 text-[12px]">
                   <span className={`w-1.5 h-1.5 rounded-full ${l.status === "failed" ? "bg-zinc-500" : "bg-emerald-400"}`} />
-                  <span className="flex-1 truncate text-zinc-300">{l.recipient_name || l.recipient_phone}</span>
+                  <span className="flex-1 truncate text-zinc-300">{l.recipient}</span>
                   <span className="text-zinc-500">{l.status}</span>
                   <span className="text-zinc-600 mono">{new Date(l.created_at).toLocaleDateString()}</span>
                 </div>
