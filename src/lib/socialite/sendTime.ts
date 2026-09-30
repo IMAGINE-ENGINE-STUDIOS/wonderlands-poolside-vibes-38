@@ -44,7 +44,7 @@ export function zonedToDate(local: string, tz: string) {
 export const fmtIn = (d: Date | string, tz: string) =>
   new Date(d).toLocaleString([], { timeZone: tz, month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
 
-export type SendKind = "post" | "email" | "sms" | "whatsapp";
+export type SendKind = "post" | "email" | "sms" | "whatsapp" | "call" | "contact";
 
 /** Queue a send on the server. Returns the row id or throws. */
 export async function scheduleSend(kind: SendKind, payload: unknown, local: string, tz: string) {
