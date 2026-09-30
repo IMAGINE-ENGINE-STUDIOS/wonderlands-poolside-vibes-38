@@ -2,11 +2,14 @@
 // socialite_scheduled row whose send_at has passed:
 //   kind=post     payload {text, platforms[], media[]}      → publishAll
 //   kind=email    payload = send-bulk-email body            → send-bulk-email
+//   kind=call     payload {messages:[{to,message,recipientName}]} → make-voice-call
+//   kind=contact  payload {channel, contact_ids, subject, message} → user's own contacts
 //   kind=sms|whatsapp payload {messages:[{to,message,recipientName}]} → send-sms / send-whatsapp
 // Rows are claimed (pending→sending) before work so a row is never sent twice.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { admin } from "../_shared/socialiteVault.ts";
 import { publishAll } from "../_shared/socialitePublish.ts";
+import { sendToContacts } from "../_shared/contactSend.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const URL_ = Deno.env.get("SUPABASE_URL")!;
@@ -37,6 +40,16 @@ Deno.serve(async (req) => {
           r?.success === false || r?.error ? failed++ : sent++;
         }
         result = { success: failed === 0, sent, failed };
+      } else if (row.kind === "call") {
+        let sent = 0, failed = 0;
+        for (const m of p.messages ?? []) {
+          const r = await call("make-voice-call", { ...m, recipientType: "client" });
+          r?.success === false || r?.error ? failed++ : sent++;
+        }
+        result = { success: failed === 0, sent, failed };
+      } else if (row.kind === "contact") {
+        const r = await sendToContacts(row.created_by, "", p.channel, (p.contact_ids ?? []).slice(0, 200), String(p.subject ?? ""), String(p.message ?? ""));
+        result = { success: r.failed === 0, ...r };
       } else result = { success: false, error: "Unknown kind" };
     } catch (e) { result = { success: false, error: (e as Error).message }; }
     const ok = result?.success !== false && !result?.error;
