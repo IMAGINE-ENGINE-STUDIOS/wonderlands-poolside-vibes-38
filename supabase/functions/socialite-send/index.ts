@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const check = await meter(auth.userId, auth.isAdmin, channel, contact_ids.length, {}, true);
     if (!check.ok) return json({ error: check.reason, billing: true }, 402);
     const result: any = await sendToContacts(auth.userId, auth.email, channel, contact_ids, subject, message);
-    const sent = Number(result?.sent ?? result?.ok ?? contact_ids.length) || 0;
+    const sent = Number(result?.successful ?? 0) || 0;
     if (sent > 0) await meter(auth.userId, auth.isAdmin, channel, sent, { requested: contact_ids.length });
     return json(result);
   } catch (e) {
