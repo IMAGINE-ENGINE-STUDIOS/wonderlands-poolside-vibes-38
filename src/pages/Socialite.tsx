@@ -9,6 +9,7 @@ import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
 import SocialiteQuotesInvoices from "@/components/socialite/SocialiteQuotesInvoices";
 import SocialiteClients from "@/components/socialite/SocialiteClients";
 import SocialiteAdmin from "@/components/socialite/SocialiteAdmin";
+import { useAuth } from "@/contexts/AuthContext";
 import SocialiteScheduled from "@/components/socialite/SocialiteScheduled";
 import SendTimePicker from "@/components/socialite/SendTimePicker";
 import { scheduleSend, getSavedTz, fmtIn } from "@/lib/socialite/sendTime";
@@ -212,6 +213,11 @@ export default function Socialite() {
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [scheduleMode, setScheduleMode] = useState<"now" | "best" | "schedule" | "queue">("best");
   const [sendTz, setSendTz] = useState(getSavedTz);
+  // Company sections (clients, quotes, messaging, keys, admin) are main-admin only.
+  const { profile: authProfile } = useAuth();
+  const isOwner = authProfile?.role === "main_admin";
+  const STAFF_ONLY = new Set(["messaging", "quotes", "sendtimes", "clients", "accounts", "admin", "datacontrol"]);
+  const canSee = (id: string) => isOwner || !STAFF_ONLY.has(id);
   const [scheduleAt, setScheduleAt] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -1575,7 +1581,7 @@ Use 2 hashtags max when promo present`;
             { id: "settings", label: "Settings", icon: Settings },
             { id: "admin", label: "Admin", icon: ShieldAlert },
             { id: "datacontrol", label: "Data Control", icon: Database },
-          ].map((it) => (
+          ].filter((it) => canSee(it.id)).map((it) => (
             <button
               key={it.id}
               onClick={() => setView(it.id as any)}
@@ -1686,7 +1692,7 @@ Use 2 hashtags max when promo present`;
               { id: "accounts", icon: Facebook },
               { id: "admin", icon: ShieldAlert },
               { id: "datacontrol", icon: Database },
-            ].map((it) => (
+            ].filter((it) => canSee(it.id)).map((it) => (
               <button
                 key={it.id}
                 onClick={() => setView(it.id as any)}
@@ -3013,7 +3019,7 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
+          {isOwner && view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
 
           {view === "settings" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
@@ -3056,13 +3062,13 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {view === "messaging" && <SocialiteMessaging />}
-          {view === "quotes" && <SocialiteQuotesInvoices />}
-          {view === "clients" && <SocialiteClients />}
-          {view === "sendtimes" && <SocialiteScheduled />}
-          {view === "admin" && <SocialiteAdmin />}
+          {isOwner && view === "messaging" && <SocialiteMessaging />}
+          {isOwner && view === "quotes" && <SocialiteQuotesInvoices />}
+          {isOwner && view === "clients" && <SocialiteClients />}
+          {isOwner && view === "sendtimes" && <SocialiteScheduled />}
+          {isOwner && view === "admin" && <SocialiteAdmin />}
 
-          {view === "datacontrol" && (
+          {isOwner && view === "datacontrol" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><Database className="w-5 h-5" /></div>
