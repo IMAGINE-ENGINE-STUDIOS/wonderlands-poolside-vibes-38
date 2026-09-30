@@ -25,7 +25,7 @@ export default function SocialiteQuotesInvoices() {
 
   const load = useCallback(async () => {
     const [a, b] = await Promise.all([
-      supabase.from("user_quotations").select("id, name, email, pool_model, total_quote_amount, status, created_at").order("created_at", { ascending: false }).limit(500),
+      supabase.from("user_quotations").select("id, name, email, pool_model, total_quote_amount, status, created_at, selected_options").order("created_at", { ascending: false }).limit(500),
       supabase.from("invoices").select("id, invoice_number, customer_name, customer_email, total_amount, payment_status, status, invoice_date, quotation_id").order("created_at", { ascending: false }).limit(500),
     ]);
     setQuotes((a.data as Quote[]) || []);
