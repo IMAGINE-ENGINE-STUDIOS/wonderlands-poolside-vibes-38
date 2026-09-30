@@ -1239,6 +1239,29 @@ export const useProductBookPages = ({
               {added ? "In your order" : "Add to the order"}
               {added ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
             </button>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  if (!added) add();
+                  navigate("/checkout");
+                }}
+                className="flex items-center justify-between gap-2 border border-foreground bg-foreground px-3 py-2.5 text-[9px] uppercase tracking-[0.25em] text-background transition-colors hover:bg-background hover:text-foreground"
+              >
+                Purchase <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("wl:open-quote", {
+                      detail: { name: entry.name, price: entry.price ?? 0, type: category.label, image: entry.image },
+                    }),
+                  )
+                }
+                className="flex items-center justify-between gap-2 border border-foreground px-3 py-2.5 text-[9px] uppercase tracking-[0.25em] transition-colors hover:bg-foreground hover:text-background"
+              >
+                Get a quote <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{includedLineFor(category.id)}</p>
           </div>
         </div>
