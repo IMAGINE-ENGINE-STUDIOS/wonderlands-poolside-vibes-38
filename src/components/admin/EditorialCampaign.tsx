@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { saveToDailySchedule } from './DailyCampaignSchedule';
+import SendTimePicker from '@/components/socialite/SendTimePicker';
+import { scheduleSend, getSavedTz, fmtIn } from '@/lib/socialite/sendTime';
 
 /**
  * EditorialCampaign — shared admin panel for magazine-style email campaigns
@@ -47,6 +49,18 @@ export default function EditorialCampaign<C extends object>({
   const [mode, setMode] = useState<'all' | 'specific'>('all');
   const [isSending, setIsSending] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [sendAt, setSendAt] = useState('');
+  const [sendTz, setSendTz] = useState(getSavedTz);
+
+  const handleSchedule = async () => {
+    if (mode === 'specific' && selectedIds.length === 0) return toast('Select at least one client');
+    const body: Record<string, unknown> = { custom_subject: subject, custom_html: html, template_name: title };
+    if (mode === 'all') body.send_to_all = true; else body.client_ids = selectedIds;
+    try {
+      const res = await scheduleSend('email', body, sendAt, sendTz);
+      toast.success(`Scheduled for ${fmtIn(res.when, sendTz)}`);
+    } catch (e: any) { toast(e.message || 'Could not schedule'); }
+  };
 
   useEffect(() => {
     supabase
@@ -136,6 +150,10 @@ export default function EditorialCampaign<C extends object>({
           )}
         </div>
 
+        <div className="space-y-2">
+          <Label>Send later (date, time and time zone)</Label>
+          <SendTimePicker value={sendAt} onChange={setSendAt} tz={sendTz} onTzChange={setSendTz} />
+        </div>
         <div className="flex flex-wrap gap-3">
           <Button variant="outline" onClick={() => setShowPreview(true)}>
             <Eye className="mr-2 h-4 w-4" /> Preview email
@@ -144,6 +162,7 @@ export default function EditorialCampaign<C extends object>({
             {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
             {mode === 'all' ? 'Send to all clients' : `Send to ${selectedIds.length}`}
           </Button>
+          <Button variant="outline" onClick={handleSchedule} disabled={!sendAt}>Schedule send</Button>
           {scheduleKey && (
             <Button variant="outline" onClick={async () => {
               const err = await saveToDailySchedule(scheduleKey, title, subject, html);
