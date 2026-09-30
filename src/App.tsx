@@ -41,6 +41,7 @@ const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"), 'ad
 const TwilioPOC = lazy(() => import("./pages/TwilioPOC"));
 const Socialite = lazy(() => import("./pages/Socialite"));
 import SocialiteCloudSync from "./components/socialite/SocialiteCloudSync";
+import { SocialiteGate } from "./components/socialite/SocialiteAuth";
 const EcommerceTemplate = lazy(() => import("./pages/EcommerceTemplate"));
 const AuthPage = lazy(() => import("./components/AuthPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
