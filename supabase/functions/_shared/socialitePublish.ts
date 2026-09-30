@@ -14,12 +14,13 @@ const isVideo = (u?: string) => !!u && /\.(mp4|mov|m4v|webm)(\?|$)/i.test(u);
 
 // ---------- X (OAuth 1.0a HMAC-SHA1) ----------
 const pct = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
-async function xAuthHeader(method: string, url: string, ck: string, cs: string, at: string, as: string) {
+export async function xAuthHeader(method: string, url: string, ck: string, cs: string, at: string, as: string, query: Record<string, string> = {}) {
   const o: Record<string, string> = {
     oauth_consumer_key: ck, oauth_nonce: crypto.randomUUID().replace(/-/g, ""), oauth_signature_method: "HMAC-SHA1",
     oauth_timestamp: String(Math.floor(Date.now() / 1000)), oauth_token: at, oauth_version: "1.0",
   };
-  const params = Object.keys(o).sort().map((k) => `${pct(k)}=${pct(o[k])}`).join("&");
+  const all: Record<string, string> = { ...o, ...query };
+  const params = Object.keys(all).sort().map((k) => `${pct(k)}=${pct(all[k])}`).join("&");
   const base = `${method}&${pct(url)}&${pct(params)}`;
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(`${pct(cs)}&${pct(as)}`), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
   const sig = btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(base)))));
