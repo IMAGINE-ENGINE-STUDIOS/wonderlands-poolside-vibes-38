@@ -216,7 +216,7 @@ export default function Socialite() {
   // Company sections (clients, quotes, messaging, keys, admin) are main-admin only.
   const { profile: authProfile } = useAuth();
   const isOwner = authProfile?.role === "main_admin";
-  const STAFF_ONLY = new Set(["messaging", "quotes", "sendtimes", "clients", "accounts", "admin", "datacontrol"]);
+  const STAFF_ONLY = new Set(["quotes", "sendtimes", "clients", "admin", "datacontrol"]);
   const canSee = (id: string) => isOwner || !STAFF_ONLY.has(id);
   const [scheduleAt, setScheduleAt] = useState(() => {
     const d = new Date();

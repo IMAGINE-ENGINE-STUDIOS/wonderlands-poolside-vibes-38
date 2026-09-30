@@ -1,5 +1,5 @@
 /**
- * SocialiteAccounts — the main admin pastes social media keys here (never in chat).
+ * SocialiteAccounts — each signed-in user pastes their own social media keys here (never in chat).
  * Keys go straight to the `socialite-credentials` edge function, which verifies them with
  * the provider, encrypts them (AES-GCM) and stores them in a table the browser can't read.
  * The browser only ever gets back: connected yes/no, account name, last 4 characters.
@@ -93,7 +93,7 @@ export default function SocialiteAccounts({ onChange }: { onChange?: (s: Set<str
               </div>
               {open === p.id && (
                 <div className="mt-5 grid gap-3 border-t border-zinc-800 pt-5">
-                  {"help" in p && <p className="text-[12px] text-zinc-500 leading-[1.6]">{p.help} <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-zinc-300 underline">Open Graph API Explorer <ExternalLink className="w-3 h-3" /></a></p>}
+                  {"help" in p && <p className="text-[12px] text-zinc-500 leading-[1.6]">{p.help} <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-zinc-300 underline">Open Graph API Explorer</a></p>}
                   <label className="text-[11px] uppercase tracking-widest text-zinc-500">{p.idLabel}
                     <input value={form.account_id} onChange={(e) => setForm((f) => ({ ...f, account_id: e.target.value }))} autoComplete="off"
                       className="mt-1.5 w-full rounded-[12px] bg-zinc-900 border border-zinc-800 px-3 py-2.5 text-[13px] normal-case tracking-normal text-zinc-100 outline-none focus:border-zinc-600" />
@@ -103,10 +103,10 @@ export default function SocialiteAccounts({ onChange }: { onChange?: (s: Set<str
                       className="mt-1.5 w-full rounded-[12px] bg-zinc-900 border border-zinc-800 px-3 py-2.5 text-[13px] mono normal-case tracking-normal text-zinc-100 outline-none focus:border-zinc-600" />
                   </label>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-1.5 text-[11px] text-zinc-500"><Lock className="w-3.5 h-3.5" /> Encrypted on the server · only used to publish</span>
+                    <span className="flex items-center gap-1.5 text-[11px] text-zinc-500">Encrypted on the server · only used to publish</span>
                     <button disabled={busy || form.token.length < 10} onClick={() => save(p.id)}
                       className="px-5 py-2.5 rounded-full bg-white text-black text-[12.5px] font-semibold flex items-center gap-1.5 disabled:opacity-40">
-                      {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Verify & save
+                      {busy ? "Verifying…" : "Verify & save"}
                     </button>
                   </div>
                 </div>

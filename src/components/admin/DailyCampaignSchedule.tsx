@@ -77,7 +77,7 @@ export default function DailyCampaignSchedule() {
     <Card className="bg-slate-900/60 border-slate-800">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-cyan-300">
-          <CalendarClock className="h-5 w-5" /> Daily Email — every day at 10:00 AM (New York)
+          Daily Email — every day at 10:00 AM (New York)
         </CardTitle>
         <CardDescription className="text-slate-400">
           Each day, a different campaign from this list goes to all clients, in order. Clients who unsubscribed are skipped automatically.

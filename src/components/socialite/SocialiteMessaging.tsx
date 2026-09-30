@@ -182,7 +182,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
       if (source === "contacts") {
         for (let i = 0; i < targets.length; i += 200) {
           setBusy(`Sending ${Math.min(i + 200, targets.length)}/${targets.length}…`);
-          const { data, error } = await supabase.functions.invoke("socialite-send", { body: { channel, contact_ids: targets.slice(i, i + 200).map(p => p.id), subject, message: body() .replace(/there/, "{first_name}") } });
+          const { data, error } = await supabase.functions.invoke("socialite-send", { body: { channel, contact_ids: targets.slice(i, i + 200).map(p => p.id), subject, message: sign && channel !== "email" ? `${message}\n${SIGN}` : message } });
           if (error) throw error;
           ok += data?.successful || 0; failed += data?.failed || 0;
         }
@@ -246,7 +246,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
         {channel === "email" && <input className={input} value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject" />}
         <textarea value={message} onChange={e => setMessage(e.target.value)} rows={8} className={input}
           placeholder={channel === "calls" ? "Read aloud on the call. Use {first_name}." : "Hi {first_name}, …"} />
-        {channel !== "email" && channel !== "calls" && (
+        {isOwner && channel !== "email" && channel !== "calls" && (
           <label className="flex items-center gap-2 text-[12px] text-zinc-400"><input type="checkbox" className="accent-white" checked={sign} onChange={e => setSign(e.target.checked)} />Add signature</label>
         )}
         <div className="text-[11px] text-zinc-500 mono">{len} chars{channel === "sms" ? ` · ${Math.max(1, Math.ceil(len / 160))} segment(s)` : ""}</div>
