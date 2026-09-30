@@ -3491,6 +3491,24 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_state: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       supplier_banking_config: {
         Row: {
           bank_account_details: Json | null
