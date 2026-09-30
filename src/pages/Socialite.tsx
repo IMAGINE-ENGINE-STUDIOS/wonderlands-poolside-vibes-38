@@ -3019,7 +3019,7 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {isOwner && view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
+          {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
 
           {view === "settings" && (
             <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
