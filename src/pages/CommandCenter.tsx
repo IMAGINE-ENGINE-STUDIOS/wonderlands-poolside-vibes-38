@@ -1095,7 +1095,7 @@ Use 2 hashtags max when promo present`;
         setTimeout(() => {
           const enhanced = `high quality, detailed, 4k, studio lighting, ${aiPrompt}`;
           const url = generatePlaceholder(enhanced, type);
-          setMedia((m) => [...m, { url, type: type === "video" ? "video" : "image", name: `${type}-${Date.now()}` }].slice(0, 4));
+          setMedia((m) => [...m, { url, type: (type === "video" ? "video" : "image") as MediaItem["type"], name: `${type}-${Date.now()}` }].slice(0, 4));
           setAiStatus("done");
           showToast(`${type === "image" ? "Image" : "Video"} generated with Meta AI open source`, "success");
           setTimeout(() => setAiStatus("idle"), 1500);
