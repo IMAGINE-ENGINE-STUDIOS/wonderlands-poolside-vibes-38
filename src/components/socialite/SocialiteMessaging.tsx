@@ -157,7 +157,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
   const toggle = (id: string) => setPicked(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const targets = people.filter(p => picked.has(p.id) && reach(p));
   const body = (p?: Person) => { const m = message.replace(/\{first_name\}/g, p?.first || "there"); return sign && channel !== "email" && channel !== "calls" ? `${m}\n${SIGN}` : m; };
-  const canSchedule = isOwner && source === "clients" && (channel === "sms" || channel === "whatsapp");
+  const canSchedule = source === "contacts" ? channel !== "calls" : isOwner; // every channel can be timed
 
   const removeSelected = async () => {
     if (!picked.size || !confirm(`Delete ${picked.size} contact(s)?`)) return;
@@ -170,8 +170,12 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
     setNote("");
     if (later && canSchedule) {
       try {
-        const res = await scheduleSend(channel as "sms" | "whatsapp", { messages: targets.map(p => ({ to: p.phone, message: body(p), recipientName: p.name })) }, at, tz);
-        setNote(`Scheduled ${targets.length} for ${fmtIn(res.when, tz)} — see Send Times.`);
+        const res = source === "contacts"
+          ? await scheduleSend("contact", { channel, contact_ids: targets.slice(0, 200).map(p => p.id), subject, message: sign && channel !== "email" ? `${message}\n${SIGN}` : message }, at, tz)
+          : channel === "email"
+            ? await scheduleSend("email", { client_ids: targets.map(p => p.id), custom_subject: subject, custom_html: textToHtml(message.replace(/\{first_name\}/g, "{{first_name}}")) }, at, tz)
+            : await scheduleSend(channel === "calls" ? "call" : channel, { messages: targets.map(p => ({ to: p.phone, message: body(p), recipientName: p.name })) }, at, tz);
+        setNote(`Scheduled ${Math.min(targets.length, source === "contacts" ? 200 : targets.length)} for ${fmtIn(res.when, tz)} — see Calendar.`);
       } catch (e: any) { setNote(e.message); }
       return;
     }

@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtIn } from "@/lib/socialite/sendTime";
-import { Loader2, Trash2, RefreshCw } from "lucide-react";
 
 type Row = { id: string; kind: string; payload: any; send_at: string; timezone: string; status: string; result: any };
 const KIND: Record<string, string> = { post: "Social post", email: "Email", sms: "SMS", whatsapp: "WhatsApp" };
@@ -30,12 +29,12 @@ export default function SocialiteScheduled() {
     <div className="p-4 lg:p-8 max-w-[960px] space-y-5">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-zinc-100">Send Times</h1>
+          <h2 className="text-[16px] font-semibold tracking-tight text-zinc-100">Timed sends</h2>
           <p className="text-[13px] text-zinc-500">Timed posts, emails and texts. They go out on their own, even with this page closed (within 5 minutes of the time set).</p>
         </div>
-        <button onClick={load} className="px-3 py-2 rounded-full bg-zinc-900 text-zinc-300 text-[12px] flex items-center gap-1.5 hover:bg-zinc-800"><RefreshCw className="w-3.5 h-3.5" /> Refresh</button>
+        <button onClick={load} className="px-3 py-2 rounded-full bg-zinc-900 text-zinc-300 text-[12px] flex items-center gap-1.5 hover:bg-zinc-800">Refresh</button>
       </div>
-      {loading ? <div className="text-zinc-500 text-[13px] flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Loading…</div>
+      {loading ? <div className="text-zinc-500 text-[13px] flex items-center gap-2">Loading…</div>
         : !rows.length ? <div className="rounded-2xl border border-zinc-800 p-8 text-center text-[13px] text-zinc-500">Nothing scheduled yet. Pick "Schedule" in Composer, Email, SMS or WhatsApp.</div>
         : (
           <div className="rounded-2xl border border-zinc-800 divide-y divide-zinc-800">
@@ -50,7 +49,7 @@ export default function SocialiteScheduled() {
                   <div className="text-[11px] text-zinc-500">{fmtIn(r.send_at, r.timezone)}{r.status === "failed" && r.result?.error ? ` · ${String(r.result.error).slice(0, 120)}` : ""}</div>
                 </div>
                 {r.status === "pending" && (
-                  <button onClick={() => cancel(r.id)} aria-label="Cancel" className="w-9 h-9 rounded-full grid place-items-center bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => cancel(r.id)} aria-label="Cancel" className="px-3 h-9 rounded-full text-[12px] bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white">Cancel</button>
                 )}
               </div>
             ))}
