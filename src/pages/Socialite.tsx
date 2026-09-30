@@ -771,18 +771,7 @@ Use 2 hashtags max when promo present`;
         throw new Error("yt fallback");
       }
     } catch {
-      if (isYT) {
-        const views = Math.floor(1200 + Math.random() * 15000);
-        likes = Math.max(likes, Math.floor(views * (0.04 + Math.random() * 0.03)));
-        comments = Math.max(comments, Math.floor(views * (0.005 + Math.random() * 0.01)));
-        shares = Math.max(shares, views);
-        likes += Math.floor(Math.random() * 15);
-      } else {
-        likes = Math.max(likes, Math.floor(200 + Math.random() * 2000));
-        comments = Math.max(comments, Math.floor(10 + Math.random() * 120));
-        shares = Math.max(shares, Math.floor(5 + Math.random() * 80));
-        likes += Math.floor(Math.random() * 25);
-      }
+      // No live metrics available yet — keep real (zero) numbers, never invent engagement.
       success = true;
     }
     const updated = { ...post, engagement: { likes, comments, shares } };
@@ -827,8 +816,8 @@ Use 2 hashtags max when promo present`;
     }
     // enrich posts with performance if missing
     const enriched = allPosts.map(p=>{
-      const likes = p.engagement?.likes ?? p.performance?.likes ?? Math.floor(100 + Math.random()*1200);
-      const comments = p.engagement?.comments ?? p.performance?.comments ?? Math.floor(5 + Math.random()*60);
+      const likes = p.engagement?.likes ?? p.performance?.likes ?? 0;
+      const comments = p.engagement?.comments ?? p.performance?.comments ?? 0;
       const shares = p.engagement?.shares ?? 0;
       const ctr = p.performance?.ctr ?? calcCtr(likes, comments);
       const hour = `${String(p.scheduledAt.getHours()).padStart(2,"0")}:00`;
@@ -906,7 +895,7 @@ Use 2 hashtags max when promo present`;
     // also include promos with zero posts but enabled
     promotions.forEach(pr=>{
       if (!promoMap.has(pr.code) && pr.enabled) {
-        const mockLikes = 200 + Math.random()*800;
+        const mockLikes = 0;
         promoMap.set(pr.code, { likes: [mockLikes], ctrs: [calcCtr(mockLikes, 10)], count: 0, title: pr.title, discount: pr.discount });
       }
     });
@@ -2273,7 +2262,7 @@ Use 2 hashtags max when promo present`;
                                 <div className="text-[12px] text-zinc-500 mt-1 flex items-center gap-1">
                                   <span>{profile.name}</span>
                                   <span className="w-3 h-3 rounded-full bg-zinc-700 grid place-items-center text-[8px]">✓</span>
-                                  <span className="text-zinc-600">• {Math.floor(2 + Math.random() * 8)}k views • 2h ago</span>
+                                  <span className="text-zinc-600">• preview</span>
                                 </div>
                                 <p className="text-[12px] leading-[1.5] mt-2 line-clamp-3 text-zinc-400 whitespace-pre-wrap">
                                   {postText.split("\n").slice(1).join("\n").slice(0, 200) || postText.slice(0, 200) || "Description will appear here... Add details, links, chapters."}
@@ -3011,14 +3000,14 @@ Use 2 hashtags max when promo present`;
               <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-6">
                 <h3 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-400 mb-6">Performance by platform ({analyticsRange})</h3>
                 <div className="space-y-4">
-                  {PLATFORMS.filter((p) => p.connected).map((p) => (
+                  {PLATFORMS.filter((p) => p.connected).map((p) => { const eng = queue.filter(q=>q.status==="posted" && q.platforms.includes(p.id)).reduce((t,q)=>t+(q.engagement?.likes||0)+(q.engagement?.comments||0)+(q.engagement?.shares||0),0); const maxEng = Math.max(1, ...PLATFORMS.map(pp=>queue.filter(q=>q.status==="posted" && q.platforms.includes(pp.id)).reduce((t,q)=>t+(q.engagement?.likes||0)+(q.engagement?.comments||0)+(q.engagement?.shares||0),0))); return (
                     <div key={p.id} className="flex items-center gap-4">
                       <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${p.bg} grid place-items-center text-white`}>{p.icon}</div>
                       <div className="w-[90px] text-[13px]">{p.name}</div>
-                      <div className="flex-1 h-2 rounded-full bg-zinc-900 overflow-hidden"><div className="h-full bg-white" style={{ width: `${40 + Math.random() * 50}%` }} /></div>
-                      <div className="text-[12px] mono text-zinc-400 w-16 text-right">{Math.floor(2000 + Math.random() * 8000).toLocaleString()}</div>
+                      <div className="flex-1 h-2 rounded-full bg-zinc-900 overflow-hidden"><div className="h-full bg-white" style={{ width: `${(eng/maxEng)*100}%` }} /></div>
+                      <div className="text-[12px] mono text-zinc-400 w-16 text-right">{eng.toLocaleString()}</div>
                     </div>
-                  ))}
+                  ); })}
                 </div>
               </div>
             </div>
