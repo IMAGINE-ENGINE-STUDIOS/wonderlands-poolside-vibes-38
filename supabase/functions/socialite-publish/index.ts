@@ -2,6 +2,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { requireUser } from "../_shared/socialiteVault.ts";
 import { publishAll } from "../_shared/socialitePublish.ts";
+import { meter } from "../_shared/socialiteBilling.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const OK = ["facebook", "instagram", "threads", "x", "tiktok", "youtube"];
@@ -16,7 +17,12 @@ Deno.serve(async (req) => {
     const platforms = (Array.isArray(body?.platforms) ? body.platforms : []).filter((p: unknown) => OK.includes(p as string));
     const media = (Array.isArray(body?.media) ? body.media : []).filter((m: unknown) => typeof m === "string" && /^https:\/\//.test(m as string));
     if (!text && !media.length) return json({ success: false, error: "Nothing to post" }, 400);
-    return json(await publishAll(text, platforms, media, auth.userId));
+    // Commercial metering: one post per platform; refused before anything is published.
+    const check = await meter(auth.userId, auth.isAdmin, "posts", Math.max(1, platforms.length), {}, true);
+    if (!check.ok) return json({ success: false, error: check.reason, billing: true }, 402);
+    const result = await publishAll(text, platforms, media, auth.userId);
+    await meter(auth.userId, auth.isAdmin, "posts", Math.max(1, platforms.length), { platforms });
+    return json(result);
   } catch (e) {
     return json({ success: false, error: (e as Error).message }, 500);
   }

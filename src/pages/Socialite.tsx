@@ -6,6 +6,10 @@
 import SocialiteInsights from "@/components/socialite/SocialiteInsights";
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteMessaging from "@/components/socialite/SocialiteMessaging";
+import SocialiteBilling from "@/components/socialite/SocialiteBilling";
+import SocialiteGenius from "@/components/socialite/SocialiteGenius";
+import SocialiteSettings from "@/components/socialite/SocialiteSettings";
+import SocialiteDataControl from "@/components/socialite/SocialiteDataControl";
 import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
 import SocialiteQuotesInvoices from "@/components/socialite/SocialiteQuotesInvoices";
 import SocialiteClients from "@/components/socialite/SocialiteClients";
@@ -202,7 +206,7 @@ function formatSize(n: number) {
 
 export default function Socialite() {
   // core nav - ADDED automation + admin
-  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes">("dashboard");
+  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes" | "billing" | "genius">("dashboard");
   // Real connection status from the encrypted key vault (SOCIALITE → Accounts)
   const [liveAccounts, setLiveAccounts] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -218,7 +222,7 @@ export default function Socialite() {
   // Company sections (clients, quotes, messaging, keys, admin) are main-admin only.
   const { profile: authProfile } = useAuth();
   const isOwner = authProfile?.role === "main_admin";
-  const STAFF_ONLY = new Set(["quotes", "sendtimes", "clients", "admin", "datacontrol"]);
+  const STAFF_ONLY = new Set(["quotes", "sendtimes", "clients", "admin"]);
   const canSee = (id: string) => isOwner || !STAFF_ONLY.has(id);
   const [scheduleAt, setScheduleAt] = useState(() => {
     const d = new Date();
@@ -1590,6 +1594,8 @@ Use 2 hashtags max when promo present`;
             { id: "queue", label: "Queue", icon: ChartColumn, badge: scheduledCount },
             { id: "clients", label: "Clients", icon: Users },
             { id: "accounts", label: "Accounts", icon: Facebook },
+            { id: "genius", label: "Genius", icon: PenTool },
+            { id: "billing", label: "Plan & billing", icon: ReceiptIcon },
             { id: "settings", label: "Settings", icon: Settings },
             { id: "admin", label: "Admin", icon: ShieldAlert },
             { id: "datacontrol", label: "Data Control", icon: Database },
@@ -2980,47 +2986,27 @@ Use 2 hashtags max when promo present`;
               go={(v) => setView(v as any)} />
           )}
 
-          {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}
+          {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} isOwner={isOwner} />}
+          {view === "billing" && <SocialiteBilling />}
+          {view === "genius" && (
+            <SocialiteGenius
+              queueSummary={`${queue.length} posts in queue, ${queue.filter((q) => q.status === "posted").length} posted; top platforms: ${Array.from(new Set(queue.flatMap((q) => q.platforms))).join(", ") || "none"}`}
+              onUsePost={(text, image) => {
+                if (text) setPostText(text);
+                if (image) setMedia((m) => [...m, { url: image, type: "image" as const, name: "genius-picture" }].slice(0, 4));
+                setView("composer");
+              }}
+              onAddPosts={(posts) => {
+                setQueue((q) => [...posts.map((p, i) => ({ id: `genius-${Date.now()}-${i}`, text: p.text, platforms: (p.platforms.length ? p.platforms : ["facebook"]) as PlatformId[], scheduledAt: p.when, media: [], status: "draft" as const })), ...q]);
+                showToast(`${posts.length} posts added to your queue as drafts`, "success");
+                setView("queue");
+              }}
+            />
+          )}
 
           {view === "settings" && (
-            <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
-              <div className="flex items-center justify-between">
-                <h1 className="text-[22px] font-semibold">Settings</h1>
-                <button onClick={() => showToast(`Settings saved - glassmorphism ${settings.glassmorphism ? "on" : "off"}, bestTimeAuto ${settings.bestTimeAuto ? "on" : "off"}, tz ${settings.timezone}`, "success")} className="px-4 py-2 rounded-full bg-white text-black text-[12px] font-semibold flex items-center gap-1.5 hover:bg-zinc-100 transition"><Check className="w-3.5 h-3.5" /> Save settings</button>
-              </div>
-
-              <div className="rounded-[18px] border border-zinc-800 bg-[#161617] p-6 space-y-5">
-                {[
-                  { label: "Glassmorphism UI", desc: "Frosted cards & vibrant gradients", key: "glassmorphism" },
-                  { label: "Auto best-time scheduling", desc: "AI picks optimal slots", key: "bestTimeAuto" },
-                  { label: "Recurring enabled", desc: "Weekly repeats in schedule", key: "recurring" },
-                ].map((it) => (
-                  <div key={it.key} className="flex items-center justify-between">
-                    <div>
-                      <div className="text-[13px] font-medium">{it.label}</div>
-                      <div className="text-[11px] text-zinc-500">{it.desc}</div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSettings((s: any) => ({ ...s, [it.key]: !s[it.key] }));
-                        showToast(`${it.label} toggled`, "success");
-                      }}
-                      className={`w-9 h-5 rounded-full p-0.5 transition ${settings[it.key] ? "bg-white" : "bg-zinc-700"}`}
-                    >
-                      <div className={`w-4 h-4 rounded-full bg-black transition ${settings[it.key] ? "translate-x-4" : ""}`} />
-                    </button>
-                  </div>
-                ))}
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[13px] font-medium">Timezone</div>
-                    <div className="text-[11px] text-zinc-500">{TIMEZONES.find((t) => t.id === settings.timezone)?.label} • click to cycle</div>
-                  </div>
-                  <button onClick={cycleTimezone} className="text-[12px] px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition">{settings.timezone}</button>
-                </div>
-              </div>
-            </div>
+            <SocialiteSettings settings={settings} setSettings={setSettings as any} profile={profile} setProfile={setProfile}
+              toast={showToast} openBilling={() => setView("billing")} />
           )}
 
           {view === "messaging" && <SocialiteMessaging isOwner={isOwner} />}
@@ -3029,169 +3015,8 @@ Use 2 hashtags max when promo present`;
           
           {isOwner && view === "admin" && <SocialiteAdmin />}
 
-          {isOwner && view === "datacontrol" && (
-            <div className="p-4 lg:p-8 max-w-[760px] space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><Database className="w-5 h-5" /></div>
-                <div>
-                  <h1 className="text-[22px] font-semibold tracking-tight">Data Management</h1>
-                  <p className="text-[12px] text-zinc-500 mt-0.5">Erase mock data, clear cache, reset app • localStorage only</p>
-                </div>
-              </div>
-
-              <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-6 space-y-5">
-                <div className="flex items-start gap-3 p-4 rounded-[14px] bg-amber-500/10 border border-amber-500/20">
-                  <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-[13px] font-medium text-amber-200">Local-only operations</div>
-                    <div className="text-[11px] text-amber-300/70 mt-1 leading-[1.5]">All actions affect browser localStorage keys starting with pf_. No server data is deleted. Use confirm dialogs to avoid accidental loss.</div>
-                  </div>
-                </div>
-
-                <div className="grid gap-3">
-                  <div className="rounded-[14px] border border-zinc-800 bg-[#0f0f10] p-4 flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><Trash2 className="w-4 h-4" /></div>
-                    <div className="flex-1">
-                      <div className="text-[13px] font-medium">Erase All Mock Data</div>
-                      <div className="text-[11px] text-zinc-500">Clears pf_queue, pf_mock_data, resets queue to empty</div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (queue.length > 5) {
-                          if (!confirm(`Erase all mock queue data? ${queue.length} items will be deleted. Continue?`)) return;
-                          if (!confirm(`Second confirm: really erase ${queue.length} posts?`)) return;
-                        } else {
-                          if (!confirm("Erase all mock queue data? This will clear pf_queue and pf_mock_data and empty the queue.")) return;
-                        }
-                        try {
-                          media.forEach((m) => { if (m.url.startsWith("blob:")) URL.revokeObjectURL(m.url); });
-                        } catch {}
-                        localStorage.removeItem("pf_queue");
-                        localStorage.removeItem("pf_mock_data");
-                        localStorage.removeItem("pf_media_cache");
-                        setQueue([]);
-                        setMedia([]);
-                        setAttachedFiles([]);
-                        showToast("Mock data erased", "success");
-                      }}
-                      className="px-4 py-2 rounded-full bg-white text-black text-[12px] font-semibold hover:bg-zinc-100 transition"
-                    >
-                      Erase mock
-                    </button>
-                  </div>
-
-                  <div className="rounded-[14px] border border-zinc-800 bg-[#0f0f10] p-4 flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><ImageIcon className="w-4 h-4" /></div>
-                    <div className="flex-1">
-                      <div className="text-[13px] font-medium">Clear Media Cache</div>
-                      <div className="text-[11px] text-zinc-500">Clears pf_media_cache and temporary blob URLs</div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        try { media.forEach((m) => { if (m.url.startsWith("blob:")) URL.revokeObjectURL(m.url); }); } catch {}
-                        localStorage.removeItem("pf_media_cache");
-                        setMedia([]);
-                        setAttachedFiles([]);
-                        showToast("Media cache cleared - blob URLs revoked", "success");
-                      }}
-                      className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-[12px] font-medium text-zinc-300 hover:bg-zinc-800 transition"
-                    >
-                      Clear cache
-                    </button>
-                  </div>
-
-                  <div className="rounded-[14px] border border-zinc-800 bg-[#0f0f10] p-4 flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><Settings className="w-4 h-4" /></div>
-                    <div className="flex-1">
-                      <div className="text-[13px] font-medium">Reset All Settings</div>
-                      <div className="text-[11px] text-zinc-500">Clears pf_settings and toggles, keeps queue</div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (!confirm("Reset all settings? This clears pf_settings.")) return;
-                        localStorage.removeItem("pf_settings");
-                        setSettings({ glassmorphism: true, bestTimeAuto: true, timezone: "PST", recurring: false, igCrop: true, autoHashtags: true, crossAdapt: true, firstComment: false });
-                        showToast("Settings reset - all toggles restored", "success");
-                      }}
-                      className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-[12px] font-medium text-zinc-300 hover:bg-zinc-800 transition"
-                    >
-                      Reset settings
-                    </button>
-                  </div>
-
-                  <div className="rounded-[14px] border border-zinc-800 bg-[#0f0f10] p-4 flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 grid place-items-center"><Download className="w-4 h-4" /></div>
-                    <div className="flex-1">
-                      <div className="text-[13px] font-medium">Export Data (JSON)</div>
-                      <div className="text-[11px] text-zinc-500">Downloads queue + settings + tokens (masked) as JSON</div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        try {
-                          const data = { queue, settings, exportedAt: new Date().toISOString(), analyticsRange };
-                          const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement("a");
-                          a.href = url;
-                          a.download = `socialite-export-${Date.now()}.json`;
-                          a.click();
-                          URL.revokeObjectURL(url);
-                          showToast("Exported JSON", "success");
-                        } catch { showToast("Export failed", "error"); }
-                      }}
-                      className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-[12px] font-medium text-zinc-300 hover:bg-zinc-800 transition flex items-center gap-1.5"
-                    >
-                      <Download className="w-3.5 h-3.5" /> Export
-                    </button>
-                  </div>
-
-                  <div className="rounded-[14px] border border-red-500/20 bg-red-500/10 p-4 flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-xl bg-red-500/20 border border-red-500/30 grid place-items-center"><ShieldAlert className="w-4 h-4 text-red-300" /></div>
-                    <div className="flex-1">
-                      <div className="text-[13px] font-medium text-red-200">Factory Reset</div>
-                      <div className="text-[11px] text-red-300/70">Clears all pf_* keys and reloads app</div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (!confirm("Factory reset? This will clear ALL pf_* keys (queue, settings, tokens, media) and reload the page.")) return;
-                        try { Object.keys(localStorage).filter((k) => k.startsWith("pf_")).forEach((k) => localStorage.removeItem(k)); } catch {}
-                        showToast("Factory reset - reloading", "success");
-                        setTimeout(() => window.location.reload(), 600);
-                      }}
-                      className="px-4 py-2 rounded-full bg-red-500 text-white text-[12px] font-semibold hover:bg-red-600 transition"
-                    >
-                      Factory reset
-                    </button>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-zinc-800/60">
-                  <div className="text-[11px] mono text-zinc-500 uppercase tracking-widest mb-2">Storage overview</div>
-                  <div className="grid grid-cols-2 gap-2 text-[11px] mono">
-                    <button onClick={() => { setView("queue"); showToast("Storage: pf_queue → Queue tab", "success"); }} className="p-2.5 rounded-lg bg-[#0f0f10] border border-zinc-800 flex justify-between text-left">
-                      <span className="text-zinc-500">pf_queue</span><span className="text-zinc-300">{queue.length} items</span>
-                    </button>
-                    <button onClick={() => { setView("settings"); showToast("Storage: pf_settings → Settings tab", "success"); }} className="p-2.5 rounded-lg bg-[#0f0f10] border border-zinc-800 flex justify-between text-left">
-                      <span className="text-zinc-500">pf_settings</span><span className="text-zinc-300">{Object.keys(settings).length} keys</span>
-                    </button>
-                    <button onClick={() => { setView("accounts"); showToast("Storage: pf_meta_token → Accounts tab", "success"); }} className="p-2.5 rounded-lg bg-[#0f0f10] border border-zinc-800 flex justify-between text-left">
-                      <span className="text-zinc-500">pf_meta_token</span><span className={localStorage.getItem("pf_meta_token") ? "text-emerald-300" : "text-zinc-500"}>{localStorage.getItem("pf_meta_token") ? "set" : "empty"}</span>
-                    </button>
-                    <button onClick={() => fileInputRef.current?.click()} className="p-2.5 rounded-lg bg-[#0f0f10] border border-zinc-800 flex justify-between text-left">
-                      <span className="text-zinc-500">pf_media_cache</span><span className="text-zinc-300">{media.length + attachedFiles.length} cached</span>
-                    </button>
-                  </div>
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] mono">
-                    <button onClick={() => { setView("automation"); showToast("pf_automation_context → Automation tab", "success"); }} className="p-2.5 rounded-lg bg-[#0f0f10] border border-zinc-800 flex justify-between text-left">
-                      <span className="text-zinc-500">pf_automation_*</span><span className="text-emerald-300">{topics.length} topics • {autoPlatforms.length} plats</span>
-                    </button>
-                    <button onClick={() => { setView("automation"); showToast(`Bot ${automationEnabled ? "enabled" : "disabled"}`, "success"); }} className="p-2.5 rounded-lg bg-[#0f0f10] border border-zinc-800 flex justify-between text-left">
-                      <span className="text-zinc-500">pf_automation_enabled</span><span className={automationEnabled ? "text-emerald-300" : "text-zinc-500"}>{automationEnabled ? "ON" : "OFF"}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {view === "datacontrol" && (
+            <SocialiteDataControl isOwner={isOwner} toast={showToast} onLocalCleared={() => { setQueue([]); setMedia([]); }} />
           )}
         </div>
       </div>

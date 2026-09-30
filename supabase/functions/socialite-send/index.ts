@@ -5,6 +5,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
 import { requireUser } from "../_shared/socialiteVault.ts";
 import { sendToContacts } from "../_shared/contactSend.ts";
+import { meter } from "../_shared/socialiteBilling.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const Body = z.object({
@@ -22,7 +23,13 @@ Deno.serve(async (req) => {
     const parsed = Body.safeParse(await req.json().catch(() => null));
     if (!parsed.success) return json({ error: "Invalid request", details: parsed.error.flatten().fieldErrors }, 400);
     const { channel, contact_ids, subject, message } = parsed.data;
-    return json(await sendToContacts(auth.userId, auth.email, channel, contact_ids, subject, message));
+    // Commercial metering: one unit per recipient, checked before sending.
+    const check = await meter(auth.userId, auth.isAdmin, channel, contact_ids.length, {}, true);
+    if (!check.ok) return json({ error: check.reason, billing: true }, 402);
+    const result: any = await sendToContacts(auth.userId, auth.email, channel, contact_ids, subject, message);
+    const sent = Number(result?.successful ?? 0) || 0;
+    if (sent > 0) await meter(auth.userId, auth.isAdmin, channel, sent, { requested: contact_ids.length });
+    return json(result);
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }

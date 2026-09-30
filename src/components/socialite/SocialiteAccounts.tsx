@@ -4,6 +4,7 @@
  * the provider, encrypts them (AES-GCM) and stores them in a table the browser can't read.
  * The browser only ever gets back: connected yes/no, account name, last 4 characters.
  */
+import SocialiteGeniusConnect from "./SocialiteGeniusConnect";
 import { useCallback, useEffect, useState } from "react";
 import { Facebook, Instagram, AtSign, Youtube } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +32,7 @@ const DEFS = [
     help: "Google OAuth Playground → YouTube Data API v3 → youtube.upload scope → exchange for an access token. Posts need an .mp4 link. Google tokens last 1 hour." },
 ] as const;
 
-export default function SocialiteAccounts({ onChange }: { onChange?: (s: Set<string>) => void }) {
+export default function SocialiteAccounts({ onChange, isOwner = false }: { onChange?: (s: Set<string>) => void; isOwner?: boolean }) {
   const [status, setStatus] = useState<Record<string, Status>>({});
   const [open, setOpen] = useState<string | null>(null);
   const [form, setForm] = useState({ account_id: "", token: "" });
@@ -70,6 +71,7 @@ export default function SocialiteAccounts({ onChange }: { onChange?: (s: Set<str
         <p className="text-[13px] text-zinc-500">Paste your keys here. They're checked, encrypted and never shown again.</p>
       </div>
       {msg && <div className={`rounded-[14px] border px-4 py-3 text-[13px] ${msg.ok ? "border-emerald-900 bg-emerald-950/40 text-emerald-300" : "border-zinc-700 bg-zinc-900 text-zinc-300"}`}>{msg.text}</div>}
+      {isOwner && <SocialiteGeniusConnect />}
       <div className="grid gap-3">
         {DEFS.map((p) => {
           const s = status[p.id];
