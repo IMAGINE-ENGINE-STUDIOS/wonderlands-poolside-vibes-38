@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, Receipt, FileText, Plus, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import InvoiceGenerator from "@/components/InvoiceGenerator";
+import { emailQuote, emailInvoice } from "@/lib/socialite/clientActions";
 
 interface Quote { id: string; name: string; email: string; pool_model: string | null; total_quote_amount: number | null; status: string | null; created_at: string }
 interface Invoice { id: string; invoice_number: string; customer_name: string; total_amount: number; payment_status: string | null; status: string | null; invoice_date: string; quotation_id: string | null }
@@ -18,12 +19,14 @@ export default function SocialiteQuotesInvoices() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [q, setQ] = useState("");
+  const [note, setNote] = useState("");
+  const send = async (label: string, fn: () => Promise<void>) => { setNote(`${label}…`); try { await fn(); setNote(`${label} sent.`); } catch (e: any) { setNote(e?.message || `${label} failed.`); } };
   const [gen, setGen] = useState<{ open: boolean; quoteId?: string }>({ open: false });
 
   const load = useCallback(async () => {
     const [a, b] = await Promise.all([
-      supabase.from("user_quotations").select("id, name, email, pool_model, total_quote_amount, status, created_at").order("created_at", { ascending: false }).limit(500),
-      supabase.from("invoices").select("id, invoice_number, customer_name, total_amount, payment_status, status, invoice_date, quotation_id").order("created_at", { ascending: false }).limit(500),
+      supabase.from("user_quotations").select("id, name, email, pool_model, total_quote_amount, status, created_at, selected_options").order("created_at", { ascending: false }).limit(500),
+      supabase.from("invoices").select("id, invoice_number, customer_name, customer_email, total_amount, payment_status, status, invoice_date, quotation_id").order("created_at", { ascending: false }).limit(500),
     ]);
     setQuotes((a.data as Quote[]) || []);
     setInvoices((b.data as Invoice[]) || []);
@@ -42,9 +45,12 @@ export default function SocialiteQuotesInvoices() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[22px] font-semibold">Quotes & Invoices</h1>
-          <p className="text-[13px] text-zinc-500">Turn any quote into an invoice and track payments.</p>
+          <p className="text-[13px] text-zinc-500">Turn any quote into an invoice, email it and track payments. {note}</p>
         </div>
+        <div className="flex gap-2">
+        <a href="/quote" target="_blank" rel="noreferrer" className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 text-[12px] font-semibold flex items-center gap-1.5 hover:bg-white hover:text-black transition"><Plus className="w-3.5 h-3.5" /> Build new quote</a>
         <button onClick={() => setGen({ open: true })} className="px-4 py-2 rounded-full bg-white text-black text-[12px] font-semibold flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> New invoice</button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -80,6 +86,7 @@ export default function SocialiteQuotesInvoices() {
                 <div className="text-[11.5px] text-zinc-500 truncate">{x.email} · {new Date(x.created_at).toLocaleDateString()}</div>
               </div>
               <div className="text-[13px] mono">{money(x.total_quote_amount)}</div>
+              <button onClick={() => send("Quote email", () => emailQuote(x))} className="px-3 py-2 rounded-full text-[12px] font-semibold border bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black transition">Email</button>
               <a href={`/admin/quotes/${x.id}`} target="_blank" rel="noreferrer" aria-label="Open quote" className="w-9 h-9 rounded-full grid place-items-center bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"><ExternalLink className="w-4 h-4" /></a>
               {inv
                 ? <a href={`/admin/invoices/${inv.id}`} target="_blank" rel="noreferrer" className="px-4 py-2 rounded-full text-[12px] font-semibold border bg-zinc-900 border-zinc-800 text-emerald-300">{inv.invoice_number}</a>
@@ -88,14 +95,17 @@ export default function SocialiteQuotesInvoices() {
           );
         }))}
         {tab === "invoices" && (shownInv.length === 0 ? <div className="p-8 text-center text-[13px] text-zinc-500">No invoices yet.</div> : shownInv.map(x => (
-          <a key={x.id} href={`/admin/invoices/${x.id}`} target="_blank" rel="noreferrer" className="flex items-center gap-4 p-4 hover:bg-zinc-900/60 transition">
+          <div key={x.id} className="flex items-center gap-4 p-4 hover:bg-zinc-900/60 transition">
+            <a href={`/admin/invoices/${x.id}`} target="_blank" rel="noreferrer" className="flex-1 min-w-0 flex items-center gap-4">
             <div className="flex-1 min-w-0">
               <div className="text-[13.5px] font-medium truncate">{x.invoice_number} <span className="text-zinc-500 font-normal">· {x.customer_name}</span></div>
               <div className="text-[11.5px] text-zinc-500">{new Date(x.invoice_date).toLocaleDateString()} · {x.status}</div>
             </div>
             <span className={`text-[11px] px-2.5 py-1 rounded-full uppercase tracking-wider ${x.payment_status === "paid" ? "bg-emerald-950 text-emerald-300" : "bg-zinc-800 text-zinc-300"}`}>{x.payment_status || "unpaid"}</span>
             <div className="text-[13px] mono w-28 text-right">{money(x.total_amount)}</div>
-          </a>
+            </a>
+            <button onClick={() => send("Invoice email", () => emailInvoice(x))} className="px-3 py-2 rounded-full text-[12px] font-semibold border bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black transition">Email</button>
+          </div>
         )))}
       </div>
 
