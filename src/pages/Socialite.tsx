@@ -216,7 +216,7 @@ export default function Socialite() {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     d.setHours(19, 0, 0, 0);
-    return d.toISOString().slice(0, 16);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); // local wall time
   });
   const [queue, setQueue] = useState<QueuePost[]>(() => {
     try {
