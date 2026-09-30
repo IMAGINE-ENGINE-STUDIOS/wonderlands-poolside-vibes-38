@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Minus, Plus, ShoppingBag, Trash2, X, ChevronRight } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Trash2, X, ChevronRight, AlertTriangle } from "lucide-react";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 
@@ -16,10 +16,47 @@ type QuoteTarget = { name: string; price: number; type: string; image?: string }
 const money = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
-const FlipCart: React.FC = () => {
+type CurrentExtra = {
+  name: string;
+  price: number;
+  key?: string;
+  quantity?: number;
+  selectedOption?: string;
+  options?: { name: string; price: number }[];
+};
+
+/** The configuration open in a suite / the studio that is not yet in the cart. */
+export interface FlipCartCurrent {
+  name?: string;
+  category?: string;
+  price: number;
+  extras?: CurrentExtra[];
+  onAdd?: () => void;
+  onRemoveExtra?: (key?: string) => void;
+  onExtraQuantity?: (key: string | undefined, quantity: number) => void;
+  onExtraOption?: (key: string | undefined, optionName: string) => void;
+}
+
+interface FlipCartProps {
+  current?: FlipCartCurrent;
+  /** Page-specific quote (e.g. the studio's full configuration quote); falls back to the shared quote tool. */
+  onQuote?: () => void;
+  onOpenChange?: (open: boolean) => void;
+}
+
+/* The ONE cart of the site: the magazine, every suite, the studio, the solar
+   board and the quotation tool all render this Order Desk. */
+const FlipCart: React.FC<FlipCartProps> = ({ current, onQuote, onOpenChange }) => {
   const cart = useOptionalShoppingCart();
   const navigate = useNavigate();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpenState] = React.useState(false);
+  const setOpen = React.useCallback(
+    (next: boolean) => {
+      setOpenState(next);
+      onOpenChange?.(next);
+    },
+    [onOpenChange],
+  );
   /* One quote dialog for the whole magazine: product books, edition estimates and
      this desk all fire `wl:open-quote`; the quote tool merges every cart line in. */
   const [quote, setQuote] = React.useState<QuoteTarget | null>(null);
@@ -42,9 +79,17 @@ const FlipCart: React.FC = () => {
 
   if (!cart) return null;
 
-  const { cartItems, getCartCount, getCartTotal, removeFromCart, updateQuantity, removeExtra, clearCart } = cart;
-  const count = getCartCount();
-  const total = getCartTotal();
+  const { cartItems, getCartCount, getCartTotal, removeFromCart, updateQuantity, removeExtra, updateExtra, clearCart, getDuplicateCategories } = cart;
+  const currentInCart = !!current?.name && cartItems.some((c) => c.name === current.name);
+  const pending = current && !currentInCart ? current.price : 0;
+  const count = getCartCount() + (pending > 0 ? 1 : 0);
+  const total = getCartTotal() + pending;
+  const duplicates = getDuplicateCategories();
+  const startQuote = () => {
+    setOpen(false);
+    if (onQuote) onQuote();
+    else setQuote({ name: "Your Wonderlands order", price: 0, type: "Order" });
+  };
 
   return (
     <>
@@ -81,7 +126,68 @@ const FlipCart: React.FC = () => {
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-6">
-              {!cartItems.length && (
+              {duplicates.length > 0 && (
+                <p className="mt-4 flex items-start gap-2 border border-border px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+                  More than one piece in: {duplicates.join(", ")}
+                </p>
+              )}
+              {pending > 0 && current && (
+                <article className="border-b border-border/60 py-5">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                    Being composed{current.category ? ` — ${current.category}` : ""}
+                  </p>
+                  <div className="mt-1 flex items-baseline justify-between gap-3">
+                    <h4 className="truncate font-serif text-lg font-light leading-snug">{current.name || "Current configuration"}</h4>
+                    <p className="font-serif text-lg font-light">{money(pending)}</p>
+                  </div>
+                  {!!current.extras?.length && (
+                    <ul className="mt-3">
+                      {current.extras.map((e, ei) => (
+                        <li key={`${e.key ?? e.name}-${ei}`} className="border-t border-border/50 py-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                          <div className="flex items-baseline justify-between gap-3">
+                            <span className="truncate">{e.selectedOption ?? e.name}</span>
+                            <span className="flex shrink-0 items-center gap-2">
+                              {typeof e.quantity === "number" && current.onExtraQuantity && (
+                                <>
+                                  <button onClick={() => current.onExtraQuantity?.(e.key, (e.quantity || 0) - 1)} aria-label="Less" className="hover:text-foreground"><Minus className="h-3 w-3" /></button>
+                                  <span>{e.quantity}</span>
+                                  <button onClick={() => current.onExtraQuantity?.(e.key, (e.quantity || 0) + 1)} aria-label="More" className="hover:text-foreground"><Plus className="h-3 w-3" /></button>
+                                </>
+                              )}
+                              {money(e.price)}
+                              {current.onRemoveExtra && (
+                                <button onClick={() => current.onRemoveExtra?.(e.key)} aria-label={`Remove ${e.name}`} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                              )}
+                            </span>
+                          </div>
+                          {e.options && e.options.length > 1 && current.onExtraOption && (
+                            <select
+                              value={e.selectedOption ?? e.name}
+                              onChange={(ev) => current.onExtraOption?.(e.key, ev.target.value)}
+                              className="mt-1 h-7 w-full border border-border/60 bg-background px-2 text-[10px] text-foreground"
+                              aria-label={`Change ${e.name}`}
+                            >
+                              {e.options.map((o) => (
+                                <option key={o.name} value={o.name}>{o.name}{o.price > 0 ? ` — ${money(o.price)}` : ""}</option>
+                              ))}
+                            </select>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {current.onAdd && (
+                    <button
+                      onClick={current.onAdd}
+                      className="mt-3 flex w-full items-center justify-between border border-foreground px-4 py-2.5 text-[9px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
+                    >
+                      Add to the order <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </article>
+              )}
+              {!cartItems.length && !pending && (
                 <p className="py-10 text-[12px] leading-relaxed text-muted-foreground">
                   Nothing selected yet. Add a model from any page of the magazine — every figure includes installation
                   at your home address.
@@ -145,17 +251,40 @@ const FlipCart: React.FC = () => {
                             key={`${e.name}-${ei}`}
                             className="flex items-baseline justify-between gap-3 border-t border-border/50 py-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
                           >
-                            <span className="truncate">{e.selectedOption ?? e.name}</span>
-                            <span className="flex shrink-0 items-center gap-3">
-                              {money(e.price)}
-                              <button
-                                onClick={() => removeExtra(item.id, ei)}
-                                aria-label={`Remove ${e.name}`}
-                                className="transition-colors hover:text-foreground"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </span>
+                            <div className="flex w-full flex-col">
+                              <div className="flex items-baseline justify-between gap-3">
+                                <span className="truncate">{e.selectedOption ?? e.name}</span>
+                                <span className="flex shrink-0 items-center gap-3">
+                                  {money(e.price)}
+                                  <button
+                                    onClick={() => removeExtra(item.id, ei)}
+                                    aria-label={`Remove ${e.name}`}
+                                    className="transition-colors hover:text-foreground"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </span>
+                              </div>
+                              {e.options && e.options.length > 1 && (
+                                <select
+                                  value={e.selectedOption ?? e.name}
+                                  onChange={(ev) => {
+                                    if (current?.name === item.name && e.key && current.onExtraOption) {
+                                      current.onExtraOption(e.key, ev.target.value);
+                                      return;
+                                    }
+                                    const next = e.options?.find((o) => o.name === ev.target.value);
+                                    if (next) updateExtra(item.id, ei, next);
+                                  }}
+                                  className="mt-1 h-7 w-full border border-border/60 bg-background px-2 text-[10px] normal-case tracking-normal text-foreground"
+                                  aria-label={`Change ${e.name}`}
+                                >
+                                  {e.options.map((o) => (
+                                    <option key={o.name} value={o.name}>{o.name}{o.price > 0 ? ` — ${money(o.price)}` : ""}</option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -176,21 +305,19 @@ const FlipCart: React.FC = () => {
               <div className="mt-4 grid gap-2">
                 <button
                   onClick={() => {
+                    if (pending > 0) current?.onAdd?.();
                     setOpen(false);
                     navigate("/checkout");
                   }}
-                  disabled={!cartItems.length}
+                  disabled={!cartItems.length && !pending}
                   className="inline-flex items-center justify-between border border-foreground bg-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground disabled:opacity-40"
                 >
                   Proceed to checkout
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
                 <button
-                  onClick={() => {
-                    setOpen(false);
-                    setQuote({ name: "Your Wonderlands order", price: 0, type: "Order" });
-                  }}
-                  disabled={!cartItems.length}
+                  onClick={startQuote}
+                  disabled={!cartItems.length && !pending}
                   className="inline-flex items-center justify-between border border-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background disabled:opacity-40"
                 >
                   Generate a quote from the order
