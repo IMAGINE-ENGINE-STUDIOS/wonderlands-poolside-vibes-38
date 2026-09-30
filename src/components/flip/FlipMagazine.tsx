@@ -393,12 +393,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
 
   const bookRef = useRef<any>(null);
   /* Shared page-flip transition motion — played on every category / product open */
-  const flipMotionRaw = usePageFlipTransMotion();
-  // V8 silences the riffle: play() becomes a no-op so every open lands instantly.
-  const flipMotion = useMemo(
-    () => (isV8 ? { ...flipMotionRaw, active: false, play: () => {} } : flipMotionRaw),
-    [isV8, flipMotionRaw],
-  );
+  // Every edition (V8 included) plays the riffle when a category or product book opens.
+  const flipMotion = usePageFlipTransMotion();
   const [portrait, setPortrait] = useState(false);
   const [dims, setDims] = useState({ w: 420, h: 560 });
   const navigate = useNavigate();
@@ -537,9 +533,9 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
       // Turn under the riffle so the reader lands on the page as it clears.
       jumpTimer.current = window.setTimeout(() => {
         bookRef.current?.pageFlip()?.turnToPage(target);
-      }, isV8 ? 0 : 420);
+      }, 420);
     },
-    [flipMotion, isV8],
+    [flipMotion],
   );
   useEffect(() => () => { if (jumpTimer.current) window.clearTimeout(jumpTimer.current); }, []);
 
@@ -1270,9 +1266,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                 priceLabel={formatEntryPrice(p)}
                 image={p.image}
                 description={[p.brand, p.meta].filter(Boolean).join(" · ")}
-                onOpen={() =>
-                  turnToPageWithMotion(at.products + i * 2, p.name, [p.image, ...(category.images ?? [])])
-                }
+                onOpen={() => openDossier(p)}
               />
             ))}
             {!products.length && <li className="pt-6 text-[11px] text-muted-foreground">Composing pages…</li>}
@@ -1445,13 +1439,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() =>
-                    turnToPageWithMotion(
-                      at.products + (i + 1) * 2,
-                      p.name,
-                      [p.image, ...(category.images ?? [])],
-                    )
-                  }
+                  onClick={() => openDossier(p)}
                   title={`Open ${p.name}`}
                   className={`group flex flex-col text-left ${wide ? "sm:col-span-2" : ""}`}
                 >
@@ -1729,6 +1717,15 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                         .join(" · ") ||
                       `${g.title} — configured in the studio, installed with the product.`
                     }
+                    onOpen={() =>
+                      openDossier({
+                        id: `opt-${g.title}-${o.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+                        name: o.label,
+                        image: o.image ?? category.images?.[0] ?? "",
+                        price: (o as { price?: number }).price,
+                        meta: g.title,
+                      } as ConsoleEntry)
+                    }
                   />
                 ))}
               </ul>
@@ -1809,6 +1806,20 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
             )}
           </div>
           <div className="mt-auto grid gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent("wl:open-quote", {
+                    detail: { name: `${category.label} — your selection`, price: 0, type: category.label },
+                  }),
+                )
+              }
+              className="inline-flex items-center justify-between border border-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+            >
+              Generate a quote
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
             <a
               href="/studio"
               className="inline-flex items-center justify-between border border-foreground bg-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
@@ -1863,7 +1874,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
       anchors: { index: 1, gallery: galleryAt, code: galleryAt + 1, features: featuresAt, estimate: estimateAt },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart, turnToPageWithMotion]);
+  }, [category, products, groups, openHome, cartItems, addEntry, inCart, cart, turnToPageWithMotion, openDossier]);
 
   /* Dossier pages are composed here and rendered in this same flipbook —
      opening "More" never spawns a second book. */

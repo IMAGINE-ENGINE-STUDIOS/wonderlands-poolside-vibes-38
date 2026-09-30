@@ -2,6 +2,9 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Minus, Plus, ShoppingBag, Trash2, X, ChevronRight } from "lucide-react";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
+import SurveyQuoteTool from "@/components/SurveyQuoteTool";
+
+type QuoteTarget = { name: string; price: number; type: string; image?: string };
 
 /**
  * FLIP — Order Desk.
@@ -17,6 +20,17 @@ const FlipCart: React.FC = () => {
   const cart = useOptionalShoppingCart();
   const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
+  /* One quote dialog for the whole magazine: product books, edition estimates and
+     this desk all fire `wl:open-quote`; the quote tool merges every cart line in. */
+  const [quote, setQuote] = React.useState<QuoteTarget | null>(null);
+  React.useEffect(() => {
+    const onQuote = (e: Event) => {
+      setOpen(false);
+      setQuote((e as CustomEvent<QuoteTarget>).detail ?? { name: "Your Wonderlands order", price: 0, type: "Order" });
+    };
+    window.addEventListener("wl:open-quote", onQuote);
+    return () => window.removeEventListener("wl:open-quote", onQuote);
+  }, []);
 
   /* Any "Add to the order" control in the magazine opens this desk, so the
      reader always sees where the item landed. */
@@ -174,6 +188,17 @@ const FlipCart: React.FC = () => {
                 <button
                   onClick={() => {
                     setOpen(false);
+                    setQuote({ name: "Your Wonderlands order", price: 0, type: "Order" });
+                  }}
+                  disabled={!cartItems.length}
+                  className="inline-flex items-center justify-between border border-foreground px-4 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background disabled:opacity-40"
+                >
+                  Generate a quote from the order
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => {
+                    setOpen(false);
                     navigate("/studio");
                   }}
                   className="inline-flex items-center justify-between border border-border px-4 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
@@ -193,6 +218,9 @@ const FlipCart: React.FC = () => {
             </div>
           </aside>
         </div>
+      )}
+      {quote && (
+        <SurveyQuoteTool pool={null} isOpen={!!quote} onClose={() => setQuote(null)} customProduct={quote} />
       )}
     </>
   );
