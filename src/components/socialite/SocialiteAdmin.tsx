@@ -8,7 +8,7 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteQuotesInvoices from "./SocialiteQuotesInvoices";
-import { emailPromotion, loadClients, runPool, sendText, emailClients, textToHtml, FOLLOW_UPS, REFERRAL_URL, SIGN_TXT, fill, SITE } from "@/lib/socialite/clientActions";
+import { emailPromotion, loadClients, runPool, sendText, textToHtml, FOLLOW_UPS, REFERRAL_URL, SIGN_TXT, fill, SITE } from "@/lib/socialite/clientActions";
 
 const PromotionsManager = lazy(() => import("@/components/admin/AdminPromotionsManager"));
 const ReferralsManager = lazy(() => import("@/components/AdminReferralsManager"));
@@ -142,7 +142,7 @@ function PromoLauncher() {
             const media = p.image_url?.startsWith("https://") ? [p.image_url] : [];
             const { data, error } = await supabase.functions.invoke("socialite-publish", { body: { text: `${promoText(p)}\n${SITE}`, platforms: ["facebook", "instagram"], media } });
             if (error) throw new Error("Connect Facebook & Instagram in Accounts first");
-            return `Posted: ${JSON.stringify((data as any)?.results ?? "done").slice(0, 80)}`;
+            return data ? "Posted to Facebook & Instagram" : "Posted";
           })}>Post to Facebook & Instagram</button>
         </div>
       ))}
@@ -162,9 +162,9 @@ function ReferralLauncher() {
         <div className="text-[12px] text-zinc-500">Sends your referral link ({REFERRAL_URL}). {note}</div>
       </div>
       <button className={pill} onClick={() => confirm("Email the referral invite to all clients?") && run(async () => {
-        const ids = (await loadClients()).filter(c => !c.email_unsubscribed).map(c => c.id);
-        const r = await emailClients(ids, inv.subject, textToHtml(inv.text.replace(/\{first_name\}/g, "{{first_name}}")));
-        return `Emailed ${r?.successful ?? ids.length} clients`;
+        const { data, error } = await supabase.functions.invoke("send-bulk-email", { body: { send_to_all: true, custom_subject: inv.subject, custom_html: textToHtml(inv.text.replace(/\{first_name\}/g, "{{first_name}}")) } });
+        if (error) throw error;
+        return `Emailed ${(data as any)?.successful ?? 0} clients`;
       })}>Email all clients</button>
       <button className={pill} onClick={() => confirm("Text the referral invite to every client with a phone?") && run(async () => {
         const cs = (await loadClients()).filter(c => c.phone);
