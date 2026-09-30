@@ -3,6 +3,7 @@
  * Composer, queue, calendar, automation bot, analytics, clients, message templates.
  * State is cached in localStorage (pf_* keys). Real Meta posting needs META secrets + edge function.
  */
+import SocialiteInsights from "@/components/socialite/SocialiteInsights";
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteMessaging from "@/components/socialite/SocialiteMessaging";
 import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
@@ -302,6 +303,8 @@ export default function Socialite() {
   const [timeStart, setTimeStart] = useState<string>(() => localStorage.getItem("pf_automation_time_start") || "09:00");
   const [timeEnd, setTimeEnd] = useState<string>(() => localStorage.getItem("pf_automation_time_end") || "20:00");
   // Automation posting hours are read in this time zone (synced via pf_*).
+  const [autoStep, setAutoStep] = useState<"run" | "brain" | "schedule" | "offers">(() => (localStorage.getItem("pf_automation_step") as any) || "run");
+  useEffect(() => { localStorage.setItem("pf_automation_step", autoStep); }, [autoStep]);
   const [autoTz, setAutoTz] = useState<string>(() => localStorage.getItem("pf_automation_tz") || getSavedTz());
   useEffect(() => { localStorage.setItem("pf_automation_tz", autoTz); }, [autoTz]);
   // Calendar shows days/times in this time zone.
@@ -1523,7 +1526,7 @@ Use 2 hashtags max when promo present`;
   }, [calendarDate]);
 
   const scheduledCount = queue.filter((p) => p.status !== "posted").length;
-  const postedCount = queue.filter((p) => p.status === "posted").length + 12;
+  const postedCount = queue.filter((p) => p.status === "posted").length;
 
   const autoStats = useMemo(()=>{
     const perDay = autoMode==="day" ? postsPerDay : autoMode==="week" ? Math.ceil(postsPerWeek/7) : Math.ceil(postsPerMonth/30);
@@ -1578,14 +1581,13 @@ Use 2 hashtags max when promo present`;
 
         <nav className="px-3 space-y-1">
           {[
-            { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+            { id: "dashboard", label: "Dashboard & Analytics", icon: LayoutDashboard },
             { id: "composer", label: "Composer", icon: PenTool },
             { id: "automation", label: "Automation", icon: Bot },
             { id: "messaging", label: "Email · SMS · Calls", icon: MessageCircle },
             { id: "quotes", label: "Quotes & Invoices", icon: ReceiptIcon },
             { id: "calendar", label: "Calendar", icon: CalendarDays },
             { id: "queue", label: "Queue", icon: ChartColumn, badge: scheduledCount },
-            { id: "analytics", label: "Analytics", icon: TrendingUp },
             { id: "clients", label: "Clients", icon: Users },
             { id: "accounts", label: "Accounts", icon: Facebook },
             { id: "settings", label: "Settings", icon: Settings },
@@ -1696,7 +1698,6 @@ Use 2 hashtags max when promo present`;
               { id: "quotes", icon: ReceiptIcon },
               { id: "queue", icon: ChartColumn },
               { id: "calendar", icon: CalendarDays },
-              { id: "analytics", icon: TrendingUp },
               { id: "clients", icon: Users },
               { id: "accounts", icon: Facebook },
               { id: "admin", icon: ShieldAlert },
@@ -1733,7 +1734,7 @@ Use 2 hashtags max when promo present`;
               </div>
               <div>
                 <div className="text-[11px] uppercase tracking-widest text-zinc-500 mono">This week</div>
-                <div className="text-[14px] font-semibold">{postedCount} posts • +23% vs last</div>
+                <div className="text-[14px] font-semibold">{postedCount} posts published</div>
               </div>
             </div>
             <div className="h-8 w-px bg-zinc-800 hidden lg:block" />
@@ -2369,8 +2370,23 @@ Use 2 hashtags max when promo present`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6">
-                <div className="space-y-6">
+              {/* Steps — one focused panel at a time (every feature kept) */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                {([
+                  { id: "run", n: "1", t: "Run", s: automationEnabled ? `Live · ${queue.filter(p=>p.isAuto).length} bot posts` : "Paused" },
+                  { id: "brain", n: "2", t: "What to say", s: `${selectedTones.length} tones · ${topics.length} topics` },
+                  { id: "schedule", n: "3", t: "When & where", s: `${autoStats.perDay}/day · ${autoPlatforms.length} platforms` },
+                  { id: "offers", n: "4", t: "Offers", s: `${promotions.filter(p=>p.enabled).length} active · ${allowPromoUse ? "bot uses them" : "off"}` },
+                ] as const).map(st => (
+                  <button key={st.id} onClick={()=>setAutoStep(st.id)} className={`text-left rounded-[16px] border p-3.5 transition ${autoStep===st.id ? "bg-white text-black border-white" : "bg-[#161617] border-zinc-800 text-zinc-300 hover:border-zinc-700"}`}>
+                    <div className="flex items-center gap-2"><span className={`w-5 h-5 rounded-full grid place-items-center text-[10px] mono font-semibold ${autoStep===st.id ? "bg-black text-white" : "bg-zinc-800 text-zinc-400"}`}>{st.n}</span><span className="text-[13px] font-semibold">{st.t}</span></div>
+                    <div className={`text-[11px] mt-1 truncate ${autoStep===st.id ? "text-zinc-600" : "text-zinc-500"}`}>{st.s}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="space-y-6">
+
+                  {autoStep === "brain" && (<>
                   {/* Context & Brain */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center gap-2.5 mb-5">
@@ -2451,7 +2467,9 @@ Use 2 hashtags max when promo present`;
                       </button>
                     </div>
                   </div>
+                  </>)}
 
+                  {autoStep === "offers" && (<>
                   {/* Promotions • Offers bot can use */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5">
                     <div className="flex items-center gap-2.5 mb-5">
@@ -2544,7 +2562,9 @@ Use 2 hashtags max when promo present`;
                       </div>
                     </div>
                   </div>
+                  </>)}
 
+                  {autoStep === "schedule" && (<>
                   {/* Frequency */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center gap-2.5 mb-5">
@@ -2678,9 +2698,10 @@ Use 2 hashtags max when promo present`;
                       </div>
                     </div>
                   </div>
-                </div>
+                  </>)}
 
-                <div className="space-y-6">
+
+                {autoStep === "run" && <div className="grid lg:grid-cols-2 gap-6 items-start">
                   {/* Bot Actions */}
                   <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5 lg:p-6">
                     <div className="flex items-center gap-2.5 mb-5">
@@ -2757,7 +2778,7 @@ Use 2 hashtags max when promo present`;
                       </div>
                     </div>
                   </div>
-                </div>
+                </div>}
               </div>
             </div>
           )}
@@ -2953,87 +2974,10 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {view === "dashboard" && (
-            <div className="p-4 lg:p-8 max-w-[1100px] space-y-6">
-              <h1 className="text-[24px] font-semibold tracking-tight">Good morning, {profile.name.split(" ")[0]}</h1>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 rounded-[20px] border border-zinc-800 bg-[#161617] p-6">
-                  <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-400">Queue overview</h3>
-                    <button onClick={() => setView("queue")} className="text-[12px] text-zinc-400 hover:text-white">View all →</button>
-                  </div>
-                  <div className="space-y-3">
-                    {queue.slice(0, 3).map((p) => (
-                      <div key={p.id} className="w-full flex gap-3 p-3 rounded-xl bg-[#0f0f10] border border-zinc-800 text-left hover:border-zinc-700 transition">
-                        <div className="w-12 h-12 rounded-lg bg-zinc-900 overflow-hidden shrink-0 border border-zinc-800">{p.media[0] ? <img src={p.media[0].url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center text-zinc-600"><ImageIcon className="w-4 h-4" /></div>}</div>
-                        <div className="min-w-0">
-                          <div className="text-[12px] text-zinc-400 mono">{p.scheduledAt.toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" })}</div>
-                          <div className="text-[13px] truncate">{p.text}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="rounded-[20px] border border-zinc-800 bg-gradient-to-br from-white to-zinc-200 text-black p-6">
-                    <div className="text-[11px] font-semibold tracking-widest uppercase opacity-60">Best time AI</div>
-                    <div className="text-[18px] font-semibold mt-2 leading-tight">Your audience is most active Tue 7–9pm</div>
-                    <div className="text-[12px] mt-2 opacity-70">Post now for 3.2x average reach across IG + Threads</div>
-                    <button onClick={() => { setView("composer"); setScheduleMode("best"); }} className="mt-4 w-full py-2 rounded-full bg-black text-white text-[12px] font-semibold">Create for best time</button>
-                  </div>
-                  <div className={`rounded-[20px] border p-6 ${automationEnabled ? "border-emerald-500/30 bg-emerald-500/10" : "border-zinc-800 bg-[#161617]"}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Bot className={`w-4 h-4 ${automationEnabled ? "text-emerald-400" : "text-zinc-500"}`} />
-                      <span className="text-[11px] font-semibold tracking-widest uppercase">Automation Bot</span>
-                      <span className={`ml-auto w-2 h-2 rounded-full ${automationEnabled ? "bg-emerald-400 animate-pulse" : "bg-zinc-600"}`} />
-                    </div>
-                    <div className="text-[14px] font-semibold">{automationEnabled ? `${autoStats.perDay}/day • ${autoPlatforms.length} platforms` : "Bot paused"}</div>
-                    <div className="text-[11px] text-zinc-500 mt-1">{automationEnabled ? `Next: ${nextRunAt?.toLocaleDateString()} 9am • Auto-post ${autoPostEnabled ? "ON" : "OFF"}` : "Enable to auto-create from context"}</div>
-                    <button onClick={()=>setView("automation")} className="mt-3 w-full py-2 rounded-full bg-zinc-900 border border-zinc-800 text-[12px] font-medium hover:bg-zinc-800 transition">Open Automation Studio</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {view === "analytics" && (
-            <div className="p-4 lg:p-8 max-w-[1100px] space-y-6">
-              <div className="flex items-center justify-between">
-                <h1 className="text-[22px] font-semibold">Analytics</h1>
-                <div className="flex gap-1.5 p-1 rounded-full bg-[#161617] border border-zinc-800">
-                  {(["7d", "30d", "90d", "all"] as const).map((r) => (
-                    <button key={r} onClick={() => { setAnalyticsRange(r); showToast(`Analytics: ${r}`, "success"); }} className={`px-3 py-1 rounded-full text-[11px] mono font-medium transition ${analyticsRange === r ? "bg-white text-black" : "text-zinc-500 hover:text-zinc-300"}`}>{r.toUpperCase()}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {[
-                  { label: "Posts", value: analyticsRange === "7d" ? "12" : "84", sub: "+12% week" },
-                  { label: "Reach", value: analyticsRange === "7d" ? "18k" : "124k", sub: "+23% week" },
-                  { label: "Engagement", value: "8.4%", sub: "+1.2% week" },
-                  { label: "Saves", value: "2.1k", sub: "+8% week" },
-                ].map((s) => (
-                  <div key={s.label} className="rounded-[16px] border border-zinc-800 bg-[#161617] p-4">
-                    <div className="text-[11px] mono text-zinc-500 uppercase">{s.label} • {analyticsRange.toUpperCase()}</div>
-                    <div className="text-[22px] font-semibold mt-1">{s.value}</div>
-                    <div className="text-[11px] text-emerald-300 mt-1">{s.sub}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-6">
-                <h3 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-400 mb-6">Performance by platform ({analyticsRange})</h3>
-                <div className="space-y-4">
-                  {PLATFORMS.filter((p) => liveAccounts.has(p.id)).map((p) => { const eng = queue.filter(q=>q.status==="posted" && q.platforms.includes(p.id)).reduce((t,q)=>t+(q.engagement?.likes||0)+(q.engagement?.comments||0)+(q.engagement?.shares||0),0); const maxEng = Math.max(1, ...PLATFORMS.map(pp=>queue.filter(q=>q.status==="posted" && q.platforms.includes(pp.id)).reduce((t,q)=>t+(q.engagement?.likes||0)+(q.engagement?.comments||0)+(q.engagement?.shares||0),0))); return (
-                    <div key={p.id} className="flex items-center gap-4">
-                      <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${p.bg} grid place-items-center text-white`}>{p.icon}</div>
-                      <div className="w-[90px] text-[13px]">{p.name}</div>
-                      <div className="flex-1 h-2 rounded-full bg-zinc-900 overflow-hidden"><div className="h-full bg-white" style={{ width: `${(eng/maxEng)*100}%` }} /></div>
-                      <div className="text-[12px] mono text-zinc-400 w-16 text-right">{eng.toLocaleString()}</div>
-                    </div>
-                  ); })}
-                </div>
-              </div>
-            </div>
+          {(view === "dashboard" || view === "analytics") && (
+            <SocialiteInsights firstName={profile.name.split(" ")[0]} isOwner={isOwner} queue={queue as any}
+              bot={{ enabled: automationEnabled, perDay: autoStats.perDay, platforms: autoPlatforms.length, nextRunAt, autoPost: autoPostEnabled }}
+              go={(v) => setView(v as any)} />
           )}
 
           {view === "accounts" && <SocialiteAccounts onChange={setLiveAccounts} />}

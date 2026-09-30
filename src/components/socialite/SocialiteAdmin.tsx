@@ -80,7 +80,7 @@ function Performance() {
   const byCampaign = new Map<string, { title: string; ok: number; fail: number; days: number }>();
   d.e.forEach((x: any) => { const v = byCampaign.get(x.campaign_key) || { title: x.title || x.campaign_key, ok: 0, fail: 0, days: 0 }; v.ok += x.successful; v.fail += x.failed; v.days++; byCampaign.set(x.campaign_key, v); });
   const ch = (c: string) => { const r = d.l.filter((x: any) => x.channel === c); return { sent: r.filter((x: any) => x.status !== "failed").length, failed: r.filter((x: any) => x.status === "failed").length }; };
-  const published = posts.filter(p => p.status === "published");
+  const published = posts.filter(p => p.status === "posted");
   const eng = published.reduce((a, p) => ({ likes: a.likes + (p.engagement?.likes || 0), comments: a.comments + (p.engagement?.comments || 0), shares: a.shares + (p.engagement?.shares || 0) }), { likes: 0, comments: 0, shares: 0 });
   const invoicedQ = new Set(d.i.filter((x: any) => x.quotation_id).map((x: any) => x.quotation_id)).size;
   const paid = d.i.filter((x: any) => x.payment_status === "paid").reduce((s: number, x: any) => s + Number(x.total_amount || 0), 0);
@@ -90,7 +90,7 @@ function Performance() {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat l="Posts published" v={published.length} s={`${posts.filter(p => p.status === "scheduled").length} waiting`} />
+        <Stat l="Posts published" v={published.length} s={`${posts.filter(p => p.status !== "posted" && p.status !== "failed").length} waiting`} />
         <Stat l="Post engagement" v={eng.likes + eng.comments + eng.shares} s={`${eng.likes} likes · ${eng.comments} comments · ${eng.shares} shares`} />
         <Stat l="Quotes → invoices" v={`${invoicedQ}/${d.qc}`} s={d.qc ? `${Math.round((invoicedQ / d.qc) * 100)}% converted` : "no quotes yet"} />
         <Stat l="Paid revenue" v={money(paid)} s={`${d.r.length} referrals received`} />
