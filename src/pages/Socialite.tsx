@@ -3062,7 +3062,7 @@ Use 2 hashtags max when promo present`;
             </div>
           )}
 
-          {isOwner && view === "messaging" && <SocialiteMessaging />}
+          {view === "messaging" && <SocialiteMessaging isOwner={isOwner} />}
           {isOwner && view === "quotes" && <SocialiteQuotesInvoices />}
           {isOwner && view === "clients" && <SocialiteClients />}
           {isOwner && view === "sendtimes" && <SocialiteScheduled />}

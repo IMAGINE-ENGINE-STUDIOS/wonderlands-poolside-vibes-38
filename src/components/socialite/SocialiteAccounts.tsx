@@ -5,7 +5,7 @@
  * The browser only ever gets back: connected yes/no, account name, last 4 characters.
  */
 import { useCallback, useEffect, useState } from "react";
-import { Facebook, Instagram, AtSign, Youtube, Lock, Check, Trash2, Loader2, ExternalLink } from "lucide-react";
+import { Facebook, Instagram, AtSign, Youtube } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Status = { platform: string; account_id: string | null; token_hint: string | null; verified_name: string | null; updated_at: string };
@@ -85,7 +85,7 @@ export default function SocialiteAccounts({ onChange }: { onChange?: (s: Set<str
                     {s ? <span className="text-emerald-400">Connected{s.verified_name ? ` as ${s.verified_name}` : ""} · key {s.token_hint}</span> : "Not connected"}
                   </div>
                 </div>
-                {s && <button onClick={() => remove(p.id)} aria-label={`Disconnect ${p.name}`} className="w-9 h-9 rounded-full grid place-items-center bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"><Trash2 className="w-4 h-4" /></button>}
+                {s && <button onClick={() => remove(p.id)} aria-label={`Disconnect ${p.name}`} className="px-3 h-9 rounded-full text-[12px] bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white">Disconnect</button>}
                 <button onClick={() => { setOpen(open === p.id ? null : p.id); setForm({ account_id: s?.account_id || "", token: "" }); setMsg(null); }}
                   className="px-4 py-2 rounded-full text-[12px] font-semibold border bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black transition">
                   {s ? "Update key" : "Connect"}
