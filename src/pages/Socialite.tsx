@@ -1461,19 +1461,10 @@ Use 2 hashtags max when promo present`;
       retryCount: 0,
     };
     if (scheduleMode === "now") {
+      // Real publish: add to queue first, then publishQueueItem flips it to "posted" only on Meta success.
       setIsPublishing(true);
-      for (const pid of selected) {
-        if (pid === "youtube") {
-          const ytToken = localStorage.getItem("pf_youtube_token") || localStorage.getItem("pf_meta_token") || META_APP_ID;
-          await new Promise((r) => setTimeout(r, 400));
-          void ytToken;
-          showToast("YouTube: videos.insert mocked • upload ready", "success");
-        }
-      }
-      await new Promise((r) => setTimeout(r, 900));
-      setQueue((q) => [{ ...newPost, status: "posted", engagement: { likes: 0, comments: 0, shares: 0 } }, ...q]);
-      showToast(`Published to ${selected.join(", ")}`, "success");
-      setIsPublishing(false);
+      setQueue((q) => [newPost, ...q]);
+      try { await publishQueueItem(newPost); } finally { setIsPublishing(false); }
     } else {
       setQueue((q) => [newPost, ...q]);
       const ytNote = selected.includes("youtube" as PlatformId) ? " • YT best: Sat 2pm / Fri 3pm" : "";
