@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
   const db = admin();
 
   // Rate limit: RATE requests per rolling minute per key.
-  const { count } = await db.from("socialite_api_requests").select("id", { count: "exact", head: true }).eq("key_id", key.id).gte("created_at", new Date(Date.now() - 60_000).toISOString());
+  const { count } = await db.from("socialite_api_requests").select("id", { count: "exact", head: true }).eq("key_id", key.id).neq("status", 429).gte("created_at", new Date(Date.now() - 60_000).toISOString());
   const used = count ?? 0;
   const rl = { "X-RateLimit-Limit": String(RATE), "X-RateLimit-Remaining": String(Math.max(0, RATE - used - 1)) };
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
