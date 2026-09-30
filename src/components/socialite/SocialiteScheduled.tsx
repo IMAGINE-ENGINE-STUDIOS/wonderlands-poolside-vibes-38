@@ -30,7 +30,7 @@ export default function SocialiteScheduled() {
     <div className="p-4 lg:p-8 max-w-[960px] space-y-5">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-zinc-100">Send Times</h1>
+          <h2 className="text-[16px] font-semibold tracking-tight text-zinc-100">Timed sends</h2>
           <p className="text-[13px] text-zinc-500">Timed posts, emails and texts. They go out on their own, even with this page closed (within 5 minutes of the time set).</p>
         </div>
         <button onClick={load} className="px-3 py-2 rounded-full bg-zinc-900 text-zinc-300 text-[12px] flex items-center gap-1.5 hover:bg-zinc-800"><RefreshCw className="w-3.5 h-3.5" /> Refresh</button>

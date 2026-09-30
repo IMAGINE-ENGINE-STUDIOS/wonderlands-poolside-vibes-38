@@ -109,7 +109,7 @@ function Performance() {
         ))}
       </div>
       <div className={`${card} p-4 text-[13px]`}>
-        <div className="font-semibold mb-2">Send Times</div>
+        <div className="font-semibold mb-2">Timed sends</div>
         <div className="flex flex-wrap gap-4 text-zinc-400">
           {["pending", "sent", "failed"].map(s => <span key={s}>{s}: <span className="mono text-zinc-100">{d.s.filter((x: any) => x.status === s).length}</span></span>)}
         </div>
