@@ -26,7 +26,7 @@ export default function SocialiteDataControl({ isOwner, toast, onLocalCleared }:
       supabase.functions.invoke("socialite-credentials", { body: { action: "status" } }),
       db.from("socialite_usage").select("id", { count: "exact", head: true }).eq("user_id", id),
     ]);
-    const keys = Object.values((k.data as any)?.platforms ?? (k.data as any) ?? {}).filter((v: any) => v && (v.connected || v.token_hint)).length;
+    const keys = ((k.data as any)?.accounts ?? []).length;
     setCounts({ contacts: c.count ?? 0, waiting: w.count ?? 0, keys, usage: us.count ?? 0 });
   };
   useEffect(() => { load(); }, []);

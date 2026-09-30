@@ -40,11 +40,11 @@ export default function SocialiteGenius({ onUsePost, onAddPosts, queueSummary }:
 
   const analyseContext = async () => {
     const since = new Date(Date.now() - 30 * 86400_000).toISOString();
-    const { data } = await supabase.from("communication_logs").select("channel, status, opened_at, clicked_at").gte("created_at", since).limit(2000);
+    const { data } = await supabase.from("communication_logs").select("channel, status, opened_at").gte("created_at", since).limit(2000);
     const by: Record<string, { sent: number; failed: number; opened: number; clicked: number }> = {};
     (data ?? []).forEach((l: any) => {
       const k = (by[l.channel] ??= { sent: 0, failed: 0, opened: 0, clicked: 0 });
-      k.sent++; if (l.status === "failed") k.failed++; if (l.opened_at) k.opened++; if (l.clicked_at) k.clicked++;
+      k.sent++; if (l.status === "failed") k.failed++; if (l.opened_at) k.opened++; if (l.status === "clicked") k.clicked++;
     });
     return `Messages last 30 days: ${JSON.stringify(by)}\nPosts: ${queueSummary}`;
   };

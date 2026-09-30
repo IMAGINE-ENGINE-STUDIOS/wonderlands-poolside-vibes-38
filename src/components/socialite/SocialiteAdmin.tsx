@@ -8,6 +8,7 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteQuotesInvoices from "./SocialiteQuotesInvoices";
+import SocialiteRevenue from "./SocialiteRevenue";
 import { emailPromotion, loadClients, runPool, sendText, textToHtml, FOLLOW_UPS, REFERRAL_URL, SIGN_TXT, fill, SITE } from "@/lib/socialite/clientActions";
 
 const PromotionsManager = lazy(() => import("@/components/admin/AdminPromotionsManager"));
@@ -15,9 +16,10 @@ const ReferralsManager = lazy(() => import("@/components/AdminReferralsManager")
 const SequencesManager = lazy(() => import("@/components/admin/AutomationSequencesManager"));
 const AutomationStatus = lazy(() => import("@/components/admin/AutomationStatusManager"));
 
-type Key = "performance" | "promotions" | "quotes" | "referrals" | "sequences";
+type Key = "performance" | "revenue" | "promotions" | "quotes" | "referrals" | "sequences";
 const TABS: { id: Key; label: string }[] = [
   { id: "performance", label: "Performance" },
+  { id: "revenue", label: "Pricing & revenue" },
   { id: "promotions", label: "Promotions" },
   { id: "quotes", label: "Quotes & Invoices" },
   { id: "referrals", label: "Referrals" },
@@ -52,6 +54,7 @@ export default function SocialiteAdmin() {
         </div>
       </div>
       {tab === "performance" && <Performance />}
+      {tab === "revenue" && <SocialiteRevenue />}
       {tab === "promotions" && <><PromoLauncher /><Skin><PromotionsManager /></Skin></>}
       {tab === "quotes" && <SocialiteQuotesInvoices />}
       {tab === "referrals" && <><ReferralLauncher /><Skin><ReferralsManager /></Skin></>}
