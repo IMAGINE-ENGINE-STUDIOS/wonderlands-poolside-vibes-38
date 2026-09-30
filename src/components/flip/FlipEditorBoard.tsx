@@ -1,4 +1,5 @@
 import * as React from "react";
+import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { X, PenTool } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
@@ -75,6 +76,7 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
   const board = boardForCategory(categoryId);
   const [traced, setTraced] = useState(false);
   const [total, setTotal] = useState(0);
+  const [quoteOpen, setQuoteOpen] = useState(false);
   const [plan, setPlan] = usePersistentState<SitePlanData>(
     `flip_editor_board_site_${categoryId}`,
     emptyPlan,
@@ -162,6 +164,12 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
               </p>
             )}
             <button
+              onClick={() => setQuoteOpen(true)}
+              className="inline-flex items-center gap-2 border border-foreground bg-foreground px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-background transition-colors hover:bg-background hover:text-foreground"
+            >
+              Get the quote
+            </button>
+            <button
               onClick={onClose}
               aria-label="Close the editor board"
               className="inline-flex items-center gap-2 border border-border/60 px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
@@ -206,6 +214,13 @@ const FlipEditorBoard: React.FC<Props> = ({ categoryId, categoryLabel, productNa
           </Suspense>
         </div>
       </div>
+      {/* the board's design goes straight into the shared quote tool */}
+      <SurveyQuoteTool
+        pool={null}
+        isOpen={quoteOpen}
+        onClose={() => setQuoteOpen(false)}
+        customProduct={{ name: productName ? `${categoryLabel} — ${productName}` : `${categoryLabel} — board design`, price: Math.max(total, productPrice ?? 0), type: "scene" }}
+      />
     </div>
   );
 };
