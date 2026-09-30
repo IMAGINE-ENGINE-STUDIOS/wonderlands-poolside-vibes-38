@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.socialite-api]
 verify_jwt = false
+
+[functions.socialite-api]
+verify_jwt = false
