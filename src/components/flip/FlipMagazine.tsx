@@ -1439,13 +1439,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() =>
-                    turnToPageWithMotion(
-                      at.products + (i + 1) * 2,
-                      p.name,
-                      [p.image, ...(category.images ?? [])],
-                    )
-                  }
+                  onClick={() => openDossier(p)}
                   title={`Open ${p.name}`}
                   className={`group flex flex-col text-left ${wide ? "sm:col-span-2" : ""}`}
                 >
