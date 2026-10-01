@@ -161,8 +161,10 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
   const [notice, setNotice] = React.useState<string | null>(null);
   const [fullscreen, setFullscreen] = React.useState(false);
   const motion = motionOf(doc.theme);
+  // Kindle / e-ink: on by author choice, or automatically on Kindle browsers.
+  const kindle = !!doc.theme.kindle || (typeof navigator !== "undefined" && /Kindle|Silk|KFAPWI|KFTT/i.test(navigator.userAgent));
   const t = doc.theme;
-  const turnMs = !t.curl ? 1 : t.turnSpeed > 0 ? t.turnSpeed : motion.flippingTime;
+  const turnMs = kindle || !t.curl ? 1 : t.turnSpeed > 0 ? t.turnSpeed : motion.flippingTime;
   // V3 keyboard control
   React.useEffect(() => {
     if (!t.keyboard) return;
@@ -179,7 +181,7 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
 
   React.useEffect(() => {
     const measure = () => {
-      const isPortrait = window.innerWidth < 900;
+      const isPortrait = kindle || window.innerWidth < 900;
       setPortrait(isPortrait);
       const avail = Math.min(window.innerWidth - 32, fullscreen ? 1800 : 1400);
       const w = isPortrait ? avail : Math.floor(avail / 2);
@@ -189,7 +191,7 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [fullscreen]);
+  }, [fullscreen, kindle]);
 
   /* Autoplay — a hands-free edition. */
   React.useEffect(() => {
@@ -289,13 +291,13 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
 
   return (
     <div
-      style={{ ...themeVars(doc.theme), background: palette.paper }}
+      style={{ ...themeVars(doc.theme), background: kindle ? "#fff" : palette.paper, filter: kindle ? "grayscale(1) contrast(1.15)" : undefined }}
       className={`relative ${fullscreen ? "fixed inset-0 z-[70] overflow-auto" : ""} ${className ?? ""}`}
     >
       <div className="px-2 pb-10 pt-6 md:px-6">
         <div className="relative mx-auto flex justify-center" style={{ perspective: doc.theme.motion === "cinema" ? "1800px" : "3000px", minHeight: dims.h }}>
           <HTMLFlipBook
-            key={`reader-${doc.pages.length}-${dims.w}-${doc.theme.motion}-${t.arrowsOnly}-${turnMs}`}
+            key={`reader-${kindle}-${doc.pages.length}-${dims.w}-${doc.theme.motion}-${t.arrowsOnly}-${turnMs}`}
             ref={bookRef}
             width={dims.w}
             height={dims.h}
@@ -307,7 +309,7 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
             showCover={false}
             usePortrait={portrait}
             mobileScrollSupport
-            drawShadow={t.curl && doc.theme.motion !== "fade"}
+            drawShadow={!kindle && t.curl && doc.theme.motion !== "fade"}
             flippingTime={turnMs}
             maxShadowOpacity={0.2 + (doc.theme.depth / 100) * 0.6}
             startPage={0}
@@ -328,7 +330,13 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
               </Leaf>
             ))}
           </HTMLFlipBook>
-          {t.sideArrows && (
+          {kindle && (
+            <>
+              <button onClick={() => bookRef.current?.pageFlip()?.flipPrev()} aria-label="Previous page (tap left)" className="absolute inset-y-0 left-0 z-10 w-1/3" />
+              <button onClick={() => bookRef.current?.pageFlip()?.flipNext()} aria-label="Next page (tap right)" className="absolute inset-y-0 right-0 z-10 w-1/3" />
+            </>
+          )}
+          {t.sideArrows && !kindle && (
             <>
               <button onClick={() => bookRef.current?.pageFlip()?.flipPrev()} aria-label="Previous page (side)" className="absolute left-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center border bg-background/70 backdrop-blur" style={{ borderColor: palette.muted, color: palette.ink }}><ChevronLeft className="h-5 w-5" /></button>
               <button onClick={() => bookRef.current?.pageFlip()?.flipNext()} aria-label="Next page (side)" className="absolute right-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center border bg-background/70 backdrop-blur" style={{ borderColor: palette.muted, color: palette.ink }}><ChevronRight className="h-5 w-5" /></button>

@@ -30,6 +30,8 @@ import {
 } from "./flipBuilderV2Types";
 import { FLIP_WIDGETS, widgetMeta } from "./flipWidgets";
 import FlipBookReader, { FlipPageSurface } from "./FlipBookReader";
+import FlipColorWheel from "./FlipColorWheel";
+import { PALETTE_ROLES, type PaletteRole } from "./flipBuilderV2Types";
 import {
   appUrl, isSlugFree, narratorState, publicUrl, saveBook, startNarratorSubscription, FLIP_HOST,
   type NarratorAccount,
@@ -112,6 +114,7 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
   const [saving, setSaving] = React.useState(false);
   const [account, setAccount] = React.useState<NarratorAccount | null>(null);
   const canvasRef = React.useRef<HTMLDivElement>(null);
+  const [colorRole, setColorRole] = React.useState<PaletteRole>("paper");
 
   const pages = doc.pages;
   const index = Math.min(pageIndex, Math.max(pages.length - 1, 0));
@@ -683,6 +686,7 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
               ["pageCounter", "Page counter"],
               ["shareButton", "Share button"],
               ["studyButton", "Study (full screen) button"],
+              ["kindle", "Kindle mode (e-ink: black & white, one page, instant turns)"],
             ] as const).map(([k, l]) => (
               <label key={k} className="flex items-center justify-between border border-border/60 px-4 py-3">
                 <span className="text-[10px] uppercase tracking-[0.28em] text-foreground">{l}</span>
