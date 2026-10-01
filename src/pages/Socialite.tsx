@@ -1594,7 +1594,7 @@ Use 2 hashtags max when promo present`;
             {whiteLabelConfig.enabled ? (
               <div className="font-semibold text-[15px] leading-none tracking-tight">{whiteLabelConfig.platformName}</div>
             ) : (
-              <img src={socialiteWordmark.url} alt="Socialite" className="block w-full h-auto object-contain scale-[1.55] origin-center" />
+              <img src={socialiteWordmark.url} alt="Socialite" className="block w-full aspect-[7/1] object-cover object-center" />
             )}
             <div className="text-[11px] text-zinc-500 mono mt-1 text-center">{whiteLabelConfig.enabled && whiteLabelConfig.hideBranding ? 'v2.4 • White-label' : 'v2.4'}</div>
           </div>
