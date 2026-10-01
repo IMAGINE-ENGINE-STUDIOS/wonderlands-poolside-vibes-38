@@ -6,7 +6,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import Stripe from "npm:stripe@14.21.0";
 import { z } from "npm:zod@3";
 import { admin, requireUser } from "../_shared/socialiteVault.ts";
-import { creditBalance, loadBilling } from "../_shared/socialiteBilling.ts";
+import { creditBalance, loadBilling, chargeStorage } from "../_shared/socialiteBilling.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const stripe = () => new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", { apiVersion: "2023-10-16", httpClient: Stripe.createFetchHttpClient() });
@@ -22,7 +22,7 @@ const Body = z.object({
   target: z.enum(["plan", "ai_addon"]).optional(),
 });
 
-const KINDS = ["posts", "email", "sms", "whatsapp", "call", "ai_tokens", "ai_image"];
+const KINDS = ["posts", "email", "sms", "whatsapp", "call", "ai_tokens", "ai_image", "api_calls", "data_mb"];
 const monthStart = () => { const d = new Date(); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString(); };
 
 async function customerFor(userId: string, email: string) {
@@ -76,9 +76,10 @@ Deno.serve(async (req) => {
         db.from("socialite_credit_ledger").select("delta, amount_usd, reason, created_at").eq("user_id", auth.userId).order("created_at", { ascending: false }).limit(20),
         creditBalance(auth.userId),
       ]);
+      const storage = await chargeStorage(auth.userId, auth.isAdmin).catch(() => null);
       const used: Record<string, number> = Object.fromEntries(KINDS.map((k) => [k, 0]));
       (usage ?? []).forEach((u: any) => { used[u.kind] = (used[u.kind] ?? 0) + Number(u.units || 0); });
-      return json({ config: cfg, plans: plans ?? [], subscription: sub, used, credits, ledger: ledger ?? [], isAdmin: auth.isAdmin });
+      return json({ config: cfg, plans: plans ?? [], subscription: sub, used, credits, ledger: ledger ?? [], isAdmin: auth.isAdmin, storage });
     }
 
     if (b.action === "start_trial") {

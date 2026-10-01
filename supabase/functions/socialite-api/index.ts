@@ -33,7 +33,7 @@ const KnowledgePatch = KnowledgeIn.partial();
 const need = (scopes: string[], s: string) => { if (!scopes.includes(s)) throw new ApiError(403, `This key lacks the "${s}" permission`); };
 async function body<T>(req: Request, schema: z.ZodType<T>) {
   const txt = await req.text();
-  if (txt.length > 65536) throw new ApiError(413, "Request body too large");
+  if (txt.length > 2_097_152) throw new ApiError(413, "Request body too large (2 MB per request — split it into several calls)");
   let raw: unknown; try { raw = JSON.parse(txt || "null"); } catch { throw new ApiError(400, "Body must be JSON"); }
   const p = schema.safeParse(raw);
   if (!p.success) throw new ApiError(422, JSON.stringify(p.error.flatten().fieldErrors));
