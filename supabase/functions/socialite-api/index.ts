@@ -27,6 +27,8 @@ const PostIn = z.object({ text: z.string().trim().min(1).max(5000), platforms: z
 const MsgIn = z.object({ channel: z.enum(["email", "sms", "whatsapp"]), contact_ids: z.array(z.string().uuid()).min(1).max(200), subject: z.string().trim().max(200).optional().default("A message for you"), message: z.string().trim().min(1).max(5000), ...When });
 
 class ApiError extends Error { constructor(public status: number, msg: string) { super(msg); } }
+const KnowledgeIn = z.object({ kind: z.enum(["face","scenario","wording","prohibited_words","prohibited_imagery","pitch","logic","pipeline","note"]).default("note"), title: z.string().trim().min(1).max(160), content: z.string().max(8000).optional().default(""), active: z.boolean().optional().default(true) });
+const KnowledgePatch = KnowledgeIn.partial();
 const need = (scopes: string[], s: string) => { if (!scopes.includes(s)) throw new ApiError(403, `This key lacks the "${s}" permission`); };
 async function body<T>(req: Request, schema: z.ZodType<T>) {
   const txt = await req.text();
@@ -129,6 +131,29 @@ Deno.serve(async (req) => {
         if (r.successful) await meter(owner, isAdmin, b.channel, r.successful, { via: "api" });
         out = { successful: r.successful, failed: r.failed };
       }
+    } else if (res === "knowledge" && m === "GET" && !id) {
+      need(key.scopes, "read");
+      const { data } = await db.from("socialite_knowledge").select("id, kind, title, content, active, image_path, created_at, updated_at").eq("owner_id", owner).order("created_at", { ascending: false }).limit(500);
+      out = { data: (data ?? []).map(({ image_path, ...k }: any) => ({ ...k, has_image: !!image_path })) };
+    } else if (res === "knowledge" && m === "POST") {
+      need(key.scopes, "write");
+      const b = await body(req, KnowledgeIn);
+      const { count } = await db.from("socialite_knowledge").select("id", { count: "exact", head: true }).eq("owner_id", owner);
+      if ((count ?? 0) >= 1000) throw new ApiError(422, "Knowledge limit reached (1000 items)");
+      const { data, error } = await db.from("socialite_knowledge").insert({ ...b, owner_id: owner }).select("id, kind, title, content, active").single();
+      if (error) throw new ApiError(400, "Could not save");
+      status = 201; out = { data };
+    } else if (res === "knowledge" && m === "PATCH" && id) {
+      need(key.scopes, "write");
+      const b = await body(req, KnowledgePatch);
+      const { data } = await db.from("socialite_knowledge").update(b).eq("id", id).eq("owner_id", owner).select("id, kind, title, content, active").maybeSingle();
+      if (!data) throw new ApiError(404, "Not found");
+      out = { data };
+    } else if (res === "knowledge" && m === "DELETE" && id) {
+      need(key.scopes, "write");
+      const { data } = await db.from("socialite_knowledge").delete().eq("id", id).eq("owner_id", owner).select("image_path").maybeSingle();
+      if (data?.image_path) await db.storage.from("socialite-knowledge").remove([data.image_path]);
+      out = { deleted: true };
     } else if (res === "scheduled" && m === "GET") {
       need(key.scopes, "read");
       const { data } = await db.from("socialite_scheduled").select("id, kind, send_at, timezone, status, created_at").eq("created_by", owner).order("send_at", { ascending: true }).limit(200);
