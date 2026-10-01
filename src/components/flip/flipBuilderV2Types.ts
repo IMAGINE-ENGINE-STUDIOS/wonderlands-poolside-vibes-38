@@ -98,7 +98,21 @@ export type FlipTheme = {
   studyButton: boolean;
   /** custom turn speed in ms; 0 = use the motion's speed */
   turnSpeed: number;
+  /** hand-picked colours layered on top of the chosen palette (colour wheel) */
+  customColors?: Partial<Record<PaletteRole, string>>;
+  /** Kindle / e-ink mode: grayscale, one page, instant turns, big tap zones */
+  kindle?: boolean;
 };
+
+export type PaletteRole = "paper" | "ink" | "muted" | "accent" | "coverPaper" | "coverInk";
+export const PALETTE_ROLES: { id: PaletteRole; label: string }[] = [
+  { id: "paper", label: "Page paper" },
+  { id: "ink", label: "Text" },
+  { id: "muted", label: "Captions" },
+  { id: "accent", label: "Accent" },
+  { id: "coverPaper", label: "Cover paper" },
+  { id: "coverInk", label: "Cover text" },
+];
 
 export type FlipNarratorSettings = {
   enabled: boolean;
@@ -149,6 +163,8 @@ export const defaultTheme = (): FlipTheme => ({
   shareButton: true,
   studyButton: true,
   turnSpeed: 0,
+  customColors: {},
+  kindle: false,
 });
 
 /** V3: an empty edition — one blank cover leaf, no sample content. */
@@ -197,8 +213,11 @@ export const ensureV2 = (doc: Partial<BuilderDocV2> | null | undefined): Builder
   };
 };
 
-export const paletteOf = (theme: FlipTheme): FlipPalette =>
-  FLIP_PALETTES.find((p) => p.id === theme.paletteId) ?? FLIP_PALETTES[0];
+export const paletteOf = (theme: FlipTheme): FlipPalette => {
+  const base = FLIP_PALETTES.find((p) => p.id === theme.paletteId) ?? FLIP_PALETTES[0];
+  const c = theme.customColors;
+  return c && Object.keys(c).length ? { ...base, ...c, id: base.id, name: base.name } : base;
+};
 
 export const typeSetOf = (theme: FlipTheme): FlipTypeSet =>
   FLIP_TYPE_SETS.find((t) => t.id === theme.typeId) ?? FLIP_TYPE_SETS[0];
@@ -218,6 +237,7 @@ export const shuffleTheme = (current: FlipTheme): FlipTheme => {
   return {
     ...current,
     paletteId: pick(FLIP_PALETTES.map((p) => p.id), current.paletteId),
+    customColors: {},
     typeId: pick(FLIP_TYPE_SETS.map((t) => t.id), current.typeId),
     motion: pick(FLIP_MOTIONS.map((m) => m.id), current.motion),
     grain: Math.round(Math.random() * 40),
