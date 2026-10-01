@@ -72,6 +72,16 @@ const BlockSurface: React.FC<{ block: Block; cover: boolean; still?: boolean }> 
   if (block.kind === "rule")
     return <div className="h-px w-full" style={{ background: "var(--fb-accent)", opacity: 0.55 }} />;
 
+  if (block.kind === "button")
+    return (
+      <span
+        className="flex h-full w-full items-center justify-center border px-3 text-center text-[10px] uppercase tracking-[0.3em]"
+        style={{ borderColor: "var(--fb-accent)", color: "var(--fb-accent)", fontFamily: "var(--fb-text)" }}
+      >
+        {block.text || "Open"}
+      </span>
+    );
+
   const style = block.style ?? "body";
   const display = style === "title" || style === "subtitle" || style === "stat";
   return (
@@ -89,12 +99,16 @@ const BlockSurface: React.FC<{ block: Block; cover: boolean; still?: boolean }> 
   );
 };
 
+/** Reader-only: runs a block's V3 action (page jump, minibook, cart, link). */
+const FlipActionContext = React.createContext<((b: Block) => void) | null>(null);
+
 /** One leaf, painted with the theme. Exported so the editor canvas matches 1:1. */
 export const FlipPageSurface: React.FC<{ page: BuilderPage; theme: FlipTheme; still?: boolean }> = ({
   page,
   theme,
   still,
 }) => {
+  const act = React.useContext(FlipActionContext);
   const cover = page.tone === "cover";
   return (
     <div
@@ -123,11 +137,25 @@ export const FlipPageSurface: React.FC<{ page: BuilderPage; theme: FlipTheme; st
           }}
         />
       )}
-      {page.blocks.map((b) => (
-        <div key={b.id} className="absolute" style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%` }}>
-          <BlockSurface block={b} cover={cover} still={still} />
-        </div>
-      ))}
+      {page.blocks.map((b) => {
+        const box = { left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%` };
+        const live = !still && act && b.action && b.action !== "none";
+        return live ? (
+          <button
+            key={b.id}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); act!(b); }}
+            className="absolute z-20 cursor-pointer text-left transition-opacity hover:opacity-80"
+            style={box}
+          >
+            <BlockSurface block={b} cover={cover} still={still} />
+          </button>
+        ) : (
+          <div key={b.id} className="absolute" style={box}>
+            <BlockSurface block={b} cover={cover} still={still} />
+          </div>
+        );
+      })}
     </div>
   );
 };

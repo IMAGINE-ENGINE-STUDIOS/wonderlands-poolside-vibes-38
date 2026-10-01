@@ -8,6 +8,7 @@
 
 import type { CSSProperties } from "react";
 import { starterDoc, type BuilderDoc, type BuilderPage } from "./flipBuilderTypes";
+import { FLIP_FONT_STYLES } from "./flipFonts";
 
 /* --------------------------------------------------------------- palettes */
 
