@@ -15,7 +15,7 @@ import * as React from "react";
 import {
   Plus, Copy, Trash2, Type, ImagePlus, Film, Minus, LayoutTemplate, Eye, PenLine,
   RotateCcw, Sparkles, Columns2, ArrowUp, ArrowDown, X, Shuffle, Palette, Waves,
-  Mic, Globe, Code2, Loader2, Check, Link2,
+  Mic, Globe, Code2, Loader2, Check, Link2, MousePointerClick, Library,
 } from "lucide-react";
 import usePersistentState from "@/hooks/usePersistentState";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,8 @@ import {
 import { FLIP_WIDGETS, widgetMeta } from "./flipWidgets";
 import FlipBookReader, { FlipPageSurface } from "./FlipBookReader";
 import FlipColorWheel from "./FlipColorWheel";
+import { loadFlipFonts } from "./flipFonts";
+import { buildCategoryBook } from "./flipCategoryImport";
 import { PALETTE_ROLES, type PaletteRole } from "./flipBuilderV2Types";
 import {
   appUrl, isSlugFree, narratorState, publicUrl, saveBook, startNarratorSubscription, FLIP_HOST,
@@ -115,6 +117,50 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
   const [account, setAccount] = React.useState<NarratorAccount | null>(null);
   const canvasRef = React.useRef<HTMLDivElement>(null);
   const [colorRole, setColorRole] = React.useState<PaletteRole>("paper");
+  const [fontGroup, setFontGroup] = React.useState<string>("All");
+  const [importOpen, setImportOpen] = React.useState(false);
+  const [importing, setImporting] = React.useState<string | null>(null);
+  const [categories, setCategories] = React.useState<{ id: string; label: string }[]>([]);
+  React.useEffect(() => {
+    if (!importOpen || categories.length) return;
+    import("@/components/FlipIndex").then((m) => setCategories(m.ITEMS.map((i) => ({ id: i.id, label: i.label }))));
+  }, [importOpen, categories.length]);
+  const fontGroups = React.useMemo(() => ["All", ...Array.from(new Set(FLIP_TYPE_SETS.map((t) => t.group ?? "House")))], []);
+  const visibleFonts = React.useMemo(
+    () => (fontGroup === "All" ? FLIP_TYPE_SETS : FLIP_TYPE_SETS.filter((t) => (t.group ?? "House") === fontGroup)),
+    [fontGroup],
+  );
+  React.useEffect(() => {
+    if (tab !== "palette") return;
+    visibleFonts.forEach((t) => loadFlipFonts(t.google));
+  }, [tab, visibleFonts]);
+  React.useEffect(() => {
+    loadFlipFonts(FLIP_TYPE_SETS.find((t) => t.id === doc.theme.typeId)?.google);
+  }, [doc.theme.typeId]);
+
+  /** Drop a whole Wonderlands category into the book (appends after the current page). */
+  const importCategory = async (id: string) => {
+    setImporting(id);
+    try {
+      const fresh = await buildCategoryBook(id, pages.length);
+      if (!fresh.length) {
+        toast({ title: "Nothing to import", description: "That category has no products yet." });
+        return;
+      }
+      setDoc((d) => {
+        const next = [...d.pages];
+        next.splice(index + 1, 0, ...fresh);
+        return { ...d, pages: next };
+      });
+      setPageIndex(index + 1);
+      setImportOpen(false);
+      toast({ title: "Category added", description: `${fresh.length} pages added. Delete any page or product you don't want.` });
+    } catch {
+      toast({ title: "Import failed", description: "Please try again." });
+    } finally {
+      setImporting(null);
+    }
+  };
 
   const pages = doc.pages;
   const index = Math.min(pageIndex, Math.max(pages.length - 1, 0));
@@ -144,11 +190,13 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
             ? { id: uid(), kind, x: 10, y: 40, w: 60, h: 10, text: "New text", style: "body", align: "left", animation: "fade" }
             : kind === "rule"
               ? { id: uid(), kind, x: 10, y: 50, w: 60, h: 1 }
+              : kind === "button"
+                ? { id: uid(), kind, x: 30, y: 80, w: 40, h: 7, text: "Next chapter", action: "page", targetPage: Math.min(index + 2, pages.length) }
               : { id: uid(), kind, x: 12, y: 12, w: 50, h: 36, animation: kind === "image" ? "ken" : "none" };
       setPage((p) => ({ ...p, blocks: [...p.blocks, block] }));
       setSelectedId(block.id);
     },
-    [setPage],
+    [setPage, index, pages.length],
   );
 
   const addPage = React.useCallback(
@@ -433,6 +481,7 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
                 { kind: "image" as const, icon: ImagePlus, label: "Image" },
                 { kind: "video" as const, icon: Film, label: "Film" },
                 { kind: "rule" as const, icon: Minus, label: "Rule" },
+                { kind: "button" as const, icon: MousePointerClick, label: "Button" },
               ]).map(({ kind, icon: Icon, label }) => (
                 <button key={kind} onClick={() => addBlock(kind)} className={btnCx}>
                   <Icon className="h-3.5 w-3.5" /> {label}
@@ -440,6 +489,7 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
               ))}
               <button onClick={() => setFeaturesOpen(true)} className={btnCx}><Sparkles className="h-3.5 w-3.5" /> Widget</button>
               <button onClick={() => setGalleryOpen(true)} className={btnCx}><LayoutTemplate className="h-3.5 w-3.5" /> Layouts</button>
+              <button onClick={() => setImportOpen(true)} className={btnCx}><Library className="h-3.5 w-3.5" /> Import category</button>
             </div>
           </div>
 
@@ -532,6 +582,55 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
                     </>
                   )}
 
+                  {selected.kind === "button" && (
+                    <Field label="Label">
+                      <input value={selected.text ?? ""} onChange={(e) => patchBlock(selected.id, { text: e.target.value })} className={inputCx} />
+                    </Field>
+                  )}
+                  {selected.kind !== "rule" && (
+                    <div className="grid gap-3 border border-border/50 p-3">
+                      <Field label="When tapped">
+                        <select value={selected.action ?? "none"} onChange={(e) => patchBlock(selected.id, { action: e.target.value as Block["action"] })} className={inputCx}>
+                          <option value="none">Nothing</option>
+                          <option value="page">Go to a page</option>
+                          <option value="book">Open a minibook</option>
+                          <option value="cart">Add to cart</option>
+                          <option value="url">Open a link</option>
+                        </select>
+                      </Field>
+                      {selected.action === "page" && (
+                        <Field label="Page">
+                          <select value={selected.targetPage ?? 1} onChange={(e) => patchBlock(selected.id, { targetPage: Number(e.target.value) })} className={inputCx}>
+                            {pages.map((p, i) => <option key={p.id} value={i + 1}>{i + 1} — {p.name}</option>)}
+                          </select>
+                        </Field>
+                      )}
+                      {selected.action === "book" && (
+                        <Field label="Minibook address (published book)">
+                          <input value={selected.targetBook ?? ""} onChange={(e) => patchBlock(selected.id, { targetBook: slugify(e.target.value) })} placeholder="my-minibook" className={inputCx} />
+                        </Field>
+                      )}
+                      {selected.action === "cart" && (
+                        <>
+                          <Field label="Product name">
+                            <input value={selected.productName ?? ""} onChange={(e) => patchBlock(selected.id, { productName: e.target.value })} className={inputCx} />
+                          </Field>
+                          <Field label="Price (USD)">
+                            <input type="number" min={0} value={selected.price ?? 0} onChange={(e) => patchBlock(selected.id, { price: Number(e.target.value) })} className={inputCx} />
+                          </Field>
+                          <Field label="Category">
+                            <input value={selected.productCategory ?? ""} onChange={(e) => patchBlock(selected.id, { productCategory: e.target.value })} className={inputCx} />
+                          </Field>
+                        </>
+                      )}
+                      {selected.action === "url" && (
+                        <Field label="Link">
+                          <input value={selected.href ?? ""} onChange={(e) => patchBlock(selected.id, { href: e.target.value })} placeholder="https://" className={inputCx} />
+                        </Field>
+                      )}
+                    </div>
+                  )}
+
                   {selected.kind !== "rule" && (
                     <Field label="Animation">
                       <select value={selected.animation ?? "none"} onChange={(e) => patchBlock(selected.id, { animation: e.target.value as BlockAnimation })} className={inputCx}>
@@ -615,9 +714,14 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
               />
             </div>
 
-            <p className="mt-8 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Type sets</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {FLIP_TYPE_SETS.map((t) => (
+            <p className="mt-8 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Type sets — {FLIP_TYPE_SETS.length} pairings</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {fontGroups.map((g) => (
+                <button key={g} onClick={() => setFontGroup(g)} className={`border px-2.5 py-1 text-[9px] uppercase tracking-[0.28em] transition-colors ${fontGroup === g ? "border-foreground text-foreground" : "border-border/60 text-muted-foreground hover:text-foreground"}`}>{g}</button>
+              ))}
+            </div>
+            <div className="mt-3 grid max-h-[520px] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleFonts.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => setDoc((d) => ({ ...d, theme: { ...d.theme, typeId: t.id } }))}
