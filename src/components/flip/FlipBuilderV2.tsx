@@ -1034,6 +1034,33 @@ POST /functions/v1/narrate-voice
         </div>
       )}
 
+      {/* category importer — a cover, a contents page and one page per product */}
+      {importOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6">
+          <div className="max-h-[88vh] w-full max-w-3xl overflow-y-auto border border-border/60 bg-background">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-border/60 bg-background px-5 py-4">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Import category</p>
+                <p className="mt-1 font-serif text-2xl font-light text-foreground">Drop a whole category into the book</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Adds a cover, a contents page and one page per product with its photo, price and an Add to cart button.</p>
+              </div>
+              <button onClick={() => setImportOpen(false)} aria-label="Close" className="flex h-9 w-9 shrink-0 items-center justify-center border border-border/60 text-foreground transition-colors hover:bg-foreground hover:text-background">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="grid gap-2 p-5 sm:grid-cols-2">
+              {!categories.length && <p className="text-[11px] text-muted-foreground">Loading categories…</p>}
+              {categories.map((c) => (
+                <button key={c.id} disabled={!!importing} onClick={() => importCategory(c.id)} className="flex items-center justify-between border border-border/60 px-4 py-3 text-left text-[12px] text-foreground transition-colors hover:border-foreground disabled:opacity-50">
+                  {c.label}
+                  {importing === c.id && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* widget gallery */}
       {featuresOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6">
