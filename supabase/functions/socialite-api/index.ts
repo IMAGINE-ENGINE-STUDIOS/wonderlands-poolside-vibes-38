@@ -34,7 +34,7 @@ const BookPatch = z.object({
   published: z.boolean().optional(),
   theme: z.object({
     showArrows: z.boolean(), sideArrows: z.boolean(), arrowsOnly: z.boolean(), keyboard: z.boolean(), curl: z.boolean(),
-    pageCounter: z.boolean(), shareButton: z.boolean(), studyButton: z.boolean(), showTabs: z.boolean(), showCorners: z.boolean(),
+    pageCounter: z.boolean(), shareButton: z.boolean(), studyButton: z.boolean(), kindle: z.boolean(), showTabs: z.boolean(), showCorners: z.boolean(),
     turnSpeed: z.number().int().min(0).max(2500), autoplay: z.number().int().min(0).max(30),
   }).partial().optional(),
 }).strict();

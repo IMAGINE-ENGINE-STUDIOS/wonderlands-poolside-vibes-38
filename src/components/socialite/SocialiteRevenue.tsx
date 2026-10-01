@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { billing, USAGE_LABELS, type BillingConfig, type Plan } from "@/lib/socialite/billing";
+import SocialiteCostMargins from "./SocialiteCostMargins";
 
 const db = supabase as any;
 const card = "rounded-[18px] border border-zinc-800 bg-[#161617] p-5";
@@ -140,6 +141,8 @@ export default function SocialiteRevenue() {
           ))}
         </div>
       </div>
+
+      <SocialiteCostMargins cfg={cfg as any} setC={setC} card={card} input={input} />
 
       <div className="grid lg:grid-cols-2 gap-5">
         <div className={card}>
