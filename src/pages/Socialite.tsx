@@ -320,6 +320,9 @@ export default function Socialite() {
   // Automation posting hours are read in this time zone (synced via pf_*).
   const [autoStep, setAutoStep] = useState<"run" | "brain" | "schedule" | "offers">(() => (localStorage.getItem("pf_automation_step") as any) || "run");
   useEffect(() => { localStorage.setItem("pf_automation_step", autoStep); }, [autoStep]);
+  const C_STEPS = ["where", "write", "visuals", "publish"] as const;
+  const [cStep, setCStep] = useState<typeof C_STEPS[number]>(() => (localStorage.getItem("pf_composer_step") as any) || "where");
+  useEffect(() => { localStorage.setItem("pf_composer_step", cStep); }, [cStep]);
   const [autoTz, setAutoTz] = useState<string>(() => localStorage.getItem("pf_automation_tz") || getSavedTz());
   useEffect(() => { localStorage.setItem("pf_automation_tz", autoTz); }, [autoTz]);
   // Calendar shows days/times in this time zone.
@@ -1579,21 +1582,21 @@ Use 2 hashtags max when promo present`;
         </div>
       )}
 
-      <aside className="hidden lg:flex w-[280px] shrink-0 flex-col border-r border-zinc-800/80 bg-[#0f0f10] sticky top-0 h-screen">
-        <div className="px-4 pt-6 pb-5 flex items-center gap-3">
+      <aside className="hidden lg:flex w-[280px] shrink-0 flex-col border-r border-zinc-800/80 bg-[#0f0f10] sticky top-0 h-screen overflow-y-auto overscroll-contain">
+        <div className="px-4 pt-6 pb-5 flex items-center justify-center gap-3">
           {whiteLabelConfig.enabled && whiteLabelConfig.logoUrl ? (
             <img src={whiteLabelConfig.logoUrl} alt={whiteLabelConfig.platformName} className="w-9 h-9 rounded-xl object-cover bg-white border border-zinc-800" />
           ) : (
-            /* Brand icon is fixed at exactly 2 inches wide (CSS inches); inverted to white on the dark sidebar */
-            <img src={socialiteIcon.url} alt="Socialite" className="w-[2in] max-w-none shrink-0 h-auto invert" />
+            /* Brand icon is fixed at exactly 1 inch wide (CSS inches); inverted to white on the dark sidebar */
+            <img src={socialiteIcon.url} alt="Socialite" className="w-[1in] max-w-none shrink-0 h-auto invert" />
           )}
           <div className="min-w-0 flex-1">
             {whiteLabelConfig.enabled ? (
               <div className="font-semibold text-[15px] leading-none tracking-tight">{whiteLabelConfig.platformName}</div>
             ) : (
-              <img src={socialiteWordmark.url} alt="Socialite" className="w-full h-auto object-contain scale-[1.6] origin-left" />
+              <img src={socialiteWordmark.url} alt="Socialite" className="block w-full aspect-[7/1] object-cover object-center" />
             )}
-            <div className="text-[11px] text-zinc-500 mono mt-1">{whiteLabelConfig.enabled && whiteLabelConfig.hideBranding ? 'v2.4 • White-label' : 'v2.4'}</div>
+            <div className="text-[11px] text-zinc-500 mono mt-1 text-center">{whiteLabelConfig.enabled && whiteLabelConfig.hideBranding ? 'v2.4 • White-label' : 'v2.4'}</div>
           </div>
         </div>
 
@@ -1794,6 +1797,21 @@ Use 2 hashtags max when promo present`;
           {view === "composer" && (
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] min-h-[calc(100vh-73px)]">
               <div className="p-4 lg:p-8 space-y-6 max-w-[760px] w-full mx-auto xl:mx-0">
+                {/* Steps — one focused panel at a time, same as Automation (every feature kept) */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  {([
+                    { id: "where", n: "1", t: "Where", s: `${selected.length} platforms` },
+                    { id: "write", n: "2", t: "Write", s: "Text, files & media" },
+                    { id: "visuals", n: "3", t: "Pictures", s: "Create images & video" },
+                    { id: "publish", n: "4", t: "Publish", s: "Optimise & schedule" },
+                  ] as const).map(st => (
+                    <button key={st.id} onClick={()=>setCStep(st.id)} className={`text-left rounded-[16px] border p-3.5 transition ${cStep===st.id ? "bg-white text-black border-white" : "bg-[#161617] border-zinc-800 text-zinc-300 hover:border-zinc-700"}`}>
+                      <div className="flex items-center gap-2"><span className={`w-5 h-5 rounded-full grid place-items-center text-[10px] mono font-semibold ${cStep===st.id ? "bg-black text-white" : "bg-zinc-800 text-zinc-400"}`}>{st.n}</span><span className="text-[13px] font-semibold">{st.t}</span></div>
+                      <div className={`text-[11px] mt-1 truncate ${cStep===st.id ? "text-zinc-600" : "text-zinc-500"}`}>{st.s}</div>
+                    </button>
+                  ))}
+                </div>
+                {cStep === "where" && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-400">Platforms</h2>
@@ -1828,7 +1846,9 @@ Use 2 hashtags max when promo present`;
                     })}
                   </div>
                 </div>
+                )}
 
+                {cStep === "write" && (
                 <div className="rounded-[20px] border border-zinc-800 bg-[#161617] overflow-hidden">
                   <div className="p-4 lg:p-5">
                     <div className="flex items-center justify-between mb-3">
@@ -2015,14 +2035,13 @@ Use 2 hashtags max when promo present`;
                     />
                   </div>
                 </div>
+                )}
 
+                {cStep === "visuals" && (
                 <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-xl bg-white text-black grid place-items-center">
-                      <WandSparkles className="w-4 h-4" />
-                    </div>
-                    <h3 className="text-[13px] font-semibold tracking-wide">Meta AI Studio • Powered by Llama 3.2 + Emu</h3>
-                    <span className="ml-auto text-[10px] mono px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400">OPEN SOURCE</span>
+                    <h3 className="text-[13px] font-semibold tracking-wide">Picture Studio</h3>
+                    
                   </div>
 
                   <textarea
@@ -2076,7 +2095,9 @@ Use 2 hashtags max when promo present`;
 
                   <div className="mt-3 text-[11px] text-zinc-500 leading-[1.4]">App ID {META_APP_ID} • Token {META_APP_ID.slice(0, 4)}…{META_APP_ID.slice(-4)} preloaded • Open source models</div>
                 </div>
+                )}
 
+                {cStep === "publish" && (<>
                 <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5">
                   <h3 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-400 mb-4">Optimizations</h3>
                   <div className="grid sm:grid-cols-3 gap-3">
@@ -2197,6 +2218,11 @@ Use 2 hashtags max when promo present`;
                     <Send className="w-4 h-4" />
                     {isPublishing ? "Publishing..." : scheduleMode === "now" ? "Publish now" : scheduleMode === "queue" ? "Add to queue" : "Schedule post"} • {selected.length} platforms
                   </button>
+                </div>
+                </>)}
+                <div className="flex items-center justify-between pt-1">
+                  <button disabled={cStep==="where"} onClick={()=>setCStep(C_STEPS[Math.max(0,C_STEPS.indexOf(cStep)-1)])} className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-[12.5px] text-zinc-200 disabled:opacity-30">Back</button>
+                  {cStep!=="publish" && <button onClick={()=>setCStep(C_STEPS[C_STEPS.indexOf(cStep)+1])} className="px-5 py-2 rounded-full bg-white text-black text-[12.5px] font-semibold">Next</button>}
                 </div>
               </div>
 
