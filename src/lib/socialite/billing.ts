@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const USAGE_LABELS: Record<string, string> = {
   posts: "Posts", email: "Emails", sms: "Texts", whatsapp: "WhatsApp", call: "Calls", ai_tokens: "Genius words (tokens)", ai_image: "Genius pictures",
+  api_calls: "API calls", data_mb: "API data (MB)", storage_mb: "Storage (MB)",
 };
 
 export type Plan = { id: string; name: string; monthly_price: number; yearly_price: number; limits: Record<string, number>; features: string[]; active: boolean; sort: number };
@@ -17,9 +18,16 @@ export type BillingConfig = {
   credit_costs: Record<string, number>;
   credit_packs: { id: string; name: string; credits: number; price: number }[];
   ai: { mode: "plan" | "flat" | "per_token"; flat_monthly: number };
+  /** API business model. Credits are the currency; Stripe sells the credits. */
+  api?: { mode: "free" | "included" | "per_call" | "flat"; per_call_credits: number; flat_monthly_credits: number; rate_per_minute: number };
+  /** API data transfer model (request + response size). */
+  data?: { mode: "free" | "included" | "per_mb"; credits_per_mb: number };
+  /** Storage model — no hard caps anywhere; storage is billed monthly instead. */
+  storage?: { mode: "free" | "per_gb_month" | "tiers"; free_mb: number; credits_per_gb_month: number; tiers: { id: string; name: string; gb: number; credits_month: number }[] };
 };
+export type StorageInfo = { mode: string; used_mb: number; included_mb: number; billable_mb: number; monthly_credits: number; tier: string | null; paid: boolean; reason: string | null };
 export type BillingStatus = {
-  config: BillingConfig; plans: Plan[]; subscription: any; used: Record<string, number>; credits: number; ledger: any[]; isAdmin: boolean;
+  config: BillingConfig; plans: Plan[]; subscription: any; used: Record<string, number>; credits: number; ledger: any[]; isAdmin: boolean; storage?: StorageInfo | null;
 };
 
 export async function billing<T = any>(body: Record<string, unknown>): Promise<T> {

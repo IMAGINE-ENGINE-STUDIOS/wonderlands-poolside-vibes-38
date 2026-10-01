@@ -22,7 +22,7 @@ const PLATFORMS = ["facebook", "instagram", "x", "youtube", "tiktok", "threads",
 
 const ContactIn = z.object({ name: z.string().trim().min(1).max(120), email: z.string().trim().email().max(255).optional(), phone: z.string().trim().regex(/^\+?[0-9 ()-]{7,20}$/).optional() })
   .refine((c) => c.email || c.phone, "email or phone required");
-const ContactsIn = z.object({ contacts: z.array(ContactIn).min(1).max(500) });
+const ContactsIn = z.object({ contacts: z.array(ContactIn).min(1).max(10000) });
 const When = { send_at: z.string().datetime({ offset: true }).optional(), timezone: z.string().max(64).optional().default("UTC") };
 const PostIn = z.object({ text: z.string().trim().min(1).max(5000), platforms: z.array(z.enum(PLATFORMS)).min(1), media: z.array(z.string().url().max(2000)).max(10).optional().default([]), ...When });
 const MsgIn = z.object({ channel: z.enum(["email", "sms", "whatsapp"]), contact_ids: z.array(z.string().uuid()).min(1).max(200), subject: z.string().trim().max(200).optional().default("A message for you"), message: z.string().trim().min(1).max(5000), ...When });
