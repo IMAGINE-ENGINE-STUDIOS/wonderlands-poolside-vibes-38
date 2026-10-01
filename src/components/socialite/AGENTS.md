@@ -1,5 +1,5 @@
 # SOCIALITE rules
-- SOCIALITE state (`pf_*` localStorage keys, except `*_token`) syncs to `socialite_state` via SocialiteCloudSync — why: posts/bot settings must follow the admin across computers.
+- SOCIALITE state (`pf_*` localStorage keys, except `*_token`) syncs to `socialite_state` via SocialiteCloudSync, per owner_id (main admins share the all-zero owner) — why: posts/settings follow each user across computers.
 - Timed SOCIALITE sends (posts/email/SMS/WhatsApp/calls/contact sends; list shown inside Calendar, time zone chosen per send) go in `socialite_scheduled` and are sent by the `socialite-scheduler` edge function (pg_cron every 5 min); all platform posting lives in `supabase/functions/_shared/socialitePublish.ts` — why: sends must fire with the browser closed, and one publisher avoids drift.
 - `/socialite` uses its own sign-in (SocialiteGate) on the shared Wonderlands auth; company sections are main_admin only — why: one account across both sites without exposing company data.
 - All SOCIALITE client sends (email/SMS/WhatsApp/quote/invoice/promotion/referral) go through `src/lib/socialite/clientActions.ts` and log to communication_logs — why: one send path keeps history and behavior consistent. SOCIALITE "Admin" is a focused growth hub (performance, promotions, quotes/invoices, referrals, sequences), not the full /admin.
