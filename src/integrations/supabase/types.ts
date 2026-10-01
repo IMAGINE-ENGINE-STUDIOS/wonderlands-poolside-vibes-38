@@ -3800,16 +3800,19 @@ export type Database = {
       socialite_state: {
         Row: {
           key: string
+          owner_id: string
           updated_at: string
           value: string
         }
         Insert: {
           key: string
+          owner_id?: string
           updated_at?: string
           value: string
         }
         Update: {
           key?: string
+          owner_id?: string
           updated_at?: string
           value?: string
         }
