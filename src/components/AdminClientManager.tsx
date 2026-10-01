@@ -1394,7 +1394,7 @@ const AdminClientManager = () => {
           </Dialog>
 
           {/* Clients Table */}
-          <div className="border border-cyan-500/20 rounded-lg overflow-hidden">
+          <div className="border border-cyan-500/20 rounded-lg overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow className="border-cyan-500/20 hover:bg-cyan-500/5">
