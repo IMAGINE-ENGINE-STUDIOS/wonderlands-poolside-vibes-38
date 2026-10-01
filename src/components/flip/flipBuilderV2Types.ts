@@ -154,7 +154,7 @@ export const defaultTheme = (): FlipTheme => ({
 /** V3: an empty edition — one blank cover leaf, no sample content. */
 export const blankDocV3 = (): BuilderDocV2 => ({
   title: "Untitled edition",
-  pages: [{ id: `p-${Date.now().toString(36)}`, name: "Cover", tone: "cover", transition: "turn" as any, blocks: [] }],
+  pages: [{ id: `p-${Date.now().toString(36)}`, name: "Cover", tone: "cover", transition: "flip", blocks: [] }],
   theme: defaultTheme(),
   narrator: defaultNarrator(),
   publish: { slug: "", customDomain: "", published: false },

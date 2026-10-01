@@ -3069,7 +3069,7 @@ Use 2 hashtags max when promo present`;
               </div>
               <div className="rounded-[18px] overflow-hidden bg-background text-foreground">
                 <React.Suspense fallback={<div className="p-6 text-[13px] text-zinc-500">Opening the builder…</div>}>
-                  <FlipBuilderV2 storageKey="socialite.flip.v3" blank />
+                  <FlipBuilderV2 storageKey="socialite.flip" blank />
                 </React.Suspense>
               </div>
             </div>
