@@ -1,6 +1,9 @@
 /**
- * SOCIALITE SDK v1 — zero-dependency client for the SOCIALITE REST API.
+ * SOCIALITE SDK v1.2 — zero-dependency client for the SOCIALITE REST API.
  * Works in Node 18+, Deno, Bun and server runtimes (uses global fetch).
+ * Billing: API calls, API data (MB) and storage can be charged in credits
+ * depending on the provider's pricing — me()/usage() return the details.
+ * 402 = allowance/credits used up or an API/storage fee unpaid.
  * NEVER use your secret key in a browser page — keep it on your server.
  *
  *   import { Socialite } from "./socialite.js";
@@ -30,7 +33,7 @@ export class Socialite {
     // platform rules return 422 { error: '{"shield":[...]}' }; suspended → 403.
     this.shield = () => r("GET", "/shield");
     this.knowledge = {
-      list: () => r("GET", "/knowledge"),
+      list: ({ limit = 200, offset = 0 } = {}) => r("GET", `/knowledge?limit=${limit}&offset=${offset}`),
       create: (item) => r("POST", "/knowledge", item), // { kind, title, content?, active? }
       update: (id, patch) => r("PATCH", `/knowledge/${encodeURIComponent(id)}`, patch),
       delete: (id) => r("DELETE", `/knowledge/${encodeURIComponent(id)}`),

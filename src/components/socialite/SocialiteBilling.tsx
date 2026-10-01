@@ -22,7 +22,7 @@ export default function SocialiteBilling() {
   };
 
   if (!status) return <div className="p-8 text-[13px] text-zinc-400">{error || "Loading your plan…"}</div>;
-  const { config: cfg, plans, subscription: sub, used, credits, ledger, isAdmin } = status;
+  const { config: cfg, plans, subscription: sub, used, credits, ledger, isAdmin, storage } = status;
   const livePlan = sub && (sub.status === "active" || (sub.status === "trialing" && sub.trial_ends_at && new Date(sub.trial_ends_at) > new Date()));
   const plan = livePlan ? plans.find((p) => p.id === sub.plan_id) : null;
   const trialUsed = !!(sub?.trial_ends_at || sub?.stripe_subscription_id);
@@ -68,7 +68,7 @@ export default function SocialiteBilling() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {Object.keys(USAGE_LABELS).map((k) => {
             const limit = Number(plan?.limits?.[k] ?? 0);
-            const u = Number(used[k] ?? 0);
+            const u = Math.round(Number(k === "storage_mb" ? storage?.used_mb ?? 0 : used[k] ?? 0) * 100) / 100;
             const pct = limit ? Math.min(100, (u / limit) * 100) : 0;
             return (
               <div key={k} className="rounded-[12px] border border-zinc-800 bg-[#0f0f10] p-3">
@@ -79,6 +79,13 @@ export default function SocialiteBilling() {
             );
           })}
         </div>
+        {storage && storage.mode !== "free" && (
+          <div className="text-[11.5px] text-zinc-500 mt-3">
+            Storage: {storage.used_mb.toLocaleString()} MB saved · {storage.included_mb.toLocaleString()} MB included
+            {storage.monthly_credits > 0 ? ` · ${storage.monthly_credits} credits this month${storage.tier ? ` (${storage.tier})` : ""}` : " · nothing to pay"}
+            {!storage.paid && storage.reason ? ` — ${storage.reason}` : ""}
+          </div>
+        )}
       </div>
 
       {cfg.models?.subscription && !isAdmin && (

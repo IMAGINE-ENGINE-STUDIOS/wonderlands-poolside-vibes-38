@@ -8,14 +8,14 @@ const BASE = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/fu
 type Key = { id: string; name: string; prefix: string; scopes: string[]; last_used_at: string | null; revoked_at: string | null; created_at: string };
 
 const ENDPOINTS: [string, string, string, string][] = [
-  ["GET", "/me", "read", "Your plan, status, credits and key permissions"],
-  ["GET", "/usage", "read", "This month's posts, emails, texts, WhatsApp and Genius usage"],
-  ["GET", "/contacts?limit=50&offset=0", "read", "List your contacts (max 200 per page)"],
-  ["POST", "/contacts", "write", "Add up to 500 contacts: { contacts: [{ name, email?, phone? }] }"],
+  ["GET", "/me", "read", "Your plan, status, credits, key permissions and storage (used MB, included MB, this month's storage fee)"],
+  ["GET", "/usage", "read", "This month's posts, emails, texts, WhatsApp, Genius, API calls and API data (MB), plus storage"],
+  ["GET", "/contacts?limit=50&offset=0", "read", "List your contacts, page by page (up to 1,000 per page — no limit on how many you store)"],
+  ["POST", "/contacts", "write", "Add up to 10,000 contacts per call: { contacts: [{ name, email?, phone? }] }"],
   ["DELETE", "/contacts/:id", "write", "Delete one contact"],
   ["POST", "/posts", "send", "Publish now or schedule: { text, platforms[], media?[], send_at?, timezone? }"],
   ["POST", "/messages", "send", "Email / SMS / WhatsApp your contacts: { channel, contact_ids[], subject?, message, send_at?, timezone? }"],
-  ["GET", "/knowledge", "read", "List your Genius knowledge (rules, faces, pitches, banned words…)"],
+  ["GET", "/knowledge?limit=200&offset=0", "read", "List your Genius knowledge page by page (no limit on items stored)"],
   ["POST", "/knowledge", "write", "Teach Genius: { kind: face|scenario|wording|prohibited_words|prohibited_imagery|pitch|logic|pipeline|note, title, content?, active? }"],
   ["PATCH", "/knowledge/:id", "write", "Edit or switch a knowledge item on/off"],
   ["DELETE", "/knowledge/:id", "write", "Delete a knowledge item (and its picture)"],
@@ -24,8 +24,8 @@ const ENDPOINTS: [string, string, string, string][] = [
 ];
 
 const ERRORS: [string, string][] = [
-  ["401", "Key missing, wrong or revoked"], ["402", "Plan allowance or credits used up"], ["403", "Key lacks the permission"],
-  ["404", "Unknown endpoint"], ["413", "Body over 64 KB"], ["422", "Invalid fields (details in error)"], ["429", "Over 60 requests/minute — wait Retry-After seconds"],
+  ["401", "Key missing, wrong or revoked"], ["402", "Plan allowance or credits used up, or an API / storage fee could not be paid"], ["403", "Key lacks the permission"],
+  ["404", "Unknown endpoint"], ["413", "Body over 2 MB — split it into several calls"], ["422", "Invalid fields (details in error)"], ["429", "Over your requests-per-minute limit (see X-RateLimit-Limit) — wait Retry-After seconds"],
 ];
 
 const card = "rounded-2xl border border-white/10 bg-white/[0.03] p-6";
@@ -162,7 +162,8 @@ console.log(await s.usage());`;
         <ul className="text-sm text-white/70 list-disc pl-5 space-y-1">
           <li>Keys are stored only as a one-way fingerprint — nobody, including us, can read them back.</li>
           <li>Each key has its own permissions (read, write, send) and can be revoked instantly.</li>
-          <li>60 requests per minute per key, 64 KB per request, strict checks on every field.</li>
+          <li>Requests per minute per key are set by your provider (shown in the X-RateLimit-Limit header), 2 MB per request, strict checks on every field.</li>
+          <li>Pricing: depending on your provider's settings, API calls, data moved through the API and data you store may be free, included in your plan, or paid with credits (per call, per MB, per GB a month or a flat monthly fee). Check GET /me and GET /usage, or Plan &amp; billing.</li>
           <li>A key only sees its owner's own data. Nothing else is reachable.</li>
         </ul>
       </section>
