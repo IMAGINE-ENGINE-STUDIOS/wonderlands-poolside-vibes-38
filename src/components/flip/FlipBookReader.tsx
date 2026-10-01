@@ -11,13 +11,17 @@ import * as React from "react";
 import HTMLFlipBook from "react-pageflip";
 import { ChevronLeft, ChevronRight, Volume2, Loader2, Share2, Maximize2, Pause } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { consumeNarratorCredits } from "@/lib/flip/flipPublish";
+import { consumeNarratorCredits, loadPublishedBook } from "@/lib/flip/flipPublish";
+import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
+import { loadFlipFonts } from "./flipFonts";
+import { X } from "lucide-react";
 import { FlipWidgetSurface } from "./flipWidgets";
 import { TEXT_CLASS, type Block, type BuilderPage } from "./flipBuilderTypes";
 import {
   motionOf,
   paletteOf,
   themeVars,
+  typeSetOf,
   type BuilderDocV2,
   type FlipTheme,
 } from "./flipBuilderV2Types";
@@ -206,6 +210,41 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
     return () => window.removeEventListener("keydown", onKey);
   }, [t.keyboard]);
   const palette = paletteOf(doc.theme);
+  const cart = useOptionalShoppingCart();
+  const [mini, setMini] = React.useState<BuilderDocV2 | null>(null);
+  const typeSet = typeSetOf(doc.theme);
+  React.useEffect(() => loadFlipFonts(typeSet.google), [typeSet]);
+
+  /** V3 block actions: jump to page, open minibook, add to cart, open link. */
+  const act = React.useCallback(
+    async (b: Block) => {
+      if (b.action === "page" && b.targetPage) {
+        bookRef.current?.pageFlip()?.turnToPage(Math.max(0, Math.min(doc.pages.length - 1, b.targetPage - 1)));
+      } else if (b.action === "book" && b.targetBook) {
+        try {
+          const res = await loadPublishedBook(b.targetBook);
+          if (res) setMini(res.doc);
+          else setNotice("That minibook is not published yet.");
+        } catch {
+          setNotice("That minibook could not be opened.");
+        }
+      } else if (b.action === "cart") {
+        if (!cart) return setNotice("The cart is not available here.");
+        const name = b.productName || b.text || doc.title;
+        cart.addToCart({
+          id: `flip-${(b.productName || b.id).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+          name,
+          price: Number(b.price) || 0,
+          image: b.productImage,
+          category: b.productCategory || doc.title,
+        });
+        setNotice(`${name} added to your cart.`);
+      } else if (b.action === "url" && b.href && /^https?:\/\//i.test(b.href)) {
+        window.open(b.href, "_blank", "noopener,noreferrer");
+      }
+    },
+    [cart, doc.pages.length, doc.title],
+  );
 
   React.useEffect(() => {
     const measure = () => {
@@ -318,6 +357,7 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
   );
 
   return (
+    <FlipActionContext.Provider value={act}>
     <div
       style={{ ...themeVars(doc.theme), background: kindle ? "#fff" : palette.paper, filter: kindle ? "grayscale(1) contrast(1.15)" : undefined }}
       className={`relative ${fullscreen ? "fixed inset-0 z-[70] overflow-auto" : ""} ${className ?? ""}`}
@@ -445,7 +485,16 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
           </p>
         )}
       </div>
+      {mini && (
+        <div className="fixed inset-0 z-[80] overflow-auto bg-background/95 backdrop-blur" role="dialog" aria-label={mini.title}>
+          <button onClick={() => setMini(null)} aria-label="Close minibook" className="fixed right-4 top-4 z-[81] flex h-10 w-10 items-center justify-center border border-border bg-background text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+          <FlipBookReader doc={mini} />
+        </div>
+      )}
     </div>
+    </FlipActionContext.Provider>
   );
 };
 
