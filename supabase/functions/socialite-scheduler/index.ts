@@ -11,6 +11,7 @@ import { admin } from "../_shared/socialiteVault.ts";
 import { publishAll } from "../_shared/socialitePublish.ts";
 import { sendToContacts } from "../_shared/contactSend.ts";
 import { meter } from "../_shared/socialiteBilling.ts";
+import { guard, record, failSpike } from "../_shared/socialiteShield.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const URL_ = Deno.env.get("SUPABASE_URL")!;
@@ -40,10 +41,15 @@ Deno.serve(async (req) => {
         isAdm = pr?.role === "main_admin";
         const pre = await meter(row.created_by, isAdm, mKind, mUnits, {}, true);
         if (!pre.ok) throw new Error(pre.reason);
+        // Shield re-check at send time (caps/duplicates/content).
+        const sh = await guard(row.created_by, isAdm, row.kind === "post" ? "post" : p.channel, { text: p.text ?? p.message, subject: p.subject, platforms: p.platforms, recipients: mUnits, timezone: row.timezone }, "schedule");
+        if (!sh.ok) throw new Error("Shield: " + sh.blocks.map((b) => b.message).join(" · "));
+        if (row.kind === "contact") p.message = sh.text;
       }
       if (row.kind === "post") {
         result = await publishAll(String(p.text ?? ""), p.platforms ?? [], p.media ?? [], row.created_by);
         const n = (result?.results ?? []).filter((x: any) => x?.success).length;
+        await record(row.created_by, "post", { text: p.text, platforms: p.platforms });
         if (n) await meter(row.created_by, isAdm, "posts", n, { via: "schedule" });
       }
       else if (row.kind === "email") result = await call("send-bulk-email", p);
@@ -64,6 +70,8 @@ Deno.serve(async (req) => {
         result = { success: failed === 0, sent, failed };
       } else if (row.kind === "contact") {
         const r = await sendToContacts(row.created_by, "", p.channel, (p.contact_ids ?? []).slice(0, 200), String(p.subject ?? ""), String(p.message ?? ""));
+        await record(row.created_by, p.channel, { text: p.message, recipients: r.successful });
+        await failSpike(row.created_by, p.channel, r.successful, r.failed);
         if (r.successful) await meter(row.created_by, isAdm, p.channel, r.successful, { via: "schedule" });
         result = { success: r.failed === 0, ...r };
       } else result = { success: false, error: "Unknown kind" };

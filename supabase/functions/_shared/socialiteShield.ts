@@ -130,7 +130,7 @@ export async function report(owner: string, isAdmin: boolean, action: ShieldActi
   else {
     await db.from("socialite_shield_flags").insert({ owner_id: owner, reason, severity: severe ? "high" : "medium", block_count: count ?? 1 });
     const { data: admins } = await db.from("profiles").select("id").eq("role", "main_admin");
-    if (admins?.length) await db.from("notifications").insert(admins.map((a: any) => ({ user_id: a.id, title: "SOCIALITE Shield flag", message: `A user was flagged: ${reason.slice(0, 160)}`, type: "warning" }))).then(() => {}, () => {});
+    if (admins?.length) await db.from("notifications").insert(admins.map((a: any) => ({ recipient_id: a.id, recipient_type: "admin", title: "SOCIALITE Shield flag", message: `A user was flagged: ${reason.slice(0, 160)}`, type: "warning", related_entity_type: "socialite_shield_flag" }))).then(() => {}, () => {});
   }
 }
 
