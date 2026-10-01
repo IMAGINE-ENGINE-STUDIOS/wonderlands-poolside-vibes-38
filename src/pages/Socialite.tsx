@@ -250,8 +250,18 @@ export default function Socialite() {
       const raw = localStorage.getItem("pf_profile");
       if (raw) return JSON.parse(raw);
     } catch {}
-    return { name: "Ricardo", email: "wonderlandsworlds@gmail.com", avatar: "" };
+    return { name: "", email: "", avatar: "" };
   });
+  // Fill an empty profile from the signed-in account (never another user's name).
+  useEffect(() => {
+    if (profile.name && profile.email) return;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      const m = user.user_metadata ?? {};
+      const name = [m.first_name, m.last_name].filter(Boolean).join(" ") || (user.email ?? "").split("@")[0];
+      setProfile((p: any) => ({ ...p, name: p.name || name, email: p.email || user.email || "" }));
+    });
+  }, []);
   const [settings, setSettings] = useState(() => {
     try {
       const raw = localStorage.getItem("pf_settings");
@@ -1580,7 +1590,7 @@ Use 2 hashtags max when promo present`;
           )}
           <div>
             <div className="font-semibold text-[15px] leading-none tracking-tight">{whiteLabelConfig.enabled ? whiteLabelConfig.platformName : 'Socialite'}</div>
-            <div className="text-[11px] text-zinc-500 mono mt-1">{whiteLabelConfig.enabled && whiteLabelConfig.hideBranding ? 'v2.4 • White-label' : 'v2.4 • PRO'}</div>
+            <div className="text-[11px] text-zinc-500 mono mt-1">{whiteLabelConfig.enabled && whiteLabelConfig.hideBranding ? 'v2.4 • White-label' : 'v2.4'}</div>
           </div>
         </div>
 
@@ -1751,8 +1761,8 @@ Use 2 hashtags max when promo present`;
                 <Eye className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[11px] uppercase tracking-widest text-zinc-500 mono">Est. reach</div>
-                <div className="text-[14px] font-semibold">84.2k • 3 platforms</div>
+                <div className="text-[11px] uppercase tracking-widest text-zinc-500 mono">Posting to</div>
+                <div className="text-[14px] font-semibold">{selected.length} platform{selected.length === 1 ? "" : "s"}</div>
               </div>
             </div>
             <div className="ml-auto flex items-center gap-2">
@@ -1771,7 +1781,7 @@ Use 2 hashtags max when promo present`;
                 }}
                 className="px-3 py-1.5 rounded-full bg-white text-black text-[12px] font-semibold flex items-center gap-1.5 hover:bg-zinc-100 transition"
               >
-                <Send className="w-3 h-3" /> {selected.includes("youtube" as PlatformId) ? "YT Sat 2PM • IG Tue 7PM • 3.2x" : "Tue 7:00 PM • 3.2x reach"}
+                <Send className="w-3 h-3" /> {getBestTime().toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}
               </button>
             </div>
           </div>
@@ -2120,7 +2130,7 @@ Use 2 hashtags max when promo present`;
                       }}
                       className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 text-[11px] font-medium flex items-center gap-1 hover:bg-emerald-500/25 transition"
                     >
-                      <Send className="w-3 h-3" /> Best time: Tue 7pm • 3.2x
+                      <Send className="w-3 h-3" /> Best time: {getBestTime().toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}
                     </button>
                   </div>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">

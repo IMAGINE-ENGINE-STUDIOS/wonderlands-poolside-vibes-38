@@ -32,6 +32,13 @@ export default function SocialiteCloudSync({ children }: { children: ReactNode }
     (async () => {
       try {
         owner.current = await resolveOwner();
+        // Another account used this browser before: drop its local copy so it
+        // can't show up (or be uploaded) under the current account.
+        const prev = localStorage.getItem("socialite_owner");
+        if (owner.current && prev !== owner.current) {
+          Object.keys(localStorage).filter(isSynced).forEach((k) => localStorage.removeItem(k));
+          localStorage.setItem("socialite_owner", owner.current);
+        }
         const { data } = owner.current ? await db.from("socialite_state").select("key,value").eq("owner_id", owner.current) : { data: [] };
         (data ?? []).forEach((r: { key: string; value: string }) => {
           if (isSynced(r.key)) { localStorage.setItem(r.key, r.value); last.current[r.key] = r.value; }
