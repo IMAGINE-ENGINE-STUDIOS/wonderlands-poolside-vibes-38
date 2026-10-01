@@ -1,8 +1,8 @@
 /**
- * SOCIALITE — admin-only command center: social posting + email, SMS & call campaigns.
- * Composer, queue, calendar, automation bot, analytics, clients, message templates.
  * State is cached in localStorage (pf_* keys). Real Meta posting needs META secrets + edge function.
  */
+import socialiteIcon from "@/assets/socialite/socialite-icon.webp.asset.json";
+import socialiteWordmark from "@/assets/socialite/socialite-wordmark.webp.asset.json";
 import SocialiteInsights from "@/components/socialite/SocialiteInsights";
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteMessaging from "@/components/socialite/SocialiteMessaging";
