@@ -158,9 +158,9 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
   }, [people, q, channel]);
   const toggle = (id: string) => setPicked(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const targets = people.filter(p => picked.has(p.id) && reach(p));
-  const shield = useShieldPreview(channel === "calls" ? "sms" : channel as any, { text: message, subject, recipients: Math.min(targets.length, 200), timezone: tz, scheduled: later }, source === "contacts" && channel !== "calls");
+  const shield = useShieldPreview(channel === "calls" ? "sms" : channel as any, { text: message, subject, recipients: Math.min(targets.length, 200), timezone: tz, scheduled: later }, source === "contacts");
   const body = (p?: Person) => { const m = message.replace(/\{first_name\}/g, p?.first || "there"); return sign && channel !== "email" && channel !== "calls" ? `${m}\n${SIGN}` : m; };
-  const canSchedule = source === "contacts" ? channel !== "calls" : isOwner; // every channel can be timed
+  const canSchedule = source === "contacts" ? true : isOwner; // every channel can be timed
 
   const removeSelected = async () => {
     if (!picked.size || !confirm(`Delete ${picked.size} contact(s)?`)) return;
@@ -174,7 +174,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
     if (later && canSchedule) {
       try {
         const res = source === "contacts"
-          ? await scheduleSend("contact", { channel, contact_ids: targets.slice(0, 200).map(p => p.id), subject, message: sign && channel !== "email" ? `${message}\n${SIGN}` : message }, at, tz)
+          ? await scheduleSend("contact", { channel: channel === "calls" ? "call" : channel, contact_ids: targets.slice(0, 200).map(p => p.id), subject, message: sign && channel !== "email" && channel !== "calls" ? `${message}\n${SIGN}` : message }, at, tz)
           : channel === "email"
             ? await scheduleSend("email", { client_ids: targets.map(p => p.id), custom_subject: subject, custom_html: textToHtml(message.replace(/\{first_name\}/g, "{{first_name}}")) }, at, tz)
             : await scheduleSend(channel === "calls" ? "call" : channel, { messages: targets.map(p => ({ to: p.phone, message: body(p), recipientName: p.name })) }, at, tz);
@@ -189,7 +189,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
       if (source === "contacts") {
         for (let i = 0; i < targets.length; i += 200) {
           setBusy(`Sending ${Math.min(i + 200, targets.length)}/${targets.length}…`);
-          const { data, error } = await supabase.functions.invoke("socialite-send", { body: { channel, contact_ids: targets.slice(i, i + 200).map(p => p.id), subject, message: sign && channel !== "email" ? `${message}\n${SIGN}` : message } });
+          const { data, error } = await supabase.functions.invoke("socialite-send", { body: { channel: channel === "calls" ? "call" : channel, contact_ids: targets.slice(i, i + 200).map(p => p.id), subject, message: sign && channel !== "email" && channel !== "calls" ? `${message}\n${SIGN}` : message } });
           if (error) { const sh = await shieldFromError(error); if (sh) { setNote(`Shield stopped this send: ${sh.blocks.map(b => `${b.message} ${b.fix}`).join(" · ")}`); setBusy(""); return; } throw error; }
           ok += data?.successful || 0; failed += data?.failed || 0;
         }
@@ -282,14 +282,14 @@ export default function SocialiteMessaging({ isOwner = false }: { isOwner?: bool
     { id: "email" as Channel, label: "Email", icon: Mail },
     { id: "sms" as Channel, label: "SMS", icon: MessageSquare },
     { id: "whatsapp" as Channel, label: "WhatsApp", icon: MessageCircle },
-    ...(isOwner ? [{ id: "calls" as Channel, label: "Calls", icon: PhoneCall }] : []),
+    { id: "calls" as Channel, label: "Calls", icon: PhoneCall },
   ];
-  const src = channel === "calls" ? "clients" : source;
+  const src = channel === "calls" && isOwner ? "clients" : channel === "calls" ? "contacts" : source;
   return (
     <div className="p-4 lg:p-8 space-y-6">
       <div>
-        <h1 className="text-[22px] font-semibold tracking-tight">Email · SMS · {isOwner ? "Calls" : "WhatsApp"}</h1>
-        <p className="text-[13px] text-zinc-500">{isOwner ? "Message your clients or your own uploaded contacts." : "Add or upload your contacts, then send emails, texts and WhatsApp messages."}</p>
+        <h1 className="text-[22px] font-semibold tracking-tight">Email · SMS · Calls</h1>
+        <p className="text-[13px] text-zinc-500">{isOwner ? "Message your clients or your own uploaded contacts." : "Add or upload your contacts, then send emails, texts, WhatsApp messages, calls and campaigns."}</p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800">
@@ -306,15 +306,15 @@ export default function SocialiteMessaging({ isOwner = false }: { isOwner?: bool
             ))}
           </div>
         )}
-        {isOwner && channel === "email" && (
+        {channel === "email" && (
           <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800">
-            {([["compose", "Compose"], ["campaigns", "Campaign console"], ["templates", "Templates"]] as const).map(([id, l]) => (
+            {(isOwner ? [["compose", "Compose"], ["campaigns", "Campaign console"], ["templates", "Templates"]] as const : [["compose", "Compose"], ["campaigns", "Campaign console"]] as const).map(([id, l]) => (
               <button key={id} onClick={() => setEmailMode(id)} className={`px-4 py-2 rounded-full text-[12.5px] font-medium ${emailMode === id ? "bg-white text-black" : "text-zinc-400 hover:text-white"}`}>{l}</button>
             ))}
           </div>
         )}
       </div>
-      {isOwner && channel === "email" && emailMode === "campaigns" ? <SocialiteCampaignConsole />
+      {channel === "email" && emailMode === "campaigns" ? <SocialiteCampaignConsole isOwner={isOwner} />
         : isOwner && channel === "email" && emailMode === "templates"
         ? <div className="socialite-skin"><AutomationTemplatesManager embedded /></div>
         : <Composer key={`${channel}-${src}`} channel={channel} source={src} isOwner={isOwner} />}

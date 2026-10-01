@@ -50,7 +50,8 @@ const handler = async (req: Request): Promise<Response> => {
       formData.append("Url", twimlUrl);
     } else if (message) {
       // Use TwiML Bin or inline TwiML for text-to-speech
-      const twiml = `<Response><Say voice="alice">${message}</Say></Response>`;
+      const safe = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").slice(0, 3000);
+      const twiml = `<Response><Say voice="alice">${safe}</Say></Response>`;
       formData.append("Twiml", twiml);
     }
 

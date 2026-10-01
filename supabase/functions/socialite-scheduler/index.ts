@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
         const pre = await meter(row.created_by, isAdm, mKind, mUnits, {}, true);
         if (!pre.ok) throw new Error(pre.reason);
         // Shield re-check at send time (caps/duplicates/content).
-        const sh = await guard(row.created_by, isAdm, row.kind === "post" ? "post" : p.channel, { text: p.text ?? p.message, subject: p.subject, platforms: p.platforms, recipients: mUnits, timezone: row.timezone }, "schedule");
+        const sh = await guard(row.created_by, isAdm, row.kind === "post" ? "post" : (p.channel === "call" ? "sms" : p.channel), { text: p.text ?? p.message, subject: p.subject, platforms: p.platforms, recipients: mUnits, timezone: row.timezone }, "schedule");
         if (!sh.ok) throw new Error("Shield: " + sh.blocks.map((b) => b.message).join(" · "));
         if (row.kind === "contact") p.message = sh.text;
       }
@@ -70,8 +70,8 @@ Deno.serve(async (req) => {
         result = { success: failed === 0, sent, failed };
       } else if (row.kind === "contact") {
         const r = await sendToContacts(row.created_by, "", p.channel, (p.contact_ids ?? []).slice(0, 200), String(p.subject ?? ""), String(p.message ?? ""));
-        await record(row.created_by, p.channel, { text: p.message, recipients: r.successful });
-        await failSpike(row.created_by, p.channel, r.successful, r.failed);
+        await record(row.created_by, p.channel === "call" ? "sms" : p.channel, { text: p.message, recipients: r.successful });
+        await failSpike(row.created_by, p.channel === "call" ? "sms" : p.channel, r.successful, r.failed);
         if (r.successful) await meter(row.created_by, isAdm, p.channel, r.successful, { via: "schedule" });
         result = { success: r.failed === 0, ...r };
       } else result = { success: false, error: "Unknown kind" };
