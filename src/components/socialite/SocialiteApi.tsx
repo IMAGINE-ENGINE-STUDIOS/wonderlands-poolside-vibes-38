@@ -15,6 +15,10 @@ const ENDPOINTS: [string, string, string, string][] = [
   ["DELETE", "/contacts/:id", "write", "Delete one contact"],
   ["POST", "/posts", "send", "Publish now or schedule: { text, platforms[], media?[], send_at?, timezone? }"],
   ["POST", "/messages", "send", "Email / SMS / WhatsApp your contacts: { channel, contact_ids[], subject?, message, send_at?, timezone? }"],
+  ["GET", "/knowledge", "read", "List your Genius knowledge (rules, faces, pitches, banned words…)"],
+  ["POST", "/knowledge", "write", "Teach Genius: { kind: face|scenario|wording|prohibited_words|prohibited_imagery|pitch|logic|pipeline|note, title, content?, active? }"],
+  ["PATCH", "/knowledge/:id", "write", "Edit or switch a knowledge item on/off"],
+  ["DELETE", "/knowledge/:id", "write", "Delete a knowledge item (and its picture)"],
   ["GET", "/scheduled", "read", "List scheduled sends"],
   ["DELETE", "/scheduled/:id", "write", "Cancel a pending scheduled send"],
 ];

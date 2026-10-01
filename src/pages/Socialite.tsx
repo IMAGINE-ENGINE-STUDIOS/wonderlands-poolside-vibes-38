@@ -1,8 +1,8 @@
 /**
- * SOCIALITE — admin-only command center: social posting + email, SMS & call campaigns.
- * Composer, queue, calendar, automation bot, analytics, clients, message templates.
  * State is cached in localStorage (pf_* keys). Real Meta posting needs META secrets + edge function.
  */
+import socialiteIcon from "@/assets/socialite/socialite-icon.webp.asset.json";
+import socialiteWordmark from "@/assets/socialite/socialite-wordmark.webp.asset.json";
 import SocialiteInsights from "@/components/socialite/SocialiteInsights";
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteMessaging from "@/components/socialite/SocialiteMessaging";
@@ -1580,16 +1580,19 @@ Use 2 hashtags max when promo present`;
       )}
 
       <aside className="hidden lg:flex w-[280px] shrink-0 flex-col border-r border-zinc-800/80 bg-[#0f0f10] sticky top-0 h-screen">
-        <div className="p-7 pb-6 flex items-center gap-3">
+        <div className="px-4 pt-6 pb-5 flex items-center gap-3">
           {whiteLabelConfig.enabled && whiteLabelConfig.logoUrl ? (
             <img src={whiteLabelConfig.logoUrl} alt={whiteLabelConfig.platformName} className="w-9 h-9 rounded-xl object-cover bg-white border border-zinc-800" />
           ) : (
-            <div className="w-9 h-9 rounded-xl bg-white text-black grid place-items-center font-bold text-[18px] tracking-tighter" style={whiteLabelConfig.enabled ? { background: whiteLabelConfig.primaryColor, color: '#000' } : {}}>
-              {(whiteLabelConfig.enabled ? whiteLabelConfig.platformName : 'Socialite').charAt(0)}
-            </div>
+            /* Brand icon is fixed at exactly 2 inches wide (CSS inches); inverted to white on the dark sidebar */
+            <img src={socialiteIcon.url} alt="Socialite" className="w-[2in] max-w-none shrink-0 h-auto invert" />
           )}
-          <div>
-            <div className="font-semibold text-[15px] leading-none tracking-tight">{whiteLabelConfig.enabled ? whiteLabelConfig.platformName : 'Socialite'}</div>
+          <div className="min-w-0 flex-1">
+            {whiteLabelConfig.enabled ? (
+              <div className="font-semibold text-[15px] leading-none tracking-tight">{whiteLabelConfig.platformName}</div>
+            ) : (
+              <img src={socialiteWordmark.url} alt="Socialite" className="w-full h-auto object-contain scale-[1.6] origin-left" />
+            )}
             <div className="text-[11px] text-zinc-500 mono mt-1">{whiteLabelConfig.enabled && whiteLabelConfig.hideBranding ? 'v2.4 • White-label' : 'v2.4'}</div>
           </div>
         </div>

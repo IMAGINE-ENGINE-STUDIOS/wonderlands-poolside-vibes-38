@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { genius } from "@/lib/socialite/billing";
+import SocialiteKnowledge from "./SocialiteKnowledge";
 
 type Task = "post" | "hashtags" | "rewrite" | "email" | "sms" | "image" | "campaign" | "analyse";
 const TASKS: { id: Task; label: string; hint: string }[] = [
@@ -29,6 +30,7 @@ export default function SocialiteGenius({ onUsePost, onAddPosts, queueSummary }:
   queueSummary: string;
 }) {
   const [on, setOn] = useState<boolean | null>(null);
+  const [view, setView] = useState<"create" | "knowledge">("create");
   const [task, setTask] = useState<Task>("post");
   const [prompt, setPrompt] = useState("");
   const [platforms, setPlatforms] = useState<string[]>(["facebook", "instagram"]);
@@ -87,7 +89,11 @@ export default function SocialiteGenius({ onUsePost, onAddPosts, queueSummary }:
       <div>
         <h1 className="text-[22px] font-semibold tracking-tight">Genius</h1>
         <p className="text-[12px] text-zinc-500 mt-1">Your helper for posts, pictures, emails, texts, full campaigns and reading your results.</p>
+        <div className="mt-3 inline-flex rounded-full border border-zinc-800 p-1">
+          {(["create", "knowledge"] as const).map((v) => <button key={v} onClick={() => setView(v)} className={`px-4 py-1.5 rounded-full text-[12px] font-medium ${view === v ? "bg-white text-black" : "text-zinc-400"}`}>{v === "create" ? "Create" : "Knowledge"}</button>)}
+        </div>
       </div>
+      {view === "knowledge" ? <SocialiteKnowledge /> : <>
       <div className="flex flex-wrap gap-2">
         {TASKS.map((x) => <button key={x.id} onClick={() => { setTask(x.id); setOut(null); }} className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition ${task === x.id ? "bg-white text-black" : "bg-zinc-900 text-zinc-400 hover:text-zinc-100"}`}>{x.label}</button>)}
       </div>
@@ -129,6 +135,7 @@ export default function SocialiteGenius({ onUsePost, onAddPosts, queueSummary }:
           </div>
         </div>
       )}
+      </>}
     </div>
   );
 }

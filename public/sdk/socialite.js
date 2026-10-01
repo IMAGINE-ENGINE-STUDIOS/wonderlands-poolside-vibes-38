@@ -26,6 +26,12 @@ export class Socialite {
       create: (contacts) => r("POST", "/contacts", { contacts: Array.isArray(contacts) ? contacts : [contacts] }),
       delete: (id) => r("DELETE", `/contacts/${encodeURIComponent(id)}`),
     };
+    this.knowledge = {
+      list: () => r("GET", "/knowledge"),
+      create: (item) => r("POST", "/knowledge", item), // { kind, title, content?, active? }
+      update: (id, patch) => r("PATCH", `/knowledge/${encodeURIComponent(id)}`, patch),
+      delete: (id) => r("DELETE", `/knowledge/${encodeURIComponent(id)}`),
+    };
     this.posts = { create: (post) => r("POST", "/posts", post) };
     this.messages = { send: (msg) => r("POST", "/messages", msg) };
     this.scheduled = {
