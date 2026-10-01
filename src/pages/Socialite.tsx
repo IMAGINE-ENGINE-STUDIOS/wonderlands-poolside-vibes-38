@@ -3057,6 +3057,7 @@ Use 2 hashtags max when promo present`;
               toast={showToast} openBilling={() => setView("billing")} />
           )}
 
+          <ShieldStatusBanner />
           {view === "shield" && <SocialiteShieldPanel />}
           {view === "messaging" && <SocialiteMessaging isOwner={isOwner} />}
           {isOwner && view === "quotes" && <SocialiteQuotesInvoices />}
