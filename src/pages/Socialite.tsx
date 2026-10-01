@@ -21,7 +21,7 @@ import SocialiteScheduled from "@/components/socialite/SocialiteScheduled";
 import SendTimePicker from "@/components/socialite/SendTimePicker";
 import { scheduleSend, getSavedTz, fmtIn, zonedToDate, SEND_TIMEZONES, TZ_KEY } from "@/lib/socialite/sendTime";
 import TimezoneSelect from "@/components/socialite/TimezoneSelect";
-import { Receipt as ReceiptIcon, MessageCircle as MsgIcon } from "lucide-react";
+import { Receipt as ReceiptIcon, MessageCircle as MsgIcon, BookOpen } from "lucide-react";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
   AtSign,
@@ -77,6 +77,7 @@ import {
   BadgeDollarSign,
   Users,
 } from "lucide-react";
+const FlipBuilderV2 = React.lazy(() => import("@/components/flip/FlipBuilderV2"));
 
 // ---- constants ----
 const META_APP_ID = import.meta.env.VITE_META_APP_ID || "1072785889011506";
@@ -208,7 +209,7 @@ function formatSize(n: number) {
 
 export default function Socialite() {
   // core nav - ADDED automation + admin
-  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes" | "billing" | "genius" | "api" | "shield">("dashboard");
+  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes" | "billing" | "genius" | "api" | "shield" | "flip">("dashboard");
   // Real connection status from the encrypted key vault (SOCIALITE → Accounts)
   const [liveAccounts, setLiveAccounts] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -1616,6 +1617,7 @@ Use 2 hashtags max when promo present`;
             { id: "clients", label: "Clients", icon: Users },
             { id: "accounts", label: "Accounts", icon: Facebook },
             { id: "genius", label: "Genius", icon: PenTool },
+            { id: "flip", label: "Flip Builder", icon: BookOpen },
             { id: "billing", label: "Plan & billing", icon: ReceiptIcon },
             { id: "api", label: "API", icon: Database },
             { id: "settings", label: "Settings", icon: Settings },
@@ -3059,6 +3061,19 @@ Use 2 hashtags max when promo present`;
 
           <ShieldStatusBanner />
           {view === "shield" && <SocialiteShieldPanel />}
+          {view === "flip" && (
+            <div className="p-4 lg:p-8 space-y-4">
+              <div>
+                <h1 className="text-[22px] font-semibold tracking-tight text-zinc-100">Flip Builder</h1>
+                <p className="text-[13px] text-zinc-500">Build page-turning books, preview them, then publish and share the link.</p>
+              </div>
+              <div className="rounded-[18px] overflow-hidden bg-background text-foreground">
+                <React.Suspense fallback={<div className="p-6 text-[13px] text-zinc-500">Opening the builder…</div>}>
+                  <FlipBuilderV2 storageKey="socialite.flip" />
+                </React.Suspense>
+              </div>
+            </div>
+          )}
           {view === "messaging" && <SocialiteMessaging isOwner={isOwner} />}
           {isOwner && view === "quotes" && <SocialiteQuotesInvoices />}
           {isOwner && view === "clients" && <SocialiteClients />}

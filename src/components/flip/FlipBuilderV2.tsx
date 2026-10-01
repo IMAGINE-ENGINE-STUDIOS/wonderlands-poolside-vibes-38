@@ -92,15 +92,16 @@ const btnCx =
 
 /* ------------------------------------------------------------------ shell */
 
-const FlipBuilderV2: React.FC = () => {
+/** storageKey lets other hosts (SOCIALITE campaign console) keep separate books; initialDoc seeds a new one. */
+const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2 }> = ({ storageKey = "flip.builder.v2", initialDoc }) => {
   const { toast } = useToast();
-  const [raw, setRaw] = usePersistentState<BuilderDocV2>("flip.builder.v2.doc", starterDocV2());
+  const [raw, setRaw] = usePersistentState<BuilderDocV2>(`${storageKey}.doc`, initialDoc ?? starterDocV2());
   const doc = React.useMemo(() => ensureV2(raw), [raw]);
   const setDoc = setRaw as React.Dispatch<React.SetStateAction<BuilderDocV2>>;
 
-  const [tab, setTab] = usePersistentState<Tab>("flip.builder.v2.tab", "compose");
-  const [pageIndex, setPageIndex] = usePersistentState<number>("flip.builder.v2.page", 0);
-  const [preview, setPreview] = usePersistentState<boolean>("flip.builder.v2.preview", false);
+  const [tab, setTab] = usePersistentState<Tab>(`${storageKey}.tab`, "compose");
+  const [pageIndex, setPageIndex] = usePersistentState<number>(`${storageKey}.page`, 0);
+  const [preview, setPreview] = usePersistentState<boolean>(`${storageKey}.preview`, false);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [galleryOpen, setGalleryOpen] = React.useState(false);
   const [galleryFamily, setGalleryFamily] = React.useState<string>("All");
