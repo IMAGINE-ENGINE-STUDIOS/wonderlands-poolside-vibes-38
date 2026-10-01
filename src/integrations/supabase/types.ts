@@ -3833,6 +3833,120 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_shield_events: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          level: string
+          message: string
+          owner_id: string
+          rule: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          level: string
+          message: string
+          owner_id: string
+          rule: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          level?: string
+          message?: string
+          owner_id?: string
+          rule?: string
+        }
+        Relationships: []
+      }
+      socialite_shield_flags: {
+        Row: {
+          block_count: number
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision: string | null
+          id: string
+          owner_id: string
+          reason: string
+          severity: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          block_count?: number
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: string | null
+          id?: string
+          owner_id: string
+          reason: string
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          block_count?: number
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: string | null
+          id?: string
+          owner_id?: string
+          reason?: string
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      socialite_shield_rules: {
+        Row: {
+          config: Json
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      socialite_shield_status: {
+        Row: {
+          note: string | null
+          owner_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          note?: string | null
+          owner_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          note?: string | null
+          owner_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       socialite_state: {
         Row: {
           key: string
