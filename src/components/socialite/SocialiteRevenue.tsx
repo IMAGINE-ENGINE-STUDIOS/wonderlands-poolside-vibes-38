@@ -65,6 +65,10 @@ export default function SocialiteRevenue() {
 
   if (!cfg) return <div className="text-[13px] text-zinc-400">Loading pricing…</div>;
   const setC = (patch: Partial<BillingConfig>) => setCfg({ ...cfg, ...patch });
+  const api = { mode: "free" as const, per_call_credits: 0.01, flat_monthly_credits: 100, rate_per_minute: 60, ...cfg.api };
+  const data = { mode: "free" as const, credits_per_mb: 0.1, ...cfg.data };
+  const storage = { mode: "free" as const, free_mb: 500, credits_per_gb_month: 5, tiers: [] as NonNullable<BillingConfig["storage"]>["tiers"], ...cfg.storage };
+  const setTier = (i: number, patch: Partial<(typeof storage.tiers)[number]>) => setC({ storage: { ...storage, tiers: storage.tiers.map((t, j) => (j === i ? { ...t, ...patch } : t)) } });
   const setPlan = (i: number, patch: Partial<Plan>) => setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, ...patch } : p)));
 
   return (
@@ -124,7 +128,7 @@ export default function SocialiteRevenue() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                 {LIMIT_KEYS.map((k) => (
-                  <label key={k} className="text-[10.5px] text-zinc-500">{USAGE_LABELS[k]} / mo
+                  <label key={k} className="text-[10.5px] text-zinc-500">{USAGE_LABELS[k]}{k === "storage_mb" ? " included" : " / mo"}
                     <input type="number" min={0} className={input} value={p.limits?.[k] ?? 0} onChange={(e) => setPlan(i, { limits: { ...p.limits, [k]: Number(e.target.value) } })} />
                   </label>
                 ))}
@@ -160,6 +164,66 @@ export default function SocialiteRevenue() {
             ))}
           </div>
           {cfg.ai?.mode === "flat" && <label className="text-[11px] text-zinc-500 block mt-3">Add-on price per month ($)<input type="number" min={0} className={input} value={cfg.ai.flat_monthly} onChange={(e) => setC({ ai: { ...cfg.ai, flat_monthly: Number(e.target.value) } })} /></label>}
+        </div>
+      </div>
+
+      {/* API, data transfer and storage business models — no hard data caps anywhere */}
+      <div className="grid lg:grid-cols-3 gap-5">
+        <div className={card}>
+          <div className="text-[14px] font-semibold mb-1">API business model</div>
+          <div className="text-[11px] text-zinc-500 mb-3">How customers pay for calls to the SOCIALITE API. Sends and posts made through the API are still charged like in the app.</div>
+          <div className="grid gap-2">
+            {([["free", "Free", "API calls cost nothing"], ["included", "Included in plans", "Each plan's API calls allowance, then credits per call"], ["per_call", "Per call", "Every call is paid with credits"], ["flat", "Flat monthly", "A fixed number of credits once a month for unlimited calls"]] as const).map(([m, l, d]) => (
+              <button key={m} onClick={() => setC({ api: { ...api, mode: m } })} className={`text-left rounded-[12px] border p-3 transition ${api.mode === m ? "border-white bg-zinc-900" : "border-zinc-800 bg-[#0f0f10]"}`}>
+                <div className="text-[13px] font-medium">{l}</div><div className="text-[11px] text-zinc-500">{d}</div>
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            {(api.mode === "per_call" || api.mode === "included") && <label className="text-[11px] text-zinc-500">Credits per call<input type="number" min={0} step="0.001" className={input} value={api.per_call_credits} onChange={(e) => setC({ api: { ...api, per_call_credits: Number(e.target.value) } })} /></label>}
+            {api.mode === "flat" && <label className="text-[11px] text-zinc-500">Credits per month<input type="number" min={0} className={input} value={api.flat_monthly_credits} onChange={(e) => setC({ api: { ...api, flat_monthly_credits: Number(e.target.value) } })} /></label>}
+            <label className="text-[11px] text-zinc-500">Calls per minute per key<input type="number" min={1} max={6000} className={input} value={api.rate_per_minute} onChange={(e) => setC({ api: { ...api, rate_per_minute: Number(e.target.value) } })} /></label>
+          </div>
+        </div>
+
+        <div className={card}>
+          <div className="text-[14px] font-semibold mb-1">Data usage model</div>
+          <div className="text-[11px] text-zinc-500 mb-3">Data moved through the API (what is sent in plus what comes back).</div>
+          <div className="grid gap-2">
+            {([["free", "Free", "No charge for data moved"], ["included", "Included in plans", "Each plan's API data allowance, then credits per MB"], ["per_mb", "Per MB", "Every MB is paid with credits"]] as const).map(([m, l, d]) => (
+              <button key={m} onClick={() => setC({ data: { ...data, mode: m } })} className={`text-left rounded-[12px] border p-3 transition ${data.mode === m ? "border-white bg-zinc-900" : "border-zinc-800 bg-[#0f0f10]"}`}>
+                <div className="text-[13px] font-medium">{l}</div><div className="text-[11px] text-zinc-500">{d}</div>
+              </button>
+            ))}
+          </div>
+          {data.mode !== "free" && <label className="text-[11px] text-zinc-500 block mt-3">Credits per MB<input type="number" min={0} step="0.001" className={input} value={data.credits_per_mb} onChange={(e) => setC({ data: { ...data, credits_per_mb: Number(e.target.value) } })} /></label>}
+        </div>
+
+        <div className={card}>
+          <div className="text-[14px] font-semibold mb-1">Storage model</div>
+          <div className="text-[11px] text-zinc-500 mb-3">Contacts, Genius knowledge, pictures and saved work. There is no storage cap — storage above the free amount is billed once a month.</div>
+          <div className="grid gap-2">
+            {([["free", "Free", "Store as much as you like"], ["per_gb_month", "Per GB per month", "Credits for each GB above the free amount"], ["tiers", "Flat monthly tiers", "A flat monthly price up to X GB"]] as const).map(([m, l, d]) => (
+              <button key={m} onClick={() => setC({ storage: { ...storage, mode: m } })} className={`text-left rounded-[12px] border p-3 transition ${storage.mode === m ? "border-white bg-zinc-900" : "border-zinc-800 bg-[#0f0f10]"}`}>
+                <div className="text-[13px] font-medium">{l}</div><div className="text-[11px] text-zinc-500">{d}</div>
+              </button>
+            ))}
+          </div>
+          {storage.mode !== "free" && <label className="text-[11px] text-zinc-500 block mt-3">Free MB for everyone (plans add their own)<input type="number" min={0} className={input} value={storage.free_mb} onChange={(e) => setC({ storage: { ...storage, free_mb: Number(e.target.value) } })} /></label>}
+          {storage.mode === "per_gb_month" && <label className="text-[11px] text-zinc-500 block mt-2">Credits per GB per month<input type="number" min={0} step="0.01" className={input} value={storage.credits_per_gb_month} onChange={(e) => setC({ storage: { ...storage, credits_per_gb_month: Number(e.target.value) } })} /></label>}
+          {storage.mode === "tiers" && (
+            <div className="space-y-2 mt-3">
+              {storage.tiers.map((t, i) => (
+                <div key={t.id} className="grid grid-cols-[1fr_70px_80px_auto] gap-2 items-end">
+                  <label className="text-[10.5px] text-zinc-500">Name<input className={input} value={t.name} onChange={(e) => setTier(i, { name: e.target.value })} /></label>
+                  <label className="text-[10.5px] text-zinc-500">Up to GB<input type="number" min={0.1} step="0.1" className={input} value={t.gb} onChange={(e) => setTier(i, { gb: Number(e.target.value) })} /></label>
+                  <label className="text-[10.5px] text-zinc-500">Credits / mo<input type="number" min={0} className={input} value={t.credits_month} onChange={(e) => setTier(i, { credits_month: Number(e.target.value) })} /></label>
+                  <button onClick={() => setC({ storage: { ...storage, tiers: storage.tiers.filter((_, j) => j !== i) } })} className="text-[12px] text-zinc-500 hover:text-white pb-2">Remove</button>
+                </div>
+              ))}
+              <button onClick={() => setC({ storage: { ...storage, tiers: [...storage.tiers, { id: `t${Date.now().toString(36)}`, name: "New tier", gb: 10, credits_month: 50 }] } })} className={`${btn} bg-zinc-900 border border-zinc-800 text-zinc-200`}>Add tier</button>
+            </div>
+          )}
         </div>
       </div>
 
