@@ -15,7 +15,6 @@ import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
 import SocialiteQuotesInvoices from "@/components/socialite/SocialiteQuotesInvoices";
 import SocialiteClients from "@/components/socialite/SocialiteClients";
 import SocialiteAdmin from "@/components/socialite/SocialiteAdmin";
-const FlipBuilderV2 = React.lazy(() => import("@/components/flip/FlipBuilderV2"));
 import { SocialiteShieldPanel, ShieldNotice, ShieldStatusBanner, useShieldPreview, shieldFromError } from "@/components/socialite/SocialiteShield";
 import { useAuth } from "@/contexts/AuthContext";
 import SocialiteScheduled from "@/components/socialite/SocialiteScheduled";
@@ -78,6 +77,7 @@ import {
   BadgeDollarSign,
   Users,
 } from "lucide-react";
+const FlipBuilderV2 = React.lazy(() => import("@/components/flip/FlipBuilderV2"));
 
 // ---- constants ----
 const META_APP_ID = import.meta.env.VITE_META_APP_ID || "1072785889011506";
