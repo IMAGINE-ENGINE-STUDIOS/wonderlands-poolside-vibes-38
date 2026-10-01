@@ -8,6 +8,7 @@ import { z } from "npm:zod@3";
 import { admin, decrypt, encrypt, requireUser } from "../_shared/socialiteVault.ts";
 import { meter } from "../_shared/socialiteBilling.ts";
 import { loadKnowledge } from "../_shared/socialiteKnowledge.ts";
+import { loadConfig, rulesForGenius } from "../_shared/socialiteShield.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
@@ -168,7 +169,7 @@ Deno.serve(async (req) => {
         b.context ? `Context / data:\n${b.context}` : "",
       ].filter(Boolean).join("\n\n");
       const kn = await loadKnowledge(auth.userId);
-      const sys = kn.text ? `${SYSTEM[task]}\n\n${kn.text}` : SYSTEM[task];
+      const sys = `${SYSTEM[task]}\n\n${rulesForGenius(await loadConfig())}${kn.text ? `\n\n${kn.text}` : ""}`;
       let r;
       try { r = await chat(cfg, sys, userMsg || "Write something useful.", task === "campaign", cfg.provider === "gemini" ? [] : kn.images); }
       catch { r = await chat(cfg, sys, userMsg || "Write something useful.", task === "campaign"); } // provider without picture support
