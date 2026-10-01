@@ -9,6 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Mail, MessageSquare, PhoneCall, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import SocialiteCampaignConsole from "./SocialiteCampaignConsole";
 import { ShieldNotice, useShieldPreview, shieldFromError } from "./SocialiteShield";
 import AutomationTemplatesManager from "@/components/admin/AutomationTemplatesManager";
 import SendTimePicker from "./SendTimePicker";
@@ -276,7 +277,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
 export default function SocialiteMessaging({ isOwner = false }: { isOwner?: boolean }) {
   const [channel, setChannel] = useState<Channel>("email");
   const [source, setSource] = useState<Source>(isOwner ? "clients" : "contacts");
-  const [emailMode, setEmailMode] = useState<"compose" | "campaigns">("compose");
+  const [emailMode, setEmailMode] = useState<"compose" | "campaigns" | "templates">("compose");
   const tabs = [
     { id: "email" as Channel, label: "Email", icon: Mail },
     { id: "sms" as Channel, label: "SMS", icon: MessageSquare },
@@ -298,7 +299,7 @@ export default function SocialiteMessaging({ isOwner = false }: { isOwner?: bool
             </button>
           ))}
         </div>
-        {isOwner && channel !== "calls" && !(channel === "email" && emailMode === "campaigns") && (
+        {isOwner && channel !== "calls" && !(channel === "email" && emailMode !== "compose") && (
           <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800">
             {([["clients", "Clients"], ["contacts", "My contacts"]] as const).map(([id, l]) => (
               <button key={id} onClick={() => setSource(id)} className={`px-4 py-2 rounded-full text-[12.5px] font-medium ${source === id ? "bg-white text-black" : "text-zinc-400 hover:text-white"}`}>{l}</button>
@@ -307,13 +308,14 @@ export default function SocialiteMessaging({ isOwner = false }: { isOwner?: bool
         )}
         {isOwner && channel === "email" && (
           <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800">
-            {([["compose", "Compose"], ["campaigns", "Campaigns"]] as const).map(([id, l]) => (
+            {([["compose", "Compose"], ["campaigns", "Campaign console"], ["templates", "Templates"]] as const).map(([id, l]) => (
               <button key={id} onClick={() => setEmailMode(id)} className={`px-4 py-2 rounded-full text-[12.5px] font-medium ${emailMode === id ? "bg-white text-black" : "text-zinc-400 hover:text-white"}`}>{l}</button>
             ))}
           </div>
         )}
       </div>
-      {isOwner && channel === "email" && emailMode === "campaigns"
+      {isOwner && channel === "email" && emailMode === "campaigns" ? <SocialiteCampaignConsole />
+        : isOwner && channel === "email" && emailMode === "templates"
         ? <div className="socialite-skin"><AutomationTemplatesManager embedded /></div>
         : <Composer key={`${channel}-${src}`} channel={channel} source={src} isOwner={isOwner} />}
     </div>
