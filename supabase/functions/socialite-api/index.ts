@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
   const db = admin();
 
   // Rate limit: RATE requests per rolling minute per key.
-  const { count } = await db.from("socialite_api_requests").select("id", { count: "exact", head: true }).eq("key_id", key.id).gte("created_at", new Date(Date.now() - 60_000).toISOString());
+  const { count } = await db.from("socialite_api_requests").select("id", { count: "exact", head: true }).eq("key_id", key.id).neq("status", 429).gte("created_at", new Date(Date.now() - 60_000).toISOString());
   const used = count ?? 0;
   const rl = { "X-RateLimit-Limit": String(RATE), "X-RateLimit-Remaining": String(Math.max(0, RATE - used - 1)) };
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
@@ -101,6 +101,8 @@ Deno.serve(async (req) => {
       const b = await body(req, PostIn);
       const at = future(b.send_at);
       if (at) {
+        const chk = await meter(owner, isAdmin, "posts", b.platforms.length, {}, true);
+        if (!chk.ok) throw new ApiError(402, chk.reason);
         const { data } = await db.from("socialite_scheduled").insert({ kind: "post", created_by: owner, send_at: at, timezone: b.timezone, payload: { text: b.text, platforms: b.platforms, media: b.media } }).select("id, send_at, status").single();
         status = 202; out = { scheduled: data };
       } else {
@@ -116,6 +118,8 @@ Deno.serve(async (req) => {
       const b = await body(req, MsgIn);
       const at = future(b.send_at);
       if (at) {
+        const chk = await meter(owner, isAdmin, b.channel, b.contact_ids.length, {}, true);
+        if (!chk.ok) throw new ApiError(402, chk.reason);
         const { data } = await db.from("socialite_scheduled").insert({ kind: "contact", created_by: owner, send_at: at, timezone: b.timezone, payload: { channel: b.channel, contact_ids: b.contact_ids, subject: b.subject, message: b.message } }).select("id, send_at, status").single();
         status = 202; out = { scheduled: data };
       } else {
