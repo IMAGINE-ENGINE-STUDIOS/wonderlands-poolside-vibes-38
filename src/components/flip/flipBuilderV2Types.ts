@@ -80,6 +80,24 @@ export type FlipTheme = {
   showCorners: boolean;
   /** auto-advance seconds; 0 = off */
   autoplay: number;
+  /* ---- V3 reader controls: the author decides how readers move ---- */
+  /** prev / next arrow buttons under the book */
+  showArrows: boolean;
+  /** large arrows on the left/right sides of the book (latest FLIP) */
+  sideArrows: boolean;
+  /** arrows only — no drag, swipe or corner grabbing (latest FLIP default) */
+  arrowsOnly: boolean;
+  /** keyboard ← → turns pages */
+  keyboard: boolean;
+  /** the page-curl turn animation; off = instant page change */
+  curl: boolean;
+  /** "03 / 12" page counter */
+  pageCounter: boolean;
+  /** Share, Study (full screen) and Read aloud buttons */
+  shareButton: boolean;
+  studyButton: boolean;
+  /** custom turn speed in ms; 0 = use the motion's speed */
+  turnSpeed: number;
 };
 
 export type FlipNarratorSettings = {
@@ -122,6 +140,24 @@ export const defaultTheme = (): FlipTheme => ({
   showTabs: true,
   showCorners: true,
   autoplay: 0,
+  showArrows: true,
+  sideArrows: true,
+  arrowsOnly: true,
+  keyboard: true,
+  curl: true,
+  pageCounter: true,
+  shareButton: true,
+  studyButton: true,
+  turnSpeed: 0,
+});
+
+/** V3: an empty edition — one blank cover leaf, no sample content. */
+export const blankDocV3 = (): BuilderDocV2 => ({
+  title: "Untitled edition",
+  pages: [{ id: `p-${Date.now().toString(36)}`, name: "Cover", tone: "cover", transition: "flip", blocks: [] }],
+  theme: defaultTheme(),
+  narrator: defaultNarrator(),
+  publish: { slug: "", customDomain: "", published: false },
 });
 
 export const defaultNarrator = (): FlipNarratorSettings => ({

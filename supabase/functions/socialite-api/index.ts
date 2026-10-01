@@ -28,6 +28,16 @@ const PostIn = z.object({ text: z.string().trim().min(1).max(5000), platforms: z
 const MsgIn = z.object({ channel: z.enum(["email", "sms", "whatsapp"]), contact_ids: z.array(z.string().uuid()).min(1).max(200), subject: z.string().trim().max(200).optional().default("A message for you"), message: z.string().trim().min(1).max(5000), ...When });
 
 class ApiError extends Error { constructor(public status: number, msg: string) { super(msg); } }
+// Flip Builder V3 books — title, publish switch and V3 reader controls.
+const BookPatch = z.object({
+  title: z.string().trim().min(1).max(160).optional(),
+  published: z.boolean().optional(),
+  theme: z.object({
+    showArrows: z.boolean(), sideArrows: z.boolean(), arrowsOnly: z.boolean(), keyboard: z.boolean(), curl: z.boolean(),
+    pageCounter: z.boolean(), shareButton: z.boolean(), studyButton: z.boolean(), showTabs: z.boolean(), showCorners: z.boolean(),
+    turnSpeed: z.number().int().min(0).max(2500), autoplay: z.number().int().min(0).max(30),
+  }).partial().optional(),
+}).strict();
 const KnowledgeIn = z.object({ kind: z.enum(["face","scenario","wording","prohibited_words","prohibited_imagery","pitch","logic","pipeline","note"]).default("note"), title: z.string().trim().min(1).max(160), content: z.string().max(8000).optional().default(""), active: z.boolean().optional().default(true) });
 const KnowledgePatch = KnowledgeIn.partial();
 const need = (scopes: string[], s: string) => { if (!scopes.includes(s)) throw new ApiError(403, `This key lacks the "${s}" permission`); };
@@ -176,6 +186,33 @@ Deno.serve(async (req) => {
       const { data } = await db.from("socialite_shield_events").select("action, level, rule, message, created_at").eq("owner_id", owner).neq("level", "sent").order("created_at", { ascending: false }).limit(100);
       const { data: st } = await db.from("socialite_shield_status").select("status").eq("owner_id", owner).maybeSingle();
       out = { status: st?.status ?? "normal", events: data ?? [] };
+    } else if (res === "books" && m === "GET" && !id) {
+      need(key.scopes, "read");
+      const limit = Math.min(1000, Math.max(1, Number(url.searchParams.get("limit") ?? 50)));
+      const offset = Math.max(0, Number(url.searchParams.get("offset") ?? 0));
+      const { data } = await db.from("flip_books").select("id, title, slug, published, views, created_at, updated_at").eq("owner_id", owner).order("updated_at", { ascending: false }).range(offset, offset + limit - 1);
+      out = { data: data ?? [], limit, offset };
+    } else if (res === "books" && m === "GET" && id) {
+      need(key.scopes, "read");
+      const { data } = await db.from("flip_books").select("id, title, slug, published, views, doc, theme, created_at, updated_at").eq("id", id).eq("owner_id", owner).maybeSingle();
+      if (!data) throw new ApiError(404, "Not found");
+      out = { data };
+    } else if (res === "books" && m === "PATCH" && id) {
+      need(key.scopes, "write");
+      const b = await body(req, BookPatch);
+      const { data: cur } = await db.from("flip_books").select("doc, theme").eq("id", id).eq("owner_id", owner).maybeSingle();
+      if (!cur) throw new ApiError(404, "Not found");
+      const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (b.title !== undefined) patch.title = b.title;
+      if (b.published !== undefined) patch.published = b.published;
+      if (b.theme) {
+        const theme = { ...((cur.theme as any) ?? {}), ...b.theme };
+        patch.theme = theme;
+        patch.doc = { ...((cur.doc as any) ?? {}), theme: { ...((cur.doc as any)?.theme ?? {}), ...b.theme } };
+      }
+      const { data } = await db.from("flip_books").update(patch).eq("id", id).eq("owner_id", owner).select("id, title, slug, published, theme").maybeSingle();
+      if (!data) throw new ApiError(404, "Not found");
+      out = { data };
     } else if (res === "scheduled" && m === "GET") {
       need(key.scopes, "read");
       const { data } = await db.from("socialite_scheduled").select("id, kind, send_at, timezone, status, created_at").eq("created_by", owner).order("send_at", { ascending: true }).limit(200);

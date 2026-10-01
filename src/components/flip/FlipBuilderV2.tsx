@@ -1,5 +1,6 @@
 /**
- * FLIP Builder V2 — the full edition workshop.
+ * FLIP Builder V3 — the full edition workshop (V2 + reader controls: arrows,
+ * side arrows, arrows-only, keyboard, curl, counter, share/study, turn speed).
  *
  * V1 could add pages and text. V2 is the whole studio:
  *  - Compose : every layout in the gallery, every V7 widget, drag/resize blocks
@@ -24,7 +25,7 @@ import {
 } from "./flipBuilderTypes";
 import {
   FLIP_MOTIONS, FLIP_PALETTES, FLIP_TYPE_SETS, NARRATOR_CREDIT_PACKS, NARRATOR_MONTHLY_FEE,
-  ensureV2, paletteOf, shuffleTheme, slugify, starterDocV2, themeVars,
+  ensureV2, paletteOf, shuffleTheme, slugify, starterDocV2, blankDocV3, themeVars,
   type BuilderDocV2, type FlipMotion,
 } from "./flipBuilderV2Types";
 import { FLIP_WIDGETS, widgetMeta } from "./flipWidgets";
@@ -93,9 +94,11 @@ const btnCx =
 /* ------------------------------------------------------------------ shell */
 
 /** storageKey lets other hosts (SOCIALITE campaign console) keep separate books; initialDoc seeds a new one. */
-const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2 }> = ({ storageKey = "flip.builder.v2", initialDoc }) => {
+/** V3: `blank` starts (and resets) with an empty edition — no sample content. */
+const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; blank?: boolean }> = ({ storageKey = "flip.builder.v2", initialDoc, blank = false }) => {
+  const fresh = () => (blank ? blankDocV3() : starterDocV2());
   const { toast } = useToast();
-  const [raw, setRaw] = usePersistentState<BuilderDocV2>(`${storageKey}.doc`, initialDoc ?? starterDocV2());
+  const [raw, setRaw] = usePersistentState<BuilderDocV2>(`${storageKey}.doc`, initialDoc ?? fresh());
   const doc = React.useMemo(() => ensureV2(raw), [raw]);
   const setDoc = setRaw as React.Dispatch<React.SetStateAction<BuilderDocV2>>;
 
@@ -291,12 +294,12 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2 }
   /* ------------------------------------------------------------------- ui */
 
   return (
-    <section aria-label="FLIP builder V2" className="bg-background">
+    <section aria-label="FLIP builder V3" className="bg-background">
       {/* masthead */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-4 md:px-8">
         <div className="flex min-w-0 items-baseline gap-3">
           <span className="font-serif text-xl font-light leading-none text-foreground">Flip It</span>
-          <span className="border border-border/60 px-1.5 py-0.5 text-[8px] uppercase tracking-[0.3em] text-muted-foreground">V2</span>
+          <span className="border border-border/60 px-1.5 py-0.5 text-[8px] uppercase tracking-[0.3em] text-muted-foreground">V3</span>
           <input
             value={doc.title}
             onChange={(e) => setDoc((d) => ({ ...d, title: e.target.value }))}
@@ -314,7 +317,7 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2 }
           <button
             onClick={() => {
               if (window.confirm("Start a new edition? The current one is discarded.")) {
-                setDoc(starterDocV2());
+                setDoc(fresh());
                 setPageIndex(0);
                 setSelectedId(null);
               }
@@ -638,6 +641,24 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2 }
               <span className="text-[10px] uppercase tracking-[0.28em] text-foreground">Lifted page corners</span>
               <input type="checkbox" checked={doc.theme.showCorners} onChange={(e) => setDoc((d) => ({ ...d, theme: { ...d.theme, showCorners: e.target.checked } }))} />
             </label>
+            {([
+              ["showArrows", "Arrow buttons under the book"],
+              ["sideArrows", "Side arrows next to the book"],
+              ["arrowsOnly", "Arrows only (no drag, swipe or corner grab)"],
+              ["keyboard", "Keyboard arrow keys turn pages"],
+              ["curl", "Page-curl animation"],
+              ["pageCounter", "Page counter"],
+              ["shareButton", "Share button"],
+              ["studyButton", "Study (full screen) button"],
+            ] as const).map(([k, l]) => (
+              <label key={k} className="flex items-center justify-between border border-border/60 px-4 py-3">
+                <span className="text-[10px] uppercase tracking-[0.28em] text-foreground">{l}</span>
+                <input type="checkbox" checked={!!doc.theme[k]} onChange={(e) => setDoc((d) => ({ ...d, theme: { ...d.theme, [k]: e.target.checked } }))} />
+              </label>
+            ))}
+            <Field label={doc.theme.turnSpeed ? `Turn speed — ${doc.theme.turnSpeed} ms` : "Turn speed — motion default"}>
+              <input type="range" min={0} max={2500} step={50} value={doc.theme.turnSpeed} onChange={(e) => setDoc((d) => ({ ...d, theme: { ...d.theme, turnSpeed: Number(e.target.value) } }))} />
+            </Field>
             <Field label={doc.theme.autoplay ? `Autoplay — a spread every ${doc.theme.autoplay}s` : "Autoplay — off"}>
               <input type="range" min={0} max={30} value={doc.theme.autoplay} onChange={(e) => setDoc((d) => ({ ...d, theme: { ...d.theme, autoplay: Number(e.target.value) } }))} />
             </Field>
@@ -780,7 +801,8 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2 }
               <p className="text-[10px] uppercase tracking-[0.28em] text-foreground">Document shape</p>
               <pre className="mt-3 overflow-x-auto text-[10px] leading-relaxed text-muted-foreground">{`{
   title: string,
-  theme: { paletteId, typeId, motion, grain, depth, showTabs, showCorners, autoplay },
+  theme: { paletteId, typeId, motion, grain, depth, showTabs, showCorners, autoplay,
+          showArrows, sideArrows, arrowsOnly, keyboard, curl, pageCounter, shareButton, studyButton, turnSpeed },
   narrator: { enabled, voice, autoRead, creditsPerRead },
   publish: { slug, customDomain, published },
   pages: [{ id, name, tone: 'paper'|'cover', transition, background?, blocks: [
