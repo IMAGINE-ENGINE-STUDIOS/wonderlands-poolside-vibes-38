@@ -15,6 +15,7 @@ import SocialiteAccounts from "@/components/socialite/SocialiteAccounts";
 import SocialiteQuotesInvoices from "@/components/socialite/SocialiteQuotesInvoices";
 import SocialiteClients from "@/components/socialite/SocialiteClients";
 import SocialiteAdmin from "@/components/socialite/SocialiteAdmin";
+import { SocialiteShieldPanel, ShieldNotice, ShieldStatusBanner, useShieldPreview, shieldFromError } from "@/components/socialite/SocialiteShield";
 import { useAuth } from "@/contexts/AuthContext";
 import SocialiteScheduled from "@/components/socialite/SocialiteScheduled";
 import SendTimePicker from "@/components/socialite/SendTimePicker";
@@ -207,7 +208,7 @@ function formatSize(n: number) {
 
 export default function Socialite() {
   // core nav - ADDED automation + admin
-  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes" | "billing" | "genius" | "api">("dashboard");
+  const [view, setView] = useState<"composer" | "automation" | "queue" | "calendar" | "dashboard" | "analytics" | "clients" | "accounts" | "settings" | "admin" | "datacontrol" | "messaging" | "quotes" | "sendtimes" | "billing" | "genius" | "api" | "shield">("dashboard");
   // Real connection status from the encrypted key vault (SOCIALITE → Accounts)
   const [liveAccounts, setLiveAccounts] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -220,6 +221,8 @@ export default function Socialite() {
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [scheduleMode, setScheduleMode] = useState<"now" | "best" | "schedule" | "queue">("best");
   const [sendTz, setSendTz] = useState(getSavedTz);
+  // Shield: live dry-run of the draft so users see rule problems before posting.
+  const composerShield = useShieldPreview("post", { text: postText, platforms: selected as string[], scheduled: scheduleMode !== "now" });
   // Company sections (clients, quotes, messaging, keys, admin) are main-admin only.
   const { profile: authProfile } = useAuth();
   const isOwner = authProfile?.role === "main_admin";
@@ -1432,7 +1435,8 @@ Use 2 hashtags max when promo present`;
   const publishQueueItem = useCallback(async (post: QueuePost) => {
     // Real publish via edge function (Meta Graph API). Stays queued if accounts are not connected.
     const { data, error } = await supabase.functions.invoke("socialite-publish", { body: { text: post.text, platforms: post.platforms, media: post.media.map(m=>m.url) } });
-    if (error || !data?.success) { showToast(data?.error || "Connect Facebook & Instagram in Accounts to publish", "error"); return; }
+    if (error) { const sh = await shieldFromError(error); showToast(sh ? `Shield: ${sh.blocks.map(b => b.message).join(" · ")}` : "Couldn't publish right now", "error"); return; }
+    if (!data?.success) { showToast(data?.error || "Connect Facebook & Instagram in Accounts to publish", "error"); return; }
     setQueue(q=>q.map(p=>p.id===post.id ? { ...p, status: "posted" as const } : p));
     showToast(`Posted → ${post.platforms.join(", ")}`, "success");
   }, [showToast]);
@@ -1615,6 +1619,7 @@ Use 2 hashtags max when promo present`;
             { id: "billing", label: "Plan & billing", icon: ReceiptIcon },
             { id: "api", label: "API", icon: Database },
             { id: "settings", label: "Settings", icon: Settings },
+            { id: "shield", label: "Shield", icon: ShieldAlert },
             { id: "admin", label: "Admin", icon: ShieldAlert },
             { id: "datacontrol", label: "Data Control", icon: Database },
           ].filter((it) => canSee(it.id)).map((it) => (
@@ -2097,6 +2102,7 @@ Use 2 hashtags max when promo present`;
                 </div>
                 )}
 
+                <ShieldNotice shield={composerShield} />
                 {cStep === "publish" && (<>
                 <div className="rounded-[20px] border border-zinc-800 bg-[#161617] p-5">
                   <h3 className="text-[13px] font-semibold tracking-widest uppercase text-zinc-400 mb-4">Optimizations</h3>
@@ -3051,6 +3057,8 @@ Use 2 hashtags max when promo present`;
               toast={showToast} openBilling={() => setView("billing")} />
           )}
 
+          <ShieldStatusBanner />
+          {view === "shield" && <SocialiteShieldPanel />}
           {view === "messaging" && <SocialiteMessaging isOwner={isOwner} />}
           {isOwner && view === "quotes" && <SocialiteQuotesInvoices />}
           {isOwner && view === "clients" && <SocialiteClients />}

@@ -9,6 +9,7 @@ import { admin } from "../_shared/socialiteVault.ts";
 import { resolveKey, sha256 } from "../_shared/socialiteApiAuth.ts";
 import { publishAll } from "../_shared/socialitePublish.ts";
 import { sendToContacts } from "../_shared/contactSend.ts";
+import { guard, record, failSpike } from "../_shared/socialiteShield.ts";
 import { meter, activePlan, creditBalance, usedThisPeriod, type MeterKind } from "../_shared/socialiteBilling.ts";
 
 const H = {
@@ -102,6 +103,8 @@ Deno.serve(async (req) => {
       need(key.scopes, "send");
       const b = await body(req, PostIn);
       const at = future(b.send_at);
+      const sh = await guard(owner, isAdmin, "post", { text: b.text, platforms: b.platforms, scheduled: !!at }, "api");
+      if (!sh.ok) { if (sh.status === "suspended") throw new ApiError(403, sh.blocks[0].message); throw new ApiError(422, JSON.stringify({ shield: sh.blocks, warnings: sh.warnings })); }
       if (at) {
         const chk = await meter(owner, isAdmin, "posts", b.platforms.length, {}, true);
         if (!chk.ok) throw new ApiError(402, chk.reason);
@@ -111,6 +114,7 @@ Deno.serve(async (req) => {
         const pre = await meter(owner, isAdmin, "posts", b.platforms.length, {}, true);
         if (!pre.ok) throw new ApiError(402, pre.reason);
         const r: any = await publishAll(b.text, b.platforms, b.media, owner);
+        await record(owner, "post", { text: b.text, platforms: b.platforms });
         const okCount = Array.isArray(r?.results) ? r.results.filter((x: any) => x?.success).length : (r?.success ? b.platforms.length : 0);
         if (okCount) await meter(owner, isAdmin, "posts", okCount, { via: "api" });
         out = { result: r };
@@ -119,6 +123,9 @@ Deno.serve(async (req) => {
       need(key.scopes, "send");
       const b = await body(req, MsgIn);
       const at = future(b.send_at);
+      const sh = await guard(owner, isAdmin, b.channel, { text: b.message, subject: b.subject, recipients: b.contact_ids.length, timezone: b.timezone, scheduled: !!at }, "api");
+      if (!sh.ok) { if (sh.status === "suspended") throw new ApiError(403, sh.blocks[0].message); throw new ApiError(422, JSON.stringify({ shield: sh.blocks, warnings: sh.warnings })); }
+      b.message = sh.text;
       if (at) {
         const chk = await meter(owner, isAdmin, b.channel, b.contact_ids.length, {}, true);
         if (!chk.ok) throw new ApiError(402, chk.reason);
@@ -128,6 +135,8 @@ Deno.serve(async (req) => {
         const pre = await meter(owner, isAdmin, b.channel, b.contact_ids.length, {}, true);
         if (!pre.ok) throw new ApiError(402, pre.reason);
         const r = await sendToContacts(owner, "", b.channel, b.contact_ids, b.subject, b.message);
+        await record(owner, b.channel, { text: b.message, recipients: r.successful });
+        await failSpike(owner, b.channel, r.successful, r.failed);
         if (r.successful) await meter(owner, isAdmin, b.channel, r.successful, { via: "api" });
         out = { successful: r.successful, failed: r.failed };
       }
@@ -154,6 +163,11 @@ Deno.serve(async (req) => {
       const { data } = await db.from("socialite_knowledge").delete().eq("id", id).eq("owner_id", owner).select("image_path").maybeSingle();
       if (data?.image_path) await db.storage.from("socialite-knowledge").remove([data.image_path]);
       out = { deleted: true };
+    } else if (res === "shield" && m === "GET") {
+      need(key.scopes, "read");
+      const { data } = await db.from("socialite_shield_events").select("action, level, rule, message, created_at").eq("owner_id", owner).neq("level", "sent").order("created_at", { ascending: false }).limit(100);
+      const { data: st } = await db.from("socialite_shield_status").select("status").eq("owner_id", owner).maybeSingle();
+      out = { status: st?.status ?? "normal", events: data ?? [] };
     } else if (res === "scheduled" && m === "GET") {
       need(key.scopes, "read");
       const { data } = await db.from("socialite_scheduled").select("id, kind, send_at, timezone, status, created_at").eq("created_by", owner).order("send_at", { ascending: true }).limit(200);

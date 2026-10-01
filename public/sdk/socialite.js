@@ -26,6 +26,9 @@ export class Socialite {
       create: (contacts) => r("POST", "/contacts", { contacts: Array.isArray(contacts) ? contacts : [contacts] }),
       delete: (id) => r("DELETE", `/contacts/${encodeURIComponent(id)}`),
     };
+    // Shield: your status + recent warnings/blocks. Posts/messages that break
+    // platform rules return 422 { error: '{"shield":[...]}' }; suspended → 403.
+    this.shield = () => r("GET", "/shield");
     this.knowledge = {
       list: () => r("GET", "/knowledge"),
       create: (item) => r("POST", "/knowledge", item), // { kind, title, content?, active? }
