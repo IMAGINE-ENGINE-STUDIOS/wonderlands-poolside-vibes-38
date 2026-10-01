@@ -28,7 +28,7 @@ const img = (src: string, y = 0, h = 100): Block => ({ id: uid(), kind: "image",
 const page = (name: string, blocks: Block[], tone: "paper" | "cover" = "paper"): BuilderPage => ({ id: uid(), name, tone, transition: "flip", blocks });
 
 /** Builds an editable book from any campaign config by field naming convention. */
-export function configToDoc(title: string, cfg: Record<string, any>, fallbackHtml?: string): BuilderDocV2 {
+export function configToDoc(title: string, cfg: Record<string, any>, fallbackHtml?: string, signoff: string | null = "Ricardo · +1 (239) 257-0637 · wonderlandsworlds@gmail.com"): BuilderDocV2 {
   const base = starterDocV2();
   const s = (k: string) => (typeof cfg[k] === "string" ? cfg[k] : "");
   const images = Object.keys(cfg).filter((k) => /image$/i.test(k) && /^https?:|^\//.test(s(k))).map(s);
@@ -49,9 +49,17 @@ export function configToDoc(title: string, cfg: Record<string, any>, fallbackHtm
     if (plain) pages.push(page("Message", [t(plain, "body", 10, 80)]));
     for (const p of pics) pages.push(page("Picture", [img(p)]));
   }
-  pages.push(page("Book a visit", [t("Your consultation", "eyebrow", 20, 6, "dark", "center"), t("Let's design it together", "title", 32, 20, "dark", "center"), t("Ricardo · +1 (239) 257-0637 · wonderlandsworlds@gmail.com", "body", 60, 10, "dark", "center")]));
+  if (signoff !== null) pages.push(page("Book a visit", [t("Your consultation", "eyebrow", 20, 6, "dark", "center"), t("Let's design it together", "title", 32, 20, "dark", "center"), t(signoff, "body", 60, 10, "dark", "center")]));
   return { ...base, title, pages, publish: { ...base.publish, slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-") } };
 }
+
+/** Starter templates for regular SOCIALITE users — neutral, no company details. */
+export const USER_TEMPLATES: CampaignTemplate[] = [
+  { key: "u-newsletter", title: "Monthly newsletter", subject: "{{first_name}}, here's what's new this month", config: { headline: "What's new this month", subheadline: "A short round-up for you", intro: "Here are the highlights we think you'll enjoy.", oneTitle: "The big news", oneCopy: "Tell your readers the main story here.", twoTitle: "Worth knowing", twoCopy: "Add a tip, a product or an event." } },
+  { key: "u-offer", title: "Special offer", subject: "{{first_name}}, an offer just for you", config: { headline: "A special offer for you", subheadline: "For a limited time", intro: "Describe your offer, who it's for and when it ends.", oneTitle: "How it works", oneCopy: "Explain the steps to claim it." } },
+  { key: "u-launch", title: "New launch", subject: "{{first_name}}, meet our newest arrival", config: { headline: "Something new has arrived", subheadline: "Be among the first to see it", intro: "Introduce what you launched and why it matters.", oneTitle: "Why you'll love it", oneCopy: "List the best parts." } },
+  { key: "u-event", title: "Event invitation", subject: "{{first_name}}, you're invited", config: { headline: "You're invited", subheadline: "Save the date", intro: "Share the date, time and place.", oneTitle: "What to expect", oneCopy: "Describe the programme." } },
+];
 
 const esc = (s = "") => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
 const STY: Record<string, string> = {
@@ -64,7 +72,8 @@ const STY: Record<string, string> = {
 };
 
 /** Editorial email from the book: ivory paper, Georgia serif, gold rules. */
-export function docToEmailHtml(doc: BuilderDocV2, cta = "https://calendly.com/wonderlandsworlds/30min") {
+/** `brand: false` = a regular SOCIALITE user's email: no Wonderlands button or signature. */
+export function docToEmailHtml(doc: BuilderDocV2, cta = "https://calendly.com/wonderlandsworlds/30min", brand = true) {
   const rows = doc.pages.map((p, i) => {
     const blocks = [...p.blocks].sort((a, b) => a.y - b.y || a.x - b.x);
     const inner = blocks.map((b) => {
@@ -79,7 +88,7 @@ export function docToEmailHtml(doc: BuilderDocV2, cta = "https://calendly.com/wo
 <tr><td style="background:#1c1917;padding:18px 40px;font:600 12px Arial,sans-serif;letter-spacing:5px;color:#e7d3a8;text-transform:uppercase">${esc(doc.title)}</td></tr>
 <tr><td style="padding:24px 40px 0;font:15px Georgia,serif;color:#44403c">Hi {{first_name}},</td></tr>
 ${rows}
-<tr><td align="center" style="padding:10px 40px 34px"><a href="${cta}" style="display:inline-block;background:#1c1917;color:#e7d3a8;font:600 12px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase;padding:14px 28px;text-decoration:none">Book your consultation</a></td></tr>
-<tr><td style="padding:18px 40px 30px;font:13px Georgia,serif;color:#78716c;border-top:1px solid #e7e0d4">Ricardo · <a href="tel:+12392570637" style="color:#78716c">+1 (239) 257-0637</a> · <a href="mailto:wonderlandsworlds@gmail.com" style="color:#78716c">wonderlandsworlds@gmail.com</a></td></tr>
+${brand ? `<tr><td align="center" style="padding:10px 40px 34px"><a href="${cta}" style="display:inline-block;background:#1c1917;color:#e7d3a8;font:600 12px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase;padding:14px 28px;text-decoration:none">Book your consultation</a></td></tr>
+<tr><td style="padding:18px 40px 30px;font:13px Georgia,serif;color:#78716c;border-top:1px solid #e7e0d4">Ricardo · <a href="tel:+12392570637" style="color:#78716c">+1 (239) 257-0637</a> · <a href="mailto:wonderlandsworlds@gmail.com" style="color:#78716c">wonderlandsworlds@gmail.com</a></td></tr>` : ""}
 </table></td></tr></table></body></html>`;
 }
