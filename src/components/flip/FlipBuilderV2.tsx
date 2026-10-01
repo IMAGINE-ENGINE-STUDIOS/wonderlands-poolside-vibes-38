@@ -142,7 +142,7 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
   const importCategory = async (id: string) => {
     setImporting(id);
     try {
-      const fresh = await buildCategoryBook(id, pages.length);
+      const fresh = await buildCategoryBook(id, pages.length, index);
       if (!fresh.length) {
         toast({ title: "Nothing to import", description: "That category has no products yet." });
         return;
