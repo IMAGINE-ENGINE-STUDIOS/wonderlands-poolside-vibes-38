@@ -9,6 +9,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import SocialiteQuotesInvoices from "./SocialiteQuotesInvoices";
 import SocialiteRevenue from "./SocialiteRevenue";
+const SocialiteSiteBooks = lazy(() => import("./SocialiteSiteBooks"));
 import { SocialiteShieldAdmin } from "./SocialiteShield";
 import { emailPromotion, loadClients, runPool, sendText, textToHtml, FOLLOW_UPS, REFERRAL_URL, SIGN_TXT, fill, SITE } from "@/lib/socialite/clientActions";
 
@@ -17,7 +18,7 @@ const ReferralsManager = lazy(() => import("@/components/AdminReferralsManager")
 const SequencesManager = lazy(() => import("@/components/admin/AutomationSequencesManager"));
 const AutomationStatus = lazy(() => import("@/components/admin/AutomationStatusManager"));
 
-type Key = "shield" | "performance" | "revenue" | "promotions" | "quotes" | "referrals" | "sequences";
+type Key = "books" | "shield" | "performance" | "revenue" | "promotions" | "quotes" | "referrals" | "sequences";
 const TABS: { id: Key; label: string }[] = [
   { id: "performance", label: "Performance" },
   { id: "shield", label: "Shield flags" },
@@ -26,6 +27,7 @@ const TABS: { id: Key; label: string }[] = [
   { id: "quotes", label: "Quotes & Invoices" },
   { id: "referrals", label: "Referrals" },
   { id: "sequences", label: "Sequences" },
+  { id: "books", label: "Website books" },
 ];
 const card = "rounded-[18px] border border-zinc-800 bg-[#161617]";
 const pill = "px-3 py-1.5 rounded-full text-[12px] font-medium border border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-white hover:text-black transition disabled:opacity-40";
@@ -58,6 +60,7 @@ export default function SocialiteAdmin() {
       {tab === "performance" && <Performance />}
       {tab === "shield" && <SocialiteShieldAdmin />}
       {tab === "revenue" && <SocialiteRevenue />}
+      {tab === "books" && <Suspense fallback={null}><SocialiteSiteBooks /></Suspense>}
       {tab === "promotions" && <><PromoLauncher /><Skin><PromotionsManager /></Skin></>}
       {tab === "quotes" && <SocialiteQuotesInvoices />}
       {tab === "referrals" && <><ReferralLauncher /><Skin><ReferralsManager /></Skin></>}
