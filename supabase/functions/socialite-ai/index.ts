@@ -7,6 +7,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
 import { admin, decrypt, encrypt, requireUser } from "../_shared/socialiteVault.ts";
 import { meter } from "../_shared/socialiteBilling.ts";
+import { loadKnowledge } from "../_shared/socialiteKnowledge.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
@@ -57,13 +58,13 @@ async function loadConfig(withKey = false) {
   return { ...data, key: withKey && data.key_cipher ? await decrypt(data.key_cipher) : undefined };
 }
 
-async function chat(cfg: any, system: string, user: string, jsonMode = false) {
+async function chat(cfg: any, system: string, user: string, jsonMode = false, imgs: string[] = []) {
   const base = (cfg.base_url || DEFAULT_BASE[cfg.provider] || "").replace(/\/$/, "");
   if (cfg.provider === "anthropic") {
     const r = await fetch(`${base}/messages`, {
       method: "POST",
       headers: { "x-api-key": cfg.key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: cfg.model, max_tokens: 4000, system, messages: [{ role: "user", content: user }] }),
+      body: JSON.stringify({ model: cfg.model, max_tokens: 4000, system, messages: [{ role: "user", content: imgs.length ? [...imgs.map((url) => ({ type: "image", source: { type: "url", url } })), { type: "text", text: user }] : user }] }),
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d?.error?.message ?? `Provider error ${r.status}`);
@@ -80,7 +81,7 @@ async function chat(cfg: any, system: string, user: string, jsonMode = false) {
   }
   const r = await fetch(`${base}/chat/completions`, {
     method: "POST", headers: { Authorization: `Bearer ${cfg.key}`, "content-type": "application/json" },
-    body: JSON.stringify({ model: cfg.model, messages: [{ role: "system", content: system }, { role: "user", content: user }], ...(jsonMode ? { response_format: { type: "json_object" } } : {}) }),
+    body: JSON.stringify({ model: cfg.model, messages: [{ role: "system", content: system }, { role: "user", content: imgs.length ? [...imgs.map((url) => ({ type: "image_url", image_url: { url } })), { type: "text", text: user }] : user }], ...(jsonMode ? { response_format: { type: "json_object" } } : {}) }),
   });
   const d = await r.json();
   if (!r.ok) throw new Error(d?.error?.message ?? `Provider error ${r.status}`);
@@ -166,7 +167,11 @@ Deno.serve(async (req) => {
         b.platforms?.length ? `Platforms: ${b.platforms.join(", ")}` : "",
         b.context ? `Context / data:\n${b.context}` : "",
       ].filter(Boolean).join("\n\n");
-      const r = await chat(cfg, SYSTEM[task], userMsg || "Write something useful.", task === "campaign");
+      const kn = await loadKnowledge(auth.userId);
+      const sys = kn.text ? `${SYSTEM[task]}\n\n${kn.text}` : SYSTEM[task];
+      let r;
+      try { r = await chat(cfg, sys, userMsg || "Write something useful.", task === "campaign", cfg.provider === "gemini" ? [] : kn.images); }
+      catch { r = await chat(cfg, sys, userMsg || "Write something useful.", task === "campaign"); } // provider without picture support
       const tokens = r.tokens || Math.ceil((userMsg.length + r.text.length) / 4);
       const m = await meter(auth.userId, auth.isAdmin, "ai_tokens", tokens, { task });
       let campaign = null;
@@ -180,7 +185,8 @@ Deno.serve(async (req) => {
       if (!b.prompt) return json({ error: "Describe the picture" }, 400);
       const pre = await meter(auth.userId, auth.isAdmin, "ai_image", 1, {}, true);
       if (!pre.ok) return json({ error: pre.reason, billing: true }, 402);
-      const bytes = await image(cfg, b.prompt);
+      const kn = await loadKnowledge(auth.userId, 0);
+      const bytes = await image(cfg, kn.text ? `${b.prompt}\n\nFollow these saved rules:\n${kn.text}`.slice(0, 3900) : b.prompt);
       const path = `socialite-genius/${auth.userId}/${crypto.randomUUID()}.png`;
       const up = await db.storage.from("gallery-files").upload(path, bytes, { contentType: "image/png" });
       if (up.error) throw new Error(up.error.message);
