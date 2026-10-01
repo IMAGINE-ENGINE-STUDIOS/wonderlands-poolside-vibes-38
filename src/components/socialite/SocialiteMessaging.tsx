@@ -9,6 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Mail, MessageSquare, PhoneCall, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ShieldNotice, useShieldPreview, shieldFromError } from "./SocialiteShield";
 import AutomationTemplatesManager from "@/components/admin/AutomationTemplatesManager";
 import SendTimePicker from "./SendTimePicker";
 import { scheduleSend, getSavedTz, fmtIn } from "@/lib/socialite/sendTime";
@@ -156,6 +157,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
   }, [people, q, channel]);
   const toggle = (id: string) => setPicked(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const targets = people.filter(p => picked.has(p.id) && reach(p));
+  const shield = useShieldPreview(channel === "calls" ? "sms" : channel as any, { text: message, subject, recipients: Math.min(targets.length, 200), timezone: tz, scheduled: later }, source === "contacts" && channel !== "calls");
   const body = (p?: Person) => { const m = message.replace(/\{first_name\}/g, p?.first || "there"); return sign && channel !== "email" && channel !== "calls" ? `${m}\n${SIGN}` : m; };
   const canSchedule = source === "contacts" ? channel !== "calls" : isOwner; // every channel can be timed
 
@@ -187,7 +189,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
         for (let i = 0; i < targets.length; i += 200) {
           setBusy(`Sending ${Math.min(i + 200, targets.length)}/${targets.length}…`);
           const { data, error } = await supabase.functions.invoke("socialite-send", { body: { channel, contact_ids: targets.slice(i, i + 200).map(p => p.id), subject, message: sign && channel !== "email" ? `${message}\n${SIGN}` : message } });
-          if (error) throw error;
+          if (error) { const sh = await shieldFromError(error); if (sh) { setNote(`Shield stopped this send: ${sh.blocks.map(b => `${b.message} ${b.fix}`).join(" · ")}`); setBusy(""); return; } throw error; }
           ok += data?.successful || 0; failed += data?.failed || 0;
         }
       } else if (channel === "email") {
@@ -253,6 +255,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
         {isOwner && channel !== "email" && channel !== "calls" && (
           <label className="flex items-center gap-2 text-[12px] text-zinc-400"><input type="checkbox" className="accent-white" checked={sign} onChange={e => setSign(e.target.checked)} />Add signature</label>
         )}
+        <ShieldNotice shield={shield} />
         <div className="text-[11px] text-zinc-500 mono">{len} chars{channel === "sms" ? ` · ${Math.max(1, Math.ceil(len / 160))} segment(s)` : ""}</div>
         {canSchedule && (
           <div className="space-y-2">
