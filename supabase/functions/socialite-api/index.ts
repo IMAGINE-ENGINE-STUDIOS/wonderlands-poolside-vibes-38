@@ -10,14 +10,14 @@ import { resolveKey, sha256 } from "../_shared/socialiteApiAuth.ts";
 import { publishAll } from "../_shared/socialitePublish.ts";
 import { sendToContacts } from "../_shared/contactSend.ts";
 import { guard, record, failSpike } from "../_shared/socialiteShield.ts";
-import { meter, activePlan, creditBalance, usedThisPeriod, type MeterKind } from "../_shared/socialiteBilling.ts";
+import { meter, activePlan, creditBalance, usedThisPeriod, loadBilling, chargeApiCall, chargeDataTransfer, chargeStorage, type MeterKind } from "../_shared/socialiteBilling.ts";
 
 const H = {
   ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store",
   "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "no-referrer",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
 };
-const RATE = 60;
+const DEFAULT_RATE = 60; // admin can change it in Pricing & revenue → API business model
 const PLATFORMS = ["facebook", "instagram", "x", "youtube", "tiktok", "threads", "linkedin"] as const;
 
 const ContactIn = z.object({ name: z.string().trim().min(1).max(120), email: z.string().trim().email().max(255).optional(), phone: z.string().trim().regex(/^\+?[0-9 ()-]{7,20}$/).optional() })
@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
   const db = admin();
 
   // Rate limit: RATE requests per rolling minute per key.
+  const RATE = Math.max(1, Math.min(6000, Number((await loadBilling()).api?.rate_per_minute ?? DEFAULT_RATE)));
   const { count } = await db.from("socialite_api_requests").select("id", { count: "exact", head: true }).eq("key_id", key.id).neq("status", 429).gte("created_at", new Date(Date.now() - 60_000).toISOString());
   const used = count ?? 0;
   const rl = { "X-RateLimit-Limit": String(RATE), "X-RateLimit-Remaining": String(Math.max(0, RATE - used - 1)) };
@@ -73,18 +74,21 @@ Deno.serve(async (req) => {
     if (seg[0] !== "v1") throw new ApiError(404, "Not found");
     const [, res, id] = seg;
     let out: unknown;
+    // API business model (free / included / per call / flat monthly) — charged before any work.
+    const fee = await chargeApiCall(owner, isAdmin, `${m} /${seg.slice(1).join("/")}`.slice(0, 120));
+    if (!fee.ok) throw new ApiError(402, fee.reason);
 
     if (res === "me" && m === "GET") {
       need(key.scopes, "read");
       const { plan, sub } = await activePlan(owner);
-      out = { plan: plan ? { name: plan.name } : null, status: sub?.status ?? "none", credits: Math.floor(await creditBalance(owner)), scopes: key.scopes };
+      out = { plan: plan ? { name: plan.name } : null, status: sub?.status ?? "none", credits: Math.floor(await creditBalance(owner)), scopes: key.scopes, storage: await chargeStorage(owner, isAdmin) };
     } else if (res === "usage" && m === "GET") {
       need(key.scopes, "read");
-      const kinds: MeterKind[] = ["posts", "email", "sms", "whatsapp", "ai_tokens", "ai_image"];
-      out = { period: "month", usage: Object.fromEntries(await Promise.all(kinds.map(async (k) => [k, await usedThisPeriod(owner, k)]))) };
+      const kinds = ["posts", "email", "sms", "whatsapp", "ai_tokens", "ai_image", "api_calls", "data_mb"] as MeterKind[];
+      out = { period: "month", usage: Object.fromEntries(await Promise.all(kinds.map(async (k) => [k, await usedThisPeriod(owner, k)]))), storage: await chargeStorage(owner, isAdmin) };
     } else if (res === "contacts" && m === "GET" && !id) {
       need(key.scopes, "read");
-      const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit") ?? 50)));
+      const limit = Math.min(1000, Math.max(1, Number(url.searchParams.get("limit") ?? 50))); // page size only — total contacts are unlimited
       const offset = Math.max(0, Number(url.searchParams.get("offset") ?? 0));
       const { data } = await db.from("socialite_contacts").select("id, name, email, phone, source, last_sent_at, created_at").eq("owner_id", owner).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
       out = { data: data ?? [], limit, offset };
@@ -94,6 +98,7 @@ Deno.serve(async (req) => {
       const rows = b.contacts.map((c) => ({ owner_id: owner, name: c.name, email: c.email ?? null, phone: c.phone ?? null, source: "api" }));
       const { data, error } = await db.from("socialite_contacts").insert(rows).select("id, name, email, phone");
       if (error) throw new ApiError(400, "Could not save contacts");
+      await chargeStorage(owner, isAdmin);
       status = 201; out = { data };
     } else if (res === "contacts" && m === "DELETE" && id) {
       need(key.scopes, "write");
@@ -142,13 +147,16 @@ Deno.serve(async (req) => {
       }
     } else if (res === "knowledge" && m === "GET" && !id) {
       need(key.scopes, "read");
-      const { data } = await db.from("socialite_knowledge").select("id, kind, title, content, active, image_path, created_at, updated_at").eq("owner_id", owner).order("created_at", { ascending: false }).limit(500);
-      out = { data: (data ?? []).map(({ image_path, ...k }: any) => ({ ...k, has_image: !!image_path })) };
+      const limit = Math.min(1000, Math.max(1, Number(url.searchParams.get("limit") ?? 200)));
+      const offset = Math.max(0, Number(url.searchParams.get("offset") ?? 0));
+      const { data } = await db.from("socialite_knowledge").select("id, kind, title, content, active, image_path, created_at, updated_at").eq("owner_id", owner).order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+      out = { data: (data ?? []).map(({ image_path, ...k }: any) => ({ ...k, has_image: !!image_path })), limit, offset };
     } else if (res === "knowledge" && m === "POST") {
       need(key.scopes, "write");
       const b = await body(req, KnowledgeIn);
-      const { count } = await db.from("socialite_knowledge").select("id", { count: "exact", head: true }).eq("owner_id", owner);
-      if ((count ?? 0) >= 1000) throw new ApiError(422, "Knowledge limit reached (1000 items)");
+      // No item cap — storage is billed by the admin's storage model instead.
+      const st = await chargeStorage(owner, isAdmin);
+      if (!st.paid) throw new ApiError(402, st.reason ?? "Storage fee unpaid");
       const { data, error } = await db.from("socialite_knowledge").insert({ ...b, owner_id: owner }).select("id, kind, title, content, active").single();
       if (error) throw new ApiError(400, "Could not save");
       status = 201; out = { data };
@@ -179,7 +187,9 @@ Deno.serve(async (req) => {
     } else throw new ApiError(404, "Not found");
 
     await log(status);
-    return reply(out, status, rl);
+    const payload = JSON.stringify(out);
+    await chargeDataTransfer(owner, isAdmin, payload.length + Number(req.headers.get("content-length") ?? 0));
+    return new Response(payload, { status, headers: { ...H, ...rl } });
   } catch (e) {
     status = e instanceof ApiError ? e.status : 500;
     await log(status);

@@ -158,11 +158,11 @@ export async function storageBytes(userId: string): Promise<number> {
   const [{ count: contacts }, { data: know }, { data: state }, { data: files }] = await Promise.all([
     sb.from("socialite_contacts").select("id", { count: "exact", head: true }).eq("owner_id", userId),
     sb.from("socialite_knowledge").select("title, content").eq("owner_id", userId),
-    sb.from("socialite_state").select("data").eq("owner_id", userId),
+    sb.from("socialite_state").select("value").eq("owner_id", userId),
     sb.storage.from("socialite-knowledge").list(userId, { limit: 10000 }),
   ]);
   const text = (know ?? []).reduce((s, k: any) => s + (k.title?.length ?? 0) + (k.content?.length ?? 0), 0);
-  const st = (state ?? []).reduce((s, r: any) => s + JSON.stringify(r.data ?? {}).length, 0);
+  const st = (state ?? []).reduce((s, r: any) => s + String(typeof r.value === "string" ? r.value : JSON.stringify(r.value ?? "")).length, 0);
   const img = (files ?? []).reduce((s, f: any) => s + Number(f.metadata?.size ?? 0), 0);
   return (contacts ?? 0) * 300 + text + st + img;
 }
