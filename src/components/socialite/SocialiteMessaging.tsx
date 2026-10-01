@@ -174,7 +174,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
     if (later && canSchedule) {
       try {
         const res = source === "contacts"
-          ? await scheduleSend("contact", { channel, contact_ids: targets.slice(0, 200).map(p => p.id), subject, message: sign && channel !== "email" && channel !== "calls" ? `${message}\n${SIGN}` : message }, at, tz)
+          ? await scheduleSend("contact", { channel: channel === "calls" ? "call" : channel, contact_ids: targets.slice(0, 200).map(p => p.id), subject, message: sign && channel !== "email" && channel !== "calls" ? `${message}\n${SIGN}` : message }, at, tz)
           : channel === "email"
             ? await scheduleSend("email", { client_ids: targets.map(p => p.id), custom_subject: subject, custom_html: textToHtml(message.replace(/\{first_name\}/g, "{{first_name}}")) }, at, tz)
             : await scheduleSend(channel === "calls" ? "call" : channel, { messages: targets.map(p => ({ to: p.phone, message: body(p), recipientName: p.name })) }, at, tz);
