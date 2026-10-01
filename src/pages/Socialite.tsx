@@ -22,7 +22,7 @@ import SocialiteScheduled from "@/components/socialite/SocialiteScheduled";
 import SendTimePicker from "@/components/socialite/SendTimePicker";
 import { scheduleSend, getSavedTz, fmtIn, zonedToDate, SEND_TIMEZONES, TZ_KEY } from "@/lib/socialite/sendTime";
 import TimezoneSelect from "@/components/socialite/TimezoneSelect";
-import { Receipt as ReceiptIcon, MessageCircle as MsgIcon } from "lucide-react";
+import { Receipt as ReceiptIcon, MessageCircle as MsgIcon, BookOpen } from "lucide-react";
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
   AtSign,
