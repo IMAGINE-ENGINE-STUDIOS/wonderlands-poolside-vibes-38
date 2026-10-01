@@ -19,6 +19,9 @@ const ENDPOINTS: [string, string, string, string][] = [
   ["POST", "/knowledge", "write", "Teach Genius: { kind: face|scenario|wording|prohibited_words|prohibited_imagery|pitch|logic|pipeline|note, title, content?, active? }"],
   ["PATCH", "/knowledge/:id", "write", "Edit or switch a knowledge item on/off"],
   ["DELETE", "/knowledge/:id", "write", "Delete a knowledge item (and its picture)"],
+  ["GET", "/books?limit=50&offset=0", "read", "List your Flip Builder V3 books"],
+  ["GET", "/books/:id", "read", "One book with its pages and reader settings"],
+  ["PATCH", "/books/:id", "write", "Rename, publish/unpublish, or change reader controls: { title?, published?, theme?: { showArrows, sideArrows, arrowsOnly, keyboard, curl, pageCounter, shareButton, studyButton, showTabs, showCorners, turnSpeed, autoplay } }"],
   ["GET", "/scheduled", "read", "List scheduled sends"],
   ["DELETE", "/scheduled/:id", "write", "Cancel a pending scheduled send"],
 ];

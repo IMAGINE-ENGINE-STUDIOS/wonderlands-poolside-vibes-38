@@ -200,7 +200,17 @@ Deno.serve(async (req) => {
     } else if (res === "books" && m === "PATCH" && id) {
       need(key.scopes, "write");
       const b = await body(req, BookPatch);
-      const { data } = await db.from("flip_books").update({ ...b, updated_at: new Date().toISOString() }).eq("id", id).eq("owner_id", owner).select("id, title, slug, published").maybeSingle();
+      const { data: cur } = await db.from("flip_books").select("doc, theme").eq("id", id).eq("owner_id", owner).maybeSingle();
+      if (!cur) throw new ApiError(404, "Not found");
+      const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (b.title !== undefined) patch.title = b.title;
+      if (b.published !== undefined) patch.published = b.published;
+      if (b.theme) {
+        const theme = { ...((cur.theme as any) ?? {}), ...b.theme };
+        patch.theme = theme;
+        patch.doc = { ...((cur.doc as any) ?? {}), theme: { ...((cur.doc as any)?.theme ?? {}), ...b.theme } };
+      }
+      const { data } = await db.from("flip_books").update(patch).eq("id", id).eq("owner_id", owner).select("id, title, slug, published, theme").maybeSingle();
       if (!data) throw new ApiError(404, "Not found");
       out = { data };
     } else if (res === "scheduled" && m === "GET") {

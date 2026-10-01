@@ -1,5 +1,5 @@
 /**
- * SOCIALITE SDK v1.2 — zero-dependency client for the SOCIALITE REST API.
+ * SOCIALITE SDK v1.3 — zero-dependency client for the SOCIALITE REST API.
  * Works in Node 18+, Deno, Bun and server runtimes (uses global fetch).
  * Billing: API calls, API data (MB) and storage can be charged in credits
  * depending on the provider's pricing — me()/usage() return the details.
@@ -37,6 +37,12 @@ export class Socialite {
       create: (item) => r("POST", "/knowledge", item), // { kind, title, content?, active? }
       update: (id, patch) => r("PATCH", `/knowledge/${encodeURIComponent(id)}`, patch),
       delete: (id) => r("DELETE", `/knowledge/${encodeURIComponent(id)}`),
+    };
+    // Flip Builder V3 books
+    this.books = {
+      list: ({ limit = 50, offset = 0 } = {}) => r("GET", `/books?limit=${limit}&offset=${offset}`),
+      get: (id) => r("GET", `/books/${encodeURIComponent(id)}`),
+      update: (id, patch) => r("PATCH", `/books/${encodeURIComponent(id)}`, patch), // { title?, published?, theme? }
     };
     this.posts = { create: (post) => r("POST", "/posts", post) };
     this.messages = { send: (msg) => r("POST", "/messages", msg) };
