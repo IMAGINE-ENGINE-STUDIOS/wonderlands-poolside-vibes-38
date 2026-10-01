@@ -161,6 +161,20 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
   const [notice, setNotice] = React.useState<string | null>(null);
   const [fullscreen, setFullscreen] = React.useState(false);
   const motion = motionOf(doc.theme);
+  const t = doc.theme;
+  const turnMs = !t.curl ? 1 : t.turnSpeed > 0 ? t.turnSpeed : motion.flippingTime;
+  // V3 keyboard control
+  React.useEffect(() => {
+    if (!t.keyboard) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(el.tagName))) return;
+      if (e.key === "ArrowRight") bookRef.current?.pageFlip()?.flipNext();
+      if (e.key === "ArrowLeft") bookRef.current?.pageFlip()?.flipPrev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [t.keyboard]);
   const palette = paletteOf(doc.theme);
 
   React.useEffect(() => {
@@ -279,9 +293,9 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
       className={`relative ${fullscreen ? "fixed inset-0 z-[70] overflow-auto" : ""} ${className ?? ""}`}
     >
       <div className="px-2 pb-10 pt-6 md:px-6">
-        <div className="mx-auto flex justify-center" style={{ perspective: doc.theme.motion === "cinema" ? "1800px" : "3000px", minHeight: dims.h }}>
+        <div className="relative mx-auto flex justify-center" style={{ perspective: doc.theme.motion === "cinema" ? "1800px" : "3000px", minHeight: dims.h }}>
           <HTMLFlipBook
-            key={`reader-${doc.pages.length}-${dims.w}-${doc.theme.motion}`}
+            key={`reader-${doc.pages.length}-${dims.w}-${doc.theme.motion}-${t.arrowsOnly}-${turnMs}`}
             ref={bookRef}
             width={dims.w}
             height={dims.h}
@@ -293,16 +307,16 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
             showCover={false}
             usePortrait={portrait}
             mobileScrollSupport
-            drawShadow={doc.theme.motion !== "fade"}
-            flippingTime={motion.flippingTime}
+            drawShadow={t.curl && doc.theme.motion !== "fade"}
+            flippingTime={turnMs}
             maxShadowOpacity={0.2 + (doc.theme.depth / 100) * 0.6}
             startPage={0}
             startZIndex={0}
             autoSize={false}
             clickEventForward={false}
-            useMouseEvents
-            swipeDistance={30}
-            showPageCorners={doc.theme.showCorners}
+            useMouseEvents={!t.arrowsOnly}
+            swipeDistance={t.arrowsOnly ? 100000 : 30}
+            showPageCorners={!t.arrowsOnly && doc.theme.showCorners}
             disableFlipByClick
             style={{}}
             className={doc.theme.motion === "fade" ? "fb-page-fade" : ""}
@@ -314,29 +328,35 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
               </Leaf>
             ))}
           </HTMLFlipBook>
+          {t.sideArrows && (
+            <>
+              <button onClick={() => bookRef.current?.pageFlip()?.flipPrev()} aria-label="Previous page (side)" className="absolute left-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center border bg-background/70 backdrop-blur" style={{ borderColor: palette.muted, color: palette.ink }}><ChevronLeft className="h-5 w-5" /></button>
+              <button onClick={() => bookRef.current?.pageFlip()?.flipNext()} aria-label="Next page (side)" className="absolute right-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center border bg-background/70 backdrop-blur" style={{ borderColor: palette.muted, color: palette.ink }}><ChevronRight className="h-5 w-5" /></button>
+            </>
+          )}
         </div>
 
         {/* controls */}
         <div className="mx-auto mt-5 flex max-w-4xl flex-wrap items-center justify-center gap-2">
-          <button
+          {t.showArrows && <button
             onClick={() => bookRef.current?.pageFlip()?.flipPrev()}
             aria-label="Previous page"
             className="flex h-10 w-10 items-center justify-center border transition-transform hover:-translate-x-0.5"
             style={{ borderColor: palette.muted, color: palette.ink }}
           >
             <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="px-3 text-[10px] uppercase tracking-[0.4em]" style={{ color: palette.muted }}>
+          </button>}
+          {t.pageCounter && <span className="px-3 text-[10px] uppercase tracking-[0.4em]" style={{ color: palette.muted }}>
             {String(Math.min(page + 1, doc.pages.length)).padStart(2, "0")} / {String(doc.pages.length).padStart(2, "0")}
-          </span>
-          <button
+          </span>}
+          {t.showArrows && <button
             onClick={() => bookRef.current?.pageFlip()?.flipNext()}
             aria-label="Next page"
             className="flex h-10 w-10 items-center justify-center border transition-transform hover:translate-x-0.5"
             style={{ borderColor: palette.muted, color: palette.ink }}
           >
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </button>}
 
           {doc.narrator.enabled && (
             <button
@@ -348,20 +368,20 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
               {speaking ? "Silence" : "Read aloud"}
             </button>
           )}
-          <button
+          {t.shareButton && <button
             onClick={share}
             className="inline-flex items-center gap-2 border px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-opacity hover:opacity-80"
             style={{ borderColor: palette.muted, color: palette.ink }}
           >
             <Share2 className="h-3.5 w-3.5" /> Share
-          </button>
-          <button
+          </button>}
+          {t.studyButton && <button
             onClick={() => setFullscreen((v) => !v)}
             className="inline-flex items-center gap-2 border px-3 py-2 text-[9px] uppercase tracking-[0.3em] transition-opacity hover:opacity-80"
             style={{ borderColor: palette.muted, color: palette.ink }}
           >
             <Maximize2 className="h-3.5 w-3.5" /> {fullscreen ? "Close" : "Study"}
-          </button>
+          </button>}
         </div>
 
         {/* chapter tabs */}

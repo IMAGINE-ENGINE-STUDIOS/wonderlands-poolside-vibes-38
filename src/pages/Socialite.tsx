@@ -1617,7 +1617,7 @@ Use 2 hashtags max when promo present`;
             { id: "clients", label: "Clients", icon: Users },
             { id: "accounts", label: "Accounts", icon: Facebook },
             { id: "genius", label: "Genius", icon: PenTool },
-            { id: "flip", label: "Flip Builder", icon: BookOpen },
+            { id: "flip", label: "Flip Builder V3", icon: BookOpen },
             { id: "billing", label: "Plan & billing", icon: ReceiptIcon },
             { id: "api", label: "API", icon: Database },
             { id: "settings", label: "Settings", icon: Settings },
@@ -3064,12 +3064,12 @@ Use 2 hashtags max when promo present`;
           {view === "flip" && (
             <div className="p-4 lg:p-8 space-y-4">
               <div>
-                <h1 className="text-[22px] font-semibold tracking-tight text-zinc-100">Flip Builder</h1>
+                <h1 className="text-[22px] font-semibold tracking-tight text-zinc-100">Flip Builder V3</h1>
                 <p className="text-[13px] text-zinc-500">Build page-turning books, preview them, then publish and share the link.</p>
               </div>
               <div className="rounded-[18px] overflow-hidden bg-background text-foreground">
                 <React.Suspense fallback={<div className="p-6 text-[13px] text-zinc-500">Opening the builder…</div>}>
-                  <FlipBuilderV2 storageKey="socialite.flip" />
+                  <FlipBuilderV2 storageKey="socialite.flip.v3" blank />
                 </React.Suspense>
               </div>
             </div>
