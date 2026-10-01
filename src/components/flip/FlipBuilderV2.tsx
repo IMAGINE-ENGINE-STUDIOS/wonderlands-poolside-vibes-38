@@ -563,20 +563,53 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
             </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {FLIP_PALETTES.map((p) => (
+              {FLIP_PALETTES.map((p) => {
+                const on = doc.theme.paletteId === p.id && !Object.keys(doc.theme.customColors ?? {}).length;
+                return (
                 <button
                   key={p.id}
-                  onClick={() => setDoc((d) => ({ ...d, theme: { ...d.theme, paletteId: p.id } }))}
-                  className={`border p-3 text-left transition-colors ${doc.theme.paletteId === p.id ? "border-foreground" : "border-border/60 hover:border-foreground/60"}`}
+                  aria-pressed={on}
+                  onClick={() => setDoc((d) => ({ ...d, theme: { ...ensureV2(d).theme, paletteId: p.id, customColors: {} } }))}
+                  className={`border p-3 text-left transition-colors ${on ? "border-foreground ring-2 ring-foreground/70" : "border-border/60 hover:border-foreground/60"}`}
                 >
                   <div className="flex h-12 overflow-hidden">
                     {[p.paper, p.ink, p.accent, p.muted, p.coverPaper].map((c, i) => (
                       <span key={`${p.id}-${i}`} className="flex-1" style={{ background: c }} />
                     ))}
                   </div>
-                  <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-foreground">{p.name}</p>
+                  <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-foreground">{on ? "● " : ""}{p.name}</p>
                 </button>
-              ))}
+                );
+              })}
+            </div>
+
+            {/* hand-picked colours — chromatic circle */}
+            <div className="mt-8 flex items-center justify-between">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Custom colours — pick any by hand</p>
+              {!!Object.keys(doc.theme.customColors ?? {}).length && (
+                <button onClick={() => setDoc((d) => ({ ...d, theme: { ...ensureV2(d).theme, customColors: {} } }))} className="text-[9px] uppercase tracking-[0.28em] text-muted-foreground hover:text-foreground">Back to edition</button>
+              )}
+            </div>
+            <div className="mt-3 grid gap-5 border border-border/60 p-4 sm:grid-cols-[1fr_220px]">
+              <div className="grid grid-cols-2 gap-2 self-start">
+                {PALETTE_ROLES.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => setColorRole(r.id)}
+                    className={`flex items-center gap-2 border px-2.5 py-2 text-left ${colorRole === r.id ? "border-foreground" : "border-border/60 hover:border-foreground/60"}`}
+                  >
+                    <span className="h-6 w-6 shrink-0 border border-border/60" style={{ background: palette[r.id] }} />
+                    <span className="min-w-0">
+                      <span className="block text-[9px] uppercase tracking-[0.24em] text-foreground">{r.label}</span>
+                      <span className="block font-mono text-[10px] text-muted-foreground">{palette[r.id]}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <FlipColorWheel
+                value={palette[colorRole]}
+                onChange={(hex) => setDoc((d) => { const t = ensureV2(d).theme; return { ...d, theme: { ...t, customColors: { ...(t.customColors ?? {}), [colorRole]: hex } } }; })}
+              />
             </div>
 
             <p className="mt-8 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Type sets</p>
