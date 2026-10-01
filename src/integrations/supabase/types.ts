@@ -3722,6 +3722,42 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_knowledge: {
+        Row: {
+          active: boolean
+          content: string
+          created_at: string
+          id: string
+          image_path: string | null
+          kind: string
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          content?: string
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          kind?: string
+          owner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          content?: string
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          kind?: string
+          owner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       socialite_plans: {
         Row: {
           active: boolean
