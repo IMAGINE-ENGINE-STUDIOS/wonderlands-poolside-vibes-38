@@ -8,6 +8,7 @@
 
 import type { CSSProperties } from "react";
 import { starterDoc, type BuilderDoc, type BuilderPage } from "./flipBuilderTypes";
+import { FLIP_FONT_STYLES } from "./flipFonts";
 
 /* --------------------------------------------------------------- palettes */
 
@@ -43,14 +44,16 @@ export const FLIP_PALETTES: FlipPalette[] = [
 
 /* ------------------------------------------------------------------- type */
 
-export type FlipTypeSet = { id: string; name: string; display: string; text: string };
+export type FlipTypeSet = { id: string; name: string; display: string; text: string; group?: string; google?: string[] };
 
+/** 5 house sets + the 50 modern pairings from flipFonts.ts */
 export const FLIP_TYPE_SETS: FlipTypeSet[] = [
-  { id: "classic", name: "Classic Editorial", display: "'Playfair Display', Georgia, serif", text: "'Inter', system-ui, sans-serif" },
-  { id: "didone", name: "Didone Masthead", display: "'Cormorant Garamond', Didot, serif", text: "'Karla', system-ui, sans-serif" },
-  { id: "grotesk", name: "Swiss Grotesk", display: "'Space Grotesk', Helvetica, sans-serif", text: "'DM Sans', system-ui, sans-serif" },
-  { id: "gazette", name: "Gazette", display: "Georgia, 'Times New Roman', serif", text: "'Work Sans', system-ui, sans-serif" },
-  { id: "mono", name: "Technical Sheet", display: "'JetBrains Mono', ui-monospace, monospace", text: "'Work Sans', system-ui, sans-serif" },
+  { id: "classic", name: "Classic Editorial", group: "House", display: "'Playfair Display', Georgia, serif", text: "'Inter', system-ui, sans-serif", google: ["Playfair Display", "Inter"] },
+  { id: "didone", name: "Didone Masthead", group: "House", display: "'Cormorant Garamond', Didot, serif", text: "'Karla', system-ui, sans-serif", google: ["Cormorant Garamond", "Karla"] },
+  { id: "grotesk", name: "Swiss Grotesk", group: "House", display: "'Space Grotesk', Helvetica, sans-serif", text: "'DM Sans', system-ui, sans-serif", google: ["Space Grotesk", "DM Sans"] },
+  { id: "gazette", name: "Gazette", group: "House", display: "Georgia, 'Times New Roman', serif", text: "'Work Sans', system-ui, sans-serif", google: ["Work Sans"] },
+  { id: "mono", name: "Technical Sheet", group: "House", display: "'JetBrains Mono', ui-monospace, monospace", text: "'Work Sans', system-ui, sans-serif", google: ["JetBrains Mono", "Work Sans"] },
+  ...FLIP_FONT_STYLES,
 ];
 
 /* ----------------------------------------------------------------- motion */

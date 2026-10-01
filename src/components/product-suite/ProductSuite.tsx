@@ -1,6 +1,7 @@
 import * as React from "react";
 import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
+import PlacedFlipBook from "@/components/flip/PlacedFlipBook";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -224,6 +225,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
           {mastheadSlot && <div className="mt-8">{mastheadSlot}</div>}
         </div>
       </header>
+      <PlacedFlipBook slot={`suite:${categoryId}`} />
 
       {/* ── Model selection: dropdown + carousel ───────────────────────── */}
       <section className="px-6 py-10 md:px-12">

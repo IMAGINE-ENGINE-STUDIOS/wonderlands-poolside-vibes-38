@@ -1,5 +1,6 @@
 import * as React from "react";
 const { useEffect, lazy, Suspense } = React;
+import PlacedFlipBook from "@/components/flip/PlacedFlipBook";
 import { Helmet } from "react-helmet";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -101,6 +102,7 @@ const Index = () => {
 
       <Header />
       <Hero />
+      <PlacedFlipBook slot="home:top" />
 
       {/* One consolidated platform plate: statement, solutions, process */}
       <PlatformOverview />
@@ -109,6 +111,7 @@ const Index = () => {
       <SolarEditorial />
 
       <main>
+        <PlacedFlipBook slot="home:middle" />
         {/* Flagship product — Pools + Glimmerglass fiberglass collection */}
         <Suspense fallback={<SectionFallback />}>
           <section id="pools" aria-label="Pool Catalog">
@@ -217,6 +220,7 @@ const Index = () => {
             <LinersSection />
           </section>
         </Suspense>
+        <PlacedFlipBook slot="home:bottom" />
       </main>
 
       <Footer />

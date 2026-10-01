@@ -11,13 +11,17 @@ import * as React from "react";
 import HTMLFlipBook from "react-pageflip";
 import { ChevronLeft, ChevronRight, Volume2, Loader2, Share2, Maximize2, Pause } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { consumeNarratorCredits } from "@/lib/flip/flipPublish";
+import { consumeNarratorCredits, loadPublishedBook } from "@/lib/flip/flipPublish";
+import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
+import { loadFlipFonts } from "./flipFonts";
+import { X } from "lucide-react";
 import { FlipWidgetSurface } from "./flipWidgets";
 import { TEXT_CLASS, type Block, type BuilderPage } from "./flipBuilderTypes";
 import {
   motionOf,
   paletteOf,
   themeVars,
+  typeSetOf,
   type BuilderDocV2,
   type FlipTheme,
 } from "./flipBuilderV2Types";
@@ -72,6 +76,16 @@ const BlockSurface: React.FC<{ block: Block; cover: boolean; still?: boolean }> 
   if (block.kind === "rule")
     return <div className="h-px w-full" style={{ background: "var(--fb-accent)", opacity: 0.55 }} />;
 
+  if (block.kind === "button")
+    return (
+      <span
+        className="flex h-full w-full items-center justify-center border px-3 text-center text-[10px] uppercase tracking-[0.3em]"
+        style={{ borderColor: "var(--fb-accent)", color: "var(--fb-accent)", fontFamily: "var(--fb-text)" }}
+      >
+        {block.text || "Open"}
+      </span>
+    );
+
   const style = block.style ?? "body";
   const display = style === "title" || style === "subtitle" || style === "stat";
   return (
@@ -89,12 +103,16 @@ const BlockSurface: React.FC<{ block: Block; cover: boolean; still?: boolean }> 
   );
 };
 
+/** Reader-only: runs a block's V3 action (page jump, minibook, cart, link). */
+const FlipActionContext = React.createContext<((b: Block) => void) | null>(null);
+
 /** One leaf, painted with the theme. Exported so the editor canvas matches 1:1. */
 export const FlipPageSurface: React.FC<{ page: BuilderPage; theme: FlipTheme; still?: boolean }> = ({
   page,
   theme,
   still,
 }) => {
+  const act = React.useContext(FlipActionContext);
   const cover = page.tone === "cover";
   return (
     <div
@@ -123,11 +141,25 @@ export const FlipPageSurface: React.FC<{ page: BuilderPage; theme: FlipTheme; st
           }}
         />
       )}
-      {page.blocks.map((b) => (
-        <div key={b.id} className="absolute" style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%` }}>
-          <BlockSurface block={b} cover={cover} still={still} />
-        </div>
-      ))}
+      {page.blocks.map((b) => {
+        const box = { left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%` };
+        const live = !still && act && b.action && b.action !== "none";
+        return live ? (
+          <button
+            key={b.id}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); act!(b); }}
+            className="absolute z-20 cursor-pointer text-left transition-opacity hover:opacity-80"
+            style={box}
+          >
+            <BlockSurface block={b} cover={cover} still={still} />
+          </button>
+        ) : (
+          <div key={b.id} className="absolute" style={box}>
+            <BlockSurface block={b} cover={cover} still={still} />
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -178,6 +210,41 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
     return () => window.removeEventListener("keydown", onKey);
   }, [t.keyboard]);
   const palette = paletteOf(doc.theme);
+  const cart = useOptionalShoppingCart();
+  const [mini, setMini] = React.useState<BuilderDocV2 | null>(null);
+  const typeSet = typeSetOf(doc.theme);
+  React.useEffect(() => loadFlipFonts(typeSet.google), [typeSet]);
+
+  /** V3 block actions: jump to page, open minibook, add to cart, open link. */
+  const act = React.useCallback(
+    async (b: Block) => {
+      if (b.action === "page" && b.targetPage) {
+        bookRef.current?.pageFlip()?.turnToPage(Math.max(0, Math.min(doc.pages.length - 1, b.targetPage - 1)));
+      } else if (b.action === "book" && b.targetBook) {
+        try {
+          const res = await loadPublishedBook(b.targetBook);
+          if (res) setMini(res.doc);
+          else setNotice("That minibook is not published yet.");
+        } catch {
+          setNotice("That minibook could not be opened.");
+        }
+      } else if (b.action === "cart") {
+        if (!cart) return setNotice("The cart is not available here.");
+        const name = b.productName || b.text || doc.title;
+        cart.addToCart({
+          id: `flip-${(b.productName || b.id).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+          name,
+          price: Number(b.price) || 0,
+          image: b.productImage,
+          category: b.productCategory || doc.title,
+        });
+        setNotice(`${name} added to your cart.`);
+      } else if (b.action === "url" && b.href && /^https?:\/\//i.test(b.href)) {
+        window.open(b.href, "_blank", "noopener,noreferrer");
+      }
+    },
+    [cart, doc.pages.length, doc.title],
+  );
 
   React.useEffect(() => {
     const measure = () => {
@@ -290,6 +357,7 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
   );
 
   return (
+    <FlipActionContext.Provider value={act}>
     <div
       style={{ ...themeVars(doc.theme), background: kindle ? "#fff" : palette.paper, filter: kindle ? "grayscale(1) contrast(1.15)" : undefined }}
       className={`relative ${fullscreen ? "fixed inset-0 z-[70] overflow-auto" : ""} ${className ?? ""}`}
@@ -417,7 +485,16 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
           </p>
         )}
       </div>
+      {mini && (
+        <div className="fixed inset-0 z-[80] overflow-auto bg-background/95 backdrop-blur" role="dialog" aria-label={mini.title}>
+          <button onClick={() => setMini(null)} aria-label="Close minibook" className="fixed right-4 top-4 z-[81] flex h-10 w-10 items-center justify-center border border-border bg-background text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+          <FlipBookReader doc={mini} />
+        </div>
+      )}
     </div>
+    </FlipActionContext.Provider>
   );
 };
 

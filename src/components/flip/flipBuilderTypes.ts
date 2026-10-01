@@ -4,11 +4,18 @@
  * blocks measured in percent so every page scales with the book.
  */
 
-export type BlockKind = "text" | "image" | "video" | "rule" | "widget";
+export type BlockKind = "text" | "image" | "video" | "rule" | "widget" | "button";
 
 export type TextStyle = "eyebrow" | "title" | "subtitle" | "body" | "stat" | "caption";
 
 export type BlockAnimation = "none" | "fade" | "rise" | "ken";
+
+/**
+ * V3 actions — any block can be made clickable in the reader:
+ *  page → turn to `targetPage` (1-based), book → open minibook `targetBook` (slug),
+ *  cart → add `productName`/`price` to the one Wonderlands cart, url → open `href`.
+ */
+export type BlockAction = "none" | "page" | "book" | "cart" | "url";
 
 export type Block = {
   id: string;
@@ -28,6 +35,14 @@ export type Block = {
   widget?: string;
   /** how much a widget is scaled down to sit on the leaf */
   scale?: number;
+  action?: BlockAction;
+  targetPage?: number;
+  targetBook?: string;
+  href?: string;
+  productName?: string;
+  price?: number;
+  productImage?: string;
+  productCategory?: string;
 };
 
 export type PageTransition = "flip" | "fade" | "rise" | "slide";

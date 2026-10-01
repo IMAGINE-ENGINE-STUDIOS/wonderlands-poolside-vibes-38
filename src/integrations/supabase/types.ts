@@ -1375,6 +1375,41 @@ export type Database = {
           },
         ]
       }
+      flip_site_placements: {
+        Row: {
+          active: boolean
+          book_id: string | null
+          slot: string
+          slug: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          book_id?: string | null
+          slot: string
+          slug: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          book_id?: string | null
+          slot?: string
+          slug?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flip_site_placements_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "flip_books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       florida_locations: {
         Row: {
           city: string
