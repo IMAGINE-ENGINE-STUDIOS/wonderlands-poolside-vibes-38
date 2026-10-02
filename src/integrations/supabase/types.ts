@@ -4451,6 +4451,10 @@ export type Database = {
         Args: { installer_uuid: string }
         Returns: Json
       }
+      get_project_by_token: {
+        Args: { _internal?: boolean; _token: string }
+        Returns: Json
+      }
       get_public_supplier_info: {
         Args: never
         Returns: {
@@ -4461,14 +4465,24 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
         }[]
       }
+      get_shared_gallery: {
+        Args: { _folder_id?: string; _token: string }
+        Returns: Json
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      is_active_sales_rep: { Args: never; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
       is_consumer: { Args: never; Returns: boolean }
+      is_contractor_self: { Args: { _cid: string }; Returns: boolean }
       is_current_admin: { Args: never; Returns: boolean }
       is_main_admin: { Args: never; Returns: boolean }
+      is_notification_recipient: {
+        Args: { _rid: string; _type: string }
+        Returns: boolean
+      }
       is_supplier: { Args: never; Returns: boolean }
       log_admin_action: {
         Args: {
