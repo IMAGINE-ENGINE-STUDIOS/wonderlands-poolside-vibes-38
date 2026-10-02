@@ -26,7 +26,8 @@ const RightNavigation = () => {
     () => typeof document !== "undefined" && document.body.dataset.quoteOpen === "true"
   );
 
-  if (isWonderlandsStudio) return null;
+  // SOCIALITE is its own app — no Wonderlands home button on any of its pages.
+  if (isWonderlandsStudio || location.pathname.startsWith("/socialite") || location.pathname.startsWith("/admin/socialite")) return null;
 
   return (
     <TooltipProvider delayDuration={200}>

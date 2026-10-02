@@ -727,7 +727,7 @@ const FlipBuilderV2: React.FC<{ storageKey?: string; initialDoc?: BuilderDocV2; 
                   onClick={() => setDoc((d) => ({ ...d, theme: { ...d.theme, typeId: t.id } }))}
                   className={`border px-4 py-3 text-left transition-colors ${doc.theme.typeId === t.id ? "border-foreground" : "border-border/60 hover:border-foreground/60"}`}
                 >
-                  <span className="block text-2xl font-light leading-tight text-foreground" style={{ fontFamily: t.display }}>Wonderlands</span>
+                  <span className="block text-2xl font-light leading-tight text-foreground" style={{ fontFamily: t.display }}>Your Story</span>
                   <span className="mt-1 block text-[11px] text-muted-foreground" style={{ fontFamily: t.text }}>{t.name} — body specimen</span>
                 </button>
               ))}
