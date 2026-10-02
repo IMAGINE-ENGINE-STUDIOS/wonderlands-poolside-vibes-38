@@ -46,38 +46,18 @@ const InternalProjectView: React.FC = () => {
   const fetchProject = useCallback(async () => {
     if (!token) return;
     try {
-      const { data: proj, error: projErr } = await supabase
-        .from('construction_projects')
-        .select('*')
-        .eq('internal_share_token', token)
-        .single();
-
-      if (projErr || !proj) {
+      // Token-gated lookup (checked server-side). Editing still requires an admin sign-in.
+      const { data: bundle, error: projErr } = await supabase.rpc('get_project_by_token' as any, { _token: token, _internal: true });
+      const b = bundle as any;
+      if (projErr || !b?.project) {
         setError('Project not found or link is invalid.');
         return;
       }
-
-      const [phasesRes, costRes] = await Promise.all([
-        supabase.from('project_phases').select('*').eq('project_id', proj.id).order('phase_order'),
-        supabase.from('project_cost_items').select('*').eq('project_id', proj.id).order('created_at'),
-      ]);
-
-      const phases = phasesRes.data || [];
-      setCostItems((costRes.data as CostItem[]) || []);
-
-      const phaseIds = phases.map((p: any) => p.id);
-      let items: any[] = [];
-      let documents: any[] = [];
-
-      if (phaseIds.length > 0) {
-        const { data: itemsData } = await supabase.from('phase_items').select('*').in('phase_id', phaseIds).order('item_order');
-        items = itemsData || [];
-        const itemIds = items.map((i: any) => i.id);
-        if (itemIds.length > 0) {
-          const { data: docsData } = await supabase.from('item_documents').select('*').in('item_id', itemIds).order('created_at', { ascending: false });
-          documents = docsData || [];
-        }
-      }
+      const proj = b.project;
+      const phases: any[] = b.phases || [];
+      setCostItems((b.cost_items as CostItem[]) || []);
+      const items: any[] = b.items || [];
+      const documents: any[] = b.documents || [];
 
       const fullPhases: ProjectPhase[] = phases.map((phase: any) => ({
         ...phase,

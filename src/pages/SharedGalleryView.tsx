@@ -69,12 +69,9 @@ const SharedGalleryView = () => {
   useEffect(() => {
     const loadRoot = async () => {
       if (!token) { setNotFound(true); setLoading(false); return; }
-      const { data: folder } = await supabase
-        .from('gallery_folders')
-        .select('id, name')
-        .eq('share_token', token)
-        .eq('is_active', true)
-        .single();
+      // Token-gated lookup: the share code is verified server-side.
+      const { data } = await supabase.rpc('get_shared_gallery' as any, { _token: token });
+      const folder = (data as any)?.root;
       if (!folder) { setNotFound(true); setLoading(false); return; }
       setRootFolder(folder);
       setCurrentFolderId(folder.id);
@@ -85,24 +82,11 @@ const SharedGalleryView = () => {
 
   const loadFolderContents = useCallback(async (folderId: string) => {
     setLoading(true);
-    const [foldersRes, filesRes] = await Promise.all([
-      supabase
-        .from('gallery_folders')
-        .select('id, name, parent_folder_id')
-        .eq('parent_folder_id', folderId)
-        .eq('is_active', true)
-        .order('name'),
-      supabase
-        .from('gallery_files')
-        .select('id, file_name, file_url, file_type, file_size, created_at')
-        .eq('folder_id', folderId)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false }),
-    ]);
-    setSubfolders(foldersRes.data || []);
-    setFiles(filesRes.data || []);
+    const { data } = await supabase.rpc('get_shared_gallery' as any, { _token: token, _folder_id: folderId });
+    setSubfolders(((data as any)?.folders) || []);
+    setFiles(((data as any)?.files) || []);
     setLoading(false);
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (currentFolderId) loadFolderContents(currentFolderId);
