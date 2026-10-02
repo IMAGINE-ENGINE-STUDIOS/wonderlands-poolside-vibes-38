@@ -23,45 +23,18 @@ const SharedProjectView: React.FC = () => {
   const fetchProject = useCallback(async () => {
     if (!token) return;
     try {
-      const { data: proj, error: projErr } = await supabase
-        .from('construction_projects')
-        .select('*')
-        .eq('share_token', token)
-        .single();
-
-      if (projErr || !proj) {
+      // Token-gated lookup: the share code is checked server-side, so raw
+      // project tables are never readable by anonymous visitors.
+      const { data: bundle, error: projErr } = await supabase.rpc('get_project_by_token' as any, { _token: token, _internal: false });
+      const b = bundle as any;
+      if (projErr || !b?.project) {
         setError('Project not found or link is invalid.');
         return;
       }
-
-      const { data: phases } = await supabase
-        .from('project_phases')
-        .select('*')
-        .eq('project_id', proj.id)
-        .order('phase_order');
-
-      const phaseIds = (phases || []).map((p: any) => p.id);
-      let items: any[] = [];
-      let documents: any[] = [];
-
-      if (phaseIds.length > 0) {
-        const { data: itemsData } = await supabase
-          .from('phase_items')
-          .select('*')
-          .in('phase_id', phaseIds)
-          .order('item_order');
-        items = itemsData || [];
-
-        const itemIds = items.map((i: any) => i.id);
-        if (itemIds.length > 0) {
-          const { data: docsData } = await supabase
-            .from('item_documents')
-            .select('*')
-            .in('item_id', itemIds)
-            .order('created_at', { ascending: false });
-          documents = docsData || [];
-        }
-      }
+      const proj = b.project;
+      const phases: any[] = b.phases || [];
+      const items: any[] = b.items || [];
+      const documents: any[] = b.documents || [];
 
       const fullPhases: ProjectPhase[] = (phases || []).map((phase: any) => ({
         ...phase,
@@ -76,13 +49,7 @@ const SharedProjectView: React.FC = () => {
       const result = { ...proj, phases: fullPhases };
       setProject(result);
 
-      // Fetch contractor tasks for this project
-      const { data: taskData } = await supabase
-        .from('contractor_project_tasks')
-        .select('*, contractors(company_name, contact_name)')
-        .eq('project_id', proj.id)
-        .order('start_date', { ascending: true }) as any;
-      setContractorTasks(taskData || []);
+      setContractorTasks(b.tasks || []);
 
       if (expandedPhases.size === 0) {
         setExpandedPhases(new Set(fullPhases.map(p => p.id)));
