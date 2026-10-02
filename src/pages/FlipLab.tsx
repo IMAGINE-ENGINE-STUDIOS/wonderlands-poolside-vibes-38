@@ -70,16 +70,16 @@ const VERSIONS: { id: VersionId; label: string; title: string; blurb: string }[]
   },
   {
     id: "builder2",
-    label: "Flip It V2",
-    title: "Flip Builder V2",
+    label: "Flip It V3",
+    title: "Flip Builder V3",
     blurb:
-      "The full workshop: every V7 layout and live widget, a palette controller with a house-style shuffler, page-motion character, the paid narrator with metered credits, and one-click publishing to a free Wonderlands address or your own domain.",
+      "The current builder, same as in SOCIALITE: 50 fonts, kindle mode, colour wheel, reader controls (arrows, curl, page counter, share, study), shopping blocks, minibooks and jump links, category import, and one-click publishing.",
   },
 ];
 
 const FlipLab = () => {
   const [active, setActive] = usePersistentState<VersionId>("flip.lab.version", "v7");
-  const current = VERSIONS.find((v) => v.id === active)!;
+  const current = VERSIONS.find((v) => v.id === active) ?? VERSIONS[VERSIONS.length - 1];
 
   return (
     <main className="min-h-screen bg-background">
