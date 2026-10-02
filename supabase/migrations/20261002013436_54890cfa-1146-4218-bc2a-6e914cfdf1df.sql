@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Saved readings are readable by everyone" ON public.narration_cache;
+CREATE POLICY "Finished readings are readable by everyone" ON public.narration_cache FOR SELECT USING (audio_path IS NOT NULL OR is_main_admin());
