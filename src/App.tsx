@@ -95,6 +95,7 @@ const SpaSuite = lazy(() => import("./pages/suites/SpaSuite"));
 const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"));
 /* Screen enclosures + lanai + fencing share one suite (three trades, one page) */
 const EnclosureSuite = lazy(() => import("./pages/suites/EnclosureSuite"));
+const ConsumerDashboard = lazy(() => import("./components/dashboards/ConsumerDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -121,6 +122,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/account" element={<ProtectedRoute requireAuth={true}><ConsumerDashboard /></ProtectedRoute>} />
             <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             <Route 
               path="/procurement" 

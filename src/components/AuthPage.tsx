@@ -31,7 +31,7 @@ const AuthPage = () => {
       } else if (role === 'main_admin' || role === 'supplier') {
         navigate(requested || '/admin', { replace: true });
       } else {
-        navigate(requested && !requested.startsWith('/admin') ? requested : '/', { replace: true });
+        navigate(requested && !requested.startsWith('/admin') ? requested : '/account', { replace: true });
       }
     }
   }, [user, profile, loading, navigate, requested]);
@@ -124,7 +124,7 @@ const AuthPage = () => {
       } else {
         toast({
           title: "Success",
-          description: "Account created successfully! Please check your email to verify your account."
+          description: "Account created! Taking you to your account…"
         });
       }
     } catch (error) {
@@ -187,7 +187,11 @@ const AuthPage = () => {
               You are signed in as <strong>{user.email}</strong>
             </p>
             <div className="flex flex-col gap-2">
-              <Button onClick={() => navigate(requested && !requested.startsWith('/admin') ? requested : '/', { replace: true })}>
+              <Button onClick={() => {
+                const r = profile?.role as string;
+                const dest = r === 'sales_rep' ? '/sales-rep' : (r === 'main_admin' || r === 'supplier') ? '/admin' : (requested && !requested.startsWith('/admin') ? requested : '/account');
+                navigate(dest, { replace: true });
+              }}>
                 Go to Dashboard
               </Button>
               <Button variant="outline" onClick={async () => {

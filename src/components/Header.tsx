@@ -9,7 +9,7 @@ import AdminLogin from "./AdminLogin";
 const Header = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const location = useLocation();
   const isContentEditor = location.pathname === '/content-editor';
 
@@ -47,6 +47,9 @@ const Header = () => {
             {/* Simplified Auth - Only when not logged in and not in content editor */}
             {!isContentEditor && !user && <Button asChild variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm">
                 <Link to="/auth">Sign in</Link>
+              </Button>}
+            {!isContentEditor && user && <Button asChild variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm">
+                <Link to={profile?.role === 'main_admin' || profile?.role === 'supplier' ? '/admin' : (profile?.role as string) === 'sales_rep' ? '/sales-rep' : '/account'}>My account</Link>
               </Button>}
           </div>
         </div>
