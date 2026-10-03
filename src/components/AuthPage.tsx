@@ -82,57 +82,53 @@ const AuthPage = () => {
     }
   };
 
+  const [signUpError, setSignUpError] = useState<string | null>(null);
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSignUpError(null);
 
-    if (signUpData.password !== signUpData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match.",
-        variant: "destructive"
-      });
+    const email = signUpData.email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setSignUpError('Please enter a valid email address.');
       return;
     }
-
-    if ((signUpData.role === 'supplier' || signUpData.role === 'installer') && !signUpData.companyName) {
-      toast({
-        title: "Error",
-        description: "Company name is required for supplier and installer accounts.",
-        variant: "destructive"
-      });
+    if (signUpData.password.length < 6) {
+      setSignUpError('Password must be at least 6 characters.');
+      return;
+    }
+    if (signUpData.password !== signUpData.confirmPassword) {
+      setSignUpError('Passwords do not match.');
+      return;
+    }
+    if ((signUpData.role === 'supplier' || signUpData.role === 'installer') && !signUpData.companyName.trim()) {
+      setSignUpError('Company name is required for supplier and installer accounts.');
       return;
     }
 
     setIsLoading(true);
-
     try {
+      // Names are optional — fall back to the part of the email before "@".
+      const fallback = email.split('@')[0];
       const userData = {
-        first_name: signUpData.firstName,
-        last_name: signUpData.lastName,
+        first_name: signUpData.firstName.trim() || fallback,
+        last_name: signUpData.lastName.trim(),
         role: signUpData.role,
-        ...((signUpData.role === 'supplier' || signUpData.role === 'installer') && { company_name: signUpData.companyName })
+        ...((signUpData.role === 'supplier' || signUpData.role === 'installer') && { company_name: signUpData.companyName.trim() })
       };
 
-      const { error } = await signUp(signUpData.email, signUpData.password, userData);
-
+      const { error } = await signUp(email, signUpData.password, userData);
       if (error) {
-        toast({
-          title: "Sign Up Error",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Account created! Taking you to your account…"
-        });
+        setSignUpError(error.message);
+        return;
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive"
-      });
+      toast({ title: 'Account created', description: 'Taking you to your account…' });
+      // If no session came back (email confirmation on), sign in directly so the user lands on their page.
+      await signIn(email, signUpData.password);
+      const dest = signUpData.role === 'consumer' ? (requested && !requested.startsWith('/admin') ? requested : '/account') : '/admin';
+      navigate(dest, { replace: true });
+    } catch {
+      setSignUpError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -277,26 +273,27 @@ const AuthPage = () => {
             </TabsContent>
             
             <TabsContent value="signup" className="space-y-4">
-              <form onSubmit={handleSignUp} className="space-y-4">
+              <form onSubmit={handleSignUp} noValidate className="space-y-4">
+                {signUpError && <div role="alert" className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">{signUpError}</div>}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-2">
                     <Label htmlFor="first-name">First Name</Label>
                     <Input
                       id="first-name"
-                      placeholder="First name"
+                      placeholder="First name (optional)"
                       value={signUpData.firstName}
                       onChange={(e) => setSignUpData({ ...signUpData, firstName: e.target.value })}
-                      required />
+                      />
                     
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="last-name">Last Name</Label>
                     <Input
                       id="last-name"
-                      placeholder="Last name"
+                      placeholder="Last name (optional)"
                       value={signUpData.lastName}
                       onChange={(e) => setSignUpData({ ...signUpData, lastName: e.target.value })}
-                      required />
+                      />
                     
                   </div>
                 </div>
