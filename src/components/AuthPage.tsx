@@ -19,20 +19,22 @@ const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
-  // Get the intended destination from location state, default to admin dashboard
-  const from = location.state?.from?.pathname || '/admin';
+  // Intended destination (set by ProtectedRoute). Without one, staff go to /admin and customers home.
+  const requested: string | undefined = location.state?.from?.pathname;
 
-  // Redirect if already logged in - sales reps go to their dashboard, others to intended destination
+  // Redirect once the profile is loaded — by role, so customers never land on the staff-only /admin.
   useEffect(() => {
     if (!loading && user && profile) {
-      if (profile.role as string === 'sales_rep') {
+      const role = profile.role as string;
+      if (role === 'sales_rep') {
         navigate('/sales-rep', { replace: true });
+      } else if (role === 'main_admin' || role === 'supplier') {
+        navigate(requested || '/admin', { replace: true });
       } else {
-        navigate(from, { replace: true });
+        navigate(requested && !requested.startsWith('/admin') ? requested : '/', { replace: true });
       }
     }
-    // Don't redirect if profile hasn't loaded yet - wait for it
-  }, [user, profile, loading, navigate, from]);
+  }, [user, profile, loading, navigate, requested]);
 
   const [signInData, setSignInData] = useState({
     email: '',
@@ -67,8 +69,7 @@ const AuthPage = () => {
           title: "Success",
           description: "You have been signed in successfully!"
         });
-        // Redirect to intended destination after login
-        navigate(from, { replace: true });
+        // Redirect happens in the effect above once the profile (role) loads.
       }
     } catch (error) {
       toast({
@@ -186,7 +187,7 @@ const AuthPage = () => {
               You are signed in as <strong>{user.email}</strong>
             </p>
             <div className="flex flex-col gap-2">
-              <Button onClick={() => navigate(from, { replace: true })}>
+              <Button onClick={() => navigate(requested && !requested.startsWith('/admin') ? requested : '/', { replace: true })}>
                 Go to Dashboard
               </Button>
               <Button variant="outline" onClick={async () => {
