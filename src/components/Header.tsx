@@ -45,9 +45,9 @@ const Header = () => {
           {/* Header Controls */}
           <div className="flex items-center gap-2">
             {/* Simplified Auth - Only when not logged in and not in content editor */}
-            {!isContentEditor && !user && <Link to="/auth">
-                
-              </Link>}
+            {!isContentEditor && !user && <Button asChild variant="outline" size="sm" className="bg-background/80 backdrop-blur-sm">
+                <Link to="/auth">Sign in</Link>
+              </Button>}
           </div>
         </div>
       </header>

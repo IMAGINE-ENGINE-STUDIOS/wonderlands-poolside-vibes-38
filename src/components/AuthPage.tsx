@@ -69,8 +69,7 @@ const AuthPage = () => {
           title: "Success",
           description: "You have been signed in successfully!"
         });
-        // Redirect to intended destination after login
-        navigate(from, { replace: true });
+        // Redirect happens in the effect above once the profile (role) loads.
       }
     } catch (error) {
       toast({
