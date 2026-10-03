@@ -273,26 +273,27 @@ const AuthPage = () => {
             </TabsContent>
             
             <TabsContent value="signup" className="space-y-4">
-              <form onSubmit={handleSignUp} className="space-y-4">
+              <form onSubmit={handleSignUp} noValidate className="space-y-4">
+                {signUpError && <div role="alert" className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">{signUpError}</div>}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-2">
                     <Label htmlFor="first-name">First Name</Label>
                     <Input
                       id="first-name"
-                      placeholder="First name"
+                      placeholder="First name (optional)"
                       value={signUpData.firstName}
                       onChange={(e) => setSignUpData({ ...signUpData, firstName: e.target.value })}
-                      required />
+                      />
                     
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="last-name">Last Name</Label>
                     <Input
                       id="last-name"
-                      placeholder="Last name"
+                      placeholder="Last name (optional)"
                       value={signUpData.lastName}
                       onChange={(e) => setSignUpData({ ...signUpData, lastName: e.target.value })}
-                      required />
+                      />
                     
                   </div>
                 </div>
