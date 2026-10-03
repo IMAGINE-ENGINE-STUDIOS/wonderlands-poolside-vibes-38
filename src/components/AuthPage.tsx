@@ -187,7 +187,7 @@ const AuthPage = () => {
               You are signed in as <strong>{user.email}</strong>
             </p>
             <div className="flex flex-col gap-2">
-              <Button onClick={() => navigate(from, { replace: true })}>
+              <Button onClick={() => navigate(requested && !requested.startsWith('/admin') ? requested : '/', { replace: true })}>
                 Go to Dashboard
               </Button>
               <Button variant="outline" onClick={async () => {
