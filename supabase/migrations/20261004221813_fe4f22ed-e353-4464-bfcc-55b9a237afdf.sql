@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.is_company_member(uuid), public.has_company_role(uuid, public.company_role[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_company_member(uuid), public.has_company_role(uuid, public.company_role[]) TO authenticated, service_role;
