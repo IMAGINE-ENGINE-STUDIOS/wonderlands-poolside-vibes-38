@@ -5,3 +5,4 @@
 
 - Multi-tenancy: business tables carry company_id (default current_company_id(), platform company for public visitors); RLS grants company members via is_company_member(); company roles live in company_members, never profiles — why: licensed companies must never see each other's data.
 - One sign-in: all users use /auth; business sign-up (account_type=business) creates a company + owner in handle_new_user; legacy login routes redirect — why: one secure gateway.
+- Three dashboards, one shared shell (`components/shell/EditorialShell`): `/admin` Command Center (main_admin only; businesses are redirected), `/workspace` CompanyWorkspace (company from company_members), `/account` CustomerAccount; `/admin/preview/:view` renders the latter two read-only for admins — why: separate solutions, one look, testable without the end user.

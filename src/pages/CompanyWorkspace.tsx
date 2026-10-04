@@ -86,7 +86,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
       email: user.email ?? company.email ?? '', phone: company.phone, user_id: user.id, company_id: company.id,
     });
     if (error) toast({ title: 'Could not create trade profile', description: error.message });
-    else { setHasTrade(true); toast({ title: 'Trade profile created', description: 'You can now browse and bid on opportunities.' }); }
+    else { setHasTrade(true); toast({ title: 'Trade profile created', description: 'Sent for approval. Bidding opens once Wonderlands approves it.' }); }
   };
 
   const saveCompany = async () => {
