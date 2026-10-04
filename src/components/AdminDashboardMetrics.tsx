@@ -46,7 +46,8 @@ const StatTile: React.FC<{
   icon: React.ElementType;
   emphasis?: boolean;
   delay?: number;
-}> = ({ label, value, format, subline, icon: Icon, emphasis, delay = 0 }) => {
+  onClick?: () => void;
+}> = ({ label, value, format, subline, icon: Icon, emphasis, delay = 0, onClick }) => {
   const animated = useCountUp(value);
   const display =
     format === 'currency'
@@ -57,8 +58,12 @@ const StatTile: React.FC<{
 
   return (
     <div
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
       className={`
-        group relative bg-[#1a1a1a] p-6 rounded-xl
+        group relative ${onClick ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]' : ''} bg-[#1a1a1a] p-6 rounded-xl
         border ${emphasis ? 'border-[#c9a84c]' : 'border-[#c9a84c]/20'}
         overflow-hidden
         transition-all duration-300
@@ -108,7 +113,8 @@ const SkeletonTile = () => (
   </div>
 );
 
-const AdminDashboardMetrics = () => {
+const AdminDashboardMetrics: React.FC<{ onNavigate?: (section: string) => void }> = ({ onNavigate }) => {
+  const go = (s: string) => (onNavigate ? () => onNavigate(s) : undefined);
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalRevenue: 0,
     averageOrderValue: 0,
@@ -184,6 +190,7 @@ const AdminDashboardMetrics = () => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-5">
       <StatTile
         label="Revenue"
+        onClick={go('orders')}
         value={metrics.totalRevenue}
         format="currency"
         subline={`Avg order $${metrics.averageOrderValue.toFixed(0)}`}
@@ -193,6 +200,7 @@ const AdminDashboardMetrics = () => {
       />
       <StatTile
         label="Quotes"
+        onClick={go('quotes')}
         value={metrics.totalQuotes}
         format="integer"
         subline={`${metrics.pendingQuotes} pending`}
@@ -201,6 +209,7 @@ const AdminDashboardMetrics = () => {
       />
       <StatTile
         label="Orders"
+        onClick={go('orders')}
         value={metrics.totalOrders}
         format="integer"
         subline={`${metrics.completedOrders} done · ${metrics.pendingOrders} queue`}
@@ -209,6 +218,7 @@ const AdminDashboardMetrics = () => {
       />
       <StatTile
         label="Referrals"
+        onClick={go('referrals')}
         value={metrics.totalReferrals}
         format="integer"
         subline={`${metrics.convertedReferrals} converted`}
@@ -217,6 +227,7 @@ const AdminDashboardMetrics = () => {
       />
       <StatTile
         label="Projects"
+        onClick={go('projects')}
         value={metrics.totalProjects}
         format="integer"
         subline={`${metrics.activeProjects} in progress`}

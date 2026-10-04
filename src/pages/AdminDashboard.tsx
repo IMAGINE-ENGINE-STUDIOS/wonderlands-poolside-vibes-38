@@ -42,6 +42,8 @@ import AdminProjectManagement from '@/components/admin/projectManagement/AdminPr
 import AdminApplicationsPanel from '@/components/admin/AdminApplicationsPanel';
 import AdminJobBoardManager from '@/components/admin/AdminJobBoardManager';
 import NotificationBell from '@/components/NotificationBell';
+import AdminActionQueue from '@/components/admin/AdminActionQueue';
+import AdminTechnologyHub from '@/components/admin/AdminTechnologyHub';
 
 // Navigation Item Component — Noir & Gold
 const NavItem = ({
@@ -185,7 +187,7 @@ const AdminDashboard = () => {
       'api-manager': 'API Management', 'delivery-logistics': 'Delivery', 'content-editor': 'Content Editor',
       procurement: 'Procurement', analytics: 'Analytics', setup: 'Setup', calculator: 'Pool Calculator',
       performance: 'Performance', 'automation-templates': 'Message Templates',
-      'automation-sequences': 'Sequences', 'automation-status': 'Status Monitor', 'api-keys': 'API Keys',
+      'automation-sequences': 'Sequences', 'automation-status': 'Status Monitor', 'api-keys': 'API Keys', 'tech-hub': 'Technology Hub',
     };
     return map[activeSection] ?? 'Dashboard';
   })();
@@ -275,6 +277,7 @@ const AdminDashboard = () => {
                 Operations
               </h3>
               <div className="space-y-0.5">
+                <NavItem icon={Globe} label="Technology Hub" active={activeSection === "tech-hub"} onClick={() => { setActiveSection("tech-hub"); setMobileNavOpen(false); }} />
                 <NavItem icon={Edit} label="Content Editor" active={activeSection === "content-editor"} onClick={() => { setActiveSection("content-editor"); setMobileNavOpen(false); }} />
                 <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => { setActiveSection("procurement"); setMobileNavOpen(false); }} />
                 <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => { setActiveSection("analytics"); setMobileNavOpen(false); }} />
@@ -392,7 +395,8 @@ const AdminDashboard = () => {
 
         {/* Content */}
         <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto">
-          {/* Live Telemetry */}
+          {/* Live Telemetry + action queue — main admin only (company figures) */}
+          {isMainAdmin && <>
           <div className="mb-10">
             <div className="flex items-baseline justify-between mb-4">
               <div>
@@ -406,8 +410,10 @@ const AdminDashboard = () => {
                 Synced
               </div>
             </div>
-            <AdminDashboardMetrics />
+            <AdminDashboardMetrics onNavigate={setActiveSection} />
           </div>
+          <AdminActionQueue onNavigate={setActiveSection} />
+          </>}
 
           {/* Products Tab - Only for main admins */}
           {isMainAdmin && activeSection === "unified-products" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
@@ -855,6 +861,10 @@ const AdminDashboard = () => {
           {isMainAdmin && activeSection === "automation-status" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
               <TwilioTestPanel />
               <AutomationStatusManager />
+            </div>}
+
+          {isMainAdmin && activeSection === "tech-hub" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+              <AdminTechnologyHub />
             </div>}
 
           {/* Job Board Tab */}
