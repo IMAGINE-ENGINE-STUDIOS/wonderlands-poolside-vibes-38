@@ -27,6 +27,6 @@
 
 ## Next build (approved plan, Oct 4)
 - [x] Fix blank live sign-in page (bad preload line in index.html) — needs publish
-- [ ] Job A — Command Center + contractor + /account in home/FLIP editorial style, role-preview switch
+- [x] Job A — /workspace + /account rebuilt, Command Center reskin + Today/Companies/preview (inner Command Center sections still old styling)
 - [ ] Job B1 — Web Builder canvas, drag/resize, layers, text/image/background controls
 - [ ] Job B2 — Widget library (all Wonderlands + FLIP V3), company products/cards, publish /site/:company/:page
