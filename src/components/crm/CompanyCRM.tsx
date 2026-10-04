@@ -58,7 +58,7 @@ const CompanyCRM: React.FC<{ companyId: string; view: CrmView; readOnly?: boolea
       supabase.from('crm_accounts').select('id,name,type,phone,email,billing_address,source_client_id,assigned_to').eq('company_id', companyId).order('updated_at', { ascending: false }).limit(1000),
       supabase.from('crm_contacts').select('id,account_id,first_name,last_name,phone,email,is_primary').eq('company_id', companyId).limit(1000),
       supabase.from('crm_activities').select('id,type,subject,description,due_date,status,deal_id,account_id,created_at').eq('company_id', companyId).order('created_at', { ascending: false }).limit(500),
-      supabase.from('clients').select('id,first_name,last_name,email,phone,address,city,state,zip_code,project_type,budget_range,status').eq('company_id', companyId).order('created_at', { ascending: false }).limit(300),
+      supabase.from('clients').select('id,first_name,last_name,email,phone,address_street,address_city,address_state,address_zip,source,price_range_max,status').eq('company_id', companyId).order('created_at', { ascending: false }).limit(300),
       supabase.from('company_members').select('user_id,role').eq('company_id', companyId).eq('is_active', true),
     ]);
     setDeals((d.data as Deal[]) ?? []); setAccounts((a.data as Account[]) ?? []); setContacts((c.data as Contact[]) ?? []);
@@ -108,11 +108,11 @@ const CompanyCRM: React.FC<{ companyId: string; view: CrmView; readOnly?: boolea
 
   const convertLead = async (l: any) => {
     const name = `${l.first_name ?? ''} ${l.last_name ?? ''}`.trim() || l.email || 'New account';
-    const addr = [l.address, l.city, l.state, l.zip_code].filter(Boolean).join(', ') || null;
+    const addr = [l.address_street, l.address_city, l.address_state, l.address_zip].filter(Boolean).join(', ') || null;
     const { data: acc, error } = await supabase.from('crm_accounts').insert({ company_id: companyId, name, type: 'residential', phone: l.phone, email: l.email, billing_address: addr, source_client_id: l.id, assigned_to: userId ?? null }).select('id').single();
     if (error || !acc) return err(error);
     const { data: con } = await supabase.from('crm_contacts').insert({ company_id: companyId, account_id: acc.id, first_name: l.first_name, last_name: l.last_name, phone: l.phone, email: l.email, is_primary: true }).select('id').single();
-    const { data: deal } = await supabase.from('crm_deals').insert({ company_id: companyId, account_id: acc.id, contact_id: con?.id ?? null, title: `${name} — ${l.project_type || 'Project'}`, stage: 'lead', probability: 10, assigned_to: userId ?? null }).select('id').single();
+    const { data: deal } = await supabase.from('crm_deals').insert({ company_id: companyId, account_id: acc.id, contact_id: con?.id ?? null, title: `${name} — project`, amount: Number(l.price_range_max) || 0, stage: 'lead', probability: 10, assigned_to: userId ?? null }).select('id').single();
     await supabase.from('crm_activities').insert({ company_id: companyId, account_id: acc.id, deal_id: deal?.id ?? null, type: 'task', subject: `Call ${name}`, due_date: new Date().toISOString(), status: 'pending' });
     toast({ title: 'Lead converted', description: `${name} is now an account with a contact and a deal.` });
     load();
@@ -223,7 +223,7 @@ const CompanyCRM: React.FC<{ companyId: string; view: CrmView; readOnly?: boolea
         <Panel kicker="CRM" title={`Leads to convert (${openLeads.length})`}>
           {openLeads.length ? <ul className="divide-y divide-border">{openLeads.slice(0, 50).map(l => (
             <li key={l.id} className="py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
-              <span><span className="font-medium">{l.first_name} {l.last_name}</span> <span className="text-muted-foreground">· {l.email || l.phone} {l.project_type ? `· ${l.project_type}` : ''}</span></span>
+              <span><span className="font-medium">{l.first_name} {l.last_name}</span> <span className="text-muted-foreground">· {l.email || l.phone} {l.source ? `· ${l.source.replace(/_/g, ' ')}` : ''}</span></span>
               {!readOnly && <Button size="sm" variant="outline" onClick={() => convertLead(l)}><ArrowRightLeft className="h-4 w-4 mr-2" />Convert</Button>}
             </li>))}</ul> : <p className="text-sm text-muted-foreground">Every client is already an account.</p>}
         </Panel>
