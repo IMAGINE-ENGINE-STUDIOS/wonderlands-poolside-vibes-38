@@ -77,9 +77,31 @@ const NavItem = ({
   </button>
 );
 
-const AdminDashboard = () => {
+/** previewMode: dev-only staging (/dev/command-center) renders the full
+ *  main-admin UI without sign-in so the design can be checked. Data stays
+ *  protected by RLS — signed-out previews simply show empty states. */
+// Editorial chapter banner (FLIP / main page style) shown above every section.
+const CHAPTER_NOTES: Record<string, string> = {
+  today: 'What needs your attention right now, from your real records.',
+  quotes: 'Every quote requested by your customers.', invoices: 'Bills sent, paid and overdue.',
+  orders: 'Customer orders and their progress.', clients: 'Your customer pipeline and follow-ups.',
+  'unified-products': 'Catalogue products, pools and inventory.', 'tech-hub': 'Every Wonderlands tool, opened right here.',
+  companies: 'Every licensed company using the platform.', contractors: 'Trade partners, approvals and licenses.',
+  projects: 'Builds in progress, phases and milestones.', procurement: 'Jobs, bids and trade partners.',
+};
+const ChapterBanner = ({ label, section }: { label: string; section: string }) => (
+  <div className="mb-8 border-b border-neutral-200 pb-6">
+    <div className="text-[10px] uppercase tracking-[0.3em] text-neutral-500 font-semibold">Chapter · {label}</div>
+    <h1 className="mt-2 text-4xl sm:text-5xl text-black leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>{label}</h1>
+    <p className="mt-2 text-sm text-neutral-700 max-w-2xl">{CHAPTER_NOTES[section] ?? 'Manage this part of your business.'}</p>
+  </div>
+);
+
+const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const auth = useAuth();
+  const { user, signOut } = auth;
+  const profile = previewMode ? ({ ...(auth.profile ?? {}), role: 'main_admin', first_name: 'Preview', last_name: 'mode' } as any) : auth.profile;
   const [isLoading, setIsLoading] = useState(false);
   const [activeSection, setActiveSection] = usePersistentState("admin_activeSection", "today");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -95,7 +117,7 @@ const AdminDashboard = () => {
 
   // Redirect to auth if not logged in
   useEffect(() => {
-    if (!user) {
+    if (!user && !previewMode) {
       navigate('/auth');
     }
   }, [user, navigate]);
@@ -172,7 +194,7 @@ const AdminDashboard = () => {
   }, [profile, isMainAdmin, isContractorOrSupplier, navigate]);
 
   // Don't render anything if not authorized
-  if (!user || !isMainAdmin && !isContractorOrSupplier) {
+  if (!previewMode && (!user || !isMainAdmin && !isContractorOrSupplier)) {
     return null;
   }
 
@@ -344,7 +366,8 @@ const AdminDashboard = () => {
         </header>
 
         {/* Content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto">
+        <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto bg-[#fafafa]">
+          <ChapterBanner label={sectionLabel} section={activeSection} />
           {/* Live figures + action queue — main admin only (company figures) */}
           {isMainAdmin && activeSection === 'today' && <>
           <div className="mb-10">
