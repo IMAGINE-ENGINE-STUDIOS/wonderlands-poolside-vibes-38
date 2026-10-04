@@ -4,7 +4,7 @@
 - [x] Dashboards Job 1: remove invented figures (System 100%, DB health, marketplace 500+/$300k+/1000+/<24h)
 - [x] Dashboards Job 2: action queue + clickable telemetry
 - [x] Dashboards Job 3: Technology Hub launcher (global search moved to Job 6)
-- [ ] Dashboards Job 4: contractor/supplier overview + bid tracking
+- [x] Dashboards Job 4: contractor/supplier overview + bid tracking (+ Job 5 projects & compliance; POs, payments, messages still open)
 - [ ] Dashboards Job 5: projects, POs, payments, compliance, messages
 - [ ] Dashboards Job 6: security, mobile, performance pass
 - [x] Add FLIP V8 and make it the home-page edition
