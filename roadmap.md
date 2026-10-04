@@ -2,8 +2,8 @@
 
 ## In progress
 - [x] Dashboards Job 1: remove invented figures (System 100%, DB health, marketplace 500+/$300k+/1000+/<24h)
-- [ ] Dashboards Job 2: action queue + clickable telemetry
-- [ ] Dashboards Job 3: CRM polish, Technology Hub launcher, global search
+- [x] Dashboards Job 2: action queue + clickable telemetry
+- [x] Dashboards Job 3: Technology Hub launcher (global search moved to Job 6)
 - [ ] Dashboards Job 4: contractor/supplier overview + bid tracking
 - [ ] Dashboards Job 5: projects, POs, payments, compliance, messages
 - [ ] Dashboards Job 6: security, mobile, performance pass
