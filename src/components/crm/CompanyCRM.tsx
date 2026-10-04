@@ -65,6 +65,13 @@ const CompanyCRM: React.FC<{ companyId: string; view: CrmView; readOnly?: boolea
     setActs((ac.data as Activity[]) ?? []); setLeads(cl.data ?? []); setMembers((m.data as Member[]) ?? []);
   }, [companyId]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (!openDeal) return;
+    Promise.all([
+      supabase.from('user_quotations').select('id,name,pool_model,total_quote_amount,status').eq('deal_id', openDeal.id),
+      supabase.from('invoices').select('id,invoice_number,total_amount,payment_status').eq('deal_id', openDeal.id),
+    ]).then(([a, b]) => setDocs({ quotes: a.data ?? [], invoices: b.data ?? [] }));
+  }, [openDeal?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const accName = (id: string | null) => accounts.find(a => a.id === id)?.name ?? '—';
   const memberLabel = (id: string | null) => { if (!id) return 'Unassigned'; const m = members.find(x => x.user_id === id); return id === userId ? 'You' : m ? `${m.role} · ${id.slice(0, 4)}` : id.slice(0, 6); };
@@ -161,13 +168,6 @@ const CompanyCRM: React.FC<{ companyId: string; view: CrmView; readOnly?: boolea
       </aside>
     </div>
   );
-  useEffect(() => {
-    if (!openDeal) return;
-    Promise.all([
-      supabase.from('user_quotations').select('id,name,pool_model,total_quote_amount,status').eq('deal_id', openDeal.id),
-      supabase.from('invoices').select('id,invoice_number,total_amount,payment_status').eq('deal_id', openDeal.id),
-    ]).then(([a, b]) => setDocs({ quotes: a.data ?? [], invoices: b.data ?? [] }));
-  }, [openDeal?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- views ---------- */
   if (view === 'pipeline') return (
