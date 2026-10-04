@@ -196,7 +196,7 @@ const ProcurementSystem = () => {
                 Connect with Top Suppliers
               </h2>
               <p className="text-xl mb-6 text-blue-100">
-                Access thousands of verified suppliers, post procurement needs, and manage your supply chain efficiently.
+                Post procurement needs, receive proposals from approved contractors and suppliers, and manage every bid in one place.
               </p>
               <div className="flex gap-4">
                 <Button onClick={handlePostJobClick} size="lg" className="bg-white text-blue-700 hover:bg-blue-50">
@@ -210,37 +210,13 @@ const ProcurementSystem = () => {
                 </Button>
               </div>
             </div>
-            <div className="hidden md:block">
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="p-6 bg-white/10 backdrop-blur border-white/20">
-                  <Globe className="h-8 w-8 text-blue-200 mb-2" />
-                  <div className="text-2xl font-bold">500+</div>
-                  <div className="text-sm text-blue-100">Active Suppliers</div>
-                </Card>
-                <Card className="p-6 bg-white/10 backdrop-blur border-white/20">
-                  <TrendingUp className="h-8 w-8 text-blue-200 mb-2" />
-                  <div className="text-2xl font-bold">$300k+</div>
-                  <div className="text-sm text-blue-100">Monthly Volume</div>
-                </Card>
-                <Card className="p-6 bg-white/10 backdrop-blur border-white/20">
-                  <Users className="h-8 w-8 text-blue-200 mb-2" />
-                  <div className="text-2xl font-bold">1000+</div>
-                  <div className="text-sm text-blue-100">Companies</div>
-                </Card>
-                <Card className="p-6 bg-white/10 backdrop-blur border-white/20">
-                  <Building2 className="h-8 w-8 text-blue-200 mb-2" />
-                  <div className="text-2xl font-bold">50+</div>
-                  <div className="text-sm text-blue-100">Industries</div>
-                </Card>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
       <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between mb-2">
               <Briefcase className="h-8 w-8 text-blue-600" />
@@ -250,32 +226,6 @@ const ProcurementSystem = () => {
             <div className="text-sm text-slate-600">Open Opportunities</div>
           </Card>
 
-          <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="h-8 w-8 text-green-600" />
-              <span className="text-sm font-medium text-slate-500">Network</span>
-            </div>
-            <div className="text-3xl font-bold text-slate-900 mb-1">500+</div>
-            <div className="text-sm text-slate-600">Verified Suppliers</div>
-          </Card>
-
-          <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="h-8 w-8 text-yellow-600" />
-              <span className="text-sm font-medium text-slate-500">Value</span>
-            </div>
-            <div className="text-3xl font-bold text-slate-900 mb-1">$300k+</div>
-            <div className="text-sm text-slate-600">Monthly Volume</div>
-          </Card>
-
-          <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <Clock className="h-8 w-8 text-purple-600" />
-              <span className="text-sm font-medium text-slate-500">Response</span>
-            </div>
-            <div className="text-3xl font-bold text-slate-900 mb-1">&lt;24h</div>
-            <div className="text-sm text-slate-600">Average Time</div>
-          </Card>
         </div>
       </section>
 
@@ -339,7 +289,7 @@ const ProcurementSystem = () => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-slate-800 text-center text-sm text-slate-400">
-          © 2024 Procurement Network. All rights reserved.
+          © {new Date().getFullYear()} Procurement Network. All rights reserved.
         </div>
       </footer>
 
