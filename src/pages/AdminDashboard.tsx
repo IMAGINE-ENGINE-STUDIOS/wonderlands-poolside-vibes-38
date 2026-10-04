@@ -310,7 +310,7 @@ const AdminDashboard = () => {
 
   return (
     <div
-      className="dark min-h-screen flex bg-[#0a0c12] text-[#f5f3ee] relative"
+      className="cc-paper min-h-screen flex bg-white text-black relative"
       style={{ fontFamily: "'Manrope', sans-serif" }}
     >
       {/* Ambient gold glow accents */}
