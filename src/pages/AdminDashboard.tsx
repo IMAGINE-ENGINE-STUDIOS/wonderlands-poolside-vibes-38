@@ -28,6 +28,7 @@ import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 import { PoolCalculator } from '@/components/PoolCalculator';
 import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
 import AdminContractorManagement from '@/components/admin/AdminContractorManagement';
+import ContractorWorkspace from '@/components/contractor/ContractorWorkspace';
 import SalesRepManager from '@/components/admin/SalesRepManager';
 import SalesRepCategoryManager from '@/components/admin/SalesRepCategoryManager';
 import AutomationTemplatesManager from '@/components/admin/AutomationTemplatesManager';
@@ -182,7 +183,7 @@ const AdminDashboard = () => {
       'unified-products': 'Products', quotes: 'Quotes', 'quote-tool': 'Quote Tool', invoices: 'Invoices',
       'invoice-tool': 'Invoice Tool', orders: 'Orders', users: 'Users', promotions: 'Promotions',
       'sales-reps': 'Sales Reps', 'sales-categories': 'Sales Categories', 'head-of-sales': 'Head of Sales',
-      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects',
+      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects', 'my-projects': 'My Projects', compliance: 'Compliance',
       applications: 'Applications', 'job-board': 'Job Board', referrals: 'Referrals',
       'api-manager': 'API Management', 'delivery-logistics': 'Delivery', 'content-editor': 'Content Editor',
       procurement: 'Procurement', analytics: 'Analytics', setup: 'Setup', calculator: 'Pool Calculator',
@@ -225,7 +226,9 @@ const AdminDashboard = () => {
               Workspace
             </h3>
             <div className="space-y-0.5">
-              <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => { setActiveSection("procurement"); setMobileNavOpen(false); }} />
+              <NavItem icon={Building2} label="Opportunities & Bids" active={activeSection === "procurement"} onClick={() => { setActiveSection("procurement"); setMobileNavOpen(false); }} />
+              <NavItem icon={HardHat} label="My Projects" active={activeSection === "my-projects"} onClick={() => { setActiveSection("my-projects"); setMobileNavOpen(false); }} />
+              <NavItem icon={ClipboardList} label="Compliance" active={activeSection === "compliance"} onClick={() => { setActiveSection("compliance"); setMobileNavOpen(false); }} />
               <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => { setActiveSection("orders"); setMobileNavOpen(false); }} />
               <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => { setActiveSection("analytics"); setMobileNavOpen(false); }} />
               <NavItem icon={Key} label="API Keys" active={activeSection === "api-keys"} onClick={() => { setActiveSection("api-keys"); setMobileNavOpen(false); }} />
@@ -730,8 +733,13 @@ const AdminDashboard = () => {
           {/* Applications Tab */}
           {isMainAdmin && activeSection === "applications" && <AdminApplicationsPanel />}
 
-          {/* Procurement Tab */}
-          {activeSection === "procurement" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {/* Contractor / supplier workspace (light theme, owner-scoped) */}
+          {isContractorOrSupplier && (activeSection === "procurement" || activeSection === "my-projects" || activeSection === "compliance") && (
+            <ContractorWorkspace section={activeSection as 'procurement' | 'my-projects' | 'compliance'} />
+          )}
+
+          {/* Procurement Tab (main admin) */}
+          {!isContractorOrSupplier && activeSection === "procurement" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
             <Card className="holographic-panel border-cyan-500/30">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
