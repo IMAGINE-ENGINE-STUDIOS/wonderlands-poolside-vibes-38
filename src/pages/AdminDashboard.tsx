@@ -28,7 +28,8 @@ import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 import { PoolCalculator } from '@/components/PoolCalculator';
 import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
 import AdminContractorManagement from '@/components/admin/AdminContractorManagement';
-import ContractorWorkspace from '@/components/contractor/ContractorWorkspace';
+import ContractorWorkspace, { type Section as WorkspaceSection } from '@/components/contractor/ContractorWorkspace';
+import AdminCommandSearch from '@/components/admin/AdminCommandSearch';
 import SalesRepManager from '@/components/admin/SalesRepManager';
 import SalesRepCategoryManager from '@/components/admin/SalesRepCategoryManager';
 import AutomationTemplatesManager from '@/components/admin/AutomationTemplatesManager';
@@ -185,7 +186,7 @@ const AdminDashboard = () => {
       'unified-products': 'Products', quotes: 'Quotes', 'quote-tool': 'Quote Tool', invoices: 'Invoices',
       'invoice-tool': 'Invoice Tool', orders: 'Orders', users: 'Users', promotions: 'Promotions',
       'sales-reps': 'Sales Reps', 'sales-categories': 'Sales Categories', 'head-of-sales': 'Head of Sales',
-      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects', 'my-projects': 'My Projects', compliance: 'Compliance',
+      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects', 'my-projects': 'My Projects', compliance: 'Compliance', payouts: 'Payouts & Work Orders', messages: 'Messages',
       applications: 'Applications', 'job-board': 'Job Board', referrals: 'Referrals',
       'api-manager': 'API Management', 'delivery-logistics': 'Delivery', 'content-editor': 'Content Editor',
       procurement: 'Procurement', analytics: 'Analytics', setup: 'Setup', calculator: 'Pool Calculator',
