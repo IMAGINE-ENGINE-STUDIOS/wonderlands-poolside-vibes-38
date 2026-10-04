@@ -4744,6 +4744,46 @@ export type Database = {
         Args: { installer_uuid: string }
         Returns: Json
       }
+      get_invoice_by_id: {
+        Args: { _id: string }
+        Returns: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          customer_address: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          discount_amount: number | null
+          due_date: string
+          id: string
+          invoice_date: string
+          invoice_number: string
+          line_items: Json
+          notes: string | null
+          paid_amount: number | null
+          paid_date: string | null
+          payment_method: string | null
+          payment_status: string
+          payment_terms: string | null
+          quotation_id: string | null
+          sent_at: string | null
+          status: string
+          subtotal: number
+          tax_amount: number | null
+          tax_rate: number | null
+          terms_conditions: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "invoices"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_project_by_token: {
         Args: { _internal?: boolean; _token: string }
         Returns: Json
