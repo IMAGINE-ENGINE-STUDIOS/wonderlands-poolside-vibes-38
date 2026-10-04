@@ -47,7 +47,7 @@ const AuthPage = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    role: 'consumer' as 'consumer' | 'supplier' | 'installer',
+    role: (new URLSearchParams(window.location.search).get('type') === 'business' ? 'supplier' : 'consumer') as 'consumer' | 'supplier' | 'installer',
     companyName: ''
   });
 
@@ -213,7 +213,7 @@ const AuthPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue={new URLSearchParams(window.location.search).get('mode') === 'signup' ? 'signup' : 'signin'} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
