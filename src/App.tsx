@@ -92,7 +92,9 @@ const SpaSuite = lazy(() => import("./pages/suites/SpaSuite"));
 const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"));
 /* Screen enclosures + lanai + fencing share one suite (three trades, one page) */
 const EnclosureSuite = lazy(() => import("./pages/suites/EnclosureSuite"));
-const ConsumerDashboard = lazy(() => import("./components/dashboards/ConsumerDashboard"));
+const CustomerAccount = lazy(() => import("./pages/CustomerAccount"));
+const CompanyWorkspace = lazy(() => import("./pages/CompanyWorkspace"));
+const AdminPreview = lazy(() => import("./pages/AdminPreview"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -119,7 +121,9 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/account" element={<ProtectedRoute requireAuth={true}><ConsumerDashboard /></ProtectedRoute>} />
+            <Route path="/account" element={<ProtectedRoute requireAuth={true}><CustomerAccount /></ProtectedRoute>} />
+            <Route path="/workspace" element={<ProtectedRoute requireAuth={true}><CompanyWorkspace /></ProtectedRoute>} />
+            <Route path="/admin/preview/:view" element={<ProtectedRoute requireAuth={true} requiredRoles={['main_admin']}><AdminPreview /></ProtectedRoute>} />
             <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             <Route 
               path="/procurement" 

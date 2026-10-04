@@ -46,6 +46,7 @@ import AdminJobBoardManager from '@/components/admin/AdminJobBoardManager';
 import NotificationBell from '@/components/NotificationBell';
 import AdminActionQueue from '@/components/admin/AdminActionQueue';
 import AdminTechnologyHub from '@/components/admin/AdminTechnologyHub';
+import AdminCompanies from '@/components/admin/AdminCompanies';
 
 // Navigation Item Component — Noir & Gold
 const NavItem = ({
@@ -65,14 +66,14 @@ const NavItem = ({
       w-full flex items-center gap-3 px-3 py-2.5 rounded-md
       transition-all duration-200 group relative overflow-hidden
       ${active
-        ? 'bg-[#c9a84c]/12 text-[#f0d78c] border-r-2 border-[#c9a84c]'
-        : 'text-[#f5f3ee]/65 hover:text-[#f0d78c] hover:bg-[#c9a84c]/[0.06] hover:translate-x-0.5'}
+        ? 'bg-[#2bb3a3]/12 text-[#f9a08f] border-r-2 border-[#2bb3a3]'
+        : 'text-[#f5f3ee]/65 hover:text-[#f9a08f] hover:bg-[#2bb3a3]/[0.06] hover:translate-x-0.5'}
     `}
     style={{ fontFamily: "'Manrope', sans-serif" }}
   >
-    <Icon className={`h-[18px] w-[18px] shrink-0 transition-all duration-200 ${active ? 'text-[#c9a84c]' : 'text-[#f5f3ee]/40 group-hover:text-[#c9a84c]'}`} />
+    <Icon className={`h-[18px] w-[18px] shrink-0 transition-all duration-200 ${active ? 'text-[#2bb3a3]' : 'text-[#f5f3ee]/40 group-hover:text-[#2bb3a3]'}`} />
     <span className="text-[13px] font-medium tracking-wide truncate">{label}</span>
-    {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#c9a84c] shadow-[0_0_8px_rgba(201,168,76,0.6)]" />}
+    {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#2bb3a3] shadow-[0_0_8px_rgba(43,179,163,0.6)]" />}
   </button>
 );
 
@@ -80,7 +81,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeSection, setActiveSection] = usePersistentState("admin_activeSection", "quotes");
+  const [activeSection, setActiveSection] = usePersistentState("admin_activeSection", "today");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { toast } = useToast();
   
@@ -106,14 +107,8 @@ const AdminDashboard = () => {
   const isContractorOrSupplier = isSupplier || isInstaller;
 
   useEffect(() => {
-    if (isContractorOrSupplier) {
-      setActiveSection((current) => current === "quotes" ? "procurement" : current);
-      return;
-    }
-
-    if (isMainAdmin) {
-      setActiveSection((current) => current === "procurement" ? "quotes" : current);
-    }
+    // Businesses have their own page; the Command Center is platform-admin only.
+    if (isContractorOrSupplier) navigate('/workspace', { replace: true });
   }, [isContractorOrSupplier, isMainAdmin]);
 
   // Fetch real metrics from database
@@ -191,7 +186,7 @@ const AdminDashboard = () => {
       'api-manager': 'API Management', 'delivery-logistics': 'Delivery', 'content-editor': 'Content Editor',
       procurement: 'Procurement', analytics: 'Analytics', setup: 'Setup', calculator: 'Pool Calculator',
       performance: 'Performance', 'automation-templates': 'Message Templates',
-      'automation-sequences': 'Sequences', 'automation-status': 'Status Monitor', 'api-keys': 'API Keys', 'tech-hub': 'Technology Hub',
+      'automation-sequences': 'Sequences', 'automation-status': 'Status Monitor', 'api-keys': 'API Keys', 'tech-hub': 'Technology Hub', today: 'Today', companies: 'Licensed companies',
     };
     return map[activeSection] ?? 'Dashboard';
   })();
@@ -199,22 +194,22 @@ const AdminDashboard = () => {
   const SidebarContent = () => (
     <>
       {/* Brand */}
-      <div className="p-6 lg:p-7 flex flex-col gap-1 border-b border-[#c9a84c]/10">
+      <div className="p-6 lg:p-7 flex flex-col gap-1 border-b border-[#2bb3a3]/10">
         <div className="flex items-center gap-3 mb-2">
-          <div className="relative h-10 w-10 bg-gradient-to-br from-[#c9a84c] to-[#8a6f2a] rounded-md flex items-center justify-center shadow-[0_0_24px_rgba(201,168,76,0.25)]">
-            <Zap className="h-5 w-5 text-[#0d0d0d]" strokeWidth={2.5} />
+          <div className="relative h-10 w-10 bg-gradient-to-br from-[#2bb3a3] to-[#e8604c] rounded-md flex items-center justify-center shadow-[0_0_24px_rgba(43,179,163,0.25)]">
+            <Zap className="h-5 w-5 text-[#0a0c12]" strokeWidth={2.5} />
           </div>
           <div>
             <h1 className="text-[#f5f3ee] font-bold text-lg tracking-tight leading-none" style={{ fontFamily: "'Sora', sans-serif" }}>
               {isMainAdmin ? 'Command' : profile?.role === 'supplier' ? 'Supplier' : 'Contractor'}
             </h1>
-            <span className="text-[10px] text-[#c9a84c]/70 tracking-[0.18em] uppercase font-semibold">Wonderlands · Admin</span>
+            <span className="text-[10px] text-[#2bb3a3]/70 tracking-[0.18em] uppercase font-semibold">Wonderlands · Admin</span>
           </div>
         </div>
         {profile && (
           <div className="flex items-center gap-2 mt-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] shadow-[0_0_6px_rgba(201,168,76,0.7)]" />
-            <span className="text-[11px] text-[#f0d78c]/80 tracking-wide truncate" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#2bb3a3] shadow-[0_0_6px_rgba(43,179,163,0.7)]" />
+            <span className="text-[11px] text-[#f9a08f]/80 tracking-wide truncate" style={{ fontFamily: "'Manrope', sans-serif" }}>
               {profile.first_name} {profile.last_name}
             </span>
           </div>
@@ -225,7 +220,7 @@ const AdminDashboard = () => {
       <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
         {isContractorOrSupplier && (
           <div>
-            <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#c9a84c] mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+            <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#2bb3a3] mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
               Workspace
             </h3>
             <div className="space-y-0.5">
@@ -242,10 +237,14 @@ const AdminDashboard = () => {
         {isMainAdmin && (
           <>
             <div>
-              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#c9a84c] mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#2bb3a3] mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                 Core Systems
               </h3>
               <div className="space-y-0.5">
+                <NavItem icon={Activity} label="Today" active={activeSection === "today"} onClick={() => { setActiveSection("today"); setMobileNavOpen(false); }} />
+                <NavItem icon={Building2} label="Licensed companies" active={activeSection === "companies"} onClick={() => { setActiveSection("companies"); setMobileNavOpen(false); }} />
+                <NavItem icon={Briefcase} label="Preview company workspace" active={false} onClick={() => navigate('/admin/preview/workspace')} />
+                <NavItem icon={Users} label="Preview customer account" active={false} onClick={() => navigate('/admin/preview/account')} />
                 <NavItem icon={Database} label="Products" active={activeSection === "unified-products"} onClick={() => { setActiveSection("unified-products"); setMobileNavOpen(false); }} />
                 <NavItem icon={Star} label="Quotes" active={activeSection === "quotes"} onClick={() => { setActiveSection("quotes"); setMobileNavOpen(false); }} />
                 <NavItem icon={DollarSign} label="Quote Tool" active={activeSection === "quote-tool"} onClick={() => { setActiveSection("quote-tool"); setMobileNavOpen(false); }} />
@@ -256,7 +255,7 @@ const AdminDashboard = () => {
             </div>
 
             <div>
-              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f0d78c]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f9a08f]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                 Management
               </h3>
               <div className="space-y-0.5">
@@ -279,7 +278,7 @@ const AdminDashboard = () => {
             </div>
 
             <div>
-              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f0d78c]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f9a08f]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                 Operations
               </h3>
               <div className="space-y-0.5">
@@ -294,7 +293,7 @@ const AdminDashboard = () => {
             </div>
 
             <div>
-              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f0d78c]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f9a08f]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                 Automation
               </h3>
               <div className="space-y-0.5">
@@ -311,13 +310,13 @@ const AdminDashboard = () => {
 
   return (
     <div
-      className="min-h-screen flex bg-[#0d0d0d] text-[#f5f3ee] relative"
+      className="min-h-screen flex bg-[#0a0c12] text-[#f5f3ee] relative"
       style={{ fontFamily: "'Manrope', sans-serif" }}
     >
       {/* Ambient gold glow accents */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-[480px] h-[480px] bg-[#c9a84c]/[0.05] rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-[520px] h-[520px] bg-[#c9a84c]/[0.04] rounded-full blur-[140px]" />
+        <div className="absolute -top-40 -left-40 w-[480px] h-[480px] bg-[#2bb3a3]/[0.05] rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-[520px] h-[520px] bg-[#2bb3a3]/[0.04] rounded-full blur-[140px]" />
       </div>
 
       {/* Mobile overlay */}
@@ -334,12 +333,12 @@ const AdminDashboard = () => {
           fixed lg:sticky top-0 lg:top-4 left-0 z-50
           h-screen lg:h-[calc(100vh-2rem)]
           w-[280px] lg:ml-4 lg:my-4
-          bg-[#141414]/95 lg:bg-[#1a1a1a]
-          border-r lg:border border-[#c9a84c]/25
+          bg-[#0e1119]/95 lg:bg-[#121621]
+          border-r lg:border border-[#2bb3a3]/25
           lg:rounded-2xl
           backdrop-blur-xl
           flex flex-col
-          shadow-[0_8px_40px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(201,168,76,0.08)]
+          shadow-[0_8px_40px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(43,179,163,0.08)]
           transition-transform duration-300 ease-out
           ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           shrink-0
@@ -351,18 +350,18 @@ const AdminDashboard = () => {
       {/* MAIN COLUMN */}
       <main className="flex-1 min-w-0 flex flex-col relative z-10">
         {/* Top Header */}
-        <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#0d0d0d]/85 border-b border-[#c9a84c]/10">
+        <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#0a0c12]/85 border-b border-[#2bb3a3]/10">
           <div className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-10 py-4">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setMobileNavOpen(true)}
-                className="lg:hidden p-2 -ml-2 rounded-md text-[#f0d78c] hover:bg-[#c9a84c]/10 transition-colors"
+                className="lg:hidden p-2 -ml-2 rounded-md text-[#f9a08f] hover:bg-[#2bb3a3]/10 transition-colors"
                 aria-label="Open navigation"
               >
                 <Menu className="h-5 w-5" />
               </button>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-[#c9a84c]/70 font-semibold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-[#2bb3a3]/70 font-semibold" style={{ fontFamily: "'Sora', sans-serif" }}>
                   {isMainAdmin ? 'Command Center' : `${profile?.role === 'supplier' ? 'Supplier' : 'Contractor'} Hub`}
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f3ee] truncate" style={{ fontFamily: "'Sora', sans-serif" }}>
@@ -379,41 +378,41 @@ const AdminDashboard = () => {
                 onClick={refreshData}
                 disabled={isLoading}
                 title="Refresh"
-                className="p-2.5 rounded-lg border border-[#c9a84c]/20 bg-[#1a1a1a] text-[#f0d78c] hover:bg-[#c9a84c]/15 hover:border-[#c9a84c]/50 transition-all duration-200"
+                className="p-2.5 rounded-lg border border-[#2bb3a3]/20 bg-[#121621] text-[#f9a08f] hover:bg-[#2bb3a3]/15 hover:border-[#2bb3a3]/50 transition-all duration-200"
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
               <Link to="/" title="Home">
-                <button className="p-2.5 rounded-lg border border-[#c9a84c]/20 bg-[#1a1a1a] text-[#f0d78c] hover:bg-[#c9a84c]/15 hover:border-[#c9a84c]/50 transition-all duration-200">
+                <button className="p-2.5 rounded-lg border border-[#2bb3a3]/20 bg-[#121621] text-[#f9a08f] hover:bg-[#2bb3a3]/15 hover:border-[#2bb3a3]/50 transition-all duration-200">
                   <Home className="h-4 w-4" />
                 </button>
               </Link>
               <button
                 onClick={handleLogout}
                 title="Sign out"
-                className="p-2.5 rounded-lg border border-[#c9a84c]/20 bg-[#1a1a1a] text-[#f0d78c] hover:bg-[#c9a84c] hover:text-[#0d0d0d] hover:border-[#c9a84c] transition-all duration-200"
+                className="p-2.5 rounded-lg border border-[#2bb3a3]/20 bg-[#121621] text-[#f9a08f] hover:bg-[#2bb3a3] hover:text-[#0a0c12] hover:border-[#2bb3a3] transition-all duration-200"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
           </div>
-          <div className="h-px bg-gradient-to-r from-transparent via-[#c9a84c]/30 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-[#2bb3a3]/30 to-transparent" />
         </header>
 
         {/* Content */}
         <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto">
           {/* Live Telemetry + action queue — main admin only (company figures) */}
-          {isMainAdmin && <>
+          {isMainAdmin && activeSection === 'today' && <>
           <div className="mb-10">
             <div className="flex items-baseline justify-between mb-4">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.25em] text-[#c9a84c] font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-[#2bb3a3] font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                   Live Telemetry
                 </div>
                 <p className="text-xs text-[#f5f3ee]/40 mt-1">Real-time pulse across the operation</p>
               </div>
-              <div className="hidden md:flex items-center gap-2 text-[10px] text-[#c9a84c]/60 uppercase tracking-widest">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#c9a84c] animate-pulse" />
+              <div className="hidden md:flex items-center gap-2 text-[10px] text-[#2bb3a3]/60 uppercase tracking-widest">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#2bb3a3] animate-pulse" />
                 Synced
               </div>
             </div>
@@ -421,6 +420,9 @@ const AdminDashboard = () => {
           </div>
           <AdminActionQueue onNavigate={setActiveSection} />
           </>}
+
+          {isMainAdmin && activeSection === 'today' && <AdminTechnologyHub />}
+          {isMainAdmin && activeSection === 'companies' && <AdminCompanies />}
 
           {/* Products Tab - Only for main admins */}
           {isMainAdmin && activeSection === "unified-products" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">

@@ -28,8 +28,10 @@ const AuthPage = () => {
       const role = profile.role as string;
       if (role === 'sales_rep') {
         navigate('/sales-rep', { replace: true });
-      } else if (role === 'main_admin' || role === 'supplier') {
+      } else if (role === 'main_admin') {
         navigate(requested || '/admin', { replace: true });
+      } else if (role === 'supplier' || role === 'installer') {
+        navigate(requested && !requested.startsWith('/admin') ? requested : '/workspace', { replace: true });
       } else {
         navigate(requested && !requested.startsWith('/admin') ? requested : '/account', { replace: true });
       }
@@ -126,7 +128,7 @@ const AuthPage = () => {
       toast({ title: 'Account created', description: 'Taking you to your account…' });
       // If no session came back (email confirmation on), sign in directly so the user lands on their page.
       await signIn(email, signUpData.password);
-      const dest = signUpData.role === 'consumer' ? (requested && !requested.startsWith('/admin') ? requested : '/account') : '/admin';
+      const dest = signUpData.role === 'consumer' ? (requested && !requested.startsWith('/admin') ? requested : '/account') : '/workspace';
       navigate(dest, { replace: true });
     } catch {
       setSignUpError('Something went wrong. Please try again.');
@@ -186,7 +188,7 @@ const AuthPage = () => {
             <div className="flex flex-col gap-2">
               <Button onClick={() => {
                 const r = profile?.role as string;
-                const dest = r === 'sales_rep' ? '/sales-rep' : (r === 'main_admin' || r === 'supplier') ? '/admin' : (requested && !requested.startsWith('/admin') ? requested : '/account');
+                const dest = r === 'sales_rep' ? '/sales-rep' : r === 'main_admin' ? '/admin' : (r === 'supplier' || r === 'installer') ? '/workspace' : (requested && !requested.startsWith('/admin') ? requested : '/account');
                 navigate(dest, { replace: true });
               }}>
                 Go to Dashboard
