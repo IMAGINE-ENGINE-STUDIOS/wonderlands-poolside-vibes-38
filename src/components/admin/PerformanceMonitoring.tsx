@@ -183,7 +183,7 @@ export const PerformanceMonitoring = () => {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-green-500/30 pb-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight  text-green-400 flex items-center gap-3">
+            <h2 className="text-3xl font-bold tracking-tight  text-black flex items-center gap-3">
               <Globe className="h-8 w-8 animate-pulse" />
               GLOBAL INTELLIGENCE MATRIX
             </h2>
@@ -193,7 +193,7 @@ export const PerformanceMonitoring = () => {
           </div>
           <div className="flex gap-4">
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[150px] bg-white border-green-500 text-green-400 ">
+              <SelectTrigger className="w-[150px] bg-white border-green-500 text-black ">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border-green-500">
@@ -203,7 +203,7 @@ export const PerformanceMonitoring = () => {
               </SelectContent>
             </Select>
             <Select value={deviceFilter} onValueChange={setDeviceFilter}>
-              <SelectTrigger className="w-[150px] bg-white border-green-500 text-green-400 ">
+              <SelectTrigger className="w-[150px] bg-white border-green-500 text-black ">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border-green-500">
@@ -225,11 +225,11 @@ export const PerformanceMonitoring = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm  text-green-400 uppercase">Load Time</CardTitle>
+              <CardTitle className="text-sm  text-black uppercase">Load Time</CardTitle>
               <Clock className="h-4 w-4 text-green-500 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold  text-green-400">
+              <div className="text-3xl font-bold  text-black">
                 {stats ? Math.round(stats.avg_load_time) : 0}<span className="text-lg">ms</span>
               </div>
               <p className="text-xs text-green-600  mt-1">AVG RESPONSE TIME</p>
@@ -238,11 +238,11 @@ export const PerformanceMonitoring = () => {
 
           <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm  text-green-400 uppercase">Unique Visitors</CardTitle>
+              <CardTitle className="text-sm  text-black uppercase">Unique Visitors</CardTitle>
               <Activity className="h-4 w-4 text-green-500 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold  text-green-400">
+              <div className="text-3xl font-bold  text-black">
                 {stats?.unique_visitors || 0}
               </div>
               <p className="text-xs text-green-600  mt-1">UNIQUE SESSIONS</p>
@@ -251,11 +251,11 @@ export const PerformanceMonitoring = () => {
 
           <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm  text-green-400 uppercase">Total Hits</CardTitle>
+              <CardTitle className="text-sm  text-black uppercase">Total Hits</CardTitle>
               <MapPin className="h-4 w-4 text-green-500 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold  text-green-400">
+              <div className="text-3xl font-bold  text-black">
                 {stats?.total_visits || 0}
               </div>
               <p className="text-xs text-green-600  mt-1">PAGE VIEWS TRACKED</p>
@@ -264,11 +264,11 @@ export const PerformanceMonitoring = () => {
 
           <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm  text-green-400 uppercase">Mobile</CardTitle>
+              <CardTitle className="text-sm  text-black uppercase">Mobile</CardTitle>
               <Smartphone className="h-4 w-4 text-green-500 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold  text-green-400">
+              <div className="text-3xl font-bold  text-black">
                 {stats ? Math.round(stats.mobile_percentage) : 0}<span className="text-lg">%</span>
               </div>
               <p className="text-xs text-green-600  mt-1">MOBILE DEVICES</p>
@@ -280,7 +280,7 @@ export const PerformanceMonitoring = () => {
         <div className="grid gap-4 md:grid-cols-2">
           <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader>
-              <CardTitle className=" text-green-400 uppercase flex items-center gap-2">
+              <CardTitle className=" text-black uppercase flex items-center gap-2">
                 <Wifi className="h-5 w-5" />
                 Device Matrix
               </CardTitle>
@@ -291,9 +291,9 @@ export const PerformanceMonitoring = () => {
                   <div key={item.device} className="flex items-center justify-between border-b border-green-500/20 pb-2">
                     <div className="flex items-center gap-2">
                       {getDeviceIcon(item.device)}
-                      <span className=" text-green-400 uppercase text-sm">{item.device}</span>
+                      <span className=" text-black uppercase text-sm">{item.device}</span>
                     </div>
-                    <Badge className="bg-green-500/20 text-green-400 border-green-500 ">
+                    <Badge className="bg-green-500/20 text-black border-green-500 ">
                       {item.count}
                     </Badge>
                   </div>
@@ -304,7 +304,7 @@ export const PerformanceMonitoring = () => {
 
           <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader>
-              <CardTitle className=" text-green-400 uppercase flex items-center gap-2">
+              <CardTitle className=" text-black uppercase flex items-center gap-2">
                 <Activity className="h-5 w-5" />
                 Traffic Sources
               </CardTitle>
@@ -313,7 +313,7 @@ export const PerformanceMonitoring = () => {
               <div className="space-y-3">
                 {stats?.top_sources.map((item) => (
                   <div key={item.source} className="flex items-center justify-between border-b border-green-500/20 pb-2">
-                    <span className=" text-green-400 uppercase text-sm">{item.source}</span>
+                    <span className=" text-black uppercase text-sm">{item.source}</span>
                     <div className="flex items-center gap-2">
                       <div className="w-32 h-2 bg-white border border-green-500/30 rounded-full overflow-hidden">
                         <div 
@@ -321,7 +321,7 @@ export const PerformanceMonitoring = () => {
                           style={{ width: `${(item.count / (stats?.total_visits || 1)) * 100}%` }}
                         />
                       </div>
-                      <Badge className="bg-green-500/20 text-green-400 border-green-500 ">
+                      <Badge className="bg-green-500/20 text-black border-green-500 ">
                         {item.count}
                       </Badge>
                     </div>
@@ -335,7 +335,7 @@ export const PerformanceMonitoring = () => {
         {/* Recent Activity Stream */}
         <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
           <CardHeader>
-            <CardTitle className=" text-green-400 uppercase">
+            <CardTitle className=" text-black uppercase">
               LIVE ACTIVITY STREAM
             </CardTitle>
           </CardHeader>
@@ -351,7 +351,7 @@ export const PerformanceMonitoring = () => {
                   <div className="flex items-center gap-3">
                     {getDeviceIcon(metric.device_type)}
                     <div>
-                      <p className=" text-green-400 text-sm">{metric.page_url}</p>
+                      <p className=" text-black text-sm">{metric.page_url}</p>
                       <p className="text-xs text-green-600 ">
                         {metric.browser} • {metric.os} • {metric.connection_type}
                       </p>
@@ -361,8 +361,8 @@ export const PerformanceMonitoring = () => {
                     <Badge
                       className={` ${
                         metric.load_time_ms > 3000
-                          ? "bg-red-500/20 text-red-400 border-red-500"
-                          : "bg-green-500/20 text-green-400 border-green-500"
+                          ? "bg-red-500/20 text-black border-red-500"
+                          : "bg-green-500/20 text-black border-green-500"
                       }`}
                     >
                       {metric.load_time_ms}ms

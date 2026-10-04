@@ -57,16 +57,16 @@ const ContractorTasksPanel: React.FC<ContractorTasksPanelProps> = ({ projectId }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="h-3 w-3 text-green-400" />;
-      case 'in_progress': return <PlayCircle className="h-3 w-3 text-yellow-400" />;
+      case 'completed': return <CheckCircle className="h-3 w-3 text-black" />;
+      case 'in_progress': return <PlayCircle className="h-3 w-3 text-black" />;
       default: return <Clock className="h-3 w-3 text-neutral-600" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] ">Completed</Badge>;
-      case 'in_progress': return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] ">In Progress</Badge>;
+      case 'completed': return <Badge className="bg-green-500/20 text-black border-green-500/30 text-[10px] ">Completed</Badge>;
+      case 'in_progress': return <Badge className="bg-yellow-500/20 text-black border-yellow-500/30 text-[10px] ">In Progress</Badge>;
       default: return <Badge className="bg-neutral-100 text-black border-neutral-200 text-[10px] ">Assigned</Badge>;
     }
   };

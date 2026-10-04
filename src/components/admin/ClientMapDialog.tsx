@@ -330,7 +330,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
                       <a
                         href={`tel:${c.phone}`}
                         onClick={e => e.stopPropagation()}
-                        className="flex items-center gap-1 text-xs text-emerald-300 "
+                        className="flex items-center gap-1 text-xs text-black "
                       >
                         <Phone className="h-3 w-3" /> {c.phone}
                       </a>

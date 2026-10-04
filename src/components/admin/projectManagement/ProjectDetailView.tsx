@@ -224,7 +224,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                 const l = getProjectListing();
                 if (l) setViewProposalsListing(l);
               }}
-              className="border-green-500/30 text-green-400 hover:bg-green-500/10 text-xs "
+              className="border-green-500/30 text-black hover:bg-green-500/10 text-xs "
             >
               <Eye className="h-3 w-3 mr-1" /> View Proposals
             </Button>
@@ -233,7 +233,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               variant="outline"
               size="sm"
               onClick={openProcureProject}
-              className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-xs "
+              className="border-emerald-500/30 text-black hover:bg-emerald-500/10 text-xs "
             >
               <Briefcase className="h-3 w-3 mr-1" /> Procure Project
             </Button>
@@ -260,7 +260,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onDeleteProject(project.id)}
-            className="text-red-400/60 hover:text-red-400 text-xs "
+            className="text-black hover:text-black text-xs "
           >
             <Trash2 className="h-3 w-3 mr-1" />
             Delete
@@ -350,7 +350,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-3 border border-neutral-200">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs  text-neutral-600 uppercase tracking-wider">Project Progress</span>
-          <span className={`text-sm  font-bold ${overallProgress === 100 ? 'text-green-400' : 'text-black'}`}>
+          <span className={`text-sm  font-bold ${overallProgress === 100 ? 'text-black' : 'text-black'}`}>
             {overallProgress}%
           </span>
         </div>

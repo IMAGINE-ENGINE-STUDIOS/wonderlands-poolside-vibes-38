@@ -293,11 +293,11 @@ const HeadOfSalesDashboard = () => {
     const colors: Record<string, string> = {
       new: 'bg-neutral-100 text-black border-neutral-200',
       contacted: 'bg-neutral-100 text-black border-neutral-200',
-      qualified: 'bg-green-500/20 text-green-300 border-green-500/30',
-      proposal_sent: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-      negotiating: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-      won: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-      lost: 'bg-red-500/20 text-red-300 border-red-500/30'
+      qualified: 'bg-green-500/20 text-black border-green-500/30',
+      proposal_sent: 'bg-yellow-500/20 text-black border-yellow-500/30',
+      negotiating: 'bg-orange-500/20 text-black border-orange-500/30',
+      won: 'bg-emerald-500/20 text-black border-emerald-500/30',
+      lost: 'bg-red-500/20 text-black border-red-500/30'
     };
     return colors[status] || colors.new;
   };

@@ -365,10 +365,10 @@ const AdminPromotionsManager = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-green-400/60  uppercase">Active</p>
-                <p className="text-3xl font-bold text-green-300 ">{activePromotions.length}</p>
+                <p className="text-xs text-black  uppercase">Active</p>
+                <p className="text-3xl font-bold text-black ">{activePromotions.length}</p>
               </div>
-              <Zap className="h-8 w-8 text-green-400/40" />
+              <Zap className="h-8 w-8 text-black" />
             </div>
           </CardContent>
         </Card>
@@ -377,10 +377,10 @@ const AdminPromotionsManager = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-orange-400/60  uppercase">Expired</p>
-                <p className="text-3xl font-bold text-orange-300 ">{expiredPromotions.length}</p>
+                <p className="text-xs text-black  uppercase">Expired</p>
+                <p className="text-3xl font-bold text-black ">{expiredPromotions.length}</p>
               </div>
-              <Calendar className="h-8 w-8 text-orange-400/40" />
+              <Calendar className="h-8 w-8 text-black" />
             </div>
           </CardContent>
         </Card>
@@ -436,7 +436,7 @@ const AdminPromotionsManager = () => {
                           <div>
                             <p className="font-medium text-black ">{promotion.name}</p>
                             {promotion.highlight_text && (
-                              <Badge className="bg-green-500/20 text-green-300 border-green-500/30 text-xs mt-1">
+                              <Badge className="bg-green-500/20 text-black border-green-500/30 text-xs mt-1">
                                 {promotion.highlight_text}
                               </Badge>
                             )}
@@ -455,7 +455,7 @@ const AdminPromotionsManager = () => {
                         </TableCell>
                         <TableCell>
                           {savings > 0 && (
-                            <Badge className="bg-green-500/20 text-green-300 border-green-500/30 ">
+                            <Badge className="bg-green-500/20 text-black border-green-500/30 ">
                               Save ${savings.toLocaleString()}
                             </Badge>
                           )}
@@ -467,8 +467,8 @@ const AdminPromotionsManager = () => {
                               onCheckedChange={() => handleToggleActive(promotion)}
                             />
                             <Badge className={promotion.is_active 
-                              ? "bg-green-500/20 text-green-300 border-green-500/30" 
-                              : "bg-red-500/20 text-red-300 border-red-500/30"
+                              ? "bg-green-500/20 text-black border-green-500/30" 
+                              : "bg-red-500/20 text-black border-red-500/30"
                             }>
                               {promotion.is_active ? 'Active' : 'Inactive'}
                             </Badge>
@@ -502,7 +502,7 @@ const AdminPromotionsManager = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleDelete(promotion)}
-                              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                              className="border-red-500/30 text-black hover:bg-red-500/10"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

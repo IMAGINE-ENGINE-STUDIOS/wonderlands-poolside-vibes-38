@@ -202,9 +202,9 @@ const ProcurementProposalsList: React.FC<ProcurementProposalsListProps> = ({
                     </span>
                   </div>
                   <Badge className={
-                    p.status === 'accepted' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                    p.status === 'rejected' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                    'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                    p.status === 'accepted' ? 'bg-green-500/20 text-black border-green-500/30' :
+                    p.status === 'rejected' ? 'bg-red-500/20 text-black border-red-500/30' :
+                    'bg-yellow-500/20 text-black border-yellow-500/30'
                   }>
                     {p.status}
                   </Badge>
@@ -253,7 +253,7 @@ const ProcurementProposalsList: React.FC<ProcurementProposalsListProps> = ({
                       size="sm"
                       variant="ghost"
                       onClick={() => updateProposalStatus(p.id, 'rejected')}
-                      className="text-red-400 hover:text-red-300 text-[10px]  h-6"
+                      className="text-black hover:text-black text-[10px]  h-6"
                     >
                       <XCircle className="h-3 w-3 mr-1" /> Reject
                     </Button>

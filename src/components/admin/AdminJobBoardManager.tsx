@@ -234,7 +234,7 @@ const AdminJobBoardManager = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-bold text-black ">{p.title}</span>
-                      <Badge variant={p.is_active ? 'default' : 'secondary'} className={p.is_active ? 'bg-green-600/30 text-green-300 border-green-500/30' : 'bg-red-600/30 text-red-300 border-red-500/30'}>
+                      <Badge variant={p.is_active ? 'default' : 'secondary'} className={p.is_active ? 'bg-green-600/30 text-black border-green-500/30' : 'bg-red-600/30 text-black border-red-500/30'}>
                         {p.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                       <Badge variant="outline" className="border-neutral-200 text-black text-xs">
@@ -248,12 +248,12 @@ const AdminJobBoardManager = () => {
                       <Users className="w-4 h-4" />
                     </Button>
                     <Button size="icon" variant="ghost" onClick={() => toggleActive(p)} className="text-black hover:text-black">
-                      {p.is_active ? <ToggleRight className="w-5 h-5 text-green-400" /> : <ToggleLeft className="w-5 h-5 text-red-400" />}
+                      {p.is_active ? <ToggleRight className="w-5 h-5 text-black" /> : <ToggleLeft className="w-5 h-5 text-black" />}
                     </Button>
                     <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="text-black hover:text-black">
                       <Pencil className="w-4 h-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-300">
+                    <Button size="icon" variant="ghost" onClick={() => handleDelete(p.id)} className="text-black hover:text-black">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -288,7 +288,7 @@ const AdminJobBoardManager = () => {
                                   ))}
                                 </select>
                                 {app.whatsapp_opt_in && (
-                                  <Badge className="bg-green-600/20 text-green-400 border-green-500/30 text-xs">
+                                  <Badge className="bg-green-600/20 text-black border-green-500/30 text-xs">
                                     <MessageCircle className="w-3 h-3 mr-1" /> WhatsApp
                                   </Badge>
                                 )}
@@ -313,7 +313,7 @@ const AdminJobBoardManager = () => {
                                 onFocus={() => { setSendingTo(app.id); }}
                                 onChange={(e) => { setSendingTo(app.id); setWhatsappMessage(e.target.value); }}
                                 placeholder="Send WhatsApp update..."
-                                className="text-xs h-8 bg-white border-green-500/30 text-green-200 placeholder:text-neutral-500"
+                                className="text-xs h-8 bg-white border-green-500/30 text-black placeholder:text-neutral-500"
                               />
                               <Button
                                 size="sm"

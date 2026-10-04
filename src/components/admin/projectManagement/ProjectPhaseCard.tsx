@@ -102,7 +102,7 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-5 w-5 opacity-0 group-hover:opacity-100 text-green-400/60 hover:text-green-400"
+                    className="h-5 w-5 opacity-0 group-hover:opacity-100 text-black hover:text-black"
                     onClick={() => onViewItemProposals?.(listing)}
                     title="View Proposals"
                   >
@@ -112,7 +112,7 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-5 w-5 opacity-0 group-hover:opacity-100 text-emerald-400/60 hover:text-emerald-400"
+                    className="h-5 w-5 opacity-0 group-hover:opacity-100 text-black hover:text-black"
                     onClick={() => onProcureItem(item.id, item.item_name)}
                     title="Procure this task"
                   >
@@ -141,7 +141,7 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-5 w-5 opacity-0 group-hover:opacity-100 text-red-400/60 hover:text-red-400"
+                className="h-5 w-5 opacity-0 group-hover:opacity-100 text-black hover:text-black"
                 onClick={() => onDeleteItem(item.id)}
               >
                 <Trash2 className="h-3 w-3" />
@@ -177,7 +177,7 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
                 {!readOnly && (
                   <button
                     onClick={() => onDeleteDocument(doc.id)}
-                    className="text-red-400/40 hover:text-red-400"
+                    className="text-black hover:text-black"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -238,14 +238,14 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
             <div className="w-24">
               <Progress value={progress} className="h-2" />
             </div>
-            <span className={`text-xs  font-bold ${progress === 100 ? 'text-green-400' : 'text-black'}`}>
+            <span className={`text-xs  font-bold ${progress === 100 ? 'text-black' : 'text-black'}`}>
               {progress}%
             </span>
             {!readOnly && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-red-400/60 hover:text-red-400"
+                className="h-6 w-6 text-black hover:text-black"
                 onClick={(e) => { e.stopPropagation(); onDeletePhase(phase.id); }}
               >
                 <Trash2 className="h-3 w-3" />

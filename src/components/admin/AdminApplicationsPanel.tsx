@@ -318,11 +318,11 @@ const AdminApplicationsPanel: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] ">Pending</Badge>;
+        return <Badge className="bg-yellow-500/20 text-black border-yellow-500/30 text-[10px] ">Pending</Badge>;
       case 'accepted':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] ">Accepted</Badge>;
+        return <Badge className="bg-green-500/20 text-black border-green-500/30 text-[10px] ">Accepted</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px] ">Rejected</Badge>;
+        return <Badge className="bg-red-500/20 text-black border-red-500/30 text-[10px] ">Rejected</Badge>;
       default:
         return <Badge variant="outline" className="text-[10px] ">{status}</Badge>;
     }
@@ -426,12 +426,12 @@ const AdminApplicationsPanel: React.FC = () => {
                           {group.totalProposals} application{group.totalProposals !== 1 ? 's' : ''}
                         </Badge>
                         {group.pendingCount > 0 && (
-                          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px]  animate-pulse">
+                          <Badge className="bg-yellow-500/20 text-black border-yellow-500/30 text-[10px]  animate-pulse">
                             {group.pendingCount} pending
                           </Badge>
                         )}
                         {group.acceptedCount > 0 && (
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] ">
+                          <Badge className="bg-green-500/20 text-black border-green-500/30 text-[10px] ">
                             {group.acceptedCount} assigned
                           </Badge>
                         )}
@@ -639,7 +639,7 @@ const AdminApplicationsPanel: React.FC = () => {
                                                   variant="ghost"
                                                   onClick={() => handleReject(p)}
                                                   disabled={rejecting === p.id}
-                                                  className="text-red-400 hover:text-red-300 text-[10px]  h-7"
+                                                  className="text-black hover:text-black text-[10px]  h-7"
                                                 >
                                                   {rejecting === p.id ? (
                                                     <Loader2 className="h-3 w-3 animate-spin mr-1" />
@@ -653,12 +653,12 @@ const AdminApplicationsPanel: React.FC = () => {
 
                                             {/* Status sync info */}
                                             {p.status === 'accepted' && (
-                                              <div className="text-[10px]  text-green-400/60 bg-green-500/5 rounded p-2 border border-green-500/10">
+                                              <div className="text-[10px]  text-black bg-green-500/5 rounded p-2 border border-green-500/10">
                                                 ✓ Contractor assigned · Task created in Current Projects · Email sent · Dashboards synced
                                               </div>
                                             )}
                                             {p.status === 'rejected' && (
-                                              <div className="text-[10px]  text-red-400/60 bg-red-500/5 rounded p-2 border border-red-500/10">
+                                              <div className="text-[10px]  text-black bg-red-500/5 rounded p-2 border border-red-500/10">
                                                 ✗ Rejected · Contractor notified via email & dashboard
                                               </div>
                                             )}

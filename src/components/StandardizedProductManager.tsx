@@ -298,10 +298,10 @@ export const StandardizedProductManager = () => {
           <Badge variant="secondary" className="text-sm bg-neutral-100 text-black border-cyan-500/50 ">
             {filteredProducts.length} TOTAL
           </Badge>
-          <Badge variant="outline" className="text-xs bg-neutral-100 text-blue-100 border-blue-400/50 ">
+          <Badge variant="outline" className="text-xs bg-neutral-100 text-black border-blue-400/50 ">
             {products.filter(p => p.source === 'pools_table').length} POOLS
           </Badge>
-          <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-300 border-purple-500/50 ">
+          <Badge variant="outline" className="text-xs bg-purple-500/20 text-black border-purple-500/50 ">
             {products.filter(p => p.source === 'products_table').length} PRODUCTS
           </Badge>
           <Button size="sm" className="bg-neutral-100 border-cyan-500/50 text-black hover:bg-neutral-100 ">

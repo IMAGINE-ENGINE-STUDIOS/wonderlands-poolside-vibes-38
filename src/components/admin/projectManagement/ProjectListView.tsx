@@ -149,7 +149,7 @@ const ProjectListView: React.FC<ProjectListViewProps> = ({
                   <div className="flex items-center gap-1.5">
                     <span className={`text-[10px]  px-1.5 py-0.5 rounded ${
                       project.status === 'active'
-                        ? 'bg-green-500/10 text-green-400'
+                        ? 'bg-green-500/10 text-black'
                         : 'bg-neutral-100 text-black'
                     }`}>
                       {project.status}

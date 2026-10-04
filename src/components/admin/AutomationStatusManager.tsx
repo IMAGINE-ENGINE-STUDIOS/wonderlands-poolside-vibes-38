@@ -48,14 +48,14 @@ interface CommunicationLog {
 }
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  pending: 'bg-yellow-500/20 text-black border-yellow-500/30',
   in_progress: 'bg-neutral-100 text-black border-neutral-200',
-  completed: 'bg-green-500/20 text-green-400 border-green-500/30',
+  completed: 'bg-green-500/20 text-black border-green-500/30',
   paused: 'bg-gray-500/20 text-black border-gray-500/30',
-  failed: 'bg-red-500/20 text-red-400 border-red-500/30',
+  failed: 'bg-red-500/20 text-black border-red-500/30',
   sent: 'bg-neutral-100 text-black border-neutral-200',
-  delivered: 'bg-green-500/20 text-green-400 border-green-500/30',
-  opened: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  delivered: 'bg-green-500/20 text-black border-green-500/30',
+  opened: 'bg-purple-500/20 text-black border-purple-500/30',
   clicked: 'bg-neutral-100 text-black border-neutral-200'
 };
 
@@ -152,11 +152,11 @@ export default function AutomationStatusManager() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-400" />;
-      case 'failed': return <AlertCircle className="h-4 w-4 text-red-400" />;
+      case 'completed': return <CheckCircle className="h-4 w-4 text-black" />;
+      case 'failed': return <AlertCircle className="h-4 w-4 text-black" />;
       case 'paused': return <Pause className="h-4 w-4 text-black" />;
       case 'in_progress': return <Activity className="h-4 w-4 text-black" />;
-      default: return <Clock className="h-4 w-4 text-yellow-400" />;
+      default: return <Clock className="h-4 w-4 text-black" />;
     }
   };
 
@@ -209,7 +209,7 @@ export default function AutomationStatusManager() {
                 <Play className="h-5 w-5 text-black" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-blue-100">{stats.inProgress}</p>
+                <p className="text-2xl font-bold text-black">{stats.inProgress}</p>
                 <p className="text-xs text-black">In Progress</p>
               </div>
             </div>
@@ -219,11 +219,11 @@ export default function AutomationStatusManager() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-green-500/20">
-                <CheckCircle className="h-5 w-5 text-green-400" />
+                <CheckCircle className="h-5 w-5 text-black" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-300">{stats.completed}</p>
-                <p className="text-xs text-green-400/60">Completed</p>
+                <p className="text-2xl font-bold text-black">{stats.completed}</p>
+                <p className="text-xs text-black">Completed</p>
               </div>
             </div>
           </CardContent>
@@ -232,11 +232,11 @@ export default function AutomationStatusManager() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-purple-500/20">
-                <Mail className="h-5 w-5 text-purple-400" />
+                <Mail className="h-5 w-5 text-black" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-purple-300">{recentLogStats.sent}</p>
-                <p className="text-xs text-purple-400/60">Messages Sent</p>
+                <p className="text-2xl font-bold text-black">{recentLogStats.sent}</p>
+                <p className="text-xs text-black">Messages Sent</p>
               </div>
             </div>
           </CardContent>
@@ -340,9 +340,9 @@ export default function AutomationStatusManager() {
                             onClick={() => toggleAutomationStatus(automation)}
                           >
                             {automation.status === 'paused' ? (
-                              <Play className="h-4 w-4 text-green-400" />
+                              <Play className="h-4 w-4 text-black" />
                             ) : (
-                              <Pause className="h-4 w-4 text-yellow-400" />
+                              <Pause className="h-4 w-4 text-black" />
                             )}
                           </Button>
                         )}
@@ -447,7 +447,7 @@ export default function AutomationStatusManager() {
                           {log.message_content}
                         </p>
                         {log.error_message && (
-                          <p className="text-xs text-red-400 mt-2">
+                          <p className="text-xs text-black mt-2">
                             Error: {log.error_message}
                           </p>
                         )}

@@ -98,8 +98,8 @@ const AdminQuotesManager = () => {
     switch (status) {
       case 'pending': return 'bg-amber-500/20 text-black border-amber-500/50';
       case 'contacted': return 'bg-neutral-100 text-black border-neutral-200';  
-      case 'converted': return 'bg-green-500/20 text-green-300 border-green-500/50';
-      case 'lost': return 'bg-red-500/20 text-red-300 border-red-500/50';
+      case 'converted': return 'bg-green-500/20 text-black border-green-500/50';
+      case 'lost': return 'bg-red-500/20 text-black border-red-500/50';
       default: return 'bg-gray-500/20 text-black border-gray-500/50';
     }
   };
@@ -192,10 +192,10 @@ const AdminQuotesManager = () => {
           <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs  text-green-400 uppercase tracking-wider">Converted</span>
-              <Eye className="h-5 w-5 text-green-400" />
+              <span className="text-xs  text-black uppercase tracking-wider">Converted</span>
+              <Eye className="h-5 w-5 text-black" />
             </div>
-            <div className="text-3xl font-bold text-green-300" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{convertedQuotes}</div>
+            <div className="text-3xl font-bold text-black" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{convertedQuotes}</div>
             <div className="h-1 w-full bg-green-900/30 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 data-stream"></div>
             </div>
@@ -209,7 +209,7 @@ const AdminQuotesManager = () => {
               <span className="text-xs  text-black uppercase tracking-wider">Value</span>
               <DollarSign className="h-5 w-5 text-black" />
             </div>
-            <div className="text-2xl font-bold text-blue-100 neon-glow-blue">${totalQuoteValue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-black neon-glow-blue">${totalQuoteValue.toLocaleString()}</div>
             <div className="h-1 w-full bg-neutral-50 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
             </div>
@@ -348,11 +348,11 @@ const AdminQuotesManager = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 bg-white rounded-lg flex items-center justify-center">
-                        <span className="text-orange-400 font-bold text-sm">LOGO</span>
+                        <span className="text-black font-bold text-sm">LOGO</span>
                       </div>
                       <div>
                         <h1 className="text-2xl font-bold">POOL QUOTATION</h1>
-                        <p className="text-orange-100">Your Dream Pool Awaits</p>
+                        <p className="text-black">Your Dream Pool Awaits</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -486,7 +486,7 @@ const AdminQuotesManager = () => {
                   <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-black text-center">
                     <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
                     <div className="text-4xl font-bold mb-2">${selectedQuote.total_quote_amount?.toLocaleString() || '0'}</div>
-                    <p className="text-orange-100">Complete installation including permits, excavation, and paver deck</p>
+                    <p className="text-black">Complete installation including permits, excavation, and paver deck</p>
                   </div>
 
                   {/* Customer Invoices Section */}

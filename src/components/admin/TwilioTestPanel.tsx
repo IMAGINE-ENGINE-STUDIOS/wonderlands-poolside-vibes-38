@@ -170,7 +170,7 @@ export const TwilioTestPanel = () => {
         {/* Account Info */}
         {result?.account && (
           <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-            <p className="text-sm font-medium text-green-700 dark:text-green-400">
+            <p className="text-sm font-medium text-green-700 dark:text-black">
               Account: {result.account.friendlyName}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -318,7 +318,7 @@ export const TwilioTestPanel = () => {
               ) : (
                 <XCircle className="h-5 w-5 text-destructive" />
               )}
-              <span className={result.success ? "text-green-700 dark:text-green-400" : "text-destructive"}>
+              <span className={result.success ? "text-green-700 dark:text-black" : "text-destructive"}>
                 {result.message}
               </span>
             </div>

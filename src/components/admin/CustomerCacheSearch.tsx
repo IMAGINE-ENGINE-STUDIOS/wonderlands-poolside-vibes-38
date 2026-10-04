@@ -166,8 +166,8 @@ const CustomerCacheSearch = () => {
 
                 <div className="flex items-center justify-between pt-1 border-t border-neutral-200">
                   <div className="flex items-center gap-1 text-xs ">
-                    <DollarSign className="h-3 w-3 text-green-400" />
-                    <span className="text-green-400">
+                    <DollarSign className="h-3 w-3 text-black" />
+                    <span className="text-black">
                       ${(customer.total_quote_value || 0).toLocaleString()}
                     </span>
                   </div>

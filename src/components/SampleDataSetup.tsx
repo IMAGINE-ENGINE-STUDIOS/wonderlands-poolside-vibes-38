@@ -95,7 +95,7 @@ const SampleDataSetup = () => {
                     <p><strong>Password:</strong> {credentials.supplier.password}</p>
                   </div>
                   <div className="p-3 bg-white dark:bg-white rounded border">
-                    <p className="font-medium text-green-700 dark:text-green-300">Contractor Account:</p>
+                    <p className="font-medium text-green-700 dark:text-black">Contractor Account:</p>
                     <p><strong>Email:</strong> {credentials.contractor.email}</p>
                     <p><strong>Password:</strong> {credentials.contractor.password}</p>
                   </div>

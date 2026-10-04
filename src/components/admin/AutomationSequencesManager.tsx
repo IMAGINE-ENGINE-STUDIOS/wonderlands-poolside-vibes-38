@@ -52,9 +52,9 @@ const channelIcons: Record<string, React.ElementType> = {
 
 const channelColors: Record<string, string> = {
   email: 'bg-neutral-100 text-black',
-  sms: 'bg-green-500/20 text-green-400',
-  whatsapp: 'bg-emerald-500/20 text-emerald-400',
-  voice: 'bg-purple-500/20 text-purple-400'
+  sms: 'bg-green-500/20 text-black',
+  whatsapp: 'bg-emerald-500/20 text-black',
+  voice: 'bg-purple-500/20 text-black'
 };
 
 export default function AutomationSequencesManager() {
@@ -391,7 +391,7 @@ export default function AutomationSequencesManager() {
                       <div>
                         <CardTitle className="text-black flex items-center gap-2">
                           {sequence.name}
-                          <Badge variant="outline" className={sequence.is_active ? 'text-green-400 border-green-500/30' : 'text-black border-gray-500/30'}>
+                          <Badge variant="outline" className={sequence.is_active ? 'text-black border-green-500/30' : 'text-black border-gray-500/30'}>
                             {sequence.is_active ? 'Active' : 'Inactive'}
                           </Badge>
                         </CardTitle>
@@ -408,9 +408,9 @@ export default function AutomationSequencesManager() {
                         className="hover:bg-neutral-100"
                       >
                         {sequence.is_active ? (
-                          <Pause className="h-4 w-4 text-yellow-400" />
+                          <Pause className="h-4 w-4 text-black" />
                         ) : (
-                          <Play className="h-4 w-4 text-green-400" />
+                          <Play className="h-4 w-4 text-black" />
                         )}
                       </Button>
                       <Button
@@ -436,7 +436,7 @@ export default function AutomationSequencesManager() {
                         onClick={() => handleDeleteSequence(sequence.id)}
                         className="hover:bg-red-500/10"
                       >
-                        <Trash2 className="h-4 w-4 text-red-400" />
+                        <Trash2 className="h-4 w-4 text-black" />
                       </Button>
                     </div>
                   </div>
@@ -504,7 +504,7 @@ export default function AutomationSequencesManager() {
                                     className="h-8 w-8 hover:bg-red-500/10"
                                     onClick={() => handleDeleteStep(step.id, sequence.id)}
                                   >
-                                    <Trash2 className="h-3 w-3 text-red-400" />
+                                    <Trash2 className="h-3 w-3 text-black" />
                                   </Button>
                                 </div>
                               </div>

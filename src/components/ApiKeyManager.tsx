@@ -189,10 +189,10 @@ const ApiKeyManager = () => {
           {generatedToken && (
             <Card className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
               <CardHeader>
-                <CardTitle className="text-green-800 dark:text-green-200 text-lg">
+                <CardTitle className="text-green-800 dark:text-black text-lg">
                   New API Key Generated
                 </CardTitle>
-                <CardDescription className="text-green-700 dark:text-green-300">
+                <CardDescription className="text-green-700 dark:text-black">
                   Copy this key now - you won't be able to see it again
                 </CardDescription>
               </CardHeader>

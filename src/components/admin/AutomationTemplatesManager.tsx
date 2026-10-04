@@ -40,9 +40,9 @@ const channelIcons = {
 
 const channelColors = {
   email: 'bg-neutral-100 text-black border-neutral-200',
-  sms: 'bg-green-500/20 text-green-400 border-green-500/30',
-  whatsapp: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  voice: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+  sms: 'bg-green-500/20 text-black border-green-500/30',
+  whatsapp: 'bg-emerald-500/20 text-black border-emerald-500/30',
+  voice: 'bg-purple-500/20 text-black border-purple-500/30'
 };
 
 export default function AutomationTemplatesManager({ embedded = false }: { embedded?: boolean }) {
@@ -366,7 +366,7 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-black">{template.name}</h3>
-                          <Badge variant="outline" className={template.is_active ? 'text-green-400 border-green-500/30' : 'text-black border-gray-500/30'}>
+                          <Badge variant="outline" className={template.is_active ? 'text-black border-green-500/30' : 'text-black border-gray-500/30'}>
                             {template.is_active ? 'Active' : 'Inactive'}
                           </Badge>
                           <Badge variant="outline" className="text-neutral-600 border-neutral-200">
@@ -402,7 +402,7 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
                         onClick={() => handleDelete(template.id)}
                         className="hover:bg-red-500/10"
                       >
-                        <Trash2 className="h-4 w-4 text-red-400" />
+                        <Trash2 className="h-4 w-4 text-black" />
                       </Button>
                     </div>
                   </div>

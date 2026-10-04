@@ -23,8 +23,8 @@ interface SalesRep {
 const CATEGORY_CONFIG: Record<string, { label: string; rate: string; icon: typeof Crown; color: string }> = {
   head_of_sales: { label: 'Head of Sales', rate: '8%', icon: Crown, color: 'text-black bg-amber-500/20 border-amber-500/30' },
   bdr: { label: 'BDR', rate: '2%', icon: Target, color: 'text-black bg-neutral-100 border-neutral-200' },
-  ae: { label: 'Account Executive', rate: '3%', icon: Briefcase, color: 'text-green-400 bg-green-500/20 border-green-500/30' },
-  csm: { label: 'CSM', rate: '1%', icon: UserCheck, color: 'text-purple-400 bg-purple-500/20 border-purple-500/30' },
+  ae: { label: 'Account Executive', rate: '3%', icon: Briefcase, color: 'text-black bg-green-500/20 border-green-500/30' },
+  csm: { label: 'CSM', rate: '1%', icon: UserCheck, color: 'text-black bg-purple-500/20 border-purple-500/30' },
   regional_sales: { label: 'Regional Sales', rate: '1.5%', icon: MapPin, color: 'text-black bg-neutral-100 border-neutral-200' },
 };
 

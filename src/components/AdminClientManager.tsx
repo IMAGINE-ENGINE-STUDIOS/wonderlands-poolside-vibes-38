@@ -709,11 +709,11 @@ const AdminClientManager = () => {
     const statusConfig = {
       new: { variant: 'secondary', color: 'text-black bg-neutral-100' },
       contacted: { variant: 'default', color: 'text-black bg-neutral-100' },
-      qualified: { variant: 'default', color: 'text-green-400 bg-green-500/10' },
-      proposal_sent: { variant: 'default', color: 'text-purple-400 bg-purple-500/10' },
-      negotiating: { variant: 'default', color: 'text-orange-400 bg-orange-500/10' },
-      won: { variant: 'default', color: 'text-emerald-400 bg-emerald-500/10' },
-      lost: { variant: 'destructive', color: 'text-red-400 bg-red-500/10' }
+      qualified: { variant: 'default', color: 'text-black bg-green-500/10' },
+      proposal_sent: { variant: 'default', color: 'text-black bg-purple-500/10' },
+      negotiating: { variant: 'default', color: 'text-black bg-orange-500/10' },
+      won: { variant: 'default', color: 'text-black bg-emerald-500/10' },
+      lost: { variant: 'destructive', color: 'text-black bg-red-500/10' }
     } as const;
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new;
@@ -776,7 +776,7 @@ const AdminClientManager = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-black ">NEW THIS MONTH</p>
-                <p className="text-3xl font-bold text-blue-100 neon-glow-blue ">{newThisMonth}</p>
+                <p className="text-3xl font-bold text-black neon-glow-blue ">{newThisMonth}</p>
               </div>
               <TrendingUp className="h-10 w-10 text-black" />
             </div>
@@ -787,10 +787,10 @@ const AdminClientManager = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-400/60 ">ACTIVE DEALS</p>
-                <p className="text-3xl font-bold text-orange-300 ">{activeDeals}</p>
+                <p className="text-sm text-black ">ACTIVE DEALS</p>
+                <p className="text-3xl font-bold text-black ">{activeDeals}</p>
               </div>
-              <Clock className="h-10 w-10 text-orange-400" />
+              <Clock className="h-10 w-10 text-black" />
             </div>
           </CardContent>
         </Card>
@@ -799,10 +799,10 @@ const AdminClientManager = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-emerald-400/60 ">WON DEALS</p>
-                <p className="text-3xl font-bold text-emerald-300 neon-glow-cyan ">{wonDeals}</p>
+                <p className="text-sm text-black ">WON DEALS</p>
+                <p className="text-3xl font-bold text-black neon-glow-cyan ">{wonDeals}</p>
               </div>
-              <CheckCircle className="h-10 w-10 text-emerald-400" />
+              <CheckCircle className="h-10 w-10 text-black" />
             </div>
           </CardContent>
         </Card>
@@ -987,7 +987,7 @@ const AdminClientManager = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="unassign">
-                            <span className="text-red-400">✕ Unassign (remove assignment)</span>
+                            <span className="text-black">✕ Unassign (remove assignment)</span>
                           </SelectItem>
                           {salesReps.map((rep) => (
                             <SelectItem key={rep.id} value={rep.id}>
@@ -1038,7 +1038,7 @@ const AdminClientManager = () => {
               onClick={handleTriggerAllAutomations}
               disabled={automationLoading}
               variant="outline"
-              className="bg-white border border-neutral-200 rounded-xl shadow-sm border-purple-500/30 text-purple-300 hover:bg-purple-500/10 "
+              className="bg-white border border-neutral-200 rounded-xl shadow-sm border-purple-500/30 text-black hover:bg-purple-500/10 "
             >
               {automationLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
               Automate All
@@ -1457,12 +1457,12 @@ const AdminClientManager = () => {
                     </TableCell>
                     <TableCell>
                       {client.survey_uploaded ? (
-                        <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                        <Badge className="bg-green-500/10 text-black border-green-500/20">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           UPLOADED
                         </Badge>
                       ) : (
-                        <Badge className="bg-red-500/10 text-red-400 border-red-500/20">
+                        <Badge className="bg-red-500/10 text-black border-red-500/20">
                           PENDING
                         </Badge>
                       )}
@@ -1503,8 +1503,8 @@ const AdminClientManager = () => {
                           disabled={clientAutomationStatus[client.id] || automationLoading}
                           className={`bg-white border border-neutral-200 rounded-xl shadow-sm  ${
                             clientAutomationStatus[client.id] 
-                              ? 'border-green-500/30 text-green-400' 
-                              : 'border-purple-500/30 text-purple-300 hover:bg-purple-500/10'
+                              ? 'border-green-500/30 text-black' 
+                              : 'border-purple-500/30 text-black hover:bg-purple-500/10'
                           }`}
                           title={clientAutomationStatus[client.id] ? 'Automation active' : 'Start automation'}
                         >

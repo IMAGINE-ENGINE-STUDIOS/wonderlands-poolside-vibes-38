@@ -82,10 +82,10 @@ const AdminOrdersManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'completed': return 'bg-green-500/20 text-green-300 border-green-500/50';
+      case 'completed': return 'bg-green-500/20 text-black border-green-500/50';
       case 'pending': return 'bg-amber-500/20 text-black border-amber-500/50';
       case 'processing': return 'bg-neutral-100 text-black border-neutral-200';
-      case 'failed': return 'bg-red-500/20 text-red-300 border-red-500/50';
+      case 'failed': return 'bg-red-500/20 text-black border-red-500/50';
       case 'cancelled': return 'bg-gray-500/20 text-black border-gray-500/50';
       default: return 'bg-gray-500/20 text-black border-gray-500/50';
     }
@@ -134,10 +134,10 @@ const AdminOrdersManager = () => {
           <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs  text-green-400 uppercase tracking-wider">Completed</span>
-              <Package className="h-5 w-5 text-green-400" />
+              <span className="text-xs  text-black uppercase tracking-wider">Completed</span>
+              <Package className="h-5 w-5 text-black" />
             </div>
-            <div className="text-3xl font-bold text-green-300" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{completedOrders}</div>
+            <div className="text-3xl font-bold text-black" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{completedOrders}</div>
             <div className="h-1 w-full bg-green-900/30 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 data-stream"></div>
             </div>
@@ -165,7 +165,7 @@ const AdminOrdersManager = () => {
               <span className="text-xs  text-black uppercase tracking-wider">Revenue</span>
               <DollarSign className="h-5 w-5 text-black" />
             </div>
-            <div className="text-2xl font-bold text-blue-100 neon-glow-blue">${totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-black neon-glow-blue">${totalRevenue.toLocaleString()}</div>
             <div className="h-1 w-full bg-neutral-50 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
             </div>

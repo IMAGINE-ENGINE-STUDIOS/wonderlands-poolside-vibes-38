@@ -166,11 +166,11 @@ const AdminContractorManagement = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle className="w-3 h-3 mr-1" /> Approved</Badge>;
+        return <Badge className="bg-green-500/20 text-black border-green-500/30"><CheckCircle className="w-3 h-3 mr-1" /> Approved</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
+        return <Badge className="bg-yellow-500/20 text-black border-yellow-500/30"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
       case 'suspended':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><AlertCircle className="w-3 h-3 mr-1" /> Suspended</Badge>;
+        return <Badge className="bg-red-500/20 text-black border-red-500/30"><AlertCircle className="w-3 h-3 mr-1" /> Suspended</Badge>;
       case 'rejected':
         return <Badge className="bg-gray-500/20 text-black border-gray-500/30"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
       default:
@@ -229,19 +229,19 @@ const AdminContractorManagement = () => {
         </Card>
         <Card className="bg-gradient-to-br from-yellow-500/10 to-transparent border-yellow-500/30">
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-yellow-400">{stats.pending}</div>
+            <div className="text-3xl font-bold text-black">{stats.pending}</div>
             <p className="text-sm text-muted-foreground">Pending Review</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-green-500/10 to-transparent border-green-500/30">
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-green-400">{stats.approved}</div>
+            <div className="text-3xl font-bold text-black">{stats.approved}</div>
             <p className="text-sm text-muted-foreground">Approved</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-neutral-200">
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-blue-100">{stats.signed}</div>
+            <div className="text-3xl font-bold text-black">{stats.signed}</div>
             <p className="text-sm text-muted-foreground">Agreements Signed</p>
           </CardContent>
         </Card>
@@ -313,7 +313,7 @@ const AdminContractorManagement = () => {
                     <TableCell>{getStatusBadge(contractor.status)}</TableCell>
                     <TableCell>
                       {contractor.agreement_signed ? (
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                        <Badge className="bg-green-500/20 text-black border-green-500/30">
                           <FileText className="w-3 h-3 mr-1" /> Signed
                         </Badge>
                       ) : (
@@ -402,9 +402,9 @@ const AdminContractorManagement = () => {
                       <FileText className="w-4 h-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Agreement:</span>
                       {selectedContractor.agreement_signed ? (
-                        <span className="text-green-400">Signed {new Date(selectedContractor.agreement_signed_at).toLocaleDateString()}</span>
+                        <span className="text-black">Signed {new Date(selectedContractor.agreement_signed_at).toLocaleDateString()}</span>
                       ) : (
-                        <span className="text-yellow-400">Not Signed</span>
+                        <span className="text-black">Not Signed</span>
                       )}
                     </div>
                   </div>
@@ -431,7 +431,7 @@ const AdminContractorManagement = () => {
                             )}
                             {service.with_materials_price && (
                               <p className="text-sm">
-                                W/ Materials: <span className="text-green-400 font-medium">${service.with_materials_price}{getUnitLabel(service.price_unit)}</span>
+                                W/ Materials: <span className="text-black font-medium">${service.with_materials_price}{getUnitLabel(service.price_unit)}</span>
                               </p>
                             )}
                           </div>
@@ -463,7 +463,7 @@ const AdminContractorManagement = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             {license.is_verified ? (
-                              <Badge className="bg-green-500/20 text-green-400">
+                              <Badge className="bg-green-500/20 text-black">
                                 <CheckCircle className="w-3 h-3 mr-1" /> Verified
                               </Badge>
                             ) : (
@@ -490,21 +490,21 @@ const AdminContractorManagement = () => {
                       <Button 
                         variant={selectedContractor.status === 'approved' ? 'default' : 'outline'}
                         onClick={() => updateContractorStatus(selectedContractor.id, 'approved')}
-                        className="bg-green-500/20 hover:bg-green-500/30 text-green-400 border-green-500/30"
+                        className="bg-green-500/20 hover:bg-green-500/30 text-black border-green-500/30"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" /> Approve
                       </Button>
                       <Button 
                         variant={selectedContractor.status === 'pending' ? 'default' : 'outline'}
                         onClick={() => updateContractorStatus(selectedContractor.id, 'pending')}
-                        className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border-yellow-500/30"
+                        className="bg-yellow-500/20 hover:bg-yellow-500/30 text-black border-yellow-500/30"
                       >
                         <Clock className="w-4 h-4 mr-2" /> Set Pending
                       </Button>
                       <Button 
                         variant={selectedContractor.status === 'suspended' ? 'default' : 'outline'}
                         onClick={() => updateContractorStatus(selectedContractor.id, 'suspended')}
-                        className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/30"
+                        className="bg-red-500/20 hover:bg-red-500/30 text-black border-red-500/30"
                       >
                         <AlertCircle className="w-4 h-4 mr-2" /> Suspend
                       </Button>

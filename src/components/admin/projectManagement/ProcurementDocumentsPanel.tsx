@@ -123,7 +123,7 @@ const ProcurementDocumentsPanel: React.FC<ProcurementDocumentsPanelProps> = ({ p
               </a>
               <button
                 onClick={() => handleDelete(doc.id)}
-                className="text-red-400/40 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="text-black hover:text-black opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Trash2 className="h-3 w-3" />
               </button>

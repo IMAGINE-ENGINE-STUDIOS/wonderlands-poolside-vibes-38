@@ -115,11 +115,11 @@ const ProjectCostPanel: React.FC<ProjectCostPanelProps> = ({ projectId, phases }
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-black font-bold">${(ci.quantity * ci.unit_price).toFixed(2)}</span>
-                    <button onClick={(e) => { e.stopPropagation(); deleteItem(ci.id); }} className="text-red-400/40 hover:text-red-400 ml-1"><Trash2 className="h-3 w-3" /></button>
+                    <button onClick={(e) => { e.stopPropagation(); deleteItem(ci.id); }} className="text-black hover:text-black ml-1"><Trash2 className="h-3 w-3" /></button>
                   </div>
                 </div>
                 <span className={`text-[10px] px-1 py-0.5 rounded mt-1 inline-block ${
-                  ci.status === 'paid' ? 'bg-green-500/10 text-green-400' :
+                  ci.status === 'paid' ? 'bg-green-500/10 text-black' :
                   ci.status === 'approved' ? 'bg-neutral-100 text-black' :
                   ci.status === 'invoiced' ? 'bg-amber-500/10 text-black' :
                   'bg-neutral-100 text-neutral-600'

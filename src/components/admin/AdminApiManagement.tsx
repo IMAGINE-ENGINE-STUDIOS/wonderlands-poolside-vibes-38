@@ -175,10 +175,10 @@ const AdminApiManagement = () => {
         <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-green-500/30">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <Shield className="h-8 w-8 text-green-400" />
+              <Shield className="h-8 w-8 text-black" />
               <div>
-                <p className="text-2xl font-bold text-green-300 ">{activeTokens.length}</p>
-                <p className="text-xs text-green-400/60  uppercase">Active</p>
+                <p className="text-2xl font-bold text-black ">{activeTokens.length}</p>
+                <p className="text-xs text-black  uppercase">Active</p>
               </div>
             </div>
           </CardContent>
@@ -197,10 +197,10 @@ const AdminApiManagement = () => {
         <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-orange-500/30">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="h-8 w-8 text-orange-400" />
+              <AlertTriangle className="h-8 w-8 text-black" />
               <div>
-                <p className="text-2xl font-bold text-orange-300 ">{expiringSoon.length}</p>
-                <p className="text-xs text-orange-400/60  uppercase">Expiring Soon</p>
+                <p className="text-2xl font-bold text-black ">{expiringSoon.length}</p>
+                <p className="text-xs text-black  uppercase">Expiring Soon</p>
               </div>
             </div>
           </CardContent>
@@ -239,14 +239,14 @@ const AdminApiManagement = () => {
           {generatedToken && (
             <Card className="border-green-500/40 bg-green-500/10">
               <CardHeader className="pb-2">
-                <CardTitle className="text-green-300 text-sm ">⚠ Copy this key now — it won't be shown again</CardTitle>
+                <CardTitle className="text-black text-sm ">⚠ Copy this key now — it won't be shown again</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-3 bg-white border border-green-500/30 rounded text-sm  text-green-300 break-all">
+                  <code className="flex-1 p-3 bg-white border border-green-500/30 rounded text-sm  text-black break-all">
                     {generatedToken}
                   </code>
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(generatedToken)} className="border-green-500/30 text-green-300">
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(generatedToken)} className="border-green-500/30 text-black">
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
@@ -323,7 +323,7 @@ const AdminApiManagement = () => {
                             checked={token.is_active}
                             onCheckedChange={() => toggleTokenStatus(token.id, token.is_active)}
                           />
-                          <Badge variant={token.is_active ? "default" : "secondary"} className={token.is_active ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'}>
+                          <Badge variant={token.is_active ? "default" : "secondary"} className={token.is_active ? 'bg-green-500/20 text-black border-green-500/30' : 'bg-red-500/10 text-black border-red-500/30'}>
                             {token.is_active ? 'Active' : 'Disabled'}
                           </Badge>
                         </div>
@@ -346,7 +346,7 @@ const AdminApiManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteToken(token.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          className="text-black hover:text-black hover:bg-red-500/10"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -401,7 +401,7 @@ const AdminApiManagement = () => {
                 { path: '/pavers/:id', desc: 'Single paver by ID' },
               ].map((ep) => (
                 <div key={ep.path} className="flex items-center gap-3 p-2 bg-white rounded border border-neutral-200">
-                  <Badge className="bg-green-500/20 text-green-300 border-green-500/30 text-xs">GET</Badge>
+                  <Badge className="bg-green-500/20 text-black border-green-500/30 text-xs">GET</Badge>
                   <code className="text-black">{ep.path}</code>
                   <span className="text-neutral-600 ml-auto">{ep.desc}</span>
                 </div>
