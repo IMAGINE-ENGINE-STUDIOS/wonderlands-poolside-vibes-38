@@ -37,7 +37,7 @@ const AdminActionQueue: React.FC<{ onNavigate: (section: string) => void }> = ({
 
   return (
     <div className="mb-10">
-      <div className="text-[10px] uppercase tracking-[0.25em] text-[#2bb3a3] font-bold mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+      <div className="text-[10px] uppercase tracking-[0.25em] text-black font-bold mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
         Needs attention
       </div>
       <p className="text-xs text-neutral-600 mb-4">Items waiting on you — click to open</p>
@@ -57,13 +57,13 @@ const AdminActionQueue: React.FC<{ onNavigate: (section: string) => void }> = ({
               onClick={() => onNavigate(section)}
               className="group flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3 text-left transition-colors hover:border-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2bb3a3]"
             >
-              <Icon className="h-5 w-5 shrink-0 text-[#2bb3a3]" />
+              <Icon className="h-5 w-5 shrink-0 text-black" />
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold text-[#f5f3ee] truncate">{label}</div>
+                <div className="text-sm font-semibold text-black truncate">{label}</div>
                 <div className="text-[11px] text-neutral-600 truncate">{hint}</div>
               </div>
-              <span className="text-xl font-light tabular-nums text-[#f5f3ee]" style={{ fontFamily: "'Sora', sans-serif" }}>{count}</span>
-              <ChevronRight className="h-4 w-4 text-neutral-600 group-hover:text-[#2bb3a3]" />
+              <span className="text-xl font-light tabular-nums text-black" style={{ fontFamily: "'Sora', sans-serif" }}>{count}</span>
+              <ChevronRight className="h-4 w-4 text-neutral-600 group-hover:text-black" />
             </button>
           ))}
         </div>

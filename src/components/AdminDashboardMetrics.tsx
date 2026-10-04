@@ -80,7 +80,7 @@ const StatTile: React.FC<{
 
       <div className="relative flex items-start justify-between mb-5">
         <span
-          className="text-[12px] uppercase tracking-[0.18em] text-[#c9a84c] font-bold leading-none"
+          className="text-[12px] uppercase tracking-[0.18em] text-black font-bold leading-none"
           style={{ fontFamily: "'Sora', sans-serif" }}
         >
           {label}
@@ -90,7 +90,7 @@ const StatTile: React.FC<{
 
       <div className="relative flex items-end justify-between gap-3">
         <span
-          className="text-4xl lg:text-5xl font-light text-[#f5f3ee] tracking-tight tabular-nums leading-none"
+          className="text-4xl lg:text-5xl font-light text-black tracking-tight tabular-nums leading-none"
           style={{ fontFamily: "'Sora', sans-serif" }}
         >
           {display}
