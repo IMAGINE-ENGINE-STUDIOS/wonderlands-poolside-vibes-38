@@ -96,7 +96,19 @@ Job F  Phase 7+8 My Account redesign + full testing
 ```
 Each job ends with a working site; nothing is half-switched.
 
+## Execute now: Phase 1 = data separation + secure sign-in (no screen redesign)
+Order changed at your request. All design work is paused until company separation is proven.
+1. Save to project memory: "Multi-tenant B2B SaaS — every business record is isolated by company_id."
+2. Database: create companies and company members (owner, admin, sales, estimator, crew) with access rules and permission checks.
+3. Create the "Wonderlands" company, make you its owner, and assign all existing records to it, so nothing you see today changes.
+4. Add a company tag to every business table (clients, quotes, invoices, orders, projects, tasks, cost items, contractors, procurement, products/price lists, flip books, SOCIALITE contacts/campaigns/scheduled sends, communication logs, notifications).
+5. Replace access rules on those tables: a person only sees their own company's records; you (platform admin) see all; customers see only their own quotes/invoices/orders.
+6. One secure sign-in: one sign-in and one registration (homeowner or business). New business sign-ups automatically create their company and make them owner. Remove the email-only contractor login and the old admin pop-up with written-in demo passwords; old login links forward to the single page. Existing screens keep their current look.
+7. Pages that save new records automatically attach the signed-in person's company.
+8. Proof before moving on: create two test companies and confirm each one cannot see, change or delete the other's clients, quotes, invoices or projects; confirm Wonderlands data and quotes are unchanged; rerun the security scan. Report results, then stop for your go-ahead on the design phases.
+
 ## Things I need from you before building
+
 - License prices and what each plan includes (I'll use placeholders you can edit in admin until then).
 - Whether companies can see the Wonderlands catalog prices or only start from their own.
 - Whether new companies need your approval before using the tools, or start a free trial immediately.
