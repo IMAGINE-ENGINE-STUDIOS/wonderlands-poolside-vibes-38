@@ -11,8 +11,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import ContractorProcurementTab from './ContractorProcurementTab';
 import ContractorCurrentProjectsTab from './ContractorCurrentProjectsTab';
+import ContractorPayoutsTab from './ContractorPayoutsTab';
+import ContractorMessagesTab from './ContractorMessagesTab';
 
-type Section = 'procurement' | 'my-projects' | 'compliance';
+export type Section = 'procurement' | 'my-projects' | 'compliance' | 'payouts' | 'messages';
 
 interface ContractorRow {
   id: string;
@@ -108,6 +110,10 @@ const ContractorWorkspace: React.FC<{ section: Section }> = ({ section }) => {
         <ContractorProcurementTab contractorId={contractor.id} contractorStatus={status} />
       ) : section === 'my-projects' ? (
         <ContractorCurrentProjectsTab contractorId={contractor.id} />
+      ) : section === 'payouts' ? (
+        <ContractorPayoutsTab contractorId={contractor.id} />
+      ) : section === 'messages' ? (
+        <ContractorMessagesTab contractorId={contractor.id} />
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-white p-5">

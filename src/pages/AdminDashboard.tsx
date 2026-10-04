@@ -28,7 +28,8 @@ import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 import { PoolCalculator } from '@/components/PoolCalculator';
 import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
 import AdminContractorManagement from '@/components/admin/AdminContractorManagement';
-import ContractorWorkspace from '@/components/contractor/ContractorWorkspace';
+import ContractorWorkspace, { type Section as WorkspaceSection } from '@/components/contractor/ContractorWorkspace';
+import AdminCommandSearch from '@/components/admin/AdminCommandSearch';
 import SalesRepManager from '@/components/admin/SalesRepManager';
 import SalesRepCategoryManager from '@/components/admin/SalesRepCategoryManager';
 import AutomationTemplatesManager from '@/components/admin/AutomationTemplatesManager';
@@ -139,9 +140,11 @@ const AdminDashboard = () => {
     }
   }, []);
 
+  // Company figures load only for main admins viewing Analytics (no duplicate
+  // fetch alongside AdminDashboardMetrics; never fetched for contractors).
   useEffect(() => {
-    fetchDatabaseMetrics();
-  }, [fetchDatabaseMetrics]);
+    if (isMainAdmin && activeSection === 'analytics') fetchDatabaseMetrics();
+  }, [fetchDatabaseMetrics, isMainAdmin, activeSection]);
 
   const refreshData = async () => {
     setIsLoading(true);
@@ -183,7 +186,7 @@ const AdminDashboard = () => {
       'unified-products': 'Products', quotes: 'Quotes', 'quote-tool': 'Quote Tool', invoices: 'Invoices',
       'invoice-tool': 'Invoice Tool', orders: 'Orders', users: 'Users', promotions: 'Promotions',
       'sales-reps': 'Sales Reps', 'sales-categories': 'Sales Categories', 'head-of-sales': 'Head of Sales',
-      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects', 'my-projects': 'My Projects', compliance: 'Compliance',
+      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects', 'my-projects': 'My Projects', compliance: 'Compliance', payouts: 'Payouts & Work Orders', messages: 'Messages',
       applications: 'Applications', 'job-board': 'Job Board', referrals: 'Referrals',
       'api-manager': 'API Management', 'delivery-logistics': 'Delivery', 'content-editor': 'Content Editor',
       procurement: 'Procurement', analytics: 'Analytics', setup: 'Setup', calculator: 'Pool Calculator',
@@ -228,9 +231,9 @@ const AdminDashboard = () => {
             <div className="space-y-0.5">
               <NavItem icon={Building2} label="Opportunities & Bids" active={activeSection === "procurement"} onClick={() => { setActiveSection("procurement"); setMobileNavOpen(false); }} />
               <NavItem icon={HardHat} label="My Projects" active={activeSection === "my-projects"} onClick={() => { setActiveSection("my-projects"); setMobileNavOpen(false); }} />
+              <NavItem icon={DollarSign} label="Payouts & Work Orders" active={activeSection === "payouts"} onClick={() => { setActiveSection("payouts"); setMobileNavOpen(false); }} />
+              <NavItem icon={MessageSquare} label="Messages" active={activeSection === "messages"} onClick={() => { setActiveSection("messages"); setMobileNavOpen(false); }} />
               <NavItem icon={ClipboardList} label="Compliance" active={activeSection === "compliance"} onClick={() => { setActiveSection("compliance"); setMobileNavOpen(false); }} />
-              <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => { setActiveSection("orders"); setMobileNavOpen(false); }} />
-              <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => { setActiveSection("analytics"); setMobileNavOpen(false); }} />
               <NavItem icon={Key} label="API Keys" active={activeSection === "api-keys"} onClick={() => { setActiveSection("api-keys"); setMobileNavOpen(false); }} />
             </div>
           </div>
@@ -368,6 +371,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
+              {isMainAdmin && <AdminCommandSearch onNavigate={setActiveSection} />}
               <div className="hidden sm:block">
                 <NotificationBell recipientType="admin" recipientId="system" variant="admin" />
               </div>
@@ -734,8 +738,8 @@ const AdminDashboard = () => {
           {isMainAdmin && activeSection === "applications" && <AdminApplicationsPanel />}
 
           {/* Contractor / supplier workspace (light theme, owner-scoped) */}
-          {isContractorOrSupplier && (activeSection === "procurement" || activeSection === "my-projects" || activeSection === "compliance") && (
-            <ContractorWorkspace section={activeSection as 'procurement' | 'my-projects' | 'compliance'} />
+          {isContractorOrSupplier && ["procurement", "my-projects", "compliance", "payouts", "messages"].includes(activeSection) && (
+            <ContractorWorkspace section={activeSection as WorkspaceSection} />
           )}
 
           {/* Procurement Tab (main admin) */}
@@ -798,7 +802,7 @@ const AdminDashboard = () => {
             </div>}
 
           {/* Analytics Tab */}
-          {activeSection === "analytics" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "analytics" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="holographic-panel border-cyan-500/30">
                 <CardHeader>
