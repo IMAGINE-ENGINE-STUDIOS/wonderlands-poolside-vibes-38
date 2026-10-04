@@ -39,10 +39,10 @@ const channelIcons = {
 };
 
 const channelColors = {
-  email: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  sms: 'bg-green-500/20 text-green-400 border-green-500/30',
-  whatsapp: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  voice: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+  email: 'bg-neutral-100 text-black border-neutral-200',
+  sms: 'bg-green-500/20 text-black border-green-500/30',
+  whatsapp: 'bg-emerald-500/20 text-black border-emerald-500/30',
+  voice: 'bg-purple-500/20 text-black border-purple-500/30'
 };
 
 export default function AutomationTemplatesManager({ embedded = false }: { embedded?: boolean }) {
@@ -187,16 +187,16 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
       {/* Command Center — full social posting hub on its own page */}
       {!embedded && <a
         href="/socialite"
-        className="flex items-center justify-between rounded-xl border border-cyan-500/30 bg-gray-900/60 p-4 hover:border-cyan-400/60 transition-colors"
+        className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-4 hover:border-neutral-200 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <Send className="h-5 w-5 text-cyan-300" />
+          <Send className="h-5 w-5 text-black" />
           <div>
-            <div className="font-semibold text-cyan-300">SOCIALITE</div>
-            <div className="text-xs text-cyan-400/60">Social posting, email, SMS & calls — one command center</div>
+            <div className="font-semibold text-black">SOCIALITE</div>
+            <div className="text-xs text-neutral-600">Social posting, email, SMS & calls — one command center</div>
           </div>
         </div>
-        <span className="text-sm text-cyan-300">Open →</span>
+        <span className="text-sm text-black">Open →</span>
       </a>}
       {/* Featured campaign — Milan Collection premium offer email */}
       <DailyCampaignSchedule />
@@ -207,8 +207,8 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
 
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-cyan-300">Message Templates</h2>
-          <p className="text-cyan-400/60 text-sm">Create and manage message templates for automations</p>
+          <h2 className="text-2xl font-bold text-black">Message Templates</h2>
+          <p className="text-neutral-600 text-sm">Create and manage message templates for automations</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
@@ -220,12 +220,12 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
               New Template
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-900 border-cyan-500/30">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-neutral-200">
             <DialogHeader>
-              <DialogTitle className="text-cyan-300">
+              <DialogTitle className="text-black">
                 {editingTemplate ? 'Edit Template' : 'Create New Template'}
               </DialogTitle>
-              <DialogDescription className="text-cyan-400/60">
+              <DialogDescription className="text-neutral-600">
                 Configure your message template with variables like {'{first_name}'}, {'{last_name}'}
               </DialogDescription>
             </DialogHeader>
@@ -233,21 +233,21 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
             <div className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-cyan-300">Template Name</Label>
+                  <Label className="text-black">Template Name</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g., Welcome Email"
-                    className="bg-gray-800 border-cyan-500/30"
+                    className="bg-white border-neutral-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300">Channel</Label>
+                  <Label className="text-black">Channel</Label>
                   <Select
                     value={formData.channel}
                     onValueChange={(value: any) => setFormData({ ...formData, channel: value })}
                   >
-                    <SelectTrigger className="bg-gray-800 border-cyan-500/30">
+                    <SelectTrigger className="bg-white border-neutral-200">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -262,12 +262,12 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-cyan-300">Template Type</Label>
+                  <Label className="text-black">Template Type</Label>
                   <Select
                     value={formData.template_type}
                     onValueChange={(value) => setFormData({ ...formData, template_type: value })}
                   >
-                    <SelectTrigger className="bg-gray-800 border-cyan-500/30">
+                    <SelectTrigger className="bg-white border-neutral-200">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -281,7 +281,7 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
                   </Select>
                 </div>
                 <div className="flex items-center justify-between pt-6">
-                  <Label className="text-cyan-300">Active</Label>
+                  <Label className="text-black">Active</Label>
                   <Switch
                     checked={formData.is_active}
                     onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
@@ -291,39 +291,39 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
 
               {formData.channel === 'email' && (
                 <div className="space-y-2">
-                  <Label className="text-cyan-300">Subject Line</Label>
+                  <Label className="text-black">Subject Line</Label>
                   <Input
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     placeholder="e.g., Welcome to Gala Pools, {first_name}!"
-                    className="bg-gray-800 border-cyan-500/30"
+                    className="bg-white border-neutral-200"
                   />
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label className="text-cyan-300">Message Body</Label>
+                <Label className="text-black">Message Body</Label>
                 <Textarea
                   value={formData.body}
                   onChange={(e) => setFormData({ ...formData, body: e.target.value })}
                   placeholder="Hi {first_name}, thank you for..."
                   rows={6}
-                  className="bg-gray-800 border-cyan-500/30"
+                  className="bg-white border-neutral-200"
                 />
-                <p className="text-xs text-cyan-400/40">
+                <p className="text-xs text-neutral-600">
                   Available variables: {'{first_name}'}, {'{last_name}'}, {'{full_name}'}, {'{email}'}, {'{sales_rep_name}'}, {'{sales_rep_email}'}
                 </p>
               </div>
 
               {formData.channel === 'email' && (
                 <div className="space-y-2">
-                  <Label className="text-cyan-300">HTML Content (optional)</Label>
+                  <Label className="text-black">HTML Content (optional)</Label>
                   <Textarea
                     value={formData.html_content}
                     onChange={(e) => setFormData({ ...formData, html_content: e.target.value })}
                     placeholder="<div>...</div>"
                     rows={6}
-                    className="bg-gray-800 border-cyan-500/30 font-mono text-xs"
+                    className="bg-white border-neutral-200  text-xs"
                   />
                 </div>
               )}
@@ -343,12 +343,12 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
       </div>
 
       {isLoading ? (
-        <div className="text-center py-12 text-cyan-400/60">Loading templates...</div>
+        <div className="text-center py-12 text-neutral-600">Loading templates...</div>
       ) : templates.length === 0 ? (
-        <Card className="bg-gray-900/50 border-cyan-500/20">
+        <Card className="bg-white border-neutral-200">
           <CardContent className="py-12 text-center">
-            <Mail className="h-12 w-12 text-cyan-400/40 mx-auto mb-4" />
-            <p className="text-cyan-400/60">No templates yet. Create your first template to get started.</p>
+            <Mail className="h-12 w-12 text-neutral-600 mx-auto mb-4" />
+            <p className="text-neutral-600">No templates yet. Create your first template to get started.</p>
           </CardContent>
         </Card>
       ) : (
@@ -356,7 +356,7 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
           {templates.map((template) => {
             const Icon = channelIcons[template.channel];
             return (
-              <Card key={template.id} className="bg-gray-900/50 border-cyan-500/20 hover:border-cyan-500/40 transition-colors">
+              <Card key={template.id} className="bg-white border-neutral-200 hover:border-neutral-200 transition-colors">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
@@ -365,18 +365,18 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-cyan-300">{template.name}</h3>
-                          <Badge variant="outline" className={template.is_active ? 'text-green-400 border-green-500/30' : 'text-gray-400 border-gray-500/30'}>
+                          <h3 className="font-semibold text-black">{template.name}</h3>
+                          <Badge variant="outline" className={template.is_active ? 'text-black border-green-500/30' : 'text-black border-gray-500/30'}>
                             {template.is_active ? 'Active' : 'Inactive'}
                           </Badge>
-                          <Badge variant="outline" className="text-cyan-400/60 border-cyan-500/20">
+                          <Badge variant="outline" className="text-neutral-600 border-neutral-200">
                             {template.template_type}
                           </Badge>
                         </div>
                         {template.subject && (
-                          <p className="text-sm text-cyan-400/80">Subject: {template.subject}</p>
+                          <p className="text-sm text-black">Subject: {template.subject}</p>
                         )}
-                        <p className="text-sm text-cyan-400/60 line-clamp-2">{template.body}</p>
+                        <p className="text-sm text-neutral-600 line-clamp-2">{template.body}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -384,17 +384,17 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
                         variant="ghost"
                         size="icon"
                         onClick={() => setPreviewTemplate(template)}
-                        className="hover:bg-cyan-500/10"
+                        className="hover:bg-neutral-100"
                       >
-                        <Eye className="h-4 w-4 text-cyan-400" />
+                        <Eye className="h-4 w-4 text-black" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(template)}
-                        className="hover:bg-cyan-500/10"
+                        className="hover:bg-neutral-100"
                       >
-                        <Edit className="h-4 w-4 text-cyan-400" />
+                        <Edit className="h-4 w-4 text-black" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -402,7 +402,7 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
                         onClick={() => handleDelete(template.id)}
                         className="hover:bg-red-500/10"
                       >
-                        <Trash2 className="h-4 w-4 text-red-400" />
+                        <Trash2 className="h-4 w-4 text-black" />
                       </Button>
                     </div>
                   </div>
@@ -415,9 +415,9 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
 
       {/* Preview Dialog */}
       <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-        <DialogContent className="max-w-2xl bg-gray-900 border-cyan-500/30">
+        <DialogContent className="max-w-2xl bg-white border-neutral-200">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300">Preview: {previewTemplate?.name}</DialogTitle>
+            <DialogTitle className="text-black">Preview: {previewTemplate?.name}</DialogTitle>
           </DialogHeader>
           {previewTemplate && (
             <div className="space-y-4">
@@ -425,19 +425,19 @@ export default function AutomationTemplatesManager({ embedded = false }: { embed
                 <Badge className={channelColors[previewTemplate.channel]}>
                   {previewTemplate.channel.toUpperCase()}
                 </Badge>
-                <Badge variant="outline" className="text-cyan-400/60">
+                <Badge variant="outline" className="text-neutral-600">
                   {previewTemplate.template_type}
                 </Badge>
               </div>
               {previewTemplate.subject && (
                 <div>
-                  <Label className="text-cyan-400/60 text-xs">Subject</Label>
-                  <p className="text-cyan-300">{previewTemplate.subject.replace(/{first_name}/g, 'John')}</p>
+                  <Label className="text-neutral-600 text-xs">Subject</Label>
+                  <p className="text-black">{previewTemplate.subject.replace(/{first_name}/g, 'John')}</p>
                 </div>
               )}
               <div>
-                <Label className="text-cyan-400/60 text-xs">Message</Label>
-                <div className="bg-gray-800 p-4 rounded-lg border border-cyan-500/20 whitespace-pre-wrap text-cyan-300">
+                <Label className="text-neutral-600 text-xs">Message</Label>
+                <div className="bg-white p-4 rounded-lg border border-neutral-200 whitespace-pre-wrap text-black">
                   {previewTemplate.body
                     .replace(/{first_name}/g, 'John')
                     .replace(/{last_name}/g, 'Doe')

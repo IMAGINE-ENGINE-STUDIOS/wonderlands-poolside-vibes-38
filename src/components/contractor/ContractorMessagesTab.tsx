@@ -60,7 +60,7 @@ const ContractorMessagesTab: React.FC<{ contractorId: string }> = ({ contractorI
               <li key={n.id} className={`p-4 ${n.is_read ? '' : 'bg-amber-50/50'}`}>
                 <div className="flex flex-wrap justify-between gap-2">
                   <p className="font-medium">{n.title}</p>
-                  <span className="text-xs text-slate-500">{new Date(n.created_at).toLocaleString()}</span>
+                  <span className="text-xs text-neutral-600">{new Date(n.created_at).toLocaleString()}</span>
                 </div>
                 <p className="mt-1 text-sm text-slate-700 break-words">{n.message}</p>
                 {!n.is_read && <button className="mt-2 text-xs underline text-slate-700" onClick={() => markRead([n.id])}>Mark read</button>}

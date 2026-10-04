@@ -82,12 +82,12 @@ const AdminOrdersManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'completed': return 'bg-green-500/20 text-green-300 border-green-500/50';
-      case 'pending': return 'bg-amber-500/20 text-amber-300 border-amber-500/50';
-      case 'processing': return 'bg-blue-500/20 text-blue-300 border-blue-500/50';
-      case 'failed': return 'bg-red-500/20 text-red-300 border-red-500/50';
-      case 'cancelled': return 'bg-gray-500/20 text-gray-300 border-gray-500/50';
-      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/50';
+      case 'completed': return 'bg-green-500/20 text-black border-green-500/50';
+      case 'pending': return 'bg-amber-500/20 text-black border-amber-500/50';
+      case 'processing': return 'bg-neutral-100 text-black border-neutral-200';
+      case 'failed': return 'bg-red-500/20 text-black border-red-500/50';
+      case 'cancelled': return 'bg-gray-500/20 text-black border-gray-500/50';
+      default: return 'bg-gray-500/20 text-black border-gray-500/50';
     }
   };
 
@@ -116,57 +116,57 @@ const AdminOrdersManager = () => {
     <div className="space-y-6">
       {/* Order Statistics - Command Center Style */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full blur-2xl"></div>
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-neutral-100 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-cyan-400 uppercase tracking-wider">Total</span>
-              <ShoppingCart className="h-5 w-5 text-cyan-400" />
+              <span className="text-xs  text-black uppercase tracking-wider">Total</span>
+              <ShoppingCart className="h-5 w-5 text-black" />
             </div>
-            <div className="text-3xl font-bold text-cyan-300 neon-glow-cyan">{totalOrders}</div>
-            <div className="h-1 w-full bg-cyan-900/30 rounded-full mt-2 overflow-hidden">
+            <div className="text-3xl font-bold text-black neon-glow-cyan">{totalOrders}</div>
+            <div className="h-1 w-full bg-neutral-50 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 data-stream"></div>
             </div>
           </div>
         </div>
         
-        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
           <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-green-400 uppercase tracking-wider">Completed</span>
-              <Package className="h-5 w-5 text-green-400" />
+              <span className="text-xs  text-black uppercase tracking-wider">Completed</span>
+              <Package className="h-5 w-5 text-black" />
             </div>
-            <div className="text-3xl font-bold text-green-300" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{completedOrders}</div>
+            <div className="text-3xl font-bold text-black" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{completedOrders}</div>
             <div className="h-1 w-full bg-green-900/30 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 data-stream"></div>
             </div>
           </div>
         </div>
         
-        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
           <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-amber-400 uppercase tracking-wider">Pending</span>
-              <Calendar className="h-5 w-5 text-amber-400" />
+              <span className="text-xs  text-black uppercase tracking-wider">Pending</span>
+              <Calendar className="h-5 w-5 text-black" />
             </div>
-            <div className="text-3xl font-bold text-amber-300" style={{textShadow: '0 0 20px rgba(251, 191, 36, 0.6)'}}>{pendingOrders}</div>
+            <div className="text-3xl font-bold text-black" style={{textShadow: '0 0 20px rgba(251, 191, 36, 0.6)'}}>{pendingOrders}</div>
             <div className="h-1 w-full bg-amber-900/30 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-500 data-stream"></div>
             </div>
           </div>
         </div>
         
-        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-neutral-100 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-blue-200 uppercase tracking-wider">Revenue</span>
-              <DollarSign className="h-5 w-5 text-blue-200" />
+              <span className="text-xs  text-black uppercase tracking-wider">Revenue</span>
+              <DollarSign className="h-5 w-5 text-black" />
             </div>
-            <div className="text-2xl font-bold text-blue-100 neon-glow-blue">${totalRevenue.toLocaleString()}</div>
-            <div className="h-1 w-full bg-blue-900/30 rounded-full mt-2 overflow-hidden">
+            <div className="text-2xl font-bold text-black neon-glow-blue">${totalRevenue.toLocaleString()}</div>
+            <div className="h-1 w-full bg-neutral-50 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
             </div>
           </div>
@@ -174,25 +174,25 @@ const AdminOrdersManager = () => {
       </div>
 
       {/* Orders Table - Command Center Style */}
-      <div className="holographic-panel rounded-lg overflow-hidden">
-        <div className="p-6 border-b border-cyan-500/20">
-          <h3 className="text-xl font-bold text-cyan-300 font-mono tracking-wide uppercase neon-glow-cyan mb-4">⬡ Orders Database ⬡</h3>
+      <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg overflow-hidden">
+        <div className="p-6 border-b border-neutral-200">
+          <h3 className="text-xl font-bold text-black  tracking-wide uppercase neon-glow-cyan mb-4">⬡ Orders Database ⬡</h3>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black" />
               <Input
                 placeholder="SEARCH: ORDER ID / PRODUCT / CUSTOMER..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono text-sm"
+                className="pl-10 bg-white border-neutral-200 text-black placeholder:text-neutral-500  text-sm"
               />
             </div>
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48 bg-black/40 border-cyan-500/30 text-cyan-300 font-mono text-sm">
+                <SelectTrigger className="w-full sm:w-48 bg-white border-neutral-200 text-black  text-sm">
                   <SelectValue placeholder="FILTER STATUS" />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-cyan-500/30">
+                <SelectContent className="bg-white border-neutral-200">
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="processing">Processing</SelectItem>
@@ -201,7 +201,7 @@ const AdminOrdersManager = () => {
                   <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="bg-black/40 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono">
+              <Button variant="outline" size="sm" className="bg-white border-neutral-200 text-black hover:bg-neutral-100 ">
                 <Download className="h-4 w-4 mr-2" />
                 EXPORT
               </Button>
@@ -212,47 +212,47 @@ const AdminOrdersManager = () => {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-b border-cyan-500/20 hover:bg-transparent">
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Order ID</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Customer</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Product</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Qty</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Total</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Status</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Date</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Actions</TableHead>
+                <TableRow className="border-b border-neutral-200 hover:bg-transparent">
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Order ID</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Customer</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Product</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Qty</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Total</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Status</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Date</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.map((order) => (
-                  <TableRow key={order.id} className="border-b border-cyan-500/10 hover:bg-cyan-500/5 transition-colors">
-                    <TableCell className="font-mono text-xs text-cyan-300">
+                  <TableRow key={order.id} className="border-b border-neutral-200 hover:bg-neutral-100 transition-colors">
+                    <TableCell className=" text-xs text-black">
                       {order.id.substring(0, 8)}...
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-sm text-cyan-200">{order.customer_name || 'N/A'}</p>
-                        <p className="text-xs text-cyan-400/60 font-mono">{order.customer_email}</p>
+                        <p className="font-medium text-sm text-black">{order.customer_name || 'N/A'}</p>
+                        <p className="text-xs text-neutral-600 ">{order.customer_email}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-sm text-cyan-200">{order.product_name}</p>
-                        <p className="text-xs text-cyan-400/60 font-mono">{order.product_category}</p>
+                        <p className="font-medium text-sm text-black">{order.product_name}</p>
+                        <p className="text-xs text-neutral-600 ">{order.product_category}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center text-cyan-300 font-mono">
+                    <TableCell className="text-center text-black ">
                       {order.quantity}
                     </TableCell>
-                    <TableCell className="font-bold text-blue-300 font-mono">
+                    <TableCell className="font-bold text-black ">
                       ${order.total_amount.toLocaleString()}
                     </TableCell>
                     <TableCell>
-                      <Badge className={`${getStatusColor(order.payment_status || 'pending')} font-mono text-xs uppercase`}>
+                      <Badge className={`${getStatusColor(order.payment_status || 'pending')}  text-xs uppercase`}>
                         {order.payment_status || 'pending'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-cyan-400/80 font-mono">
+                    <TableCell className="text-sm text-black ">
                       {new Date(order.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
@@ -260,7 +260,7 @@ const AdminOrdersManager = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleViewOrder(order)}
-                        className="hover:bg-cyan-500/10 text-cyan-400"
+                        className="hover:bg-neutral-100 text-black"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -272,7 +272,7 @@ const AdminOrdersManager = () => {
           </div>
           
           {filteredOrders.length === 0 && (
-            <div className="text-center py-8 text-cyan-400/60 font-mono">
+            <div className="text-center py-8 text-neutral-600 ">
               {orders.length === 0 ? 'NO ORDERS FOUND' : 'NO ORDERS MATCH SEARCH CRITERIA'}
             </div>
           )}
@@ -299,7 +299,7 @@ const AdminOrdersManager = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Order ID</p>
-                      <p className="font-mono text-sm">{selectedOrder.id}</p>
+                      <p className=" text-sm">{selectedOrder.id}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Status</p>

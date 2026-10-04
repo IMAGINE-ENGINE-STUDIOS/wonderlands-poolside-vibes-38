@@ -71,9 +71,9 @@ const ProcurementDocumentsPanel: React.FC<ProcurementDocumentsPanelProps> = ({ p
   };
 
   return (
-    <div className="holographic-panel rounded-lg p-4 border border-cyan-500/20 space-y-3">
+    <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 border border-neutral-200 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-mono text-cyan-400/60 uppercase tracking-wider">
+        <h3 className="text-xs  text-neutral-600 uppercase tracking-wider">
           Procurement Documents
         </h3>
         <Button
@@ -81,7 +81,7 @@ const ProcurementDocumentsPanel: React.FC<ProcurementDocumentsPanelProps> = ({ p
           size="sm"
           disabled={uploading}
           onClick={() => fileRef.current?.click()}
-          className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono"
+          className="border-neutral-200 text-black hover:bg-neutral-100 text-xs "
         >
           <Upload className="h-3 w-3 mr-1" />
           {uploading ? 'Uploading...' : 'Upload'}
@@ -97,19 +97,19 @@ const ProcurementDocumentsPanel: React.FC<ProcurementDocumentsPanelProps> = ({ p
       </div>
 
       {docs.length === 0 ? (
-        <p className="text-[10px] font-mono text-cyan-400/40 text-center py-2">
+        <p className="text-[10px]  text-neutral-600 text-center py-2">
           No procurement documents uploaded yet. Upload plans, specs, or scope documents for contractors to review.
         </p>
       ) : (
         <div className="space-y-1">
           {docs.map(doc => (
-            <div key={doc.id} className="flex items-center gap-2 py-1.5 px-2 rounded bg-cyan-500/5 group">
-              <FileText className="h-3 w-3 text-cyan-400/40 flex-shrink-0" />
-              <span className="flex-1 text-[10px] font-mono text-cyan-300/70 truncate">
+            <div key={doc.id} className="flex items-center gap-2 py-1.5 px-2 rounded bg-neutral-100 group">
+              <FileText className="h-3 w-3 text-neutral-600 flex-shrink-0" />
+              <span className="flex-1 text-[10px]  text-neutral-600 truncate">
                 {doc.file_name}
               </span>
               {doc.file_size && (
-                <span className="text-[10px] text-cyan-500/40 font-mono">
+                <span className="text-[10px] text-neutral-600 ">
                   {(doc.file_size / 1024).toFixed(0)}KB
                 </span>
               )}
@@ -117,13 +117,13 @@ const ProcurementDocumentsPanel: React.FC<ProcurementDocumentsPanelProps> = ({ p
                 href={doc.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-cyan-400 hover:text-cyan-300"
+                className="text-black hover:text-black"
               >
                 <Download className="h-3 w-3" />
               </a>
               <button
                 onClick={() => handleDelete(doc.id)}
-                className="text-red-400/40 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="text-black hover:text-black opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Trash2 className="h-3 w-3" />
               </button>

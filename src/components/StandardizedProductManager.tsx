@@ -245,24 +245,24 @@ export const StandardizedProductManager = () => {
   return (
     <div className="space-y-6">
       {/* Controls - Command Center Style */}
-      <div className="holographic-panel rounded-lg p-6">
+      <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-6">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-2 flex-1">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black" />
               <Input
                 placeholder="SEARCH PRODUCTS..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono text-sm"
+                className="pl-10 bg-white border-cyan-500/30 text-black placeholder:text-neutral-500  text-sm"
               />
             </div>
             
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full sm:w-[200px] bg-black/40 border-cyan-500/30 text-cyan-300 font-mono text-sm">
+              <SelectTrigger className="w-full sm:w-[200px] bg-white border-cyan-500/30 text-black  text-sm">
                 <SelectValue placeholder="ALL CATEGORIES" />
               </SelectTrigger>
-              <SelectContent className="bg-black border-cyan-500/30">
+              <SelectContent className="bg-white border-cyan-500/30">
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category} value={category}>
@@ -273,10 +273,10 @@ export const StandardizedProductManager = () => {
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full sm:w-[150px] bg-black/40 border-cyan-500/30 text-cyan-300 font-mono text-sm">
+              <SelectTrigger className="w-full sm:w-[150px] bg-white border-cyan-500/30 text-black  text-sm">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-black border-cyan-500/30">
+              <SelectContent className="bg-white border-cyan-500/30">
                 <SelectItem value="name">Name</SelectItem>
                 <SelectItem value="price">Price</SelectItem>
                 <SelectItem value="category">Category</SelectItem>
@@ -287,7 +287,7 @@ export const StandardizedProductManager = () => {
               variant="outline"
               size="sm"
               onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="min-w-fit bg-black/40 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+              className="min-w-fit bg-white border-cyan-500/30 text-black hover:bg-neutral-100 "
             >
             <ArrowUpDown className="h-4 w-4 mr-1" />
             {sortOrder.toUpperCase()}
@@ -295,16 +295,16 @@ export const StandardizedProductManager = () => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="secondary" className="text-sm bg-cyan-500/20 text-cyan-300 border-cyan-500/50 font-mono">
+          <Badge variant="secondary" className="text-sm bg-neutral-100 text-black border-cyan-500/50 ">
             {filteredProducts.length} TOTAL
           </Badge>
-          <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-100 border-blue-400/50 font-mono">
+          <Badge variant="outline" className="text-xs bg-neutral-100 text-black border-blue-400/50 ">
             {products.filter(p => p.source === 'pools_table').length} POOLS
           </Badge>
-          <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-300 border-purple-500/50 font-mono">
+          <Badge variant="outline" className="text-xs bg-purple-500/20 text-black border-purple-500/50 ">
             {products.filter(p => p.source === 'products_table').length} PRODUCTS
           </Badge>
-          <Button size="sm" className="bg-cyan-500/20 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/30 font-mono">
+          <Button size="sm" className="bg-neutral-100 border-cyan-500/50 text-black hover:bg-neutral-100 ">
             <Plus className="h-4 w-4 mr-1" />
             ADD
           </Button>

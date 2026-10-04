@@ -166,18 +166,18 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               alt={project.project_name}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white" />
           </div>
         ) : (
-          <div className="aspect-[3/1] w-full bg-cyan-900/10 border border-dashed border-cyan-500/20 flex items-center justify-center">
+          <div className="aspect-[3/1] w-full bg-neutral-50 border border-dashed border-neutral-200 flex items-center justify-center">
             <div className="text-center">
-              <ImagePlus className="h-6 w-6 text-cyan-500/30 mx-auto mb-1" />
-              <span className="text-[10px] font-mono text-cyan-500/30">Add cover image</span>
+              <ImagePlus className="h-6 w-6 text-neutral-600 mx-auto mb-1" />
+              <span className="text-[10px]  text-neutral-600">Add cover image</span>
             </div>
           </div>
         )}
         <button
-          className="absolute top-2 right-2 p-1.5 rounded bg-black/60 text-cyan-400/60 hover:text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-2 right-2 p-1.5 rounded bg-white text-neutral-600 hover:text-black opacity-0 group-hover:opacity-100 transition-opacity"
           onClick={() => coverInputRef.current?.click()}
         >
           <ImagePlus className="h-4 w-4" />
@@ -202,15 +202,15 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="text-cyan-400 hover:text-cyan-300"
+            className="text-black hover:text-black"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h2 className="text-lg font-mono font-bold text-cyan-300 tracking-wide">
+            <h2 className="text-lg  font-bold text-black tracking-wide">
               {project.project_name}
             </h2>
-            <p className="text-[10px] font-mono text-cyan-400/50">
+            <p className="text-[10px]  text-neutral-600">
               Overall: {completedItems}/{totalItems} items • {overallProgress}% complete
             </p>
           </div>
@@ -224,7 +224,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                 const l = getProjectListing();
                 if (l) setViewProposalsListing(l);
               }}
-              className="border-green-500/30 text-green-400 hover:bg-green-500/10 text-xs font-mono"
+              className="border-green-500/30 text-black hover:bg-green-500/10 text-xs "
             >
               <Eye className="h-3 w-3 mr-1" /> View Proposals
             </Button>
@@ -233,7 +233,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               variant="outline"
               size="sm"
               onClick={openProcureProject}
-              className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-xs font-mono"
+              className="border-emerald-500/30 text-black hover:bg-emerald-500/10 text-xs "
             >
               <Briefcase className="h-3 w-3 mr-1" /> Procure Project
             </Button>
@@ -242,7 +242,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             variant="outline"
             size="sm"
             onClick={copyInternalLink}
-            className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xs font-mono"
+            className="border-amber-500/30 text-black hover:bg-amber-500/10 text-xs "
           >
             <Users className="h-3 w-3 mr-1" />
             Internal
@@ -251,7 +251,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setShowShareDialog(true)}
-            className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono"
+            className="border-neutral-200 text-black hover:bg-neutral-100 text-xs "
           >
             <Share2 className="h-3 w-3 mr-1" />
             Share
@@ -260,7 +260,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onDeleteProject(project.id)}
-            className="text-red-400/60 hover:text-red-400 text-xs font-mono"
+            className="text-black hover:text-black text-xs "
           >
             <Trash2 className="h-3 w-3 mr-1" />
             Delete
@@ -270,33 +270,33 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
 
       {/* Share Dialog */}
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent className="sm:max-w-md bg-[#0d0d15] border-cyan-500/30">
+        <DialogContent className="sm:max-w-md bg-white border-neutral-200">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300 font-mono flex items-center gap-2">
+            <DialogTitle className="text-black  flex items-center gap-2">
               <Share2 className="h-4 w-4" />
               Share Project
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-xs font-mono text-cyan-400/60">
+            <p className="text-xs  text-neutral-600">
               Share this project with your client. They'll only see this project — all others remain private.
             </p>
 
             {/* Copy Link */}
             <div className="space-y-2">
-              <label className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider">
+              <label className="text-[10px]  text-neutral-600 uppercase tracking-wider">
                 Share via Link
               </label>
               <div className="flex gap-2">
                 <Input
                   value={shareUrl}
                   readOnly
-                  className="h-8 text-[10px] bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+                  className="h-8 text-[10px] bg-neutral-100 border-neutral-200 text-black "
                 />
                 <Button
                   size="sm"
                   onClick={copyShareLink}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-xs font-mono"
+                  className="bg-cyan-600 hover:bg-cyan-500 text-xs "
                 >
                   <Copy className="h-3 w-3 mr-1" />
                   Copy
@@ -305,8 +305,8 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             </div>
 
             {/* Email Share */}
-            <div className="space-y-2 pt-2 border-t border-cyan-500/10">
-              <label className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider">
+            <div className="space-y-2 pt-2 border-t border-neutral-200">
+              <label className="text-[10px]  text-neutral-600 uppercase tracking-wider">
                 Share via Email
               </label>
               <div className="flex gap-2">
@@ -316,16 +316,16 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                   value={shareEmail}
                   onChange={(e) => setShareEmail(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && sendShareEmail()}
-                  className="h-8 text-xs bg-transparent border-cyan-500/20 text-cyan-300 placeholder:text-cyan-500/30 font-mono"
+                  className="h-8 text-xs bg-transparent border-neutral-200 text-black placeholder:text-neutral-500 "
                 />
                 <Button
                   size="sm"
                   onClick={sendShareEmail}
                   disabled={sendingEmail || !shareEmail.trim()}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-xs font-mono"
+                  className="bg-cyan-600 hover:bg-cyan-500 text-xs "
                 >
                   {sendingEmail ? (
-                    <div className="animate-spin h-3 w-3 border-b border-white rounded-full" />
+                    <div className="animate-spin h-3 w-3 border-b border-neutral-200 rounded-full" />
                   ) : (
                     <>
                       <Send className="h-3 w-3 mr-1" />
@@ -336,9 +336,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               </div>
             </div>
 
-            <div className="flex items-start gap-2 mt-2 p-2 rounded bg-cyan-500/5 border border-cyan-500/10">
-              <Link className="h-3 w-3 text-cyan-400/40 mt-0.5 flex-shrink-0" />
-              <p className="text-[10px] font-mono text-cyan-400/40">
+            <div className="flex items-start gap-2 mt-2 p-2 rounded bg-neutral-100 border border-neutral-200">
+              <Link className="h-3 w-3 text-neutral-600 mt-0.5 flex-shrink-0" />
+              <p className="text-[10px]  text-neutral-600">
                 This link is private. Only people with this link can view the project progress. They cannot see any other projects.
               </p>
             </div>
@@ -347,14 +347,14 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       </Dialog>
 
       {/* Overall Progress Bar */}
-      <div className="holographic-panel rounded-lg p-3 border border-cyan-500/20">
+      <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-3 border border-neutral-200">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-mono text-cyan-400/60 uppercase tracking-wider">Project Progress</span>
-          <span className={`text-sm font-mono font-bold ${overallProgress === 100 ? 'text-green-400' : 'text-cyan-300'}`}>
+          <span className="text-xs  text-neutral-600 uppercase tracking-wider">Project Progress</span>
+          <span className={`text-sm  font-bold ${overallProgress === 100 ? 'text-black' : 'text-black'}`}>
             {overallProgress}%
           </span>
         </div>
-        <div className="w-full bg-cyan-900/30 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-neutral-50 rounded-full h-3 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               overallProgress === 100 ? 'bg-green-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500'
@@ -406,17 +406,17 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             value={newPhaseName}
             onChange={(e) => setNewPhaseName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddPhase()}
-            className="h-8 text-xs bg-transparent border-cyan-500/20 text-cyan-300 placeholder:text-cyan-500/30 font-mono"
+            className="h-8 text-xs bg-transparent border-neutral-200 text-black placeholder:text-neutral-500 "
             autoFocus
           />
-          <Button size="sm" onClick={handleAddPhase} className="text-xs font-mono">
+          <Button size="sm" onClick={handleAddPhase} className="text-xs ">
             Add
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowAddPhase(false)}
-            className="text-xs text-cyan-400/60"
+            className="text-xs text-neutral-600"
           >
             Cancel
           </Button>
@@ -426,7 +426,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           variant="outline"
           size="sm"
           onClick={() => setShowAddPhase(true)}
-          className="border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono w-full"
+          className="border-neutral-200 text-black hover:bg-neutral-100 text-xs  w-full"
         >
           <Plus className="h-3 w-3 mr-1" />
           Add Phase

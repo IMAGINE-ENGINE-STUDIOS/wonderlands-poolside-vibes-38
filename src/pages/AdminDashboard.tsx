@@ -66,20 +66,42 @@ const NavItem = ({
       w-full flex items-center gap-3 px-3 py-2.5 rounded-md
       transition-all duration-200 group relative overflow-hidden
       ${active
-        ? 'bg-[#2bb3a3]/12 text-[#f9a08f] border-r-2 border-[#2bb3a3]'
-        : 'text-[#f5f3ee]/65 hover:text-[#f9a08f] hover:bg-[#2bb3a3]/[0.06] hover:translate-x-0.5'}
+        ? 'cc-nav-active bg-neutral-100 text-black font-semibold'
+        : 'text-neutral-700 hover:text-black hover:bg-neutral-50'}
     `}
     style={{ fontFamily: "'Manrope', sans-serif" }}
   >
-    <Icon className={`h-[18px] w-[18px] shrink-0 transition-all duration-200 ${active ? 'text-[#2bb3a3]' : 'text-[#f5f3ee]/40 group-hover:text-[#2bb3a3]'}`} />
+    <Icon className={`h-[18px] w-[18px] shrink-0 transition-all duration-200 ${active ? 'text-black' : 'text-neutral-500 group-hover:text-black'}`} />
     <span className="text-[13px] font-medium tracking-wide truncate">{label}</span>
-    {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#2bb3a3] shadow-[0_0_8px_rgba(43,179,163,0.6)]" />}
+    {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#0891b2]" />}
   </button>
 );
 
-const AdminDashboard = () => {
+/** previewMode: dev-only staging (/dev/command-center) renders the full
+ *  main-admin UI without sign-in so the design can be checked. Data stays
+ *  protected by RLS — signed-out previews simply show empty states. */
+// Editorial chapter banner (FLIP / main page style) shown above every section.
+const CHAPTER_NOTES: Record<string, string> = {
+  today: 'What needs your attention right now, from your real records.',
+  quotes: 'Every quote requested by your customers.', invoices: 'Bills sent, paid and overdue.',
+  orders: 'Customer orders and their progress.', clients: 'Your customer pipeline and follow-ups.',
+  'unified-products': 'Catalogue products, pools and inventory.', 'tech-hub': 'Every Wonderlands tool, opened right here.',
+  companies: 'Every licensed company using the platform.', contractors: 'Trade partners, approvals and licenses.',
+  projects: 'Builds in progress, phases and milestones.', procurement: 'Jobs, bids and trade partners.',
+};
+const ChapterBanner = ({ label, section }: { label: string; section: string }) => (
+  <div className="mb-8 border-b border-neutral-200 pb-6">
+    <div className="text-[10px] uppercase tracking-[0.3em] text-neutral-500 font-semibold">Chapter · {label}</div>
+    <h1 className="mt-2 text-4xl sm:text-5xl text-black leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>{label}</h1>
+    <p className="mt-2 text-sm text-neutral-700 max-w-2xl">{CHAPTER_NOTES[section] ?? 'Manage this part of your business.'}</p>
+  </div>
+);
+
+const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const auth = useAuth();
+  const { user, signOut } = auth;
+  const profile = previewMode ? ({ ...(auth.profile ?? {}), role: 'main_admin', first_name: 'Preview', last_name: 'mode' } as any) : auth.profile;
   const [isLoading, setIsLoading] = useState(false);
   const [activeSection, setActiveSection] = usePersistentState("admin_activeSection", "today");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -95,7 +117,7 @@ const AdminDashboard = () => {
 
   // Redirect to auth if not logged in
   useEffect(() => {
-    if (!user) {
+    if (!user && !previewMode) {
       navigate('/auth');
     }
   }, [user, navigate]);
@@ -172,7 +194,7 @@ const AdminDashboard = () => {
   }, [profile, isMainAdmin, isContractorOrSupplier, navigate]);
 
   // Don't render anything if not authorized
-  if (!user || !isMainAdmin && !isContractorOrSupplier) {
+  if (!previewMode && (!user || !isMainAdmin && !isContractorOrSupplier)) {
     return null;
   }
 
@@ -194,22 +216,22 @@ const AdminDashboard = () => {
   const SidebarContent = () => (
     <>
       {/* Brand */}
-      <div className="p-6 lg:p-7 flex flex-col gap-1 border-b border-[#2bb3a3]/10">
+      <div className="p-6 lg:p-7 flex flex-col gap-1 border-b border-neutral-200">
         <div className="flex items-center gap-3 mb-2">
-          <div className="relative h-10 w-10 bg-gradient-to-br from-[#2bb3a3] to-[#e8604c] rounded-md flex items-center justify-center shadow-[0_0_24px_rgba(43,179,163,0.25)]">
-            <Zap className="h-5 w-5 text-[#0a0c12]" strokeWidth={2.5} />
+          <div className="relative h-10 w-10 bg-black rounded-md flex items-center justify-center">
+            <span className="text-white font-bold text-lg" style={{ fontFamily: "'Cormorant Garamond', serif" }}>W</span>
           </div>
           <div>
-            <h1 className="text-[#f5f3ee] font-bold text-lg tracking-tight leading-none" style={{ fontFamily: "'Sora', sans-serif" }}>
+            <h1 className="text-black font-bold text-lg tracking-tight leading-none" style={{ fontFamily: "'Sora', sans-serif" }}>
               {isMainAdmin ? 'Command' : profile?.role === 'supplier' ? 'Supplier' : 'Contractor'}
             </h1>
-            <span className="text-[10px] text-[#2bb3a3]/70 tracking-[0.18em] uppercase font-semibold">Wonderlands · Admin</span>
+            <span className="text-[10px] text-neutral-500 tracking-[0.18em] uppercase font-semibold">Wonderlands · Admin</span>
           </div>
         </div>
         {profile && (
           <div className="flex items-center gap-2 mt-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#2bb3a3] shadow-[0_0_6px_rgba(43,179,163,0.7)]" />
-            <span className="text-[11px] text-[#f9a08f]/80 tracking-wide truncate" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#0891b2]" />
+            <span className="text-[11px] text-neutral-700 tracking-wide truncate" style={{ fontFamily: "'Manrope', sans-serif" }}>
               {profile.first_name} {profile.last_name}
             </span>
           </div>
@@ -220,7 +242,7 @@ const AdminDashboard = () => {
       <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
         {isContractorOrSupplier && (
           <div>
-            <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#2bb3a3] mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+            <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-neutral-500 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
               Workspace
             </h3>
             <div className="space-y-0.5">
@@ -237,7 +259,7 @@ const AdminDashboard = () => {
         {isMainAdmin && (
           <>
             <div>
-              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#2bb3a3] mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-neutral-500 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                 Core Systems
               </h3>
               <div className="space-y-0.5">
@@ -255,7 +277,7 @@ const AdminDashboard = () => {
             </div>
 
             <div>
-              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f9a08f]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-neutral-500 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                 Management
               </h3>
               <div className="space-y-0.5">
@@ -278,7 +300,7 @@ const AdminDashboard = () => {
             </div>
 
             <div>
-              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f9a08f]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-neutral-500 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                 Operations
               </h3>
               <div className="space-y-0.5">
@@ -293,7 +315,7 @@ const AdminDashboard = () => {
             </div>
 
             <div>
-              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-[#f9a08f]/60 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="px-3 text-[10px] uppercase tracking-[0.22em] text-neutral-500 mb-3 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
                 Automation
               </h3>
               <div className="space-y-0.5">
@@ -313,32 +335,20 @@ const AdminDashboard = () => {
       className="cc-paper min-h-screen flex bg-white text-black relative"
       style={{ fontFamily: "'Manrope', sans-serif" }}
     >
-      {/* Ambient gold glow accents */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-[480px] h-[480px] bg-[#2bb3a3]/[0.05] rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-[520px] h-[520px] bg-[#2bb3a3]/[0.04] rounded-full blur-[140px]" />
-      </div>
-
       {/* Mobile overlay */}
       {mobileNavOpen && (
-        <div
-          onClick={() => setMobileNavOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-fade-in"
-        />
+        <div onClick={() => setMobileNavOpen(false)} className="lg:hidden fixed inset-0 bg-black/30 z-40 animate-fade-in" />
       )}
 
-      {/* SIDEBAR — Floating Gold Frame */}
+      {/* SIDEBAR — white editorial frame */}
       <aside
         className={`
           fixed lg:sticky top-0 lg:top-4 left-0 z-50
           h-screen lg:h-[calc(100vh-2rem)]
           w-[280px] lg:ml-4 lg:my-4
-          bg-[#0e1119]/95 lg:bg-[#121621]
-          border-r lg:border border-[#2bb3a3]/25
-          lg:rounded-2xl
-          backdrop-blur-xl
+          bg-white border-r lg:border border-neutral-200 lg:rounded-2xl
           flex flex-col
-          shadow-[0_8px_40px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(43,179,163,0.08)]
+          shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.12)]
           transition-transform duration-300 ease-out
           ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           shrink-0
@@ -349,24 +359,19 @@ const AdminDashboard = () => {
 
       {/* MAIN COLUMN */}
       <main className="flex-1 min-w-0 flex flex-col relative z-10">
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#0a0c12]/85 border-b border-[#2bb3a3]/10">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200">
           <div className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-10 py-4">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setMobileNavOpen(true)}
-                className="lg:hidden p-2 -ml-2 rounded-md text-[#f9a08f] hover:bg-[#2bb3a3]/10 transition-colors"
+                className="lg:hidden p-2 -ml-2 rounded-md text-black hover:bg-neutral-100 transition-colors"
                 aria-label="Open navigation"
               >
                 <Menu className="h-5 w-5" />
               </button>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-[#2bb3a3]/70 font-semibold" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  {isMainAdmin ? 'Command Center' : `${profile?.role === 'supplier' ? 'Supplier' : 'Contractor'} Hub`}
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f3ee] truncate" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  {sectionLabel}
-                </h2>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-neutral-500 font-semibold">Command Center</div>
+                <div className="text-lg font-semibold text-black truncate">{sectionLabel}</div>
               </div>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -378,41 +383,42 @@ const AdminDashboard = () => {
                 onClick={refreshData}
                 disabled={isLoading}
                 title="Refresh"
-                className="p-2.5 rounded-lg border border-[#2bb3a3]/20 bg-[#121621] text-[#f9a08f] hover:bg-[#2bb3a3]/15 hover:border-[#2bb3a3]/50 transition-all duration-200"
+                className="p-2.5 rounded-lg border border-neutral-200 bg-white text-black hover:bg-neutral-100 transition-all duration-200"
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
               <Link to="/" title="Home">
-                <button className="p-2.5 rounded-lg border border-[#2bb3a3]/20 bg-[#121621] text-[#f9a08f] hover:bg-[#2bb3a3]/15 hover:border-[#2bb3a3]/50 transition-all duration-200">
+                <button className="p-2.5 rounded-lg border border-neutral-200 bg-white text-black hover:bg-neutral-100 transition-all duration-200">
                   <Home className="h-4 w-4" />
                 </button>
               </Link>
               <button
                 onClick={handleLogout}
                 title="Sign out"
-                className="p-2.5 rounded-lg border border-[#2bb3a3]/20 bg-[#121621] text-[#f9a08f] hover:bg-[#2bb3a3] hover:text-[#0a0c12] hover:border-[#2bb3a3] transition-all duration-200"
+                className="p-2.5 rounded-lg border border-neutral-200 bg-white text-black hover:bg-black hover:text-white transition-all duration-200"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
           </div>
-          <div className="h-px bg-gradient-to-r from-transparent via-[#2bb3a3]/30 to-transparent" />
+          
         </header>
 
         {/* Content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto">
-          {/* Live Telemetry + action queue — main admin only (company figures) */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto bg-[#fafafa]">
+          <ChapterBanner label={sectionLabel} section={activeSection} />
+          {/* Live figures + action queue — main admin only (company figures) */}
           {isMainAdmin && activeSection === 'today' && <>
           <div className="mb-10">
             <div className="flex items-baseline justify-between mb-4">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.25em] text-[#2bb3a3] font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  Live Telemetry
+                <div className="text-[10px] uppercase tracking-[0.25em] text-neutral-500 font-bold" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Live figures
                 </div>
-                <p className="text-xs text-[#f5f3ee]/40 mt-1">Real-time pulse across the operation</p>
+                <p className="text-sm text-neutral-700 mt-1">Every number comes straight from your records</p>
               </div>
-              <div className="hidden md:flex items-center gap-2 text-[10px] text-[#2bb3a3]/60 uppercase tracking-widest">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#2bb3a3] animate-pulse" />
+              <div className="hidden md:flex items-center gap-2 text-[10px] text-neutral-500 uppercase tracking-widest">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#0891b2] animate-pulse" />
                 Synced
               </div>
             </div>
@@ -425,14 +431,14 @@ const AdminDashboard = () => {
           {isMainAdmin && activeSection === 'companies' && <AdminCompanies />}
 
           {/* Products Tab - Only for main admins */}
-          {isMainAdmin && activeSection === "unified-products" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-              <Card className="holographic-panel border-cyan-500/30">
+          {isMainAdmin && activeSection === "unified-products" && <div className="space-y-6 animate-fade-in">
+              <Card className="border border-neutral-200 bg-white shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                    <Database className="h-5 w-5 text-cyan-400" />
+                  <CardTitle className="flex items-center gap-2 text-black">
+                    <Database className="h-5 w-5 text-black" />
                     Product Management
                   </CardTitle>
-                  <CardDescription className="text-cyan-400/60 font-mono">
+                  <CardDescription className="text-neutral-600">
                     Manage all products, pools, and inventory
                   </CardDescription>
                 </CardHeader>
@@ -443,21 +449,21 @@ const AdminDashboard = () => {
             </div>}
 
           {/* Users Tab */}
-          {activeSection === "users" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {activeSection === "users" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="text-cyan-300 font-mono">Users</CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">Manage users and permissions</CardDescription>
+                <CardTitle className="text-black">Users</CardTitle>
+                <CardDescription className="text-neutral-600">Manage users and permissions</CardDescription>
               </CardHeader>
               <CardContent>
                 <AdminUserManagement currentAdmin={profile} />
               </CardContent>
             </Card>
             
-            <Card className="holographic-panel border-cyan-500/30">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="text-cyan-300 font-mono">Demo Users Setup</CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">Create demo user accounts for testing</CardDescription>
+                <CardTitle className="text-black">Demo Users Setup</CardTitle>
+                <CardDescription className="text-neutral-600">Create demo user accounts for testing</CardDescription>
               </CardHeader>
               <CardContent>
                 <SetupDemoUsers />
@@ -466,24 +472,24 @@ const AdminDashboard = () => {
             </div>}
 
           {/* Orders Tab */}
-          {activeSection === "orders" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {activeSection === "orders" && <div className="space-y-6 animate-fade-in">
             <AdminOrdersManager />
             </div>}
 
           {/* Quotes Tab */}
-          {activeSection === "quotes" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {activeSection === "quotes" && <div className="space-y-6 animate-fade-in">
             <AdminQuotesManager />
             </div>}
 
           {/* Quote Tool Tab */}
-          {activeSection === "quote-tool" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {activeSection === "quote-tool" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <DollarSign className="h-5 w-5 text-cyan-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <DollarSign className="h-5 w-5 text-black" />
                   Quote Tool
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   Generate pool installation quotes for customers
                 </CardDescription>
               </CardHeader>
@@ -494,19 +500,19 @@ const AdminDashboard = () => {
             </div>}
 
           {/* Invoices Tab */}
-          {activeSection === "invoices" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {activeSection === "invoices" && <div className="space-y-6 animate-fade-in">
             <AdminInvoicesManager />
             </div>}
 
           {/* Invoice Tool Tab */}
-          {activeSection === "invoice-tool" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {activeSection === "invoice-tool" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <FileText className="h-5 w-5 text-cyan-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <FileText className="h-5 w-5 text-black" />
                   Invoice Generator
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   Create and send professional invoices to customers
                 </CardDescription>
               </CardHeader>
@@ -517,14 +523,14 @@ const AdminDashboard = () => {
             </div>}
 
           {/* Sales Reps Tab */}
-          {activeSection === "sales-reps" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {activeSection === "sales-reps" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <Users className="h-5 w-5 text-cyan-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <Users className="h-5 w-5 text-black" />
                   Sales Representatives
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   Manage sales representatives and their assigned clients
                 </CardDescription>
               </CardHeader>
@@ -535,14 +541,14 @@ const AdminDashboard = () => {
           </div>}
 
           {/* Sales Categories Tab */}
-          {activeSection === "sales-categories" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {activeSection === "sales-categories" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <Crown className="h-5 w-5 text-amber-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <Crown className="h-5 w-5 text-black" />
                   Sales Team Categories
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   Assign categories (BDR, AE, CSM, Regional Sales, Head of Sales) to define commission rates
                 </CardDescription>
               </CardHeader>
@@ -553,14 +559,14 @@ const AdminDashboard = () => {
           </div>}
 
           {/* Head of Sales Dashboard */}
-          {activeSection === "head-of-sales" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {activeSection === "head-of-sales" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <Crown className="h-5 w-5 text-amber-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <Crown className="h-5 w-5 text-black" />
                   Head of Sales Dashboard
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   Assign sales teams to clients and track commissions
                 </CardDescription>
               </CardHeader>
@@ -571,29 +577,29 @@ const AdminDashboard = () => {
           </div>}
 
           {/* Promotions Tab */}
-          {activeSection === "promotions" && <div className="animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {activeSection === "promotions" && <div className="animate-fade-in">
             <AdminPromotionsManager />
           </div>}
 
           {/* Clients Tab */}
-          {activeSection === "clients" && <div className="animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {activeSection === "clients" && <div className="animate-fade-in">
             <AdminClientManager />
           </div>}
 
           {/* Contractors Tab */}
-          {activeSection === "contractors" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {activeSection === "contractors" && <div className="space-y-6 animate-fade-in">
             <AdminContractorManagement />
           </div>}
 
           {/* Projects Tab */}
-          {activeSection === "projects" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {activeSection === "projects" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <HardHat className="h-5 w-5 text-cyan-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <HardHat className="h-5 w-5 text-black" />
                   Project Management
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   Track construction progress, manage phases, and share with clients
                 </CardDescription>
               </CardHeader>
@@ -604,19 +610,19 @@ const AdminDashboard = () => {
           </div>}
 
           {/* Referrals Tab */}
-          {activeSection === "referrals" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {activeSection === "referrals" && <div className="space-y-6 animate-fade-in">
             <AdminReferralsManager />
             </div>}
 
           {/* Customer Cache Database */}
-          {isMainAdmin && activeSection === "customer-cache" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {isMainAdmin && activeSection === "customer-cache" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <Database className="h-5 w-5 text-cyan-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <Database className="h-5 w-5 text-black" />
                   Customer Database
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   All unique customers from quote submissions (passcode protected)
                 </CardDescription>
               </CardHeader>
@@ -627,25 +633,25 @@ const AdminDashboard = () => {
           </div>}
 
           {/* Content Editor Tab - Only for main admins */}
-          {isMainAdmin && activeSection === "content-editor" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-              <Card className="holographic-panel border-cyan-500/30">
+          {isMainAdmin && activeSection === "content-editor" && <div className="space-y-6 animate-fade-in">
+              <Card className="border border-neutral-200 bg-white shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                    <Edit className="h-5 w-5 text-cyan-400" />
+                  <CardTitle className="flex items-center gap-2 text-black">
+                    <Edit className="h-5 w-5 text-black" />
                     Content Editor
                   </CardTitle>
-                  <CardDescription className="text-cyan-400/60 font-mono">
+                  <CardDescription className="text-neutral-600">
                     Edit website content and manage the marketplace
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-center py-8">
-                    <Globe className="h-16 w-16 text-cyan-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2 text-cyan-300 font-mono">Content Editor</h3>
-                    <p className="text-cyan-400/60 font-mono mb-4">
+                    <Globe className="h-16 w-16 text-black mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2 text-black">Content Editor</h3>
+                    <p className="text-neutral-600 mb-4">
                       Edit website content with live preview and drag-and-drop functionality.
                     </p>
-                    <Button onClick={() => window.open('/content-editor', '_blank')} className="w-full max-w-md mb-4 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30">
+                    <Button onClick={() => window.open('/content-editor', '_blank')} className="w-full max-w-md mb-4 bg-black hover:bg-neutral-800 text-white">
                       <Edit className="mr-2 h-4 w-4" />
                       Open Content Editor (New Tab)
                     </Button>
@@ -653,30 +659,30 @@ const AdminDashboard = () => {
                   
                   {/* Quick Summary */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                    <Card className="p-4 holographic-panel border-cyan-500/20">
+                    <Card className="p-4 border border-neutral-200 bg-white">
                       <div className="flex items-center gap-2 mb-2">
-                        <Database className="h-4 w-4 text-blue-400" />
-                        <span className="font-medium text-sm text-cyan-300 font-mono">Product Integration</span>
+                        <Database className="h-4 w-4 text-black" />
+                        <span className="font-medium text-sm text-black">Product Integration</span>
                       </div>
-                      <p className="text-xs text-cyan-400/60 font-mono">
+                      <p className="text-xs text-neutral-600">
                         Drag and drop products from the live database directly onto any page
                       </p>
                     </Card>
-                    <Card className="p-4 holographic-panel border-cyan-500/20">
+                    <Card className="p-4 border border-neutral-200 bg-white">
                       <div className="flex items-center gap-2 mb-2">
-                        <Smartphone className="h-4 w-4 text-green-400" />
-                        <span className="font-medium text-sm text-cyan-300 font-mono">Responsive Preview</span>
+                        <Smartphone className="h-4 w-4 text-black" />
+                        <span className="font-medium text-sm text-black">Responsive Preview</span>
                       </div>
-                      <p className="text-xs text-cyan-400/60 font-mono">
+                      <p className="text-xs text-neutral-600">
                         Test your changes on desktop, tablet, and mobile devices instantly
                       </p>
                     </Card>
-                    <Card className="p-4 holographic-panel border-cyan-500/20">
+                    <Card className="p-4 border border-neutral-200 bg-white">
                       <div className="flex items-center gap-2 mb-2">
-                        <RefreshCw className="h-4 w-4 text-purple-400" />
-                        <span className="font-medium text-sm text-cyan-300 font-mono">Live Updates</span>
+                        <RefreshCw className="h-4 w-4 text-black" />
+                        <span className="font-medium text-sm text-black">Live Updates</span>
                       </div>
-                      <p className="text-xs text-cyan-400/60 font-mono">
+                      <p className="text-xs text-neutral-600">
                         See your changes applied to the website in real-time
                       </p>
                     </Card>
@@ -686,24 +692,24 @@ const AdminDashboard = () => {
             </div>}
 
           {/* API Manager Tab - Main Admin Only */}
-          {isMainAdmin && activeSection === "api-manager" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "api-manager" && <div className="space-y-6 animate-fade-in">
               <AdminApiManagement />
             </div>}
 
           {/* API Keys Tab - Contractors and Suppliers */}
-          {isContractorOrSupplier && activeSection === "api-keys" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isContractorOrSupplier && activeSection === "api-keys" && <div className="space-y-6 animate-fade-in">
               <ApiKeyManager />
             </div>}
 
           {/* Pool Specs Tab */}
-          {activeSection === "pool-specs" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {activeSection === "pool-specs" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <Package className="h-5 w-5 text-cyan-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <Package className="h-5 w-5 text-black" />
                   Latham Pools Specifications
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   Complete pool specifications database with technical details
                 </CardDescription>
               </CardHeader>
@@ -714,16 +720,16 @@ const AdminDashboard = () => {
             </div>}
 
           {/* Delivery & Logistics Tab - Hidden from installers */}
-          {!isInstaller && activeSection === "delivery-logistics" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {!isInstaller && activeSection === "delivery-logistics" && <div className="space-y-6 animate-fade-in">
               <div className="space-y-6">
                 {/* Delivery API Management Section */}
-                <Card className="holographic-panel border-cyan-500/30">
+                <Card className="border border-neutral-200 bg-white shadow-sm">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                      <TrendingUp className="h-5 w-5 text-cyan-400" />
+                    <CardTitle className="flex items-center gap-2 text-black">
+                      <TrendingUp className="h-5 w-5 text-black" />
                       Delivery API Management
                     </CardTitle>
-                    <CardDescription className="text-cyan-400/60 font-mono">
+                    <CardDescription className="text-neutral-600">
                       Manage third-party delivery service APIs and integrations
                     </CardDescription>
                   </CardHeader>
@@ -745,25 +751,25 @@ const AdminDashboard = () => {
           )}
 
           {/* Procurement Tab (main admin) */}
-          {!isContractorOrSupplier && activeSection === "procurement" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-            <Card className="holographic-panel border-cyan-500/30">
+          {!isContractorOrSupplier && activeSection === "procurement" && <div className="space-y-6 animate-fade-in">
+            <Card className="border border-neutral-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                  <Building2 className="h-5 w-5 text-cyan-400" />
+                <CardTitle className="flex items-center gap-2 text-black">
+                  <Building2 className="h-5 w-5 text-black" />
                   Procurement System
                 </CardTitle>
-                <CardDescription className="text-cyan-400/60 font-mono">
+                <CardDescription className="text-neutral-600">
                   Manage procurement bids, job postings, and contractor relationships
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center py-8">
-                  <Building2 className="h-16 w-16 text-cyan-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2 text-cyan-300 font-mono">Procurement System</h3>
-                  <p className="text-cyan-400/60 font-mono mb-4">
+                  <Building2 className="h-16 w-16 text-black mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2 text-black">Procurement System</h3>
+                  <p className="text-neutral-600 mb-4">
                     Access the full procurement system with enhanced bid creation and application tools.
                   </p>
-                  <Button onClick={() => window.open('/procurement', '_blank')} className="w-full max-w-md mb-4 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30">
+                  <Button onClick={() => window.open('/procurement', '_blank')} className="w-full max-w-md mb-4 bg-black hover:bg-neutral-800 text-white">
                     <Building2 className="mr-2 h-4 w-4" />
                     Open Procurement System (New Tab)
                   </Button>
@@ -771,30 +777,30 @@ const AdminDashboard = () => {
                 
                 {/* Quick Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                  <Card className="p-4 holographic-panel border-cyan-500/20">
+                  <Card className="p-4 border border-neutral-200 bg-white">
                     <div className="flex items-center gap-2 mb-2">
-                      <Plus className="h-4 w-4 text-blue-400" />
-                      <span className="font-medium text-sm text-cyan-300 font-mono">Create Bids</span>
+                      <Plus className="h-4 w-4 text-black" />
+                      <span className="font-medium text-sm text-black">Create Bids</span>
                     </div>
-                    <p className="text-xs text-cyan-400/60 font-mono">
+                    <p className="text-xs text-neutral-600">
                       Post detailed job requirements and receive competitive bids from qualified contractors
                     </p>
                   </Card>
-                  <Card className="p-4 holographic-panel border-cyan-500/20">
+                  <Card className="p-4 border border-neutral-200 bg-white">
                     <div className="flex items-center gap-2 mb-2">
-                      <Search className="h-4 w-4 text-green-400" />
-                      <span className="font-medium text-sm text-cyan-300 font-mono">Browse Jobs</span>
+                      <Search className="h-4 w-4 text-black" />
+                      <span className="font-medium text-sm text-black">Browse Jobs</span>
                     </div>
-                    <p className="text-xs text-cyan-400/60 font-mono">
+                    <p className="text-xs text-neutral-600">
                       Find and apply to procurement opportunities with advanced filtering and search
                     </p>
                   </Card>
-                  <Card className="p-4 holographic-panel border-cyan-500/20">
+                  <Card className="p-4 border border-neutral-200 bg-white">
                     <div className="flex items-center gap-2 mb-2">
-                      <Users className="h-4 w-4 text-purple-400" />
-                      <span className="font-medium text-sm text-cyan-300 font-mono">Manage Relationships</span>
+                      <Users className="h-4 w-4 text-black" />
+                      <span className="font-medium text-sm text-black">Manage Relationships</span>
                     </div>
-                    <p className="text-xs text-cyan-400/60 font-mono">
+                    <p className="text-xs text-neutral-600">
                       Build and maintain professional relationships with contractors and suppliers
                     </p>
                   </Card>
@@ -804,41 +810,41 @@ const AdminDashboard = () => {
             </div>}
 
           {/* Analytics Tab */}
-          {isMainAdmin && activeSection === "analytics" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "analytics" && <div className="space-y-6 animate-fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="holographic-panel border-cyan-500/30">
+              <Card className="border border-neutral-200 bg-white shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-cyan-300 font-mono">Revenue Analytics</CardTitle>
-                  <CardDescription className="text-cyan-400/60 font-mono">Track your pool system revenue performance</CardDescription>
+                  <CardTitle className="text-black">Revenue Analytics</CardTitle>
+                  <CardDescription className="text-neutral-600">Track your pool system revenue performance</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-cyan-300 font-mono">${dbMetrics.totalRevenue.toLocaleString()}</div>
-                      <p className="text-sm text-cyan-400/60 font-mono">Total Revenue</p>
+                      <div className="text-3xl font-bold text-black">${dbMetrics.totalRevenue.toLocaleString()}</div>
+                      <p className="text-sm text-neutral-600">Total Revenue</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400 font-mono">${dbMetrics.averageOrderValue.toFixed(2)}</div>
-                      <p className="text-sm text-cyan-400/60 font-mono">Average Order Value</p>
+                      <div className="text-2xl font-bold text-black font-mono">${dbMetrics.averageOrderValue.toFixed(2)}</div>
+                      <p className="text-sm text-neutral-600">Average Order Value</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="holographic-panel border-cyan-500/30">
+              <Card className="border border-neutral-200 bg-white shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-cyan-300 font-mono">Database Insights</CardTitle>
-                  <CardDescription className="text-cyan-400/60 font-mono">Key metrics and insights for your unified database</CardDescription>
+                  <CardTitle className="text-black">Database Insights</CardTitle>
+                  <CardDescription className="text-neutral-600">Key metrics and insights for your unified database</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-cyan-400/80 font-mono">Total Products</span>
-                      <span className="font-bold text-cyan-300 font-mono">{dbMetrics.totalProducts}</span>
+                      <span className="text-sm text-neutral-700">Total Products</span>
+                      <span className="font-bold text-black">{dbMetrics.totalProducts}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-cyan-400/80 font-mono">Active Pools</span>
-                      <span className="font-bold text-cyan-300 font-mono">{dbMetrics.activePools}</span>
+                      <span className="text-sm text-neutral-700">Active Pools</span>
+                      <span className="font-bold text-black">{dbMetrics.activePools}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -847,49 +853,49 @@ const AdminDashboard = () => {
             </div>}
           
           {/* Setup Tab - Main Admin Only */}
-          {isMainAdmin && activeSection === "setup" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "setup" && <div className="space-y-6 animate-fade-in">
               <SampleDataSetup />
             </div>}
           
           {/* Pool Calculator Tab */}
-          {isMainAdmin && activeSection === "calculator" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "calculator" && <div className="space-y-6 animate-fade-in">
               <PoolCalculator />
             </div>}
 
           {/* Performance Monitoring Tab */}
-          {isMainAdmin && activeSection === "performance" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "performance" && <div className="space-y-6 animate-fade-in">
               <PerformanceMonitoring />
             </div>}
 
           {/* Automation Templates Tab */}
-          {isMainAdmin && activeSection === "automation-templates" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "automation-templates" && <div className="space-y-6 animate-fade-in">
               <AutomationTemplatesManager />
             </div>}
 
           {/* Automation Sequences Tab */}
-          {isMainAdmin && activeSection === "automation-sequences" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "automation-sequences" && <div className="space-y-6 animate-fade-in">
               <AutomationSequencesManager />
             </div>}
 
           {/* Automation Status Tab */}
-          {isMainAdmin && activeSection === "automation-status" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "automation-status" && <div className="space-y-6 animate-fade-in">
               <TwilioTestPanel />
               <AutomationStatusManager />
             </div>}
 
-          {isMainAdmin && activeSection === "tech-hub" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+          {isMainAdmin && activeSection === "tech-hub" && <div className="space-y-6 animate-fade-in">
               <AdminTechnologyHub />
             </div>}
 
           {/* Job Board Tab */}
-          {isMainAdmin && activeSection === "job-board" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-              <Card className="holographic-panel border-cyan-500/30">
+          {isMainAdmin && activeSection === "job-board" && <div className="space-y-6 animate-fade-in">
+              <Card className="border border-neutral-200 bg-white shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                    <Briefcase className="h-5 w-5 text-cyan-400" />
+                  <CardTitle className="flex items-center gap-2 text-black">
+                    <Briefcase className="h-5 w-5 text-black" />
                     Job Board Management
                   </CardTitle>
-                  <CardDescription className="text-cyan-400/60 font-mono">
+                  <CardDescription className="text-neutral-600">
                     Manage career postings for Construction Workers and Pool Cleaners
                   </CardDescription>
                 </CardHeader>

@@ -70,7 +70,7 @@ const ContractorPayoutsTab: React.FC<{ contractorId: string }> = ({ contractorId
           ['Total contracted', totals.total],
         ].map(([label, v]) => (
           <div key={label as string} className="rounded-xl border border-slate-200 bg-white p-5">
-            <p className="text-xs uppercase tracking-widest text-slate-500">{label}</p>
+            <p className="text-xs uppercase tracking-widest text-neutral-600">{label}</p>
             <p className="mt-1 text-2xl font-semibold">{money(v as number)}</p>
           </div>
         ))}
@@ -82,7 +82,7 @@ const ContractorPayoutsTab: React.FC<{ contractorId: string }> = ({ contractorId
           <div className="flex gap-1" role="tablist" aria-label="Filter work orders">
             {(['all', 'open', 'completed'] as Filter[]).map((f) => (
               <button key={f} role="tab" aria-selected={filter === f} onClick={() => setFilter(f)}
-                className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${filter === f ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${filter === f ? 'bg-white text-black' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
                 {f}
               </button>
             ))}
@@ -93,7 +93,7 @@ const ContractorPayoutsTab: React.FC<{ contractorId: string }> = ({ contractorId
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
-              <thead className="text-left text-xs uppercase tracking-wider text-slate-500">
+              <thead className="text-left text-xs uppercase tracking-wider text-neutral-600">
                 <tr><th className="p-3">Project</th><th className="p-3">Task</th><th className="p-3">Due</th><th className="p-3">Status</th><th className="p-3 text-right">Payout</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

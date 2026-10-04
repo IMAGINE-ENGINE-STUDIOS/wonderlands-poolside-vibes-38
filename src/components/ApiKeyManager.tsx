@@ -189,16 +189,16 @@ const ApiKeyManager = () => {
           {generatedToken && (
             <Card className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
               <CardHeader>
-                <CardTitle className="text-green-800 dark:text-green-200 text-lg">
+                <CardTitle className="text-green-800 dark:text-black text-lg">
                   New API Key Generated
                 </CardTitle>
-                <CardDescription className="text-green-700 dark:text-green-300">
+                <CardDescription className="text-green-700 dark:text-black">
                   Copy this key now - you won't be able to see it again
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-3 bg-white dark:bg-gray-900 border rounded text-sm font-mono break-all">
+                  <code className="flex-1 p-3 bg-white dark:bg-white border rounded text-sm  break-all">
                     {generatedToken}
                   </code>
                   <Button
@@ -317,20 +317,20 @@ const ApiKeyManager = () => {
           </div>
 
           {/* API Documentation */}
-          <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+          <Card className="bg-blue-50 border-neutral-200 dark:bg-neutral-50 dark:border-neutral-200">
             <CardHeader>
-              <CardTitle className="text-blue-800 dark:text-blue-200 text-lg flex items-center gap-2">
+              <CardTitle className="text-blue-800 dark:text-black text-lg flex items-center gap-2">
                 <Key className="h-5 w-5" />
                 API Integration Guide
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-blue-700 dark:text-blue-300 space-y-3">
+            <CardContent className="text-blue-700 dark:text-black space-y-3">
               <p><strong>Base URL:</strong></p>
-              <code className="block p-2 bg-white dark:bg-gray-900 rounded text-sm break-all">
+              <code className="block p-2 bg-white dark:bg-white rounded text-sm break-all">
                 https://bwngxlbnavnhbtahyzbf.supabase.co/functions/v1/public-api
               </code>
               <p><strong>Authentication:</strong> Include your API key in the Authorization header:</p>
-              <code className="block p-2 bg-white dark:bg-gray-900 rounded text-sm">
+              <code className="block p-2 bg-white dark:bg-white rounded text-sm">
                 Authorization: Bearer wl_your_api_key_here
               </code>
               <p><strong>Available Endpoints (GET only):</strong></p>

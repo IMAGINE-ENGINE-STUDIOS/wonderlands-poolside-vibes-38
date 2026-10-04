@@ -326,21 +326,21 @@ const AdminPromotionsManager = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg holographic-panel flex items-center justify-center">
-            <Tag className="h-6 w-6 text-cyan-400" />
+          <div className="w-12 h-12 rounded-lg bg-white border border-neutral-200 rounded-xl shadow-sm flex items-center justify-center">
+            <Tag className="h-6 w-6 text-black" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-cyan-300 font-mono tracking-wide">
+            <h2 className="text-2xl font-bold text-black  tracking-wide">
               PROMOTIONS MANAGER
             </h2>
-            <p className="text-xs text-cyan-400/60 font-mono">
+            <p className="text-xs text-neutral-600 ">
               Create and manage promotional bundles
             </p>
           </div>
         </div>
         <Button 
           onClick={handleOpenCreate}
-          className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+          className="bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200"
         >
           <Plus className="h-4 w-4 mr-2" />
           New Promotion
@@ -349,47 +349,47 @@ const AdminPromotionsManager = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="holographic-panel border-cyan-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-cyan-400/60 font-mono uppercase">Total Promotions</p>
-                <p className="text-3xl font-bold text-cyan-300 font-mono">{promotions.length}</p>
+                <p className="text-xs text-neutral-600  uppercase">Total Promotions</p>
+                <p className="text-3xl font-bold text-black ">{promotions.length}</p>
               </div>
-              <Package className="h-8 w-8 text-cyan-400/40" />
+              <Package className="h-8 w-8 text-neutral-600" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="holographic-panel border-green-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-green-500/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-green-400/60 font-mono uppercase">Active</p>
-                <p className="text-3xl font-bold text-green-300 font-mono">{activePromotions.length}</p>
+                <p className="text-xs text-black  uppercase">Active</p>
+                <p className="text-3xl font-bold text-black ">{activePromotions.length}</p>
               </div>
-              <Zap className="h-8 w-8 text-green-400/40" />
+              <Zap className="h-8 w-8 text-black" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="holographic-panel border-orange-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-orange-500/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-orange-400/60 font-mono uppercase">Expired</p>
-                <p className="text-3xl font-bold text-orange-300 font-mono">{expiredPromotions.length}</p>
+                <p className="text-xs text-black  uppercase">Expired</p>
+                <p className="text-3xl font-bold text-black ">{expiredPromotions.length}</p>
               </div>
-              <Calendar className="h-8 w-8 text-orange-400/40" />
+              <Calendar className="h-8 w-8 text-black" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Promotions Table */}
-      <Card className="holographic-panel border-cyan-500/30">
+      <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
         <CardHeader>
-          <CardTitle className="text-cyan-300 font-mono flex items-center gap-2">
+          <CardTitle className="text-black  flex items-center gap-2">
             <Tag className="h-5 w-5" />
             ALL PROMOTIONS
           </CardTitle>
@@ -397,16 +397,16 @@ const AdminPromotionsManager = () => {
         <CardContent>
           {isLoading ? (
             <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
-              <p className="text-cyan-400/60 font-mono text-sm mt-4">Loading promotions...</p>
+              <Loader2 className="h-8 w-8 animate-spin text-black mx-auto" />
+              <p className="text-neutral-600  text-sm mt-4">Loading promotions...</p>
             </div>
           ) : promotions.length === 0 ? (
             <div className="text-center py-12">
-              <Tag className="h-12 w-12 text-cyan-400/40 mx-auto mb-4" />
-              <p className="text-cyan-400/60 font-mono text-sm">No promotions yet</p>
+              <Tag className="h-12 w-12 text-neutral-600 mx-auto mb-4" />
+              <p className="text-neutral-600  text-sm">No promotions yet</p>
               <Button 
                 onClick={handleOpenCreate} 
-                className="mt-4 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+                className="mt-4 bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create First Promotion
@@ -416,12 +416,12 @@ const AdminPromotionsManager = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-cyan-500/20 hover:bg-transparent">
-                    <TableHead className="text-cyan-400 font-mono bg-black/40">Name</TableHead>
-                    <TableHead className="text-cyan-400 font-mono bg-black/40">Bundle Price</TableHead>
-                    <TableHead className="text-cyan-400 font-mono bg-black/40">Savings</TableHead>
-                    <TableHead className="text-cyan-400 font-mono bg-black/40">Status</TableHead>
-                    <TableHead className="text-cyan-400 font-mono bg-black/40">Actions</TableHead>
+                  <TableRow className="border-neutral-200 hover:bg-transparent">
+                    <TableHead className="text-black  bg-white">Name</TableHead>
+                    <TableHead className="text-black  bg-white">Bundle Price</TableHead>
+                    <TableHead className="text-black  bg-white">Savings</TableHead>
+                    <TableHead className="text-black  bg-white">Status</TableHead>
+                    <TableHead className="text-black  bg-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -431,31 +431,31 @@ const AdminPromotionsManager = () => {
                       : 0;
                     
                     return (
-                      <TableRow key={promotion.id} className="border-cyan-500/20 bg-black/20 hover:bg-cyan-500/5">
+                      <TableRow key={promotion.id} className="border-neutral-200 bg-white hover:bg-neutral-100">
                         <TableCell>
                           <div>
-                            <p className="font-medium text-cyan-300 font-mono">{promotion.name}</p>
+                            <p className="font-medium text-black ">{promotion.name}</p>
                             {promotion.highlight_text && (
-                              <Badge className="bg-green-500/20 text-green-300 border-green-500/30 text-xs mt-1">
+                              <Badge className="bg-green-500/20 text-black border-green-500/30 text-xs mt-1">
                                 {promotion.highlight_text}
                               </Badge>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1 text-cyan-300 font-mono">
+                          <div className="flex items-center gap-1 text-black ">
                             <DollarSign className="h-4 w-4" />
                             {promotion.bundle_price.toLocaleString()}
                           </div>
                           {promotion.original_price && (
-                            <p className="text-xs text-cyan-400/60 line-through">
+                            <p className="text-xs text-neutral-600 line-through">
                               ${promotion.original_price.toLocaleString()}
                             </p>
                           )}
                         </TableCell>
                         <TableCell>
                           {savings > 0 && (
-                            <Badge className="bg-green-500/20 text-green-300 border-green-500/30 font-mono">
+                            <Badge className="bg-green-500/20 text-black border-green-500/30 ">
                               Save ${savings.toLocaleString()}
                             </Badge>
                           )}
@@ -467,8 +467,8 @@ const AdminPromotionsManager = () => {
                               onCheckedChange={() => handleToggleActive(promotion)}
                             />
                             <Badge className={promotion.is_active 
-                              ? "bg-green-500/20 text-green-300 border-green-500/30" 
-                              : "bg-red-500/20 text-red-300 border-red-500/30"
+                              ? "bg-green-500/20 text-black border-green-500/30" 
+                              : "bg-red-500/20 text-black border-red-500/30"
                             }>
                               {promotion.is_active ? 'Active' : 'Inactive'}
                             </Badge>
@@ -481,7 +481,7 @@ const AdminPromotionsManager = () => {
                               variant="outline"
                               onClick={() => handleOpenEmailDialog(promotion)}
                               disabled={!promotion.is_active || (isSendingEmail && sendingPromotionId === promotion.id)}
-                              className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                              className="border-amber-500/30 text-black hover:bg-amber-500/10"
                               title="Send to All Clients"
                             >
                               {isSendingEmail && sendingPromotionId === promotion.id ? (
@@ -494,7 +494,7 @@ const AdminPromotionsManager = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleOpenEdit(promotion)}
-                              className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                              className="border-neutral-200 text-black hover:bg-neutral-100"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -502,7 +502,7 @@ const AdminPromotionsManager = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleDelete(promotion)}
-                              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                              className="border-red-500/30 text-black hover:bg-red-500/10"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -520,9 +520,9 @@ const AdminPromotionsManager = () => {
 
       {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="bg-slate-900 border-cyan-500/30 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-neutral-200 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300 font-mono">
+            <DialogTitle className="text-black ">
               {editingPromotion ? 'Edit Promotion' : 'Create New Promotion'}
             </DialogTitle>
           </DialogHeader>
@@ -530,108 +530,108 @@ const AdminPromotionsManager = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-cyan-400 font-mono text-xs">Name *</Label>
+                <Label className="text-black  text-xs">Name *</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Bundle name"
-                  className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                  className="bg-white border-neutral-200 text-black "
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-400 font-mono text-xs">Highlight Text</Label>
+                <Label className="text-black  text-xs">Highlight Text</Label>
                 <Input
                   value={formData.highlight_text}
                   onChange={(e) => setFormData({ ...formData, highlight_text: e.target.value })}
                   placeholder="e.g., SAVE $12,000!"
-                  className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                  className="bg-white border-neutral-200 text-black "
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-cyan-400 font-mono text-xs">Description</Label>
+              <Label className="text-black  text-xs">Description</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Promotion description..."
-                className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono min-h-[80px]"
+                className="bg-white border-neutral-200 text-black  min-h-[80px]"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-cyan-400 font-mono text-xs">Bundle Price * ($)</Label>
+                <Label className="text-black  text-xs">Bundle Price * ($)</Label>
                 <Input
                   type="number"
                   value={formData.bundle_price}
                   onChange={(e) => setFormData({ ...formData, bundle_price: e.target.value })}
                   placeholder="72863"
-                  className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                  className="bg-white border-neutral-200 text-black "
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-400 font-mono text-xs">Original Price ($)</Label>
+                <Label className="text-black  text-xs">Original Price ($)</Label>
                 <Input
                   type="number"
                   value={formData.original_price}
                   onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
                   placeholder="85000"
-                  className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                  className="bg-white border-neutral-200 text-black "
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-cyan-400 font-mono text-xs">Start Date</Label>
+                <Label className="text-black  text-xs">Start Date</Label>
                 <Input
                   type="date"
                   value={formData.start_date}
                   onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                  className="bg-white border-neutral-200 text-black "
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-400 font-mono text-xs">End Date</Label>
+                <Label className="text-black  text-xs">End Date</Label>
                 <Input
                   type="date"
                   value={formData.end_date}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                  className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                  className="bg-white border-neutral-200 text-black "
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-cyan-400 font-mono text-xs">
+              <Label className="text-black  text-xs">
                 Included Items (JSON array)
               </Label>
               <Textarea
                 value={formData.included_items}
                 onChange={(e) => setFormData({ ...formData, included_items: e.target.value })}
                 placeholder='[{"name": "Pool", "value": "16x32 ft"}]'
-                className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono min-h-[100px] text-xs"
+                className="bg-white border-neutral-200 text-black  min-h-[100px] text-xs"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-cyan-400 font-mono text-xs">Image URL</Label>
+              <Label className="text-black  text-xs">Image URL</Label>
               <Input
                 value={formData.image_url}
                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                 placeholder="https://..."
-                className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                className="bg-white border-neutral-200 text-black "
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-cyan-400 font-mono text-xs">Terms & Conditions</Label>
+              <Label className="text-black  text-xs">Terms & Conditions</Label>
               <Textarea
                 value={formData.terms_conditions}
                 onChange={(e) => setFormData({ ...formData, terms_conditions: e.target.value })}
                 placeholder="Terms and conditions..."
-                className="bg-black/40 border-cyan-500/30 text-cyan-300 font-mono min-h-[60px]"
+                className="bg-white border-neutral-200 text-black  min-h-[60px]"
               />
             </div>
 
@@ -640,21 +640,21 @@ const AdminPromotionsManager = () => {
                 checked={formData.is_active}
                 onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
               />
-              <Label className="text-cyan-400 font-mono text-xs">Active</Label>
+              <Label className="text-black  text-xs">Active</Label>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 variant="outline"
                 onClick={() => setShowDialog(false)}
-                className="border-cyan-500/30 text-cyan-400"
+                className="border-neutral-200 text-black"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={isSaving || !formData.name || !formData.bundle_price}
-                className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+                className="bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200"
               >
                 {isSaving ? (
                   <>
@@ -672,9 +672,9 @@ const AdminPromotionsManager = () => {
 
       {/* Send Email Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent className="bg-slate-900 border-cyan-500/30 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-neutral-200 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300 font-mono flex items-center gap-2">
+            <DialogTitle className="text-black  flex items-center gap-2">
               <Mail className="h-5 w-5" />
               Send "{emailPromotion?.name}"
             </DialogTitle>
@@ -687,13 +687,13 @@ const AdminPromotionsManager = () => {
                 onClick={() => setSendMode('all')}
                 className={`p-4 rounded-lg border text-left transition-all ${
                   sendMode === 'all'
-                    ? 'border-cyan-400 bg-cyan-500/10'
-                    : 'border-cyan-500/20 bg-black/20 hover:border-cyan-500/40'
+                    ? 'border-neutral-200 bg-neutral-100'
+                    : 'border-neutral-200 bg-white hover:border-neutral-200'
                 }`}
               >
-                <Users className="h-5 w-5 text-cyan-300 mb-2" />
-                <p className="font-mono text-cyan-300 text-sm font-bold">All Customers</p>
-                <p className="font-mono text-cyan-400/60 text-xs mt-1">
+                <Users className="h-5 w-5 text-black mb-2" />
+                <p className=" text-black text-sm font-bold">All Customers</p>
+                <p className=" text-neutral-600 text-xs mt-1">
                   Send to every client with an email
                 </p>
               </button>
@@ -702,13 +702,13 @@ const AdminPromotionsManager = () => {
                 onClick={() => setSendMode('specific')}
                 className={`p-4 rounded-lg border text-left transition-all ${
                   sendMode === 'specific'
-                    ? 'border-cyan-400 bg-cyan-500/10'
-                    : 'border-cyan-500/20 bg-black/20 hover:border-cyan-500/40'
+                    ? 'border-neutral-200 bg-neutral-100'
+                    : 'border-neutral-200 bg-white hover:border-neutral-200'
                 }`}
               >
-                <User className="h-5 w-5 text-cyan-300 mb-2" />
-                <p className="font-mono text-cyan-300 text-sm font-bold">Specific Customers</p>
-                <p className="font-mono text-cyan-400/60 text-xs mt-1">
+                <User className="h-5 w-5 text-black mb-2" />
+                <p className=" text-black text-sm font-bold">Specific Customers</p>
+                <p className=" text-neutral-600 text-xs mt-1">
                   Pick clients from the list
                 </p>
               </button>
@@ -717,28 +717,28 @@ const AdminPromotionsManager = () => {
             {sendMode === 'specific' && (
               <div className="space-y-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400/60" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-600" />
                   <Input
                     placeholder="Search by name or email..."
                     value={clientSearch}
                     onChange={(e) => setClientSearch(e.target.value)}
-                    className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 font-mono"
+                    className="pl-10 bg-white border-neutral-200 text-black "
                   />
                 </div>
-                <div className="flex items-center justify-between text-xs font-mono text-cyan-400/70">
+                <div className="flex items-center justify-between text-xs  text-neutral-600">
                   <span>{selectedClientIds.length} selected</span>
                   <button
                     type="button"
                     onClick={() => setSelectedClientIds([])}
-                    className="hover:text-cyan-300"
+                    className="hover:text-black"
                   >
                     Clear
                   </button>
                 </div>
-                <div className="max-h-72 overflow-y-auto border border-cyan-500/20 rounded-lg divide-y divide-cyan-500/10">
+                <div className="max-h-72 overflow-y-auto border border-neutral-200 rounded-lg divide-y divide-cyan-500/10">
                   {loadingClients ? (
                     <div className="py-8 text-center">
-                      <Loader2 className="h-5 w-5 animate-spin text-cyan-400 mx-auto" />
+                      <Loader2 className="h-5 w-5 animate-spin text-black mx-auto" />
                     </div>
                   ) : (
                     clients
@@ -756,20 +756,20 @@ const AdminPromotionsManager = () => {
                             type="button"
                             key={c.id}
                             onClick={() => toggleClient(c.id)}
-                            className={`w-full px-3 py-2 flex items-center gap-3 text-left hover:bg-cyan-500/5 ${
-                              checked ? 'bg-cyan-500/10' : ''
+                            className={`w-full px-3 py-2 flex items-center gap-3 text-left hover:bg-neutral-100 ${
+                              checked ? 'bg-neutral-100' : ''
                             }`}
                           >
                             <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
-                              checked ? 'bg-cyan-500 border-cyan-500' : 'border-cyan-500/40'
+                              checked ? 'bg-cyan-500 border-neutral-200' : 'border-neutral-200'
                             }`}>
                               {checked && <Check className="h-3 w-3 text-black" />}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-mono text-cyan-300 truncate">
+                              <p className="text-sm  text-black truncate">
                                 {c.first_name} {c.last_name}
                               </p>
-                              <p className="text-xs font-mono text-cyan-400/60 truncate">{c.email}</p>
+                              <p className="text-xs  text-neutral-600 truncate">{c.email}</p>
                             </div>
                           </button>
                         );
@@ -783,14 +783,14 @@ const AdminPromotionsManager = () => {
               <Button
                 variant="outline"
                 onClick={() => setEmailDialogOpen(false)}
-                className="border-cyan-500/30 text-cyan-400"
+                className="border-neutral-200 text-black"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleConfirmSendEmail}
                 disabled={isSendingEmail || (sendMode === 'specific' && selectedClientIds.length === 0)}
-                className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+                className="bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200"
               >
                 {isSendingEmail ? (
                   <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</>

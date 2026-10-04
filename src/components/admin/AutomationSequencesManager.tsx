@@ -51,10 +51,10 @@ const channelIcons: Record<string, React.ElementType> = {
 };
 
 const channelColors: Record<string, string> = {
-  email: 'bg-blue-500/20 text-blue-400',
-  sms: 'bg-green-500/20 text-green-400',
-  whatsapp: 'bg-emerald-500/20 text-emerald-400',
-  voice: 'bg-purple-500/20 text-purple-400'
+  email: 'bg-neutral-100 text-black',
+  sms: 'bg-green-500/20 text-black',
+  whatsapp: 'bg-emerald-500/20 text-black',
+  voice: 'bg-purple-500/20 text-black'
 };
 
 export default function AutomationSequencesManager() {
@@ -279,8 +279,8 @@ export default function AutomationSequencesManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-cyan-300">Automation Sequences</h2>
-          <p className="text-cyan-400/60 text-sm">Configure automated outreach workflows</p>
+          <h2 className="text-2xl font-bold text-black">Automation Sequences</h2>
+          <p className="text-neutral-600 text-sm">Configure automated outreach workflows</p>
         </div>
         <Dialog open={isSequenceDialogOpen} onOpenChange={(open) => {
           setIsSequenceDialogOpen(open);
@@ -292,41 +292,41 @@ export default function AutomationSequencesManager() {
               New Sequence
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-gray-900 border-cyan-500/30">
+          <DialogContent className="bg-white border-neutral-200">
             <DialogHeader>
-              <DialogTitle className="text-cyan-300">
+              <DialogTitle className="text-black">
                 {editingSequence ? 'Edit Sequence' : 'Create New Sequence'}
               </DialogTitle>
             </DialogHeader>
             
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label className="text-cyan-300">Sequence Name</Label>
+                <Label className="text-black">Sequence Name</Label>
                 <Input
                   value={sequenceForm.name}
                   onChange={(e) => setSequenceForm({ ...sequenceForm, name: e.target.value })}
                   placeholder="e.g., Welcome Sequence"
-                  className="bg-gray-800 border-cyan-500/30"
+                  className="bg-white border-neutral-200"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-cyan-300">Description</Label>
+                <Label className="text-black">Description</Label>
                 <Textarea
                   value={sequenceForm.description}
                   onChange={(e) => setSequenceForm({ ...sequenceForm, description: e.target.value })}
                   placeholder="Describe this automation sequence..."
-                  className="bg-gray-800 border-cyan-500/30"
+                  className="bg-white border-neutral-200"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-cyan-300">Trigger Event</Label>
+                <Label className="text-black">Trigger Event</Label>
                 <Select
                   value={sequenceForm.trigger_event}
                   onValueChange={(value) => setSequenceForm({ ...sequenceForm, trigger_event: value })}
                 >
-                  <SelectTrigger className="bg-gray-800 border-cyan-500/30">
+                  <SelectTrigger className="bg-white border-neutral-200">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -338,7 +338,7 @@ export default function AutomationSequencesManager() {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label className="text-cyan-300">Active</Label>
+                <Label className="text-black">Active</Label>
                 <Switch
                   checked={sequenceForm.is_active}
                   onCheckedChange={(checked) => setSequenceForm({ ...sequenceForm, is_active: checked })}
@@ -359,12 +359,12 @@ export default function AutomationSequencesManager() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-12 text-cyan-400/60">Loading sequences...</div>
+        <div className="text-center py-12 text-neutral-600">Loading sequences...</div>
       ) : sequences.length === 0 ? (
-        <Card className="bg-gray-900/50 border-cyan-500/20">
+        <Card className="bg-white border-neutral-200">
           <CardContent className="py-12 text-center">
-            <Settings className="h-12 w-12 text-cyan-400/40 mx-auto mb-4" />
-            <p className="text-cyan-400/60">No sequences yet. Create your first automation sequence.</p>
+            <Settings className="h-12 w-12 text-neutral-600 mx-auto mb-4" />
+            <p className="text-neutral-600">No sequences yet. Create your first automation sequence.</p>
           </CardContent>
         </Card>
       ) : (
@@ -375,27 +375,27 @@ export default function AutomationSequencesManager() {
               open={expandedSequence === sequence.id}
               onOpenChange={(open) => setExpandedSequence(open ? sequence.id : null)}
             >
-              <Card className="bg-gray-900/50 border-cyan-500/20">
+              <Card className="bg-white border-neutral-200">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="hover:bg-cyan-500/10">
+                        <Button variant="ghost" size="icon" className="hover:bg-neutral-100">
                           {expandedSequence === sequence.id ? (
-                            <ChevronUp className="h-4 w-4 text-cyan-400" />
+                            <ChevronUp className="h-4 w-4 text-black" />
                           ) : (
-                            <ChevronDown className="h-4 w-4 text-cyan-400" />
+                            <ChevronDown className="h-4 w-4 text-black" />
                           )}
                         </Button>
                       </CollapsibleTrigger>
                       <div>
-                        <CardTitle className="text-cyan-300 flex items-center gap-2">
+                        <CardTitle className="text-black flex items-center gap-2">
                           {sequence.name}
-                          <Badge variant="outline" className={sequence.is_active ? 'text-green-400 border-green-500/30' : 'text-gray-400 border-gray-500/30'}>
+                          <Badge variant="outline" className={sequence.is_active ? 'text-black border-green-500/30' : 'text-black border-gray-500/30'}>
                             {sequence.is_active ? 'Active' : 'Inactive'}
                           </Badge>
                         </CardTitle>
-                        <CardDescription className="text-cyan-400/60">
+                        <CardDescription className="text-neutral-600">
                           Trigger: {sequence.trigger_event.replace('_', ' ')} • {steps[sequence.id]?.length || 0} steps
                         </CardDescription>
                       </div>
@@ -405,12 +405,12 @@ export default function AutomationSequencesManager() {
                         variant="ghost"
                         size="icon"
                         onClick={() => toggleSequenceActive(sequence)}
-                        className="hover:bg-cyan-500/10"
+                        className="hover:bg-neutral-100"
                       >
                         {sequence.is_active ? (
-                          <Pause className="h-4 w-4 text-yellow-400" />
+                          <Pause className="h-4 w-4 text-black" />
                         ) : (
-                          <Play className="h-4 w-4 text-green-400" />
+                          <Play className="h-4 w-4 text-black" />
                         )}
                       </Button>
                       <Button
@@ -426,9 +426,9 @@ export default function AutomationSequencesManager() {
                           });
                           setIsSequenceDialogOpen(true);
                         }}
-                        className="hover:bg-cyan-500/10"
+                        className="hover:bg-neutral-100"
                       >
-                        <Edit className="h-4 w-4 text-cyan-400" />
+                        <Edit className="h-4 w-4 text-black" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -436,7 +436,7 @@ export default function AutomationSequencesManager() {
                         onClick={() => handleDeleteSequence(sequence.id)}
                         className="hover:bg-red-500/10"
                       >
-                        <Trash2 className="h-4 w-4 text-red-400" />
+                        <Trash2 className="h-4 w-4 text-black" />
                       </Button>
                     </div>
                   </div>
@@ -445,7 +445,7 @@ export default function AutomationSequencesManager() {
                 <CollapsibleContent>
                   <CardContent className="pt-4">
                     {sequence.description && (
-                      <p className="text-sm text-cyan-400/80 mb-4">{sequence.description}</p>
+                      <p className="text-sm text-black mb-4">{sequence.description}</p>
                     )}
 
                     {/* Steps Timeline */}
@@ -455,22 +455,22 @@ export default function AutomationSequencesManager() {
                         return (
                           <div key={step.id} className="flex items-center gap-4">
                             <div className="flex flex-col items-center">
-                              <div className={`p-2 rounded-full ${channelColors[step.channels[0]] || 'bg-gray-500/20 text-gray-400'}`}>
+                              <div className={`p-2 rounded-full ${channelColors[step.channels[0]] || 'bg-gray-500/20 text-black'}`}>
                                 <Icon className="h-4 w-4" />
                               </div>
                               {index < (steps[sequence.id]?.length || 0) - 1 && (
-                                <div className="w-px h-8 bg-cyan-500/20 my-1" />
+                                <div className="w-px h-8 bg-neutral-100 my-1" />
                               )}
                             </div>
-                            <div className="flex-1 bg-gray-800/50 rounded-lg p-3 border border-cyan-500/10">
+                            <div className="flex-1 bg-white rounded-lg p-3 border border-neutral-200">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="text-sm font-medium text-cyan-300">
+                                  <p className="text-sm font-medium text-black">
                                     Step {step.step_order}: {step.template?.name || 'No template'}
                                   </p>
                                   <div className="flex items-center gap-2 mt-1">
-                                    <Clock className="h-3 w-3 text-cyan-400/60" />
-                                    <span className="text-xs text-cyan-400/60">{formatDelay(step.delay_hours)}</span>
+                                    <Clock className="h-3 w-3 text-neutral-600" />
+                                    <span className="text-xs text-neutral-600">{formatDelay(step.delay_hours)}</span>
                                     {step.channels.map(ch => (
                                       <Badge key={ch} variant="outline" className="text-xs">
                                         {ch}
@@ -482,7 +482,7 @@ export default function AutomationSequencesManager() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 hover:bg-cyan-500/10"
+                                    className="h-8 w-8 hover:bg-neutral-100"
                                     onClick={() => {
                                       setCurrentSequenceId(sequence.id);
                                       setEditingStep(step);
@@ -496,7 +496,7 @@ export default function AutomationSequencesManager() {
                                       setIsStepDialogOpen(true);
                                     }}
                                   >
-                                    <Edit className="h-3 w-3 text-cyan-400" />
+                                    <Edit className="h-3 w-3 text-black" />
                                   </Button>
                                   <Button
                                     variant="ghost"
@@ -504,7 +504,7 @@ export default function AutomationSequencesManager() {
                                     className="h-8 w-8 hover:bg-red-500/10"
                                     onClick={() => handleDeleteStep(step.id, sequence.id)}
                                   >
-                                    <Trash2 className="h-3 w-3 text-red-400" />
+                                    <Trash2 className="h-3 w-3 text-black" />
                                   </Button>
                                 </div>
                               </div>
@@ -516,7 +516,7 @@ export default function AutomationSequencesManager() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="ml-12 border-dashed border-cyan-500/30 text-cyan-400"
+                        className="ml-12 border-dashed border-neutral-200 text-black"
                         onClick={() => {
                           setCurrentSequenceId(sequence.id);
                           // Auto-calculate next step_order based on max existing
@@ -549,9 +549,9 @@ export default function AutomationSequencesManager() {
         setIsStepDialogOpen(open);
         if (!open) resetStepForm();
       }}>
-        <DialogContent className="bg-gray-900 border-cyan-500/30">
+        <DialogContent className="bg-white border-neutral-200">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300">
+            <DialogTitle className="text-black">
               {editingStep ? 'Edit Step' : 'Add Step'}
             </DialogTitle>
           </DialogHeader>
@@ -559,35 +559,35 @@ export default function AutomationSequencesManager() {
           <div className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-cyan-300">Step Order</Label>
+                <Label className="text-black">Step Order</Label>
                 <Input
                   type="number"
                   min={1}
                   value={stepForm.step_order}
                   onChange={(e) => setStepForm({ ...stepForm, step_order: parseInt(e.target.value) })}
-                  className="bg-gray-800 border-cyan-500/30"
+                  className="bg-white border-neutral-200"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-300">Delay (hours)</Label>
+                <Label className="text-black">Delay (hours)</Label>
                 <Input
                   type="number"
                   min={0}
                   value={stepForm.delay_hours}
                   onChange={(e) => setStepForm({ ...stepForm, delay_hours: parseInt(e.target.value) })}
-                  className="bg-gray-800 border-cyan-500/30"
+                  className="bg-white border-neutral-200"
                 />
-                <p className="text-xs text-cyan-400/40">0 = immediate</p>
+                <p className="text-xs text-neutral-600">0 = immediate</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-cyan-300">Channel</Label>
+              <Label className="text-black">Channel</Label>
               <Select
                 value={stepForm.channels[0]}
                 onValueChange={(value: 'email' | 'sms' | 'whatsapp' | 'voice') => setStepForm({ ...stepForm, channels: [value] })}
               >
-                <SelectTrigger className="bg-gray-800 border-cyan-500/30">
+                <SelectTrigger className="bg-white border-neutral-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -600,12 +600,12 @@ export default function AutomationSequencesManager() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-cyan-300">Template</Label>
+              <Label className="text-black">Template</Label>
               <Select
                 value={stepForm.template_id}
                 onValueChange={(value) => setStepForm({ ...stepForm, template_id: value })}
               >
-                <SelectTrigger className="bg-gray-800 border-cyan-500/30">
+                <SelectTrigger className="bg-white border-neutral-200">
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>
@@ -621,7 +621,7 @@ export default function AutomationSequencesManager() {
             </div>
 
             <div className="flex items-center justify-between">
-              <Label className="text-cyan-300">Active</Label>
+              <Label className="text-black">Active</Label>
               <Switch
                 checked={stepForm.is_active}
                 onCheckedChange={(checked) => setStepForm({ ...stepForm, is_active: checked })}

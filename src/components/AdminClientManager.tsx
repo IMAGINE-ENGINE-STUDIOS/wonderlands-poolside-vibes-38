@@ -707,13 +707,13 @@ const AdminClientManager = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      new: { variant: 'secondary', color: 'text-cyan-400 bg-cyan-500/10' },
-      contacted: { variant: 'default', color: 'text-blue-400 bg-blue-500/10' },
-      qualified: { variant: 'default', color: 'text-green-400 bg-green-500/10' },
-      proposal_sent: { variant: 'default', color: 'text-purple-400 bg-purple-500/10' },
-      negotiating: { variant: 'default', color: 'text-orange-400 bg-orange-500/10' },
-      won: { variant: 'default', color: 'text-emerald-400 bg-emerald-500/10' },
-      lost: { variant: 'destructive', color: 'text-red-400 bg-red-500/10' }
+      new: { variant: 'secondary', color: 'text-black bg-neutral-100' },
+      contacted: { variant: 'default', color: 'text-black bg-neutral-100' },
+      qualified: { variant: 'default', color: 'text-black bg-green-500/10' },
+      proposal_sent: { variant: 'default', color: 'text-black bg-purple-500/10' },
+      negotiating: { variant: 'default', color: 'text-black bg-orange-500/10' },
+      won: { variant: 'default', color: 'text-black bg-emerald-500/10' },
+      lost: { variant: 'destructive', color: 'text-black bg-red-500/10' }
     } as const;
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new;
@@ -740,13 +740,13 @@ const AdminClientManager = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6 bg-[#0a0a0f] min-h-screen p-6 -m-6 -mt-6">
+      <div className="space-y-6 bg-white min-h-screen p-6 -m-6 -mt-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse holographic-panel">
+            <Card key={i} className="animate-pulse bg-white border border-neutral-200 rounded-xl shadow-sm">
               <CardContent className="p-6">
-                <div className="h-4 w-20 bg-cyan-500/20 rounded mb-2"></div>
-                <div className="h-8 w-16 bg-cyan-500/20 rounded"></div>
+                <div className="h-4 w-20 bg-neutral-100 rounded mb-2"></div>
+                <div className="h-8 w-16 bg-neutral-100 rounded"></div>
               </CardContent>
             </Card>
           ))}
@@ -756,66 +756,66 @@ const AdminClientManager = () => {
   }
 
   return (
-    <div className="space-y-6 bg-[#0a0a0f] min-h-screen p-6 -m-6 -mt-6">
+    <div className="space-y-6 bg-white min-h-screen p-6 -m-6 -mt-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="holographic-panel neon-border-cyan">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-cyan-400/60 font-mono">TOTAL CLIENTS</p>
-                <p className="text-3xl font-bold text-cyan-300 neon-glow-cyan font-mono">{totalClients}</p>
+                <p className="text-sm text-neutral-600 ">TOTAL CLIENTS</p>
+                <p className="text-3xl font-bold text-black neon-glow-cyan ">{totalClients}</p>
               </div>
-              <Users className="h-10 w-10 text-cyan-400" />
+              <Users className="h-10 w-10 text-black" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="holographic-panel neon-border-blue">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-blue">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-300/80 font-mono">NEW THIS MONTH</p>
-                <p className="text-3xl font-bold text-blue-100 neon-glow-blue font-mono">{newThisMonth}</p>
+                <p className="text-sm text-black ">NEW THIS MONTH</p>
+                <p className="text-3xl font-bold text-black neon-glow-blue ">{newThisMonth}</p>
               </div>
-              <TrendingUp className="h-10 w-10 text-blue-200" />
+              <TrendingUp className="h-10 w-10 text-black" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="holographic-panel neon-border-cyan">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-400/60 font-mono">ACTIVE DEALS</p>
-                <p className="text-3xl font-bold text-orange-300 font-mono">{activeDeals}</p>
+                <p className="text-sm text-black ">ACTIVE DEALS</p>
+                <p className="text-3xl font-bold text-black ">{activeDeals}</p>
               </div>
-              <Clock className="h-10 w-10 text-orange-400" />
+              <Clock className="h-10 w-10 text-black" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="holographic-panel neon-border-cyan">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-emerald-400/60 font-mono">WON DEALS</p>
-                <p className="text-3xl font-bold text-emerald-300 neon-glow-cyan font-mono">{wonDeals}</p>
+                <p className="text-sm text-black ">WON DEALS</p>
+                <p className="text-3xl font-bold text-black neon-glow-cyan ">{wonDeals}</p>
               </div>
-              <CheckCircle className="h-10 w-10 text-emerald-400" />
+              <CheckCircle className="h-10 w-10 text-black" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Client Management */}
-      <Card className="holographic-panel neon-border-cyan">
+      <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono neon-glow-cyan">
+          <CardTitle className="flex items-center gap-2 text-black  neon-glow-cyan">
             <Users className="h-6 w-6" />
             ⬡ CLIENT MANAGEMENT ⬡
           </CardTitle>
-          <CardDescription className="text-cyan-400/60 font-mono">
+          <CardDescription className="text-neutral-600 ">
             Track and manage all clients in the pipeline
           </CardDescription>
         </CardHeader>
@@ -824,17 +824,17 @@ const AdminClientManager = () => {
           <div className="flex flex-wrap items-center gap-3 mb-6 min-w-0">
             <div className="flex-1 min-w-[220px] basis-full lg:basis-auto">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-cyan-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-black" />
                 <Input
                   placeholder="Search clients..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 holographic-panel border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono"
+                  className="pl-10 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black placeholder:text-neutral-500 "
                 />
               </div>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48 holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+              <SelectTrigger className="w-full md:w-48 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black ">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -849,8 +849,8 @@ const AdminClientManager = () => {
               </SelectContent>
             </Select>
             <Select value={cityFilter} onValueChange={setCityFilter}>
-              <SelectTrigger className="w-full md:w-48 holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
-                <MapPin className="h-4 w-4 mr-2 text-cyan-400" />
+              <SelectTrigger className="w-full md:w-48 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black ">
+                <MapPin className="h-4 w-4 mr-2 text-black" />
                 <SelectValue placeholder="All locations" />
               </SelectTrigger>
               <SelectContent>
@@ -861,17 +861,17 @@ const AdminClientManager = () => {
               </SelectContent>
             </Select>
             <div className="relative w-full md:w-36">
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-cyan-400" />
+              <MapPin className="absolute left-3 top-3 h-4 w-4 text-black" />
               <Input
                 placeholder="ZIP code..."
                 value={zipFilter}
                 onChange={(e) => setZipFilter(e.target.value)}
-                className="pl-10 holographic-panel border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono"
+                className="pl-10 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black placeholder:text-neutral-500 "
               />
             </div>
             <Button
               onClick={() => setIsMapOpen(true)}
-              className="holographic-panel neon-border-cyan text-cyan-300 hover:bg-cyan-500/20 font-mono"
+              className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan text-black hover:bg-neutral-100 "
             >
               <MapPin className="h-4 w-4 mr-2" />
               VIEW MAP
@@ -880,7 +880,7 @@ const AdminClientManager = () => {
             <Button 
               onClick={fetchClients} 
               variant="outline" 
-              className="holographic-panel border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+              className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black hover:bg-neutral-100 "
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               REFRESH
@@ -889,33 +889,33 @@ const AdminClientManager = () => {
             
             <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="holographic-panel neon-border-blue text-blue-300 hover:bg-blue-500/20 font-mono">
+                <Button className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-blue text-black hover:bg-neutral-100 ">
                   <Upload className="h-4 w-4 mr-2" />
                   Import CSV
                 </Button>
               </DialogTrigger>
-              <DialogContent className="holographic-panel neon-border-cyan max-w-2xl">
+              <DialogContent className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle className="text-cyan-300 font-mono neon-glow-cyan">⬡ IMPORT CLIENTS FROM CSV ⬡</DialogTitle>
-                  <DialogDescription className="text-cyan-400/60 font-mono">
+                  <DialogTitle className="text-black  neon-glow-cyan">⬡ IMPORT CLIENTS FROM CSV ⬡</DialogTitle>
+                  <DialogDescription className="text-neutral-600 ">
                     Upload a CSV file with client data
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-cyan-300 font-mono">CSV File</Label>
+                    <Label className="text-black ">CSV File</Label>
                     <Input
                       type="file"
                       accept=".csv"
                       onChange={handleCSVUpload}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   
                   {parsedClients.length > 0 && (
                     <div className="space-y-2">
-                      <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded">
-                        <p className="text-cyan-300 font-mono">
+                      <div className="p-4 bg-neutral-100 border border-neutral-200 rounded">
+                        <p className="text-black ">
                           <FileText className="inline h-4 w-4 mr-2" />
                           {parsedClients.length} clients ready to import
                         </p>
@@ -923,12 +923,12 @@ const AdminClientManager = () => {
                       
                       <div className="max-h-60 overflow-y-auto space-y-1">
                         {parsedClients.slice(0, 10).map((client, idx) => (
-                          <div key={idx} className="p-2 bg-cyan-500/5 border border-cyan-500/20 rounded text-xs font-mono text-cyan-400">
+                          <div key={idx} className="p-2 bg-neutral-100 border border-neutral-200 rounded text-xs  text-black">
                             {client.first_name} {client.last_name} - {client.email}
                           </div>
                         ))}
                         {parsedClients.length > 10 && (
-                          <p className="text-cyan-400/60 text-xs font-mono">
+                          <p className="text-neutral-600 text-xs ">
                             ...and {parsedClients.length - 10} more
                           </p>
                         )}
@@ -944,14 +944,14 @@ const AdminClientManager = () => {
                         setCsvFile(null);
                         setParsedClients([]);
                       }}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     >
                       Cancel
                     </Button>
                     <Button
                       onClick={importClients}
                       disabled={parsedClients.length === 0}
-                      className="holographic-panel neon-border-cyan text-cyan-300 hover:bg-cyan-500/20 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan text-black hover:bg-neutral-100 "
                     >
                       Import {parsedClients.length} Clients
                     </Button>
@@ -965,29 +965,29 @@ const AdminClientManager = () => {
               <Dialog open={isBulkAssignDialogOpen} onOpenChange={setIsBulkAssignDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 
-                    className="holographic-panel neon-border-cyan text-cyan-300 hover:bg-cyan-500/20 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan text-black hover:bg-neutral-100 "
                   >
                     <Users className="h-4 w-4 mr-2" />
                     Bulk Assign ({selectedClients.size})
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="holographic-panel neon-border-cyan">
+                <DialogContent className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan">
                   <DialogHeader>
-                    <DialogTitle className="text-cyan-300 font-mono neon-glow-cyan">⬡ BULK ASSIGN CLIENTS ⬡</DialogTitle>
-                    <DialogDescription className="text-cyan-400/60 font-mono">
+                    <DialogTitle className="text-black  neon-glow-cyan">⬡ BULK ASSIGN CLIENTS ⬡</DialogTitle>
+                    <DialogDescription className="text-neutral-600 ">
                       Assign {selectedClients.size} selected clients to a sales representative
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-cyan-300 font-mono">Select Sales Representative</Label>
+                      <Label className="text-black ">Select Sales Representative</Label>
                       <Select value={bulkAssignRepId} onValueChange={setBulkAssignRepId}>
-                        <SelectTrigger className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                        <SelectTrigger className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black ">
                           <SelectValue placeholder="Choose a sales rep..." />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="unassign">
-                            <span className="text-red-400">✕ Unassign (remove assignment)</span>
+                            <span className="text-black">✕ Unassign (remove assignment)</span>
                           </SelectItem>
                           {salesReps.map((rep) => (
                             <SelectItem key={rep.id} value={rep.id}>
@@ -1004,14 +1004,14 @@ const AdminClientManager = () => {
                           setIsBulkAssignDialogOpen(false);
                           setBulkAssignRepId('');
                         }}
-                        className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                        className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                       >
                         Cancel
                       </Button>
                       <Button
                         onClick={bulkAssignSalesRep}
                         disabled={!bulkAssignRepId || isBulkAssigning}
-                        className="bg-cyan-600 hover:bg-cyan-700 text-white neon-border-cyan font-mono"
+                        className="bg-cyan-600 hover:bg-cyan-700 text-black neon-border-cyan "
                       >
                         {isBulkAssigning ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Users className="h-4 w-4 mr-2" />}
                         {bulkAssignRepId === 'unassign' ? 'Unassign' : 'Assign'} {selectedClients.size} Clients
@@ -1027,7 +1027,7 @@ const AdminClientManager = () => {
               <Button 
                 onClick={handleTriggerSelectedAutomations}
                 disabled={automationLoading}
-                className="holographic-panel neon-border-blue text-blue-300 hover:bg-blue-500/20 font-mono"
+                className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-blue text-black hover:bg-neutral-100 "
               >
                 {automationLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
                 Automate Selected ({selectedClients.size})
@@ -1038,7 +1038,7 @@ const AdminClientManager = () => {
               onClick={handleTriggerAllAutomations}
               disabled={automationLoading}
               variant="outline"
-              className="holographic-panel border-purple-500/30 text-purple-300 hover:bg-purple-500/10 font-mono"
+              className="bg-white border border-neutral-200 rounded-xl shadow-sm border-purple-500/30 text-black hover:bg-purple-500/10 "
             >
               {automationLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
               Automate All
@@ -1046,119 +1046,119 @@ const AdminClientManager = () => {
             
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-cyan-600 hover:bg-cyan-700 text-white neon-border-cyan font-mono">
+                <Button className="bg-cyan-600 hover:bg-cyan-700 text-black neon-border-cyan ">
                   <Plus className="h-4 w-4 mr-2" />
                   ADD CLIENT
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl holographic-panel neon-border-cyan max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-3xl bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle className="text-cyan-300 font-mono neon-glow-cyan">⬡ ADD NEW CLIENT ⬡</DialogTitle>
-                  <DialogDescription className="text-cyan-400/60 font-mono">
+                  <DialogTitle className="text-black  neon-glow-cyan">⬡ ADD NEW CLIENT ⬡</DialogTitle>
+                  <DialogDescription className="text-neutral-600 ">
                     Enter client information
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">First Name</Label>
+                    <Label className="text-black ">First Name</Label>
                     <Input
                       value={formData.first_name}
                       onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">Last Name</Label>
+                    <Label className="text-black ">Last Name</Label>
                     <Input
                       value={formData.last_name}
                       onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">Email</Label>
+                    <Label className="text-black ">Email</Label>
                     <Input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">Phone</Label>
+                    <Label className="text-black ">Phone</Label>
                     <Input
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="col-span-2 space-y-2">
-                    <Label className="text-cyan-300 font-mono">Address</Label>
+                    <Label className="text-black ">Address</Label>
                     <Input
                       value={formData.address_street}
                       onChange={(e) => setFormData({...formData, address_street: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                       placeholder="Street address"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">City</Label>
+                    <Label className="text-black ">City</Label>
                     <Input
                       value={formData.address_city}
                       onChange={(e) => setFormData({...formData, address_city: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">State</Label>
+                    <Label className="text-black ">State</Label>
                     <Input
                       value={formData.address_state}
                       onChange={(e) => setFormData({...formData, address_state: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">ZIP</Label>
+                    <Label className="text-black ">ZIP</Label>
                     <Input
                       value={formData.address_zip}
                       onChange={(e) => setFormData({...formData, address_zip: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">Region</Label>
+                    <Label className="text-black ">Region</Label>
                     <Input
                       value={formData.location_region}
                       onChange={(e) => setFormData({...formData, location_region: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                       placeholder="e.g., South Florida"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">Price Range Min</Label>
+                    <Label className="text-black ">Price Range Min</Label>
                     <Input
                       type="number"
                       value={formData.price_range_min || ''}
                       onChange={(e) => setFormData({...formData, price_range_min: parseFloat(e.target.value)})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">Price Range Max</Label>
+                    <Label className="text-black ">Price Range Max</Label>
                     <Input
                       type="number"
                       value={formData.price_range_max || ''}
                       onChange={(e) => setFormData({...formData, price_range_max: parseFloat(e.target.value)})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">Assigned Sales Rep</Label>
+                    <Label className="text-black ">Assigned Sales Rep</Label>
                     <Select 
                       value={formData.assigned_sales_rep_id} 
                       onValueChange={(value) => setFormData({...formData, assigned_sales_rep_id: value})}
                     >
-                      <SelectTrigger className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                      <SelectTrigger className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black ">
                         <SelectValue placeholder="Select sales rep" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1171,20 +1171,20 @@ const AdminClientManager = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-cyan-300 font-mono">Source</Label>
+                    <Label className="text-black ">Source</Label>
                     <Input
                       value={formData.source}
                       onChange={(e) => setFormData({...formData, source: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                       placeholder="e.g., Referral, Website, Ad"
                     />
                   </div>
                   <div className="col-span-2 space-y-2">
-                    <Label className="text-cyan-300 font-mono">Notes</Label>
+                    <Label className="text-black ">Notes</Label>
                     <Textarea
                       value={formData.notes}
                       onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                       rows={3}
                     />
                   </div>
@@ -1193,13 +1193,13 @@ const AdminClientManager = () => {
                   <Button 
                     variant="outline" 
                     onClick={() => {setIsAddDialogOpen(false); resetForm();}}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   >
                     CANCEL
                   </Button>
                   <Button 
                     onClick={addClient}
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white neon-border-cyan font-mono"
+                    className="bg-cyan-600 hover:bg-cyan-700 text-black neon-border-cyan "
                   >
                     ADD CLIENT
                   </Button>
@@ -1216,114 +1216,114 @@ const AdminClientManager = () => {
               resetForm();
             }
           }}>
-            <DialogContent className="max-w-3xl holographic-panel neon-border-cyan max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-cyan-300 font-mono neon-glow-cyan">⬡ EDIT CLIENT ⬡</DialogTitle>
-                <DialogDescription className="text-cyan-400/60 font-mono">
+                <DialogTitle className="text-black  neon-glow-cyan">⬡ EDIT CLIENT ⬡</DialogTitle>
+                <DialogDescription className="text-neutral-600 ">
                   Update client information
                 </DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">First Name</Label>
+                  <Label className="text-black ">First Name</Label>
                   <Input
                     value={formData.first_name}
                     onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Last Name</Label>
+                  <Label className="text-black ">Last Name</Label>
                   <Input
                     value={formData.last_name}
                     onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Email</Label>
+                  <Label className="text-black ">Email</Label>
                   <Input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Phone</Label>
+                  <Label className="text-black ">Phone</Label>
                   <Input
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="col-span-2 space-y-2">
-                  <Label className="text-cyan-300 font-mono">Address</Label>
+                  <Label className="text-black ">Address</Label>
                   <Input
                     value={formData.address_street}
                     onChange={(e) => setFormData({...formData, address_street: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     placeholder="Street address"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">City</Label>
+                  <Label className="text-black ">City</Label>
                   <Input
                     value={formData.address_city}
                     onChange={(e) => setFormData({...formData, address_city: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">State</Label>
+                  <Label className="text-black ">State</Label>
                   <Input
                     value={formData.address_state}
                     onChange={(e) => setFormData({...formData, address_state: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">ZIP</Label>
+                  <Label className="text-black ">ZIP</Label>
                   <Input
                     value={formData.address_zip}
                     onChange={(e) => setFormData({...formData, address_zip: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Region</Label>
+                  <Label className="text-black ">Region</Label>
                   <Input
                     value={formData.location_region}
                     onChange={(e) => setFormData({...formData, location_region: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     placeholder="e.g., South Florida"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Price Range Min</Label>
+                  <Label className="text-black ">Price Range Min</Label>
                   <Input
                     type="number"
                     value={formData.price_range_min || ''}
                     onChange={(e) => setFormData({...formData, price_range_min: parseFloat(e.target.value)})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Price Range Max</Label>
+                  <Label className="text-black ">Price Range Max</Label>
                   <Input
                     type="number"
                     value={formData.price_range_max || ''}
                     onChange={(e) => setFormData({...formData, price_range_max: parseFloat(e.target.value)})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Assigned Sales Rep</Label>
+                  <Label className="text-black ">Assigned Sales Rep</Label>
                   <Select 
                     value={formData.assigned_sales_rep_id || 'unassigned'} 
                     onValueChange={(value) => setFormData({...formData, assigned_sales_rep_id: value === 'unassigned' ? undefined : value})}
                   >
-                    <SelectTrigger className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                    <SelectTrigger className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black ">
                       <SelectValue placeholder="Select sales rep" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1337,12 +1337,12 @@ const AdminClientManager = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Status</Label>
+                  <Label className="text-black ">Status</Label>
                   <Select 
                     value={formData.status} 
                     onValueChange={(value) => setFormData({...formData, status: value})}
                   >
-                    <SelectTrigger className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                    <SelectTrigger className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black ">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1357,20 +1357,20 @@ const AdminClientManager = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-cyan-300 font-mono">Source</Label>
+                  <Label className="text-black ">Source</Label>
                   <Input
                     value={formData.source}
                     onChange={(e) => setFormData({...formData, source: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     placeholder="e.g., Referral, Website, Ad"
                   />
                 </div>
                 <div className="col-span-2 space-y-2">
-                  <Label className="text-cyan-300 font-mono">Notes</Label>
+                  <Label className="text-black ">Notes</Label>
                   <Textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                     rows={3}
                   />
                 </div>
@@ -1379,13 +1379,13 @@ const AdminClientManager = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => {setIsEditDialogOpen(false); setSelectedClient(null); resetForm();}}
-                  className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                 >
                   CANCEL
                 </Button>
                 <Button 
                   onClick={updateClient}
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white neon-border-cyan font-mono"
+                  className="bg-cyan-600 hover:bg-cyan-700 text-black neon-border-cyan "
                 >
                   SAVE CHANGES
                 </Button>
@@ -1394,85 +1394,85 @@ const AdminClientManager = () => {
           </Dialog>
 
           {/* Clients Table */}
-          <div className="border border-cyan-500/20 rounded-lg overflow-x-auto max-w-full">
+          <div className="border border-neutral-200 rounded-lg overflow-x-auto max-w-full">
             <Table>
               <TableHeader>
-                <TableRow className="border-cyan-500/20 hover:bg-cyan-500/5">
+                <TableRow className="border-neutral-200 hover:bg-neutral-100">
                   <TableHead className="w-10">
                     <Checkbox
                       checked={selectedClients.size === filteredClients.length && filteredClients.length > 0}
                       onCheckedChange={toggleSelectAll}
-                      className="border-cyan-500/50"
+                      className="border-neutral-200"
                     />
                   </TableHead>
-                  <TableHead className="text-cyan-400 font-mono">CLIENT</TableHead>
-                  <TableHead className="text-cyan-400 font-mono">LOCATION</TableHead>
-                  <TableHead className="text-cyan-400 font-mono">BUDGET</TableHead>
-                  <TableHead className="text-cyan-400 font-mono">SURVEY</TableHead>
-                  <TableHead className="text-cyan-400 font-mono">SALES REP</TableHead>
-                  <TableHead className="text-cyan-400 font-mono">STATUS</TableHead>
-                  <TableHead className="text-cyan-400 font-mono">LAST CONTACT</TableHead>
-                  <TableHead className="text-cyan-400 font-mono">ACTIONS</TableHead>
+                  <TableHead className="text-black ">CLIENT</TableHead>
+                  <TableHead className="text-black ">LOCATION</TableHead>
+                  <TableHead className="text-black ">BUDGET</TableHead>
+                  <TableHead className="text-black ">SURVEY</TableHead>
+                  <TableHead className="text-black ">SALES REP</TableHead>
+                  <TableHead className="text-black ">STATUS</TableHead>
+                  <TableHead className="text-black ">LAST CONTACT</TableHead>
+                  <TableHead className="text-black ">ACTIONS</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredClients.map((client) => (
-                  <TableRow key={client.id} className="border-cyan-500/10 hover:bg-cyan-500/5">
+                  <TableRow key={client.id} className="border-neutral-200 hover:bg-neutral-100">
                     <TableCell>
                       <Checkbox
                         checked={selectedClients.has(client.id)}
                         onCheckedChange={() => toggleClientSelection(client.id)}
-                        className="border-cyan-500/50"
+                        className="border-neutral-200"
                       />
                     </TableCell>
                     <TableCell>
-                      <div className="font-mono">
-                        <p className="font-medium text-cyan-300">
+                      <div className="">
+                        <p className="font-medium text-black">
                           {client.first_name} {client.last_name}
                         </p>
-                        <p className="text-xs text-cyan-400/60">{client.email}</p>
+                        <p className="text-xs text-neutral-600">{client.email}</p>
                         {client.phone && (
-                          <p className="text-xs text-cyan-400/60">{client.phone}</p>
+                          <p className="text-xs text-neutral-600">{client.phone}</p>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono">
-                      <div className="text-sm text-cyan-300">
+                    <TableCell className="">
+                      <div className="text-sm text-black">
                         {client.address_city && client.address_state && (
                           <p>{client.address_city}, {client.address_state}</p>
                         )}
                         {client.location_region && (
-                          <p className="text-xs text-cyan-400/60">{client.location_region}</p>
+                          <p className="text-xs text-neutral-600">{client.location_region}</p>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono">
+                    <TableCell className="">
                       {client.price_range_min && client.price_range_max ? (
-                        <div className="text-sm text-cyan-300">
+                        <div className="text-sm text-black">
                           ${client.price_range_min.toLocaleString()} - ${client.price_range_max.toLocaleString()}
                         </div>
                       ) : (
-                        <span className="text-xs text-cyan-400/40">Not specified</span>
+                        <span className="text-xs text-neutral-600">Not specified</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {client.survey_uploaded ? (
-                        <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                        <Badge className="bg-green-500/10 text-black border-green-500/20">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           UPLOADED
                         </Badge>
                       ) : (
-                        <Badge className="bg-red-500/10 text-red-400 border-red-500/20">
+                        <Badge className="bg-red-500/10 text-black border-red-500/20">
                           PENDING
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="font-mono text-sm">
+                    <TableCell className=" text-sm">
                       <Select
                         value={client.assigned_sales_rep_id || 'unassigned'}
                         onValueChange={(value) => assignSalesRep(client.id, value === 'unassigned' ? null : value)}
                       >
-                        <SelectTrigger className="w-32 h-8 holographic-panel border-cyan-500/30 text-cyan-300 font-mono text-xs">
+                        <SelectTrigger className="w-32 h-8 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black  text-xs">
                           <SelectValue placeholder="Assign" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1486,11 +1486,11 @@ const AdminClientManager = () => {
                       </Select>
                     </TableCell>
                     <TableCell>{getStatusBadge(client.status)}</TableCell>
-                    <TableCell className="font-mono text-sm text-cyan-300">
+                    <TableCell className=" text-sm text-black">
                       {client.last_contacted_at ? (
                         format(new Date(client.last_contacted_at), 'MMM dd, yyyy')
                       ) : (
-                        <span className="text-cyan-400/40">Never</span>
+                        <span className="text-neutral-600">Never</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -1501,10 +1501,10 @@ const AdminClientManager = () => {
                           size="sm"
                           onClick={() => handleTriggerAutomation(client.id)}
                           disabled={clientAutomationStatus[client.id] || automationLoading}
-                          className={`holographic-panel font-mono ${
+                          className={`bg-white border border-neutral-200 rounded-xl shadow-sm  ${
                             clientAutomationStatus[client.id] 
-                              ? 'border-green-500/30 text-green-400' 
-                              : 'border-purple-500/30 text-purple-300 hover:bg-purple-500/10'
+                              ? 'border-green-500/30 text-black' 
+                              : 'border-purple-500/30 text-black hover:bg-purple-500/10'
                           }`}
                           title={clientAutomationStatus[client.id] ? 'Automation active' : 'Start automation'}
                         >
@@ -1540,7 +1540,7 @@ const AdminClientManager = () => {
                             });
                             setIsEditDialogOpen(true);
                           }}
-                          className="holographic-panel border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+                          className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black hover:bg-neutral-100 "
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -1556,17 +1556,17 @@ const AdminClientManager = () => {
                               variant="outline" 
                               size="sm"
                               onClick={() => setSelectedClient(client)}
-                              className="holographic-panel border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+                              className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black hover:bg-neutral-100 "
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl holographic-panel neon-border-cyan max-h-[90vh] overflow-y-auto">
+                          <DialogContent className="max-w-4xl bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle className="text-cyan-300 font-mono neon-glow-cyan">
+                              <DialogTitle className="text-black  neon-glow-cyan">
                                 ⬡ CLIENT DETAILS ⬡
                               </DialogTitle>
-                              <DialogDescription className="text-cyan-400/60 font-mono">
+                              <DialogDescription className="text-neutral-600 ">
                                 Complete information and activity timeline
                               </DialogDescription>
                             </DialogHeader>
@@ -1575,26 +1575,26 @@ const AdminClientManager = () => {
                                 {/* Client Info */}
                                 <div className="grid grid-cols-2 gap-6">
                                   <div className="space-y-4">
-                                    <h4 className="font-semibold text-cyan-400 font-mono">CONTACT INFO</h4>
-                                    <div className="space-y-2 text-sm font-mono">
-                                      <p className="text-cyan-300">
+                                    <h4 className="font-semibold text-black ">CONTACT INFO</h4>
+                                    <div className="space-y-2 text-sm ">
+                                      <p className="text-black">
                                         <strong>Name:</strong> {selectedClient.first_name} {selectedClient.last_name}
                                       </p>
-                                      <p className="text-cyan-300"><strong>Email:</strong> {selectedClient.email}</p>
+                                      <p className="text-black"><strong>Email:</strong> {selectedClient.email}</p>
                                       {selectedClient.phone && (
-                                        <p className="text-cyan-300"><strong>Phone:</strong> {selectedClient.phone}</p>
+                                        <p className="text-black"><strong>Phone:</strong> {selectedClient.phone}</p>
                                       )}
                                     </div>
                                   </div>
                                   <div className="space-y-4">
-                                    <h4 className="font-semibold text-blue-400 font-mono">ADDRESS</h4>
-                                    <div className="space-y-2 text-sm font-mono text-cyan-300">
+                                    <h4 className="font-semibold text-black ">ADDRESS</h4>
+                                    <div className="space-y-2 text-sm  text-black">
                                       {selectedClient.address_street && <p>{selectedClient.address_street}</p>}
                                       {selectedClient.address_city && (
                                         <p>{selectedClient.address_city}, {selectedClient.address_state} {selectedClient.address_zip}</p>
                                       )}
                                       {selectedClient.location_region && (
-                                        <p className="text-cyan-400/60">{selectedClient.location_region}</p>
+                                        <p className="text-neutral-600">{selectedClient.location_region}</p>
                                       )}
                                     </div>
                                   </div>
@@ -1602,15 +1602,15 @@ const AdminClientManager = () => {
 
                                 {/* Status & Budget */}
                                 <div className="space-y-4">
-                                  <h4 className="font-semibold text-cyan-400 font-mono">PIPELINE INFO</h4>
-                                  <div className="grid grid-cols-2 gap-4 text-sm font-mono">
+                                  <h4 className="font-semibold text-black ">PIPELINE INFO</h4>
+                                  <div className="grid grid-cols-2 gap-4 text-sm ">
                                     <div>
-                                      <p className="text-cyan-400/60">Status</p>
+                                      <p className="text-neutral-600">Status</p>
                                       <Select 
                                         value={selectedClient.status} 
                                         onValueChange={(value) => updateClientStatus(selectedClient.id, value)}
                                       >
-                                        <SelectTrigger className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                                        <SelectTrigger className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black ">
                                           <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -1626,8 +1626,8 @@ const AdminClientManager = () => {
                                     </div>
                                     {selectedClient.price_range_min && selectedClient.price_range_max && (
                                       <div>
-                                        <p className="text-cyan-400/60">Budget Range</p>
-                                        <p className="text-cyan-300">
+                                        <p className="text-neutral-600">Budget Range</p>
+                                        <p className="text-black">
                                           ${selectedClient.price_range_min.toLocaleString()} - ${selectedClient.price_range_max.toLocaleString()}
                                         </p>
                                       </div>
@@ -1637,7 +1637,7 @@ const AdminClientManager = () => {
 
                                 {/* Activity Timeline */}
                                 <div className="space-y-4">
-                                  <h4 className="font-semibold text-cyan-400 font-mono">ACTIVITY TIMELINE</h4>
+                                  <h4 className="font-semibold text-black ">ACTIVITY TIMELINE</h4>
                                   
                                   {/* Add Activity */}
                                   <div className="flex gap-2">
@@ -1645,7 +1645,7 @@ const AdminClientManager = () => {
                                       value={newActivity.type} 
                                       onValueChange={(value) => setNewActivity({...newActivity, type: value})}
                                     >
-                                      <SelectTrigger className="w-48 holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                                      <SelectTrigger className="w-48 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black ">
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -1661,11 +1661,11 @@ const AdminClientManager = () => {
                                       placeholder="Activity description..."
                                       value={newActivity.description}
                                       onChange={(e) => setNewActivity({...newActivity, description: e.target.value})}
-                                      className="flex-1 holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                                      className="flex-1 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                                     />
                                     <Button 
                                       onClick={addActivity}
-                                      className="bg-cyan-600 hover:bg-cyan-700 text-white font-mono"
+                                      className="bg-cyan-600 hover:bg-cyan-700 text-black "
                                     >
                                       <Plus className="h-4 w-4" />
                                     </Button>
@@ -1674,19 +1674,19 @@ const AdminClientManager = () => {
                                   {/* Activity List */}
                                   <div className="space-y-3 max-h-64 overflow-y-auto">
                                     {activities.map((activity) => (
-                                      <div key={activity.id} className="holographic-panel p-3 border-cyan-500/20">
+                                      <div key={activity.id} className="bg-white border border-neutral-200 rounded-xl shadow-sm p-3 border-neutral-200">
                                         <div className="flex items-start gap-3">
-                                          <MessageSquare className="h-4 w-4 text-cyan-400 mt-1" />
-                                          <div className="flex-1 font-mono">
+                                          <MessageSquare className="h-4 w-4 text-black mt-1" />
+                                          <div className="flex-1 ">
                                             <div className="flex items-center gap-2 mb-1">
-                                              <Badge className="text-xs bg-cyan-500/10 text-cyan-400">
+                                              <Badge className="text-xs bg-neutral-100 text-black">
                                                 {activity.activity_type.toUpperCase().replace('_', ' ')}
                                               </Badge>
-                                              <span className="text-xs text-cyan-400/60">
+                                              <span className="text-xs text-neutral-600">
                                                 {format(new Date(activity.created_at), 'MMM dd, yyyy HH:mm')}
                                               </span>
                                             </div>
-                                            <p className="text-sm text-cyan-300">{activity.description}</p>
+                                            <p className="text-sm text-black">{activity.description}</p>
                                           </div>
                                         </div>
                                       </div>

@@ -81,7 +81,7 @@ const DeliveryApiManager = () => {
       case 'connected': return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'error': return <AlertCircle className="h-4 w-4 text-red-500" />;
       case 'testing': return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
-      default: return <AlertCircle className="h-4 w-4 text-gray-400" />;
+      default: return <AlertCircle className="h-4 w-4 text-black" />;
     }
   };
 

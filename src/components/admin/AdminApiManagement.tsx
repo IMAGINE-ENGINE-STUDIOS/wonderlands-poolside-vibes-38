@@ -161,46 +161,46 @@ const AdminApiManagement = () => {
     <div className="space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="holographic-panel border-cyan-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <Key className="h-8 w-8 text-cyan-400" />
+              <Key className="h-8 w-8 text-black" />
               <div>
-                <p className="text-2xl font-bold text-cyan-300 font-mono">{tokens.length}</p>
-                <p className="text-xs text-cyan-400/60 font-mono uppercase">Total Keys</p>
+                <p className="text-2xl font-bold text-black ">{tokens.length}</p>
+                <p className="text-xs text-neutral-600  uppercase">Total Keys</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="holographic-panel border-green-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-green-500/30">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <Shield className="h-8 w-8 text-green-400" />
+              <Shield className="h-8 w-8 text-black" />
               <div>
-                <p className="text-2xl font-bold text-green-300 font-mono">{activeTokens.length}</p>
-                <p className="text-xs text-green-400/60 font-mono uppercase">Active</p>
+                <p className="text-2xl font-bold text-black ">{activeTokens.length}</p>
+                <p className="text-xs text-black  uppercase">Active</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="holographic-panel border-blue-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <Activity className="h-8 w-8 text-blue-400" />
+              <Activity className="h-8 w-8 text-black" />
               <div>
-                <p className="text-2xl font-bold text-blue-300 font-mono">{recentlyUsed.length}</p>
-                <p className="text-xs text-blue-400/60 font-mono uppercase">Used (7d)</p>
+                <p className="text-2xl font-bold text-black ">{recentlyUsed.length}</p>
+                <p className="text-xs text-neutral-600  uppercase">Used (7d)</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="holographic-panel border-orange-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-orange-500/30">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="h-8 w-8 text-orange-400" />
+              <AlertTriangle className="h-8 w-8 text-black" />
               <div>
-                <p className="text-2xl font-bold text-orange-300 font-mono">{expiringSoon.length}</p>
-                <p className="text-xs text-orange-400/60 font-mono uppercase">Expiring Soon</p>
+                <p className="text-2xl font-bold text-black ">{expiringSoon.length}</p>
+                <p className="text-xs text-black  uppercase">Expiring Soon</p>
               </div>
             </div>
           </CardContent>
@@ -208,13 +208,13 @@ const AdminApiManagement = () => {
       </div>
 
       {/* Generate New Key */}
-      <Card className="holographic-panel border-cyan-500/30">
+      <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-            <Plus className="h-5 w-5 text-cyan-400" />
+          <CardTitle className="flex items-center gap-2 text-black ">
+            <Plus className="h-5 w-5 text-black" />
             Generate New API Key
           </CardTitle>
-          <CardDescription className="text-cyan-400/60 font-mono">
+          <CardDescription className="text-neutral-600 ">
             Create a new read-only API key for external application access
           </CardDescription>
         </CardHeader>
@@ -224,12 +224,12 @@ const AdminApiManagement = () => {
               placeholder="Application name (e.g., 'Partner Website', 'Mobile App')"
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
-              className="flex-1 bg-black/40 border-cyan-500/30 text-cyan-200 placeholder:text-cyan-400/40 font-mono"
+              className="flex-1 bg-white border-neutral-200 text-black placeholder:text-neutral-500 "
             />
             <Button
               onClick={generateAdminKey}
               disabled={generatingKey || !newKeyName.trim()}
-              className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+              className="bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Generate
@@ -239,18 +239,18 @@ const AdminApiManagement = () => {
           {generatedToken && (
             <Card className="border-green-500/40 bg-green-500/10">
               <CardHeader className="pb-2">
-                <CardTitle className="text-green-300 text-sm font-mono">⚠ Copy this key now — it won't be shown again</CardTitle>
+                <CardTitle className="text-black text-sm ">⚠ Copy this key now — it won't be shown again</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-3 bg-black/60 border border-green-500/30 rounded text-sm font-mono text-green-300 break-all">
+                  <code className="flex-1 p-3 bg-white border border-green-500/30 rounded text-sm  text-black break-all">
                     {generatedToken}
                   </code>
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(generatedToken)} className="border-green-500/30 text-green-300">
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(generatedToken)} className="border-green-500/30 text-black">
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setGeneratedToken(null)} className="mt-2 text-cyan-400/60">
+                <Button variant="ghost" size="sm" onClick={() => setGeneratedToken(null)} className="mt-2 text-neutral-600">
                   Dismiss
                 </Button>
               </CardContent>
@@ -260,19 +260,19 @@ const AdminApiManagement = () => {
       </Card>
 
       {/* All Connected Applications */}
-      <Card className="holographic-panel border-cyan-500/30">
+      <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-                <Globe className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="flex items-center gap-2 text-black ">
+                <Globe className="h-5 w-5 text-black" />
                 Connected Applications
               </CardTitle>
-              <CardDescription className="text-cyan-400/60 font-mono">
+              <CardDescription className="text-neutral-600 ">
                 All API keys across all users and applications
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={fetchAllTokens} disabled={loading} className="border-cyan-500/30 text-cyan-400">
+            <Button variant="outline" size="sm" onClick={fetchAllTokens} disabled={loading} className="border-neutral-200 text-black">
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
@@ -281,37 +281,37 @@ const AdminApiManagement = () => {
         <CardContent>
           {tokens.length === 0 ? (
             <div className="text-center py-12">
-              <Key className="h-16 w-16 text-cyan-400/30 mx-auto mb-4" />
-              <p className="text-cyan-400/60 font-mono">No API keys have been generated yet</p>
+              <Key className="h-16 w-16 text-neutral-600 mx-auto mb-4" />
+              <p className="text-neutral-600 ">No API keys have been generated yet</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-cyan-500/20">
-                    <TableHead className="text-cyan-400 font-mono text-xs">Application</TableHead>
-                    <TableHead className="text-cyan-400 font-mono text-xs">Owner</TableHead>
-                    <TableHead className="text-cyan-400 font-mono text-xs">Scopes</TableHead>
-                    <TableHead className="text-cyan-400 font-mono text-xs">Status</TableHead>
-                    <TableHead className="text-cyan-400 font-mono text-xs">Created</TableHead>
-                    <TableHead className="text-cyan-400 font-mono text-xs">Last Used</TableHead>
-                    <TableHead className="text-cyan-400 font-mono text-xs text-right">Actions</TableHead>
+                  <TableRow className="border-neutral-200">
+                    <TableHead className="text-black  text-xs">Application</TableHead>
+                    <TableHead className="text-black  text-xs">Owner</TableHead>
+                    <TableHead className="text-black  text-xs">Scopes</TableHead>
+                    <TableHead className="text-black  text-xs">Status</TableHead>
+                    <TableHead className="text-black  text-xs">Created</TableHead>
+                    <TableHead className="text-black  text-xs">Last Used</TableHead>
+                    <TableHead className="text-black  text-xs text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tokens.map((token) => (
-                    <TableRow key={token.id} className="border-cyan-500/10 hover:bg-cyan-500/5">
-                      <TableCell className="font-mono text-cyan-200 text-sm">{token.name}</TableCell>
+                    <TableRow key={token.id} className="border-neutral-200 hover:bg-neutral-100">
+                      <TableCell className=" text-black text-sm">{token.name}</TableCell>
                       <TableCell>
                         <div>
-                          <p className="text-sm text-cyan-300 font-mono">{token.user_name}</p>
-                          <p className="text-xs text-cyan-400/50 font-mono">{token.user_email}</p>
+                          <p className="text-sm text-black ">{token.user_name}</p>
+                          <p className="text-xs text-neutral-600 ">{token.user_email}</p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
                           {token.scopes.map((scope) => (
-                            <Badge key={scope} variant="secondary" className="text-xs bg-cyan-500/10 text-cyan-300 border-cyan-500/30">
+                            <Badge key={scope} variant="secondary" className="text-xs bg-neutral-100 text-black border-neutral-200">
                               {scope}
                             </Badge>
                           ))}
@@ -323,22 +323,22 @@ const AdminApiManagement = () => {
                             checked={token.is_active}
                             onCheckedChange={() => toggleTokenStatus(token.id, token.is_active)}
                           />
-                          <Badge variant={token.is_active ? "default" : "secondary"} className={token.is_active ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'}>
+                          <Badge variant={token.is_active ? "default" : "secondary"} className={token.is_active ? 'bg-green-500/20 text-black border-green-500/30' : 'bg-red-500/10 text-black border-red-500/30'}>
                             {token.is_active ? 'Active' : 'Disabled'}
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell className="text-xs text-cyan-400/60 font-mono">
+                      <TableCell className="text-xs text-neutral-600 ">
                         {new Date(token.created_at).toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="text-xs font-mono">
+                      <TableCell className="text-xs ">
                         {token.last_used_at ? (
-                          <span className="text-cyan-300 flex items-center gap-1">
+                          <span className="text-black flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {new Date(token.last_used_at).toLocaleDateString()}
                           </span>
                         ) : (
-                          <span className="text-cyan-400/40">Never</span>
+                          <span className="text-neutral-600">Never</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -346,7 +346,7 @@ const AdminApiManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteToken(token.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          className="text-black hover:text-black hover:bg-red-500/10"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -361,36 +361,36 @@ const AdminApiManagement = () => {
       </Card>
 
       {/* API Documentation */}
-      <Card className="holographic-panel border-blue-500/30">
+      <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-300 font-mono">
-            <Zap className="h-5 w-5 text-blue-400" />
+          <CardTitle className="flex items-center gap-2 text-black ">
+            <Zap className="h-5 w-5 text-black" />
             Public API Documentation
           </CardTitle>
-          <CardDescription className="text-blue-400/60 font-mono">
+          <CardDescription className="text-neutral-600 ">
             Share this with developers integrating with your platform
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 text-sm font-mono">
+        <CardContent className="space-y-4 text-sm ">
           <div>
-            <p className="text-cyan-400/60 mb-1">Base URL:</p>
+            <p className="text-neutral-600 mb-1">Base URL:</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 p-2 bg-black/60 border border-cyan-500/20 rounded text-cyan-300 break-all">
+              <code className="flex-1 p-2 bg-white border border-neutral-200 rounded text-black break-all">
                 {apiBaseUrl}
               </code>
-              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(apiBaseUrl)} className="text-cyan-400">
+              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(apiBaseUrl)} className="text-black">
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
           </div>
           <div>
-            <p className="text-cyan-400/60 mb-1">Authentication:</p>
-            <code className="block p-2 bg-black/60 border border-cyan-500/20 rounded text-cyan-300">
+            <p className="text-neutral-600 mb-1">Authentication:</p>
+            <code className="block p-2 bg-white border border-neutral-200 rounded text-black">
               Authorization: Bearer wl_your_api_key
             </code>
           </div>
           <div>
-            <p className="text-cyan-400/60 mb-2">Endpoints (GET only):</p>
+            <p className="text-neutral-600 mb-2">Endpoints (GET only):</p>
             <div className="space-y-1">
               {[
                 { path: '/products', desc: 'All products with filtering' },
@@ -400,16 +400,16 @@ const AdminApiManagement = () => {
                 { path: '/pavers', desc: 'All pavers with filtering' },
                 { path: '/pavers/:id', desc: 'Single paver by ID' },
               ].map((ep) => (
-                <div key={ep.path} className="flex items-center gap-3 p-2 bg-black/30 rounded border border-cyan-500/10">
-                  <Badge className="bg-green-500/20 text-green-300 border-green-500/30 text-xs">GET</Badge>
-                  <code className="text-cyan-300">{ep.path}</code>
-                  <span className="text-cyan-400/40 ml-auto">{ep.desc}</span>
+                <div key={ep.path} className="flex items-center gap-3 p-2 bg-white rounded border border-neutral-200">
+                  <Badge className="bg-green-500/20 text-black border-green-500/30 text-xs">GET</Badge>
+                  <code className="text-black">{ep.path}</code>
+                  <span className="text-neutral-600 ml-auto">{ep.desc}</span>
                 </div>
               ))}
             </div>
           </div>
           <div>
-            <p className="text-cyan-400/60 mb-1">Query Parameters:</p>
+            <p className="text-neutral-600 mb-1">Query Parameters:</p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { param: 'page', desc: 'Page number (default: 1)' },
@@ -417,9 +417,9 @@ const AdminApiManagement = () => {
                 { param: 'category', desc: 'Filter by category' },
                 { param: 'search', desc: 'Search by name/model' },
               ].map((qp) => (
-                <div key={qp.param} className="p-2 bg-black/30 rounded border border-cyan-500/10">
-                  <code className="text-cyan-300">{qp.param}</code>
-                  <p className="text-xs text-cyan-400/40">{qp.desc}</p>
+                <div key={qp.param} className="p-2 bg-white rounded border border-neutral-200">
+                  <code className="text-black">{qp.param}</code>
+                  <p className="text-xs text-neutral-600">{qp.desc}</p>
                 </div>
               ))}
             </div>

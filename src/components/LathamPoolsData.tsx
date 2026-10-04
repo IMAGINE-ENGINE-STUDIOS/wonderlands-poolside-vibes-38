@@ -410,12 +410,12 @@ const LathamPoolsData = ({ selectedPool = 'Apollo 14', onPoolSelect, className =
               Dimensions
             </h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>Length: <span className="font-mono">{poolSpec.dimensions.length}</span></div>
-              <div>Width: <span className="font-mono">{poolSpec.dimensions.width}</span></div>
-              <div>Shallow End: <span className="font-mono">{poolSpec.dimensions.shallowEnd}</span></div>
-              <div>Deep End: <span className="font-mono">{poolSpec.dimensions.deepEnd}</span></div>
+              <div>Length: <span className="">{poolSpec.dimensions.length}</span></div>
+              <div>Width: <span className="">{poolSpec.dimensions.width}</span></div>
+              <div>Shallow End: <span className="">{poolSpec.dimensions.shallowEnd}</span></div>
+              <div>Deep End: <span className="">{poolSpec.dimensions.deepEnd}</span></div>
               <div className="col-span-2">
-                Volume: <span className="font-mono font-semibold">{poolSpec.dimensions.volume}</span>
+                Volume: <span className=" font-semibold">{poolSpec.dimensions.volume}</span>
               </div>
             </div>
           </div>
@@ -527,15 +527,15 @@ const LathamPoolsData = ({ selectedPool = 'Apollo 14', onPoolSelect, className =
           <div className="grid grid-cols-1 gap-2 text-sm">
             <div className="flex justify-between">
               <span>Water Capacity:</span>
-              <span className="font-mono">{poolSpec.specifications.waterCapacity}</span>
+              <span className="">{poolSpec.specifications.waterCapacity}</span>
             </div>
             <div className="flex justify-between">
               <span>Skimmer Size:</span>
-              <span className="font-mono">{poolSpec.specifications.skimmerSize}</span>
+              <span className="">{poolSpec.specifications.skimmerSize}</span>
             </div>
             <div className="flex justify-between">
               <span>Main Drain:</span>
-              <span className="font-mono">{poolSpec.specifications.drainSize}</span>
+              <span className="">{poolSpec.specifications.drainSize}</span>
             </div>
           </div>
           

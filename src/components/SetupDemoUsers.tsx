@@ -66,7 +66,7 @@ const SetupDemoUsers = () => {
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 border border-neutral-200 rounded-lg p-4">
               <h4 className="font-semibold text-blue-800 mb-2">Results:</h4>
               {results.results.map((result: any, index: number) => (
                 <div key={index} className="text-sm">

@@ -259,7 +259,7 @@ export const PoolCalculator = () => {
                     </div>
                   </div>
                   
-                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="p-4 bg-blue-50 dark:bg-neutral-50 rounded-lg border border-neutral-200 dark:border-neutral-200">
                     <p className="text-sm font-medium mb-2">Fill Time Estimate</p>
                     <p className="text-sm text-muted-foreground">
                       At 10 GPM (typical garden hose): <strong>{(volume / 10 / 60).toFixed(1)} hours</strong>
@@ -456,7 +456,7 @@ export const PoolCalculator = () => {
                           <li>Alkalinity: <strong>{chemicalResults.monthly.alkalinity} lbs</strong></li>
                         </ul>
                       </div>
-                      <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="p-4 bg-blue-50 dark:bg-neutral-50 rounded-lg border border-neutral-200 dark:border-neutral-200">
                         <p className="text-sm font-medium mb-2">Estimated Monthly Cost</p>
                         <p className="text-2xl font-bold">${chemicalResults.monthly.estimatedCost}</p>
                         <p className="text-xs text-muted-foreground mt-2">

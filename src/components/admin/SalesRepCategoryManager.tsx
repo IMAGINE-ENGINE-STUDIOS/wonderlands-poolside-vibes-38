@@ -21,11 +21,11 @@ interface SalesRep {
 }
 
 const CATEGORY_CONFIG: Record<string, { label: string; rate: string; icon: typeof Crown; color: string }> = {
-  head_of_sales: { label: 'Head of Sales', rate: '8%', icon: Crown, color: 'text-amber-400 bg-amber-500/20 border-amber-500/30' },
-  bdr: { label: 'BDR', rate: '2%', icon: Target, color: 'text-blue-400 bg-blue-500/20 border-blue-500/30' },
-  ae: { label: 'Account Executive', rate: '3%', icon: Briefcase, color: 'text-green-400 bg-green-500/20 border-green-500/30' },
-  csm: { label: 'CSM', rate: '1%', icon: UserCheck, color: 'text-purple-400 bg-purple-500/20 border-purple-500/30' },
-  regional_sales: { label: 'Regional Sales', rate: '1.5%', icon: MapPin, color: 'text-cyan-400 bg-cyan-500/20 border-cyan-500/30' },
+  head_of_sales: { label: 'Head of Sales', rate: '8%', icon: Crown, color: 'text-black bg-amber-500/20 border-amber-500/30' },
+  bdr: { label: 'BDR', rate: '2%', icon: Target, color: 'text-black bg-neutral-100 border-neutral-200' },
+  ae: { label: 'Account Executive', rate: '3%', icon: Briefcase, color: 'text-black bg-green-500/20 border-green-500/30' },
+  csm: { label: 'CSM', rate: '1%', icon: UserCheck, color: 'text-black bg-purple-500/20 border-purple-500/30' },
+  regional_sales: { label: 'Regional Sales', rate: '1.5%', icon: MapPin, color: 'text-black bg-neutral-100 border-neutral-200' },
 };
 
 const SalesRepCategoryManager = () => {
@@ -121,30 +121,30 @@ const SalesRepCategoryManager = () => {
         {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
           const IconComponent = config.icon;
           return (
-            <Card key={key} className="holographic-panel border-cyan-500/30">
+            <Card key={key} className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${config.color}`}>
                     <IconComponent className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-cyan-300 font-mono">{stats[key] || 0}</p>
+                    <p className="text-2xl font-bold text-black ">{stats[key] || 0}</p>
                     <p className="text-xs text-muted-foreground">{config.label}</p>
-                    <p className="text-xs text-cyan-400/60">{config.rate}</p>
+                    <p className="text-xs text-neutral-600">{config.rate}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           );
         })}
-        <Card className="holographic-panel border-gray-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-gray-500/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gray-500/20 text-gray-400">
+              <div className="p-2 rounded-lg bg-gray-500/20 text-black">
                 <Users className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-300 font-mono">{stats.uncategorized || 0}</p>
+                <p className="text-2xl font-bold text-black ">{stats.uncategorized || 0}</p>
                 <p className="text-xs text-muted-foreground">Uncategorized</p>
               </div>
             </div>
@@ -153,13 +153,13 @@ const SalesRepCategoryManager = () => {
       </div>
 
       {/* Sales Reps Table */}
-      <Card className="holographic-panel border-cyan-500/30">
+      <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
         <CardHeader>
-          <CardTitle className="text-cyan-300 font-mono flex items-center gap-2">
+          <CardTitle className="text-black  flex items-center gap-2">
             <Users className="h-5 w-5" />
             Sales Team Categories
           </CardTitle>
-          <CardDescription className="text-cyan-400/60">
+          <CardDescription className="text-neutral-600">
             Assign categories to sales reps to define their commission rates
           </CardDescription>
         </CardHeader>
@@ -204,7 +204,7 @@ const SalesRepCategoryManager = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className="font-mono text-cyan-300">
+                        <span className=" text-black">
                           {categoryConfig ? categoryConfig.rate : '-'}
                         </span>
                       </TableCell>

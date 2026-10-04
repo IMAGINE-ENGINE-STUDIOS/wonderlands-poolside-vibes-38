@@ -156,25 +156,25 @@ const AdminJobBoardManager = () => {
     }
   };
 
-  const inputClass = "bg-black/40 border-cyan-500/30 text-cyan-100 placeholder:text-cyan-400/30 focus:border-cyan-400";
-  const labelClass = "text-cyan-300 text-sm font-mono mb-1 block";
+  const inputClass = "bg-white border-neutral-200 text-black placeholder:text-neutral-500 focus:border-neutral-200";
+  const labelClass = "text-black text-sm  mb-1 block";
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-cyan-300 font-mono">Career Postings</h2>
-          <p className="text-cyan-400/60 text-sm font-mono">{postings.length} total postings</p>
+          <h2 className="text-xl font-bold text-black ">Career Postings</h2>
+          <p className="text-neutral-600 text-sm ">{postings.length} total postings</p>
         </div>
-        <Button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }} className="bg-cyan-600 hover:bg-cyan-500 text-white">
+        <Button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }} className="bg-cyan-600 hover:bg-cyan-500 text-black">
           <Plus className="w-4 h-4 mr-2" /> New Posting
         </Button>
       </div>
 
       {showForm && (
-        <Card className="holographic-panel border-cyan-500/30">
+        <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
           <CardHeader>
-            <CardTitle className="text-cyan-300 font-mono">{editingId ? 'Edit' : 'New'} Posting</CardTitle>
+            <CardTitle className="text-black ">{editingId ? 'Edit' : 'New'} Posting</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -214,46 +214,46 @@ const AdminJobBoardManager = () => {
               <textarea value={form.requirements} onChange={e => setForm({...form, requirements: e.target.value})} className={`w-full rounded-md px-3 py-2 min-h-[60px] ${inputClass}`} placeholder="Requirements..." />
             </div>
             <div className="flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => { setShowForm(false); setEditingId(null); }} className="text-cyan-400">Cancel</Button>
-              <Button onClick={handleSave} className="bg-cyan-600 hover:bg-cyan-500 text-white">Save</Button>
+              <Button variant="ghost" onClick={() => { setShowForm(false); setEditingId(null); }} className="text-black">Cancel</Button>
+              <Button onClick={handleSave} className="bg-cyan-600 hover:bg-cyan-500 text-black">Save</Button>
             </div>
           </CardContent>
         </Card>
       )}
 
       {loading ? (
-        <p className="text-cyan-400/60 font-mono text-center py-8">Loading...</p>
+        <p className="text-neutral-600  text-center py-8">Loading...</p>
       ) : postings.length === 0 ? (
-        <p className="text-cyan-400/60 font-mono text-center py-8">No postings yet. Create one above.</p>
+        <p className="text-neutral-600  text-center py-8">No postings yet. Create one above.</p>
       ) : (
         <div className="space-y-3">
           {postings.map(p => (
             <div key={p.id}>
-              <Card className="holographic-panel border-cyan-500/20">
+              <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
                 <CardContent className="p-4 flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-cyan-200 font-mono">{p.title}</span>
-                      <Badge variant={p.is_active ? 'default' : 'secondary'} className={p.is_active ? 'bg-green-600/30 text-green-300 border-green-500/30' : 'bg-red-600/30 text-red-300 border-red-500/30'}>
+                      <span className="font-bold text-black ">{p.title}</span>
+                      <Badge variant={p.is_active ? 'default' : 'secondary'} className={p.is_active ? 'bg-green-600/30 text-black border-green-500/30' : 'bg-red-600/30 text-black border-red-500/30'}>
                         {p.is_active ? 'Active' : 'Inactive'}
                       </Badge>
-                      <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-xs">
+                      <Badge variant="outline" className="border-neutral-200 text-black text-xs">
                         {p.category === 'construction_worker' ? 'Construction' : 'Pool Cleaner'}
                       </Badge>
                     </div>
-                    <p className="text-cyan-400/50 text-xs font-mono truncate">{p.location} • {p.job_type === 'full_time' ? 'Full Time' : 'Part Time'}{p.salary_range ? ` • ${p.salary_range}` : ''}</p>
+                    <p className="text-neutral-600 text-xs  truncate">{p.location} • {p.job_type === 'full_time' ? 'Full Time' : 'Part Time'}{p.salary_range ? ` • ${p.salary_range}` : ''}</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => toggleExpand(p.id)} className="text-cyan-400 hover:text-cyan-200" title="View Applications">
+                    <Button size="icon" variant="ghost" onClick={() => toggleExpand(p.id)} className="text-black hover:text-black" title="View Applications">
                       <Users className="w-4 h-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => toggleActive(p)} className="text-cyan-400 hover:text-cyan-200">
-                      {p.is_active ? <ToggleRight className="w-5 h-5 text-green-400" /> : <ToggleLeft className="w-5 h-5 text-red-400" />}
+                    <Button size="icon" variant="ghost" onClick={() => toggleActive(p)} className="text-black hover:text-black">
+                      {p.is_active ? <ToggleRight className="w-5 h-5 text-black" /> : <ToggleLeft className="w-5 h-5 text-black" />}
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="text-cyan-400 hover:text-cyan-200">
+                    <Button size="icon" variant="ghost" onClick={() => handleEdit(p)} className="text-black hover:text-black">
                       <Pencil className="w-4 h-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => handleDelete(p.id)} className="text-red-400 hover:text-red-300">
+                    <Button size="icon" variant="ghost" onClick={() => handleDelete(p.id)} className="text-black hover:text-black">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -262,42 +262,42 @@ const AdminJobBoardManager = () => {
 
               {/* Applications Panel */}
               {expandedPosting === p.id && (
-                <div className="ml-4 mt-2 space-y-2 border-l-2 border-cyan-500/20 pl-4">
-                  <h4 className="text-cyan-300 font-mono text-sm flex items-center gap-2">
+                <div className="ml-4 mt-2 space-y-2 border-l-2 border-neutral-200 pl-4">
+                  <h4 className="text-black  text-sm flex items-center gap-2">
                     <Users className="w-4 h-4" /> Applications ({applications.length})
                   </h4>
                   {appsLoading ? (
-                    <p className="text-cyan-400/40 text-xs font-mono">Loading applications...</p>
+                    <p className="text-neutral-600 text-xs ">Loading applications...</p>
                   ) : applications.length === 0 ? (
-                    <p className="text-cyan-400/40 text-xs font-mono">No applications yet.</p>
+                    <p className="text-neutral-600 text-xs ">No applications yet.</p>
                   ) : (
                     applications.map(app => (
-                      <Card key={app.id} className="bg-black/30 border-cyan-500/10">
+                      <Card key={app.id} className="bg-white border-neutral-200">
                         <CardContent className="p-3 space-y-2">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-semibold text-cyan-200 text-sm">{app.applicant_name}</span>
+                                <span className="font-semibold text-black text-sm">{app.applicant_name}</span>
                                 <select
                                   value={app.status}
                                   onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
-                                  className="text-xs rounded px-2 py-0.5 bg-black/40 border border-cyan-500/30 text-cyan-300"
+                                  className="text-xs rounded px-2 py-0.5 bg-white border border-neutral-200 text-black"
                                 >
                                   {statusOptions.map(s => (
                                     <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                                   ))}
                                 </select>
                                 {app.whatsapp_opt_in && (
-                                  <Badge className="bg-green-600/20 text-green-400 border-green-500/30 text-xs">
+                                  <Badge className="bg-green-600/20 text-black border-green-500/30 text-xs">
                                     <MessageCircle className="w-3 h-3 mr-1" /> WhatsApp
                                   </Badge>
                                 )}
                               </div>
-                              <div className="flex flex-wrap gap-3 text-xs text-cyan-400/50 mt-1">
+                              <div className="flex flex-wrap gap-3 text-xs text-neutral-600 mt-1">
                                 <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {app.applicant_email}</span>
                                 {app.applicant_phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {app.applicant_phone}</span>}
                                 {app.resume_url && (
-                                  <a href={app.resume_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-cyan-300 hover:text-cyan-200">
+                                  <a href={app.resume_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-black hover:text-black">
                                     <FileText className="w-3 h-3" /> Resume
                                   </a>
                                 )}
@@ -313,13 +313,13 @@ const AdminJobBoardManager = () => {
                                 onFocus={() => { setSendingTo(app.id); }}
                                 onChange={(e) => { setSendingTo(app.id); setWhatsappMessage(e.target.value); }}
                                 placeholder="Send WhatsApp update..."
-                                className="text-xs h-8 bg-black/30 border-green-500/30 text-green-200 placeholder:text-green-400/30"
+                                className="text-xs h-8 bg-white border-green-500/30 text-black placeholder:text-neutral-500"
                               />
                               <Button
                                 size="sm"
                                 disabled={sendingTo !== app.id || !whatsappMessage.trim()}
                                 onClick={() => handleSendWhatsApp(app)}
-                                className="h-8 bg-green-600 hover:bg-green-500 text-white text-xs px-3"
+                                className="h-8 bg-green-600 hover:bg-green-500 text-black text-xs px-3"
                               >
                                 <Send className="w-3 h-3 mr-1" /> Send
                               </Button>

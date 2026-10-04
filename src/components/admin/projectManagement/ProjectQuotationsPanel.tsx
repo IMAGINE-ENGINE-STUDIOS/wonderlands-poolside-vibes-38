@@ -199,23 +199,23 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
   const pendingCount = proposals.filter(p => p.status === 'pending').length;
 
   return (
-    <div className="holographic-panel rounded-lg border border-cyan-500/20 overflow-hidden">
+    <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg border border-neutral-200 overflow-hidden">
       <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-cyan-500/5 transition-colors"
+        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-neutral-100 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-2">
-          {expanded ? <ChevronDown className="h-4 w-4 text-cyan-400" /> : <ChevronRight className="h-4 w-4 text-cyan-400" />}
-          <h3 className="text-sm font-mono text-cyan-300 uppercase tracking-wider">
+          {expanded ? <ChevronDown className="h-4 w-4 text-black" /> : <ChevronRight className="h-4 w-4 text-black" />}
+          <h3 className="text-sm  text-black uppercase tracking-wider">
             Quotations & Proposals
           </h3>
           {totalProposals > 0 && (
-            <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-[10px] font-mono">
+            <Badge className="bg-neutral-100 text-black border-neutral-200 text-[10px] ">
               {totalProposals} total
             </Badge>
           )}
           {pendingCount > 0 && (
-            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] font-mono">
+            <Badge className="bg-yellow-500/20 text-black border-yellow-500/30 text-[10px] ">
               {pendingCount} pending
             </Badge>
           )}
@@ -225,26 +225,26 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
       {expanded && (
         <div className="px-4 pb-4 space-y-3">
           {loading ? (
-            <p className="text-[10px] font-mono text-cyan-400/40 text-center py-4">Loading proposals...</p>
+            <p className="text-[10px]  text-neutral-600 text-center py-4">Loading proposals...</p>
           ) : totalProposals === 0 ? (
-            <p className="text-[10px] font-mono text-cyan-400/40 text-center py-4">
+            <p className="text-[10px]  text-neutral-600 text-center py-4">
               No proposals received yet. Contractors will submit bids through the procurement marketplace.
             </p>
           ) : (
             Object.entries(grouped).map(([lid, group]) => (
-              <div key={lid} className="rounded-lg border border-cyan-500/15 overflow-hidden">
+              <div key={lid} className="rounded-lg border border-neutral-200 overflow-hidden">
                 <div
-                  className="flex items-center justify-between px-3 py-2 bg-cyan-500/5 cursor-pointer hover:bg-cyan-500/10 transition-colors"
+                  className="flex items-center justify-between px-3 py-2 bg-neutral-100 cursor-pointer hover:bg-neutral-100 transition-colors"
                   onClick={() => toggleListing(lid)}
                 >
                   <div className="flex items-center gap-2">
-                    {expandedListings.has(lid) ? <ChevronDown className="h-3 w-3 text-cyan-400" /> : <ChevronRight className="h-3 w-3 text-cyan-400" />}
-                    <span className="text-xs font-mono text-cyan-300">{group.title}</span>
-                    <Badge variant="outline" className="text-[10px] font-mono border-cyan-500/20 text-cyan-400/60">
+                    {expandedListings.has(lid) ? <ChevronDown className="h-3 w-3 text-black" /> : <ChevronRight className="h-3 w-3 text-black" />}
+                    <span className="text-xs  text-black">{group.title}</span>
+                    <Badge variant="outline" className="text-[10px]  border-neutral-200 text-neutral-600">
                       {group.isTask ? 'Task' : 'Full Project'}
                     </Badge>
                   </div>
-                  <span className="text-[10px] font-mono text-cyan-400/50">
+                  <span className="text-[10px]  text-neutral-600">
                     {group.proposals.length} proposal{group.proposals.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -254,42 +254,42 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                     {/* Date assignment for this listing */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-[10px] font-mono text-cyan-400/40 flex items-center gap-1">
+                        <Label className="text-[10px]  text-neutral-600 flex items-center gap-1">
                           <Calendar className="h-3 w-3" /> Start Date
                         </Label>
                         <Input
                           type="date"
                           value={dates[lid]?.start || ''}
                           onChange={e => setDates(prev => ({ ...prev, [lid]: { ...prev[lid], start: e.target.value, due: prev[lid]?.due || '' } }))}
-                          className="h-7 text-[10px] bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+                          className="h-7 text-[10px] bg-neutral-100 border-neutral-200 text-black "
                         />
                       </div>
                       <div>
-                        <Label className="text-[10px] font-mono text-cyan-400/40 flex items-center gap-1">
+                        <Label className="text-[10px]  text-neutral-600 flex items-center gap-1">
                           <Calendar className="h-3 w-3" /> Due Date
                         </Label>
                         <Input
                           type="date"
                           value={dates[lid]?.due || ''}
                           onChange={e => setDates(prev => ({ ...prev, [lid]: { start: prev[lid]?.start || '', due: e.target.value } }))}
-                          className="h-7 text-[10px] bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+                          className="h-7 text-[10px] bg-neutral-100 border-neutral-200 text-black "
                         />
                       </div>
                     </div>
 
                     {/* Proposals */}
                     {group.proposals.map(p => (
-                      <div key={p.id} className="rounded-lg border border-cyan-500/15 p-3 space-y-2">
+                      <div key={p.id} className="rounded-lg border border-neutral-200 p-3 space-y-2">
                         {/* Contractor profile */}
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <Building2 className="h-3.5 w-3.5 text-cyan-400/60" />
-                              <span className="text-xs font-mono font-semibold text-cyan-300">
+                              <Building2 className="h-3.5 w-3.5 text-neutral-600" />
+                              <span className="text-xs  font-semibold text-black">
                                 {p.contractors?.company_name || 'Unknown'}
                               </span>
                             </div>
-                            <div className="flex items-center gap-3 text-[10px] font-mono text-cyan-400/50">
+                            <div className="flex items-center gap-3 text-[10px]  text-neutral-600">
                               <span className="flex items-center gap-1">
                                 <User className="h-3 w-3" />{p.contractors?.contact_name}
                               </span>
@@ -305,7 +305,7 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                               )}
                             </div>
                             {(p.contractors?.address_city || p.contractors?.years_experience) && (
-                              <div className="flex items-center gap-3 text-[10px] font-mono text-cyan-400/40">
+                              <div className="flex items-center gap-3 text-[10px]  text-neutral-600">
                                 {p.contractors?.address_city && (
                                   <span>{p.contractors.address_city}, {p.contractors.address_state}</span>
                                 )}
@@ -316,18 +316,18 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                             )}
                           </div>
                           <Badge className={
-                            p.status === 'accepted' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                            p.status === 'rejected' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                            'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                            p.status === 'accepted' ? 'bg-green-500/20 text-black border-green-500/30' :
+                            p.status === 'rejected' ? 'bg-red-500/20 text-black border-red-500/30' :
+                            'bg-yellow-500/20 text-black border-yellow-500/30'
                           }>
                             {p.status}
                           </Badge>
                         </div>
 
                         {/* Proposal details */}
-                        <div className="flex items-center gap-4 text-[10px] font-mono text-cyan-400/60">
+                        <div className="flex items-center gap-4 text-[10px]  text-neutral-600">
                           {p.proposed_price && (
-                            <span className="flex items-center gap-1 text-cyan-300">
+                            <span className="flex items-center gap-1 text-black">
                               <DollarSign className="h-3 w-3" />${p.proposed_price.toLocaleString()}
                             </span>
                           )}
@@ -341,7 +341,7 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                         </div>
 
                         {p.proposal_text && (
-                          <p className="text-[10px] font-mono text-cyan-400/50 bg-cyan-500/5 rounded p-2">
+                          <p className="text-[10px]  text-neutral-600 bg-neutral-100 rounded p-2">
                             {p.proposal_text}
                           </p>
                         )}
@@ -351,7 +351,7 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                             href={p.quotation_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-[10px] font-mono text-cyan-400 hover:text-cyan-300"
+                            className="flex items-center gap-1 text-[10px]  text-black hover:text-black"
                           >
                             <FileText className="h-3 w-3" />
                             {p.quotation_file_name || 'View Quotation'}
@@ -365,7 +365,7 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                               size="sm"
                               onClick={() => handleAccept(p)}
                               disabled={accepting === p.id}
-                              className="bg-green-600 hover:bg-green-500 text-[10px] font-mono h-6"
+                              className="bg-green-600 hover:bg-green-500 text-[10px]  h-6"
                             >
                               <CheckCircle className="h-3 w-3 mr-1" />
                               {accepting === p.id ? 'Assigning...' : 'Accept & Assign'}
@@ -374,7 +374,7 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                               size="sm"
                               variant="ghost"
                               onClick={() => handleReject(p.id, p.contractor_id)}
-                              className="text-red-400 hover:text-red-300 text-[10px] font-mono h-6"
+                              className="text-black hover:text-black text-[10px]  h-6"
                             >
                               <XCircle className="h-3 w-3 mr-1" /> Reject
                             </Button>

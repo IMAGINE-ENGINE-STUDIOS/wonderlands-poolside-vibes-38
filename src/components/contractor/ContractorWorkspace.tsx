@@ -93,7 +93,7 @@ const ContractorWorkspace: React.FC<{ section: Section }> = ({ section }) => {
     <div className={shell}>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-5">
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-widest text-slate-500">Company</p>
+          <p className="text-xs uppercase tracking-widest text-neutral-600">Company</p>
           <h2 className="text-lg font-semibold truncate">{contractor.company_name}</h2>
         </div>
         <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold capitalize text-amber-800">{status}</span>
