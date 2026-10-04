@@ -813,10 +813,6 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-cyan-400/80 font-mono">Database Health</span>
-                      <span className="font-bold text-green-400 font-mono">100%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
                       <span className="text-sm text-cyan-400/80 font-mono">Total Products</span>
                       <span className="font-bold text-cyan-300 font-mono">{dbMetrics.totalProducts}</span>
                     </div>

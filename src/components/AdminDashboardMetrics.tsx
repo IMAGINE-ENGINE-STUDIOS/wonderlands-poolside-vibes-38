@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DollarSign, Star, ShoppingCart, Database, Gift } from 'lucide-react';
+import { DollarSign, Star, ShoppingCart, HardHat, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardMetrics {
@@ -13,6 +13,8 @@ interface DashboardMetrics {
   totalReferrals: number;
   convertedReferrals: number;
   totalCommissions: number;
+  totalProjects: number;
+  activeProjects: number;
 }
 
 // Animated count-up hook
@@ -118,17 +120,21 @@ const AdminDashboardMetrics = () => {
     totalReferrals: 0,
     convertedReferrals: 0,
     totalCommissions: 0,
+    totalProjects: 0,
+    activeProjects: 0,
   });
   const [loading, setLoading] = useState(true);
 
   const fetchMetrics = async () => {
     try {
       setLoading(true);
-      const [ordersRes, quotesRes, referralsRes] = await Promise.all([
+      const [ordersRes, quotesRes, referralsRes, projectsRes] = await Promise.all([
         supabase.from('product_orders').select('total_amount, payment_status'),
         supabase.from('user_quotations').select('status'),
         supabase.from('referrals').select('status, estimated_commission'),
+        supabase.from('construction_projects').select('status'),
       ]);
+      const projects = (projectsRes.data || []) as { status: string | null }[];
       const orders = ordersRes.data || [];
       const quotes = quotesRes.data || [];
       const referrals = referralsRes.data || [];
@@ -150,6 +156,8 @@ const AdminDashboardMetrics = () => {
         totalReferrals: referrals.length,
         convertedReferrals: convertedRefs.length,
         totalCommissions: convertedRefs.reduce((s, r) => s + (r.estimated_commission || 0), 0),
+        totalProjects: projects.length,
+        activeProjects: projects.filter(p => !['completed', 'cancelled'].includes((p.status || '').toLowerCase())).length,
       });
     } catch (e) {
       console.error('Error fetching dashboard metrics:', e);
@@ -208,11 +216,11 @@ const AdminDashboardMetrics = () => {
         delay={210}
       />
       <StatTile
-        label="System"
-        value={100}
-        format="percent"
-        subline="All systems nominal"
-        icon={Database}
+        label="Projects"
+        value={metrics.totalProjects}
+        format="integer"
+        subline={`${metrics.activeProjects} in progress`}
+        icon={HardHat}
         delay={280}
       />
     </div>
