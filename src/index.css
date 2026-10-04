@@ -693,3 +693,71 @@
 .socialite-skin .rounded-lg, .socialite-skin .rounded-xl { border-radius: 18px; }
 .socialite-skin input, .socialite-skin textarea, .socialite-skin [role="combobox"] { background-color: #18181b !important; border-color: #27272a !important; border-radius: 12px; }
 .socialite-skin button[class*="rounded-md"] { border-radius: 9999px; }
+
+/* ==========================================================================
+   Command Center "paper" theme — pure white surfaces, all text black.
+   Scoped to .cc-paper (AdminDashboard root). Overrides the legacy dark/cyan
+   utility classes used by older admin sections so every section matches the
+   main page without rewriting each component. Product images untouched.
+   ========================================================================== */
+.cc-paper {
+  --background: 0 0% 100%; --foreground: 0 0% 0%;
+  --card: 0 0% 100%; --card-foreground: 0 0% 0%;
+  --popover: 0 0% 100%; --popover-foreground: 0 0% 0%;
+  --muted: 0 0% 97%; --muted-foreground: 0 0% 25%;
+  --border: 0 0% 88%; --input: 0 0% 85%;
+  --secondary: 0 0% 96%; --secondary-foreground: 0 0% 0%;
+  --accent: 0 0% 96%; --accent-foreground: 0 0% 0%;
+  color: #000;
+}
+/* Surfaces: any dark arbitrary / palette background becomes white or off-white */
+.cc-paper [class*="bg-[#0"], .cc-paper [class*="bg-[#1"], .cc-paper [class*="bg-[#2"],
+.cc-paper [class*="bg-slate-9"], .cc-paper [class*="bg-slate-8"], .cc-paper [class*="bg-gray-9"],
+.cc-paper [class*="bg-gray-8"], .cc-paper [class*="bg-zinc-9"], .cc-paper [class*="bg-neutral-9"],
+.cc-paper [class*="bg-black"], .cc-paper [class*="bg-cyan-9"], .cc-paper [class*="bg-blue-9"],
+.cc-paper [class*="bg-cyan-500/"], .cc-paper [class*="bg-blue-500/"], .cc-paper [class*="bg-[#2bb3a3]/"] {
+  background-color: #fff !important; background-image: none !important;
+}
+.cc-paper aside, .cc-paper header { background: #fff !important; }
+.cc-paper .holographic-panel, .cc-paper .bg-card {
+  background: #fff !important; border: 1px solid #e5e5e5 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px -12px rgba(0,0,0,.10) !important;
+}
+.cc-paper .holographic-panel::before, .cc-paper .holographic-panel::after { display: none !important; }
+.cc-paper .blur-\[120px\], .cc-paper .blur-\[140px\] { display: none; }
+/* Text: everything black (secondary text charcoal), no cyan/blue/gold */
+.cc-paper [class*="text-white"], .cc-paper [class*="text-cyan"], .cc-paper [class*="text-blue"],
+.cc-paper [class*="text-slate"], .cc-paper [class*="text-gray"], .cc-paper [class*="text-zinc"],
+.cc-paper [class*="text-neutral"], .cc-paper [class*="text-[#f"], .cc-paper [class*="text-[#e"],
+.cc-paper [class*="text-[#c"], .cc-paper [class*="text-[#2bb3a3]"], .cc-paper [class*="text-[#a"],
+.cc-paper [class*="text-[#9"], .cc-paper [class*="text-[#8"], .cc-paper [class*="text-muted"],
+.cc-paper [class*="text-teal"], .cc-paper [class*="text-indigo"], .cc-paper [class*="text-purple"] {
+  color: #000 !important;
+}
+.cc-paper [class*="/40"][class*="text-"], .cc-paper [class*="/50"][class*="text-"],
+.cc-paper [class*="/60"][class*="text-"], .cc-paper [class*="/70"][class*="text-"],
+.cc-paper .text-muted-foreground { color: #404040 !important; }
+.cc-paper .font-mono { font-family: 'Manrope', sans-serif !important; }
+/* Borders: soft neutral */
+.cc-paper [class*="border-cyan"], .cc-paper [class*="border-blue"], .cc-paper [class*="border-[#"],
+.cc-paper [class*="border-slate"], .cc-paper [class*="border-gray-7"], .cc-paper [class*="border-gray-8"],
+.cc-paper [class*="border-white/"] { border-color: #e5e5e5 !important; }
+/* Tables & form controls */
+.cc-paper table thead, .cc-paper table th { background: #fafafa !important; color: #000 !important; }
+.cc-paper table tr { border-color: #ededed !important; }
+.cc-paper table tbody tr:hover { background: #f7f7f7 !important; }
+.cc-paper input, .cc-paper textarea, .cc-paper select, .cc-paper [role="combobox"] {
+  background: #fff !important; color: #000 !important; border-color: #d4d4d4 !important;
+}
+.cc-paper input::placeholder, .cc-paper textarea::placeholder { color: #737373 !important; }
+.cc-paper [role="tablist"] { background: #f5f5f5 !important; }
+.cc-paper [role="tab"][data-state="active"] { background: #fff !important; color: #000 !important; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+/* Primary buttons stay brand teal with white label for contrast */
+.cc-paper button[class*="bg-gradient"], .cc-paper .bg-primary {
+  background: #0891b2 !important; color: #fff !important;
+}
+.cc-paper button[class*="bg-gradient"] *, .cc-paper .bg-primary * { color: #fff !important; }
+/* Active nav item */
+.cc-paper nav button[class*="bg-[#2bb3a3]"] { background: #f2f2f2 !important; color: #000 !important; font-weight: 700; }
+/* Never recolor product photos */
+.cc-paper img { filter: none !important; }
