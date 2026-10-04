@@ -47,7 +47,7 @@ const AuthPage = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    role: 'consumer' as 'consumer' | 'supplier' | 'installer',
+    role: (new URLSearchParams(window.location.search).get('type') === 'business' ? 'supplier' : 'consumer') as 'consumer' | 'supplier' | 'installer',
     companyName: ''
   });
 
@@ -102,7 +102,7 @@ const AuthPage = () => {
       return;
     }
     if ((signUpData.role === 'supplier' || signUpData.role === 'installer') && !signUpData.companyName.trim()) {
-      setSignUpError('Company name is required for supplier and installer accounts.');
+      setSignUpError('Company name is required for business accounts.');
       return;
     }
 
@@ -114,7 +114,8 @@ const AuthPage = () => {
         first_name: signUpData.firstName.trim() || fallback,
         last_name: signUpData.lastName.trim(),
         role: signUpData.role,
-        ...((signUpData.role === 'supplier' || signUpData.role === 'installer') && { company_name: signUpData.companyName.trim() })
+        // Business sign-ups get their own private company workspace (created server-side).
+        ...((signUpData.role === 'supplier' || signUpData.role === 'installer') && { account_type: 'business', company_name: signUpData.companyName.trim() })
       };
 
       const { error } = await signUp(email, signUpData.password, userData);
@@ -212,7 +213,7 @@ const AuthPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue={new URLSearchParams(window.location.search).get('mode') === 'signup' ? 'signup' : 'signin'} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -317,9 +318,8 @@ const AuthPage = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="consumer">Consumer</SelectItem>
-                      <SelectItem value="supplier">Supplier</SelectItem>
-                      <SelectItem value="installer">Installer</SelectItem>
+                      <SelectItem value="consumer">Homeowner</SelectItem>
+                      <SelectItem value="supplier">Business / Contractor</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

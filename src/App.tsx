@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollRestoration from "./components/ScrollRestoration";
 
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -54,11 +54,8 @@ const InvoiceDetailPage = lazy(() => import("./pages/InvoiceDetailPage"));
 const QuotationTool = lazy(() => import("./pages/QuotationTool"));
 const PoolCalculatorPage = lazy(() => import("./pages/PoolCalculatorPage"));
 const SalesRepRegister = lazy(() => import("./pages/SalesRepRegister"));
-const SalesRepLogin = lazy(() => import("./pages/SalesRepLogin"));
 const SalesRepDashboard = lazy(() => import("./pages/SalesRepDashboard"));
-const ContractorRegistration = lazy(() => import("./pages/ContractorRegistration"));
 const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
-const ContractorLogin = lazy(() => import("./pages/ContractorLogin"));
 const DesignStudio = lazy(() => import("./pages/DesignStudio"));
 const StudioShowroom = lazy(() => import("./pages/StudioShowroom"));
 const StudioLanding = lazy(() => import("./pages/StudioLanding"));
@@ -181,7 +178,7 @@ const App = () => {
             <Route path="/pool-calculator" element={<PoolCalculatorPage />} />
             <Route path="/wonderlands-studio" element={<WonderlandsStudio />} />
             <Route path="/sales-rep-register" element={<SalesRepRegister />} />
-            <Route path="/sales-rep-login" element={<SalesRepLogin />} />
+            <Route path="/sales-rep-login" element={<Navigate to="/auth?redirect=/sales-rep" replace />} />
             <Route 
               path="/sales-rep" 
               element={
@@ -190,9 +187,10 @@ const App = () => {
                 </ProtectedRoute>
               } 
             />
-            <Route path="/contractor-registration" element={<ContractorRegistration />} />
-            <Route path="/contractor-profile/:id" element={<ContractorProfile />} />
-            <Route path="/contractor-login" element={<ContractorLogin />} />
+            {/* One sign-in for everyone: old contractor links forward to /auth (business sign-up creates the company). */}
+            <Route path="/contractor-registration" element={<Navigate to="/auth?mode=signup&type=business" replace />} />
+            <Route path="/contractor-profile/:id" element={<ProtectedRoute requireAuth={true}><ContractorProfile /></ProtectedRoute>} />
+            <Route path="/contractor-login" element={<Navigate to="/auth" replace />} />
             <Route path="/design-studio" element={<DesignStudio />} />
             <Route path="/jobs" element={<JobsPage />} />
             <Route path="/deck" element={<InvestorDeck />} />

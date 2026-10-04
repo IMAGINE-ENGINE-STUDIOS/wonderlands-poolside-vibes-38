@@ -82,8 +82,11 @@ const InvoiceDetailPage = () => {
   const fetchInvoice = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from("invoices").select("*").eq("id", invoiceId).single();
+      // Shared invoice links load through a server check (company-isolated), not a public table read.
+      const { data: rows, error } = await supabase.rpc("get_invoice_by_id" as any, { _id: invoiceId });
       if (error) throw error;
+      const data = (rows as any[])?.[0];
+      if (!data) throw new Error("Invoice not found");
       const invoiceData = {
         ...data,
         line_items: Array.isArray(data.line_items) ? data.line_items : JSON.parse(data.line_items as string),
