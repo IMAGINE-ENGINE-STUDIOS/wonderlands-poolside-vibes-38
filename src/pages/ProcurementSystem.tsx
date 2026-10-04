@@ -226,6 +226,24 @@ const ProcurementSystem = () => {
             <div className="text-sm text-slate-600">Open Opportunities</div>
           </Card>
 
+          <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <Users className="h-8 w-8 text-green-600" />
+              <span className="text-sm font-medium text-slate-500">Bids</span>
+            </div>
+            <div className="text-3xl font-bold text-slate-900 mb-1">{filteredJobs.reduce((n, j) => n + (j.proposal_count || 0), 0)}</div>
+            <div className="text-sm text-slate-600">Proposals Received</div>
+          </Card>
+
+          <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <DollarSign className="h-8 w-8 text-yellow-600" />
+              <span className="text-sm font-medium text-slate-500">Value</span>
+            </div>
+            <div className="text-3xl font-bold text-slate-900 mb-1">${filteredJobs.reduce((n, j) => n + (j.budget_max || 0), 0).toLocaleString()}</div>
+            <div className="text-sm text-slate-600">Open Budget (max)</div>
+          </Card>
+
         </div>
       </section>
 
