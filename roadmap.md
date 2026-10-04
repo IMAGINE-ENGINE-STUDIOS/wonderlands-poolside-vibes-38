@@ -5,8 +5,8 @@
 - [x] Dashboards Job 2: action queue + clickable telemetry
 - [x] Dashboards Job 3: Technology Hub launcher (global search moved to Job 6)
 - [x] Dashboards Job 4: contractor/supplier overview + bid tracking (+ Job 5 projects & compliance; POs, payments, messages still open)
-- [ ] Dashboards Job 5: projects, POs, payments, compliance, messages
-- [ ] Dashboards Job 6: security, mobile, performance pass
+- [x] Dashboards Job 5: payouts & work orders, messages, projects, compliance
+- [x] Dashboards Job 6: ⌘K search, contractor isolation from company analytics, single telemetry fetch
 - [x] Add FLIP V8 and make it the home-page edition
 - [x] Disable V8 page-turn effects and gesture-based navigation
 - [x] Calm V8 index motion and keep arrow navigation
