@@ -56,7 +56,6 @@ export default defineConfig(({ mode }) => ({
           // bidirectional import cycle with vendor-react in this build.
           if (/@supabase/.test(id)) return 'vendor-supabase';
           if (/recharts|d3-/.test(id)) return 'vendor-charts';
-          if (/@radix-ui|embla|lucide-react/.test(id)) return 'vendor-ui';
           return 'vendor-react';
         },
 
