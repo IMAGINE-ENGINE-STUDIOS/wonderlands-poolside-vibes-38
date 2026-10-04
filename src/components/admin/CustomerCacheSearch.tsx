@@ -72,11 +72,11 @@ const CustomerCacheSearch = () => {
 
   if (!isUnlocked) {
     return (
-      <Card className="holographic-panel border-cyan-500/30 max-w-md mx-auto">
+      <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 max-w-md mx-auto">
         <CardHeader className="text-center">
-          <Lock className="h-10 w-10 text-cyan-400 mx-auto mb-2" />
-          <CardTitle className="text-cyan-300 font-mono">Customer Database</CardTitle>
-          <CardDescription className="text-cyan-400/60 font-mono">
+          <Lock className="h-10 w-10 text-black mx-auto mb-2" />
+          <CardTitle className="text-black ">Customer Database</CardTitle>
+          <CardDescription className="text-neutral-600 ">
             Enter admin passcode to access
           </CardDescription>
         </CardHeader>
@@ -88,11 +88,11 @@ const CustomerCacheSearch = () => {
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
-              className="bg-black/40 border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono"
+              className="bg-white border-neutral-200 text-black placeholder:text-neutral-500 "
             />
             <Button
               onClick={handleUnlock}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white font-mono"
+              className="bg-cyan-600 hover:bg-cyan-700 text-black "
             >
               <Lock className="h-4 w-4 mr-1" />
               Unlock
@@ -108,15 +108,15 @@ const CustomerCacheSearch = () => {
       {/* Search Bar */}
       <div className="flex gap-3 items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400/60" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-600" />
           <Input
             placeholder="Search by name, email, phone, address, or pool model..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono"
+            className="pl-10 bg-white border-neutral-200 text-black placeholder:text-neutral-500 "
           />
         </div>
-        <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 font-mono">
+        <Badge className="bg-neutral-100 text-black border-neutral-200 ">
           <Users className="h-3 w-3 mr-1" />
           {filteredCustomers.length} / {totalCount}
         </Badge>
@@ -125,61 +125,61 @@ const CustomerCacheSearch = () => {
       {/* Results */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-black" />
         </div>
       ) : filteredCustomers.length === 0 ? (
-        <div className="text-center py-12 text-cyan-400/60 font-mono">
+        <div className="text-center py-12 text-neutral-600 ">
           {searchTerm ? `No customers match "${searchTerm}"` : "No customers in the database yet"}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredCustomers.map((customer) => (
-            <Card key={customer.id} className="holographic-panel border-cyan-500/20 hover:border-cyan-500/40 transition-all">
+            <Card key={customer.id} className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 hover:border-neutral-200 transition-all">
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-start justify-between">
-                  <h3 className="font-mono text-cyan-300 font-bold text-sm truncate">
+                  <h3 className=" text-black font-bold text-sm truncate">
                     {customer.name}
                   </h3>
-                  <Badge variant="outline" className="text-[10px] font-mono text-cyan-400 border-cyan-500/30 shrink-0 ml-2">
+                  <Badge variant="outline" className="text-[10px]  text-black border-neutral-200 shrink-0 ml-2">
                     {customer.total_quotes} quote{customer.total_quotes !== 1 ? 's' : ''}
                   </Badge>
                 </div>
 
-                <div className="space-y-1 text-xs font-mono">
-                  <div className="flex items-center gap-2 text-cyan-400/80">
+                <div className="space-y-1 text-xs ">
+                  <div className="flex items-center gap-2 text-black">
                     <Mail className="h-3 w-3 shrink-0" />
                     <span className="truncate">{customer.email}</span>
                   </div>
                   {customer.phone && (
-                    <div className="flex items-center gap-2 text-cyan-400/80">
+                    <div className="flex items-center gap-2 text-black">
                       <Phone className="h-3 w-3 shrink-0" />
                       <span>{customer.phone}</span>
                     </div>
                   )}
                   {customer.address && (
-                    <div className="flex items-center gap-2 text-cyan-400/80">
+                    <div className="flex items-center gap-2 text-black">
                       <MapPin className="h-3 w-3 shrink-0" />
                       <span className="truncate">{customer.address}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-cyan-500/10">
-                  <div className="flex items-center gap-1 text-xs font-mono">
+                <div className="flex items-center justify-between pt-1 border-t border-neutral-200">
+                  <div className="flex items-center gap-1 text-xs ">
                     <DollarSign className="h-3 w-3 text-green-400" />
                     <span className="text-green-400">
                       ${(customer.total_quote_value || 0).toLocaleString()}
                     </span>
                   </div>
                   {customer.last_pool_model && (
-                    <Badge className="text-[9px] bg-blue-500/20 text-blue-300 border-blue-500/30">
+                    <Badge className="text-[9px] bg-neutral-100 text-black border-neutral-200">
                       <FileText className="h-2.5 w-2.5 mr-0.5" />
                       {customer.last_pool_model}
                     </Badge>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1 text-[10px] text-cyan-400/50 font-mono">
+                <div className="flex items-center gap-1 text-[10px] text-neutral-600 ">
                   <Calendar className="h-2.5 w-2.5" />
                   Last: {customer.last_quote_date ? format(new Date(customer.last_quote_date), 'MMM d, yyyy') : 'N/A'}
                 </div>

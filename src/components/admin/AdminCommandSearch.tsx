@@ -62,12 +62,12 @@ const AdminCommandSearch: React.FC<{ onNavigate: (section: string) => void }> = 
   return (
     <>
       <button onClick={() => setOpen(true)} aria-label="Search the Command Center"
-        className="hidden md:flex items-center gap-2 rounded-lg border border-[#c9a84c]/20 bg-[#1a1a1a] px-3 py-2 text-sm text-[#f5f3ee]/60 hover:border-[#c9a84c]/50 transition-colors">
+        className="hidden md:flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 hover:border-neutral-200 transition-colors">
         <Search className="h-4 w-4 text-[#c9a84c]" />
         <span>Search clients, quotes, projects…</span>
-        <kbd className="ml-2 rounded border border-[#c9a84c]/30 px-1.5 text-[10px] text-[#c9a84c]">⌘K</kbd>
+        <kbd className="ml-2 rounded border border-neutral-200 px-1.5 text-[10px] text-[#c9a84c]">⌘K</kbd>
       </button>
-      <button onClick={() => setOpen(true)} aria-label="Search" className="md:hidden p-2.5 rounded-lg border border-[#c9a84c]/20 bg-[#1a1a1a] text-[#f0d78c]">
+      <button onClick={() => setOpen(true)} aria-label="Search" className="md:hidden p-2.5 rounded-lg border border-neutral-200 bg-white text-[#f0d78c]">
         <Search className="h-4 w-4" />
       </button>
       <CommandDialog open={open} onOpenChange={setOpen}>

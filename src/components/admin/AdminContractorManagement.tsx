@@ -172,7 +172,7 @@ const AdminContractorManagement = () => {
       case 'suspended':
         return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><AlertCircle className="w-3 h-3 mr-1" /> Suspended</Badge>;
       case 'rejected':
-        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
+        return <Badge className="bg-gray-500/20 text-black border-gray-500/30"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -208,7 +208,7 @@ const AdminContractorManagement = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-cyan-400 flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-black flex items-center gap-2">
             <HardHat className="w-6 h-6" />
             Contractor Management
           </h2>
@@ -221,9 +221,9 @@ const AdminContractorManagement = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-cyan-500/10 to-transparent border-cyan-500/30">
+        <Card className="bg-gradient-to-br from-cyan-500/10 to-transparent border-neutral-200">
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-cyan-400">{stats.total}</div>
+            <div className="text-3xl font-bold text-black">{stats.total}</div>
             <p className="text-sm text-muted-foreground">Total Contractors</p>
           </CardContent>
         </Card>
@@ -239,7 +239,7 @@ const AdminContractorManagement = () => {
             <p className="text-sm text-muted-foreground">Approved</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-400/30">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-neutral-200">
           <CardContent className="pt-4">
             <div className="text-3xl font-bold text-blue-100">{stats.signed}</div>
             <p className="text-sm text-muted-foreground">Agreements Signed</p>
@@ -248,7 +248,7 @@ const AdminContractorManagement = () => {
       </div>
 
       {/* Filters */}
-      <Card className="border-cyan-500/20">
+      <Card className="border-neutral-200">
         <CardContent className="pt-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -277,16 +277,16 @@ const AdminContractorManagement = () => {
       </Card>
 
       {/* Contractors Table */}
-      <Card className="border-cyan-500/20">
+      <Card className="border-neutral-200">
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center h-48">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-200"></div>
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="border-cyan-500/20">
+                <TableRow className="border-neutral-200">
                   <TableHead>Company</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Location</TableHead>
@@ -298,7 +298,7 @@ const AdminContractorManagement = () => {
               </TableHeader>
               <TableBody>
                 {filteredContractors.map((contractor) => (
-                  <TableRow key={contractor.id} className="border-cyan-500/10">
+                  <TableRow key={contractor.id} className="border-neutral-200">
                     <TableCell>
                       <div className="font-medium">{contractor.company_name}</div>
                       <div className="text-xs text-muted-foreground">{contractor.email}</div>
@@ -354,7 +354,7 @@ const AdminContractorManagement = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-cyan-400" />
+              <Building2 className="w-5 h-5 text-black" />
               {selectedContractor?.company_name}
             </DialogTitle>
           </DialogHeader>
@@ -417,7 +417,7 @@ const AdminContractorManagement = () => {
                 ) : (
                   <div className="space-y-2">
                     {contractorServices.map((service) => (
-                      <div key={service.id} className="p-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5">
+                      <div key={service.id} className="p-3 rounded-lg border border-neutral-200 bg-neutral-100">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">{service.service_name}</p>
@@ -426,7 +426,7 @@ const AdminContractorManagement = () => {
                           <div className="text-right">
                             {service.labor_price && (
                               <p className="text-sm">
-                                Labor: <span className="text-cyan-400 font-medium">${service.labor_price}{getUnitLabel(service.price_unit)}</span>
+                                Labor: <span className="text-black font-medium">${service.labor_price}{getUnitLabel(service.price_unit)}</span>
                               </p>
                             )}
                             {service.with_materials_price && (
@@ -448,7 +448,7 @@ const AdminContractorManagement = () => {
                 ) : (
                   <div className="space-y-2">
                     {contractorLicenses.map((license) => (
-                      <div key={license.id} className="p-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5">
+                      <div key={license.id} className="p-3 rounded-lg border border-neutral-200 bg-neutral-100">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">{license.license_type}</p>
@@ -511,7 +511,7 @@ const AdminContractorManagement = () => {
                       <Button 
                         variant={selectedContractor.status === 'rejected' ? 'default' : 'outline'}
                         onClick={() => updateContractorStatus(selectedContractor.id, 'rejected')}
-                        className="bg-gray-500/20 hover:bg-gray-500/30 text-gray-400 border-gray-500/30"
+                        className="bg-gray-500/20 hover:bg-gray-500/30 text-black border-gray-500/30"
                       >
                         <XCircle className="w-4 h-4 mr-2" /> Reject
                       </Button>

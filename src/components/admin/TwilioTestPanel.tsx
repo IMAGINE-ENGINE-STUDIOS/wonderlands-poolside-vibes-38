@@ -161,7 +161,7 @@ export const TwilioTestPanel = () => {
                 ) : (
                   <XCircle className="h-4 w-4 text-destructive" />
                 )}
-                <span className="text-sm font-mono">{key}</span>
+                <span className="text-sm ">{key}</span>
               </div>
             ))}
           </div>

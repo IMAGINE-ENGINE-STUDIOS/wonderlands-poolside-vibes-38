@@ -145,59 +145,59 @@ const ProcurementProposalsList: React.FC<ProcurementProposalsListProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl bg-[#0d0d15] border-cyan-500/30 max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl bg-white border-neutral-200 max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-cyan-300 font-mono text-sm">
+          <DialogTitle className="text-black  text-sm">
             Proposals — {listingTitle}
           </DialogTitle>
         </DialogHeader>
 
         {/* Date Assignment Section */}
-        <div className="rounded-lg border border-cyan-500/20 p-3 space-y-2">
-          <Label className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider">
+        <div className="rounded-lg border border-neutral-200 p-3 space-y-2">
+          <Label className="text-[10px]  text-neutral-600 uppercase tracking-wider">
             Assign Dates (required before accepting)
           </Label>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-[10px] font-mono text-cyan-400/40 flex items-center gap-1">
+              <Label className="text-[10px]  text-neutral-600 flex items-center gap-1">
                 <Calendar className="h-3 w-3" /> Start Date
               </Label>
               <Input
                 type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                className="h-7 text-[10px] bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+                className="h-7 text-[10px] bg-neutral-100 border-neutral-200 text-black "
               />
             </div>
             <div>
-              <Label className="text-[10px] font-mono text-cyan-400/40 flex items-center gap-1">
+              <Label className="text-[10px]  text-neutral-600 flex items-center gap-1">
                 <Calendar className="h-3 w-3" /> Due Date
               </Label>
               <Input
                 type="date"
                 value={dueDate}
                 onChange={e => setDueDate(e.target.value)}
-                className="h-7 text-[10px] bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+                className="h-7 text-[10px] bg-neutral-100 border-neutral-200 text-black "
               />
             </div>
           </div>
         </div>
 
         {loading ? (
-          <div className="text-center py-8 text-cyan-400/50 font-mono text-xs">Loading...</div>
+          <div className="text-center py-8 text-neutral-600  text-xs">Loading...</div>
         ) : proposals.length === 0 ? (
-          <div className="text-center py-8 text-cyan-400/50 font-mono text-xs">No proposals yet.</div>
+          <div className="text-center py-8 text-neutral-600  text-xs">No proposals yet.</div>
         ) : (
           <div className="space-y-3">
             {proposals.map(p => (
-              <div key={p.id} className="rounded-lg border border-cyan-500/20 p-3 space-y-2">
+              <div key={p.id} className="rounded-lg border border-neutral-200 p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <User className="h-3 w-3 text-cyan-400/60" />
-                    <span className="text-xs font-mono text-cyan-300">
+                    <User className="h-3 w-3 text-neutral-600" />
+                    <span className="text-xs  text-black">
                       {p.contractors?.company_name || 'Unknown'}
                     </span>
-                    <span className="text-[10px] font-mono text-cyan-400/40">
+                    <span className="text-[10px]  text-neutral-600">
                       ({p.contractors?.contact_name})
                     </span>
                   </div>
@@ -209,7 +209,7 @@ const ProcurementProposalsList: React.FC<ProcurementProposalsListProps> = ({
                     {p.status}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-4 text-[10px] font-mono text-cyan-400/60">
+                <div className="flex items-center gap-4 text-[10px]  text-neutral-600">
                   {p.proposed_price && (
                     <span className="flex items-center gap-1">
                       <DollarSign className="h-3 w-3" />${p.proposed_price.toLocaleString()}
@@ -223,7 +223,7 @@ const ProcurementProposalsList: React.FC<ProcurementProposalsListProps> = ({
                   <span className="capitalize">{p.proposal_type}</span>
                 </div>
                 {p.proposal_text && (
-                  <p className="text-[10px] font-mono text-cyan-400/50">{p.proposal_text}</p>
+                  <p className="text-[10px]  text-neutral-600">{p.proposal_text}</p>
                 )}
                 {/* Quotation file link */}
                 {(p as any).quotation_url && (
@@ -231,7 +231,7 @@ const ProcurementProposalsList: React.FC<ProcurementProposalsListProps> = ({
                     href={(p as any).quotation_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[10px] font-mono text-cyan-400 hover:text-cyan-300"
+                    className="flex items-center gap-1 text-[10px]  text-black hover:text-black"
                   >
                     <FileText className="h-3 w-3" />
                     {(p as any).quotation_file_name || 'View Quotation'}
@@ -244,7 +244,7 @@ const ProcurementProposalsList: React.FC<ProcurementProposalsListProps> = ({
                       size="sm"
                       onClick={() => handleAccept(p)}
                       disabled={accepting === p.id}
-                      className="bg-green-600 hover:bg-green-500 text-[10px] font-mono h-6"
+                      className="bg-green-600 hover:bg-green-500 text-[10px]  h-6"
                     >
                       <CheckCircle className="h-3 w-3 mr-1" />
                       {accepting === p.id ? 'Assigning...' : 'Accept & Assign'}
@@ -253,7 +253,7 @@ const ProcurementProposalsList: React.FC<ProcurementProposalsListProps> = ({
                       size="sm"
                       variant="ghost"
                       onClick={() => updateProposalStatus(p.id, 'rejected')}
-                      className="text-red-400 hover:text-red-300 text-[10px] font-mono h-6"
+                      className="text-red-400 hover:text-red-300 text-[10px]  h-6"
                     >
                       <XCircle className="h-3 w-3 mr-1" /> Reject
                     </Button>

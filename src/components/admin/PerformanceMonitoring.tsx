@@ -174,7 +174,7 @@ export const PerformanceMonitoring = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-green-500 overflow-hidden">
+    <div className="relative min-h-screen bg-white text-green-500 overflow-hidden">
       {/* Matrix Rain Background */}
       <MatrixRain />
       
@@ -183,30 +183,30 @@ export const PerformanceMonitoring = () => {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-green-500/30 pb-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight font-mono text-green-400 flex items-center gap-3">
+            <h2 className="text-3xl font-bold tracking-tight  text-green-400 flex items-center gap-3">
               <Globe className="h-8 w-8 animate-pulse" />
               GLOBAL INTELLIGENCE MATRIX
             </h2>
-            <p className="text-green-600 font-mono text-sm mt-1">
+            <p className="text-green-600  text-sm mt-1">
               [REAL-TIME VISITOR TRACKING & GEOLOCATION ANALYSIS]
             </p>
           </div>
           <div className="flex gap-4">
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[150px] bg-black border-green-500 text-green-400 font-mono">
+              <SelectTrigger className="w-[150px] bg-white border-green-500 text-green-400 ">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-black border-green-500">
+              <SelectContent className="bg-white border-green-500">
                 <SelectItem value="24h">24H SCAN</SelectItem>
                 <SelectItem value="7d">7D SCAN</SelectItem>
                 <SelectItem value="30d">30D SCAN</SelectItem>
               </SelectContent>
             </Select>
             <Select value={deviceFilter} onValueChange={setDeviceFilter}>
-              <SelectTrigger className="w-[150px] bg-black border-green-500 text-green-400 font-mono">
+              <SelectTrigger className="w-[150px] bg-white border-green-500 text-green-400 ">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-black border-green-500">
+              <SelectContent className="bg-white border-green-500">
                 <SelectItem value="all">ALL NODES</SelectItem>
                 <SelectItem value="mobile">MOBILE</SelectItem>
                 <SelectItem value="tablet">TABLET</SelectItem>
@@ -223,64 +223,64 @@ export const PerformanceMonitoring = () => {
 
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-black border-2 border-green-500/50 shadow-lg shadow-green-500/20">
+          <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-mono text-green-400 uppercase">Load Time</CardTitle>
+              <CardTitle className="text-sm  text-green-400 uppercase">Load Time</CardTitle>
               <Clock className="h-4 w-4 text-green-500 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-mono text-green-400">
+              <div className="text-3xl font-bold  text-green-400">
                 {stats ? Math.round(stats.avg_load_time) : 0}<span className="text-lg">ms</span>
               </div>
-              <p className="text-xs text-green-600 font-mono mt-1">AVG RESPONSE TIME</p>
+              <p className="text-xs text-green-600  mt-1">AVG RESPONSE TIME</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-black border-2 border-green-500/50 shadow-lg shadow-green-500/20">
+          <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-mono text-green-400 uppercase">Unique Visitors</CardTitle>
+              <CardTitle className="text-sm  text-green-400 uppercase">Unique Visitors</CardTitle>
               <Activity className="h-4 w-4 text-green-500 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-mono text-green-400">
+              <div className="text-3xl font-bold  text-green-400">
                 {stats?.unique_visitors || 0}
               </div>
-              <p className="text-xs text-green-600 font-mono mt-1">UNIQUE SESSIONS</p>
+              <p className="text-xs text-green-600  mt-1">UNIQUE SESSIONS</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-black border-2 border-green-500/50 shadow-lg shadow-green-500/20">
+          <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-mono text-green-400 uppercase">Total Hits</CardTitle>
+              <CardTitle className="text-sm  text-green-400 uppercase">Total Hits</CardTitle>
               <MapPin className="h-4 w-4 text-green-500 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-mono text-green-400">
+              <div className="text-3xl font-bold  text-green-400">
                 {stats?.total_visits || 0}
               </div>
-              <p className="text-xs text-green-600 font-mono mt-1">PAGE VIEWS TRACKED</p>
+              <p className="text-xs text-green-600  mt-1">PAGE VIEWS TRACKED</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-black border-2 border-green-500/50 shadow-lg shadow-green-500/20">
+          <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-mono text-green-400 uppercase">Mobile</CardTitle>
+              <CardTitle className="text-sm  text-green-400 uppercase">Mobile</CardTitle>
               <Smartphone className="h-4 w-4 text-green-500 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-mono text-green-400">
+              <div className="text-3xl font-bold  text-green-400">
                 {stats ? Math.round(stats.mobile_percentage) : 0}<span className="text-lg">%</span>
               </div>
-              <p className="text-xs text-green-600 font-mono mt-1">MOBILE DEVICES</p>
+              <p className="text-xs text-green-600  mt-1">MOBILE DEVICES</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Device Breakdown & Sources */}
         <div className="grid gap-4 md:grid-cols-2">
-          <Card className="bg-black border-2 border-green-500/50 shadow-lg shadow-green-500/20">
+          <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader>
-              <CardTitle className="font-mono text-green-400 uppercase flex items-center gap-2">
+              <CardTitle className=" text-green-400 uppercase flex items-center gap-2">
                 <Wifi className="h-5 w-5" />
                 Device Matrix
               </CardTitle>
@@ -291,9 +291,9 @@ export const PerformanceMonitoring = () => {
                   <div key={item.device} className="flex items-center justify-between border-b border-green-500/20 pb-2">
                     <div className="flex items-center gap-2">
                       {getDeviceIcon(item.device)}
-                      <span className="font-mono text-green-400 uppercase text-sm">{item.device}</span>
+                      <span className=" text-green-400 uppercase text-sm">{item.device}</span>
                     </div>
-                    <Badge className="bg-green-500/20 text-green-400 border-green-500 font-mono">
+                    <Badge className="bg-green-500/20 text-green-400 border-green-500 ">
                       {item.count}
                     </Badge>
                   </div>
@@ -302,9 +302,9 @@ export const PerformanceMonitoring = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-black border-2 border-green-500/50 shadow-lg shadow-green-500/20">
+          <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
             <CardHeader>
-              <CardTitle className="font-mono text-green-400 uppercase flex items-center gap-2">
+              <CardTitle className=" text-green-400 uppercase flex items-center gap-2">
                 <Activity className="h-5 w-5" />
                 Traffic Sources
               </CardTitle>
@@ -313,15 +313,15 @@ export const PerformanceMonitoring = () => {
               <div className="space-y-3">
                 {stats?.top_sources.map((item) => (
                   <div key={item.source} className="flex items-center justify-between border-b border-green-500/20 pb-2">
-                    <span className="font-mono text-green-400 uppercase text-sm">{item.source}</span>
+                    <span className=" text-green-400 uppercase text-sm">{item.source}</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-32 h-2 bg-black border border-green-500/30 rounded-full overflow-hidden">
+                      <div className="w-32 h-2 bg-white border border-green-500/30 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-green-500" 
                           style={{ width: `${(item.count / (stats?.total_visits || 1)) * 100}%` }}
                         />
                       </div>
-                      <Badge className="bg-green-500/20 text-green-400 border-green-500 font-mono">
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500 ">
                         {item.count}
                       </Badge>
                     </div>
@@ -333,16 +333,16 @@ export const PerformanceMonitoring = () => {
         </div>
 
         {/* Recent Activity Stream */}
-        <Card className="bg-black border-2 border-green-500/50 shadow-lg shadow-green-500/20">
+        <Card className="bg-white border-2 border-green-500/50 shadow-lg shadow-green-500/20">
           <CardHeader>
-            <CardTitle className="font-mono text-green-400 uppercase">
+            <CardTitle className=" text-green-400 uppercase">
               LIVE ACTIVITY STREAM
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {loading ? (
-                <p className="text-center text-green-600 font-mono">SCANNING...</p>
+                <p className="text-center text-green-600 ">SCANNING...</p>
               ) : metrics.slice(0, 20).map((metric) => (
                 <div
                   key={metric.id}
@@ -351,15 +351,15 @@ export const PerformanceMonitoring = () => {
                   <div className="flex items-center gap-3">
                     {getDeviceIcon(metric.device_type)}
                     <div>
-                      <p className="font-mono text-green-400 text-sm">{metric.page_url}</p>
-                      <p className="text-xs text-green-600 font-mono">
+                      <p className=" text-green-400 text-sm">{metric.page_url}</p>
+                      <p className="text-xs text-green-600 ">
                         {metric.browser} • {metric.os} • {metric.connection_type}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <Badge
-                      className={`font-mono ${
+                      className={` ${
                         metric.load_time_ms > 3000
                           ? "bg-red-500/20 text-red-400 border-red-500"
                           : "bg-green-500/20 text-green-400 border-green-500"
@@ -367,7 +367,7 @@ export const PerformanceMonitoring = () => {
                     >
                       {metric.load_time_ms}ms
                     </Badge>
-                    <p className="text-xs text-green-600 font-mono mt-1">
+                    <p className="text-xs text-green-600  mt-1">
                       {format(new Date(metric.created_at), "HH:mm:ss")}
                     </p>
                   </div>

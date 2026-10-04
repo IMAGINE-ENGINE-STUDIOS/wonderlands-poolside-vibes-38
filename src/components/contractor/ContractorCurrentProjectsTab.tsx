@@ -84,7 +84,7 @@ const ContractorCurrentProjectsTab: React.FC<ContractorCurrentProjectsTabProps> 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'assigned':
-        return <Badge className="bg-blue-500/20 text-blue-600 border-blue-500/30">Assigned</Badge>;
+        return <Badge className="bg-neutral-100 text-blue-600 border-neutral-200">Assigned</Badge>;
       case 'in_progress':
         return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">In Progress</Badge>;
       case 'completed':

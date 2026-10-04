@@ -63,7 +63,7 @@ const SampleDataSetup = () => {
               >
                 {loading ? (
                   <>
-                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                    <div className="animate-spin h-4 w-4 border-2 border-neutral-200 border-t-transparent rounded-full mr-2" />
                     Setting up...
                   </>
                 ) : (
@@ -86,15 +86,15 @@ const SampleDataSetup = () => {
             </div>
             
             {credentials && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left dark:bg-blue-950 dark:border-blue-800">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-3">Demo Credentials:</h4>
+              <div className="bg-blue-50 border border-neutral-200 rounded-lg p-4 text-left dark:bg-neutral-50 dark:border-neutral-200">
+                <h4 className="font-semibold text-blue-800 dark:text-black mb-3">Demo Credentials:</h4>
                 <div className="space-y-3 text-sm">
-                  <div className="p-3 bg-white dark:bg-gray-900 rounded border">
-                    <p className="font-medium text-blue-700 dark:text-blue-300">Supplier Account:</p>
+                  <div className="p-3 bg-white dark:bg-white rounded border">
+                    <p className="font-medium text-blue-700 dark:text-black">Supplier Account:</p>
                     <p><strong>Email:</strong> {credentials.supplier.email}</p>
                     <p><strong>Password:</strong> {credentials.supplier.password}</p>
                   </div>
-                  <div className="p-3 bg-white dark:bg-gray-900 rounded border">
+                  <div className="p-3 bg-white dark:bg-white rounded border">
                     <p className="font-medium text-green-700 dark:text-green-300">Contractor Account:</p>
                     <p><strong>Email:</strong> {credentials.contractor.email}</p>
                     <p><strong>Password:</strong> {credentials.contractor.password}</p>
@@ -103,7 +103,7 @@ const SampleDataSetup = () => {
               </div>
             )}
             
-            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-sm">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-black text-sm">
               <AlertCircle className="h-4 w-4" />
               <span>You can now test the role-based dashboard with these accounts</span>
             </div>

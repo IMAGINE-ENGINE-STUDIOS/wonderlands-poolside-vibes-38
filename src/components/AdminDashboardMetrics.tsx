@@ -63,18 +63,18 @@ const StatTile: React.FC<{
       onClick={onClick}
       onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
       className={`
-        group relative ${onClick ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]' : ''} bg-[#1a1a1a] p-6 rounded-xl
-        border ${emphasis ? 'border-[#c9a84c]' : 'border-[#c9a84c]/20'}
+        group relative ${onClick ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]' : ''} bg-white p-6 rounded-xl
+        border ${emphasis ? 'border-neutral-200' : 'border-neutral-200'}
         overflow-hidden
         transition-all duration-300
-        hover:border-[#c9a84c]/70 hover:-translate-y-0.5
+        hover:border-neutral-200 hover:-translate-y-0.5
         hover:shadow-[0_18px_50px_-20px_rgba(201,168,76,0.5)]
         animate-fade-in
       `}
       style={{ animationDelay: `${delay}ms`, fontFamily: "'Manrope', sans-serif" }}
     >
       {emphasis && (
-        <div className="absolute top-0 right-0 w-24 h-24 bg-[#c9a84c]/[0.08] rotate-45 translate-x-10 -translate-y-10 transition-transform duration-500 group-hover:scale-110" />
+        <div className="absolute top-0 right-0 w-24 h-24 bg-neutral-100 rotate-45 translate-x-10 -translate-y-10 transition-transform duration-500 group-hover:scale-110" />
       )}
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#c9a84c]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -85,7 +85,7 @@ const StatTile: React.FC<{
         >
           {label}
         </span>
-        <Icon className="h-5 w-5 text-[#c9a84c]/70 transition-transform duration-300 group-hover:scale-110" />
+        <Icon className="h-5 w-5 text-neutral-600 transition-transform duration-300 group-hover:scale-110" />
       </div>
 
       <div className="relative flex items-end justify-between gap-3">
@@ -95,10 +95,10 @@ const StatTile: React.FC<{
         >
           {display}
         </span>
-        <div className={`w-12 h-1 rounded-full ${emphasis ? 'bg-[#c9a84c]' : 'bg-[#c9a84c]/30'}`} />
+        <div className={`w-12 h-1 rounded-full ${emphasis ? 'bg-[#c9a84c]' : 'bg-neutral-100'}`} />
       </div>
 
-      <p className="relative mt-4 text-[12px] text-[#f0d78c]/70 font-medium tracking-wide">
+      <p className="relative mt-4 text-[12px] text-neutral-600 font-medium tracking-wide">
         {subline}
       </p>
     </div>
@@ -106,10 +106,10 @@ const StatTile: React.FC<{
 };
 
 const SkeletonTile = () => (
-  <div className="bg-[#1a1a1a] p-6 rounded-xl border border-[#c9a84c]/15 h-[170px] animate-pulse">
-    <div className="h-3 w-24 bg-[#c9a84c]/15 rounded mb-6" />
-    <div className="h-10 w-32 bg-[#c9a84c]/10 rounded mb-3" />
-    <div className="h-3 w-20 bg-[#c9a84c]/10 rounded" />
+  <div className="bg-white p-6 rounded-xl border border-neutral-200 h-[170px] animate-pulse">
+    <div className="h-3 w-24 bg-neutral-100 rounded mb-6" />
+    <div className="h-10 w-32 bg-neutral-100 rounded mb-3" />
+    <div className="h-3 w-20 bg-neutral-100 rounded" />
   </div>
 );
 

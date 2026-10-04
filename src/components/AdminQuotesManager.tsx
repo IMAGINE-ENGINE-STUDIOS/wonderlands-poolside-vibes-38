@@ -96,11 +96,11 @@ const AdminQuotesManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-amber-500/20 text-amber-300 border-amber-500/50';
-      case 'contacted': return 'bg-blue-500/20 text-blue-300 border-blue-500/50';  
+      case 'pending': return 'bg-amber-500/20 text-black border-amber-500/50';
+      case 'contacted': return 'bg-neutral-100 text-black border-neutral-200';  
       case 'converted': return 'bg-green-500/20 text-green-300 border-green-500/50';
       case 'lost': return 'bg-red-500/20 text-red-300 border-red-500/50';
-      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/50';
+      default: return 'bg-gray-500/20 text-black border-gray-500/50';
     }
   };
 
@@ -160,39 +160,39 @@ const AdminQuotesManager = () => {
     <div className="space-y-6">
       {/* Quote Statistics - Command Center Style */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full blur-2xl"></div>
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-neutral-100 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-cyan-400 uppercase tracking-wider">Total</span>
-              <Calendar className="h-5 w-5 text-cyan-400" />
+              <span className="text-xs  text-black uppercase tracking-wider">Total</span>
+              <Calendar className="h-5 w-5 text-black" />
             </div>
-            <div className="text-3xl font-bold text-cyan-300 neon-glow-cyan">{totalQuotes}</div>
-            <div className="h-1 w-full bg-cyan-900/30 rounded-full mt-2 overflow-hidden">
+            <div className="text-3xl font-bold text-black neon-glow-cyan">{totalQuotes}</div>
+            <div className="h-1 w-full bg-neutral-50 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 data-stream"></div>
             </div>
           </div>
         </div>
         
-        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
           <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-amber-400 uppercase tracking-wider">Pending</span>
-              <Search className="h-5 w-5 text-amber-400" />
+              <span className="text-xs  text-black uppercase tracking-wider">Pending</span>
+              <Search className="h-5 w-5 text-black" />
             </div>
-            <div className="text-3xl font-bold text-amber-300" style={{textShadow: '0 0 20px rgba(251, 191, 36, 0.6)'}}>{pendingQuotes}</div>
+            <div className="text-3xl font-bold text-black" style={{textShadow: '0 0 20px rgba(251, 191, 36, 0.6)'}}>{pendingQuotes}</div>
             <div className="h-1 w-full bg-amber-900/30 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-500 data-stream"></div>
             </div>
           </div>
         </div>
         
-        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
           <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-green-400 uppercase tracking-wider">Converted</span>
+              <span className="text-xs  text-green-400 uppercase tracking-wider">Converted</span>
               <Eye className="h-5 w-5 text-green-400" />
             </div>
             <div className="text-3xl font-bold text-green-300" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{convertedQuotes}</div>
@@ -202,15 +202,15 @@ const AdminQuotesManager = () => {
           </div>
         </div>
         
-        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
+        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-neutral-100 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-blue-200 uppercase tracking-wider">Value</span>
-              <DollarSign className="h-5 w-5 text-blue-200" />
+              <span className="text-xs  text-black uppercase tracking-wider">Value</span>
+              <DollarSign className="h-5 w-5 text-black" />
             </div>
             <div className="text-2xl font-bold text-blue-100 neon-glow-blue">${totalQuoteValue.toLocaleString()}</div>
-            <div className="h-1 w-full bg-blue-900/30 rounded-full mt-2 overflow-hidden">
+            <div className="h-1 w-full bg-neutral-50 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
             </div>
           </div>
@@ -218,29 +218,29 @@ const AdminQuotesManager = () => {
       </div>
 
       {/* Filters - Command Center Style */}
-      <div className="holographic-panel rounded-lg overflow-hidden">
-        <div className="p-6 border-b border-cyan-500/20">
+      <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg overflow-hidden">
+        <div className="p-6 border-b border-neutral-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-cyan-300 font-mono tracking-wide uppercase neon-glow-cyan">⬡ Quote Database ⬡</h3>
-            <p className="text-xs text-cyan-400/60 font-mono">
+            <h3 className="text-xl font-bold text-black  tracking-wide uppercase neon-glow-cyan">⬡ Quote Database ⬡</h3>
+            <p className="text-xs text-neutral-600 ">
               Click "View Quote" for complete details with images
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black" />
               <Input
                 placeholder="SEARCH: NAME / EMAIL / POOL MODEL..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono text-sm"
+                className="pl-10 bg-white border-neutral-200 text-black placeholder:text-neutral-500  text-sm"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48 bg-black/40 border-cyan-500/30 text-cyan-300 font-mono text-sm">
+              <SelectTrigger className="w-full sm:w-48 bg-white border-neutral-200 text-black  text-sm">
                 <SelectValue placeholder="FILTER STATUS" />
               </SelectTrigger>
-              <SelectContent className="bg-black border-cyan-500/30">
+              <SelectContent className="bg-white border-neutral-200">
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="contacted">Contacted</SelectItem>
@@ -254,46 +254,46 @@ const AdminQuotesManager = () => {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-b border-cyan-500/20 hover:bg-transparent">
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Customer</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Pool Model</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Quote Amount</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Status</TableHead>
-                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Date</TableHead>
-                  <TableHead className="text-center text-cyan-400 font-mono text-xs uppercase tracking-wider">Actions</TableHead>
+                <TableRow className="border-b border-neutral-200 hover:bg-transparent">
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Customer</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Pool Model</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Quote Amount</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Status</TableHead>
+                  <TableHead className="text-black  text-xs uppercase tracking-wider">Date</TableHead>
+                  <TableHead className="text-center text-black  text-xs uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredQuotes.map((quote) => (
-                  <TableRow key={quote.id} className="border-b border-cyan-500/10 hover:bg-cyan-500/5 transition-colors">
+                  <TableRow key={quote.id} className="border-b border-neutral-200 hover:bg-neutral-100 transition-colors">
                     <TableCell>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-cyan-200">{quote.name}</p>
+                          <p className="font-medium text-black">{quote.name}</p>
                           {!quote.user_id ? (
-                            <Badge variant="outline" className="text-xs bg-gray-500/20 text-gray-300 border-gray-500/50 font-mono">GUEST</Badge>
+                            <Badge variant="outline" className="text-xs bg-gray-500/20 text-black border-gray-500/50 ">GUEST</Badge>
                           ) : (
-                            <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/50 font-mono">REG</Badge>
+                            <Badge variant="outline" className="text-xs bg-neutral-100 text-black border-neutral-200 ">REG</Badge>
                           )}
                         </div>
-                        <p className="text-sm text-cyan-400/60 font-mono">{quote.email}</p>
+                        <p className="text-sm text-neutral-600 ">{quote.email}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-cyan-200">{quote.pool_model || 'N/A'}</p>
-                        <p className="text-sm text-cyan-400/60 font-mono">{quote.pool_category || ''}</p>
+                        <p className="font-medium text-black">{quote.pool_model || 'N/A'}</p>
+                        <p className="text-sm text-neutral-600 ">{quote.pool_category || ''}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="font-bold text-blue-300 font-mono">
+                    <TableCell className="font-bold text-black ">
                       ${quote.total_quote_amount?.toLocaleString() || '0'}
                     </TableCell>
                     <TableCell>
-                      <Badge className={`${getStatusColor(quote.status)} font-mono text-xs uppercase`}>
+                      <Badge className={`${getStatusColor(quote.status)}  text-xs uppercase`}>
                         {quote.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-cyan-400/80 font-mono text-sm">
+                    <TableCell className="text-black  text-sm">
                       {new Date(quote.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
@@ -303,7 +303,7 @@ const AdminQuotesManager = () => {
                           size="sm"
                           onClick={() => handleViewQuote(quote)}
                           title="Quick Preview"
-                          className="hover:bg-cyan-500/10 text-cyan-400"
+                          className="hover:bg-neutral-100 text-black"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -312,7 +312,7 @@ const AdminQuotesManager = () => {
                           size="sm"
                           onClick={() => navigate(`/admin/quotes/${quote.id}`)}
                           title="View Complete Quote with Images"
-                          className="text-xs bg-black/40 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+                          className="text-xs bg-white border-neutral-200 text-black hover:bg-neutral-100 "
                         >
                           <ExternalLink className="h-4 w-4 mr-1" />
                           FULL
@@ -326,7 +326,7 @@ const AdminQuotesManager = () => {
           </div>
           
           {filteredQuotes.length === 0 && (
-            <div className="text-center py-8 text-cyan-400/60 font-mono">
+            <div className="text-center py-8 text-neutral-600 ">
               {quotes.length === 0 ? 'NO QUOTES FOUND' : 'NO QUOTES MATCH SEARCH CRITERIA'}
             </div>
           )}
@@ -344,7 +344,7 @@ const AdminQuotesManager = () => {
               <div className="bg-white border-2 border-orange-400 rounded-lg overflow-hidden">
                 
                 {/* Header with Logo */}
-                <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
+                <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-black">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 bg-white rounded-lg flex items-center justify-center">
@@ -363,7 +363,7 @@ const AdminQuotesManager = () => {
                 </div>
 
                 {/* Customer Information */}
-                <div className="p-6 bg-gradient-to-r from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                <div className="p-6 bg-gradient-to-r from-orange-50 to-teal-50 dark:from-white dark:to-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h3 className="font-bold text-lg mb-3 text-orange-600">Customer Information</h3>
@@ -398,17 +398,17 @@ const AdminQuotesManager = () => {
                   <h3 className="font-bold text-xl mb-4 text-orange-600">Pool Specifications</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-4">
-                      <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
+                      <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-white dark:to-gray-700 p-4 rounded-lg">
                         <h4 className="font-semibold mb-2">Pool Model: {selectedQuote.pool_model || 'N/A'}</h4>
                         <p className="text-sm">Category: {selectedQuote.pool_category || 'N/A'}</p>
-                        <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
+                        <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-neutral-200">
                           <span>Base Pool Price:</span>
                           <span className="font-semibold">${(selectedQuote.pool_price || 0).toLocaleString()}</span>
                         </div>
                       </div>
 
                       {/* Project Details */}
-                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-white p-4 rounded-lg">
                         <h4 className="font-semibold mb-2">Project Details</h4>
                         <div className="space-y-2 text-sm">
                           <p><span className="font-medium">Yard Size:</span> {selectedQuote.yard_size || 'Not specified'}</p>
@@ -419,8 +419,8 @@ const AdminQuotesManager = () => {
                     </div>
                     
                     <div>
-                      <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg h-48 flex items-center justify-center">
-                        <span className="text-gray-500">Pool Image</span>
+                      <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white dark:to-gray-700 p-4 rounded-lg h-48 flex items-center justify-center">
+                        <span className="text-neutral-600">Pool Image</span>
                       </div>
                     </div>
                   </div>
@@ -431,7 +431,7 @@ const AdminQuotesManager = () => {
                       <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {selectedQuote.selected_options.map((option: any, index: number) => (
-                          <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                          <div key={index} className="border border-orange-200 dark:border-neutral-200 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-white dark:to-gray-700">
                             <h5 className="font-semibold text-sm">{option.name}</h5>
                             <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
                             <div className="flex justify-between text-sm">
@@ -447,7 +447,7 @@ const AdminQuotesManager = () => {
                   {/* Special Requests */}
                   {selectedQuote.special_requests && (
                     <div className="mb-6">
-                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
+                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-white p-4 rounded-lg border border-neutral-200">
                         <h4 className="font-bold text-lg mb-2 text-blue-600">Special Requests</h4>
                         <p className="text-sm">{selectedQuote.special_requests}</p>
                       </div>
@@ -457,7 +457,7 @@ const AdminQuotesManager = () => {
                   {/* Items Included */}
                   {selectedQuote.recommendations && selectedQuote.recommendations.length > 0 && (
                     <div className="mb-6">
-                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
+                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-white p-6 rounded-lg">
                         <h4 className="font-bold text-lg mb-3 text-orange-600">ALL POOLS INCLUDE</h4>
                         <p className="text-sm">
                           {selectedQuote.recommendations.filter((item: string) => !item.startsWith("FREE")).join(", ")}
@@ -469,7 +469,7 @@ const AdminQuotesManager = () => {
 
                   {/* Quote Status */}
                   <div className="mb-6">
-                    <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
+                    <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-white p-4 rounded-lg border border-green-200">
                       <h4 className="font-bold text-lg mb-2 text-green-600">Quote Status</h4>
                       <div className="flex items-center gap-2">
                         <Badge className={getStatusColor(selectedQuote.status)}>
@@ -483,7 +483,7 @@ const AdminQuotesManager = () => {
                   </div>
 
                   {/* Total Investment */}
-                  <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
+                  <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-black text-center">
                     <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
                     <div className="text-4xl font-bold mb-2">${selectedQuote.total_quote_amount?.toLocaleString() || '0'}</div>
                     <p className="text-orange-100">Complete installation including permits, excavation, and paver deck</p>
@@ -497,7 +497,7 @@ const AdminQuotesManager = () => {
                     </h4>
                     {invoicesLoading ? (
                       <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neutral-200"></div>
                       </div>
                     ) : customerInvoices.length === 0 ? (
                       <p className="text-sm text-muted-foreground py-3">No invoices found for this customer.</p>
@@ -506,7 +506,7 @@ const AdminQuotesManager = () => {
                         {customerInvoices.map((inv) => (
                           <div
                             key={inv.id}
-                            className="flex items-center justify-between p-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-colors cursor-pointer"
+                            className="flex items-center justify-between p-3 rounded-lg border border-neutral-200 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-colors cursor-pointer"
                             onClick={() => navigate(`/admin/invoices/${inv.id}`)}
                           >
                             <div className="flex items-center gap-3">
@@ -529,7 +529,7 @@ const AdminQuotesManager = () => {
                                 {inv.payment_status}
                               </Badge>
                               <span className="font-bold text-sm">${inv.total_amount?.toLocaleString()}</span>
-                              <ExternalLink className="h-3 w-3 text-blue-400" />
+                              <ExternalLink className="h-3 w-3 text-black" />
                             </div>
                           </div>
                         ))}

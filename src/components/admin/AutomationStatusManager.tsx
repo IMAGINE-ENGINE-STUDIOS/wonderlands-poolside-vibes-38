@@ -49,14 +49,14 @@ interface CommunicationLog {
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  in_progress: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  in_progress: 'bg-neutral-100 text-black border-neutral-200',
   completed: 'bg-green-500/20 text-green-400 border-green-500/30',
-  paused: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  paused: 'bg-gray-500/20 text-black border-gray-500/30',
   failed: 'bg-red-500/20 text-red-400 border-red-500/30',
-  sent: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  sent: 'bg-neutral-100 text-black border-neutral-200',
   delivered: 'bg-green-500/20 text-green-400 border-green-500/30',
   opened: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  clicked: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+  clicked: 'bg-neutral-100 text-black border-neutral-200'
 };
 
 const channelIcons: Record<string, React.ElementType> = {
@@ -154,8 +154,8 @@ export default function AutomationStatusManager() {
     switch (status) {
       case 'completed': return <CheckCircle className="h-4 w-4 text-green-400" />;
       case 'failed': return <AlertCircle className="h-4 w-4 text-red-400" />;
-      case 'paused': return <Pause className="h-4 w-4 text-gray-400" />;
-      case 'in_progress': return <Activity className="h-4 w-4 text-blue-400" />;
+      case 'paused': return <Pause className="h-4 w-4 text-black" />;
+      case 'in_progress': return <Activity className="h-4 w-4 text-black" />;
       default: return <Clock className="h-4 w-4 text-yellow-400" />;
     }
   };
@@ -178,10 +178,10 @@ export default function AutomationStatusManager() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-cyan-300">Automation Status</h2>
-          <p className="text-cyan-400/60 text-sm">Monitor client automations and communication logs</p>
+          <h2 className="text-2xl font-bold text-black">Automation Status</h2>
+          <p className="text-neutral-600 text-sm">Monitor client automations and communication logs</p>
         </div>
-        <Button onClick={() => { fetchAutomations(); fetchRecentLogs(); }} variant="outline" className="border-cyan-500/30">
+        <Button onClick={() => { fetchAutomations(); fetchRecentLogs(); }} variant="outline" className="border-neutral-200">
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -189,33 +189,33 @@ export default function AutomationStatusManager() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gray-900/50 border-cyan-500/20">
+        <Card className="bg-white border-neutral-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-cyan-500/20">
-                <Activity className="h-5 w-5 text-cyan-400" />
+              <div className="p-2 rounded-lg bg-neutral-100">
+                <Activity className="h-5 w-5 text-black" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-cyan-300">{stats.total}</p>
-                <p className="text-xs text-cyan-400/60">Total Automations</p>
+                <p className="text-2xl font-bold text-black">{stats.total}</p>
+                <p className="text-xs text-neutral-600">Total Automations</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-900/50 border-blue-500/20">
+        <Card className="bg-white border-neutral-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/20">
-                <Play className="h-5 w-5 text-blue-200" />
+              <div className="p-2 rounded-lg bg-neutral-100">
+                <Play className="h-5 w-5 text-black" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-blue-100">{stats.inProgress}</p>
-                <p className="text-xs text-blue-300/80">In Progress</p>
+                <p className="text-xs text-black">In Progress</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-900/50 border-green-500/20">
+        <Card className="bg-white border-green-500/20">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-green-500/20">
@@ -228,7 +228,7 @@ export default function AutomationStatusManager() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-900/50 border-purple-500/20">
+        <Card className="bg-white border-purple-500/20">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-purple-500/20">
@@ -246,7 +246,7 @@ export default function AutomationStatusManager() {
       {/* Filter */}
       <div className="flex items-center gap-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48 bg-gray-800 border-cyan-500/30">
+          <SelectTrigger className="w-48 bg-white border-neutral-200">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -261,51 +261,51 @@ export default function AutomationStatusManager() {
       </div>
 
       {/* Automations Table */}
-      <Card className="bg-gray-900/50 border-cyan-500/20">
+      <Card className="bg-white border-neutral-200">
         <CardHeader>
-          <CardTitle className="text-cyan-300">Client Automations</CardTitle>
-          <CardDescription className="text-cyan-400/60">
+          <CardTitle className="text-black">Client Automations</CardTitle>
+          <CardDescription className="text-neutral-600">
             Track the status of automated outreach for each client
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-12 text-cyan-400/60">Loading...</div>
+            <div className="text-center py-12 text-neutral-600">Loading...</div>
           ) : automations.length === 0 ? (
-            <div className="text-center py-12 text-cyan-400/60">
+            <div className="text-center py-12 text-neutral-600">
               No automations found. Add a new client to trigger an automation.
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="border-cyan-500/20">
-                  <TableHead className="text-cyan-400">Client</TableHead>
-                  <TableHead className="text-cyan-400">Sequence</TableHead>
-                  <TableHead className="text-cyan-400">Step</TableHead>
-                  <TableHead className="text-cyan-400">Status</TableHead>
-                  <TableHead className="text-cyan-400">Next Action</TableHead>
-                  <TableHead className="text-cyan-400">Actions</TableHead>
+                <TableRow className="border-neutral-200">
+                  <TableHead className="text-black">Client</TableHead>
+                  <TableHead className="text-black">Sequence</TableHead>
+                  <TableHead className="text-black">Step</TableHead>
+                  <TableHead className="text-black">Status</TableHead>
+                  <TableHead className="text-black">Next Action</TableHead>
+                  <TableHead className="text-black">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {automations.map((automation) => (
-                  <TableRow key={automation.id} className="border-cyan-500/10">
+                  <TableRow key={automation.id} className="border-neutral-200">
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-cyan-400/60" />
+                        <User className="h-4 w-4 text-neutral-600" />
                         <div>
-                          <p className="font-medium text-cyan-300">
+                          <p className="font-medium text-black">
                             {automation.client?.first_name} {automation.client?.last_name}
                           </p>
-                          <p className="text-xs text-cyan-400/60">{automation.client?.email}</p>
+                          <p className="text-xs text-neutral-600">{automation.client?.email}</p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-cyan-400/80">
+                    <TableCell className="text-black">
                       {automation.sequence?.name || 'Unknown'}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-cyan-400">
+                      <Badge variant="outline" className="text-black">
                         Step {automation.current_step}
                       </Badge>
                     </TableCell>
@@ -315,7 +315,7 @@ export default function AutomationStatusManager() {
                         <span className="ml-1 capitalize">{automation.status.replace('_', ' ')}</span>
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-cyan-400/60 text-sm">
+                    <TableCell className="text-neutral-600 text-sm">
                       {automation.next_action_at ? (
                         formatDistanceToNow(new Date(automation.next_action_at), { addSuffix: true })
                       ) : (
@@ -327,16 +327,16 @@ export default function AutomationStatusManager() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 hover:bg-cyan-500/10"
+                          className="h-8 w-8 hover:bg-neutral-100"
                           onClick={() => fetchClientLogs(automation.client_id)}
                         >
-                          <Eye className="h-4 w-4 text-cyan-400" />
+                          <Eye className="h-4 w-4 text-black" />
                         </Button>
                         {(automation.status === 'in_progress' || automation.status === 'paused') && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 hover:bg-cyan-500/10"
+                            className="h-8 w-8 hover:bg-neutral-100"
                             onClick={() => toggleAutomationStatus(automation)}
                           >
                             {automation.status === 'paused' ? (
@@ -357,10 +357,10 @@ export default function AutomationStatusManager() {
       </Card>
 
       {/* Recent Communication Logs */}
-      <Card className="bg-gray-900/50 border-cyan-500/20">
+      <Card className="bg-white border-neutral-200">
         <CardHeader>
-          <CardTitle className="text-cyan-300">Recent Communications</CardTitle>
-          <CardDescription className="text-cyan-400/60">
+          <CardTitle className="text-black">Recent Communications</CardTitle>
+          <CardDescription className="text-neutral-600">
             Latest messages sent across all channels
           </CardDescription>
         </CardHeader>
@@ -371,27 +371,27 @@ export default function AutomationStatusManager() {
               return (
                 <div
                   key={log.id}
-                  className="flex items-center gap-4 p-3 rounded-lg bg-gray-800/50 border border-cyan-500/10"
+                  className="flex items-center gap-4 p-3 rounded-lg bg-white border border-neutral-200"
                 >
                   <div className={`p-2 rounded-lg ${
-                    log.channel === 'email' ? 'bg-blue-500/20' :
+                    log.channel === 'email' ? 'bg-neutral-100' :
                     log.channel === 'sms' ? 'bg-green-500/20' :
                     log.channel === 'whatsapp' ? 'bg-emerald-500/20' : 'bg-purple-500/20'
                   }`}>
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-cyan-300 truncate">
+                    <p className="text-sm text-black truncate">
                       {log.subject || log.message_content.substring(0, 50)}...
                     </p>
-                    <p className="text-xs text-cyan-400/60">
+                    <p className="text-xs text-neutral-600">
                       To: {log.recipient}
                     </p>
                   </div>
                   <Badge className={statusColors[log.status]}>
                     {log.status}
                   </Badge>
-                  <span className="text-xs text-cyan-400/40">
+                  <span className="text-xs text-neutral-600">
                     {log.sent_at ? format(new Date(log.sent_at), 'MMM d, HH:mm') : '-'}
                   </span>
                 </div>
@@ -403,24 +403,24 @@ export default function AutomationStatusManager() {
 
       {/* Client Logs Dialog */}
       <Dialog open={isLogsDialogOpen} onOpenChange={setIsLogsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-gray-900 border-cyan-500/30">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white border-neutral-200">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300">Communication History</DialogTitle>
+            <DialogTitle className="text-black">Communication History</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-4">
             {clientLogs.length === 0 ? (
-              <p className="text-center text-cyan-400/60 py-8">No communications yet</p>
+              <p className="text-center text-neutral-600 py-8">No communications yet</p>
             ) : (
               clientLogs.map((log) => {
                 const Icon = channelIcons[log.channel] || Mail;
                 return (
                   <div
                     key={log.id}
-                    className="p-4 rounded-lg bg-gray-800/50 border border-cyan-500/10"
+                    className="p-4 rounded-lg bg-white border border-neutral-200"
                   >
                     <div className="flex items-start gap-3">
                       <div className={`p-2 rounded-lg ${
-                        log.channel === 'email' ? 'bg-blue-500/20' :
+                        log.channel === 'email' ? 'bg-neutral-100' :
                         log.channel === 'sms' ? 'bg-green-500/20' :
                         log.channel === 'whatsapp' ? 'bg-emerald-500/20' : 'bg-purple-500/20'
                       }`}>
@@ -434,16 +434,16 @@ export default function AutomationStatusManager() {
                           <Badge className={statusColors[log.status]}>
                             {log.status}
                           </Badge>
-                          <span className="text-xs text-cyan-400/40">
+                          <span className="text-xs text-neutral-600">
                             {log.created_at ? format(new Date(log.created_at), 'MMM d, yyyy HH:mm') : '-'}
                           </span>
                         </div>
                         {log.subject && (
-                          <p className="text-sm font-medium text-cyan-300 mb-1">
+                          <p className="text-sm font-medium text-black mb-1">
                             Subject: {log.subject}
                           </p>
                         )}
-                        <p className="text-sm text-cyan-400/80 whitespace-pre-wrap">
+                        <p className="text-sm text-black whitespace-pre-wrap">
                           {log.message_content}
                         </p>
                         {log.error_message && (

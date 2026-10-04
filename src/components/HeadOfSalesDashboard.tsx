@@ -291,8 +291,8 @@ const HeadOfSalesDashboard = () => {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      new: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      contacted: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      new: 'bg-neutral-100 text-black border-neutral-200',
+      contacted: 'bg-neutral-100 text-black border-neutral-200',
       qualified: 'bg-green-500/20 text-green-300 border-green-500/30',
       proposal_sent: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
       negotiating: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
@@ -305,7 +305,7 @@ const HeadOfSalesDashboard = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-black" />
       </div>
     );
   }
@@ -323,7 +323,7 @@ const HeadOfSalesDashboard = () => {
                 <div className="flex items-center gap-3">
                   <IconComponent className={`h-5 w-5 ${config.color}`} />
                   <div>
-                    <p className="text-xl font-bold text-black font-mono">{count}</p>
+                    <p className="text-xl font-bold text-black ">{count}</p>
                     <p className="text-xs text-black/60">{config.label}</p>
                   </div>
                 </div>
@@ -359,12 +359,12 @@ const HeadOfSalesDashboard = () => {
                 placeholder="Search clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white border-slate-300 text-black placeholder:text-black/50"
+                className="pl-10 bg-white border-slate-300 text-black placeholder:text-neutral-500"
               />
             </div>
             <Button
               onClick={() => setIsAddClientDialogOpen(true)}
-              className="bg-slate-800 hover:bg-slate-900 text-white"
+              className="bg-white hover:bg-white text-black"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Client
@@ -382,7 +382,7 @@ const HeadOfSalesDashboard = () => {
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-black font-mono text-base">
+                        <CardTitle className="text-black  text-base">
                           {client.first_name} {client.last_name}
                         </CardTitle>
                         <CardDescription className="text-black/60 text-xs">
@@ -442,7 +442,7 @@ const HeadOfSalesDashboard = () => {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2 group cursor-pointer" onClick={() => startEditingDealValue(client.id, dealValue)}>
-                          <span className="font-mono text-black text-sm">
+                          <span className=" text-black text-sm">
                             {dealValue > 0 ? `$${dealValue.toLocaleString()}` : 'Set deal value'}
                           </span>
                           <Pencil className="h-3 w-3 text-black/40 group-hover:text-black transition-colors" />
@@ -495,7 +495,7 @@ const HeadOfSalesDashboard = () => {
         <TabsContent value="pipeline">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-black font-mono">Sales Pipeline</CardTitle>
+              <CardTitle className="text-black ">Sales Pipeline</CardTitle>
               <CardDescription className="text-black/60">
                 Track deals through the pipeline
               </CardDescription>
@@ -523,7 +523,7 @@ const HeadOfSalesDashboard = () => {
         <TabsContent value="commissions">
           <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-black font-mono">Commission Tracker</CardTitle>
+              <CardTitle className="text-black ">Commission Tracker</CardTitle>
               <CardDescription className="text-black/60">
                 View and manage team commissions
               </CardDescription>
@@ -541,7 +541,7 @@ const HeadOfSalesDashboard = () => {
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
         <DialogContent className="max-w-4xl bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-black font-mono">
+            <DialogTitle className="text-black ">
               Manage Sales Team
             </DialogTitle>
           </DialogHeader>
@@ -561,7 +561,7 @@ const HeadOfSalesDashboard = () => {
       <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
         <DialogContent className="max-w-2xl bg-white border-slate-200 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-black font-mono flex items-center gap-2">
+            <DialogTitle className="text-black  flex items-center gap-2">
               <UserPlus className="h-5 w-5" />
               Add New Client
             </DialogTitle>
@@ -694,7 +694,7 @@ const HeadOfSalesDashboard = () => {
               <Button
                 onClick={handleAddClient}
                 disabled={isAddingClient}
-                className="flex-1 bg-slate-800 hover:bg-slate-900 text-white"
+                className="flex-1 bg-white hover:bg-white text-black"
               >
                 {isAddingClient ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />

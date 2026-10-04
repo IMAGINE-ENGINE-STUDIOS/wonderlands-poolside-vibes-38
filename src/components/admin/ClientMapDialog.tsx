@@ -265,32 +265,32 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="holographic-panel neon-border-cyan max-w-6xl p-0 overflow-hidden">
-        <div ref={panelRef} className="flex flex-col bg-[#0a0a0f] h-[80vh] fullscreen:h-screen">
-          <DialogHeader className="p-4 pb-3 border-b border-cyan-500/20">
-            <DialogTitle className="text-cyan-300 font-mono flex items-center gap-2">
+      <DialogContent className="bg-white border border-neutral-200 rounded-xl shadow-sm neon-border-cyan max-w-6xl p-0 overflow-hidden">
+        <div ref={panelRef} className="flex flex-col bg-white h-[80vh] fullscreen:h-screen">
+          <DialogHeader className="p-4 pb-3 border-b border-neutral-200">
+            <DialogTitle className="text-black  flex items-center gap-2">
               <MapPin className="h-5 w-5" /> CLIENT MAP
             </DialogTitle>
-            <DialogDescription className="text-cyan-400/60 font-mono text-xs">
+            <DialogDescription className="text-neutral-600  text-xs">
               Closest clients to your base ZIP — click a pin or a card to call.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-cyan-500/20">
+          <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-neutral-200">
             <div className="relative">
-              <Crosshair className="absolute left-3 top-3 h-4 w-4 text-cyan-400" />
+              <Crosshair className="absolute left-3 top-3 h-4 w-4 text-black" />
               <Input
                 value={homeZip}
                 onChange={e => saveZip(e.target.value)}
                 placeholder="Your ZIP"
-                className="pl-10 w-36 holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                className="pl-10 w-36 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
               />
             </div>
-            <Badge className="text-cyan-300 bg-cyan-500/10 font-mono">
+            <Badge className="text-black bg-neutral-100 ">
               {withDistance.length} mapped
             </Badge>
             {loading && (
-              <span className="flex items-center gap-2 text-xs text-cyan-400/70 font-mono">
+              <span className="flex items-center gap-2 text-xs text-neutral-600 ">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 locating {progress.done}/{progress.total}
               </span>
@@ -298,7 +298,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
             <Button
               variant="outline"
               onClick={toggleFullscreen}
-              className="ml-auto holographic-panel border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+              className="ml-auto bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black hover:bg-neutral-100 "
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4 mr-2" /> : <Maximize2 className="h-4 w-4 mr-2" />}
               {isFullscreen ? 'EXIT FULL SCREEN' : 'FULL SCREEN'}
@@ -307,30 +307,30 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
 
           <div className="flex flex-1 min-h-0 flex-col md:flex-row">
             <div ref={attachMap} className="flex-1 min-h-[300px]" />
-            <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-cyan-500/20 overflow-y-auto">
+            <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-neutral-200 overflow-y-auto">
               {withDistance.map(c => (
                 <button
                   key={c.id}
                   onClick={() => focusClient(c)}
-                  className={`w-full text-left p-3 border-b border-cyan-500/10 transition-colors ${
-                    selectedId === c.id ? 'bg-cyan-500/10' : 'hover:bg-cyan-500/5'
+                  className={`w-full text-left p-3 border-b border-neutral-200 transition-colors ${
+                    selectedId === c.id ? 'bg-neutral-100' : 'hover:bg-neutral-100'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-cyan-200 font-mono text-sm">
+                    <span className="text-black  text-sm">
                       {c.first_name} {c.last_name}
                     </span>
                     {c.miles != null && (
-                      <span className="text-cyan-400 font-mono text-xs">{c.miles.toFixed(1)} mi</span>
+                      <span className="text-black  text-xs">{c.miles.toFixed(1)} mi</span>
                     )}
                   </div>
-                  <p className="text-cyan-400/60 text-xs font-mono">{c.addressLabel}</p>
+                  <p className="text-neutral-600 text-xs ">{c.addressLabel}</p>
                   <div className="flex gap-3 mt-1">
                     {c.phone && (
                       <a
                         href={`tel:${c.phone}`}
                         onClick={e => e.stopPropagation()}
-                        className="flex items-center gap-1 text-xs text-emerald-300 font-mono"
+                        className="flex items-center gap-1 text-xs text-emerald-300 "
                       >
                         <Phone className="h-3 w-3" /> {c.phone}
                       </a>
@@ -339,7 +339,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
                       <a
                         href={`mailto:${c.email}`}
                         onClick={e => e.stopPropagation()}
-                        className="flex items-center gap-1 text-xs text-blue-300 font-mono"
+                        className="flex items-center gap-1 text-xs text-black "
                       >
                         <Mail className="h-3 w-3" /> email
                       </a>
@@ -348,7 +348,7 @@ const ClientMapDialog: React.FC<Props> = ({ open, onOpenChange, clients }) => {
                 </button>
               ))}
               {!loading && withDistance.length === 0 && (
-                <p className="p-4 text-cyan-400/60 font-mono text-sm">
+                <p className="p-4 text-neutral-600  text-sm">
                   No client addresses could be placed on the map yet.
                 </p>
               )}

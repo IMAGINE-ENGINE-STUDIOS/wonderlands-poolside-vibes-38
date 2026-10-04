@@ -59,15 +59,15 @@ const ContractorTasksPanel: React.FC<ContractorTasksPanelProps> = ({ projectId }
     switch (status) {
       case 'completed': return <CheckCircle className="h-3 w-3 text-green-400" />;
       case 'in_progress': return <PlayCircle className="h-3 w-3 text-yellow-400" />;
-      default: return <Clock className="h-3 w-3 text-cyan-400/60" />;
+      default: return <Clock className="h-3 w-3 text-neutral-600" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] font-mono">Completed</Badge>;
-      case 'in_progress': return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] font-mono">In Progress</Badge>;
-      default: return <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px] font-mono">Assigned</Badge>;
+      case 'completed': return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] ">Completed</Badge>;
+      case 'in_progress': return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] ">In Progress</Badge>;
+      default: return <Badge className="bg-neutral-100 text-black border-neutral-200 text-[10px] ">Assigned</Badge>;
     }
   };
 
@@ -80,21 +80,21 @@ const ContractorTasksPanel: React.FC<ContractorTasksPanelProps> = ({ projectId }
   const progress = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
   return (
-    <div className="holographic-panel rounded-lg border border-cyan-500/20 p-4 space-y-3">
+    <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg border border-neutral-200 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <HardHat className="h-4 w-4 text-cyan-400" />
-          <span className="text-xs font-mono text-cyan-300 uppercase tracking-wider font-bold">
+          <HardHat className="h-4 w-4 text-black" />
+          <span className="text-xs  text-black uppercase tracking-wider font-bold">
             Contractor Progress
           </span>
         </div>
-        <span className="text-xs font-mono text-cyan-400/60">
+        <span className="text-xs  text-neutral-600">
           {completedCount}/{tasks.length} tasks • {progress}%
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-cyan-900/30 rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-neutral-50 rounded-full h-2 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${
             progress === 100 ? 'bg-green-500' : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
@@ -113,25 +113,25 @@ const ContractorTasksPanel: React.FC<ContractorTasksPanelProps> = ({ projectId }
                 ? 'border-red-500/30 bg-red-500/5'
                 : task.status === 'completed'
                   ? 'border-green-500/20 bg-green-500/5'
-                  : 'border-cyan-500/10 bg-cyan-500/5'
+                  : 'border-neutral-200 bg-neutral-100'
             }`}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
                   {getStatusIcon(task.status)}
-                  <span className={`text-xs font-mono ${task.status === 'completed' ? 'text-cyan-400/40 line-through' : 'text-cyan-300'}`}>
+                  <span className={`text-xs  ${task.status === 'completed' ? 'text-neutral-600 line-through' : 'text-black'}`}>
                     {task.task_name}
                   </span>
                   {isOverdue(task.due_date, task.status) && (
                     <Badge variant="destructive" className="text-[9px] h-4 px-1">Overdue</Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-1 text-[10px] font-mono text-cyan-400/50">
+                <div className="flex items-center gap-1 text-[10px]  text-neutral-600">
                   <HardHat className="h-2.5 w-2.5" />
                   {(task.contractors as any)?.company_name || 'Contractor'}
                 </div>
-                <div className="flex flex-wrap gap-3 text-[10px] font-mono text-cyan-400/40">
+                <div className="flex flex-wrap gap-3 text-[10px]  text-neutral-600">
                   {task.location && <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5" />{task.location}</span>}
                   {task.proposed_price && <span className="flex items-center gap-1"><DollarSign className="h-2.5 w-2.5" />${task.proposed_price.toLocaleString()}</span>}
                   {task.start_date && <span className="flex items-center gap-1"><Calendar className="h-2.5 w-2.5" />Start: {new Date(task.start_date).toLocaleDateString()}</span>}

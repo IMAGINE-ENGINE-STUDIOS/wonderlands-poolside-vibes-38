@@ -318,25 +318,25 @@ const AdminApplicationsPanel: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] font-mono">Pending</Badge>;
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] ">Pending</Badge>;
       case 'accepted':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] font-mono">Accepted</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] ">Accepted</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px] font-mono">Rejected</Badge>;
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px] ">Rejected</Badge>;
       default:
-        return <Badge variant="outline" className="text-[10px] font-mono">{status}</Badge>;
+        return <Badge variant="outline" className="text-[10px] ">{status}</Badge>;
     }
   };
 
   return (
-    <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-      <Card className="holographic-panel border-cyan-500/30">
+    <div className="space-y-6 animate-fade-in bg-white -m-6 p-6 min-h-screen">
+      <Card className="bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
-            <ClipboardList className="h-5 w-5 text-cyan-400" />
+          <CardTitle className="flex items-center gap-2 text-black ">
+            <ClipboardList className="h-5 w-5 text-black" />
             Application Management Center
           </CardTitle>
-          <CardDescription className="text-cyan-400/60 font-mono">
+          <CardDescription className="text-neutral-600 ">
             Review, accept, and reject contractor applications — organized by project
           </CardDescription>
         </CardHeader>
@@ -351,11 +351,11 @@ const AdminApplicationsPanel: React.FC = () => {
             ].map(s => (
               <div
                 key={s.f}
-                className={`holographic-panel rounded-lg border border-${s.color}-500/20 p-3 text-center cursor-pointer hover:bg-${s.color}-500/5 transition-colors ${filter === s.f ? `bg-${s.color}-500/10` : ''}`}
+                className={`bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg border border-${s.color}-500/20 p-3 text-center cursor-pointer hover:bg-${s.color}-500/5 transition-colors ${filter === s.f ? `bg-${s.color}-500/10` : ''}`}
                 onClick={() => setFilter(s.f)}
               >
-                <div className={`text-lg font-bold text-${s.color}-${s.color === 'cyan' ? '300' : '400'} font-mono`}>{s.count}</div>
-                <div className={`text-[10px] text-${s.color}-400/60 font-mono uppercase`}>{s.label}</div>
+                <div className={`text-lg font-bold text-${s.color}-${s.color === 'cyan' ? '300' : '400'} `}>{s.count}</div>
+                <div className={`text-[10px] text-${s.color}-400/60  uppercase`}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -363,12 +363,12 @@ const AdminApplicationsPanel: React.FC = () => {
           {/* Search & Filter */}
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400/40" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-600" />
               <Input
                 placeholder="Search by contractor, project, or task..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-9 text-xs bg-cyan-500/5 border-cyan-500/20 text-cyan-300 placeholder:text-cyan-500/30 font-mono"
+                className="pl-10 h-9 text-xs bg-neutral-100 border-neutral-200 text-black placeholder:text-neutral-500 "
               />
             </div>
             <div className="flex items-center gap-1">
@@ -376,10 +376,10 @@ const AdminApplicationsPanel: React.FC = () => {
                 <Badge
                   key={f}
                   variant={filter === f ? 'default' : 'outline'}
-                  className={`cursor-pointer text-[10px] font-mono ${
+                  className={`cursor-pointer text-[10px]  ${
                     filter === f
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
-                      : 'border-cyan-500/15 text-cyan-400/50 hover:text-cyan-300'
+                      ? 'bg-neutral-100 text-black border-neutral-200'
+                      : 'border-neutral-200 text-neutral-600 hover:text-black'
                   }`}
                   onClick={() => setFilter(f)}
                 >
@@ -392,46 +392,46 @@ const AdminApplicationsPanel: React.FC = () => {
           {/* Project-grouped applications */}
           {loading ? (
             <div className="text-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-cyan-400 mx-auto" />
-              <p className="text-[10px] text-cyan-400/40 font-mono mt-2">Loading applications...</p>
+              <Loader2 className="h-6 w-6 animate-spin text-black mx-auto" />
+              <p className="text-[10px] text-neutral-600  mt-2">Loading applications...</p>
             </div>
           ) : projectGroups.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="h-10 w-10 text-cyan-400/20 mx-auto mb-2" />
-              <p className="text-xs text-cyan-400/40 font-mono">No applications found.</p>
+              <FileText className="h-10 w-10 text-black mx-auto mb-2" />
+              <p className="text-xs text-neutral-600 ">No applications found.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {projectGroups.map(group => {
                 const isProjectExpanded = expandedProjects.has(group.projectId);
                 return (
-                  <div key={group.projectId} className="holographic-panel rounded-lg border border-cyan-500/20 overflow-hidden">
+                  <div key={group.projectId} className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded-lg border border-neutral-200 overflow-hidden">
                     {/* Project Header */}
                     <div
-                      className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-cyan-500/5 transition-colors"
+                      className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-neutral-100 transition-colors"
                       onClick={() => toggleProject(group.projectId)}
                     >
                       {isProjectExpanded
-                        ? <ChevronDown className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-                        : <ChevronRight className="h-4 w-4 text-cyan-400 flex-shrink-0" />
+                        ? <ChevronDown className="h-4 w-4 text-black flex-shrink-0" />
+                        : <ChevronRight className="h-4 w-4 text-black flex-shrink-0" />
                       }
-                      <HardHat className="h-4 w-4 text-cyan-400/70 flex-shrink-0" />
+                      <HardHat className="h-4 w-4 text-neutral-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-cyan-300 font-mono">
+                        <span className="text-sm font-semibold text-black ">
                           {group.projectName}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge className="bg-cyan-500/15 text-cyan-400/70 border-cyan-500/20 text-[10px] font-mono">
+                        <Badge className="bg-neutral-100 text-neutral-600 border-neutral-200 text-[10px] ">
                           {group.totalProposals} application{group.totalProposals !== 1 ? 's' : ''}
                         </Badge>
                         {group.pendingCount > 0 && (
-                          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px] font-mono animate-pulse">
+                          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px]  animate-pulse">
                             {group.pendingCount} pending
                           </Badge>
                         )}
                         {group.acceptedCount > 0 && (
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] font-mono">
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] ">
                             {group.acceptedCount} assigned
                           </Badge>
                         )}
@@ -440,27 +440,27 @@ const AdminApplicationsPanel: React.FC = () => {
 
                     {/* Listings under this project */}
                     {isProjectExpanded && (
-                      <div className="px-4 pb-4 space-y-2 border-t border-cyan-500/10 pt-3">
+                      <div className="px-4 pb-4 space-y-2 border-t border-neutral-200 pt-3">
                         {Object.values(group.listings).map(listing => {
                           const isListingExpanded = expandedListings.has(listing.listingId);
                           const listingPending = listing.proposals.filter(p => p.status === 'pending').length;
                           return (
-                            <div key={listing.listingId} className="rounded-lg border border-cyan-500/15 overflow-hidden">
+                            <div key={listing.listingId} className="rounded-lg border border-neutral-200 overflow-hidden">
                               {/* Listing Header */}
                               <div
-                                className="flex items-center gap-2 px-3 py-2 bg-cyan-500/5 cursor-pointer hover:bg-cyan-500/10 transition-colors"
+                                className="flex items-center gap-2 px-3 py-2 bg-neutral-100 cursor-pointer hover:bg-neutral-100 transition-colors"
                                 onClick={() => toggleListing(listing.listingId)}
                               >
                                 {isListingExpanded
-                                  ? <ChevronDown className="h-3 w-3 text-cyan-400" />
-                                  : <ChevronRight className="h-3 w-3 text-cyan-400" />
+                                  ? <ChevronDown className="h-3 w-3 text-black" />
+                                  : <ChevronRight className="h-3 w-3 text-black" />
                                 }
-                                <Briefcase className="h-3 w-3 text-cyan-400/60" />
-                                <span className="text-xs font-mono text-cyan-300 flex-1">{listing.title}</span>
-                                <Badge variant="outline" className="text-[10px] font-mono border-cyan-500/20 text-cyan-400/60">
+                                <Briefcase className="h-3 w-3 text-neutral-600" />
+                                <span className="text-xs  text-black flex-1">{listing.title}</span>
+                                <Badge variant="outline" className="text-[10px]  border-neutral-200 text-neutral-600">
                                   {listing.isTask ? 'Task' : 'Full Project'}
                                 </Badge>
-                                <span className="text-[10px] font-mono text-cyan-400/50">
+                                <span className="text-[10px]  text-neutral-600">
                                   {listing.proposals.length} bid{listing.proposals.length !== 1 ? 's' : ''}
                                 </span>
                                 {listingPending > 0 && (
@@ -473,9 +473,9 @@ const AdminApplicationsPanel: React.FC = () => {
                                 <div className="p-3 space-y-3">
                                   {/* Date assignment for this listing */}
                                   {listing.proposals.some(p => p.status === 'pending') && (
-                                    <div className="grid grid-cols-2 gap-2 p-2 rounded border border-cyan-500/10 bg-cyan-500/5">
+                                    <div className="grid grid-cols-2 gap-2 p-2 rounded border border-neutral-200 bg-neutral-100">
                                       <div>
-                                        <Label className="text-[10px] font-mono text-cyan-400/40 flex items-center gap-1">
+                                        <Label className="text-[10px]  text-neutral-600 flex items-center gap-1">
                                           <Calendar className="h-3 w-3" /> Start Date
                                         </Label>
                                         <Input
@@ -485,11 +485,11 @@ const AdminApplicationsPanel: React.FC = () => {
                                             ...prev,
                                             [listing.listingId]: { ...prev[listing.listingId], start: e.target.value, due: prev[listing.listingId]?.due || '' },
                                           }))}
-                                          className="h-7 text-[10px] bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+                                          className="h-7 text-[10px] bg-neutral-100 border-neutral-200 text-black "
                                         />
                                       </div>
                                       <div>
-                                        <Label className="text-[10px] font-mono text-cyan-400/40 flex items-center gap-1">
+                                        <Label className="text-[10px]  text-neutral-600 flex items-center gap-1">
                                           <Calendar className="h-3 w-3" /> Due Date
                                         </Label>
                                         <Input
@@ -499,7 +499,7 @@ const AdminApplicationsPanel: React.FC = () => {
                                             ...prev,
                                             [listing.listingId]: { start: prev[listing.listingId]?.start || '', due: e.target.value },
                                           }))}
-                                          className="h-7 text-[10px] bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+                                          className="h-7 text-[10px] bg-neutral-100 border-neutral-200 text-black "
                                         />
                                       </div>
                                     </div>
@@ -509,32 +509,32 @@ const AdminApplicationsPanel: React.FC = () => {
                                   {listing.proposals.map(p => {
                                     const isProposalExpanded = expandedProposals.has(p.id);
                                     return (
-                                      <div key={p.id} className="rounded-lg border border-cyan-500/15 overflow-hidden">
+                                      <div key={p.id} className="rounded-lg border border-neutral-200 overflow-hidden">
                                         {/* Proposal summary row */}
                                         <div
-                                          className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-cyan-500/5 transition-colors"
+                                          className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-neutral-100 transition-colors"
                                           onClick={() => toggleProposal(p.id)}
                                         >
                                           {isProposalExpanded
-                                            ? <ChevronDown className="h-3 w-3 text-cyan-400" />
-                                            : <ChevronRight className="h-3 w-3 text-cyan-400" />
+                                            ? <ChevronDown className="h-3 w-3 text-black" />
+                                            : <ChevronRight className="h-3 w-3 text-black" />
                                           }
-                                          <Building2 className="h-3.5 w-3.5 text-cyan-400/60" />
+                                          <Building2 className="h-3.5 w-3.5 text-neutral-600" />
                                           <div className="flex-1 min-w-0">
-                                            <span className="text-xs font-mono font-semibold text-cyan-300">
+                                            <span className="text-xs  font-semibold text-black">
                                               {p.contractors?.company_name || 'Unknown'}
                                             </span>
-                                            <span className="text-[10px] text-cyan-400/40 font-mono ml-2">
+                                            <span className="text-[10px] text-neutral-600  ml-2">
                                               {p.contractors?.contact_name}
                                             </span>
                                           </div>
                                           <div className="flex items-center gap-2 flex-shrink-0">
                                             {p.proposed_price && (
-                                              <span className="text-xs text-cyan-300 font-mono font-semibold">
+                                              <span className="text-xs text-black  font-semibold">
                                                 ${p.proposed_price.toLocaleString()}
                                               </span>
                                             )}
-                                            <span className="text-[10px] text-cyan-400/40 font-mono">
+                                            <span className="text-[10px] text-neutral-600 ">
                                               {new Date(p.created_at).toLocaleDateString()}
                                             </span>
                                             {getStatusBadge(p.status)}
@@ -543,41 +543,41 @@ const AdminApplicationsPanel: React.FC = () => {
 
                                         {/* Expanded proposal details */}
                                         {isProposalExpanded && (
-                                          <div className="px-3 pb-3 border-t border-cyan-500/10 pt-3 space-y-3">
+                                          <div className="px-3 pb-3 border-t border-neutral-200 pt-3 space-y-3">
                                             {/* Contractor profile */}
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                               <div>
-                                                <Label className="text-[10px] text-cyan-400/40 font-mono">Contact</Label>
-                                                <p className="text-xs text-cyan-300 font-mono flex items-center gap-1">
+                                                <Label className="text-[10px] text-neutral-600 ">Contact</Label>
+                                                <p className="text-xs text-black  flex items-center gap-1">
                                                   <User className="h-3 w-3" /> {p.contractors?.contact_name}
                                                 </p>
                                               </div>
                                               <div>
-                                                <Label className="text-[10px] text-cyan-400/40 font-mono">Email</Label>
-                                                <p className="text-xs text-cyan-300 font-mono flex items-center gap-1">
+                                                <Label className="text-[10px] text-neutral-600 ">Email</Label>
+                                                <p className="text-xs text-black  flex items-center gap-1">
                                                   <Mail className="h-3 w-3" /> {p.contractors?.email}
                                                 </p>
                                               </div>
                                               {p.contractors?.phone && (
                                                 <div>
-                                                  <Label className="text-[10px] text-cyan-400/40 font-mono">Phone</Label>
-                                                  <p className="text-xs text-cyan-300 font-mono flex items-center gap-1">
+                                                  <Label className="text-[10px] text-neutral-600 ">Phone</Label>
+                                                  <p className="text-xs text-black  flex items-center gap-1">
                                                     <Phone className="h-3 w-3" /> {p.contractors.phone}
                                                   </p>
                                                 </div>
                                               )}
                                               {p.contractors?.years_experience && (
                                                 <div>
-                                                  <Label className="text-[10px] text-cyan-400/40 font-mono">Experience</Label>
-                                                  <p className="text-xs text-cyan-300 font-mono">
+                                                  <Label className="text-[10px] text-neutral-600 ">Experience</Label>
+                                                  <p className="text-xs text-black ">
                                                     {p.contractors.years_experience} years
                                                   </p>
                                                 </div>
                                               )}
                                               {p.contractors?.address_city && (
                                                 <div>
-                                                  <Label className="text-[10px] text-cyan-400/40 font-mono">Location</Label>
-                                                  <p className="text-xs text-cyan-300 font-mono">
+                                                  <Label className="text-[10px] text-neutral-600 ">Location</Label>
+                                                  <p className="text-xs text-black ">
                                                     {p.contractors.address_city}, {p.contractors.address_state}
                                                   </p>
                                                 </div>
@@ -585,10 +585,10 @@ const AdminApplicationsPanel: React.FC = () => {
                                             </div>
 
                                             {/* Proposal details */}
-                                            <div className="holographic-panel rounded p-3 border border-cyan-500/10 space-y-2">
-                                              <div className="flex items-center gap-4 text-[10px] font-mono text-cyan-400/60">
+                                            <div className="bg-white border border-neutral-200 rounded-xl shadow-sm rounded p-3 border border-neutral-200 space-y-2">
+                                              <div className="flex items-center gap-4 text-[10px]  text-neutral-600">
                                                 {p.proposed_price && (
-                                                  <span className="flex items-center gap-1 text-cyan-300">
+                                                  <span className="flex items-center gap-1 text-black">
                                                     <DollarSign className="h-3 w-3" />${p.proposed_price.toLocaleString()}
                                                   </span>
                                                 )}
@@ -600,7 +600,7 @@ const AdminApplicationsPanel: React.FC = () => {
                                                 <span className="capitalize">{p.proposal_type.replace('_', ' ')}</span>
                                               </div>
                                               {p.proposal_text && (
-                                                <p className="text-[11px] font-mono text-cyan-400/50 bg-cyan-500/5 rounded p-2">
+                                                <p className="text-[11px]  text-neutral-600 bg-neutral-100 rounded p-2">
                                                   {p.proposal_text}
                                                 </p>
                                               )}
@@ -609,7 +609,7 @@ const AdminApplicationsPanel: React.FC = () => {
                                                   href={p.quotation_url}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
-                                                  className="flex items-center gap-1 text-[10px] font-mono text-cyan-400 hover:text-cyan-300"
+                                                  className="flex items-center gap-1 text-[10px]  text-black hover:text-black"
                                                 >
                                                   <FileText className="h-3 w-3" />
                                                   {p.quotation_file_name || 'View Quotation'}
@@ -625,7 +625,7 @@ const AdminApplicationsPanel: React.FC = () => {
                                                   size="sm"
                                                   onClick={() => handleAccept(p)}
                                                   disabled={accepting === p.id}
-                                                  className="bg-green-600 hover:bg-green-500 text-[10px] font-mono h-7"
+                                                  className="bg-green-600 hover:bg-green-500 text-[10px]  h-7"
                                                 >
                                                   {accepting === p.id ? (
                                                     <Loader2 className="h-3 w-3 animate-spin mr-1" />
@@ -639,7 +639,7 @@ const AdminApplicationsPanel: React.FC = () => {
                                                   variant="ghost"
                                                   onClick={() => handleReject(p)}
                                                   disabled={rejecting === p.id}
-                                                  className="text-red-400 hover:text-red-300 text-[10px] font-mono h-7"
+                                                  className="text-red-400 hover:text-red-300 text-[10px]  h-7"
                                                 >
                                                   {rejecting === p.id ? (
                                                     <Loader2 className="h-3 w-3 animate-spin mr-1" />
@@ -653,12 +653,12 @@ const AdminApplicationsPanel: React.FC = () => {
 
                                             {/* Status sync info */}
                                             {p.status === 'accepted' && (
-                                              <div className="text-[10px] font-mono text-green-400/60 bg-green-500/5 rounded p-2 border border-green-500/10">
+                                              <div className="text-[10px]  text-green-400/60 bg-green-500/5 rounded p-2 border border-green-500/10">
                                                 ✓ Contractor assigned · Task created in Current Projects · Email sent · Dashboards synced
                                               </div>
                                             )}
                                             {p.status === 'rejected' && (
-                                              <div className="text-[10px] font-mono text-red-400/60 bg-red-500/5 rounded p-2 border border-red-500/10">
+                                              <div className="text-[10px]  text-red-400/60 bg-red-500/5 rounded p-2 border border-red-500/10">
                                                 ✗ Rejected · Contractor notified via email & dashboard
                                               </div>
                                             )}
