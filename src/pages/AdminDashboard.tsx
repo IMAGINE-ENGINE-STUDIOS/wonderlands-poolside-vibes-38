@@ -183,7 +183,7 @@ const AdminDashboard = () => {
       'unified-products': 'Products', quotes: 'Quotes', 'quote-tool': 'Quote Tool', invoices: 'Invoices',
       'invoice-tool': 'Invoice Tool', orders: 'Orders', users: 'Users', promotions: 'Promotions',
       'sales-reps': 'Sales Reps', 'sales-categories': 'Sales Categories', 'head-of-sales': 'Head of Sales',
-      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects',
+      clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects', 'my-projects': 'My Projects', compliance: 'Compliance',
       applications: 'Applications', 'job-board': 'Job Board', referrals: 'Referrals',
       'api-manager': 'API Management', 'delivery-logistics': 'Delivery', 'content-editor': 'Content Editor',
       procurement: 'Procurement', analytics: 'Analytics', setup: 'Setup', calculator: 'Pool Calculator',
