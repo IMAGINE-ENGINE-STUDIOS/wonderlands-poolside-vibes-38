@@ -335,6 +335,45 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
       className="cc-paper min-h-screen flex bg-white text-black relative"
       style={{ fontFamily: "'Manrope', sans-serif" }}
     >
+      {/* Mobile overlay */}
+      {mobileNavOpen && (
+        <div onClick={() => setMobileNavOpen(false)} className="lg:hidden fixed inset-0 bg-black/30 z-40 animate-fade-in" />
+      )}
+
+      {/* SIDEBAR — white editorial frame */}
+      <aside
+        className={`
+          fixed lg:sticky top-0 lg:top-4 left-0 z-50
+          h-screen lg:h-[calc(100vh-2rem)]
+          w-[280px] lg:ml-4 lg:my-4
+          bg-white border-r lg:border border-neutral-200 lg:rounded-2xl
+          flex flex-col
+          shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.12)]
+          transition-transform duration-300 ease-out
+          ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          shrink-0
+        `}
+      >
+        <SidebarContent />
+      </aside>
+
+      {/* MAIN COLUMN */}
+      <main className="flex-1 min-w-0 flex flex-col relative z-10">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200">
+          <div className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-10 py-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => setMobileNavOpen(true)}
+                className="lg:hidden p-2 -ml-2 rounded-md text-black hover:bg-neutral-100 transition-colors"
+                aria-label="Open navigation"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-neutral-500 font-semibold">Command Center</div>
+                <div className="text-lg font-semibold text-black truncate">{sectionLabel}</div>
+              </div>
+            </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
               {isMainAdmin && <AdminCommandSearch onNavigate={setActiveSection} />}
               <div className="hidden sm:block">
