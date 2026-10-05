@@ -51,7 +51,10 @@ const PublicCompanySite = () => {
 
   const onLead = async (l: LeadInput) => {
     const { data, error } = await supabase.rpc('submit_site_lead' as any, { _slug: slug, _name: l.name, _email: l.email, _phone: l.phone, _message: l.message, _page: page?.name ?? null });
-    return !error && data === true;
+    const ok = !error && data === true;
+    // Email the company (recipient resolved server-side). Fire-and-forget: never blocks the visitor's thank-you.
+    if (ok) supabase.functions.invoke('site-lead-notify', { body: { slug, name: l.name, email: l.email, phone: l.phone, message: l.message, page: page?.name ?? null } }).catch(() => {});
+    return ok;
   };
 
   if (site === undefined) return <div className="min-h-screen bg-background" />;
