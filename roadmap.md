@@ -33,6 +33,6 @@
 
 ## Final job — CRM, Web Builder, customer sites
 - [x] Phase 1: company CRM in /workspace (My Day, deals pipeline drag-and-drop + forecast, accounts/contacts/timeline, 1-click lead conversion, deal↔quotes/invoices, team assignment)
-- [ ] Phase 2: drag-and-drop Web Builder saving to company_sites
+- [x] Phase 2: drag-and-drop Web Builder saving to company_sites (pages, blocks, layers, styles, theme, catalogue import, FLIP + tool embeds, draft/publish)
 - [ ] Phase 3: public customer sites /sites/:slug with lead capture into the company CRM
 - [ ] Phase 4: Command Center links to inspect each company's workspace and site

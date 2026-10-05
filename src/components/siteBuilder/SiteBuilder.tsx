@@ -79,6 +79,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const [dropAt, setDropAt] = useState<number | null>(null);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [full, setFull] = useState(false);
   const [flips, setFlips] = useState<{ slug: string; title: string }[]>([]);
   const [catalog, setCatalog] = useState<any[] | null>(null);
 
@@ -185,12 +186,13 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   ];
 
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+    <div className={full ? "fixed inset-0 z-50 bg-card overflow-auto" : "rounded-2xl border border-border bg-card overflow-hidden"}>
       {/* Top bar */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
         <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={page.id} onChange={e => { setPageId(e.target.value); setSel(null); }}>{doc.pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
         {!readOnly && <Button size="sm" variant="ghost" onClick={() => { const n = prompt('Page name'); if (!n) return; const p: Page = { id: uid(), name: n, slug: slugify(n), sections: [newSection('text')] }; commit(d => { d.pages.push(p); return d; }); setPageId(p.id); }}><Plus className="h-4 w-4 mr-1" />Page</Button>}
         <div className="flex rounded-md border border-border">{(Object.keys(DEVICES) as (keyof typeof DEVICES)[]).map(k => { const I = DEVICES[k].icon; return <button key={k} aria-label={k} onClick={() => setDevice(k)} className={`px-2.5 py-1.5 ${device === k ? 'bg-muted' : ''}`}><I className="h-4 w-4" /></button>; })}</div>
+        <Button size="sm" variant="outline" onClick={() => setFull(f => !f)}>{full ? "Exit full screen" : "Full screen"}</Button>
         <Button size="sm" variant="ghost" disabled={!past.length} onClick={undo} aria-label="Undo"><Undo2 className="h-4 w-4" /></Button>
         <Button size="sm" variant="ghost" disabled={!future.length} onClick={redo} aria-label="Redo"><Redo2 className="h-4 w-4" /></Button>
         <div className="ml-auto flex flex-wrap items-center gap-2 text-sm">
@@ -205,7 +207,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
 
       <div className="grid lg:grid-cols-[230px_minmax(0,1fr)_300px] min-h-[720px]">
         {/* Library + layers */}
-        <aside className="border-b lg:border-b-0 lg:border-r border-border p-3 space-y-5 overflow-y-auto lg:max-h-[calc(100vh-160px)]">
+        <aside className="border-b lg:border-b-0 lg:border-r border-border p-3 space-y-5 overflow-y-auto lg:max-h-[calc(100vh-60px)]">
           {GROUPS.map(g => <div key={g}><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">{g}</p>
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">{(Object.keys(BLOCKS) as BlockType[]).filter(k => BLOCKS[k].group === g).map(k =>
               <button key={k} disabled={readOnly} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'new', type: k })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onClick={() => addBlock(k)}
@@ -230,7 +232,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         </div>
 
         {/* Inspector */}
-        <aside className="border-t lg:border-t-0 lg:border-l border-border p-3 overflow-y-auto lg:max-h-[calc(100vh-160px)]">
+        <aside className="border-t lg:border-t-0 lg:border-l border-border p-3 overflow-y-auto lg:max-h-[calc(100vh-60px)]">
           <div className="flex rounded-md border border-border mb-4 text-sm">{(['content', 'style', 'theme'] as const).map(k => <button key={k} onClick={() => setPanel(k)} className={`flex-1 py-1.5 capitalize ${panel === k ? 'bg-muted font-semibold' : ''}`}>{k === 'theme' ? 'Site' : k}</button>)}</div>
           {panel === 'theme' ? <div className="space-y-3">
             {([['brand', 'Business name', 'text'], ['phone', 'Phone', 'text'], ['email', 'Email', 'text']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'text' }} value={(theme as any)[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
