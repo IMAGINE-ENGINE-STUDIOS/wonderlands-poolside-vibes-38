@@ -818,6 +818,7 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          custom_domain: string | null
           id: string
           is_published: boolean
           layout: Json
@@ -830,6 +831,7 @@ export type Database = {
         Insert: {
           company_id?: string
           created_at?: string
+          custom_domain?: string | null
           id?: string
           is_published?: boolean
           layout?: Json
@@ -842,6 +844,7 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string
+          custom_domain?: string | null
           id?: string
           is_published?: boolean
           layout?: Json
@@ -5176,6 +5179,7 @@ export type Database = {
         Args: { user_email: string }
         Returns: boolean
       }
+      site_slug_for_domain: { Args: { _host: string }; Returns: string }
       submit_site_lead: {
         Args: {
           _email: string
