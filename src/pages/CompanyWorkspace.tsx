@@ -16,6 +16,7 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { useToast } from '@/hooks/use-toast';
 import EditorialShell, { Panel, StatTile, EmptyState, Skeleton, money } from '@/components/shell/EditorialShell';
 import CompanyCRM, { type CrmView } from '@/components/crm/CompanyCRM';
+import SiteBuilder from '@/components/siteBuilder/SiteBuilder';
 import ContractorWorkspace, { type Section } from '@/components/contractor/ContractorWorkspace';
 
 const CHAPTERS = [
@@ -23,6 +24,7 @@ const CHAPTERS = [
   { key: 'myday', label: 'My Day', group: 'CRM' },
   { key: 'pipeline', label: 'Deals pipeline', group: 'CRM' },
   { key: 'accounts', label: 'Accounts & contacts', group: 'CRM' },
+  { key: 'website', label: 'Website builder', group: 'Website' },
   { key: 'clients', label: 'Clients', group: 'Business' },
   { key: 'quotes', label: 'Quotes & invoices', group: 'Business' },
   { key: 'procurement', label: 'Opportunities & bids', group: 'Projects' },
@@ -115,6 +117,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
       if (hasTrade === false) return <Panel kicker="Projects" title="Set up your trade profile"><p className="text-sm text-muted-foreground mb-4">One click links {company.name} to the project marketplace so you can bid and track work.</p><Button onClick={createTradeProfile}>Create trade profile</Button></Panel>;
       return <div className="[&>div]:m-0 [&>div]:min-h-0 [&>div]:rounded-2xl"><ContractorWorkspace section={tab as Section} /></div>;
     }
+    if (tab === 'website') return <SiteBuilder key={company.id} companyId={company.id} companyName={company.name} readOnly={readOnly} />;
     if (['myday', 'pipeline', 'accounts'].includes(tab)) return <CompanyCRM key={company.id} companyId={company.id} view={tab as CrmView} readOnly={readOnly} userId={user?.id} />;
     if (!counts || !rows) return <div className="grid gap-4 sm:grid-cols-4"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>;
     switch (tab) {
@@ -130,7 +133,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
         </div>;
       case 'tools':
         return <div className="grid gap-4 sm:grid-cols-2">
-          {[['SOCIALITE', 'Email, SMS, calls and social posts to your own contacts.', '/socialite'], ['Flip Builder V3', 'Build catalogues and flip books.', '/flip'], ['Web Builder', 'Build your own site with Wonderlands widgets (coming next).', '/editor'], ['Design Studio', 'Design projects for your clients.', '/studio']].map(([t, d, h]) => (
+          {[['SOCIALITE', 'Email, SMS, calls and social posts to your own contacts.', '/socialite'], ['Flip Builder V3', 'Build catalogues and flip books.', '/flip'], ['Web Builder', 'Build and publish your own website with Wonderlands tools.', '/workspace'], ['Design Studio', 'Design projects for your clients.', '/studio']].map(([t, d, h]) => (
             <Panel key={t} title={t}><p className="text-sm text-muted-foreground mb-4">{d}</p><Button asChild variant="outline"><Link to={h}>Open</Link></Button></Panel>))}
         </div>;
       case 'settings':
