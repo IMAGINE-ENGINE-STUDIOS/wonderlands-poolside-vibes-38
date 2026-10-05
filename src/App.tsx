@@ -83,6 +83,7 @@ const ToolsGallery = lazy(() => import("./pages/ToolsGallery"));
 const ToolsGallery2 = lazy(() => import("./pages/ToolsGallery2"));
 const AssetGallery = lazy(() => import("./pages/AssetGallery"));
 const FlipLab = lazy(() => import("./pages/FlipLab"));
+const TechnologyPage = lazy(() => import("./pages/TechnologyPage"));
 const FlipPagesFile = lazy(() => import("./pages/FlipPagesFile"));
 const FlipBookPublished = lazy(() => import("./pages/FlipBookPublished"));
 /* Per-category configuration suites (dropdown + carousel options + board) */
@@ -242,6 +243,8 @@ const App = () => {
             <Route path="/tools2" element={<ToolsGallery2 />} />
             <Route path="/asset-gallery" element={<AssetGallery />} />
             <Route path="/flip" element={<FlipLab />} />
+            <Route path="/technology" element={<TechnologyPage />} />
+            <Route path="/tech-stack" element={<TechnologyPage />} />
             <Route path="/flip-pages" element={<FlipPagesFile />} />
             <Route path="/flip/:slug" element={<FlipBookPublished />} />
             {/* Product suites — one per category, full configuration + board */}
