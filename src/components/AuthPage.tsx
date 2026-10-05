@@ -11,6 +11,25 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import PasswordResetModal from '@/components/PasswordResetModal';
 
+/** Sign-in portals shown on /auth. All share one login; the account's role picks the real destination. */
+type PortalId = 'company' | 'customer' | 'admin' | 'sales';
+const PORTALS: { id: PortalId; label: string; note: string; path: string }[] = [
+  { id: 'company', label: 'Company', note: 'Contractors & businesses', path: '/workspace' },
+  { id: 'customer', label: 'Customer', note: 'Homeowners', path: '/account' },
+  { id: 'admin', label: 'Admin', note: 'Wonderlands Command Center', path: '/admin' },
+  { id: 'sales', label: 'Sales team', note: 'Sales representatives', path: '/sales-rep' },
+];
+/** Investor demo account — sees the Command Center layout with no company data. */
+const INVESTOR_DEMO_EMAIL = 'investor.admin@wonderlandsworld.com';
+
+export const destinationFor = (role: string | undefined, email: string | undefined, requested?: string) => {
+  if (email?.toLowerCase() === INVESTOR_DEMO_EMAIL) return '/demo/command-center';
+  if (role === 'sales_rep') return '/sales-rep';
+  if (role === 'main_admin') return requested || '/admin';
+  if (role === 'supplier' || role === 'installer') return requested && !requested.startsWith('/admin') ? requested : '/workspace';
+  return requested && !requested.startsWith('/admin') ? requested : '/account';
+};
+
 const AuthPage = () => {
   const { signIn, signUp, signInWithGoogle, signInWithMicrosoft, signOut, user, profile, loading } = useAuth();
   const { toast } = useToast();
@@ -22,21 +41,26 @@ const AuthPage = () => {
   // Intended destination (set by ProtectedRoute). Without one, staff go to /admin and customers home.
   const requested: string | undefined = location.state?.from?.pathname;
 
+  const [portal, setPortal] = useState<PortalId>(() => {
+    const t = new URLSearchParams(window.location.search).get('portal') as PortalId | null;
+    return PORTALS.some(p => p.id === t) ? (t as PortalId) : 'company';
+  });
+  const [signInNote, setSignInNote] = useState<string | null>(null);
+  const [justSignedIn, setJustSignedIn] = useState(false);
+
   // Redirect once the profile is loaded — by role, so customers never land on the staff-only /admin.
   useEffect(() => {
     if (!loading && user && profile) {
-      const role = profile.role as string;
-      if (role === 'sales_rep') {
-        navigate('/sales-rep', { replace: true });
-      } else if (role === 'main_admin') {
-        navigate(requested || '/admin', { replace: true });
-      } else if (role === 'supplier' || role === 'installer') {
-        navigate(requested && !requested.startsWith('/admin') ? requested : '/workspace', { replace: true });
-      } else {
-        navigate(requested && !requested.startsWith('/admin') ? requested : '/account', { replace: true });
+      const dest = destinationFor(profile.role as string, user.email, requested);
+      if (justSignedIn) {
+        const picked = PORTALS.find(p => p.id === portal)!;
+        if (!dest.startsWith(picked.path)) {
+          toast({ title: 'Signed in', description: `This account opens ${PORTALS.find(p => dest.startsWith(p.path))?.label ?? 'your account'}.` });
+        }
       }
+      navigate(dest, { replace: true });
     }
-  }, [user, profile, loading, navigate, requested]);
+  }, [user, profile, loading, navigate, requested]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [signInData, setSignInData] = useState({
     email: '',
@@ -55,30 +79,21 @@ const AuthPage = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSignInNote(null);
+    if (!signInData.email.trim() || !signInData.password) {
+      setSignInNote('Enter your email and password.');
+      return;
+    }
     setIsLoading(true);
-
     try {
-      const { error } = await signIn(signInData.email, signInData.password);
-
+      const { error } = await signIn(signInData.email.trim(), signInData.password);
       if (error) {
-        toast({
-          title: "Sign In Error",
-          description: error.message,
-          variant: "destructive"
-        });
+        setSignInNote(/invalid/i.test(error.message) ? 'That email and password don’t match. Check them or use “Forgot your password?”.' : error.message);
       } else {
-        toast({
-          title: "Success",
-          description: "You have been signed in successfully!"
-        });
-        // Redirect happens in the effect above once the profile (role) loads.
+        setJustSignedIn(true);
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive"
-      });
+    } catch {
+      setSignInNote('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -187,8 +202,7 @@ const AuthPage = () => {
             </p>
             <div className="flex flex-col gap-2">
               <Button onClick={() => {
-                const r = profile?.role as string;
-                const dest = r === 'sales_rep' ? '/sales-rep' : r === 'main_admin' ? '/admin' : (r === 'supplier' || r === 'installer') ? '/workspace' : (requested && !requested.startsWith('/admin') ? requested : '/account');
+                const dest = destinationFor(profile?.role as string, user.email, requested);
                 navigate(dest, { replace: true });
               }}>
                 Go to Dashboard
@@ -222,8 +236,16 @@ const AuthPage = () => {
             </TabsList>
             
             <TabsContent value="signin" className="space-y-4">
-              {/* OAuth Buttons */}
-              {/* OAuth buttons hidden for now */}
+              {/* Portal picker — one sign-in for everyone; the account's role decides the destination. */}
+              <div role="radiogroup" aria-label="Account type" className="grid grid-cols-2 gap-2">
+                {PORTALS.map(p => (
+                  <button key={p.id} type="button" role="radio" aria-checked={portal === p.id} onClick={() => setPortal(p.id)}
+                    className={`rounded-lg border px-3 py-2 text-left transition ${portal === p.id ? 'border-black bg-neutral-50' : 'border-neutral-200 hover:border-neutral-400'}`}>
+                    <span className="block text-sm font-semibold text-black">{p.label}</span>
+                    <span className="block text-[11px] text-neutral-600 leading-snug">{p.note}</span>
+                  </button>
+                ))}
+              </div>
 
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -248,8 +270,9 @@ const AuthPage = () => {
                     required />
                   
                 </div>
+                {signInNote && <div role="alert" className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">{signInNote}</div>}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Signing In...' : 'Sign In'}
+                  {isLoading ? 'Signing In...' : `Sign in to ${PORTALS.find(p => p.id === portal)?.label}`}
                 </Button>
                 <div className="text-center">
                   <Button

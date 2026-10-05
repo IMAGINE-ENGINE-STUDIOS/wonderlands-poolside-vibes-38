@@ -218,7 +218,7 @@ const SalesRepDashboard = () => {
     
     if (automation.status === 'in_progress') {
       return (
-        <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 font-mono text-xs">
+        <Badge className="bg-neutral-100 text-black border-neutral-200 text-xs">
           <Zap className="h-3 w-3 mr-1" />
           Step {automation.current_step}
         </Badge>
@@ -276,13 +276,13 @@ const SalesRepDashboard = () => {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      new: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      contacted: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
-      qualified: 'bg-green-500/20 text-green-300 border-green-500/30',
-      proposal_sent: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-      negotiating: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-      won: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-      lost: 'bg-red-500/20 text-red-300 border-red-500/30'
+      new: 'bg-neutral-100 text-black border-neutral-200',
+      contacted: 'bg-neutral-100 text-black border-neutral-200',
+      qualified: 'bg-neutral-100 text-black border-neutral-200',
+      proposal_sent: 'bg-neutral-100 text-black border-neutral-200',
+      negotiating: 'bg-neutral-100 text-black border-neutral-200',
+      won: 'bg-neutral-100 text-black border-neutral-200',
+      lost: 'bg-neutral-100 text-red-300 border-neutral-200'
     };
     return colors[status] || colors.new;
   };
@@ -300,30 +300,30 @@ const SalesRepDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="min-h-screen bg-white text-black">
       {/* Header */}
-      <div className="holographic-panel border-b border-cyan-500/30 sticky top-0 z-50 backdrop-blur-md bg-slate-900/80">
+      <div className="border-b border-neutral-200 sticky top-0 z-50 bg-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg holographic-panel flex items-center justify-center">
-                <Users className="h-5 w-5 text-cyan-400" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                <Users className="h-5 w-5 text-black" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-cyan-300 font-mono tracking-wide flex items-center gap-2">
-                  {isHeadOfSales && <Crown className="h-5 w-5 text-amber-400" />}
-                  {isHeadOfSales ? 'HEAD OF SALES PORTAL' : 'SALES REP PORTAL'}
+                <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }} className="text-3xl text-black flex items-center gap-2">
+                  {isHeadOfSales && <Crown className="h-5 w-5 text-neutral-700" />}
+                  {isHeadOfSales ? 'Head of Sales Portal' : 'Sales Rep Portal'}
                 </h1>
-                <p className="text-xs text-cyan-400/60 font-mono">
+                <p className="text-xs text-neutral-500 ">
                   Welcome, {profile?.first_name || profile?.email}
-                  {isHeadOfSales && <span className="ml-2 text-amber-400">• Head of Sales</span>}
+                  {isHeadOfSales && <span className="ml-2 text-neutral-700">• Head of Sales</span>}
                 </p>
               </div>
             </div>
             <Button 
               onClick={handleLogout}
               variant="outline"
-              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+              className="border-neutral-200 text-black hover:bg-neutral-100"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Logout
@@ -337,12 +337,12 @@ const SalesRepDashboard = () => {
         {/* Head of Sales Tabs */}
         {isHeadOfSales && (
           <Tabs value={activeView} onValueChange={(v) => setActiveView(v as 'my-clients' | 'team-management')} className="mb-6">
-            <TabsList className="bg-slate-800/50 border border-cyan-500/30">
-              <TabsTrigger value="my-clients" className="data-[state=active]:bg-cyan-500/20">
+            <TabsList className="bg-white border border-neutral-200">
+              <TabsTrigger value="my-clients" className="data-[state=active]:bg-neutral-100">
                 <Users className="h-4 w-4 mr-2" />
                 My Clients
               </TabsTrigger>
-              <TabsTrigger value="team-management" className="data-[state=active]:bg-amber-500/20">
+              <TabsTrigger value="team-management" className="data-[state=active]:bg-neutral-100">
                 <Crown className="h-4 w-4 mr-2" />
                 Team Management
               </TabsTrigger>
@@ -360,56 +360,56 @@ const SalesRepDashboard = () => {
           <>
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="holographic-panel border-cyan-500/30">
+          <Card className="border-neutral-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-cyan-400/60 font-mono uppercase">Total Clients</p>
-                  <p className="text-3xl font-bold text-cyan-300 font-mono">{clients.length}</p>
+                  <p className="text-xs text-neutral-500 uppercase">Total Clients</p>
+                  <p className="text-3xl font-bold text-black ">{clients.length}</p>
                 </div>
-                <Users className="h-8 w-8 text-cyan-400/40" />
+                <Users className="h-8 w-8 text-neutral-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="holographic-panel border-green-500/30">
+          <Card className="border-neutral-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-green-400/60 font-mono uppercase">Qualified</p>
-                  <p className="text-3xl font-bold text-green-300 font-mono">
+                  <p className="text-xs text-neutral-500 uppercase">Qualified</p>
+                  <p className="text-3xl font-bold text-black ">
                     {clients.filter(c => c.status === 'qualified').length}
                   </p>
                 </div>
-                <FileText className="h-8 w-8 text-green-400/40" />
+                <FileText className="h-8 w-8 text-neutral-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="holographic-panel border-yellow-500/30">
+          <Card className="border-neutral-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-yellow-400/60 font-mono uppercase">Proposals Sent</p>
-                  <p className="text-3xl font-bold text-yellow-300 font-mono">
+                  <p className="text-xs text-neutral-500 uppercase">Proposals Sent</p>
+                  <p className="text-3xl font-bold text-black ">
                     {clients.filter(c => c.status === 'proposal_sent').length}
                   </p>
                 </div>
-                <FileText className="h-8 w-8 text-yellow-400/40" />
+                <FileText className="h-8 w-8 text-neutral-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="holographic-panel border-emerald-500/30">
+          <Card className="border-neutral-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-emerald-400/60 font-mono uppercase">Won</p>
-                  <p className="text-3xl font-bold text-emerald-300 font-mono">
+                  <p className="text-xs text-neutral-500 uppercase">Won</p>
+                  <p className="text-3xl font-bold text-black ">
                     {clients.filter(c => c.status === 'won').length}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-emerald-400/40" />
+                <DollarSign className="h-8 w-8 text-neutral-500" />
               </div>
             </CardContent>
           </Card>
@@ -417,25 +417,25 @@ const SalesRepDashboard = () => {
 
         {/* Active Promotions */}
         <div className="mb-8">
-          <h2 className="text-lg font-bold text-amber-300 font-mono mb-3">🔥 ACTIVE OFFERS</h2>
+          <h2 className="text-lg font-bold text-amber-300 mb-3">🔥 ACTIVE OFFERS</h2>
           <PromotionsBanner variant="dark" />
         </div>
 
         {/* Clients List */}
-        <Card className="holographic-panel border-cyan-500/30">
+        <Card className="border-neutral-200">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-cyan-300 font-mono flex items-center gap-2">
+              <CardTitle className="text-black flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 YOUR ASSIGNED CLIENTS
               </CardTitle>
-              <CardDescription className="text-cyan-400/60 font-mono text-xs">
+              <CardDescription className="text-neutral-500 text-xs">
                 Manage your client relationships and create quotes
               </CardDescription>
             </div>
             <Button
               onClick={() => setIsAddClientDialogOpen(true)}
-              className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+              className="bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Client
@@ -444,24 +444,24 @@ const SalesRepDashboard = () => {
           <CardContent>
             {isLoading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-                <p className="text-cyan-400/60 font-mono text-sm mt-4">Loading clients...</p>
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                <p className="text-neutral-500 text-sm mt-4">Loading clients...</p>
               </div>
             ) : clients.length === 0 ? (
               <div className="text-center py-12">
-                <Users className="h-12 w-12 text-cyan-400/40 mx-auto mb-4" />
-                <p className="text-cyan-400/60 font-mono text-sm">No clients assigned yet</p>
+                <Users className="h-12 w-12 text-neutral-500 mx-auto mb-4" />
+                <p className="text-neutral-500 text-sm">No clients assigned yet</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {clients.map((client) => (
                   <div
                     key={client.id}
-                    className="holographic-panel border-cyan-500/20 p-4 rounded-lg hover:border-cyan-500/40 transition-all"
+                    className="border-neutral-200 p-4 rounded-lg hover:border-neutral-200 transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="text-lg font-semibold text-cyan-300 font-mono">
+                        <h3 className="text-lg font-semibold text-black ">
                           {client.first_name} {client.last_name}
                         </h3>
                         {/* Status Selector */}
@@ -470,25 +470,25 @@ const SalesRepDashboard = () => {
                           onValueChange={(value) => handleStatusChange(client.id, value)}
                           disabled={updatingStatusId === client.id}
                         >
-                          <SelectTrigger className={`w-[160px] h-8 text-xs font-mono ${getStatusColor(client.status)} border bg-transparent`}>
+                          <SelectTrigger className={`w-[160px] h-8 text-xs ${getStatusColor(client.status)} border bg-transparent`}>
                             {updatingStatusId === client.id ? (
                               <Loader2 className="h-3 w-3 animate-spin" />
                             ) : (
                               <SelectValue />
                             )}
                           </SelectTrigger>
-                          <SelectContent className="bg-slate-900 border-cyan-500/30">
+                          <SelectContent className="bg-white border-neutral-200">
                             {PIPELINE_STAGES.map((stage) => (
                               <SelectItem 
                                 key={stage.value} 
                                 value={stage.value}
-                                className="font-mono text-xs text-cyan-300 hover:bg-cyan-500/20 focus:bg-cyan-500/20"
+                                className="text-xs text-black hover:bg-neutral-100 focus:bg-neutral-100"
                               >
                                 <span className="flex items-center gap-2">
                                   <span>{stage.icon}</span>
                                   <span>{stage.label}</span>
                                   {client.status === stage.value && (
-                                    <CheckCircle2 className="h-3 w-3 text-green-400 ml-1" />
+                                    <CheckCircle2 className="h-3 w-3 text-black ml-1" />
                                   )}
                                 </span>
                               </SelectItem>
@@ -502,7 +502,7 @@ const SalesRepDashboard = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => handleOpenCRM(client)}
-                          className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                          className="border-neutral-200 text-black hover:bg-neutral-100"
                         >
                           <UserCog className="h-4 w-4 mr-1" />
                           View Client
@@ -513,7 +513,7 @@ const SalesRepDashboard = () => {
                             variant="outline"
                             onClick={() => handleTriggerAutomation(client)}
                             disabled={triggeringClientId === client.id}
-                            className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+                            className="border-neutral-200 text-black hover:bg-neutral-100"
                           >
                             {triggeringClientId === client.id ? (
                               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -525,7 +525,7 @@ const SalesRepDashboard = () => {
                         )}
                         <Button
                           onClick={() => handleCreateQuote(client)}
-                          className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+                          className="bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200"
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           Create Quote
@@ -534,22 +534,22 @@ const SalesRepDashboard = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-cyan-400/80">
+                      <div className="flex items-center gap-2 text-neutral-500">
                         <Mail className="h-4 w-4" />
-                        <span className="font-mono">{client.email}</span>
+                        <span className="">{client.email}</span>
                       </div>
                       
                       {client.phone && (
-                        <div className="flex items-center gap-2 text-cyan-400/80">
+                        <div className="flex items-center gap-2 text-neutral-500">
                           <Phone className="h-4 w-4" />
-                          <span className="font-mono">{client.phone}</span>
+                          <span className="">{client.phone}</span>
                         </div>
                       )}
 
                       {(client.address_street || client.address_city) && (
-                        <div className="flex items-center gap-2 text-cyan-400/80">
+                        <div className="flex items-center gap-2 text-neutral-500">
                           <MapPin className="h-4 w-4" />
-                          <span className="font-mono">
+                          <span className="">
                             {[client.address_street, client.address_city, client.address_state]
                               .filter(Boolean)
                               .join(', ')}
@@ -557,15 +557,15 @@ const SalesRepDashboard = () => {
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 text-cyan-400/80">
+                      <div className="flex items-center gap-2 text-neutral-500">
                         <DollarSign className="h-4 w-4" />
-                        <span className="font-mono">{formatPriceRange(client.price_range_min, client.price_range_max)}</span>
+                        <span className="">{formatPriceRange(client.price_range_min, client.price_range_max)}</span>
                       </div>
 
                       {client.last_contacted_at && (
-                        <div className="flex items-center gap-2 text-cyan-400/80">
+                        <div className="flex items-center gap-2 text-neutral-500">
                           <Calendar className="h-4 w-4" />
-                          <span className="font-mono">
+                          <span className="">
                             Last contact: {new Date(client.last_contacted_at).toLocaleDateString()}
                           </span>
                         </div>
@@ -606,65 +606,65 @@ const SalesRepDashboard = () => {
 
       {/* Add Client Dialog */}
       <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
-        <DialogContent className="max-w-lg bg-slate-900 border-cyan-500/30 text-cyan-300">
+        <DialogContent className="max-w-lg bg-white border-neutral-200 text-black">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300 font-mono">Add New Client</DialogTitle>
+            <DialogTitle className="text-black ">Add New Client</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-cyan-400/80 text-xs">First Name *</Label>
-                <Input value={newClient.first_name} onChange={(e) => setNewClient(p => ({ ...p, first_name: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+                <Label className="text-neutral-500 text-xs">First Name *</Label>
+                <Input value={newClient.first_name} onChange={(e) => setNewClient(p => ({ ...p, first_name: e.target.value }))} className="bg-white border-neutral-200 text-black" />
               </div>
               <div>
-                <Label className="text-cyan-400/80 text-xs">Last Name *</Label>
-                <Input value={newClient.last_name} onChange={(e) => setNewClient(p => ({ ...p, last_name: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+                <Label className="text-neutral-500 text-xs">Last Name *</Label>
+                <Input value={newClient.last_name} onChange={(e) => setNewClient(p => ({ ...p, last_name: e.target.value }))} className="bg-white border-neutral-200 text-black" />
               </div>
             </div>
             <div>
-              <Label className="text-cyan-400/80 text-xs">Email *</Label>
-              <Input type="email" value={newClient.email} onChange={(e) => setNewClient(p => ({ ...p, email: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              <Label className="text-neutral-500 text-xs">Email *</Label>
+              <Input type="email" value={newClient.email} onChange={(e) => setNewClient(p => ({ ...p, email: e.target.value }))} className="bg-white border-neutral-200 text-black" />
             </div>
             <div>
-              <Label className="text-cyan-400/80 text-xs">Phone</Label>
-              <Input value={newClient.phone} onChange={(e) => setNewClient(p => ({ ...p, phone: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              <Label className="text-neutral-500 text-xs">Phone</Label>
+              <Input value={newClient.phone} onChange={(e) => setNewClient(p => ({ ...p, phone: e.target.value }))} className="bg-white border-neutral-200 text-black" />
             </div>
             <div>
-              <Label className="text-cyan-400/80 text-xs">Street Address</Label>
-              <Input value={newClient.address_street} onChange={(e) => setNewClient(p => ({ ...p, address_street: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              <Label className="text-neutral-500 text-xs">Street Address</Label>
+              <Input value={newClient.address_street} onChange={(e) => setNewClient(p => ({ ...p, address_street: e.target.value }))} className="bg-white border-neutral-200 text-black" />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-cyan-400/80 text-xs">City</Label>
-                <Input value={newClient.address_city} onChange={(e) => setNewClient(p => ({ ...p, address_city: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+                <Label className="text-neutral-500 text-xs">City</Label>
+                <Input value={newClient.address_city} onChange={(e) => setNewClient(p => ({ ...p, address_city: e.target.value }))} className="bg-white border-neutral-200 text-black" />
               </div>
               <div>
-                <Label className="text-cyan-400/80 text-xs">State</Label>
-                <Input value={newClient.address_state} onChange={(e) => setNewClient(p => ({ ...p, address_state: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+                <Label className="text-neutral-500 text-xs">State</Label>
+                <Input value={newClient.address_state} onChange={(e) => setNewClient(p => ({ ...p, address_state: e.target.value }))} className="bg-white border-neutral-200 text-black" />
               </div>
               <div>
-                <Label className="text-cyan-400/80 text-xs">Zip</Label>
-                <Input value={newClient.address_zip} onChange={(e) => setNewClient(p => ({ ...p, address_zip: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+                <Label className="text-neutral-500 text-xs">Zip</Label>
+                <Input value={newClient.address_zip} onChange={(e) => setNewClient(p => ({ ...p, address_zip: e.target.value }))} className="bg-white border-neutral-200 text-black" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-cyan-400/80 text-xs">Budget Min ($)</Label>
-                <Input type="number" value={newClient.price_range_min} onChange={(e) => setNewClient(p => ({ ...p, price_range_min: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+                <Label className="text-neutral-500 text-xs">Budget Min ($)</Label>
+                <Input type="number" value={newClient.price_range_min} onChange={(e) => setNewClient(p => ({ ...p, price_range_min: e.target.value }))} className="bg-white border-neutral-200 text-black" />
               </div>
               <div>
-                <Label className="text-cyan-400/80 text-xs">Budget Max ($)</Label>
-                <Input type="number" value={newClient.price_range_max} onChange={(e) => setNewClient(p => ({ ...p, price_range_max: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+                <Label className="text-neutral-500 text-xs">Budget Max ($)</Label>
+                <Input type="number" value={newClient.price_range_max} onChange={(e) => setNewClient(p => ({ ...p, price_range_max: e.target.value }))} className="bg-white border-neutral-200 text-black" />
               </div>
             </div>
             <div>
-              <Label className="text-cyan-400/80 text-xs">Notes</Label>
-              <Textarea value={newClient.notes} onChange={(e) => setNewClient(p => ({ ...p, notes: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" rows={3} />
+              <Label className="text-neutral-500 text-xs">Notes</Label>
+              <Textarea value={newClient.notes} onChange={(e) => setNewClient(p => ({ ...p, notes: e.target.value }))} className="bg-white border-neutral-200 text-black" rows={3} />
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)} className="border-cyan-500/30 text-cyan-400">Cancel</Button>
-            <Button onClick={handleAddClient} disabled={isAddingClient} className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30">
+            <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)} className="border-neutral-200 text-black">Cancel</Button>
+            <Button onClick={handleAddClient} disabled={isAddingClient} className="bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200">
               {isAddingClient ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
               Add Client
             </Button>
