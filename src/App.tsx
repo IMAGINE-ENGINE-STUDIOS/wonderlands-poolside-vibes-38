@@ -97,6 +97,9 @@ const CompanyWorkspace = lazy(() => import("./pages/CompanyWorkspace"));
 const AdminPreview = lazy(() => import("./pages/AdminPreview"));
 const DevStaging = import.meta.env.DEV ? lazy(() => import("./pages/DevStaging")) : null;
 const PublicCompanySite = lazy(() => import("./pages/PublicCompanySite"));
+const TenantDomainSite = lazy(() => import("./pages/TenantDomainSite"));
+/** Hosts that serve the Wonderlands app itself; any other host is a company's own domain. */
+const isOwnHost = (h: string) => h === 'localhost' || h === '127.0.0.1' || /(^|\.)wonderlandsworld\.com$/.test(h) || /\.lovable\.(app|dev)$/.test(h) || /\.lovableproject\.com$/.test(h);
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -110,6 +113,7 @@ const LoadingFallback = () => (
 );
 
 const App = () => {
+  if (typeof window !== 'undefined' && !isOwnHost(window.location.hostname)) return <Suspense fallback={null}><TenantDomainSite /></Suspense>;
 
   return (
     <AuthProvider>

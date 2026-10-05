@@ -15,13 +15,33 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Copy, Trash2, GripVertical, ExternalLink, Plus, ArrowUp, ArrowDown } from 'lucide-react';
 import SiteRenderer from './SiteRenderer';
-import { BLOCKS, FONTS, DEFAULT_THEME, blankDoc, compressImage, newSection, uid, type BlockType, type Field, type Page, type Section, type SiteDoc, type SiteTheme } from '@/lib/siteBuilder/model';
+import { wonderlandsTemplate } from '@/lib/siteBuilder/wonderlandsTemplate';
+import { BLOCKS, FONTS, GRADIENTS, DEFAULT_THEME, blankDoc, compressImage, newSection, uid, type BlockType, type Field, type Page, type Section, type SiteDoc, type SiteTheme } from '@/lib/siteBuilder/model';
 
 const DEVICES = { desktop: { w: 1280, icon: Monitor }, tablet: { w: 820, icon: Tablet }, mobile: { w: 390, icon: Smartphone } } as const;
 const GROUPS = ['Layout', 'Content', 'Media', 'Commerce', 'Technology'];
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 
-interface SiteRow { id: string; slug: string; title: string; is_published: boolean }
+interface SiteRow { id: string; slug: string; title: string; is_published: boolean; custom_domain?: string | null }
+
+/** Pages of the site being edited, so link fields can offer "go to page". */
+const PagesCtx = React.createContext<Page[]>([]);
+
+/** Universal link picker: site page, on-page section, phone, email, WhatsApp or any web address. */
+const LinkField: React.FC<{ value: string; onChange: (v: string) => void; disabled?: boolean }> = ({ value, onChange, disabled }) => {
+  const pages = React.useContext(PagesCtx);
+  const v = value || '';
+  const kind = v.startsWith('page:') ? 'page' : v.startsWith('#') ? 'anchor' : v.startsWith('tel:') ? 'tel' : v.startsWith('mailto:') ? 'mail' : v.startsWith('https://wa.me/') ? 'wa' : v ? 'url' : 'none';
+  const set = (k: string) => onChange(k === 'page' ? `page:${pages[0]?.slug ?? ''}` : k === 'anchor' ? '#contact' : k === 'tel' ? 'tel:' : k === 'mail' ? 'mailto:' : k === 'wa' ? 'https://wa.me/' : k === 'url' ? 'https://' : '');
+  const sel = "h-9 w-full rounded-md border border-input bg-background px-2 text-sm";
+  return <div className="space-y-1.5">
+    <select disabled={disabled} className={sel} value={kind} onChange={e => set(e.target.value)}>
+      <option value="none">No link</option><option value="page">Another page of this site</option><option value="anchor">A section on this page (#)</option>
+      <option value="url">Web address</option><option value="tel">Phone call</option><option value="mail">Email</option><option value="wa">WhatsApp</option></select>
+    {kind === 'page' ? <select disabled={disabled} className={sel} value={v.slice(5)} onChange={e => onChange(`page:${e.target.value}`)}>{pages.map(p => <option key={p.id} value={p.slug}>{p.name}</option>)}</select>
+      : kind !== 'none' && <Input disabled={disabled} value={v} onChange={e => onChange(e.target.value)} />}
+  </div>;
+};
 
 const ImageField: React.FC<{ value: string; onChange: (v: string) => void; disabled?: boolean }> = ({ value, onChange, disabled }) => {
   const ref = useRef<HTMLInputElement>(null);
@@ -58,6 +78,7 @@ const FieldEditor: React.FC<{ f: Field; value: any; onChange: (v: any) => void; 
     {f.kind === 'textarea' ? <Textarea disabled={disabled} rows={4} value={value ?? ''} onChange={e => onChange(e.target.value)} />
       : f.kind === 'image' ? <ImageField disabled={disabled} value={value} onChange={onChange} />
       : f.kind === 'select' ? <select disabled={disabled} className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value={String(value ?? '')} onChange={e => onChange(e.target.value)}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+      : f.kind === 'url' ? <LinkField disabled={disabled} value={value} onChange={onChange} />
       : f.kind === 'color' ? <input disabled={disabled} type="color" className="h-10 w-full rounded-md border border-input" value={value || '#ffffff'} onChange={e => onChange(e.target.value)} />
       : <Input disabled={disabled} type={f.kind === 'number' ? 'number' : 'text'} value={value ?? ''} onChange={e => onChange(f.kind === 'number' ? Number(e.target.value) : e.target.value)} />}
     {extra}
@@ -67,7 +88,8 @@ const FieldEditor: React.FC<{ f: Field; value: any; onChange: (v: any) => void; 
 const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?: boolean }> = ({ companyId, companyName, readOnly }) => {
   const { toast } = useToast();
   const [site, setSite] = useState<SiteRow | null | undefined>(undefined);
-  const [doc, setDoc] = useState<SiteDoc>(blankDoc);
+  const [doc, setDoc] = useState<SiteDoc>(() => wonderlandsTemplate(companyName));
+  const [domain, setDomain] = useState('');
   const [theme, setTheme] = useState<SiteTheme>({ ...DEFAULT_THEME, brand: companyName });
   const [past, setPast] = useState<SiteDoc[]>([]);
   const [future, setFuture] = useState<SiteDoc[]>([]);
@@ -86,15 +108,15 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   useEffect(() => {
     let alive = true;
     (async () => {
-      const { data } = await supabase.from('company_sites').select('id,slug,title,is_published,layout,theme').eq('company_id', companyId).order('created_at').limit(1).maybeSingle();
+      const { data } = await supabase.from('company_sites').select('id,slug,title,is_published,layout,theme,custom_domain').eq('company_id', companyId).order('created_at').limit(1).maybeSingle();
       const f = await supabase.from('flip_books').select('slug,title').eq('company_id', companyId).order('updated_at', { ascending: false }).limit(100);
       if (!alive) return;
       setFlips(f.data ?? []);
       if (data) {
         const l: any = data.layout ?? {};
-        const d: SiteDoc = l.draft?.pages?.length ? l.draft : l.published?.pages?.length ? l.published : blankDoc();
+        const d: SiteDoc = l.draft?.pages?.length ? l.draft : l.published?.pages?.length ? l.published : wonderlandsTemplate(companyName);
         setDoc(d); setPageId(d.pages[0].id); setTheme({ ...DEFAULT_THEME, brand: companyName, ...(data.theme as any) });
-        setSite({ id: data.id, slug: data.slug, title: data.title, is_published: data.is_published });
+        setSite({ id: data.id, slug: data.slug, title: data.title, is_published: data.is_published, custom_domain: (data as any).custom_domain }); setDomain((data as any).custom_domain ?? '');
       } else { setSite(null); setPageId(doc.pages[0].id); }
     })();
     return () => { alive = false; };
@@ -139,8 +161,8 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     const patch: any = { layout, theme, title: theme.brand || companyName };
     if (publish) { patch.is_published = true; patch.published_at = new Date().toISOString(); }
     let res;
-    if (site) res = await supabase.from('company_sites').update(patch).eq('id', site.id).select('id,slug,title,is_published').single();
-    else res = await supabase.from('company_sites').insert({ ...patch, company_id: companyId, slug: `${slugify(companyName) || 'site'}-${uid().slice(0, 4)}` }).select('id,slug,title,is_published').single();
+    if (site) res = await supabase.from('company_sites').update(patch).eq('id', site.id).select('id,slug,title,is_published,custom_domain').single();
+    else res = await supabase.from('company_sites').insert({ ...patch, company_id: companyId, slug: `${slugify(companyName) || 'site'}-${uid().slice(0, 4)}` }).select('id,slug,title,is_published,custom_domain').single();
     setBusy(false);
     if (res.error) { toast({ title: 'Not saved', description: res.error.message }); return; }
     setSite(res.data as SiteRow); setDirty(false);
@@ -153,6 +175,16 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     if (error) toast({ title: 'Address taken', description: 'Try another web address.' }); else setSite({ ...site, slug: s });
   };
 
+  const saveDomain = async () => {
+    if (!site) { toast({ title: 'Save the site first', description: 'Press Save draft once, then add your domain.' }); return; }
+    const d = domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    if (d && !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(d)) { toast({ title: 'Check the address', description: 'Example: www.mybusiness.com' }); return; }
+    const { error } = await supabase.from('company_sites').update({ custom_domain: d || null } as any).eq('id', site.id);
+    if (error) toast({ title: 'Not saved', description: error.message.includes('duplicate') ? 'That domain is already used by another site.' : error.message });
+    else { setSite({ ...site, custom_domain: d || null }); setDomain(d); toast({ title: d ? 'Domain saved' : 'Domain removed' }); }
+  };
+  const applyTemplate = () => { if (!confirm('Replace every page with the Wonderlands template? You can undo.')) return; const t = wonderlandsTemplate(theme.brand || companyName); commit(() => t); setPageId(t.pages[0].id); setSel(null); };
+  const importCategory = (cat: string) => { if (!section || !catalog) return; const list = catalog.filter(p => p.category === cat); editSection(section.id, s => { s.props.items = [...(s.props.items || []), ...list.map(p => ({ name: p.name, price: p.price ? `$${Number(p.price).toLocaleString()}` : '', description: p.description ?? '', image: p.image_url ?? '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' }))]; }); };
   const loadCatalog = async () => { const { data } = await supabase.from('products').select('id,name,price,description,image_url,category').eq('is_active', true).order('name').limit(500); setCatalog(data ?? []); };
 
   const wrap = useCallback((s: Section, node: React.ReactNode) => {
@@ -178,6 +210,9 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const styleFields: Field[] = [
     { key: 'bg', label: 'Background colour', kind: 'color' }, { key: 'color', label: 'Text colour', kind: 'color' },
     { key: 'bgImage', label: 'Background photo', kind: 'image' }, { key: 'bgVideo', label: 'Background video link', kind: 'url' },
+    { key: 'gradFrom', label: 'Gradient start colour', kind: 'color' }, { key: 'gradTo', label: 'Gradient end colour', kind: 'color' },
+    { key: 'gradAngle', label: 'Gradient angle (0–360°)', kind: 'number' },
+    { key: 'gradType', label: 'Gradient shape', kind: 'select', options: [{ value: 'linear', label: 'Linear' }, { value: 'radial', label: 'Radial' }] },
     { key: 'overlay', label: 'Darken photo/video (0–90)', kind: 'number' }, { key: 'padY', label: 'Top & bottom space (px)', kind: 'number' },
     { key: 'titleSize', label: 'Title size (px)', kind: 'number' },
     { key: 'align', label: 'Alignment', kind: 'select', options: ['left', 'center', 'right'].map(v => ({ value: v, label: v })) },
@@ -186,11 +221,14 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   ];
 
   return (
+    <PagesCtx.Provider value={doc.pages}>
     <div className={full ? "fixed inset-0 z-50 bg-card overflow-auto" : "rounded-2xl border border-border bg-card overflow-hidden"}>
       {/* Top bar */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
         <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={page.id} onChange={e => { setPageId(e.target.value); setSel(null); }}>{doc.pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
         {!readOnly && <Button size="sm" variant="ghost" onClick={() => { const n = prompt('Page name'); if (!n) return; const p: Page = { id: uid(), name: n, slug: slugify(n), sections: [newSection('text')] }; commit(d => { d.pages.push(p); return d; }); setPageId(p.id); }}><Plus className="h-4 w-4 mr-1" />Page</Button>}
+        {!readOnly && <Button size="sm" variant="ghost" onClick={() => { const p: Page = { ...structuredClone(page), id: uid(), name: `${page.name} copy`, slug: slugify(`${page.name}-copy-${uid().slice(0, 3)}`) }; p.sections.forEach(x => { x.id = uid(); }); commit(d => { d.pages.splice(d.pages.findIndex(x => x.id === page.id) + 1, 0, p); return d; }); setPageId(p.id); }}><Copy className="h-4 w-4 mr-1" />Duplicate page</Button>}
+        {!readOnly && <Button size="sm" variant="ghost" onClick={applyTemplate}>Wonderlands template</Button>}
         <div className="flex rounded-md border border-border">{(Object.keys(DEVICES) as (keyof typeof DEVICES)[]).map(k => { const I = DEVICES[k].icon; return <button key={k} aria-label={k} onClick={() => setDevice(k)} className={`px-2.5 py-1.5 ${device === k ? 'bg-muted' : ''}`}><I className="h-4 w-4" /></button>; })}</div>
         <Button size="sm" variant="outline" onClick={() => setFull(f => !f)}>{full ? "Exit full screen" : "Full screen"}</Button>
         <Button size="sm" variant="ghost" disabled={!past.length} onClick={undo} aria-label="Undo"><Undo2 className="h-4 w-4" /></Button>
@@ -235,12 +273,19 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         <aside className="border-t lg:border-t-0 lg:border-l border-border p-3 overflow-y-auto lg:max-h-[calc(100vh-60px)]">
           <div className="flex rounded-md border border-border mb-4 text-sm">{(['content', 'style', 'theme'] as const).map(k => <button key={k} onClick={() => setPanel(k)} className={`flex-1 py-1.5 capitalize ${panel === k ? 'bg-muted font-semibold' : ''}`}>{k === 'theme' ? 'Site' : k}</button>)}</div>
           {panel === 'theme' ? <div className="space-y-3">
-            {([['brand', 'Business name', 'text'], ['phone', 'Phone', 'text'], ['email', 'Email', 'text']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'text' }} value={(theme as any)[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
+            {([['brand', 'Business name', 'text'], ['phone', 'Phone', 'text'], ['email', 'Email', 'text'], ['whatsapp', 'WhatsApp number', 'text']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'text' }} value={(theme as any)[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
             <FieldEditor disabled={readOnly} f={{ key: 'logo', label: 'Logo', kind: 'image' }} value={theme.logo} onChange={v => { setTheme({ ...theme, logo: v }); setDirty(true); }} />
             {([['primary', 'Brand colour'], ['background', 'Page background'], ['text', 'Text colour']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'color' }} value={theme[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
             {([['headingFont', 'Heading font'], ['bodyFont', 'Body font']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'select', options: FONTS.map(f => ({ value: f, label: f })) }} value={theme[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
             <FieldEditor disabled={readOnly} f={{ key: 'radius', label: 'Corner roundness (px)', kind: 'number' }} value={theme.radius} onChange={v => { setTheme({ ...theme, radius: v }); setDirty(true); }} />
-            {!readOnly && doc.pages.length > 1 && <div className="pt-2 border-t border-border space-y-2"><FieldEditor f={{ key: 'pn', label: 'This page name', kind: 'text' }} value={page.name} onChange={v => editPage(p => { p.name = v; p.slug = page === doc.pages[0] ? '' : slugify(v); })} />
+            <div className="pt-3 border-t border-border space-y-2">
+              <p className="text-sm font-semibold">Your own domain</p>
+              <div className="flex gap-2"><Input disabled={readOnly} placeholder="www.mybusiness.com" value={domain} onChange={e => setDomain(e.target.value)} /><Button size="sm" disabled={readOnly} onClick={saveDomain}>Save</Button></div>
+              <p className="text-xs text-muted-foreground">At your domain company, add these records, then email Wonderlands to switch it on (SSL is automatic):</p>
+              <div className="rounded-md bg-muted p-2 font-mono text-[11px] leading-5">A · @ · 185.158.133.1<br />A · www · 185.158.133.1</div>
+              <p className="text-xs text-muted-foreground">Visitors on that address see your published site. Changes appear after you press Publish.</p>
+            </div>
+            {!readOnly && <div className="pt-2 border-t border-border space-y-2"><FieldEditor f={{ key: 'pn', label: 'This page name', kind: 'text' }} value={page.name} onChange={v => editPage(p => { p.name = v; p.slug = page === doc.pages[0] ? '' : slugify(v); })} />
               {page !== doc.pages[0] && <Button size="sm" variant="outline" onClick={() => { commit(d => { d.pages = d.pages.filter(p => p.id !== page.id); return d; }); setPageId(doc.pages[0].id); }}>Delete page</Button>}</div>}
           </div>
           : !section ? <p className="text-sm text-muted-foreground">Click a section on the page to edit it, or open Site for colours, fonts and logo.</p>
@@ -253,13 +298,17 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
                     {catalog === null ? <Button size="sm" variant="outline" onClick={loadCatalog}>Add from Wonderlands catalogue</Button>
                       : <select className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => { const p = catalog.find(x => x.id === e.target.value); if (!p) return; editSection(section.id, s => { s.props.items = [...(s.props.items || []), { name: p.name, price: p.price ? `$${Number(p.price).toLocaleString()}` : '', description: p.description ?? '', image: p.image_url ?? '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact' }]; }); }}>
                           <option value="">Pick a product to add…</option>{catalog.map(p => <option key={p.id} value={p.id}>{p.name}{p.category ? ` · ${p.category}` : ''}</option>)}</select>}
+                    {catalog && <select className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => e.target.value && importCategory(e.target.value)}><option value="">Add a whole category…</option>{[...new Set(catalog.map(p => p.category).filter(Boolean))].map(c => <option key={c} value={c}>{c}</option>)}</select>}
                   </div> : undefined} />)}
           </div>
-          : <div className="space-y-3">{styleFields.map(f => <FieldEditor key={f.key} f={f} disabled={readOnly} value={(st as any)[f.key]} onChange={v => setStyle(f.key, v)} />)}
+          : <div className="space-y-3">
+            {!readOnly && <div><span className="text-xs font-medium text-muted-foreground">Colour presets</span><div className="mt-1 grid grid-cols-6 gap-1.5">{GRADIENTS.map(g => <button key={g.name} title={g.name} aria-label={g.name} onClick={() => editSection(section.id, s => { s.style.gradFrom = g.from; s.style.gradTo = g.to; s.style.gradAngle = s.style.gradAngle ?? 135; })} className="h-8 rounded-md border border-border" style={{ background: `linear-gradient(135deg, ${g.from}, ${g.to})` }} />)}</div></div>}
+            {styleFields.map(f => <FieldEditor key={f.key} f={f} disabled={readOnly} value={(st as any)[f.key]} onChange={v => setStyle(f.key, v)} />)}
             {!readOnly && <Button size="sm" variant="ghost" onClick={() => editSection(section.id, s => { s.style = {}; })}>Reset style</Button>}</div>}
         </aside>
       </div>
     </div>
+    </PagesCtx.Provider>
   );
 };
 

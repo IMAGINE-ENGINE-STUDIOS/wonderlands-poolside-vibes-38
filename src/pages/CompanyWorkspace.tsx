@@ -117,7 +117,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
       if (hasTrade === false) return <Panel kicker="Projects" title="Set up your trade profile"><p className="text-sm text-muted-foreground mb-4">One click links {company.name} to the project marketplace so you can bid and track work.</p><Button onClick={createTradeProfile}>Create trade profile</Button></Panel>;
       return <div className="[&>div]:m-0 [&>div]:min-h-0 [&>div]:rounded-2xl"><ContractorWorkspace section={tab as Section} /></div>;
     }
-    if (tab === 'website') return <SiteBuilder key={company.id} companyId={company.id} companyName={company.name} readOnly={readOnly} />;
+    if (tab === 'website') return <SiteBuilder key={company.id} companyId={company.id} companyName={company.name} readOnly={readOnly && !user} />;
     if (['myday', 'pipeline', 'accounts'].includes(tab)) return <CompanyCRM key={company.id} companyId={company.id} view={tab as CrmView} readOnly={readOnly} userId={user?.id} />;
     if (!counts || !rows) return <div className="grid gap-4 sm:grid-cols-4"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>;
     switch (tab) {

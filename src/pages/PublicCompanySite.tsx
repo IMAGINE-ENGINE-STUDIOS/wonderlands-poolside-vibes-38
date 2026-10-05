@@ -17,8 +17,11 @@ interface PublicSite {
   company: { name: string; phone: string | null; email: string | null; city: string | null; state: string | null; license_number: string | null };
 }
 
-const PublicCompanySite = () => {
-  const { slug = '', pageSlug = '' } = useParams();
+/** domainSlug: set when the visitor arrived on the company's own domain (links become /page). */
+const PublicCompanySite: React.FC<{ domainSlug?: string }> = ({ domainSlug }) => {
+  const params = useParams();
+  const slug = domainSlug ?? params.slug ?? '';
+  const pageSlug = params.pageSlug ?? '';
   const [site, setSite] = useState<PublicSite | null | undefined>(undefined);
   const [menu, setMenu] = useState(false);
 
@@ -61,11 +64,11 @@ const PublicCompanySite = () => {
   if (!site || !page) return (
     <main className="min-h-screen flex items-center justify-center bg-background p-8 text-center">
       <div><h1 className="font-serif text-4xl text-foreground">{site ? 'Page not found' : 'This website is being updated'}</h1>
-        <p className="mt-3 text-muted-foreground">{site ? <Link className="underline" to={`/sites/${slug}`}>Go to the home page</Link> : 'Please check back soon.'}</p></div>
+        <p className="mt-3 text-muted-foreground">{site ? <Link className="underline" to={domainSlug ? '/' : `/sites/${slug}`}>Go to the home page</Link> : 'Please check back soon.'}</p></div>
     </main>
   );
 
-  const href = (s: string) => s ? `/sites/${site.slug}/${s}` : `/sites/${site.slug}`;
+  const href = (s: string) => domainSlug ? `/${s}` : s ? `/sites/${site.slug}/${s}` : `/sites/${site.slug}`;
   const H: React.CSSProperties = { fontFamily: `'${theme.headingFont}', serif` };
   const navLinks = pages.map(p => <Link key={p.id} to={href(p.slug)} style={{ fontWeight: p.id === page.id ? 700 : 500, opacity: p.id === page.id ? 1 : .75 }}>{p.name}</Link>);
   const hasForm = page.sections.some(s => s.type === 'form' && !s.style.hidden);
@@ -89,7 +92,7 @@ const PublicCompanySite = () => {
         {menu && <nav className="md:hidden" style={{ display: 'grid', gap: 14, padding: '8px 24px 20px', fontSize: 17 }}>{navLinks}{phone && <a href={`tel:${phone}`}>Call {phone}</a>}</nav>}
       </header>
 
-      <SiteRenderer page={page} theme={theme} onLead={onLead} />
+      <SiteRenderer page={page} theme={theme} onLead={onLead} pageHref={href} />
 
       <footer style={{ borderTop: '1px solid rgba(0,0,0,.08)', padding: '48px 24px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: 32, justifyContent: 'space-between', fontSize: 14 }}>

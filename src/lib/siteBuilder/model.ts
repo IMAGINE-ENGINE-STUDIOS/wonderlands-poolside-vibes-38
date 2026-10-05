@@ -16,10 +16,12 @@ export interface SectionStyle {
   bg?: string; color?: string; bgImage?: string; bgVideo?: string; overlay?: number;
   padY?: number; align?: 'left' | 'center' | 'right'; width?: 'narrow' | 'normal' | 'wide' | 'full';
   font?: string; titleSize?: number; hidden?: boolean;
+  /** Gradient background (overrides bg when both colours are set). */
+  gradFrom?: string; gradTo?: string; gradAngle?: number; gradType?: 'linear' | 'radial';
 }
 export interface Section { id: string; type: BlockType; props: Record<string, any>; style: SectionStyle }
 export interface Page { id: string; name: string; slug: string; sections: Section[] }
-export interface SiteTheme { headingFont: string; bodyFont: string; primary: string; background: string; text: string; radius: number; logo?: string; brand?: string; phone?: string; email?: string }
+export interface SiteTheme { headingFont: string; bodyFont: string; primary: string; background: string; text: string; radius: number; logo?: string; brand?: string; phone?: string; email?: string; whatsapp?: string }
 export interface SiteDoc { pages: Page[] }
 
 export const FONTS = ['Sora', 'Manrope', 'Cormorant Garamond', 'Playfair Display', 'DM Serif Display', 'Libre Baskerville', 'Lora', 'Work Sans', 'Outfit', 'Plus Jakarta Sans', 'Space Grotesk', 'Bebas Neue', 'Archivo', 'Karla', 'Fira Sans', 'Montserrat'];
@@ -40,18 +42,18 @@ const item = (kind: Field['kind'], key: string, label: string) => ({ key, label,
 
 export const BLOCKS = {
   hero: { label: 'Hero banner', group: 'Layout', props: { eyebrow: 'Your company', title: 'Outdoor living, designed for you', subtitle: 'Tell visitors what you build and where.', ctaLabel: 'Get a quote', ctaHref: '#contact', image: '', minHeight: 560 },
-    fields: [item('text', 'eyebrow', 'Small label'), item('text', 'title', 'Headline'), item('textarea', 'subtitle', 'Subtitle'), item('text', 'ctaLabel', 'Button text'), item('url', 'ctaHref', 'Button link'), item('image', 'image', 'Background photo'), item('number', 'minHeight', 'Height (px)')] },
+    fields: [item('text', 'eyebrow', 'Small label'), item('text', 'title', 'Headline'), item('textarea', 'subtitle', 'Subtitle'), item('text', 'ctaLabel', 'Button text'), item('url', 'ctaHref', 'Button link'), item('text', 'cta2Label', 'Second button text'), item('url', 'cta2Href', 'Second button link'), item('image', 'image', 'Background photo'), item('number', 'minHeight', 'Height (px)')] },
   text: { label: 'Text', group: 'Layout', props: { title: 'About us', body: 'Write your story here.' }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text')] },
-  image: { label: 'Image', group: 'Media', props: { src: '', caption: '', height: 480 }, fields: [item('image', 'src', 'Photo'), item('text', 'caption', 'Caption'), item('number', 'height', 'Height (px)')] },
+  image: { label: 'Image', group: 'Media', props: { src: '', caption: '', height: 480 }, fields: [item('image', 'src', 'Photo'), item('text', 'caption', 'Caption'), item('url', 'link', 'Link when clicked'), item('number', 'height', 'Height (px)')] },
   gallery: { label: 'Gallery', group: 'Media', props: { title: 'Our work', items: [] },
-    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Photos', kind: 'items', blank: { src: '', caption: '' }, fields: [item('image', 'src', 'Photo'), item('text', 'caption', 'Caption')] }] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Photos', kind: 'items', blank: { src: '', caption: '', link: '' }, fields: [item('image', 'src', 'Photo'), item('text', 'caption', 'Caption'), item('url', 'link', 'Link when clicked')] }] },
   video: { label: 'Video', group: 'Media', props: { url: '', title: '' }, fields: [item('text', 'title', 'Title'), item('url', 'url', 'YouTube, Vimeo or video file link')] },
   services: { label: 'Service cards', group: 'Content', props: { title: 'What we do', items: [{ title: 'Service', body: 'Describe it.', image: '' }] },
-    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Cards', kind: 'items', blank: { title: 'Service', body: '', image: '' }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('image', 'image', 'Photo')] }] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Cards', kind: 'items', blank: { title: 'Service', body: '', image: '', link: '' }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('image', 'image', 'Photo'), item('url', 'link', 'Link when clicked')] }] },
   products: { label: 'Product cards', group: 'Commerce', props: { title: 'Products', columns: 3, items: [] },
     fields: [item('text', 'title', 'Title'), { key: 'columns', label: 'Columns', kind: 'select', options: [2, 3, 4].map(n => ({ value: String(n), label: String(n) })) },
-      { key: 'items', label: 'Products', kind: 'items', blank: { name: 'Product', price: '', description: '', image: '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact' },
-        fields: [item('text', 'name', 'Name'), item('text', 'price', 'Price'), item('textarea', 'description', 'Description'), item('image', 'image', 'Photo'), item('text', 'badge', 'Badge'), item('text', 'buttonLabel', 'Button text'), item('url', 'buttonHref', 'Button link')] }] },
+      { key: 'items', label: 'Products', kind: 'items', blank: { name: 'Product', price: '', description: '', image: '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' },
+        fields: [item('text', 'name', 'Name'), item('text', 'price', 'Price'), item('textarea', 'description', 'Description'), item('image', 'image', 'Photo'), item('text', 'badge', 'Badge'), item('text', 'buttonLabel', 'Button text'), item('url', 'buttonHref', 'Button link'), item('text', 'buyLabel', 'Pay button text'), item('url', 'buyLink', 'Stripe payment link (https://buy.stripe.com/…)')] }] },
   testimonials: { label: 'Testimonials', group: 'Content', props: { title: 'What clients say', items: [] },
     fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Quotes', kind: 'items', blank: { quote: '', name: '' }, fields: [item('textarea', 'quote', 'Quote'), item('text', 'name', 'Name')] }] },
   cta: { label: 'Call to action', group: 'Content', props: { title: 'Ready to start?', body: 'Book a free consultation.', ctaLabel: 'Contact us', ctaHref: '#contact' },
@@ -66,6 +68,17 @@ export type BlockType = keyof typeof BLOCKS;
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 export const newSection = (type: BlockType): Section => ({ id: uid(), type, props: structuredClone(BLOCKS[type].props), style: type === 'hero' ? { color: '#ffffff', bg: '#0a0a0a', overlay: 40, align: 'center', width: 'full' } : {} });
+/** Gradient presets for the chromatic controller. */
+export const GRADIENTS = [
+  { name: 'Ocean', from: '#0891b2', to: '#0e7490' }, { name: 'Sunset', from: '#f97066', to: '#fbbf24' },
+  { name: 'Obsidian', from: '#0a0a0a', to: '#1f2937' }, { name: 'Sand', from: '#faf7f2', to: '#e7dccb' },
+  { name: 'Lagoon', from: '#ecfeff', to: '#a5f3fc' }, { name: 'Coral reef', from: '#0891b2', to: '#f97066' },
+];
+
+/** Link values: 'page:<slug>' (site page, '' = home), '#anchor', 'tel:', 'mailto:', 'https://wa.me/…' or any URL. */
+export const resolveLink = (href: string | undefined, pageHref: (slug: string) => string) =>
+  !href ? '' : href.startsWith('page:') ? pageHref(href.slice(5)) : href;
+
 export const blankDoc = (): SiteDoc => ({ pages: [{ id: uid(), name: 'Home', slug: '', sections: [newSection('hero'), newSection('services'), newSection('form')] }] });
 
 /** Shrinks an uploaded photo to WebP (max 1600px) so pages stay fast. */
