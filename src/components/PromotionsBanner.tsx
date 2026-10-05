@@ -53,8 +53,8 @@ const PromotionsBanner = ({ variant = 'light' }: PromotionsBannerProps) => {
           <Card
             key={promo.id}
             className={isDark
-              ? 'holographic-panel border-amber-500/30 overflow-hidden'
-              : 'border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 overflow-hidden'
+              ? 'holographic-panel border-neutral-200 overflow-hidden'
+              : 'border-neutral-200 bg-gradient-to-r from-amber-50 to-orange-50 overflow-hidden'
             }
           >
             <CardContent className="p-0">
@@ -72,26 +72,26 @@ const PromotionsBanner = ({ variant = 'light' }: PromotionsBannerProps) => {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <Flame className={`h-5 w-5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
-                        <h3 className={`text-lg font-bold ${isDark ? 'text-amber-300 font-mono' : 'text-amber-900'}`}>
+                        <Flame className={`h-5 w-5 ${isDark ? 'text-black' : 'text-black'}`} />
+                        <h3 className={`text-lg font-bold ${isDark ? 'text-black ' : 'text-black'}`}>
                           {promo.name}
                         </h3>
                       </div>
                       {promo.highlight_text && (
                         <Badge className={isDark
-                          ? 'bg-green-500/20 text-green-300 border-green-500/30'
-                          : 'bg-green-100 text-green-700 border-green-300'
+                          ? 'bg-neutral-100 text-neutral-700 border-neutral-200'
+                          : 'bg-neutral-100 text-neutral-700 border-neutral-200'
                         }>
                           {promo.highlight_text}
                         </Badge>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className={`text-2xl font-bold ${isDark ? 'text-cyan-300 font-mono' : 'text-amber-900'}`}>
+                      <p className={`text-2xl font-bold ${isDark ? 'text-black ' : 'text-black'}`}>
                         ${promo.bundle_price.toLocaleString()}
                       </p>
                       {promo.original_price && (
-                        <p className={`text-sm line-through ${isDark ? 'text-cyan-400/50' : 'text-muted-foreground'}`}>
+                        <p className={`text-sm line-through ${isDark ? 'text-black' : 'text-muted-foreground'}`}>
                           ${promo.original_price.toLocaleString()}
                         </p>
                       )}
@@ -108,7 +108,7 @@ const PromotionsBanner = ({ variant = 'light' }: PromotionsBannerProps) => {
                   </div>
 
                   {promo.description && (
-                    <p className={`text-sm mb-3 ${isDark ? 'text-cyan-400/80' : 'text-muted-foreground'}`}>
+                    <p className={`text-sm mb-3 ${isDark ? 'text-black' : 'text-muted-foreground'}`}>
                       {promo.description}
                     </p>
                   )}
@@ -116,8 +116,8 @@ const PromotionsBanner = ({ variant = 'light' }: PromotionsBannerProps) => {
                   <div className="grid grid-cols-2 gap-2">
                     {(promo.included_items || []).map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <CheckCircle2 className={`h-4 w-4 flex-shrink-0 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
-                        <span className={`text-sm ${isDark ? 'text-cyan-300 font-mono' : 'text-foreground'}`}>
+                        <CheckCircle2 className={`h-4 w-4 flex-shrink-0 ${isDark ? 'text-neutral-700' : 'text-neutral-700'}`} />
+                        <span className={`text-sm ${isDark ? 'text-black ' : 'text-foreground'}`}>
                           {item.name}
                         </span>
                       </div>
@@ -125,7 +125,7 @@ const PromotionsBanner = ({ variant = 'light' }: PromotionsBannerProps) => {
                   </div>
 
                   {promo.terms_conditions && (
-                    <div className={`flex items-center gap-1 mt-3 ${isDark ? 'text-cyan-400/50' : 'text-muted-foreground'}`}>
+                    <div className={`flex items-center gap-1 mt-3 ${isDark ? 'text-black' : 'text-muted-foreground'}`}>
                       <Clock className="h-3 w-3" />
                       <p className="text-xs">{promo.terms_conditions}</p>
                     </div>
