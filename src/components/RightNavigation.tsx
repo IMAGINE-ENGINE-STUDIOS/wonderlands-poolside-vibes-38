@@ -27,7 +27,8 @@ const RightNavigation = () => {
   );
 
   // SOCIALITE is its own app — no Wonderlands home button on any of its pages.
-  if (isWonderlandsStudio || location.pathname.startsWith("/socialite") || location.pathname.startsWith("/admin/socialite")) return null;
+  // Hidden on SOCIALITE and on licensed companies' white-label sites (/sites/*).
+  if (isWonderlandsStudio || location.pathname.startsWith("/socialite") || location.pathname.startsWith("/admin/socialite") || location.pathname.startsWith("/sites/")) return null;
 
   return (
     <TooltipProvider delayDuration={200}>
