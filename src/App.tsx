@@ -96,6 +96,7 @@ const CustomerAccount = lazy(() => import("./pages/CustomerAccount"));
 const CompanyWorkspace = lazy(() => import("./pages/CompanyWorkspace"));
 const AdminPreview = lazy(() => import("./pages/AdminPreview"));
 const DevStaging = import.meta.env.DEV ? lazy(() => import("./pages/DevStaging")) : null;
+const PublicCompanySite = lazy(() => import("./pages/PublicCompanySite"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -126,6 +127,9 @@ const App = () => {
             <Route path="/workspace" element={<ProtectedRoute requireAuth={true}><CompanyWorkspace /></ProtectedRoute>} />
             <Route path="/admin/preview/:view" element={<ProtectedRoute requireAuth={true} requiredRoles={['main_admin']}><AdminPreview /></ProtectedRoute>} />
             {DevStaging && <Route path="/dev/command-center" element={<DevStaging />} />}
+            {/* Licensed companies' public websites (published snapshot only) */}
+            <Route path="/sites/:slug" element={<PublicCompanySite />} />
+            <Route path="/sites/:slug/:pageSlug" element={<PublicCompanySite />} />
             <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             <Route 
               path="/procurement" 

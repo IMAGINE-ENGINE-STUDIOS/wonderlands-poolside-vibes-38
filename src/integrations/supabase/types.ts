@@ -5122,6 +5122,7 @@ export type Database = {
         Args: { _internal?: boolean; _token: string }
         Returns: Json
       }
+      get_public_site: { Args: { _slug: string }; Returns: Json }
       get_public_supplier_info: {
         Args: never
         Returns: {
@@ -5173,6 +5174,17 @@ export type Database = {
       platform_company_id: { Args: never; Returns: string }
       promote_user_to_main_admin: {
         Args: { user_email: string }
+        Returns: boolean
+      }
+      submit_site_lead: {
+        Args: {
+          _email: string
+          _message: string
+          _name: string
+          _page?: string
+          _phone: string
+          _slug: string
+        }
         Returns: boolean
       }
       validate_admin_session: {
