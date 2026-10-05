@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Copy, Trash2, GripVertical, ExternalLink, Plus, ArrowUp, ArrowDown } from 'lucide-react';
 import SiteRenderer from './SiteRenderer';
-import { BLOCKS, FONTS, DEFAULT_THEME, TECH_TOOLS, blankDoc, compressImage, newSection, uid, type BlockType, type Field, type Page, type Section, type SiteDoc, type SiteTheme } from '@/lib/siteBuilder/model';
+import { BLOCKS, FONTS, DEFAULT_THEME, blankDoc, compressImage, newSection, uid, type BlockType, type Field, type Page, type Section, type SiteDoc, type SiteTheme } from '@/lib/siteBuilder/model';
 
 const DEVICES = { desktop: { w: 1280, icon: Monitor }, tablet: { w: 820, icon: Tablet }, mobile: { w: 390, icon: Smartphone } } as const;
 const GROUPS = ['Layout', 'Content', 'Media', 'Commerce', 'Technology'];
@@ -257,7 +257,6 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
             {!readOnly && <Button size="sm" variant="ghost" onClick={() => editSection(section.id, s => { s.style = {}; })}>Reset style</Button>}</div>}
         </aside>
       </div>
-      {TECH_TOOLS && null}
     </div>
   );
 };
