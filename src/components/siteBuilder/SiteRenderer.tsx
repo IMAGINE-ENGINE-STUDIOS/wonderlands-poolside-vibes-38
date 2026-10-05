@@ -66,7 +66,7 @@ const SiteRenderer: React.FC<Props> = ({ page, theme, onLead, wrap }) => {
       case 'gallery': return <>{title(p.title)}<div className="grid gap-4 grid-cols-2 md:grid-cols-3">{(p.items || []).map((g: any, i: number) => <figure key={i}>{img(g.src, g.caption || 'Photo', { aspectRatio: '4/3' })}{g.caption && <figcaption style={{ fontSize: 13, marginTop: 6, opacity: .7 }}>{g.caption}</figcaption>}</figure>)}</div></>;
       case 'video': { const e = p.url ? videoEmbed(p.url) : null; return <>{title(p.title)}{p.url ? (e ? <iframe src={e} title={p.title || 'Video'} style={{ width: '100%', aspectRatio: '16/9', borderRadius: theme.radius }} allowFullScreen loading="lazy" /> : <video src={p.url} controls style={{ width: '100%', borderRadius: theme.radius }} />) : <div style={{ aspectRatio: '16/9', background: 'rgba(0,0,0,.06)', borderRadius: theme.radius }} />}</>; }
       case 'services': return <>{title(p.title)}<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{(p.items || []).map((c: any, i: number) => <div key={i} style={{ textAlign: 'left' }}>{c.image && img(c.image, c.title, { aspectRatio: '4/3', marginBottom: 14 })}<h3 style={{ ...H, fontSize: 26 }}>{c.title}</h3><p style={{ opacity: .8, marginTop: 8, whiteSpace: 'pre-line' }}>{c.body}</p></div>)}</div></>;
-      case 'products': { const cols = Number(p.columns) || 3; return <>{title(p.title)}<div className="grid gap-6 grid-cols-1 sm:grid-cols-2" style={{ gridTemplateColumns: undefined }}><style>{`@media(min-width:1024px){#s-${s.id} .pgrid{grid-template-columns:repeat(${cols},minmax(0,1fr))}}`}</style></div>
+      case 'products': { const cols = Number(p.columns) || 3; return <>{title(p.title)}<style>{`@media(min-width:1024px){#s-${s.id} .pgrid{grid-template-columns:repeat(${cols},minmax(0,1fr))}}`}</style>
         <div className="pgrid grid gap-6 grid-cols-1 sm:grid-cols-2">{(p.items || []).map((c: any, i: number) => <article key={i} style={{ border: '1px solid rgba(0,0,0,.1)', borderRadius: theme.radius, overflow: 'hidden', background: '#fff', color: '#0a0a0a', textAlign: 'left', position: 'relative' }}>
           {c.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: theme.primary, color: '#fff', fontSize: 11, padding: '4px 10px', borderRadius: 999 }}>{c.badge}</span>}
           {img(c.image, c.name, { aspectRatio: '4/3', borderRadius: 0 })}
@@ -84,7 +84,7 @@ const SiteRenderer: React.FC<Props> = ({ page, theme, onLead, wrap }) => {
   return (
     <div style={{ background: theme.background, color: theme.text, fontFamily: `'${theme.bodyFont}', sans-serif` }}>
       {page.sections.filter(s => !s.style.hidden || wrap).map(s => {
-        const st = s.style; const full = st.width === 'full';
+        const st = { ...s.style, bgImage: s.style.bgImage || (s.type === 'hero' ? s.props.image : '') }; const full = st.width === 'full';
         const node = (
           <section id={`s-${s.id}`} key={s.id} style={{ position: 'relative', background: st.bg || undefined, color: st.color || undefined, textAlign: st.align || 'left', padding: `${st.padY ?? (s.type === 'spacer' ? 0 : 80)}px 24px`, overflow: 'hidden', fontFamily: st.font ? `'${st.font}'` : undefined, opacity: st.hidden ? .35 : 1 }}>
             {st.bgImage && <img src={st.bgImage} alt="" aria-hidden loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
