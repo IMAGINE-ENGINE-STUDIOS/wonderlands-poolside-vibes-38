@@ -79,7 +79,7 @@ export const OptimizedImage = ({
 
   // Generate WebP path from PNG path for certain large images
   const getAutoWebPSrc = (originalSrc: string) => {
-    if (originalSrc.includes('/lovable-uploads/')) {
+    if (originalSrc.includes('/media/')) {
       const filename = originalSrc.split('/').pop()?.replace('.png', '');
       // Map specific high-impact images to optimized WebP versions
         const webpMappings: Record<string, string> = {

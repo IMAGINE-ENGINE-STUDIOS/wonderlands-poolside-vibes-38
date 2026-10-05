@@ -73,7 +73,7 @@ The Wonderlands World Team',
     </div>
     
     <h3 style="color: #0d9488; font-size: 18px; margin: 25px 0 15px;">🏊 Bermuda Fiberglass Pool</h3>
-    <img src="https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/311a7002-2a40-4c59-a143-9f0236ece5d4.png" alt="Bermuda Pool" style="width: 100%; height: 220px; object-fit: cover; border-radius: 12px;">
+    <img src="https://wonderlands-poolside-vibes-38.lovable.app/media/311a7002-2a40-4c59-a143-9f0236ece5d4.png" alt="Bermuda Pool" style="width: 100%; height: 220px; object-fit: cover; border-radius: 12px;">
     <p style="color: #374151; margin: 15px 0;"><strong>Dimensions:</strong> 12′ × 24′ | <strong>Depth:</strong> 3′ 6″ – 5′ 6″ | <strong>Warranty:</strong> Lifetime Structural</p>
     
     <div style="background: #ecfdf5; border-radius: 8px; padding: 15px; margin: 15px 0; border: 1px solid #a7f3d0;">
@@ -89,7 +89,7 @@ The Wonderlands World Team',
     </div>
     
     <h3 style="color: #0d9488; font-size: 18px; margin: 25px 0 15px;">🧖 4-Person Barrel Sauna</h3>
-    <img src="https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/barrel-sauna.webp" alt="Barrel Sauna" style="width: 100%; height: 220px; object-fit: cover; border-radius: 12px;">
+    <img src="https://wonderlands-poolside-vibes-38.lovable.app/media/barrel-sauna.webp" alt="Barrel Sauna" style="width: 100%; height: 220px; object-fit: cover; border-radius: 12px;">
     <p style="color: #374151; margin: 15px 0;"><strong>Capacity:</strong> 4 People | <strong>Material:</strong> Premium Cedar Wood | <strong>Price:</strong> <span style="color: #059669; font-weight: 600;">$18,000</span></p>
     
     <div style="background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); border-radius: 12px; padding: 20px; text-align: center; margin: 25px 0;">

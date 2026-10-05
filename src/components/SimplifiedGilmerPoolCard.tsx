@@ -169,7 +169,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
   // Pool tile options
   const tileOptions = [
-    { name: 'Standard Waterline', price: 0, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.webp' },
+    { name: 'Standard Waterline', price: 0, image: '/media/c5cd2f96-d31a-446b-943b-6dd1620f6521.webp' },
     ...poolTiles.map(tile => ({ name: tile.name, price: tile.price, image: tile.image }))
   ];
 
@@ -559,7 +559,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               >
                 <CarouselContent className="-ml-1">
                   {[
-                    { key: "standard", name: "Wonder Cage", price: SCREEN_ENCLOSURE_PRICING.standard, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp" },
+                    { key: "standard", name: "Wonder Cage", price: SCREEN_ENCLOSURE_PRICING.standard, image: "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp" },
                     { key: "deluxe", name: "Deluxe", price: SCREEN_ENCLOSURE_PRICING.deluxe, image: screenEnclosureDeluxe },
                     { key: "premium", name: "2 Stories", price: SCREEN_ENCLOSURE_PRICING.premium, image: screenEnclosurePremium },
                   ].map((quality) => (
@@ -1079,7 +1079,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               price: parseFloat(options.paverSurfaceArea) * (paverOptions.find(p => p.name === options.paverOption)?.pricePerSqFt || 20),
               description: `${options.paverSurfaceArea} sq ft at $${paverOptions.find(p => p.name === options.paverOption)?.pricePerSqFt || 20} per sq ft`,
               category: 'pavers',
-              image: paverOptions.find(p => p.name === options.paverOption)?.image || '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.webp'
+              image: paverOptions.find(p => p.name === options.paverOption)?.image || '/media/4511f6d7-594e-4c22-bd69-221e519f2f34.webp'
             }] : []),
             ...(options.tiles ? [{ 
               name: `Pool Tiles: ${options.tileOption}`, 

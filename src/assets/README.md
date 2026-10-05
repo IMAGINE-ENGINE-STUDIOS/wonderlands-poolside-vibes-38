@@ -18,7 +18,7 @@ in it and which modules consume it.
 5. **Product imagery is brand-scoped.** GlimmerGlass images may never be shown for a
    Latham/Pebble Tec product and vice-versa (see `pools/README.md`).
 6. Large media (video, PDFs, fonts) is externalized to the CDN as
-   `*.asset.json` pointers via `lovable-assets` — see `hero/hero-beach.mp4.asset.json`.
+   `*.asset.json` pointers via the asset pipeline — see `hero/hero-beach.mp4.asset.json`.
 
 ## Folder map
 

@@ -15,19 +15,19 @@ VALUES
 -- Add sample products with real information
 INSERT INTO public.products (id, name, price, category, subcategory, image_url, description, brand, sku, stock_quantity, is_active, supplier_id, features_json, benefits, warranty_years_text, material, installation_time)
 VALUES 
-  (gen_random_uuid(), 'Hayward Super Pump VS', 1299, 'maintenance', 'pumps', '/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png', 'Variable speed pool pump with energy efficient motor', 'Hayward', 'HW-SP-VS-100', 45, true, '22222222-2222-2222-2222-222222222222', 
+  (gen_random_uuid(), 'Hayward Super Pump VS', 1299, 'maintenance', 'pumps', '/media/31da0c59-77d4-4fa1-838b-cb525acd404b.png', 'Variable speed pool pump with energy efficient motor', 'Hayward', 'HW-SP-VS-100', 45, true, '22222222-2222-2222-2222-222222222222', 
    '["Variable Speed", "Energy Star Certified", "Digital Display", "Auto-Prime"]', 
    '["Up to 90% energy savings", "Quiet operation", "Extended motor life"]', '3 years', 'Thermoplastic', '2-4 hours'),
   
-  (gen_random_uuid(), 'Pentair FNS Plus Sand Filter', 850, 'maintenance', 'filters', '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png', 'High-rate sand filter with corrosion-proof tank', 'Pentair', 'PT-FNS-24', 32, true, '22222222-2222-2222-2222-222222222222',
+  (gen_random_uuid(), 'Pentair FNS Plus Sand Filter', 850, 'maintenance', 'filters', '/media/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png', 'High-rate sand filter with corrosion-proof tank', 'Pentair', 'PT-FNS-24', 32, true, '22222222-2222-2222-2222-222222222222',
    '["Corrosion-proof tank", "6-position valve", "High flow rate", "Easy maintenance"]',
    '["Crystal clear water", "Long lasting", "Reduced maintenance"]', '2 years', 'Fiberglass', '3-5 hours'),
    
-  (gen_random_uuid(), 'Polaris 360 Pool Cleaner', 399, 'maintenance', 'cleaners', '/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.png', 'Pressure-side automatic pool cleaner', 'Polaris', 'PL-360-CLN', 28, true, '22222222-2222-2222-2222-222222222222',
+  (gen_random_uuid(), 'Polaris 360 Pool Cleaner', 399, 'maintenance', 'cleaners', '/media/96f46291-85e7-4b48-9465-623400a8e835.png', 'Pressure-side automatic pool cleaner', 'Polaris', 'PL-360-CLN', 28, true, '22222222-2222-2222-2222-222222222222',
    '["Three-wheel drive", "Single chamber filter", "All-wheel drive"]',
    '["Superior cleaning", "Easy to use", "Reliable performance"]', '2 years', 'Durable plastic', '30 minutes'),
    
-  (gen_random_uuid(), 'Jandy AquaPure Ei Salt System', 1899, 'maintenance', 'salt-systems', '/lovable-uploads/85d596d1-7479-4926-9732-a76fdac75eee.png', 'Electronic salt water chlorination system', 'Jandy', 'JD-AP-EI-25', 18, true, '22222222-2222-2222-2222-222222222222',
+  (gen_random_uuid(), 'Jandy AquaPure Ei Salt System', 1899, 'maintenance', 'salt-systems', '/media/85d596d1-7479-4926-9732-a76fdac75eee.png', 'Electronic salt water chlorination system', 'Jandy', 'JD-AP-EI-25', 18, true, '22222222-2222-2222-2222-222222222222',
    '["Self-cleaning cell", "Digital display", "Pool/spa operation", "Freeze protection"]',
    '["Soft silky water", "No chlorine odor", "Reduced eye irritation"]', '3 years', 'Titanium plates', '4-6 hours');
 

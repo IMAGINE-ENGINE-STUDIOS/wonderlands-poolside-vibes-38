@@ -1499,8 +1499,8 @@ export function PoolBuilder({
     const selectedPaver = paverTypes.find(p => p.id === selectedPaverId);
     const selectedCoping = paverTypes.find(p => p.id === selectedCopingId);
     const selectedFinish = finishes.find(f => f.id === selectedFinishId);
-    const paverImage = selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
-    const copingImage = selectedCoping?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
+    const paverImage = selectedPaver?.image || '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
+    const copingImage = selectedCoping?.image || '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
     const finishImage = selectedFinish?.image || aquamarineFinish;
 
     // Load all textures with LOD levels

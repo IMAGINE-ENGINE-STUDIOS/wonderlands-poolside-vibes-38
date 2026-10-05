@@ -747,14 +747,14 @@ const ConciergeBooking = () => {
  * 7. LINER CATALOG — real Wonderlands liner browser with cart
  * ============================================================ */
 const LINERS = [
-  { name: "Paradise", type: "Glass", img: "/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.webp" },
-  { name: "Water Lilies", type: "Glass", img: "/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.webp" },
-  { name: "Sail Boat", type: "Glass", img: "/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.webp" },
-  { name: "Stormy", type: "Mosaic", img: "/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.webp" },
-  { name: "Ballad", type: "Mosaic", img: "/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.webp" },
-  { name: "Galant", type: "Iridescent", img: "/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.webp" },
-  { name: "Melody", type: "Iridescent", img: "/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.webp" },
-  { name: "Soul", type: "Mosaic", img: "/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.webp" },
+  { name: "Paradise", type: "Glass", img: "/media/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.webp" },
+  { name: "Water Lilies", type: "Glass", img: "/media/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.webp" },
+  { name: "Sail Boat", type: "Glass", img: "/media/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.webp" },
+  { name: "Stormy", type: "Mosaic", img: "/media/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.webp" },
+  { name: "Ballad", type: "Mosaic", img: "/media/37536046-70f5-46b8-8422-84097ccdec08.webp" },
+  { name: "Galant", type: "Iridescent", img: "/media/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.webp" },
+  { name: "Melody", type: "Iridescent", img: "/media/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.webp" },
+  { name: "Soul", type: "Mosaic", img: "/media/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.webp" },
 ];
 
 const LinerCatalog = () => {
@@ -914,7 +914,7 @@ const Row = ({ k, v }: { k: string; v: string }) => (
  * 9. FINISH PICKER — Crystite Crystal real finishes, live preview
  * ============================================================ */
 const FINISHES = [
-  { name: "Sapphire Blue", price: 3500, color: "#1e4a7a", warranty: "25 yr", img: "/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp" },
+  { name: "Sapphire Blue", price: 3500, color: "#1e4a7a", warranty: "25 yr", img: "/media/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp" },
   { name: "Ocean Blue", price: 3500, color: "#2a6f8f", warranty: "25 yr", img: poolTexture },
   { name: "Caribbean", price: 3800, color: "#3aa6c4", warranty: "25 yr", img: poolTexture },
   { name: "Aqua Crystal", price: 3600, color: "#6cc5d1", warranty: "25 yr", img: poolTexture },

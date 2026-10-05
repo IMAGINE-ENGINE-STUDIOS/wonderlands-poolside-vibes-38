@@ -100,7 +100,7 @@ export const gilmerPools = [
     dimensions: "8'2\" x 20'",
     depth: "3'6\" - 5'",
     price: 57750,
-    image: "/lovable-uploads/gilmer-extreme-27.webp",
+    image: "/media/gilmer-extreme-27.webp",
     warranty: "Life Warranty",
     brand: "Glimmerglass",
     type: "Fiber Pool",
@@ -260,11 +260,11 @@ export const gilmerPools = [
     dimensions: "12'6\" x 27'",
     depth: "3'6\" - 5'11\"",
     price: 66500,
-    image: "/lovable-uploads/gilmer-extreme-27.webp",
+    image: "/media/gilmer-extreme-27.webp",
     media: [
-      { type: 'image' as const, url: "/lovable-uploads/gilmer-extreme-27.webp", alt: "Extreme 27 main view" },
-      { type: 'image' as const, url: "/lovable-uploads/gilmer-extreme-38.webp", alt: "Extreme 27 side view" },
-      { type: 'image' as const, url: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp", alt: "Extreme 27 installed" }
+      { type: 'image' as const, url: "/media/gilmer-extreme-27.webp", alt: "Extreme 27 main view" },
+      { type: 'image' as const, url: "/media/gilmer-extreme-38.webp", alt: "Extreme 27 side view" },
+      { type: 'image' as const, url: "/media/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.webp", alt: "Extreme 27 installed" }
     ],
     warranty: "Life Warranty",
     brand: "Glimmerglass",
@@ -345,7 +345,7 @@ export const gilmerPools = [
     dimensions: "15'6\" x 38'",
     depth: "3'6\" - 7'",
     price: 92750,
-    image: "/lovable-uploads/gilmer-extreme-38.webp",
+    image: "/media/gilmer-extreme-38.webp",
     warranty: "Life Warranty",
     brand: "Glimmerglass",
     type: "Fiber Pool",

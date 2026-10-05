@@ -75,32 +75,32 @@ interface PoolExtras {
 const poolHeaters = [{
   name: 'Pentair MasterTemp 125 (125K BTU)',
   price: 3450,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
+  image: '/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Compact high-efficiency gas heater for pools up to 15,000 gallons'
 }, {
   name: 'Pentair MasterTemp 250 (250K BTU)',
   price: 5520,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
+  image: '/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Mid-size high-performance gas heater for medium pools'
 }, {
   name: 'Pentair MasterTemp 400 (400K BTU)',
   price: 7245,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
+  image: '/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'High-capacity gas heater for large pools and quick heating'
 }, {
   name: 'Pentair UltraTemp 90 Heat Pump',
   price: 7762,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
+  image: '/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Energy-efficient heat pump for pools up to 20,000 gallons'
 }, {
   name: 'Pentair UltraTemp 110 Heat Pump',
   price: 9488,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
+  image: '/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'High-efficiency heat pump for medium to large pools'
 }, {
   name: 'Pentair UltraTemp 140 Heat Pump',
   price: 11212,
-  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
+  image: '/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp',
   description: 'Premium heat pump for large pools with maximum efficiency'
 }];
 
@@ -304,31 +304,31 @@ const copingPaverOptions = [{
   name: 'No Coping',
   color: '#808080',
   price: 0,
-  image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp',
+  image: '/media/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp',
   description: 'No additional coping'
 }, {
   name: 'Bullnose Coping',
   color: '#FFFFFF',
   price: 18,
-  image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp',
+  image: '/media/d5b2276b-16a9-47bc-99e3-92567972fe5a.webp',
   description: 'Rounded edge bullnose coping for pool edges'
 }, {
   name: 'Cantilever Coping',
   color: '#A9A9A9',
   price: 22,
-  image: '/lovable-uploads/d6ea993e-6b84-4fd9-b0f5-0ae906e45b0b.webp',
+  image: '/media/d6ea993e-6b84-4fd9-b0f5-0ae906e45b0b.webp',
   description: 'Modern cantilever edge design for contemporary pools'
 }, {
   name: 'Natural Stone Coping',
   color: '#4682B4',
   price: 28,
-  image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.webp',
+  image: '/media/d7541cc8-f254-4f85-b6ee-f636a8726dcc.webp',
   description: 'Premium natural stone pool edge coping'
 }, {
   name: 'Tile Coping',
   color: '#4169E1',
   price: 16,
-  image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.webp',
+  image: '/media/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.webp',
   description: 'Ceramic or porcelain tile coping for pool edges'
 }];
 const getCategoryColor = (category: string) => {
@@ -1082,7 +1082,7 @@ const PoolDetails = () => {
                 ${extras.jets ? `
                   <div class="extra-item">
                     <div class="item-info">
-                      <img loading="lazy" decoding="async" src="/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.webp" alt="Spa Jets" class="item-image" />
+                      <img loading="lazy" decoding="async" src="/media/57670513-84aa-4ae5-86ee-6a95737004b5.webp" alt="Spa Jets" class="item-image" />
                       <div class="item-details">
                         <h4>Premium Spa Jets (${extras.jetQuantity} Units)</h4>
                         <p>High-performance hydrotherapy jets with adjustable pressure settings for ultimate relaxation and therapeutic benefits</p>
@@ -1960,9 +1960,9 @@ const PoolDetails = () => {
                   >
                     <CarouselContent className="-ml-1">
                       {[
-                        { key: "standard", name: "Wonder Cage", price: 15, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp" },
-                        { key: "deluxe", name: "Deluxe", price: 22, image: "/lovable-uploads/c4b57a78-5a42-4268-884f-c8397a65a270.png" },
-                        { key: "premium", name: "2 Stories", price: 28, image: "/lovable-uploads/1c09e3d5-ee90-4c32-a32f-e1ae1a7b0f36.png" },
+                        { key: "standard", name: "Wonder Cage", price: 15, image: "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp" },
+                        { key: "deluxe", name: "Deluxe", price: 22, image: "/media/c4b57a78-5a42-4268-884f-c8397a65a270.png" },
+                        { key: "premium", name: "2 Stories", price: 28, image: "/media/1c09e3d5-ee90-4c32-a32f-e1ae1a7b0f36.png" },
                       ].map((quality) => (
                         <CarouselItem key={quality.key} className="pl-1 basis-1/2">
                           <div
@@ -2343,7 +2343,7 @@ const PoolDetails = () => {
                     extrasBreakdown.push({
                       name: `Spa Jets (${extras.jetQuantity}x)`,
                       price: getExtraPrice('jets') * extras.jetQuantity,
-                      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" // Jets don't have their own image, using heater image as placeholder
+                      image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" // Jets don't have their own image, using heater image as placeholder
                     });
                   }
 
@@ -2356,7 +2356,7 @@ const PoolDetails = () => {
                     extrasBreakdown.push({
                       name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`,
                       price: enclosurePrice,
-                      image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp'
+                      image: '/media/8bf11ea9-c402-4834-a163-0876545498bd.webp'
                     });
                   }
 
@@ -2366,7 +2366,7 @@ const PoolDetails = () => {
                     extrasBreakdown.push({
                       name: 'Concrete Construction Upgrade',
                       price: concretePrice,
-                      image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
+                      image: '/media/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp'
                     });
                   }
                   const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);

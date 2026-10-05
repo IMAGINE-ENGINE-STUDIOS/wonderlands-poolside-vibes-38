@@ -136,22 +136,22 @@ import InstallationNote from "@/components/InstallationNote";
 const spaHeaters = [{
   name: 'Spa Heat Pump - Compact',
   price: 5250,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
+  image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
   description: 'Compact heat pump designed for spas'
 }, {
   name: 'Spa Heat Pump - Premium',
   price: 6750,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
+  image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
   description: 'Premium spa heat pump with digital controls'
 }, {
   name: 'Spa Gas Heater',
   price: 4200,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
+  image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
   description: 'Efficient gas heater for quick spa heating'
 }, {
   name: 'Solar Spa Heater',
   price: 3300,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
+  image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp",
   description: 'Eco-friendly solar heating for spas'
 }];
 

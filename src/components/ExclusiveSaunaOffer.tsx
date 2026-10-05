@@ -60,7 +60,7 @@ const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, po
       
       <div className="grid grid-cols-2 gap-2 mb-3">
         <img loading="lazy" decoding="async" 
-          src="/lovable-uploads/barrel-sauna.webp" 
+          src="/media/barrel-sauna.webp" 
           alt="Barrel Sauna" 
           className="w-full h-20 object-cover rounded"
         />

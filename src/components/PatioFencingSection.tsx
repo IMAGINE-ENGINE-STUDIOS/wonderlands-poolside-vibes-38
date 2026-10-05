@@ -109,7 +109,7 @@ const PatioFencingSection = () => {
           <ProductScrollRow className="mb-8">
             {fencingOptions.map(fencing => <Card key={fencing.height} className="group rounded-none border border-border/70 overflow-hidden transition-all duration-500 hover:border-foreground/40 hover:shadow-[0_24px_60px_-30px_hsl(var(--foreground)/0.35)] cursor-pointer" onClick={() => handleFencingClick(fencing)}>
                 <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
-                  <img loading="lazy" decoding="async" alt={fencing.name} className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]" src="/lovable-uploads/96e12412-10ac-45a5-b879-6ed8fc8e8046.webp" />
+                  <img loading="lazy" decoding="async" alt={fencing.name} className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]" src="/media/96e12412-10ac-45a5-b879-6ed8fc8e8046.webp" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
                   <div className="absolute top-4 left-4">
                     <span className="bg-background/85 px-3 py-1 text-[9px] uppercase tracking-[0.35em] text-foreground backdrop-blur-sm">

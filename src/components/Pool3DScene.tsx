@@ -906,8 +906,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   depthPoints,
   hardscapePoints,
   linerTextureUrl = '/textures/finishes/sapphire-blue-g3.webp',
-  paverTextureUrl = '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png',
-  copingTextureUrl = '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp',
+  paverTextureUrl = '/media/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png',
+  copingTextureUrl = '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp',
   waterlineTextureUrl = '/textures/finishes/sapphire-blue-g3.webp',
   fenceTextureUrl = '/fence-texture.webp',
   features,
@@ -1086,11 +1086,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     
   const normalizedPaverUrl = paverTextureUrl && paverTextureUrl.trim() !== '' && paverTextureUrl !== 'undefined'
     ? paverTextureUrl 
-    : '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png';
+    : '/media/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png';
     
   const normalizedCopingUrl = copingTextureUrl && copingTextureUrl.trim() !== '' && copingTextureUrl !== 'undefined'
     ? copingTextureUrl 
-    : '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
+    : '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
     
   const normalizedWaterlineUrl = waterlineTextureUrl && waterlineTextureUrl.trim() !== '' && waterlineTextureUrl !== 'undefined'
     ? waterlineTextureUrl 

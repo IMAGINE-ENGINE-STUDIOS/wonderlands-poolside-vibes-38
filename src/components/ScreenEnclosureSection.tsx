@@ -24,14 +24,14 @@ const screenEnclosureOptions: ScreenEnclosureOption[] = [{
   name: "Standard Screen Enclosure",
   type: "standard",
   pricePerSqFt: 22,
-  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp",
+  image: "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp",
   description: "Basic aluminum frame screen enclosure with standard mesh screening",
   features: ["Aluminum Frame", "Standard Screen Mesh", "Basic Hardware", "5-Year Warranty"]
 }, {
   name: "Deluxe Screen Enclosure",
   type: "standard",
   pricePerSqFt: 24,
-  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp",
+  image: "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp",
   description: "Enhanced aluminum frame with upgraded mesh and hardware",
   features: ["Enhanced Aluminum Frame", "Premium Screen Mesh", "Upgraded Hardware", "10-Year Warranty"]
 }, {

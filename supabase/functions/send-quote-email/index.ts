@@ -49,9 +49,9 @@ const handler = async (req: Request): Promise<Response> => {
       : '';
 
     // Product images - using absolute URLs for email compatibility
-    const bermudaPoolImage = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/311a7002-2a40-4c59-a143-9f0236ece5d4.png";
+    const bermudaPoolImage = "https://wonderlands-poolside-vibes-38.lovable.app/media/311a7002-2a40-4c59-a143-9f0236ece5d4.png";
     // Barrel sauna exterior (preferred)
-    const barrelSaunaImage = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/barrel-sauna.webp";
+    const barrelSaunaImage = "https://wonderlands-poolside-vibes-38.lovable.app/media/barrel-sauna.webp";
     // Use the main Wonderlands logo
     const logoUrl = "https://wonderlands-poolside-vibes-38.lovable.app/wonderlands-branding/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png";
     

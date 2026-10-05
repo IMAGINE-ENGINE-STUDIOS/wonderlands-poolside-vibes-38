@@ -52,7 +52,7 @@ export const imageSizeConfigs = {
 
 // Generate srcset for responsive images
 export const generateSrcSet = (baseSrc: string, maxWidth: number = 1200): string => {
-  if (!baseSrc.includes('/lovable-uploads/')) return baseSrc;
+  if (!baseSrc.includes('/media/')) return baseSrc;
   
   const sizes = [400, 800, 1200].filter(size => size <= maxWidth);
   return sizes.map(size => `${baseSrc} ${size}w`).join(', ');
