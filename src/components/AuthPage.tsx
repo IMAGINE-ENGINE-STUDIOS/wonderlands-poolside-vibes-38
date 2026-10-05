@@ -202,8 +202,7 @@ const AuthPage = () => {
             </p>
             <div className="flex flex-col gap-2">
               <Button onClick={() => {
-                const r = profile?.role as string;
-                const dest = r === 'sales_rep' ? '/sales-rep' : r === 'main_admin' ? '/admin' : (r === 'supplier' || r === 'installer') ? '/workspace' : (requested && !requested.startsWith('/admin') ? requested : '/account');
+                const dest = destinationFor(profile?.role as string, user.email, requested);
                 navigate(dest, { replace: true });
               }}>
                 Go to Dashboard

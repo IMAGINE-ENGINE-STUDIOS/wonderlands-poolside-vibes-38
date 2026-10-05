@@ -125,6 +125,7 @@ const App = () => {
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/account" element={<ProtectedRoute requireAuth={true}><CustomerAccount /></ProtectedRoute>} />
             <Route path="/workspace" element={<ProtectedRoute requireAuth={true}><CompanyWorkspace /></ProtectedRoute>} />
+            <Route path="/demo/command-center" element={<ProtectedRoute requireAuth={true}><AdminDashboard previewMode /></ProtectedRoute>} />
             <Route path="/admin/preview/:view" element={<ProtectedRoute requireAuth={true} requiredRoles={['main_admin']}><AdminPreview /></ProtectedRoute>} />
             {DevStaging && <Route path="/dev/command-center" element={<DevStaging />} />}
             {/* Licensed companies' public websites (published snapshot only) */}
