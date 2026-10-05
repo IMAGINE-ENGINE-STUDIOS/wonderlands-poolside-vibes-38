@@ -15,10 +15,14 @@ import { Input } from '@/components/ui/input';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { useToast } from '@/hooks/use-toast';
 import EditorialShell, { Panel, StatTile, EmptyState, Skeleton, money } from '@/components/shell/EditorialShell';
+import CompanyCRM, { type CrmView } from '@/components/crm/CompanyCRM';
 import ContractorWorkspace, { type Section } from '@/components/contractor/ContractorWorkspace';
 
 const CHAPTERS = [
   { key: 'today', label: 'Today', group: 'Overview' },
+  { key: 'myday', label: 'My Day', group: 'CRM' },
+  { key: 'pipeline', label: 'Deals pipeline', group: 'CRM' },
+  { key: 'accounts', label: 'Accounts & contacts', group: 'CRM' },
   { key: 'clients', label: 'Clients', group: 'Business' },
   { key: 'quotes', label: 'Quotes & invoices', group: 'Business' },
   { key: 'procurement', label: 'Opportunities & bids', group: 'Projects' },
@@ -45,25 +49,27 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
   const readOnly = !!previewCompanyId;
 
   useEffect(() => {
-    if (!user) return;
+    if (!user && !previewCompanyId) return;
     let alive = true;
     (async () => {
       let cid = previewCompanyId;
-      if (!cid) {
+      if (!cid && user) {
         const { data } = await supabase.from('company_members').select('company_id').eq('user_id', user.id).eq('is_active', true).order('created_at').limit(1).maybeSingle();
         cid = data?.company_id;
       }
       if (!cid) { if (alive) setCompany(null); return; }
       const { data: co } = await supabase.from('companies').select('id,name,trades,status,phone,email,city,state,license_number').eq('id', cid).maybeSingle();
       if (!alive) return;
-      setCompany((co as Company) ?? null); setForm((co as Company) ?? {});
+      // Signed-out design preview: RLS hides the row, so show an empty named shell.
+      const shown = (co as Company) ?? (previewCompanyId ? { id: cid, name: 'Preview company', trades: [], status: 'preview', phone: null, email: null, city: null, state: null, license_number: null } : null);
+      setCompany(shown); setForm(shown ?? {});
       const c = (q: any) => q.then((r: any) => r.count ?? 0, () => 0);
       const [cl, qt, inv, pr, tr] = await Promise.all([
         c(supabase.from('clients').select('id', { count: 'exact', head: true }).eq('company_id', cid)),
         c(supabase.from('user_quotations').select('id', { count: 'exact', head: true }).eq('company_id', cid)),
         c(supabase.from('invoices').select('id', { count: 'exact', head: true }).eq('company_id', cid).neq('payment_status', 'paid')),
         c(supabase.from('construction_projects').select('id', { count: 'exact', head: true }).eq('company_id', cid)),
-        readOnly ? Promise.resolve(0) : c(supabase.from('contractors').select('id', { count: 'exact', head: true }).eq('user_id', user.id)),
+        readOnly ? Promise.resolve(0) : c(supabase.from('contractors').select('id', { count: 'exact', head: true }).eq('user_id', user!.id)),
       ]);
       if (!alive) return;
       setCounts({ clients: cl, quotes: qt, invoices: inv, projects: pr });
@@ -109,6 +115,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
       if (hasTrade === false) return <Panel kicker="Projects" title="Set up your trade profile"><p className="text-sm text-muted-foreground mb-4">One click links {company.name} to the project marketplace so you can bid and track work.</p><Button onClick={createTradeProfile}>Create trade profile</Button></Panel>;
       return <div className="[&>div]:m-0 [&>div]:min-h-0 [&>div]:rounded-2xl"><ContractorWorkspace section={tab as Section} /></div>;
     }
+    if (['myday', 'pipeline', 'accounts'].includes(tab)) return <CompanyCRM key={company.id} companyId={company.id} view={tab as CrmView} readOnly={readOnly} userId={user?.id} />;
     if (!counts || !rows) return <div className="grid gap-4 sm:grid-cols-4"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>;
     switch (tab) {
       case 'clients':
