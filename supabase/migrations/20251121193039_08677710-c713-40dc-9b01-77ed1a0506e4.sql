@@ -15,7 +15,7 @@ INSERT INTO pools (
   90000,
   '15.5'' × 31''',
   '3''6" - 6''',
-  '/lovable-uploads/winderview-pool.jpg',
+  '/media/winderview-pool.jpg',
   ARRAY['Tanning Ledge', 'Rectangular Design', 'Concrete Construction', 'Custom Finish Options'],
   '25',
   true,

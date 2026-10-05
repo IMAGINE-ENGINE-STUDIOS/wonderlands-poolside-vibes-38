@@ -11,7 +11,7 @@ const brandImages = [
   },
   {
     id: 2,
-    url: "/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.webp",
+    url: "/media/57670513-84aa-4ae5-86ee-6a95737004b5.webp",
     title: "Luxury Lifestyle",
     description: "Experience the ultimate in pool luxury with our colorful floats and premium poolside comfort."
   },
@@ -23,13 +23,13 @@ const brandImages = [
   },
   {
     id: 4,
-    url: "/lovable-uploads/ed2e7763-9e47-4400-9fee-f7dff2ccb0ee.webp",
+    url: "/media/ed2e7763-9e47-4400-9fee-f7dff2ccb0ee.webp",
     title: "Poolside Essentials",
     description: "From towels to inflatables, everything you need for the perfect pool day experience."
   },
   {
     id: 5,
-    url: "/lovable-uploads/eaf313f5-2a7b-4b5e-a94b-da9d4104de79.webp",
+    url: "/media/eaf313f5-2a7b-4b5e-a94b-da9d4104de79.webp",
     title: "Fun Collection",
     description: "Dive into fun with our complete collection of pool accessories, goggles, and water toys."
   }

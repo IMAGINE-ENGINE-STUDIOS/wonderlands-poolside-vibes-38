@@ -86,12 +86,12 @@ export const pools = [
     model: "Astoria 12",
     price: 85000,
     category: "premium",
-    image: "/lovable-uploads/astoria-12.jpg",
+    image: "/media/astoria-12.jpg",
     media: [
-      { type: 'image', url: '/lovable-uploads/astoria-12.jpg', alt: 'Astoria pool main' },
-      { type: 'image', url: '/lovable-uploads/astoria-12-angle.jpg', alt: 'Astoria angled view' },
-      { type: 'image', url: '/lovable-uploads/astoria-12-night.jpg', alt: 'Astoria at night' },
-      { type: 'image', url: '/lovable-uploads/astoria-12-detail.jpg', alt: 'Astoria details' }
+      { type: 'image', url: '/media/astoria-12.jpg', alt: 'Astoria pool main' },
+      { type: 'image', url: '/media/astoria-12-angle.jpg', alt: 'Astoria angled view' },
+      { type: 'image', url: '/media/astoria-12-night.jpg', alt: 'Astoria at night' },
+      { type: 'image', url: '/media/astoria-12-detail.jpg', alt: 'Astoria details' }
     ]
   }
 ];
@@ -104,16 +104,16 @@ export const saunas = [
     model: "Barrel Sauna 4P",
     price: 15000,
     category: "premium",
-    image: '/lovable-uploads/barrel-sauna.webp',
+    image: '/media/barrel-sauna.webp',
     media: [
-      { type: 'image', url: '/lovable-uploads/barrel-sauna.webp', alt: 'Exterior view' },
+      { type: 'image', url: '/media/barrel-sauna.webp', alt: 'Exterior view' },
       { 
         type: 'video', 
         url: '/videos/sauna-tour.mp4',
-        thumbnail: '/lovable-uploads/sauna-video-thumb.jpg',
+        thumbnail: '/media/sauna-video-thumb.jpg',
         alt: '360° sauna tour'
       },
-      { type: 'image', url: '/lovable-uploads/sauna-interior.jpg', alt: 'Interior view' }
+      { type: 'image', url: '/media/sauna-interior.jpg', alt: 'Interior view' }
     ]
   }
 ];

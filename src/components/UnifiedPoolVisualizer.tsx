@@ -870,8 +870,8 @@ export function UnifiedPoolVisualizer({
   
   // Extract safe texture URLs
   const linerTextureUrl = safeGetTextureUrl(scene.pool.finish, '/textures/finishes/sapphire-blue-g3.webp');
-  const paverTextureUrl = safeGetTextureUrl(scene.deck.paver, '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png');
-  const copingTextureUrl = safeGetTextureUrl(scene.deck.coping, '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.webp');
+  const paverTextureUrl = safeGetTextureUrl(scene.deck.paver, '/media/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png');
+  const copingTextureUrl = safeGetTextureUrl(scene.deck.coping, '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp');
   const waterlineTextureUrl = safeGetTextureUrl(scene.deck.waterline, scene.pool.finish.url);
   
   // Preload textures before rendering 3D scene

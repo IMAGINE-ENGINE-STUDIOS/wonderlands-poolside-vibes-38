@@ -1,7 +1,7 @@
 # public/wonderlands-branding/
 
 This folder groups brand and marketing-related uploads that were previously
-scattered under `public/lovable-uploads/`. Keeping them together makes them
+scattered under `public/media/`. Keeping them together makes them
 easier to find, cache, and reference consistently across the app, emails, and
 database seed data.
 
@@ -21,5 +21,5 @@ database seed data.
 
 These files are referenced by their stable UUID filenames in source code, email
 templates, and SQL migrations. If you replace an image, keep the same filename or
-update every consumer. Do not move files back into `public/lovable-uploads/`
+update every consumer. Do not move files back into `public/media/`
 without updating all references.

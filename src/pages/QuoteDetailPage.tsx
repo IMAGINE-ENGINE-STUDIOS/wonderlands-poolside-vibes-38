@@ -296,7 +296,7 @@ const QuoteDetailPage = () => {
                           return (
                             <div className="mb-3">
                               <OptimizedImage 
-                                src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.webp" 
+                                src="/media/8bf11ea9-c402-4834-a163-0876545498bd.webp" 
                                 alt={option.name} 
                                 className="w-full h-20 rounded-md border border-orange-200 object-cover"
                                 sizeConfig="quoteImage"
@@ -321,7 +321,7 @@ const QuoteDetailPage = () => {
                           return (
                             <div className="mb-3">
                               <OptimizedImage 
-                                src="/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp" 
+                                src="/media/1fd97401-223a-4a79-bf65-e7734138513e.webp" 
                                 alt={option.name} 
                                 className="w-full h-20 rounded-md border border-orange-200 object-cover"
                                 sizeConfig="quoteImage"
@@ -334,7 +334,7 @@ const QuoteDetailPage = () => {
                           return (
                             <div className="mb-3">
                               <OptimizedImage 
-                                src="/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.webp" 
+                                src="/media/46c5f140-bd7e-4a4d-9a19-1f15b078b899.webp" 
                                 alt={option.name} 
                                 className="w-full h-20 rounded-md border border-orange-200 object-cover"
                                 sizeConfig="quoteImage"

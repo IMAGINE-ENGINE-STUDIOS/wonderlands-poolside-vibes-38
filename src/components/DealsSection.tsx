@@ -20,7 +20,7 @@ const bestSellerPools = [
     model: "Bermuda 12",
     price: 56525,
     category: 'standard' as const,
-    image: "/lovable-uploads/bermuda-pool.webp",
+    image: "/media/bermuda-pool.webp",
     dimensions: "12′ × 24′",
     depth: "3′ 6″ – 5′ 6″",
     installationTimeWeeks: 16,

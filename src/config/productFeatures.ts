@@ -58,7 +58,7 @@ const spas: FeatureOption[] = [
     name: "Mystic",
     price: 24000,
     category: 'premium',
-    image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.webp",
+    image: "/media/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.webp",
     dimensions: "7' x 7' x 34\"",
     features: ["LED Lighting", "Jets", "Heater"]
   },
@@ -76,24 +76,24 @@ const spas: FeatureOption[] = [
     name: "Tranquility",
     price: 20000,
     category: 'standard',
-    image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.webp",
+    image: "/media/997efdd7-a754-4836-98ac-05c5e9abaf0b.webp",
     dimensions: "5' x 5' x 30\"",
     features: ["Basic Lighting", "Jets"]
   }
 ];
 
 const poolHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
-  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 5520, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
-  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 7245, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
-  { name: 'Pentair UltraTemp 110 Heat Pump', price: 9488, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
-  { name: 'Pentair UltraTemp 140 Heat Pump', price: 11212, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 5520, image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 7245, image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair UltraTemp 110 Heat Pump', price: 9488, image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair UltraTemp 140 Heat Pump', price: 11212, image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" }
 ];
 
 const spaHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 3450, image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 7762, image: "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp" }
 ];
 
 const ledgeHeaters: FeatureOption[] = [
@@ -154,10 +154,10 @@ export const COVER_COLOR_OPTIONS: FeatureOption[] = [
 
 const coverOptions: FeatureOption[] = [
   { name: 'NO COVER', price: 0, image: noCoverBlack, colors: [] },
-  { name: 'Eclipse Automatic Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.webp', colors: COVER_COLOR_OPTIONS },
-  { name: 'CS3000 Safety Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.webp', colors: COVER_COLOR_OPTIONS },
-  { name: 'Infinity 4000 Smart Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.webp', colors: COVER_COLOR_OPTIONS },
-  { name: 'Atom Loop-Loc Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.webp', colors: COVER_COLOR_OPTIONS }
+  { name: 'Eclipse Automatic Cover', price: 27000, image: '/media/1fd97401-223a-4a79-bf65-e7734138513e.webp', colors: COVER_COLOR_OPTIONS },
+  { name: 'CS3000 Safety Cover', price: 30000, image: '/media/5d870105-61a5-4d79-a200-33c70c5ac38f.webp', colors: COVER_COLOR_OPTIONS },
+  { name: 'Infinity 4000 Smart Cover', price: 32000, image: '/media/695627f9-9391-4b1c-babd-a352309fd232.webp', colors: COVER_COLOR_OPTIONS },
+  { name: 'Atom Loop-Loc Cover', price: 25000, image: '/media/91acd1a8-9997-4d59-8c6d-a8635810989b.webp', colors: COVER_COLOR_OPTIONS }
 ];
 
 /** The colour choice printed with the cover — no upcharge, it is a fabric selection. */

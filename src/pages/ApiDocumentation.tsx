@@ -52,7 +52,7 @@ const endpoints = [
       "category": "screens",
       "price": 2499.99,
       "description": "...",
-      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/example.png",
+      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/media/example.png",
       "sku": "WL-001",
       "brand": "Wonderlands",
       "is_active": true
@@ -81,7 +81,7 @@ const endpoints = [
     "category": "screens",
     "price": 2499.99,
     "description": "...",
-    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/example.png",
+    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/media/example.png",
     "sku": "WL-001",
     "brand": "Wonderlands",
     "is_active": true
@@ -109,7 +109,7 @@ const endpoints = [
       "price": 18500,
       "dimensions": "30x15x5",
       "features": ["LED lighting", "Built-in spa"],
-      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/pool-example.png"
+      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/media/pool-example.png"
     }
   ],
   "pagination": {
@@ -136,7 +136,7 @@ const endpoints = [
     "price": 18500,
     "dimensions": "30x15x5",
     "features": ["LED lighting"],
-    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/pool-example.png"
+    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/media/pool-example.png"
   }
 }`,
     exampleCurl: `curl -X GET "${BASE_URL}/pools/YOUR_POOL_ID" \\
@@ -160,7 +160,7 @@ const endpoints = [
       "category": "natural_stone",
       "collection": "Premium",
       "base_price": 12.50,
-      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/paver-example.png"
+      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/media/paver-example.png"
     }
   ],
   "pagination": {
@@ -186,7 +186,7 @@ const endpoints = [
     "category": "natural_stone",
     "collection": "Premium",
     "base_price": 12.50,
-    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/paver-example.png"
+    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/media/paver-example.png"
   }
 }`,
     exampleCurl: `curl -X GET "${BASE_URL}/pavers/YOUR_PAVER_ID" \\
