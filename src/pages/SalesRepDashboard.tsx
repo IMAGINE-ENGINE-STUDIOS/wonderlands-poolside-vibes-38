@@ -310,7 +310,7 @@ const SalesRepDashboard = () => {
                 <Users className="h-5 w-5 text-black" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-black tracking-wide flex items-center gap-2">
+                <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }} className="text-3xl text-black flex items-center gap-2">
                   {isHeadOfSales && <Crown className="h-5 w-5 text-neutral-700" />}
                   {isHeadOfSales ? 'Head of Sales Portal' : 'Sales Rep Portal'}
                 </h1>
@@ -444,7 +444,7 @@ const SalesRepDashboard = () => {
           <CardContent>
             {isLoading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
                 <p className="text-neutral-500 text-sm mt-4">Loading clients...</p>
               </div>
             ) : clients.length === 0 ? (
