@@ -986,6 +986,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     setLocalCopingHeight(copingHeight);
   }, [copingHeight]);
 
+  useEffect(() => {
+    setLocalDeckHeight(deckHeight);
+  }, [deckHeight]);
+
   // Sync external debug boundaries control
   useEffect(() => {
     setShowDebugBoundaries(externalShowDebugBoundaries);
@@ -1024,11 +1028,16 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   }, [points, poolFrameCenter]);
   
   // Calculate normalized hardscape points for exact deck sync (same origin as the pool)
+  // Once the user moves the Deck Width slider, the deck is regenerated from
+  // the pool outline at that width (the 2D deck outline would otherwise lock it).
+  const initialDeckWidthRef = useRef(deckWidth);
+  const deckWidthTouched = Math.abs(localDeckWidth - initialDeckWidthRef.current) > 1e-3;
   const normalizedHardscapePoints = useMemo(() => {
+    if (deckWidthTouched) return undefined;
     if (!hardscapePoints || hardscapePoints.length < 3) return undefined;
     
     return hardscapePoints.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y }));
-  }, [hardscapePoints, poolFrameCenter]);
+  }, [hardscapePoints, poolFrameCenter, deckWidthTouched]);
 
   
   // Initialize perimeter depth points from 1D depth profile if not provided
@@ -1268,7 +1277,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
               outerPoints={normalizedHardscapePoints}
               deckWidth={localDeckWidth}
               copingWidth={localCopingWidth}
-              borderHeight={0.25} // 3 inches
+              borderHeight={Math.max(1 / 12, localDeckHeight || 0.25)} // follows Deck Height (default 3in)
               borderWidth={Math.max(3, localDeckWidth)} // minimum 3ft, can grow
               deckElevation={deckElevation}
               textureUrl={normalizedPaverUrl}
