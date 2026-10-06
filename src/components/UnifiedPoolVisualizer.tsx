@@ -602,6 +602,12 @@ export function UnifiedPoolVisualizer({
     return computePerimeterDepths(normalized, linearDepthAnchors, depthAxis);
   }, [scene.pool.points, scene.pool.perimeterDepthPoints, linearDepthAnchors, depthAxis]);
 
+  // Interior floor depth (pool-centred coords, same space as the perimeter depths).
+  const floorDepthAtCentered = useCallback(
+    (x: number, z: number) => interpolateDepthFromAnchors(positionAlongAxis(x, z, depthAxis), linearDepthAnchors),
+    [depthAxis, linearDepthAnchors]
+  );
+
   // Update parent when scene changes
   useEffect(() => {
     onSceneChange?.(scene);
@@ -1862,6 +1868,7 @@ export function UnifiedPoolVisualizer({
               enableDeckSplineEdit={enableDeckSplineEdit}
               enableFloorDepthSplineEdit={enableFloorDepthSplineEdit || (isSplineEditMode && selectedSplineComponent === 'pool-floor')}
               perimeterDepthPoints={resolvedPerimeterDepthPoints}
+              floorDepthAt={floorDepthAtCentered}
               onPoolPointsChange={handlePoolPointsChange}
               onDeckPointsChange={handleDeckPointsChange}
               onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
