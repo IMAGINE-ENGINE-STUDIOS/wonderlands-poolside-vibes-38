@@ -559,7 +559,7 @@ const DesignStudio = () => {
           </div> : <div className="w-full h-full">
             <UnifiedPoolVisualizer scene={buildPersistedScene()} textureLibrary={studioTextureLibrary} onSceneChange={handle3DSceneChange} />
             {/* Always-visible return to 2D (stays on top even in fullscreen 3D). */}
-            <Button size="sm" onClick={handleSwitch2D} className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1000] gap-1.5 rounded-full shadow-lg px-4" title="Back to the 2D designer — your shape, finishes and 3D settings are kept">
+            <Button size="sm" onClick={handleSwitch2D} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[10050] gap-1.5 rounded-full shadow-lg px-4" title="Back to the 2D designer — your shape, finishes and 3D settings are kept">
               <Layers className="h-3.5 w-3.5" />
               Edit in 2D
             </Button>
