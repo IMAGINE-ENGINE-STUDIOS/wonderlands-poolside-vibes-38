@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.platform-lead-notify]
 verify_jwt = false
+
+[functions.sketchfab-download]
+verify_jwt = false
