@@ -130,7 +130,9 @@ const DesignStudio = () => {
 
   // Reset entire scene to blank
   const handleResetScene = useCallback(() => {
-    // Clear all state first
+    // Clear all state first (including the 2D ⇄ 3D scene memory)
+    lastScene3DRef.current = null;
+    try { localStorage.removeItem(sceneMemoryKey); } catch { /* ignore */ }
     setPoolBuilderData(null);
     setCustomPoolShape(null);
     setActiveTool(null);
