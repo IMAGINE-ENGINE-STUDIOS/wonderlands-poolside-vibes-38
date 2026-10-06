@@ -1669,6 +1669,17 @@ export function UnifiedPoolVisualizer({
             onSelectAsset={setSelectedPoolAssetId}
             poolFinishTexture={linerTextureUrl}
             isNightMode={isNightMode}
+            sceneObjects={terrainAssets}
+            onSceneObjectsChange={(next) => {
+              if (next.length > terrainAssets.length) {
+                const added = next[next.length - 1];
+                if (added) {
+                  setSelectedTerrainAssetId(added.id);
+                  focusOnAsset(added.position as [number, number, number]);
+                }
+              }
+              setTerrainAssets(next);
+            }}
           />
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
