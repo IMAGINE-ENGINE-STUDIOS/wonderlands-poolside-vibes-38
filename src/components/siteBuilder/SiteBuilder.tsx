@@ -184,8 +184,24 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     else { setSite({ ...site, custom_domain: d || null }); setDomain(d); toast({ title: d ? 'Domain saved' : 'Domain removed' }); }
   };
   const applyTemplate = () => { if (!confirm('Replace every page with the Wonderlands template? You can undo.')) return; const t = wonderlandsTemplate(theme.brand || companyName); commit(() => t); setPageId(t.pages[0].id); setSel(null); };
-  const importCategory = (cat: string) => { if (!section || !catalog) return; const list = catalog.filter(p => p.category === cat); editSection(section.id, s => { s.props.items = [...(s.props.items || []), ...list.map(p => ({ name: p.name, price: p.price ? `$${Number(p.price).toLocaleString()}` : '', description: p.description ?? '', image: p.image_url ?? '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' }))]; }); };
-  const loadCatalog = async () => { const { data } = await supabase.from('products').select('id,name,price,description,image_url,category').eq('is_active', true).order('name').limit(500); setCatalog(data ?? []); };
+  // Product cards: catalogue items keep their real photo; absolute URL so published/custom-domain sites load it too.
+  const absImg = (u?: string | null) => !u ? '' : /^(https?:|data:|blob:)/.test(u) ? u : `${window.location.origin}${u.startsWith('/') ? '' : '/'}${u}`;
+  const toCard = (p: any) => ({ name: p.name, price: p.price ? `$${Number(p.price).toLocaleString()}` : '', description: p.description ?? '', image: absImg(p.image_url), badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' });
+  const blankCard = () => ({ name: 'New product', price: '', description: '', image: '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' });
+  const bulkAdd = () => {
+    if (!section) return;
+    const txt = prompt('One product per line:\nName | Price | Description | Image link (price, description and image are optional)');
+    if (!txt) return;
+    const rows = txt.split('\n').map(l => l.split('|').map(x => x.trim())).filter(r => r[0]);
+    editSection(section.id, s => { s.props.items = [...(s.props.items || []), ...rows.map(([name, price = '', description = '', image = '']) => ({ ...blankCard(), name, price: price && !price.startsWith('$') && !isNaN(Number(price.replace(/,/g, ''))) ? `$${Number(price.replace(/,/g, '')).toLocaleString()}` : price, description, image }))]; });
+  };
+  const importCategory = (cat: string) => { if (!section || !catalog) return; const list = catalog.filter(p => p.category === cat); editSection(section.id, s => { s.props.items = [...(s.props.items || []), ...list.map(toCard)]; }); };
+  // Same catalogue (with photos) the suites and FLIP use — the products table has no reliable images.
+  const loadCatalog = async () => {
+    const [{ ITEMS }, { loadCategoryEntries }] = await Promise.all([import('@/components/FlipIndex'), import('@/components/flip/flipConsoleData')]);
+    const lists = await Promise.all(ITEMS.map(async (it: any) => (await loadCategoryEntries(it.id).catch(() => [])).map(e => ({ id: `${it.id}:${e.id}`, name: e.name, price: e.price, description: e.meta ?? e.brand ?? '', image_url: e.image, category: it.label }))));
+    setCatalog(lists.flat().filter(p => p.image_url));
+  };
 
   const wrap = useCallback((s: Section, node: React.ReactNode) => {
     const i = page.sections.indexOf(s);
@@ -295,8 +311,12 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
               ? (flipField ? <label key={f.key} className="block space-y-1"><span className="text-xs font-medium text-muted-foreground">FLIP book</span><select disabled={readOnly} className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value={section.props.flipSlug} onChange={e => editSection(section.id, s => { s.props.flipSlug = e.target.value; })}><option value="">Choose…</option>{flips.map(b => <option key={b.slug} value={b.slug}>{b.title}</option>)}</select>{!flips.length && <span className="text-xs text-muted-foreground">Build one in Flip Builder V3 first.</span>}</label> : null)
               : <FieldEditor key={f.key} f={f} disabled={readOnly} value={section.props[f.key]} onChange={v => editSection(section.id, s => { s.props[f.key] = v; })}
                   extra={section.type === 'products' && f.key === 'items' && !readOnly ? <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => editSection(section.id, s => { s.props.items = [...(s.props.items || []), blankCard()]; })}>Blank product card</Button>
+                      <Button size="sm" variant="outline" onClick={bulkAdd}>Bulk add</Button>
+                    </div>
                     {catalog === null ? <Button size="sm" variant="outline" onClick={loadCatalog}>Add from Wonderlands catalogue</Button>
-                      : <select className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => { const p = catalog.find(x => x.id === e.target.value); if (!p) return; editSection(section.id, s => { s.props.items = [...(s.props.items || []), { name: p.name, price: p.price ? `$${Number(p.price).toLocaleString()}` : '', description: p.description ?? '', image: p.image_url ?? '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact' }]; }); }}>
+                      : <select className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => { const p = catalog.find(x => x.id === e.target.value); if (!p) return; editSection(section.id, s => { s.props.items = [...(s.props.items || []), toCard(p)]; }); }}>
                           <option value="">Pick a product to add…</option>{catalog.map(p => <option key={p.id} value={p.id}>{p.name}{p.category ? ` · ${p.category}` : ''}</option>)}</select>}
                     {catalog && <select className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => e.target.value && importCategory(e.target.value)}><option value="">Add a whole category…</option>{[...new Set(catalog.map(p => p.category).filter(Boolean))].map(c => <option key={c} value={c}>{c}</option>)}</select>}
                   </div> : undefined} />)}

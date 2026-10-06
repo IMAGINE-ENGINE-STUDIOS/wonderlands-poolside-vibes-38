@@ -2631,8 +2631,8 @@ const WonderlandsStudio = () => {
                           </div>
                         )}
 
-                        {/* Pool Finishes */}
-                        <div className="space-y-3">
+                        {/* Pool Finishes — GlimmerGlass uses its gelcoat colours only, never Latham finishes */}
+                        <div className="space-y-3" hidden={/glimmer/i.test(String((selectedProduct as any)?.brand || ''))}>
                           <h4 className="font-semibold text-foreground">Pool Finish</h4>
                           <Carousel 
                             className="w-full"

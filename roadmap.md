@@ -38,3 +38,11 @@
 - [ ] Phase 4: Command Center links to inspect each company's workspace and site
 
 - [ ] Save every website form submission (solar, quote tool, other sites) into clients + CRM — plan awaiting user DNS additions
+
+## Quotes/invoices/builder (Oct 6)
+- [x] No auto-print; Print = PDF download
+- [x] Invoice + email use edited quote lines
+- [x] Quote email defaults to customer email
+- [x] GlimmerGlass hides Latham finishes (Studio + suites)
+- [x] Builder catalogue images; blank card + bulk add
+- [ ] Per-category audit: saunas/fences/covers features + product-only warranties in the shared quote

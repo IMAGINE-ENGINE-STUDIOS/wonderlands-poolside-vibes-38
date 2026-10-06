@@ -79,10 +79,9 @@ const finishAllowed = (option: FeatureOption, ctx: StudioContext) => {
   const collection = (option as any).collection as string | undefined;
   const model = ctx.modelName ?? "";
   if (WONDERLANDS_MODELS.includes(model)) return collection === "Mini Pebbles";
-  if (!isGlimmerGlass(ctx) && LATHAM_MODELS.some((b) => model.startsWith(b))) {
-    return collection === "Crystite Crystal";
-  }
-  /* GlimmerGlass and everything else: neither Latham nor concrete-only palettes */
+  /* GlimmerGlass is finished in its own gelcoat only — no Latham finish ranges */
+  if (isGlimmerGlass(ctx)) return false;
+  if (LATHAM_MODELS.some((b) => model.startsWith(b))) return collection === "Crystite Crystal";
   return collection !== "Crystite Crystal" && collection !== "Mini Pebbles";
 };
 

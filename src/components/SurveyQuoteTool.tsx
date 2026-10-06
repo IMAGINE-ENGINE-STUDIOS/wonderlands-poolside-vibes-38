@@ -320,52 +320,36 @@ const SurveyQuoteTool = ({
       setIsProcessing(false);
     }
   };
-  const handlePrintQuote = () => {
-    const quoteElement = document.querySelector('[data-quote-content]');
-    if (!quoteElement) return;
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Pool Configuration Quote</title>
-            <script src="https://cdn.tailwindcss.com"></script>
-            <style>
-              @media print {
-                .print-hide { display: none !important; }
-                body { 
-                  margin: 0; 
-                  padding: 20px;
-                  font-family: system-ui, -apple-system, sans-serif;
-                }
-                * {
-                  print-color-adjust: exact !important;
-                  -webkit-print-color-adjust: exact !important;
-                  color-adjust: exact !important;
-                }
-              }
-              @page {
-                margin: 0.5in;
-                size: auto;
-              }
-            </style>
-          </head>
-          <body>
-            ${quoteElement.outerHTML}
-            <script>
-              window.addEventListener('load', function() {
-                setTimeout(function() {
-                  window.print();
-                  window.close();
-                }, 1000);
-              });
-            </script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
+  // "Print" now produces the same PDF as Download (exact colours, no browser print dialog).
+  const handlePrintQuote = () => { void handleDownloadPDF(); };
+
+  /** One line-item list for invoice + email, built from the quote AS EDITED
+   *  (passcode price/name overrides, custom items, hidden sections respected). */
+  const buildQuoteLineItems = () => {
+    const ep = editablePrices as Record<string, number>;
+    const et = editableTexts as Record<string, string>;
+    const items: { description: string; quantity: number; unit_price: number; total: number; image?: string | null }[] = [];
+    const add = (description: string, price: number, image?: string | null) => {
+      const p = Number(price) || 0;
+      items.push({ description, quantity: 1, unit_price: p, total: p, ...(image ? { image } : {}) });
+    };
+    if (!hiddenSections.has('product-details')) {
+      const base = ep['base-price'] ?? ep['lanai-total'] ?? pool?.price ?? customProduct?.price ?? 0;
+      add(pool ? `${pool.model} Pool Installation` : (customProduct?.name || 'Product'), base);
     }
+    if (!hiddenSections.has('selected-features')) {
+      selectedOptions.forEach((o: any, i: number) => add(o.name, ep[`option-${i}`] ?? o.price ?? 0));
+    }
+    if (!hiddenSections.has('added-features')) {
+      (extras?.extrasBreakdown || []).forEach((x: any, i: number) => {
+        let price = ep[`extra-${i}`] ?? x.price;
+        if (String(x.name).includes('Screen Enclosure') && ep['enclosure-price'] != null) price = ep['enclosure-price'];
+        else if (String(x.name).includes('sq ft') && ep['paver-price'] != null) price = ep['paver-price'];
+        add(et[`extra-name-${i}`] ?? x.name, price);
+      });
+      customItems.forEach((ci: any) => add(ci.name || 'Custom Item', Number(ci.price) || 0, ci.image || null));
+    }
+    return items;
   };
 
   const handleDownloadPDF = async () => {
@@ -476,24 +460,26 @@ const SurveyQuoteTool = ({
   };
 
   const handleEmailQuote = async () => {
-    if (!emailAddress) {
+    const to = (emailAddress || surveyData.email || '').trim();
+    if (!to) {
       toast({
         title: "Email required",
-        description: "Please enter an email address.",
-        variant: "destructive"
+        description: "Please enter an email address."
       });
       return;
     }
 
     setIsSendingEmail(true);
     try {
+      // Send exactly what the quote shows, including any passcode edits.
+      const lines = buildQuoteLineItems();
       const quoteData = {
-        customerEmail: emailAddress,
+        customerEmail: to,
         customerName: surveyData.name,
         poolModel: pool?.model || customProduct?.name || "Custom Product",
-        totalAmount: calculateQuote(),
-        selectedOptions: selectedOptions,
-        extras: extras,
+        totalAmount: editableQuoteAmount || calculateQuote(),
+        selectedOptions: lines.slice(1).map(l => ({ name: l.description, price: l.total })),
+        extras: null,
       };
 
       const { data, error } = await supabase.functions.invoke('send-quote-email', {
@@ -604,19 +590,11 @@ const SurveyQuoteTool = ({
 
   const handleSaveEditedQuote = async () => {
     setIsEditMode(false);
-    // Save the quote exactly as it is so it can be reopened and modified later
+    // Save only — never open a print dialog automatically.
     const saved = persistCurrentQuote(true);
-    // Wait for state to update so the DOM reflects the changes
-    await new Promise(resolve => setTimeout(resolve, 150));
-
-    // Open the browser print dialog with the updated quote (no PDF download)
-    handlePrintQuote();
-
     toast({
       title: saved ? "Quote Saved" : "Quote Updated",
-      description: saved
-        ? "Saved to your quote gallery and sent to print."
-        : "Opening the print dialog."
+      description: saved ? "Saved to your quote gallery. Your changes will also appear on the invoice." : "Your changes are applied."
     });
   };
 
@@ -949,48 +927,9 @@ const SurveyQuoteTool = ({
     
     try {
       // Calculate quote amount and prepare line items
+      const lineItems: any[] = buildQuoteLineItems();
+      // The invoice total is exactly what the (possibly edited) quote shows.
       const totalAmount = editableQuoteAmount || calculateQuote();
-      const lineItems: any[] = [];
-      
-      // Add pool/product as line item
-      if (pool) {
-        lineItems.push({
-          description: `${pool.model} Pool Installation`,
-          quantity: 1,
-          unit_price: pool.price,
-          total: pool.price
-        });
-      } else if (customProduct) {
-        lineItems.push({
-          description: customProduct.name,
-          quantity: 1,
-          unit_price: customProduct.price,
-          total: customProduct.price
-        });
-      }
-      
-      // Add extras as line items
-      if (extras?.extrasBreakdown) {
-        extras.extrasBreakdown.forEach((extra: any) => {
-          lineItems.push({
-            description: extra.name,
-            quantity: 1,
-            unit_price: extra.price,
-            total: extra.price
-          });
-        });
-      }
-
-      // Add custom items added in Edit Mode
-      customItems.forEach((ci) => {
-        lineItems.push({
-          description: ci.name || 'Custom Item',
-          quantity: 1,
-          unit_price: Number(ci.price) || 0,
-          total: Number(ci.price) || 0,
-          image: ci.image || null
-        });
-      });
       
       // Add sauna if selected
       if (saunaSelected) {
@@ -1019,6 +958,11 @@ const SurveyQuoteTool = ({
         }
       }
       
+      // If an admin overrode the grand total, keep the invoice lines summing to it.
+      const linesSum = lineItems.reduce((s, l) => s + (Number(l.total) || 0), 0);
+      const diff = Math.round((totalAmount - linesSum) * 100) / 100;
+      if (Math.abs(diff) >= 0.01) lineItems.push({ description: diff < 0 ? 'Special pricing adjustment' : 'Additional scope adjustment', quantity: 1, unit_price: diff, total: diff });
+
       // Generate invoice data
       const invoiceDate = new Date().toISOString().split('T')[0];
       const dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -2791,14 +2735,14 @@ const SurveyQuoteTool = ({
                   <Input
                     type="email"
                     placeholder="Send quote to email..."
-                    value={emailAddress}
+                    value={emailAddress || surveyData.email}
                     onChange={(e) => setEmailAddress(e.target.value)}
                     className="flex-1 h-8 border-0 bg-transparent focus:ring-0 text-sm placeholder:text-gray-400"
                   />
                   <Button 
                     size="sm"
                     onClick={handleEmailQuote}
-                    disabled={isSendingEmail || !emailAddress}
+                    disabled={isSendingEmail || !(emailAddress || surveyData.email)}
                     className="bg-blue-500 hover:bg-blue-600 text-white h-7 px-3 text-xs disabled:opacity-50"
                   >
                     {isSendingEmail ? (
