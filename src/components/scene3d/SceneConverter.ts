@@ -1,7 +1,7 @@
 // Utilities to convert different data formats to Scene3D
 
 import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint, AdditionalPool, PoolFeature, PoolStair, FeatureType, StairShape } from './types';
-import { generateCurvedPoolPoints } from '@/utils/curveUtils';
+import { generateCurvedPoolPoints, densifyPoolOutline } from '@/utils/curveUtils';
 import { poolModelShapes, getPoolModelShape } from '@/data/poolModelShapes';
 
 // Parse dimensions from string like "14' x 28'" or "16 feet x 32 feet" or "16' × 40'"
@@ -112,20 +112,25 @@ export function productToScene(
   const { min: shallowEndDepth, max: deepEndDepth } = parseDepthRange(product.depth);
 
   // Get texture URLs
-  const linerTextureUrl = selectedExtras.finish 
+  // Materials chosen in the 2D designer carry their exact texture image.
+  const m2d = selectedExtras.poolBuilderData?.materials;
+  const linerTextureUrl = m2d?.finish?.image
+    ? m2d.finish.image
+    : selectedExtras.finish 
     ? getFinishTextureUrl(selectedExtras.finish)
     : selectedExtras.linerOption 
       ? getFinishTextureUrl(selectedExtras.linerOption)
       : '/textures/finishes/sapphire-blue-g3.webp';
       
-  const paverTextureUrl = getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
-  const copingTextureUrl = getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);
+  const paverTextureUrl = m2d?.paver?.image || getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
+  const copingTextureUrl = m2d?.coping?.image || getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);
 
   // Create pool shape points - priority order:
   // 1. Custom shape from 2D editor
   // 2. Predefined model shape from library
   // 3. Fallback to rectangle
   let poolPoints: Point[];
+  let sourcePoints: Point[] | undefined;
   let modelShape: ReturnType<typeof getPoolModelShape> | undefined;
   
   if (selectedExtras.customPoolShape && Array.isArray(selectedExtras.customPoolShape) && selectedExtras.customPoolShape.length >= 3) {
@@ -135,11 +140,19 @@ export function productToScene(
     const scale = selectedExtras.poolBuilderData?.scale || 10; // PoolBuilder uses 10 pixels per foot
     const pixelsToFeet = 1 / scale; // Convert pixels to feet
     
-    poolPoints = selectedExtras.customPoolShape.map((pt: any, idx: number) => ({
+    sourcePoints = selectedExtras.customPoolShape.map((pt: any, idx: number) => ({
       x: pt.x * pixelsToFeet,
       y: pt.y * pixelsToFeet,
-      id: `p${idx + 1}`
+      id: pt.id || `p${idx + 1}`,
+      ...(pt.curveType ? { curveType: pt.curveType } : {}),
+    })) as Point[];
+    // Sample the outline exactly as the 2D canvas draws it (kidney/freeform
+    // curves stay round in 3D instead of collapsing into straight chords).
+    const shape2D = selectedExtras.poolBuilderData?.poolShape ?? 'freeform';
+    poolPoints = densifyPoolOutline(sourcePoints as any, shape2D).map((p, idx) => ({
+      x: p.x, y: p.y, id: `p${idx + 1}`,
     }));
+    
     
   } else {
     // Check for predefined model shape in library
