@@ -153,6 +153,10 @@ const shadeColor = (color: string, percent: number) => {
   const B = (num & 0x0000FF) + amt;
   return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
 };
+import { buildFinishTextures } from '@/data/textureLibrary';
+// Same finish catalogue the 3D viewer offers, so 2D and 3D show identical choices.
+const CATALOG_FINISHES_2D = buildFinishTextures().map(t => ({ id: `cat-${t.id}`, name: t.name, image: t.url as string }));
+
 export function PoolBuilder({
   initialDimensions,
   initialDepth,
@@ -1503,7 +1507,7 @@ export function PoolBuilder({
     id: 'pearl',
     name: 'Athens Pearl White',
     image: '/textures/finishes/athens-pearl-white-g3.webp'
-  }];
+  }, ...CATALOG_FINISHES_2D];
 
   // Load textures with LOD system
   useEffect(() => {
