@@ -21,6 +21,9 @@ import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
 import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSnapshot } from "@/components/quote/quoteGallery";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
+import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
+import { DEFAULT_SOLAR_INPUTS, linesTotal, lineTotal, type SolarQuoteInputs, type SolarQuoteLine } from "@/lib/solar/solarQuote";
+import SolarQuoteSection from "./quote/SolarQuoteSection";
 
 import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
@@ -104,6 +107,13 @@ const SurveyQuoteTool = ({
         : mergeCartIntoExtras(baseExtras, cart?.cartItems, pool?.model || customProduct?.name || null),
     [restored, baseExtras, cart?.cartItems, pool?.model, customProduct?.name]
   );
+
+  // Category registry: title, inclusions and warranties for this product only
+  const discipline = resolveDiscipline({ pool, customProduct, extras });
+  const disciplineCfg = getDisciplineConfig(discipline);
+  const isSolar = discipline === 'solar';
+  const [solarInputs, setSolarInputs] = useState<SolarQuoteInputs>(DEFAULT_SOLAR_INPUTS);
+  const [solarLines, setSolarLines] = useState<SolarQuoteLine[]>([]);
 
   // Quote gallery state
   const [showGallery, setShowGallery] = useState(false);
@@ -283,6 +293,7 @@ const SurveyQuoteTool = ({
       setEditableQuoteAmount(0);
       // Reset custom items when dialog opens
       setCustomItems([]);
+      setSolarLines([]);
       // Fresh session: drop any previously restored snapshot
       setRestored(null);
       setCurrentQuoteId(null);
@@ -333,7 +344,9 @@ const SurveyQuoteTool = ({
       const p = Number(price) || 0;
       items.push({ description, quantity: 1, unit_price: p, total: p, ...(image ? { image } : {}) });
     };
-    if (!hiddenSections.has('product-details')) {
+    if (isSolar && solarLines.length > 0 && !hiddenSections.has('product-details')) {
+      solarLines.forEach(l => items.push({ description: l.qty === 1 ? l.item : `${l.item} (${l.qty} × $${Number(l.unitPrice).toLocaleString()})`, quantity: 1, unit_price: lineTotal(l), total: lineTotal(l) }));
+    } else if (!hiddenSections.has('product-details')) {
       const base = ep['base-price'] ?? ep['lanai-total'] ?? pool?.price ?? customProduct?.price ?? 0;
       add(pool ? `${pool.model} Pool Installation` : (customProduct?.name || 'Product'), base);
     }
@@ -664,6 +677,7 @@ const SurveyQuoteTool = ({
     
     // Get the base price from pool or customProduct
     let basePrice = pool?.price || customProduct?.price || 0;
+    if (isSolar && solarLines.length > 0) basePrice = linesTotal(solarLines);
     
     console.log('💰 calculateQuote START:', { 
       poolPrice: pool?.price, 
@@ -747,6 +761,7 @@ const SurveyQuoteTool = ({
     return totalArea; // enclosure covers entire footprint
   };
   const getIncludedItems = () => {
+    if (disciplineCfg && discipline !== 'sauna') return disciplineCfg.includes;
     // Saunas ship with their own inclusions — no pool equipment or salt system
     if (customProduct?.type === 'Sauna' || extras?.productType === 'sauna') {
       return [
@@ -1362,10 +1377,10 @@ const SurveyQuoteTool = ({
                     <ImageCard src="/wonderlands-branding/1c6556f8-0571-434d-a877-e5152aee1726.webp" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
                     <div>
                       <h1 className="text-2xl font-bold">
-                        {extras?.productType === 'lanai' ? 'LANAI QUOTATION' : extras?.enclosure ? 'SCREEN ENCLOSURE QUOTATION' : 'POOL QUOTATION'}
+                        {extras?.productType === 'lanai' ? 'LANAI QUOTATION' : disciplineCfg ? disciplineCfg.title : extras?.enclosure ? 'SCREEN ENCLOSURE QUOTATION' : 'POOL QUOTATION'}
                       </h1>
                       <p className="text-orange-100">
-                        {extras?.productType === 'lanai' ? 'Your Dream Outdoor Living Space Awaits' : extras?.enclosure ? 'Engineered, Permitted & Installed in Florida' : 'Your Dream Pool Awaits'}
+                        {extras?.productType === 'lanai' ? 'Your Dream Outdoor Living Space Awaits' : disciplineCfg ? disciplineCfg.subtitle : extras?.enclosure ? 'Engineered, Permitted & Installed in Florida' : 'Your Dream Pool Awaits'}
                       </p>
                     </div>
                   </div>
@@ -1653,7 +1668,10 @@ const SurveyQuoteTool = ({
                           ) : null}
                           
                           {/* Delivery & Installation - Only for non-pool, non-lanai, non-paver products */}
-                          {!isPoolProduct && !isLanaiProduct && customProduct?.type !== 'paver' && !extras?.enclosure && (
+                          {isSolar && !hiddenSections.has('solar-system') && (
+                            <SolarQuoteSection editable={isEditMode} inputs={solarInputs} onInputs={setSolarInputs} lines={solarLines} onLines={setSolarLines} />
+                          )}
+                          {!isSolar && !isPoolProduct && !isLanaiProduct && customProduct?.type !== 'paver' && !extras?.enclosure && (
                             <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                               <h4 className="font-semibold mb-2 text-teal-600">Delivery & Installation</h4>
                               <div className="space-y-2 text-sm">
@@ -2343,7 +2361,7 @@ const SurveyQuoteTool = ({
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   const lanaiIncludedFeatures = extras?.includedFeatures || [];
                   
-                  if (!isPoolProduct && !isLanaiProduct) return null;
+                  if (!isPoolProduct && !isLanaiProduct && !disciplineCfg) return null;
                   
                   return (
                      <div className="mb-6 relative">
@@ -2363,11 +2381,11 @@ const SurveyQuoteTool = ({
                           {isEditMode ? (
                             <input
                               type="text"
-                              value={editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : isSaunaProduct ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE')}
+                              value={editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : disciplineCfg ? disciplineCfg.includesTitle : 'ALL POOLS INCLUDE')}
                               onChange={(e) => setEditableTexts({...editableTexts, 'includes-title': e.target.value})}
                               className="bg-white border rounded px-2 py-1 w-full"
                             />
-                          ) : (editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : isSaunaProduct ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE'))}
+                          ) : (editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : disciplineCfg ? disciplineCfg.includesTitle : 'ALL POOLS INCLUDE'))}
                         </h4>
                         {isLanaiProduct && lanaiIncludedFeatures.length > 0 ? (
                           <ul className="text-sm space-y-1">
@@ -2391,11 +2409,11 @@ const SurveyQuoteTool = ({
                           {isEditMode ? (
                             <input
                               type="text"
-                              value={editableTexts['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.'}
+                              value={editableTexts['disclaimer'] || (disciplineCfg ? disciplineCfg.disclaimer : 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.')}
                               onChange={(e) => setEditableTexts({...editableTexts, 'disclaimer': e.target.value})}
                               className="w-full px-2 py-1 border rounded text-xs"
                             />
-                          ) : (editableTexts['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.')}
+                          ) : (editableTexts['disclaimer'] || (disciplineCfg ? disciplineCfg.disclaimer : 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.'))}
                         </p>
                       </div>
                     </div>
@@ -2454,7 +2472,34 @@ const SurveyQuoteTool = ({
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
-                  if (!isPoolProduct || isLanaiProduct) return null;
+                  if (isLanaiProduct) return null;
+                  if (!isPoolProduct && disciplineCfg) {
+                    return (
+                      <div className="mb-6 relative">
+                        {isEditMode && (
+                          <button onClick={() => handleToggleSection('warranty')} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10" title="Remove section">
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        )}
+                        <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
+                          <p className="font-semibold mb-2">Warranty</p>
+                          <div className="text-sm space-y-2">
+                            {disciplineCfg.warranties.map((w, i) => (
+                              <div key={i}>
+                                {isEditMode ? (
+                                  <input value={editableTexts[`warranty-${i}`] ?? `${w.label}: ${w.term}`} onChange={(e) => setEditableTexts(prev => ({ ...prev, [`warranty-${i}`]: e.target.value }))} className="w-full px-2 py-1 border rounded text-sm" />
+                                ) : (
+                                  <p>{editableTexts[`warranty-${i}`] ?? <><span className="font-medium">{w.label}:</span> <span className="text-green-600 font-semibold">{w.term}</span></>}</p>
+                                )}
+                                {w.note && <p className="text-xs text-muted-foreground">{w.note}</p>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (!isPoolProduct) return null;
                   
                   return (
                      <div className="mb-6 relative">
