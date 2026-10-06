@@ -552,8 +552,8 @@ const PoolMesh: React.FC<{
           side={THREE.DoubleSide}
           shininess={100}
           specular="#ffffff"
-          emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
-          emissiveIntensity={pulseIntensity * 0.3}
+          emissive={isSelected ? new THREE.Color(1, 0.55, 0.45) : new THREE.Color(0, 0, 0)}
+          emissiveIntensity={Math.sin(pulseIntensity * Math.PI) * 0.06}
         />
       </mesh>
 
@@ -572,8 +572,8 @@ const PoolMesh: React.FC<{
           color="#ffffff"
           shininess={30}
           side={THREE.FrontSide}
-          emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
-          emissiveIntensity={pulseIntensity * 0.5}
+          emissive={isSelected ? new THREE.Color(1, 0.55, 0.45) : new THREE.Color(0, 0, 0)}
+          emissiveIntensity={Math.sin(pulseIntensity * Math.PI) * 0.08}
         />
       </mesh>
     </>
@@ -707,31 +707,23 @@ const GrassTerrainFallback: React.FC<{
     terrainShape.closePath();
 
     try {
-      const boundaries = resolveDeckBoundaries({
-        poolCurve: poolCurve3D,
-        hardscapePoints: hardscapeCurve3D,
-        copingWidth,
-        copingEnabled,
-        deckWidth: Math.max(3, deckWidth),
-        minDeckWidth: 3,
-      });
-
-      if (boundaries) {
-        // Shrink the cutout slightly INWARD so grass always tucks UNDER the deck slab.
-        // An outward cutout is what produced empty untextured rings before.
-        const inset = generateOffsetCurve(boundaries.outer, -0.2);
-        const holePoints = sanitizeBoundary(inset).map(p => ({
+      // Cut the grass ONLY at the pool opening (tucked under the coping).
+      // The deck slab sits on top of the grass, so grass runs continuously
+      // underneath it — a gap outside the deck is now geometrically impossible.
+      // NOTE: ShapeGeometry.rotateX(-π/2) maps shape-y → world -z, so z is negated.
+      const pool = sanitizeBoundary(poolCurve3D);
+      if (pool.length >= 3) {
+        const tuck = copingEnabled ? Math.min(0.4, Math.max(0.1, copingWidth * 0.5)) : 0.05;
+        const ring = sanitizeBoundary(generateOffsetCurve(pool, tuck));
+        const holePoints = (ring.length >= 3 ? ring : pool).map(p => ({
           x: p.x + poolPosition[0],
-          y: p.z + poolPosition[2],
+          y: -(p.z + poolPosition[2]),
         }));
-
-        if (holePoints.length >= 3) {
-          const hole = new THREE.Path();
-          hole.moveTo(holePoints[0].x, holePoints[0].y);
-          for (let i = 1; i < holePoints.length; i++) hole.lineTo(holePoints[i].x, holePoints[i].y);
-          hole.closePath();
-          terrainShape.holes.push(hole);
-        }
+        const hole = new THREE.Path();
+        hole.moveTo(holePoints[0].x, holePoints[0].y);
+        for (let i = 1; i < holePoints.length; i++) hole.lineTo(holePoints[i].x, holePoints[i].y);
+        hole.closePath();
+        terrainShape.holes.push(hole);
       }
     } catch (error) {
       // No hole is always safer than a hole with nothing under it.
