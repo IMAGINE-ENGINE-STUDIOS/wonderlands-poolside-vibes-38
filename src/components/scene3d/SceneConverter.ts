@@ -457,6 +457,7 @@ export function productToScene(
   const scene: Scene3D = {
     pool: {
       points: poolPoints,
+      sourcePoints,
       depthPoints: depthPoints,
       perimeterDepthPoints: perimeterDepthPoints,  // Keep for backwards compatibility
       linearDepthAnchors: linearDepthAnchors,      // New linear depth profile
@@ -547,10 +548,12 @@ export function scene3DToPoolBuilder(
 } {
   // Convert pool points from feet to pixels
   // Scene3D points are in feet; PoolBuilder stores absolute pixel positions
-  const points = scene.pool.points.map((pt, idx) => ({
+  // Prefer the original 2D control points (the dense 3D outline is only for drawing).
+  const points = (scene.pool.sourcePoints?.length ? scene.pool.sourcePoints : scene.pool.points).map((pt: any, idx) => ({
     x: pt.x * scale,
     y: pt.y * scale,
-    id: pt.id || `p${idx + 1}`
+    id: pt.id || `p${idx + 1}`,
+    ...(pt.curveType ? { curveType: pt.curveType } : {}),
   }));
 
   // Depth points are format-compatible (position 0-1, depth in feet)
