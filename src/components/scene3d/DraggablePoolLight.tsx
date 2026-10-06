@@ -49,10 +49,13 @@ function getPositionOnPerimeter(
       const x = p1.x + t * (p2.x - p1.x);
       const z = p1.z + t * (p2.z - p1.z);
       
-      // Calculate inward-facing angle
+      // Wall normal, flipped toward the pool centre so it works for either winding
       const dx = p2.x - p1.x;
       const dz = p2.z - p1.z;
-      const angle = Math.atan2(dz, dx) + Math.PI / 2;
+      let angle = Math.atan2(dz, dx) + Math.PI / 2;
+      const cx = perimeter.reduce((s, p) => s + p.x, 0) / perimeter.length;
+      const cz = perimeter.reduce((s, p) => s + p.z, 0) / perimeter.length;
+      if (Math.cos(angle) * (cx - x) + Math.sin(angle) * (cz - z) < 0) angle += Math.PI;
       
       // No offset - light sits directly on wall surface
       return { x, y: -depthFromSurface, z, angle };
@@ -210,7 +213,8 @@ export function DraggablePoolLight({
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
     >
       {/* Light housing - rotated to face INTO the pool with angle adjustment */}
-      <group rotation={[0, adjustedAngle, 0]}>
+      {/* Y-rotation maps local +X to (cos θ, 0, −sin θ), so negate to face (cos a, sin a) */}
+      <group rotation={[0, -adjustedAngle, 0]}>
         {/* Outer ring - 2 inch diameter (0.167 ft), 0.5 inch thick - rotated 90° on X to face inward */}
         <mesh rotation={[0, Math.PI / 2, 0]}>
           <torusGeometry args={[0.083, 0.021, 8, 24]} />
@@ -242,15 +246,30 @@ export function DraggablePoolLight({
         )}
       </group>
       
-      {/* Point light with angle-adjusted direction */}
+      {/* Soft fill glow + a focused forward beam straight out of the fixture */}
+      <object3D ref={setBeamTarget} position={[inwardDir.x * 6, -0.6, inwardDir.z * 6]} />
       {light.isOn && (
-        <pointLight
-          color={currentColor}
-          intensity={light.intensity * 3}
-          distance={20}
-          decay={2}
-          position={[inwardDir.x * 0.1, 0, inwardDir.z * 0.1]}
-        />
+        <>
+          <pointLight
+            color={currentColor}
+            intensity={light.intensity * 1.2}
+            distance={8}
+            decay={2}
+            position={[inwardDir.x * 0.15, 0, inwardDir.z * 0.15]}
+          />
+          {beamTarget && (
+            <spotLight
+              color={currentColor}
+              intensity={light.intensity * 6}
+              distance={24}
+              angle={0.6}
+              penumbra={0.7}
+              decay={1.6}
+              position={[inwardDir.x * 0.05, 0, inwardDir.z * 0.05]}
+              target={beamTarget}
+            />
+          )}
+        </>
       )}
     </group>
   );
