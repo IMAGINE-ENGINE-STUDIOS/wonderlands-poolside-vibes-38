@@ -366,6 +366,10 @@ export function DepthProfileEditor({
   poolDimensions,
   depthAxis,
   onDepthAxisChange,
+  shapeEditEnabled = false,
+  onShapeEditToggle,
+  onFocusCorner,
+  activeCornerIndex = null,
 }: DepthProfileEditorProps) {
   // Initialize anchors from props or defaults
   const [anchors, setAnchors] = useState<LinearDepthAnchor[]>(() => {
