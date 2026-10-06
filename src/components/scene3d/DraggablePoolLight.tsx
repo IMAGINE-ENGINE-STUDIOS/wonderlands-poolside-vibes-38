@@ -134,6 +134,7 @@ export function DraggablePoolLight({
 }: DraggablePoolLightProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [beamTarget, setBeamTarget] = useState<THREE.Object3D | null>(null);
   const { camera, gl } = useThree();
   const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
   const raycaster = useRef(new THREE.Raycaster());

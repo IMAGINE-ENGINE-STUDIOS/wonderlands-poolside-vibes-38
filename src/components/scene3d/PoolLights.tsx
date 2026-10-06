@@ -61,7 +61,11 @@ export function PoolLights({
         // Calculate angle for light to point inward
         const dx = p2.x - p1.x;
         const dz = p2.z - p1.z;
-        const angle = Math.atan2(dz, dx) + Math.PI / 2; // Perpendicular to wall, pointing inward
+        let angle = Math.atan2(dz, dx) + Math.PI / 2; // Perpendicular to wall
+        // Flip toward the pool centre so it points inward for either winding
+        const cx = normalized.reduce((s, p) => s + p.x, 0) / normalized.length;
+        const cz = normalized.reduce((s, p) => s + p.z, 0) / normalized.length;
+        if (Math.cos(angle) * (cx - x) + Math.sin(angle) * (cz - z) < 0) angle += Math.PI;
         
         // Move light slightly inward from wall (0.5 ft)
         const inwardOffset = 0.3;
