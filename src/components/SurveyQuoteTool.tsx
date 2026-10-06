@@ -958,6 +958,11 @@ const SurveyQuoteTool = ({
         }
       }
       
+      // If an admin overrode the grand total, keep the invoice lines summing to it.
+      const linesSum = lineItems.reduce((s, l) => s + (Number(l.total) || 0), 0);
+      const diff = Math.round((totalAmount - linesSum) * 100) / 100;
+      if (Math.abs(diff) >= 0.01) lineItems.push({ description: diff < 0 ? 'Special pricing adjustment' : 'Additional scope adjustment', quantity: 1, unit_price: diff, total: diff });
+
       // Generate invoice data
       const invoiceDate = new Date().toISOString().split('T')[0];
       const dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
