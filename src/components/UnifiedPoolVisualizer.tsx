@@ -186,7 +186,7 @@ function SelectionZoomController({
 
     const startPosition = camera.position.clone();
     const startTarget = controls.target.clone();
-    const endTarget = new THREE.Vector3(...config.target);
+    let endTarget = new THREE.Vector3(...config.target);
 
     // Preserve the current orbit direction (azimuth + elevation).
     const dir = startPosition.clone().sub(startTarget);
@@ -194,7 +194,18 @@ function SelectionZoomController({
     dir.normalize();
     if (dir.y < 0.18) { dir.y = 0.18; dir.normalize(); }
 
-    const endPosition = endTarget.clone().add(dir.multiplyScalar(config.distance));
+    let endPosition = endTarget.clone().add(dir.clone().multiplyScalar(config.distance));
+
+    // Waterline: macro close-up of the FAR wall tile band, camera hovering
+    // ~3.5 ft away above the water so the tile texture fills the view.
+    if (selectedComponent === 'waterline') {
+      const horiz = new THREE.Vector3(dir.x, 0, dir.z);
+      if (horiz.lengthSq() < 0.0001) horiz.set(1, 0, 0);
+      horiz.normalize();
+      const half = Math.min(width, length) / 2;
+      endTarget = horiz.clone().multiplyScalar(-half * 0.95).setY(-0.25);
+      endPosition = endTarget.clone().add(horiz.clone().multiplyScalar(3.2)).setY(1.1);
+    }
 
     let progress = 0;
     const duration = 1100; // ms — slower, gentler glide
@@ -1404,24 +1415,7 @@ export function UnifiedPoolVisualizer({
           >
             <ArrowUpDown className="w-4 h-4 md:w-5 md:h-5" />
           </button>
-          <button
-            onClick={() => {
-              const newMode = !isSplineEditMode;
-              setIsSplineEditMode(newMode);
-              if (newMode) {
-                setEnableFloorDepthSplineEdit(true);
-                setSelectedSplineComponent('pool-floor');
-                setShowDepthProfileEditor(false); // Close 2D editor when 3D edit mode opens
-              } else {
-                setEnableFloorDepthSplineEdit(false);
-                setSelectedSplineComponent(null);
-              }
-            }}
-            className={`hidden md:block p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${isSplineEditMode ? 'bg-orange-600 text-white' : 'bg-background/80 hover:bg-background'}`}
-            title="3D Spline Editor (Advanced)"
-          >
-            <Edit3 className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
+          {/* 3D Spline Editor deprecated — deck & coping now live in the Deck/Coping settings panel. */}
         </div>
 
         {/* Pool Designer Header with Measurements & Cost - positioned in header bar after buttons */}

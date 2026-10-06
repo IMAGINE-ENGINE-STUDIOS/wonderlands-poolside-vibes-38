@@ -77,9 +77,9 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
     const interval = setInterval(() => {
       setPulseIntensity(prev => {
         if (prev >= 1) return 0;
-        return prev + 0.0125; // 8 second cycle
+        return prev + 0.01; // slow 10 second breathing cycle
       });
-    }, 50);
+    }, 100);
     
     return () => clearInterval(interval);
   }, [selectedCategory]);
@@ -190,8 +190,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         color="#ffffff"
         shininess={40}
         side={THREE.DoubleSide}
-        emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
-        emissiveIntensity={pulseIntensity * 0.5}
+        emissive={isSelected ? new THREE.Color(1, 0.55, 0.45) : new THREE.Color(0, 0, 0)}
+        emissiveIntensity={Math.sin(pulseIntensity * Math.PI) * 0.08}
       />
     </mesh>
   );

@@ -41,6 +41,109 @@ interface DepthProfileEditorProps {
 }
 
 const clampDepth = (v: number) => Math.max(MIN_FLOOR_DEPTH, Math.min(MAX_FLOOR_DEPTH, v));
+const MAX_ANCHORS = 16;
+
+/* ------------------------------------------------------------------ *
+ * Section chart: shallow (left) → deep (right). Every point is
+ * draggable (vertical = depth, horizontal = position; end points move
+ * vertically only). Clicking the floor line adds a point exactly there.
+ * ------------------------------------------------------------------ */
+const SC_W = 420, SC_H = 170, SC_L = 30, SC_R = 12, SC_T = 18, SC_B = 14;
+function SectionChart({
+  anchors, selectedAnchorId, onSelect, onMove, onAdd,
+}: {
+  anchors: LinearDepthAnchor[];
+  selectedAnchorId: string | null;
+  onSelect: (id: string | null) => void;
+  onMove: (id: string, position: number, depth: number) => void;
+  onAdd: (position: number, depth: number) => void;
+}) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const dragId = useRef<string | null>(null);
+  const plotW = SC_W - SC_L - SC_R, plotH = SC_H - SC_T - SC_B;
+  const toX = (p: number) => SC_L + p * plotW;
+  const toY = (d: number) => SC_T + (d / MAX_FLOOR_DEPTH) * plotH;
+  const fromEvent = (e: React.PointerEvent) => {
+    const r = svgRef.current!.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * SC_W;
+    const y = ((e.clientY - r.top) / r.height) * SC_H;
+    return {
+      pos: Math.max(0, Math.min(1, (x - SC_L) / plotW)),
+      depth: Math.round(((y - SC_T) / plotH) * MAX_FLOOR_DEPTH * 10) / 10,
+    };
+  };
+  const path = anchors.map((a, i) => `${i ? 'L' : 'M'} ${toX(a.position)},${toY(a.depth)}`).join(' ');
+  const fill = `M ${toX(0)},${SC_T} ${anchors.map((a) => `L ${toX(a.position)},${toY(a.depth)}`).join(' ')} L ${toX(1)},${SC_T} Z`;
+  const grid = Array.from({ length: Math.floor(MAX_FLOOR_DEPTH / 2) + 1 }, (_, i) => i * 2);
+
+  return (
+    <div className="bg-muted/30 rounded-lg border p-2">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${SC_W} ${SC_H}`}
+        className="w-full touch-none select-none"
+        onPointerMove={(e) => {
+          if (!dragId.current) return;
+          const { pos, depth } = fromEvent(e);
+          onMove(dragId.current, pos, depth);
+        }}
+        onPointerUp={() => { dragId.current = null; }}
+        onPointerLeave={() => { dragId.current = null; }}
+      >
+        {grid.map((d) => (
+          <g key={d}>
+            <line x1={SC_L} x2={SC_W - SC_R} y1={toY(d)} y2={toY(d)} stroke="hsl(var(--border))" strokeWidth="0.6" />
+            <text x={SC_L - 5} y={toY(d) + 3} fontSize="9" textAnchor="end" fill="hsl(var(--muted-foreground))">{d}'</text>
+          </g>
+        ))}
+        <line x1={SC_L} x2={SC_W - SC_R} y1={SC_T} y2={SC_T} stroke="hsl(var(--primary))" strokeWidth="2" />
+        <text x={SC_L} y={SC_T - 6} fontSize="9" fill="hsl(var(--muted-foreground))">Shallow</text>
+        <text x={SC_W - SC_R} y={SC_T - 6} fontSize="9" textAnchor="end" fill="hsl(var(--muted-foreground))">Deep</text>
+        <path d={fill} fill="hsl(var(--primary) / 0.15)" />
+        {/* Wide invisible hit line: click to add a point here */}
+        <path
+          d={path}
+          fill="none"
+          stroke="transparent"
+          strokeWidth="14"
+          style={{ cursor: 'copy' }}
+          onPointerDown={(e) => {
+            if (dragId.current) return;
+            const { pos, depth } = fromEvent(e);
+            onAdd(pos, depth);
+          }}
+        />
+        <path d={path} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" pointerEvents="none" />
+        {anchors.map((a, i) => {
+          const sel = selectedAnchorId === a.id;
+          const isEnd = i === 0 || i === anchors.length - 1;
+          return (
+            <g key={a.id}>
+              <circle
+                cx={toX(a.position)}
+                cy={toY(a.depth)}
+                r={sel ? 8 : 6}
+                fill={sel ? 'hsl(var(--primary))' : 'hsl(var(--background))'}
+                stroke="hsl(var(--primary))"
+                strokeWidth="2.5"
+                style={{ cursor: isEnd ? 'ns-resize' : 'move' }}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  (e.currentTarget.ownerSVGElement as SVGSVGElement).setPointerCapture(e.pointerId);
+                  dragId.current = a.id;
+                  onSelect(a.id);
+                }}
+              />
+              <text x={toX(a.position)} y={toY(a.depth) + 20} fontSize="10" fontWeight="600" textAnchor="middle" fill="hsl(var(--foreground))" pointerEvents="none">
+                {a.depth.toFixed(1)}'
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ *
  * Plan-view gizmo: the depth axis sitting inside the pool outline.
@@ -309,7 +412,7 @@ export function DepthProfileEditor({
   };
 
   const handleAddAnchor = () => {
-    if (anchors.length >= 8) return;
+    if (anchors.length >= MAX_ANCHORS) return;
 
     const sorted = [...anchors].sort((a, b) => a.position - b.position);
     let maxGap = 0;
@@ -361,7 +464,7 @@ export function DepthProfileEditor({
   );
 
   return (
-    <div className="absolute top-4 left-4 w-80 bg-background/95 backdrop-blur-sm rounded-xl border shadow-xl z-30 overflow-hidden">
+    <div className="absolute top-4 left-4 w-[460px] max-w-[calc(100vw-2rem)] bg-background/95 backdrop-blur-sm rounded-xl border shadow-xl z-30 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b bg-primary/5">
         <div className="flex items-center gap-2">
@@ -382,18 +485,18 @@ export function DepthProfileEditor({
         {/* Bottom style presets */}
         <div className="space-y-2">
           <Label className="text-xs font-medium">Bottom style</Label>
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
             {DEPTH_PRESETS.map((preset) => (
               <Button
                 key={preset.id}
                 variant="outline"
                 size="sm"
-                className="h-auto py-1.5 px-2 text-[10px] leading-tight flex-col items-start gap-0.5"
+                className="h-auto min-h-[52px] py-2 px-3 whitespace-normal text-left flex-col items-start justify-start gap-1"
                 title={preset.description}
                 onClick={() => updateAnchors(preset.build(poolShallowDepth, poolDeepDepth))}
               >
-                <span className="font-medium">{preset.label}</span>
-                <span className="text-[9px] text-muted-foreground text-left line-clamp-2">
+                <span className="text-xs font-semibold leading-tight">{preset.label}</span>
+                <span className="text-[10px] font-normal leading-snug text-muted-foreground break-words">
                   {preset.description}
                 </span>
               </Button>
@@ -476,7 +579,7 @@ export function DepthProfileEditor({
               size="sm"
               className="h-6 px-2 text-xs"
               onClick={handleAddAnchor}
-              disabled={anchors.length >= 8}
+              disabled={anchors.length >= MAX_ANCHORS}
             >
               <Plus className="w-3 h-3 mr-1" />
               Add
@@ -554,61 +657,37 @@ export function DepthProfileEditor({
           </div>
         </div>
 
-        {/* Section Cut Visualization */}
+        {/* Section Cut — drag points, click the floor line to add a point */}
         <div className="space-y-2">
-          <Label className="text-xs font-medium">Section Cut - Shallow to Deep</Label>
-          <div className="bg-muted/30 rounded-lg p-4 border">
-            <svg width="100%" height="120" viewBox="0 0 260 120" className="overflow-visible">
-              {/* Water line at 0' */}
-              <line x1="10" y1="10" x2="250" y2="10" stroke="hsl(var(--primary))" strokeWidth="2" />
-              <text x="5" y="12" fontSize="8" fill="hsl(var(--muted-foreground))" textAnchor="end">0'</text>
-
-              {/* Labels */}
-              <text x="10" y="8" fontSize="8" fill="hsl(var(--muted-foreground))" textAnchor="start">Shallow</text>
-              <text x="250" y="8" fontSize="8" fill="hsl(var(--muted-foreground))" textAnchor="end">Deep</text>
-
-              {/* Pool floor profile path */}
-              <path
-                d={(() => {
-                  let pathData = `M 10,10`;
-                  sortedAnchors.forEach((anchor) => {
-                    const x = 10 + anchor.position * 240;
-                    const y = 10 + (anchor.depth / MAX_FLOOR_DEPTH) * 100;
-                    pathData += ` L ${x},${y}`;
-                  });
-                  pathData += ` L 250,10 Z`;
-                  return pathData;
-                })()}
-                fill="hsl(var(--primary) / 0.2)"
-                stroke="hsl(var(--primary))"
-                strokeWidth="2"
-              />
-
-              {/* Depth anchor points and labels */}
-              {sortedAnchors.map((anchor) => {
-                const x = 10 + anchor.position * 240;
-                const y = 10 + (anchor.depth / MAX_FLOOR_DEPTH) * 100;
-                const isSelected = selectedAnchorId === anchor.id;
-                return (
-                  <g key={anchor.id}>
-                    <circle
-                      cx={x}
-                      cy={y}
-                      r={isSelected ? '6' : '4'}
-                      fill={isSelected ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.7)'}
-                      stroke={isSelected ? 'white' : 'none'}
-                      strokeWidth="2"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => onSelectAnchor(anchor.id)}
-                    />
-                    <text x={x} y={y - 10} fontSize="9" fill="hsl(var(--foreground))" textAnchor="middle" fontWeight="600">
-                      {anchor.depth.toFixed(1)}'
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-medium">Section cut · shallow → deep</Label>
+            <span className="text-[10px] text-muted-foreground">Drag points · click floor to add</span>
           </div>
+          <SectionChart
+            anchors={sortedAnchors}
+            selectedAnchorId={selectedAnchorId}
+            onSelect={onSelectAnchor}
+            onMove={(id, pos, depth) => {
+              const isEnd = id === shallowAnchor?.id || id === deepAnchor?.id;
+              updateAnchors(
+                anchors.map((a) =>
+                  a.id === id
+                    ? {
+                        ...a,
+                        depth: clampDepth(depth),
+                        position: isEnd ? a.position : Math.max(0.01, Math.min(0.99, pos)),
+                      }
+                    : a,
+                ),
+              );
+            }}
+            onAdd={(pos, depth) => {
+              if (anchors.length >= MAX_ANCHORS) return;
+              const id = `d${Date.now()}`;
+              updateAnchors([...anchors, { id, position: Math.max(0.01, Math.min(0.99, pos)), depth: clampDepth(depth) }]);
+              onSelectAnchor(id);
+            }}
+          />
         </div>
 
         {/* Quick Depth Sliders */}
