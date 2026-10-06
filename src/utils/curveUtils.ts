@@ -1,5 +1,65 @@
 import * as THREE from 'three';
 
+/** Outlines with at least this many points are treated as already sampled. */
+export const DENSE_OUTLINE_MIN_POINTS = 64;
+
+export type OutlineCurveType = 'linear' | 'curve' | 'arc' | 'freeform';
+
+/**
+ * Samples a 2D designer pool outline EXACTLY the way the 2D canvas draws it,
+ * so the 3D pool matches the 2D curves 1:1 (kidney, freeform, custom splines).
+ *
+ * - rectangle → returned unchanged (straight edges)
+ * - points with per-point curveType → linear segments stay straight, curved
+ *   segments use the same uniform Catmull-Rom / Bézier the canvas uses
+ * - kidney / legacy freeform → every segment is the canvas Bézier
+ *   (control points p1 + (p2 - p0)/6, p2 - (p3 - p1)/6)
+ *
+ * Output always has ≥ DENSE_OUTLINE_MIN_POINTS points for curved shapes so
+ * every 3D consumer (walls, floor, coping, deck, waterline, lights) skips its
+ * own heuristic re-curving and stays perfectly aligned.
+ */
+export function densifyPoolOutline<T extends Point2D & { curveType?: OutlineCurveType }>(
+  points: T[],
+  shape: 'rectangle' | 'kidney' | 'freeform' | string | undefined
+): Point2D[] {
+  const n = points.length;
+  if (n < 3 || shape === 'rectangle') return points.map(p => ({ x: p.x, y: p.y }));
+  const hasTypes = points.some(p => p.curveType);
+  const curvedCount = hasTypes ? points.filter(p => p.curveType && p.curveType !== 'linear').length : n;
+  if (curvedCount === 0) return points.map(p => ({ x: p.x, y: p.y }));
+  const per = Math.max(8, Math.ceil(DENSE_OUTLINE_MIN_POINTS / Math.max(1, curvedCount)) + 2);
+  const out: Point2D[] = [];
+  for (let i = 0; i < n; i++) {
+    const p0 = points[(i - 1 + n) % n];
+    const p1 = points[i];
+    const p2 = points[(i + 1) % n];
+    const p3 = points[(i + 2) % n];
+    // Canvas: segment p1→p2 uses p2's curveType (closing segment uses p0's).
+    const type = hasTypes ? (p2.curveType || 'linear') : 'curve';
+    if (type === 'linear') { out.push({ x: p1.x, y: p1.y }); continue; }
+    const cp1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
+    const cp2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
+    const seg = generateBezierSegment(p1, p2, cp1, cp2, per);
+    out.push(...seg.slice(0, -1));
+  }
+  // Guarantee the dense marker even for few-curved-segment outlines.
+  return out.length >= DENSE_OUTLINE_MIN_POINTS ? out : subdivideToMin(out, DENSE_OUTLINE_MIN_POINTS);
+}
+
+function subdivideToMin(pts: Point2D[], min: number): Point2D[] {
+  let cur = pts;
+  while (cur.length < min) {
+    const next: Point2D[] = [];
+    for (let i = 0; i < cur.length; i++) {
+      const a = cur[i], b = cur[(i + 1) % cur.length];
+      next.push(a, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    }
+    cur = next;
+  }
+  return cur;
+}
+
 interface Point2D {
   x: number;
   y: number;
@@ -63,6 +123,9 @@ export function generateCurvedPoolPoints(
   angleThreshold: number = 70
 ): Point2D[] {
   if (points.length < 3) return points;
+  // Outlines that were already densified (see densifyPoolOutline) carry their
+  // exact 2D curve — re-curving them would only add vertices and drift.
+  if (points.length >= DENSE_OUTLINE_MIN_POINTS) return points;
 
   const result: Point2D[] = [];
   
