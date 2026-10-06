@@ -417,6 +417,7 @@ export function PoolDesignerHeader({
               type: 'pool'
             }}
             extras={quoteExtras}
+            aboveDesigner
           />
         </Suspense>
       )}
