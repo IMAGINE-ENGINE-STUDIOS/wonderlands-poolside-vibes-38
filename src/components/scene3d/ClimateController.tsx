@@ -1,3 +1,4 @@
+import { useDraggablePanel } from './useDraggablePanel';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -23,6 +24,7 @@ export function ClimateController({
   onSunAngleChange,
   onSunPositionChange
 }: ClimateControllerProps) {
+  const dragPanel = useDraggablePanel('climate');
   if (!isOpen) return null;
 
   const handleSunAngleChange = (angle: number) => {
@@ -49,7 +51,7 @@ export function ClimateController({
   };
 
   return (
-    <div className="fixed right-4 top-1/2 -translate-y-1/2 w-72 bg-background/98 backdrop-blur-md border border-border rounded-xl shadow-2xl z-40 animate-in slide-in-from-right duration-300">
+    <div {...dragPanel.panelProps} className="fixed right-4 top-1/2 -translate-y-1/2 w-72 bg-background/98 backdrop-blur-md border border-border rounded-xl shadow-2xl z-40 animate-in slide-in-from-right duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">

@@ -1,3 +1,4 @@
+import { useDraggablePanel } from '@/components/scene3d/useDraggablePanel';
 import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -79,6 +80,7 @@ export function ComponentControlPanel({
 }: ComponentControlPanelProps) {
   // Animation state for texture panel fade effect
 
+  const dragPanel = useDraggablePanel('component');
   if (!selectedComponent) return null;
 
   // Get ALL finishes regardless of pool type - show complete selection
@@ -211,7 +213,7 @@ export function ComponentControlPanel({
   const availableTextures = getAvailableTextures();
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 w-80 glass-panel rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
+    <div {...dragPanel.panelProps} className="fixed left-4 top-1/2 -translate-y-1/2 w-80 glass-panel rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">

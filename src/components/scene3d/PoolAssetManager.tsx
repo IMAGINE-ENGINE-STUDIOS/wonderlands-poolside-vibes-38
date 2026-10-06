@@ -1,3 +1,4 @@
+import { useDraggablePanel } from './useDraggablePanel';
 import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -262,10 +263,11 @@ export function PoolAssetManager({
       ...updates
     } : s));
   }, [contourSeating, onContourSeatingChange]);
+  const dragPanel = useDraggablePanel('assets');
   if (!isOpen) {
     return;
   }
-  return <div className="absolute top-4 right-4 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl max-h-[calc(100vh-120px)] overflow-hidden flex flex-col">
+  return <div {...dragPanel.panelProps} className="absolute top-4 right-4 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl max-h-[calc(100vh-120px)] overflow-hidden flex flex-col">
       <div className="flex items-center justify-between p-3 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
         <h3 className="font-semibold text-sm flex items-center gap-2">
           <Footprints className="h-4 w-4 text-primary" />
