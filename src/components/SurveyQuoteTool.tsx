@@ -815,17 +815,18 @@ const SurveyQuoteTool = ({
         gala_user_id: null,
         status: 'pending'
       };
-      const {
-        data,
-        error
-      } = await supabase.from('user_quotations').insert(quotationData).select().single();
-      if (error) {
+      // Client-generated id: visitors may insert but not read back (RLS), so no .select().
+      const id = crypto.randomUUID();
+      const { error } = await supabase.from('user_quotations').insert({ ...quotationData, id });
+      const data = error ? null : { ...quotationData, id };
+      // File the visitor into Clients + CRM pipeline (works signed-out) and alert the owner.
+      const leadMsg = `Quote: ${quotationData.pool_model || 'custom'} · $${Math.round(quoteAmount).toLocaleString()}${surveyData.address ? ` · ${surveyData.address}` : ''}${surveyData.specialRequests ? `\n${surveyData.specialRequests}` : ''}`;
+      const { data: filed } = await supabase.rpc('submit_wonderlands_lead' as any, {
+        _name: surveyData.name, _email: surveyData.email, _phone: surveyData.phone || '', _message: leadMsg, _source: 'quote_atelier',
+      });
+      if (filed) supabase.functions.invoke('platform-lead-notify', { body: { name: surveyData.name, email: surveyData.email, phone: surveyData.phone, message: leadMsg, source: 'Quote Atelier' } }).catch(() => {});
+      if (error && !filed) {
         console.error('Error saving quotation:', error);
-        toast({
-          title: "Save Failed",
-          description: "We couldn't save your quotation, but you can still continue with the process.",
-          variant: "destructive"
-        });
         return null;
       }
       // Cache customer for admin search (deduplicates by email)

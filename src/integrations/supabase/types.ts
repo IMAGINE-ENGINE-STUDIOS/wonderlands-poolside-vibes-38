@@ -5191,6 +5191,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      submit_wonderlands_lead: {
+        Args: {
+          _email: string
+          _message: string
+          _name: string
+          _phone: string
+          _source?: string
+        }
+        Returns: boolean
+      }
       validate_admin_session: {
         Args: { token: string }
         Returns: {

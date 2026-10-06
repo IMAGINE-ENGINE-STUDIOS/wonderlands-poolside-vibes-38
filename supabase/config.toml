@@ -77,3 +77,6 @@ verify_jwt = false
 
 [functions.site-lead-notify]
 verify_jwt = false
+
+[functions.platform-lead-notify]
+verify_jwt = false
