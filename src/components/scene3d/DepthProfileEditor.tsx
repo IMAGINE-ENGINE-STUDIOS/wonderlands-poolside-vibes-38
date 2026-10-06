@@ -39,6 +39,12 @@ interface DepthProfileEditorProps {
   // Perimeter depth points, kept so callers can still read the resolved floor
   perimeterDepthPoints?: PerimeterDepthPoint[];
   onPerimeterDepthPointsChange?: (points: PerimeterDepthPoint[]) => void;
+  /** Pool shape editing (wall spline points) */
+  shapeEditEnabled?: boolean;
+  onShapeEditToggle?: () => void;
+  /** Fly the camera to a corner and freeze it until Done */
+  onFocusCorner?: (index: number) => void;
+  activeCornerIndex?: number | null;
 }
 
 const clampDepth = (v: number) => Math.max(MIN_FLOOR_DEPTH, Math.min(MAX_FLOOR_DEPTH, v));
@@ -722,6 +728,48 @@ export function DepthProfileEditor({
             </div>
           </div>
         </div>
+
+        {/* Pool Shape Editor — moved here from the finish settings.
+            Selecting a corner flies the camera to it and freezes the view
+            until the user presses Done (handled by the visualizer). */}
+        {onShapeEditToggle && (
+          <div className="space-y-2 border-t pt-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium">Pool Shape Editor</Label>
+              <Button
+                size="sm"
+                variant={shapeEditEnabled ? 'default' : 'outline'}
+                className="h-7 text-xs"
+                onClick={onShapeEditToggle}
+              >
+                {shapeEditEnabled ? 'Editing walls' : 'Edit pool walls'}
+              </Button>
+            </div>
+            {poolPoints && poolPoints.length > 0 && (
+              <>
+                <p className="text-[11px] text-muted-foreground">
+                  Pick a corner: the camera moves to it and locks so you can drag the point.
+                </p>
+                <div className="grid grid-cols-6 gap-1 max-h-24 overflow-y-auto">
+                  {poolPoints.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => onFocusCorner?.(i)}
+                      className={`h-7 rounded-md border text-[11px] font-medium transition-colors ${
+                        activeCornerIndex === i
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted/40 hover:border-primary/60'
+                      }`}
+                    >
+                      C{i + 1}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Tips */}
         <div className="p-2 bg-primary/5 rounded-lg text-xs text-muted-foreground">
