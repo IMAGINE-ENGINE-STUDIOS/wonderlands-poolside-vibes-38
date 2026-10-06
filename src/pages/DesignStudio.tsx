@@ -97,6 +97,13 @@ const DesignStudio = () => {
   const lastScene3DRef = useRef<any>(null);
   const externalUpdateRef = useRef<any>(null);
   
+  const sceneMemoryKey = `design-studio.scene3d.${searchParams.get('model') || 'custom'}`;
+  if (lastScene3DRef.current === null) {
+    try {
+      const raw = localStorage.getItem(sceneMemoryKey);
+      if (raw) lastScene3DRef.current = JSON.parse(raw);
+    } catch { /* ignore */ }
+  }
   const [selectedExtras, setSelectedExtras] = useState<any>({
     finish: '',
     paverOption: '',
@@ -305,8 +312,10 @@ const DesignStudio = () => {
       return;
     }
     
-    // Store latest 3D scene for when switching back to 2D
-    lastScene3DRef.current = updatedScene;
+    // Store latest 3D scene (deep copy — panels mutate nested objects) so
+    // textures, deck/coping settings, depth profile and lights persist across 2D ⇄ 3D.
+    try { lastScene3DRef.current = structuredClone(updatedScene); } catch { lastScene3DRef.current = updatedScene; }
+    try { localStorage.setItem(sceneMemoryKey, JSON.stringify(lastScene3DRef.current)); } catch { /* quota */ }
     
     // Convert 3D scene back to 2D format
     const scale = poolBuilderData?.scale || 10;
@@ -340,7 +349,7 @@ const DesignStudio = () => {
       features: converted.features,
       additionalPools: converted.additionalPools
     };
-  }, [poolBuilderData?.scale]);
+  }, [poolBuilderData?.scale, sceneMemoryKey]);
 
   // Handle switching to 3D view
   const handleSwitch3D = useCallback(() => {
@@ -357,6 +366,47 @@ const DesignStudio = () => {
       });
     }
   }, [customPoolShape, toast]);
+  /**
+   * 3D scene with memory: geometry comes from the current 2D design, while
+   * everything chosen in 3D (finish, pavers, coping, waterline, deck/coping
+   * sizes, depth profile, lights, stairs, notes) is restored from the last session.
+   */
+  const buildPersistedScene = () => {
+    const base = productToScene(selectedProduct, { ...selectedExtras, customPoolShape }, paverTypes, finishOptions);
+    const last = lastScene3DRef.current;
+    if (!last?.pool || !last?.deck) return base;
+    const sameShape = (last.pool.points?.length ?? 0) === (base.pool.points?.length ?? 0);
+    return {
+      ...base,
+      poolLights: last.poolLights ?? base.poolLights,
+      stairs: last.stairs ?? base.stairs,
+      annotations: last.annotations ?? base.annotations,
+      camera: last.camera ?? base.camera,
+      pool: {
+        ...base.pool,
+        finish: last.pool.finish ?? base.pool.finish,
+        position: last.pool.position ?? base.pool.position,
+        rotation: last.pool.rotation ?? base.pool.rotation,
+        ...(sameShape ? {
+          linearDepthAnchors: last.pool.linearDepthAnchors,
+          depthAxis: last.pool.depthAxis,
+          perimeterDepthPoints: last.pool.perimeterDepthPoints,
+        } : {}),
+      },
+      deck: {
+        ...base.deck,
+        paver: last.deck.paver ?? base.deck.paver,
+        coping: last.deck.coping ?? base.deck.coping,
+        waterline: last.deck.waterline ?? base.deck.waterline,
+        copingHeight: last.deck.copingHeight ?? base.deck.copingHeight,
+        copingWidth: last.deck.copingWidth ?? base.deck.copingWidth,
+        copingEdgeProfile: last.deck.copingEdgeProfile ?? base.deck.copingEdgeProfile,
+        deckHeight: last.deck.deckHeight ?? base.deck.deckHeight,
+        deckElevation: last.deck.deckElevation ?? base.deck.deckElevation,
+      },
+    };
+  };
+
   if (!selectedProduct) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -382,6 +432,10 @@ const DesignStudio = () => {
                   <p className="text-xs text-muted-foreground">{selectedProduct.dimensions}</p>
                 </div>
               </div>} headerRight={<div className="flex items-center gap-2">
+                <Button size="sm" className="gap-1.5 text-xs" onClick={handleSwitch3D} title="Open in 3D — your previous 3D finishes and settings are restored">
+                  <Box className="h-3.5 w-3.5" />
+                  View in 3D
+                </Button>
                 <Tabs value={activeView} onValueChange={v => {
           if (v === '3d') handleSwitch3D();else setActiveView(v as '2d' | '3d');
         }}>
@@ -444,6 +498,10 @@ const DesignStudio = () => {
           </div>
           
           <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setActiveView('2d')} title="Back to 2D — your 3D finishes and settings are kept">
+              <Layers className="h-3.5 w-3.5" />
+              Edit in 2D
+            </Button>
             <Tabs value={activeView} onValueChange={v => {
           if (v === '3d') handleSwitch3D();else setActiveView(v as '2d' | '3d');
         }}>
@@ -491,10 +549,7 @@ const DesignStudio = () => {
         {activeView === '2d' ? <div className="w-full h-full">
             <PoolBuilder key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} />
           </div> : <div className="w-full h-full">
-            <UnifiedPoolVisualizer scene={productToScene(selectedProduct, {
-          ...selectedExtras,
-          customPoolShape
-        }, paverTypes, finishOptions)} textureLibrary={studioTextureLibrary} onSceneChange={handle3DSceneChange} />
+            <UnifiedPoolVisualizer scene={buildPersistedScene()} textureLibrary={studioTextureLibrary} onSceneChange={handle3DSceneChange} />
           </div>}
       </main>
     </div>;
