@@ -94,7 +94,8 @@ export const pointInRegions = (point: Pt, regions: Region[]): boolean =>
  * never self-intersects on sharp corners (the exact case that used to fall back
  * to a convex hull and pave over the water).
  */
-export function offsetPolygon(points: Pt[], dist: number, arcSegments = 6): Pt[][] {
+// 36 segments: 6-sided caps unioned at every densified vertex produced saw-tooth deck edges.
+export function offsetPolygon(points: Pt[], dist: number, arcSegments = 36): Pt[][] {
   const base = dedupe(points);
   if (base.length < 3) return [];
   const d = Math.abs(dist);
