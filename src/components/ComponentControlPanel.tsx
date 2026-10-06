@@ -476,8 +476,7 @@ export function ComponentControlPanel({
                 <Slider
                   value={[(scene.deck.deckElevation || 0) * 12]}
                   onValueChange={(value) => {
-                    const updated = { ...scene };
-                    updated.deck.deckElevation = value[0] / 12;
+                    const updated = { ...scene, deck: { ...scene.deck, deckElevation: value[0] / 12 } };
                     onSceneChange(updated);
                   }}
                   min={-24}
@@ -510,8 +509,7 @@ export function ComponentControlPanel({
                 <Slider
                   value={[(scene.deck.copingHeight || 0.17) * 12]}
                   onValueChange={(value) => {
-                    const updated = { ...scene };
-                    updated.deck.copingHeight = value[0] / 12;
+                    const updated = { ...scene, deck: { ...scene.deck, copingHeight: value[0] / 12 } };
                     onSceneChange(updated);
                   }}
                   min={1}
@@ -529,8 +527,7 @@ export function ComponentControlPanel({
                 <Slider
                   value={[scene.deck.copingWidth || 1]}
                   onValueChange={(value) => {
-                    const updated = { ...scene };
-                    updated.deck.copingWidth = value[0];
+                    const updated = { ...scene, deck: { ...scene.deck, copingWidth: value[0] } };
                     onSceneChange(updated);
                   }}
                   min={0.5}
@@ -565,8 +562,7 @@ export function ComponentControlPanel({
                             : 'Bullnose is available on Belgard coping and products specified as bullnose.'
                         }
                         onClick={() => {
-                          const updated = { ...scene };
-                          updated.deck.copingEdgeProfile = profile.id;
+                          const updated = { ...scene, deck: { ...scene.deck, copingEdgeProfile: profile.id } };
                           onSceneChange(updated);
                         }}
                         className={`rounded-lg border px-3 py-2 text-xs backdrop-blur-md transition-colors ${
