@@ -9,6 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Footprints, Armchair, Droplets, ChevronDown, ChevronUp, Plus, Trash2, Lightbulb, Spline, Palette, Link, Unlink } from 'lucide-react';
 import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './poolAssetTypes';
 import { PoolLightConfig, TextureConfig } from './types';
+import { SketchfabBrowser } from './SketchfabBrowser';
+import type { TerrainAsset } from './TerrainEditor';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 interface PoolAssetManagerProps {
   isOpen: boolean;
@@ -27,6 +29,9 @@ interface PoolAssetManagerProps {
   isNightMode: boolean;
   availableFinishes?: TextureConfig[];
   onRequestFuseStairSeating?: (stairId: string, seatingId: string) => void;
+  /** Objects tab (moved from Terrain Editor): furniture/decor + Sketchfab */
+  sceneObjects?: TerrainAsset[];
+  onSceneObjectsChange?: (assets: TerrainAsset[]) => void;
 }
 export function PoolAssetManager({
   isOpen,
@@ -44,7 +49,9 @@ export function PoolAssetManager({
   poolFinishTexture,
   isNightMode,
   availableFinishes = [],
-  onRequestFuseStairSeating
+  onRequestFuseStairSeating,
+  sceneObjects = [],
+  onSceneObjectsChange
 }: PoolAssetManagerProps) {
   const [activeTab, setActiveTab] = useState('stairs');
   const [showTextureSync, setShowTextureSync] = useState(false);
@@ -279,7 +286,7 @@ export function PoolAssetManager({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="p-2">
-        <TabsList className="grid grid-cols-4 w-full h-9 bg-muted/30">
+        <TabsList className="grid grid-cols-5 w-full h-9 bg-muted/30">
           <TabsTrigger value="stairs" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Footprints className="h-3 w-3 mr-1" />
             Stairs
@@ -295,6 +302,10 @@ export function PoolAssetManager({
           <TabsTrigger value="jets" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Droplets className="h-3 w-3 mr-1" />
             Jets
+          </TabsTrigger>
+          <TabsTrigger value="objects" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <Armchair className="h-3 w-3 mr-1" />
+            Objects
           </TabsTrigger>
         </TabsList>
 
@@ -661,6 +672,48 @@ export function PoolAssetManager({
             <Droplets className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-xs">Jets & bubblers coming soon</p>
           </div>
+        </TabsContent>
+
+        {/* OBJECTS TAB — furniture/decor in the scene + Sketchfab library */}
+        <TabsContent value="objects" className="mt-2">
+          <ScrollArea className="h-[420px] pr-2">
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <p className="text-xs font-medium">In the scene</p>
+                {sceneObjects.filter(a => a.type === 'furniture' || a.type === 'object').length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground">No objects yet. Add one from the library below.</p>
+                ) : sceneObjects.filter(a => a.type === 'furniture' || a.type === 'object').map(a => (
+                  <div key={a.id} className="flex items-center gap-2 rounded-md border p-1.5">
+                    <span className="flex-1 truncate text-[11px]">{a.name}</span>
+                    <Switch
+                      checked={a.visible}
+                      onCheckedChange={(v) => onSceneObjectsChange?.(sceneObjects.map(x => x.id === a.id ? { ...x, visible: v } : x))}
+                    />
+                    <Button variant="ghost" size="icon" className="h-6 w-6" aria-label="Remove"
+                      onClick={() => onSceneObjectsChange?.(sceneObjects.filter(x => x.id !== a.id))}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t pt-2 space-y-1">
+                <p className="text-xs font-medium">Sketchfab library</p>
+                <SketchfabBrowser
+                  onAdd={(pick) => onSceneObjectsChange?.([...sceneObjects, {
+                    id: `sf-${pick.uid}-${Date.now()}`,
+                    name: pick.name,
+                    type: 'object',
+                    url: pick.url,
+                    format: 'glb',
+                    position: [0, 0, 0],
+                    rotation: [0, 0, 0],
+                    scale: 1,
+                    visible: true,
+                  }])}
+                />
+              </div>
+            </div>
+          </ScrollArea>
         </TabsContent>
       </Tabs>
 

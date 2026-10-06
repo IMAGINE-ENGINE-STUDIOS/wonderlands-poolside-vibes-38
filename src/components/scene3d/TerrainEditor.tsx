@@ -51,7 +51,15 @@ const DEFAULT_ASSET_LIBRARY: AssetLibraryItem[] = [
   { id: 'lib-1', name: 'American Road Intersection', category: 'Terrain', url: '/models/American_Road_Intersection.usdz', format: 'usdz' },
 ];
 
-const ASSET_CATEGORIES = ['All', 'Terrain', 'Skydome', 'Trees', 'Landscape', 'Furniture', 'Objects', 'Custom'];
+/** Library subjects (furniture/objects now live in Pool Asset Manager → Objects). */
+const ASSET_CATEGORIES: { key: string; label: string }[] = [
+  { key: 'All', label: 'All' },
+  { key: 'Terrain', label: 'Terrain & Ground' },
+  { key: 'Skydome', label: 'Sky' },
+  { key: 'Trees', label: 'Trees & Plants' },
+  { key: 'Landscape', label: 'Rocks & Landscape' },
+  { key: 'Custom', label: 'My uploads' },
+];
 
 const SNAP_STEPS = [0.25, 0.5, 1, 2, 5];
 const ROTATION_STEPS = [5, 15, 30, 45, 90];
@@ -143,7 +151,7 @@ export function TerrainEditor({
       newItems.push({
         id: generateId(),
         name: file.name.replace(/\.[^/.]+$/, ''),
-        category: 'Custom',
+        category: selectedCategory === 'All' ? 'Custom' : selectedCategory,
         url,
         format
       });
@@ -151,7 +159,7 @@ export function TerrainEditor({
 
     onAssetLibraryChange([...assetLibrary, ...newItems]);
     event.target.value = '';
-  }, [assetLibrary, onAssetLibraryChange]);
+  }, [assetLibrary, onAssetLibraryChange, selectedCategory]);
 
   const addFromLibrary = useCallback((item: AssetLibraryItem) => {
     const typeMap: Record<string, TerrainAsset['type']> = {
@@ -309,7 +317,7 @@ export function TerrainEditor({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-5 p-1 m-2 mr-4">
+        <TabsList className="w-full grid grid-cols-4 p-1 m-2 mr-4">
           <TabsTrigger value="terrain" className="text-xs">
             <Mountain className="h-3 w-3 mr-1" />
             Terrain
@@ -321,10 +329,6 @@ export function TerrainEditor({
           <TabsTrigger value="nature" className="text-xs">
             <Trees className="h-3 w-3 mr-1" />
             Nature
-          </TabsTrigger>
-          <TabsTrigger value="objects" className="text-xs">
-            <Armchair className="h-3 w-3 mr-1" />
-            Objects
           </TabsTrigger>
           <TabsTrigger value="library" className="text-xs">
             <FolderOpen className="h-3 w-3 mr-1" />
@@ -373,28 +377,6 @@ export function TerrainEditor({
             </div>
           </TabsContent>
 
-          {/* Furniture & Objects Tab */}
-          <TabsContent value="objects" className="p-3 space-y-4 m-0">
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={() => openUploadFor('furniture')}>
-                <Armchair className="h-4 w-4 mr-1" />
-                Add Furniture
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => openUploadFor('object')}>
-                <Box className="h-4 w-4 mr-1" />
-                Add Objects
-              </Button>
-            </div>
-            <div className="border-t pt-3">
-              <h4 className="text-xs font-medium mb-2">Furniture</h4>
-              {renderAssetList('furniture')}
-            </div>
-            <div className="border-t pt-3">
-              <h4 className="text-xs font-medium mb-2">Objects & Decor</h4>
-              {renderAssetList('object')}
-            </div>
-          </TabsContent>
-
           {/* Library Tab */}
           <TabsContent value="library" className="p-3 space-y-3 m-0">
             {/* Search */}
@@ -410,17 +392,20 @@ export function TerrainEditor({
 
             {/* Category Filter */}
             <div className="flex flex-wrap gap-1">
-              {ASSET_CATEGORIES.map(cat => (
+              {ASSET_CATEGORIES.map(cat => {
+                const count = cat.key === 'All' ? assetLibrary.length : assetLibrary.filter(i => i.category === cat.key).length;
+                return (
                 <Button
-                  key={cat}
-                  variant={selectedCategory === cat ? "default" : "outline"}
+                  key={cat.key}
+                  variant={selectedCategory === cat.key ? "default" : "outline"}
                   size="sm"
                   className="h-6 text-xs px-2"
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => setSelectedCategory(cat.key)}
                 >
-                  {cat}
+                  {cat.label} <span className="ml-1 opacity-60">{count}</span>
                 </Button>
-              ))}
+                );
+              })}
             </div>
 
             {/* Upload to Library */}
@@ -440,7 +425,7 @@ export function TerrainEditor({
                 onClick={() => libraryInputRef.current?.click()}
               >
                 <Plus className="h-4 w-4 mr-1" />
-                Add to Library
+                {selectedCategory === 'All' ? 'Add to Library' : `Add to ${ASSET_CATEGORIES.find(c => c.key === selectedCategory)?.label}`}
               </Button>
             </div>
 

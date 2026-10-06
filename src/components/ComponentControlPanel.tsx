@@ -592,43 +592,7 @@ export function ComponentControlPanel({
           <>
             <Separator />
             
-            {/* Pool Shape Editing */}
-            {onPoolSplineEditToggle && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Edit3 className="h-4 w-4 text-primary" />
-                  <Label className="text-sm font-semibold">Pool Shape Editor</Label>
-                </div>
-                
-                <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
-                  <div className="flex-1">
-                    <Label htmlFor="pool-spline-edit" className="text-xs font-medium">Edit Pool Walls</Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {enablePoolSplineEdit ? 'Drag points to reshape pool outline' : 'Enable to edit pool shape with spline editor'}
-                    </p>
-                  </div>
-                  <Checkbox
-                    id="pool-spline-edit"
-                    checked={enablePoolSplineEdit}
-                    onCheckedChange={onPoolSplineEditToggle}
-                  />
-                </div>
-                
-                {enablePoolSplineEdit && (
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
-                    <p className="text-xs text-foreground">
-                      <strong>Spline Editor Active:</strong>
-                    </p>
-                    <ul className="text-xs text-muted-foreground mt-1 space-y-1">
-                      <li>• Drag control points to reshape</li>
-                      <li>• Click + to add new points</li>
-                      <li>• Click X to remove points</li>
-                      <li>• Change point types for curves</li>
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Pool Shape Editor now lives in the Depth Profile Editor. */}
             
             {/* Pool Floor Depth Editor */}
             {onFloorDepthSplineEditToggle && (
