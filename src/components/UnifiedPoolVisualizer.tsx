@@ -1415,24 +1415,7 @@ export function UnifiedPoolVisualizer({
           >
             <ArrowUpDown className="w-4 h-4 md:w-5 md:h-5" />
           </button>
-          <button
-            onClick={() => {
-              const newMode = !isSplineEditMode;
-              setIsSplineEditMode(newMode);
-              if (newMode) {
-                setEnableFloorDepthSplineEdit(true);
-                setSelectedSplineComponent('pool-floor');
-                setShowDepthProfileEditor(false); // Close 2D editor when 3D edit mode opens
-              } else {
-                setEnableFloorDepthSplineEdit(false);
-                setSelectedSplineComponent(null);
-              }
-            }}
-            className={`hidden md:block p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${isSplineEditMode ? 'bg-orange-600 text-white' : 'bg-background/80 hover:bg-background'}`}
-            title="3D Spline Editor (Advanced)"
-          >
-            <Edit3 className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
+          {/* 3D Spline Editor deprecated — deck & coping now live in the Deck/Coping settings panel. */}
         </div>
 
         {/* Pool Designer Header with Measurements & Cost - positioned in header bar after buttons */}
