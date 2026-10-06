@@ -36,3 +36,5 @@
 - [x] Phase 2: drag-and-drop Web Builder saving to company_sites (pages, blocks, layers, styles, theme, catalogue import, FLIP + tool embeds, draft/publish)
 - [ ] Phase 3: public customer sites /sites/:slug with lead capture into the company CRM
 - [ ] Phase 4: Command Center links to inspect each company's workspace and site
+
+- [ ] Save every website form submission (solar, quote tool, other sites) into clients + CRM — plan awaiting user DNS additions
