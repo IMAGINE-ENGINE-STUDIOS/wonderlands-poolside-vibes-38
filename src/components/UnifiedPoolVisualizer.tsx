@@ -448,6 +448,27 @@ export function UnifiedPoolVisualizer({
     focusOn([0, -1, 0], Math.max(18, Math.max(spanX, spanZ) * 1.2));
   }, [focusOn, scene.pool.points]);
 
+  // Corner editing: fly to the chosen pool corner and freeze the camera
+  // (no orbit/pan) until the user presses Done. Pool geometry is centred on
+  // its bounding box, matching normalize2DTo3D.
+  const [frozenCornerIndex, setFrozenCornerIndex] = useState<number | null>(null);
+  const focusCorner = useCallback((index: number) => {
+    const pts = scene.pool.points || [];
+    const p = pts[index];
+    if (!p) return;
+    const xs = pts.map(q => q.x), ys = pts.map(q => q.y);
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    setEnablePoolSplineEdit(true);
+    setFrozenCornerIndex(index);
+    setAutoRotate(false);
+    focusOn([p.x - cx, 0, p.y - cy], 12);
+  }, [scene.pool.points, focusOn]);
+  const releaseCorner = useCallback(() => {
+    setFrozenCornerIndex(null);
+    focusOnPoolAsset();
+  }, [focusOnPoolAsset]);
+
 
 
 
@@ -1615,6 +1636,10 @@ export function UnifiedPoolVisualizer({
             onDepthAxisChange={handleDepthAxisChange}
             perimeterDepthPoints={resolvedPerimeterDepthPoints || []}
             onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
+            shapeEditEnabled={enablePoolSplineEdit}
+            onShapeEditToggle={() => setEnablePoolSplineEdit(v => !v)}
+            onFocusCorner={focusCorner}
+            activeCornerIndex={frozenCornerIndex}
           />
 
           {/* Climate Controller Panel */}
@@ -1999,8 +2024,8 @@ export function UnifiedPoolVisualizer({
               autoRotateSpeed={0.5}
               enableDamping
               dampingFactor={0.05}
-              enableRotate={!selectedPoolAssetId && !isSplineEditMode}
-              enablePan={true}
+              enableRotate={!selectedPoolAssetId && !isSplineEditMode && frozenCornerIndex === null}
+              enablePan={frozenCornerIndex === null}
               enableZoom={true}
               mouseButtons={{
                 LEFT: selectedPoolAssetId ? undefined : 0, // Disable left click rotate when dragging asset
@@ -2072,6 +2097,24 @@ export function UnifiedPoolVisualizer({
           snap={gizmoSnap}
           onSnapChange={setGizmoSnap}
         />
+
+        {/* Corner edit HUD — camera stays frozen until Done */}
+        {frozenCornerIndex !== null && (
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[10050] flex items-center gap-3 rounded-full border bg-background/95 px-4 py-2 shadow-xl backdrop-blur">
+            <span className="text-xs font-medium">
+              Editing corner C{frozenCornerIndex + 1} — camera locked. Drag the point to reshape.
+            </span>
+            <button
+              type="button"
+              onClick={releaseCorner}
+              className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
+            >
+              Done
+            </button>
+          </div>
+        )}
+
+
 
       </div>
     </div>
