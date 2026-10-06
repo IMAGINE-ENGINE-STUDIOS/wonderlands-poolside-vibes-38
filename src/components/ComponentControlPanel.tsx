@@ -1,3 +1,4 @@
+import { useDraggablePanel } from '@/components/scene3d/useDraggablePanel';
 import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -79,6 +80,7 @@ export function ComponentControlPanel({
 }: ComponentControlPanelProps) {
   // Animation state for texture panel fade effect
 
+  const dragPanel = useDraggablePanel('component');
   if (!selectedComponent) return null;
 
   // Get ALL finishes regardless of pool type - show complete selection
@@ -211,7 +213,7 @@ export function ComponentControlPanel({
   const availableTextures = getAvailableTextures();
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 w-80 glass-panel rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
+    <div {...dragPanel.panelProps} className="fixed left-4 top-1/2 -translate-y-1/2 w-80 glass-panel rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">
@@ -476,8 +478,7 @@ export function ComponentControlPanel({
                 <Slider
                   value={[(scene.deck.deckElevation || 0) * 12]}
                   onValueChange={(value) => {
-                    const updated = { ...scene };
-                    updated.deck.deckElevation = value[0] / 12;
+                    const updated = { ...scene, deck: { ...scene.deck, deckElevation: value[0] / 12 } };
                     onSceneChange(updated);
                   }}
                   min={-24}
@@ -510,8 +511,7 @@ export function ComponentControlPanel({
                 <Slider
                   value={[(scene.deck.copingHeight || 0.17) * 12]}
                   onValueChange={(value) => {
-                    const updated = { ...scene };
-                    updated.deck.copingHeight = value[0] / 12;
+                    const updated = { ...scene, deck: { ...scene.deck, copingHeight: value[0] / 12 } };
                     onSceneChange(updated);
                   }}
                   min={1}
@@ -529,8 +529,7 @@ export function ComponentControlPanel({
                 <Slider
                   value={[scene.deck.copingWidth || 1]}
                   onValueChange={(value) => {
-                    const updated = { ...scene };
-                    updated.deck.copingWidth = value[0];
+                    const updated = { ...scene, deck: { ...scene.deck, copingWidth: value[0] } };
                     onSceneChange(updated);
                   }}
                   min={0.5}
@@ -565,8 +564,7 @@ export function ComponentControlPanel({
                             : 'Bullnose is available on Belgard coping and products specified as bullnose.'
                         }
                         onClick={() => {
-                          const updated = { ...scene };
-                          updated.deck.copingEdgeProfile = profile.id;
+                          const updated = { ...scene, deck: { ...scene.deck, copingEdgeProfile: profile.id } };
                           onSceneChange(updated);
                         }}
                         className={`rounded-lg border px-3 py-2 text-xs backdrop-blur-md transition-colors ${

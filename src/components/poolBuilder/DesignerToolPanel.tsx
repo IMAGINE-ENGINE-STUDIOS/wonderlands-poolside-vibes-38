@@ -109,12 +109,13 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const scaleVal = props.scale || 10;
 
   return (
-    <div className="absolute top-8 right-8 z-20 w-[260px] max-h-[calc(100vh-120px)] flex flex-col">
-      <div className="bg-background/95 backdrop-blur-xl border border-border/50 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="absolute top-6 right-6 z-20 w-80 max-h-[calc(100vh-120px)] flex flex-col">
+      {/* Same visual language as the 3D component panel (glass card, bold header). */}
+      <div className="glass-panel rounded-xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="px-3 py-2 bg-muted/30 border-b border-border/30 flex items-center justify-between">
-          <span className="text-xs font-semibold text-foreground tracking-wide uppercase">2D Designer</span>
-          <span className="text-[10px] text-muted-foreground font-mono">
+        <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
+          <span className="text-sm font-semibold text-foreground">2D Designer</span>
+          <span className="text-xs text-muted-foreground font-mono">
             {formatCurrency(props.projectCost.total)}
           </span>
         </div>
@@ -599,24 +600,30 @@ function MaterialSelect({ label, value, onChange, options }: {
   onChange: (v: string) => void;
   options: Array<{ id: string; name: string; image: string }>;
 }) {
+  // Swatch grid identical in style to the 3D texture picker.
+  const current = options.find(o => o.id === value);
   return (
-    <div className="space-y-0.5">
-      <Label className="text-[10px] text-muted-foreground">{label}</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-7 text-[11px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent className="max-h-[200px] z-50 bg-background">
-          {options.map(opt => (
-            <SelectItem key={opt.id} value={opt.id}>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded border bg-cover bg-center flex-shrink-0" style={{ backgroundImage: `url(${opt.image})` }} />
-                <span className="text-[11px]">{opt.name}</span>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs font-semibold">{label}</Label>
+        <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">{current?.name}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-1.5 max-h-44 overflow-y-auto pr-1">
+        {options.map(opt => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onChange(opt.id)}
+            title={opt.name}
+            className={`relative group rounded-lg overflow-hidden border-2 transition-all ${opt.id === value ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}
+          >
+            <img loading="lazy" decoding="async" src={opt.image} alt={opt.name} className="w-full h-14 object-cover" />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/70 to-transparent px-1 py-0.5">
+              <span className="block text-[9px] font-medium text-background truncate">{opt.name}</span>
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

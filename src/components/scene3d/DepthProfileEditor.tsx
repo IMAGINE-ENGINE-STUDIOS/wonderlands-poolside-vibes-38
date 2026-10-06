@@ -1,3 +1,4 @@
+import { useDraggablePanel } from './useDraggablePanel';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -448,6 +449,7 @@ export function DepthProfileEditor({
   const centerAxis = () => setAxis(buildAxis(angle, length, { x: 0, z: 0 }));
   const setAxisLength = (val: number) => setAxis(buildAxis(angle, Math.max(1, val), axisCenter(axis)));
 
+  const dragPanel = useDraggablePanel('depth');
   if (!isOpen) return null;
 
   const sortedAnchors = [...anchors].sort((a, b) => a.position - b.position);
@@ -464,7 +466,7 @@ export function DepthProfileEditor({
   );
 
   return (
-    <div className="absolute top-4 left-4 w-[460px] max-w-[calc(100vw-2rem)] bg-background/95 backdrop-blur-sm rounded-xl border shadow-xl z-30 overflow-hidden">
+    <div {...dragPanel.panelProps} className="absolute top-4 left-1/2 -translate-x-1/2 w-[460px] max-w-[calc(100vw-2rem)] bg-background/95 backdrop-blur-sm rounded-xl border shadow-xl z-30 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b bg-primary/5">
         <div className="flex items-center gap-2">

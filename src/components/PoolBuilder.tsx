@@ -153,6 +153,10 @@ const shadeColor = (color: string, percent: number) => {
   const B = (num & 0x0000FF) + amt;
   return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
 };
+import { buildFinishTextures } from '@/data/textureLibrary';
+// Same finish catalogue the 3D viewer offers, so 2D and 3D show identical choices.
+const CATALOG_FINISHES_2D = buildFinishTextures().map(t => ({ id: `cat-${t.id}`, name: t.name, image: t.url as string }));
+
 export function PoolBuilder({
   initialDimensions,
   initialDepth,
@@ -571,16 +575,27 @@ export function PoolBuilder({
     });
   }, [onExternalUpdate]);
 
+  // Latest serializable state, so leaving the 2D view (switching to 3D)
+  // flushes the pending save instead of dropping the last 2s of changes —
+  // that dropped save made materials snap back to older picks on return.
+  const latestStateRef = useRef<any>(null);
+  latestStateRef.current = points.length > 0 ? getSerializableState() : null;
   useEffect(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveTimerRef.current = null;
       if (points.length > 0) {
         setAutoSave(getSerializableState());
         setLastAutoSaved(new Date().toISOString());
       }
     }, 2000);
-    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
   }, [getSerializableState, points]);
+  useEffect(() => () => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      if (latestStateRef.current) setAutoSave(latestStateRef.current);
+    }
+  }, []);
 
   // ─── Escape key to cancel placement modes ───
   useEffect(() => {
@@ -1492,7 +1507,7 @@ export function PoolBuilder({
     id: 'pearl',
     name: 'Athens Pearl White',
     image: '/textures/finishes/athens-pearl-white-g3.webp'
-  }];
+  }, ...CATALOG_FINISHES_2D];
 
   // Load textures with LOD system
   useEffect(() => {
@@ -1503,15 +1518,20 @@ export function PoolBuilder({
     const copingImage = selectedCoping?.image || '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
     const finishImage = selectedFinish?.image || aquamarineFinish;
 
-    // Load all textures with LOD levels
+    // Load all textures with LOD levels. A slower, older load must never
+    // overwrite a newer selection (that made textures "revert by themselves").
+    let cancelled = false;
     setTexturesLoaded(false);
     loadAllTextureLODs(paverImage, copingImage, finishImage).then(lodSet => {
+      if (cancelled) return;
       textureLODsRef.current = lodSet;
       setTexturesLoaded(true);
     }).catch(error => {
+      if (cancelled) return;
       console.error('Failed to load texture LODs:', error);
       setTexturesLoaded(false);
     });
+    return () => { cancelled = true; };
   }, [selectedPaverId, selectedCopingId, selectedFinishId]);
 
   // Update canvas size to maximize screen space
@@ -4660,6 +4680,9 @@ export function PoolBuilder({
     if (isExternalUpdateRef.current) return;
     if (onPoolDataChange) {
       const cost = calculateTotalCost();
+      const paver = paverTypes.find(p => p.id === selectedPaverId);
+      const coping = paverTypes.find(p => p.id === selectedCopingId);
+      const finish = finishes.find(f => f.id === selectedFinishId);
       onPoolDataChange({
         points,
         depthPoints,
@@ -4671,11 +4694,19 @@ export function PoolBuilder({
         hardscapePoints,
         additionalPools,
         totalCost: cost.total,
-        breakdown: cost
-      });
+        breakdown: cost,
+        // Shape + materials travel with the design so 3D draws the same curves
+        // and the same textures that were chosen in 2D.
+        poolShape,
+        materials: {
+          finish: finish ? { id: finish.id, name: finish.name, image: finish.image } : undefined,
+          coping: coping ? { id: coping.id, name: coping.name, image: coping.image } : undefined,
+          paver: paver ? { id: paver.id, name: paver.name, image: paver.image } : undefined,
+        },
+      } as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools]);
+  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools, poolShape, selectedPaverId, selectedCopingId, selectedFinishId]);
 
   // Convert screen (mouse) coordinates to world (canvas) coordinates, accounting for pan+zoom
   const screenToWorld = useCallback((screenX: number, screenY: number): { x: number; y: number } => {

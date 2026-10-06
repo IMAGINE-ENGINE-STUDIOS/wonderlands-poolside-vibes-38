@@ -25,7 +25,7 @@ import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from './scene3d/PoolDes
 import { FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
-import { createDepthInterpolator, createDefaultLinearAnchors, createDefaultDepthAxis, computePerimeterDepths, getPoolBounds } from './scene3d/depthUtils';
+import { createDepthInterpolator, createDefaultLinearAnchors, createDefaultDepthAxis, computePerimeterDepths, getPoolBounds, interpolateDepthFromAnchors, positionAlongAxis } from './scene3d/depthUtils';
 import { TerrainEditor, TerrainAsset, AssetLibraryItem } from './scene3d/TerrainEditor';
 import { TerrainAssetsRenderer, DEFAULT_GIZMO_SNAP, type GizmoMode, type GizmoSnapSettings } from './scene3d/TerrainAssetsRenderer';
 import { SceneObjectsPanel, SceneObjectGroup, sceneObjectIcons } from './scene3d/SceneObjectsPanel';
@@ -601,6 +601,12 @@ export function UnifiedPoolVisualizer({
     }));
     return computePerimeterDepths(normalized, linearDepthAnchors, depthAxis);
   }, [scene.pool.points, scene.pool.perimeterDepthPoints, linearDepthAnchors, depthAxis]);
+
+  // Interior floor depth (pool-centred coords, same space as the perimeter depths).
+  const floorDepthAtCentered = useCallback(
+    (x: number, z: number) => interpolateDepthFromAnchors(positionAlongAxis(x, z, depthAxis), linearDepthAnchors),
+    [depthAxis, linearDepthAnchors]
+  );
 
   // Update parent when scene changes
   useEffect(() => {
@@ -1862,6 +1868,7 @@ export function UnifiedPoolVisualizer({
               enableDeckSplineEdit={enableDeckSplineEdit}
               enableFloorDepthSplineEdit={enableFloorDepthSplineEdit || (isSplineEditMode && selectedSplineComponent === 'pool-floor')}
               perimeterDepthPoints={resolvedPerimeterDepthPoints}
+              floorDepthAt={floorDepthAtCentered}
               onPoolPointsChange={handlePoolPointsChange}
               onDeckPointsChange={handleDeckPointsChange}
               onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}

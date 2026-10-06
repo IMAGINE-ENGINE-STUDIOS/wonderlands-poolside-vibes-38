@@ -140,6 +140,8 @@ export interface AdditionalPool {
 export interface Scene3D {
   pool: {
     points: Point[];
+    /** Original 2D designer control points (feet). `points` is the dense drawn outline. */
+    sourcePoints?: Point[];
     depthPoints: DepthPoint[];
     perimeterDepthPoints?: PerimeterDepthPoint[];
     linearDepthAnchors?: LinearDepthAnchor[]; // Linear depth profile from shallow to deep

@@ -67,6 +67,8 @@ export interface Pool3DSceneProps {
   points: Point[];
   depthPoints: DepthPoint[];
   perimeterDepthPoints?: Array<{ x: number; z: number; depth: number; id: string; type?: 'linear' | 'smooth' }>;
+  /** Depth (ft) at any floor point in pool-centred coords — drives the interior floor. */
+  floorDepthAt?: (x: number, z: number) => number;
   scale: number;
   poolShape: 'rectangle' | 'kidney' | 'freeform';
   hardscapePoints?: HardscapePoint[];
@@ -135,6 +137,8 @@ const PoolMesh: React.FC<{
   points: Point[];
   depthPoints: DepthPoint[];
   perimeterDepthPoints?: Array<{ x: number; z: number; depth: number; id: string; type?: 'linear' | 'smooth' }>;
+  /** Depth (ft) at any floor point in pool-centred coords — drives the interior floor. */
+  floorDepthAt?: (x: number, z: number) => number;
   linerTextureUrl: string;
   poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
@@ -154,7 +158,8 @@ const PoolMesh: React.FC<{
   linerTextureRotation = 0,
   copingHeight = 2 / 12,
   onSelectComponent,
-  perimeterDepthPoints: providedPerimeterDepthPoints
+  perimeterDepthPoints: providedPerimeterDepthPoints,
+  floorDepthAt
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
@@ -343,52 +348,59 @@ const PoolMesh: React.FC<{
       perimeterRing.push({ x: p.x, z: p.z, depth });
     }
     
-    // Step 2: Create floor top surface using triangulation from center
-    // Calculate center point and average depth
+    // Step 2: Floor top surface = concentric rings from the centre to the
+    // wall bottoms. Interior vertices sample the depth profile directly, so
+    // EVERY section-cut anchor (not just the first and last) sculpts the floor.
+    // The outer ring reuses the exact perimeter vertices so walls stay sealed.
+    const RINGS = 14;
     const centerFloorX = perimeterRing.reduce((sum, p) => sum + p.x, 0) / perimeterRing.length;
     const centerFloorZ = perimeterRing.reduce((sum, p) => sum + p.z, 0) / perimeterRing.length;
-    const centerFloorDepth = perimeterRing.reduce((sum, p) => sum + p.depth, 0) / perimeterRing.length;
-    
-    // Add center vertex (top surface)
-    const centerTopIdx = 0;
-    floorVertices.push(centerFloorX, -centerFloorDepth, centerFloorZ);
-    floorUVs.push(centerFloorX, centerFloorZ);
-    
-    // Add perimeter vertices (top surface) - these match wall bottoms exactly
-    const perimeterTopStart = floorVertices.length / 3;
-    for (const p of perimeterRing) {
-      floorVertices.push(p.x, -p.depth, p.z);
-      floorUVs.push(p.x, p.z);
-    }
-    
-    // Add center vertex (bottom surface - 9 inches below)
-    const centerBottomIdx = floorVertices.length / 3;
-    floorVertices.push(centerFloorX, -centerFloorDepth - floorThickness, centerFloorZ);
-    floorUVs.push(centerFloorX, centerFloorZ);
-    
-    // Add perimeter vertices (bottom surface)
-    const perimeterBottomStart = floorVertices.length / 3;
-    for (const p of perimeterRing) {
-      floorVertices.push(p.x, -p.depth - floorThickness, p.z);
-      floorUVs.push(p.x, p.z);
-    }
-    
-    // Step 3: Create triangles for top surface (fan from center)
-    for (let i = 0; i < perimeterRing.length; i++) {
-      const currIdx = perimeterTopStart + i;
-      const nextIdx = perimeterTopStart + ((i + 1) % perimeterRing.length);
-      // Top surface triangles (counterclockwise when viewed from above)
-      floorIndices.push(centerTopIdx, nextIdx, currIdx);
-    }
-    
-    // Create triangles for bottom surface (reversed winding)
-    for (let i = 0; i < perimeterRing.length; i++) {
-      const currIdx = perimeterBottomStart + i;
-      const nextIdx = perimeterBottomStart + ((i + 1) % perimeterRing.length);
-      // Bottom surface triangles (clockwise when viewed from below)
-      floorIndices.push(centerBottomIdx, currIdx, nextIdx);
-    }
-    
+    const N = perimeterRing.length;
+    const depthAt = (x: number, z: number, fallback: number) => {
+      if (!floorDepthAt) return fallback;
+      const d = floorDepthAt(x, z);
+      return Number.isFinite(d) ? Math.max(0, Math.min(12, d)) : fallback;
+    };
+    const avgDepth0 = perimeterRing.reduce((sum, p) => sum + p.depth, 0) / N;
+    const centerFloorDepth = depthAt(centerFloorX, centerFloorZ, avgDepth0);
+
+    const buildSurface = (offsetY: number, flip: boolean) => {
+      const base = floorVertices.length / 3;
+      floorVertices.push(centerFloorX, -centerFloorDepth - offsetY, centerFloorZ);
+      floorUVs.push(centerFloorX, centerFloorZ);
+      for (let r = 1; r <= RINGS; r++) {
+        const s = r / RINGS;
+        for (let i = 0; i < N; i++) {
+          const p = perimeterRing[i];
+          const x = centerFloorX + (p.x - centerFloorX) * s;
+          const z = centerFloorZ + (p.z - centerFloorZ) * s;
+          // Outer ring keeps the wall-bottom depth; inner rings follow the profile
+          // (blended near the wall so floor and wall meet without a step).
+          const inner = depthAt(x, z, centerFloorDepth + (p.depth - centerFloorDepth) * s);
+          const d = r === RINGS ? p.depth : inner;
+          floorVertices.push(x, -d - offsetY, z);
+          floorUVs.push(x, z);
+        }
+      }
+      const ringStart = (r: number) => base + 1 + (r - 1) * N;
+      for (let i = 0; i < N; i++) {
+        const a = ringStart(1) + i, b = ringStart(1) + ((i + 1) % N);
+        if (flip) floorIndices.push(base, a, b); else floorIndices.push(base, b, a);
+      }
+      for (let r = 1; r < RINGS; r++) {
+        for (let i = 0; i < N; i++) {
+          const i2 = (i + 1) % N;
+          const a = ringStart(r) + i, b = ringStart(r) + i2;
+          const c = ringStart(r + 1) + i, d = ringStart(r + 1) + i2;
+          if (flip) { floorIndices.push(a, c, b, b, c, d); }
+          else { floorIndices.push(a, b, c, b, d, c); }
+        }
+      }
+      return ringStart(RINGS);
+    };
+    const perimeterTopStart = buildSurface(0, false);
+    const perimeterBottomStart = buildSurface(floorThickness, true);
+
     // Step 4: Create side walls connecting top and bottom perimeters
     for (let i = 0; i < perimeterRing.length; i++) {
       const topCurr = perimeterTopStart + i;
@@ -939,6 +951,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   enableDeckSplineEdit = false,
   enableFloorDepthSplineEdit = false,
   perimeterDepthPoints: providedPerimeterDepthPoints,
+  floorDepthAt,
   onPoolPointsChange,
   onDeckPointsChange,
   onPerimeterDepthPointsChange,
@@ -972,6 +985,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   useEffect(() => {
     setLocalCopingHeight(copingHeight);
   }, [copingHeight]);
+
+  useEffect(() => {
+    setLocalDeckHeight(deckHeight);
+  }, [deckHeight]);
 
   // Sync external debug boundaries control
   useEffect(() => {
@@ -1011,11 +1028,16 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   }, [points, poolFrameCenter]);
   
   // Calculate normalized hardscape points for exact deck sync (same origin as the pool)
+  // Once the user moves the Deck Width slider, the deck is regenerated from
+  // the pool outline at that width (the 2D deck outline would otherwise lock it).
+  const initialDeckWidthRef = useRef(deckWidth);
+  const deckWidthTouched = Math.abs(localDeckWidth - initialDeckWidthRef.current) > 1e-3;
   const normalizedHardscapePoints = useMemo(() => {
+    if (deckWidthTouched) return undefined;
     if (!hardscapePoints || hardscapePoints.length < 3) return undefined;
     
     return hardscapePoints.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y }));
-  }, [hardscapePoints, poolFrameCenter]);
+  }, [hardscapePoints, poolFrameCenter, deckWidthTouched]);
 
   
   // Initialize perimeter depth points from 1D depth profile if not provided
@@ -1209,6 +1231,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           points={points}
           depthPoints={depthPoints}
           perimeterDepthPoints={perimeterDepthPoints}
+          floorDepthAt={floorDepthAt}
           linerTextureUrl={normalizedLinerUrl}
           poolDimensions={poolDimensions}
           linerTextureScale={linerTextureScale}
@@ -1254,7 +1277,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
               outerPoints={normalizedHardscapePoints}
               deckWidth={localDeckWidth}
               copingWidth={localCopingWidth}
-              borderHeight={0.25} // 3 inches
+              borderHeight={Math.max(1 / 12, localDeckHeight || 0.25)} // follows Deck Height (default 3in)
               borderWidth={Math.max(3, localDeckWidth)} // minimum 3ft, can grow
               deckElevation={deckElevation}
               textureUrl={normalizedPaverUrl}
