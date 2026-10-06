@@ -579,7 +579,7 @@ export function DepthProfileEditor({
               size="sm"
               className="h-6 px-2 text-xs"
               onClick={handleAddAnchor}
-              disabled={anchors.length >= 8}
+              disabled={anchors.length >= MAX_ANCHORS}
             >
               <Plus className="w-3 h-3 mr-1" />
               Add
