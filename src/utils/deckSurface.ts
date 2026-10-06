@@ -8,6 +8,7 @@ import {
   buildSlabGeometry,
   subtractRegions,
   mitredOffsetRing,
+  unionRegions,
 
 } from '@/utils/polygonGeometry';
 
@@ -114,18 +115,30 @@ export function resolveDeckBoundaries(params: {
   const ringWidth = Math.max(minDeckWidth, deckWidth);
 
   let outer: P3[] | null = null;
+  // Smooth mitred ring — continuous normals, no faceted caps (no saw marks).
+  const smoothRing = (base: P3[], d: number) => {
+    const r = sanitizeBoundary(mitredOffsetRing(base, d, { miterLimit: 2.5 }).offset);
+    return r.length >= 3 ? r : offsetPolygonSingle(base, d);
+  };
+
   if (hardscapePoints && hardscapePoints.length >= 3) {
     const candidate = sanitizeBoundary(hardscapePoints);
-    if (
-      candidate.length >= 3 &&
-      polygonArea(candidate) > innerArea * 1.02 &&
-      polygonContainsPolygon(candidate, inner)
-    ) {
-      outer = candidate;
+    if (candidate.length >= 3 && polygonArea(candidate) > innerArea * 1.02) {
+      if (polygonContainsPolygon(candidate, inner)) {
+        outer = candidate;
+      } else {
+        // The drawn deck slightly clips the coping: keep the user's shape and
+        // union in a thin ring around the coping instead of discarding it.
+        const merged = unionRegions([candidate, smoothRing(inner, 0.25)]);
+        const best = merged.length
+          ? merged.reduce((a, b) => (polygonArea(b[0]) > polygonArea(a[0]) ? b : a))[0]
+          : null;
+        if (best && best.length >= 3 && polygonContainsPolygon(best, inner)) outer = sanitizeBoundary(best);
+      }
     }
   }
 
-  if (!outer) outer = offsetPolygonSingle(pool, copingOffset + ringWidth);
+  if (!outer) outer = smoothRing(inner, Math.max(0.05, ringWidth - (copingOffset - innerOffset)));
 
   if (outer.length < 3 || polygonArea(outer) <= innerArea) {
     outer = offsetPolygonSingle(inner, ringWidth);
