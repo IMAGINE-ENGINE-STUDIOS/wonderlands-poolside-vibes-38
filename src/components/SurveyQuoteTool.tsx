@@ -65,6 +65,8 @@ interface SurveyQuoteToolProps {
     type: string;
     image?: string;
   };
+  /** True when opened over the full-screen 3D designer; closing returns to the design. */
+  aboveDesigner?: boolean;
 }
 interface SurveyData {
   name: string;
@@ -85,7 +87,8 @@ const SurveyQuoteTool = ({
   isOpen,
   onClose,
   customProduct: customProductProp,
-  extras: extrasProp
+  extras: extrasProp,
+  aboveDesigner = false
 }: SurveyQuoteToolProps) => {
   const {
     user
@@ -1040,7 +1043,21 @@ const SurveyQuoteTool = ({
   
   if (!pool && !customProduct) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto pb-8">
+      {/* Opened from the full-screen 3D designer (z-[9999]): lift the dialog,
+          its backdrop and every popover/select above the scene. */}
+      {aboveDesigner && isOpen && (
+        <style>{`[role="dialog"].quote-above-designer,[data-radix-popper-content-wrapper],.quote-above-designer .fixed{z-index:10200 !important}`}</style>
+      )}
+      <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto pb-8 ${aboveDesigner ? 'quote-above-designer' : ''}`}>
+        {aboveDesigner && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="mb-2 inline-flex w-fit items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+          >
+            ← Back to design
+          </button>
+        )}
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
             Get Your Personalized {extras?.enclosure ? 'Screen Enclosure' : customProduct && !pool ? (customProduct.type || 'Project') : 'Pool'} Quote
