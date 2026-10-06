@@ -38,8 +38,22 @@ export function densifyPoolOutline<T extends Point2D & { curveType?: OutlineCurv
     // Canvas: segment p1→p2 uses p2's curveType (closing segment uses p0's).
     const type = hasTypes ? (p2.curveType || 'linear') : 'curve';
     if (type === 'linear') { out.push({ x: p1.x, y: p1.y }); continue; }
-    const cp1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
-    const cp2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    let cp1: Point2D, cp2: Point2D;
+    if (!hasTypes) {
+      cp1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
+      cp2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
+    } else if (type === 'curve' || type === 'arc') {
+      // Quadratic (canvas quadraticCurveTo) expressed as a cubic.
+      const k = type === 'curve' ? 0.25 : 0.35;
+      const q = { x: (p1.x + p2.x) / 2 - dy * k, y: (p1.y + p2.y) / 2 + dx * k };
+      cp1 = { x: p1.x + (2 / 3) * (q.x - p1.x), y: p1.y + (2 / 3) * (q.y - p1.y) };
+      cp2 = { x: p2.x + (2 / 3) * (q.x - p2.x), y: p2.y + (2 / 3) * (q.y - p2.y) };
+    } else {
+      const px = -dy * 0.15, py = dx * 0.15;
+      cp1 = { x: p1.x + dx * 0.3 + px * 0.5, y: p1.y + dy * 0.3 + py * 0.5 };
+      cp2 = { x: p1.x + dx * 0.7 - px * 0.3, y: p1.y + dy * 0.7 - py * 0.3 };
+    }
     const seg = generateBezierSegment(p1, p2, cp1, cp2, per);
     out.push(...seg.slice(0, -1));
   }
