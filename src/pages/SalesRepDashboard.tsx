@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SurveyQuoteTool from '@/components/SurveyQuoteTool';
+import solarRoofArray from '@/assets/solar/solar-roof-array.jpg';
 import SalesRepClientCRM from '@/components/SalesRepClientCRM';
 import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
 import PromotionsBanner from '@/components/PromotionsBanner';
@@ -55,6 +56,7 @@ const SalesRepDashboard = () => {
   const [clientAutomations, setClientAutomations] = useState<Record<string, ClientAutomation>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
+  const [solarQuote, setSolarQuote] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showCRM, setShowCRM] = useState(false);
   const [crmClient, setCrmClient] = useState<Client | null>(null);
@@ -233,7 +235,8 @@ const SalesRepDashboard = () => {
     navigate('/');
   };
 
-  const handleCreateQuote = (client: Client) => {
+  const handleCreateQuote = (client: Client, solar = false) => {
+    setSolarQuote(solar);
     setSelectedClient(client);
     setShowQuoteTool(true);
   };
@@ -530,6 +533,13 @@ const SalesRepDashboard = () => {
                           <FileText className="h-4 w-4 mr-2" />
                           Create Quote
                         </Button>
+                        <Button
+                          onClick={() => handleCreateQuote(client, true)}
+                          className="bg-neutral-100 hover:bg-neutral-100 text-black border border-neutral-200"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Solar Quote
+                        </Button>
                       </div>
                     </div>
 
@@ -589,6 +599,7 @@ const SalesRepDashboard = () => {
           setShowQuoteTool(false);
           setSelectedClient(null);
         }}
+        customProduct={solarQuote ? { name: 'Wonderlands Solar System', price: 0, type: 'Solar', image: solarRoofArray } : undefined}
       />
 
       {/* CRM Dialog */}

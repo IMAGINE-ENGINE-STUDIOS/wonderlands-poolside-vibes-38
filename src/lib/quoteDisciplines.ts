@@ -33,6 +33,7 @@ export const resolveDiscipline = ({ pool, customProduct, extras }: Ctx): Discipl
   if (pt === "lanai") return "lanai";
   if (pt === "solar" || t === "solar" || t.startsWith("solar")) return "solar";
   if (pt === "sauna" || t === "sauna") return "sauna";
+  if (pool || ["pool", "spa", "tanning ledge"].includes(t)) return "pool";
   if (extras?.enclosure || t.includes("enclosure")) return "enclosure";
   if (t.includes("gate")) return "gate";
   if (t.includes("fenc")) return "fencing";
@@ -41,7 +42,6 @@ export const resolveDiscipline = ({ pool, customProduct, extras }: Ctx): Discipl
   if (t.includes("grass") || t.includes("turf")) return "turf";
   if (t.includes("liner")) return "liner";
   if (t.includes("finish") || t.includes("tile")) return "finish";
-  if (pool || ["pool", "spa", "tanning ledge"].includes(t)) return "pool";
   if (/solar|wonderwall|inverter/.test(n)) return "solar";
   return "general";
 };
