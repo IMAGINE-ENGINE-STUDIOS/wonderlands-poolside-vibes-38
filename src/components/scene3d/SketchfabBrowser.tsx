@@ -1,17 +1,16 @@
 /**
  * Sketchfab library browser (Pool Asset Manager → Objects).
  *
- * Search is public (no key needed). Downloading a model requires the
- * user's own Sketchfab API token, which is kept only in this browser
- * (localStorage `wl_sketchfab_token`) and sent straight to Sketchfab.
- * Downloads use the GLB variant so the existing 3D loader can place it.
+ * Search is public. Downloads go through the `sketchfab-download` edge
+ * function, which holds the platform Sketchfab key server-side, and use
+ * the GLB variant so the existing 3D loader can place it.
  */
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Download, KeyRound, Loader2 } from 'lucide-react';
+import { Search, Download, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-const TOKEN_KEY = 'wl_sketchfab_token';
 const API = 'https://api.sketchfab.com/v3';
 const QUICK = ['patio furniture', 'outdoor lounge chair', 'palm tree', 'umbrella', 'pergola', 'fire pit', 'planter', 'grill'];
 
@@ -30,8 +29,6 @@ export interface SketchfabPick {
 }
 
 export function SketchfabBrowser({ onAdd }: { onAdd: (pick: SketchfabPick) => void }) {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
-  const [tokenDraft, setTokenDraft] = useState('');
   const [query, setQuery] = useState('patio furniture');
   const [results, setResults] = useState<SFModel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,26 +57,13 @@ export function SketchfabBrowser({ onAdd }: { onAdd: (pick: SketchfabPick) => vo
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [query]);
 
-  const saveToken = () => {
-    const v = tokenDraft.trim();
-    if (!v) return;
-    localStorage.setItem(TOKEN_KEY, v);
-    setToken(v);
-    setTokenDraft('');
-  };
-
   const download = async (m: SFModel) => {
-    if (!token) { setNote('Add your Sketchfab key first.'); return; }
     setBusyUid(m.uid);
     setNote(null);
     try {
-      const res = await fetch(`${API}/models/${m.uid}/download`, {
-        headers: { Authorization: `Token ${token}` },
-      });
-      if (res.status === 401 || res.status === 403) { setNote('Sketchfab rejected the key. Check it and try again.'); return; }
-      const json = await res.json();
-      const url: string | undefined = json?.glb?.url;
-      if (!url) { setNote('This model has no single-file version. Try another one.'); return; }
+      const { data, error } = await supabase.functions.invoke('sketchfab-download', { body: { uid: m.uid } });
+      const url: string | undefined = data?.glb;
+      if (error || !url) { setNote('This model can’t be placed. Try another one.'); return; }
       onAdd({ name: m.name, url, uid: m.uid });
       setNote(`Added “${m.name}” to the scene.`);
     } catch {
@@ -96,21 +80,6 @@ export function SketchfabBrowser({ onAdd }: { onAdd: (pick: SketchfabPick) => vo
 
   return (
     <div className="space-y-2">
-      {!token ? (
-        <div className="space-y-1.5 rounded-lg border bg-muted/30 p-2">
-          <p className="flex items-center gap-1 text-[11px] font-medium"><KeyRound className="h-3 w-3" /> Sketchfab key</p>
-          <div className="flex gap-1">
-            <Input type="password" value={tokenDraft} onChange={(e) => setTokenDraft(e.target.value)} placeholder="Paste API token" className="h-7 text-xs" />
-            <Button size="sm" className="h-7 text-xs" onClick={saveToken}>Save</Button>
-          </div>
-          <p className="text-[10px] text-muted-foreground">Browse freely; the key is only needed to drop a model in.</p>
-        </div>
-      ) : (
-        <button type="button" className="text-[10px] text-muted-foreground underline" onClick={() => { localStorage.removeItem(TOKEN_KEY); setToken(''); }}>
-          Change Sketchfab key
-        </button>
-      )}
-
       <div className="relative">
         <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search Sketchfab…" className="h-8 pl-7 text-xs" />
