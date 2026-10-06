@@ -1503,15 +1503,20 @@ export function PoolBuilder({
     const copingImage = selectedCoping?.image || '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp';
     const finishImage = selectedFinish?.image || aquamarineFinish;
 
-    // Load all textures with LOD levels
+    // Load all textures with LOD levels. A slower, older load must never
+    // overwrite a newer selection (that made textures "revert by themselves").
+    let cancelled = false;
     setTexturesLoaded(false);
     loadAllTextureLODs(paverImage, copingImage, finishImage).then(lodSet => {
+      if (cancelled) return;
       textureLODsRef.current = lodSet;
       setTexturesLoaded(true);
     }).catch(error => {
+      if (cancelled) return;
       console.error('Failed to load texture LODs:', error);
       setTexturesLoaded(false);
     });
+    return () => { cancelled = true; };
   }, [selectedPaverId, selectedCopingId, selectedFinishId]);
 
   // Update canvas size to maximize screen space
