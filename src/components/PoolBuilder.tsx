@@ -571,16 +571,27 @@ export function PoolBuilder({
     });
   }, [onExternalUpdate]);
 
+  // Latest serializable state, so leaving the 2D view (switching to 3D)
+  // flushes the pending save instead of dropping the last 2s of changes —
+  // that dropped save made materials snap back to older picks on return.
+  const latestStateRef = useRef<any>(null);
+  latestStateRef.current = points.length > 0 ? getSerializableState() : null;
   useEffect(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveTimerRef.current = null;
       if (points.length > 0) {
         setAutoSave(getSerializableState());
         setLastAutoSaved(new Date().toISOString());
       }
     }, 2000);
-    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
   }, [getSerializableState, points]);
+  useEffect(() => () => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      if (latestStateRef.current) setAutoSave(latestStateRef.current);
+    }
+  }, []);
 
   // ─── Escape key to cancel placement modes ───
   useEffect(() => {
