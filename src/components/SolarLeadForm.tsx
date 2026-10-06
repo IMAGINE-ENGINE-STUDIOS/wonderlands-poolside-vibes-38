@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { solarProducts } from "@/data/solarData";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * SolarLeadForm — lead capture for the Wonderlands Solar section.
@@ -76,6 +77,13 @@ const SolarLeadForm = () => {
     } catch {
       // localStorage may be unavailable (private mode) — confirmation still shows.
     }
+    // File into Clients + CRM pipeline (signed-out safe) and alert the owner.
+    const msg = `Solar package: ${record.packageName} · WhatsApp opt-in: yes`;
+    supabase
+      .rpc("submit_wonderlands_lead" as any, { _name: record.name, _email: record.email, _phone: "", _message: msg, _source: "solar" })
+      .then(({ data }) => {
+        if (data) supabase.functions.invoke("platform-lead-notify", { body: { name: record.name, email: record.email, message: msg, source: "Solar" } }).catch(() => {});
+      });
 
     setSubmittedPackage(record.packageName);
     setSubmitted(true);
