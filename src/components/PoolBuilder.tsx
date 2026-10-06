@@ -4660,6 +4660,9 @@ export function PoolBuilder({
     if (isExternalUpdateRef.current) return;
     if (onPoolDataChange) {
       const cost = calculateTotalCost();
+      const paver = paverTypes.find(p => p.id === selectedPaverId);
+      const coping = paverTypes.find(p => p.id === selectedCopingId);
+      const finish = finishes.find(f => f.id === selectedFinishId);
       onPoolDataChange({
         points,
         depthPoints,
@@ -4671,11 +4674,19 @@ export function PoolBuilder({
         hardscapePoints,
         additionalPools,
         totalCost: cost.total,
-        breakdown: cost
-      });
+        breakdown: cost,
+        // Shape + materials travel with the design so 3D draws the same curves
+        // and the same textures that were chosen in 2D.
+        poolShape,
+        materials: {
+          finish: finish ? { id: finish.id, name: finish.name, image: finish.image } : undefined,
+          coping: coping ? { id: coping.id, name: coping.name, image: coping.image } : undefined,
+          paver: paver ? { id: paver.id, name: paver.name, image: paver.image } : undefined,
+        },
+      } as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools]);
+  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools, poolShape, selectedPaverId, selectedCopingId, selectedFinishId]);
 
   // Convert screen (mouse) coordinates to world (canvas) coordinates, accounting for pan+zoom
   const screenToWorld = useCallback((screenX: number, screenY: number): { x: number; y: number } => {
