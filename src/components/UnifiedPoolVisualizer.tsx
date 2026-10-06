@@ -186,7 +186,7 @@ function SelectionZoomController({
 
     const startPosition = camera.position.clone();
     const startTarget = controls.target.clone();
-    const endTarget = new THREE.Vector3(...config.target);
+    let endTarget = new THREE.Vector3(...config.target);
 
     // Preserve the current orbit direction (azimuth + elevation).
     const dir = startPosition.clone().sub(startTarget);
@@ -194,7 +194,18 @@ function SelectionZoomController({
     dir.normalize();
     if (dir.y < 0.18) { dir.y = 0.18; dir.normalize(); }
 
-    const endPosition = endTarget.clone().add(dir.multiplyScalar(config.distance));
+    let endPosition = endTarget.clone().add(dir.clone().multiplyScalar(config.distance));
+
+    // Waterline: macro close-up of the FAR wall tile band, camera hovering
+    // ~3.5 ft away above the water so the tile texture fills the view.
+    if (selectedComponent === 'waterline') {
+      const horiz = new THREE.Vector3(dir.x, 0, dir.z);
+      if (horiz.lengthSq() < 0.0001) horiz.set(1, 0, 0);
+      horiz.normalize();
+      const half = Math.min(width, length) / 2;
+      endTarget = horiz.clone().multiplyScalar(-half * 0.95).setY(-0.25);
+      endPosition = endTarget.clone().add(horiz.clone().multiplyScalar(3.2)).setY(1.1);
+    }
 
     let progress = 0;
     const duration = 1100; // ms — slower, gentler glide
