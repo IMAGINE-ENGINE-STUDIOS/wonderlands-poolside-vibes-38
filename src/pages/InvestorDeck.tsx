@@ -32,14 +32,16 @@ const SCENARIOS = [
   { name: "100 premium pools at $120K", avg: 120000, rev: 12000000, gp: 4200000 },
 ];
 
+// Combined revenue = construction (consumer) + other streams already in the 100 Pools model (total − consumer) + software with add-ons.
 const YEARS = [
-  { y: "2025–26 actual", p: 4, rev: 178675 },
-  { y: "Year 1", p: 100, rev: 5977500 },
-  { y: "Year 2", p: 175, rev: 11412500 },
-  { y: "Year 3", p: 275, rev: 19850000 },
-  { y: "Year 4", p: 425, rev: 33450000 },
-  { y: "Year 5", p: 650, rev: 54675000 },
-];
+  { y: "2025–26 actual", p: 4, build: 178675, other: 0, saas: 0 },
+  { y: "Year 1", p: 100, build: 5000000, other: 977500, saas: 648000 },
+  { y: "Year 2", p: 175, build: 8750000, other: 2662500, saas: 1620000 },
+  { y: "Year 3", p: 275, build: 13750000, other: 6100000, saas: 3645000 },
+  { y: "Year 4", p: 425, build: 21250000, other: 12200000, saas: 7290000 },
+  { y: "Year 5", p: 650, build: 32500000, other: 22175000, saas: 12960000 },
+].map((r) => ({ ...r, rev: r.build + r.other + r.saas }));
+const FIVE_YEAR_TOTAL = YEARS.slice(1).reduce((t, r) => t + r.rev, 0);
 
 const PACKAGES = [
   { name: "Starter Studio", price: 5000, seats: 2, gp: 4000, y1: 10000 },
@@ -127,10 +129,10 @@ const InvestorDeck = () => {
       {/* At a glance */}
       <section className="border-t border-border px-6 py-20">
         <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <Figure v={usd(YEARS[1].rev)} l="Year 1 · all revenue models" />
           <Figure v="$5M" l="Year 1 · 100 mixed projects" />
-          <Figure v="$1.73M" l="Gross profit · 34.65%" />
-          <Figure v="$54.7M" l="Year 5 · 650 projects" />
-          <Figure v="80%" l="Software gross margin" />
+          <Figure v={usd(YEARS[5].rev)} l="Year 5 · all revenue models" />
+          <Figure v={usd(FIVE_YEAR_TOTAL)} l="Five-year cumulative revenue" />
         </div>
       </section>
 
@@ -198,16 +200,40 @@ const InvestorDeck = () => {
         </div>
       </Chapter>
 
-      <Chapter n="05" kicker="Five-year projection" title={<>From four projects to <em className="italic">six hundred fifty.</em></>}
-        lede="Total revenue, including platform income, on the mixed-project path. On the pools-only path Year 5 reaches $87.2M.">
+      <Chapter n="05" kicker="Combined five-year projection" title={<>Every revenue model, <em className="italic">one line.</em></>}
+        lede="Construction, the other income streams in the 100 Pools model, and software subscriptions with add-ons — added together on the mixed-project path. On the pools-only path Year 5 reaches $111.5M combined.">
+        <div className="mb-8 flex flex-wrap gap-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          <span className="flex items-center gap-2"><span className="h-2 w-6 bg-foreground" />Construction</span>
+          <span className="flex items-center gap-2"><span className="h-2 w-6 bg-foreground/50" />Other model streams</span>
+          <span className="flex items-center gap-2"><span className="h-2 w-6 bg-foreground/20" />Software</span>
+        </div>
         <div className="space-y-6">
           {YEARS.map((y) => (
-            <div key={y.y} className="grid grid-cols-[120px_1fr_120px] items-center gap-6">
+            <div key={y.y} className="grid grid-cols-[110px_1fr_110px] items-center gap-6">
               <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{y.y}</p>
-              <Bar pct={Math.max(1, (y.rev / maxYear) * 100)} />
+              <div className="flex h-2" style={{ width: `${Math.max(1, (y.rev / maxYear) * 100)}%` }}>
+                <div className="bg-foreground" style={{ flex: y.build }} />
+                <div className="bg-foreground/50" style={{ flex: y.other }} />
+                <div className="bg-foreground/20" style={{ flex: y.saas }} />
+              </div>
               <p className="text-right font-serif text-2xl font-light tabular-nums">{usd(y.rev)}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-12 overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead className="border-b border-foreground text-left text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+              <tr><th className="py-3 font-normal">Year</th><th className="font-normal">Projects</th><th className="font-normal">Construction</th><th className="font-normal">Other streams</th><th className="font-normal">Software</th><th className="font-normal">Combined</th></tr>
+            </thead>
+            <tbody>
+              {YEARS.map((y) => (
+                <tr key={y.y} className="border-b border-border tabular-nums">
+                  <td className="py-4 font-serif text-lg">{y.y}</td><td>{y.p}</td><td>{usd(y.build)}</td><td>{y.other ? usd(y.other) : "—"}</td><td>{y.saas ? usd(y.saas) : "—"}</td><td className="font-medium">{usd(y.rev)}</td>
+                </tr>
+              ))}
+              <tr className="border-b border-foreground font-medium"><td className="py-4 font-serif text-lg" colSpan={5}>Five-year total (Years 1–5)</td><td>{usd(FIVE_YEAR_TOTAL)}</td></tr>
+            </tbody>
+          </table>
         </div>
       </Chapter>
 
