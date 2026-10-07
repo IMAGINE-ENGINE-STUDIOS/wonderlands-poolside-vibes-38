@@ -276,6 +276,27 @@ export default function InvestorDataRoom() {
             <h2 className="mb-10 mt-3 font-serif text-4xl font-light tracking-tight sm:text-5xl">Documents</h2>
             <DocumentViewer />
           </div>
+
+          <div className="mt-20 border-t border-border/60 pt-10">
+            <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Section IV — Try it live</p>
+            <h2 className="mb-4 mt-3 font-serif text-4xl font-light tracking-tight sm:text-5xl">Demo accounts</h2>
+            <p className="mb-8 text-sm text-muted-foreground">All three use the password <span className="font-mono text-foreground">Investor!2026</span>. Sign in at <Link to="/auth" className="underline">/auth</Link>.</p>
+            <div className="divide-y divide-border border-y border-border">
+              {[
+                { role: 'Contractor', email: 'investor.contractor@wonderlandsworld.com', body: 'Opens the "Sunrise Outdoor Living (Demo)" company workspace.' },
+                { role: 'Homeowner', email: 'investor.homeowner@wonderlandsworld.com', body: 'Opens the customer account page.' },
+                { role: 'Sales rep', email: 'investor.salesrep@wonderlandsworld.com', body: 'Opens the sales rep dashboard. It shows no clients, so real Wonderlands customers stay private.' },
+              ].map((a) => (
+                <div key={a.email} className="flex flex-wrap items-baseline gap-4 py-5">
+                  <span className="w-28 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">{a.role}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-mono text-sm">{a.email}</p>
+                    <p className="text-xs text-muted-foreground">{a.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
       ) : (
         <section className="mx-auto grid max-w-6xl gap-12 px-6 pb-24 lg:grid-cols-[1.2fr_1fr]">
