@@ -12,6 +12,91 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 
+import deckDoc from '@/assets/investors/deck.pdf.asset.json';
+import platformDoc from '@/assets/investors/platform.pdf.asset.json';
+import gtmDoc from '@/assets/investors/gtm.pdf.asset.json';
+import planDoc from '@/assets/investors/plan.pdf.asset.json';
+import capDoc from '@/assets/investors/captable.html.asset.json';
+
+const DOCS = [
+  { title: 'Investor Deck v6', meta: 'PDF · 12 pages', body: 'High-Value Studio — $50k/yr, $2.5M 2027.', url: deckDoc.url },
+  { title: 'One Platform Mastery', meta: 'PDF · 16 pages', body: 'The full platform, module by module.', url: platformDoc.url },
+  { title: 'Go-To-Market Strategy 2026', meta: 'PDF · 10 pages', body: 'Channels, launch sequence and targets.', url: gtmDoc.url },
+  { title: 'Business Plan', meta: 'PDF · 25 pages', body: 'Wonderlands Worlds Experience business plan.', url: planDoc.url },
+  { title: 'Cap Table (branded)', meta: 'HTML', body: 'Original branded cap table sheet.', url: capDoc.url },
+];
+
+/** Cap table — from the uploaded "25% Each" sheet. */
+const PARTNERS = [
+  { name: 'Ricardo', pct: 25, units: 25, color: 'hsl(var(--primary))' },
+  { name: 'Khalia', pct: 25, units: 25, color: 'hsl(188 60% 55%)' },
+  { name: 'Roberto', pct: 25, units: 25, color: 'hsl(8 90% 70%)' },
+  { name: 'Jose', pct: 25, units: 25, color: 'hsl(40 80% 60%)' },
+];
+const SCENARIOS = [
+  { key: 'mixed', label: '$5M valuation · mixed', valuation: 5_000_000, gross: 1_730_000, margin: '34.65%', grossShare: 433_125 },
+  { key: 'pure', label: '$10M valuation · pure', valuation: 10_000_000, gross: 3_500_000, margin: '35%', grossShare: 875_000 },
+];
+const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+function CapTable() {
+  const [sc, setSc] = useState(SCENARIOS[0]);
+  let acc = 0;
+  const conic = PARTNERS.map((p) => { const a = acc; acc += p.pct; return `${p.color} ${a}% ${acc}%`; }).join(',');
+  return (
+    <div className="grid gap-10 lg:grid-cols-[280px_1fr]">
+      <div className="flex flex-col items-center">
+        <div className="relative h-56 w-56 rounded-full" style={{ background: `conic-gradient(${conic})` }}>
+          <div className="absolute inset-10 flex flex-col items-center justify-center rounded-full bg-background">
+            <span className="font-serif text-4xl font-light">100%</span>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">100 units</span>
+          </div>
+        </div>
+        <div className="mt-6 grid w-full grid-cols-2 gap-2">
+          {PARTNERS.map((p) => (
+            <div key={p.name} className="flex items-center gap-2 text-xs">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />{p.name} · {p.pct}%
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="mb-4 inline-flex rounded-full border border-border p-1">
+          {SCENARIOS.map((s) => (
+            <button key={s.key} type="button" onClick={() => setSc(s)}
+              className={`rounded-full px-4 py-1.5 text-xs ${sc.key === s.key ? 'bg-foreground text-background' : 'text-muted-foreground'}`}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <div className="overflow-x-auto rounded-2xl border border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40 text-left text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+              <tr><th className="p-3">Partner</th><th className="p-3">Ownership</th><th className="p-3">Units</th><th className="p-3">Voting</th><th className="p-3">Profit</th><th className="p-3 text-right">Equity value</th><th className="p-3 text-right">Gross share</th></tr>
+            </thead>
+            <tbody>
+              {PARTNERS.map((p) => (
+                <tr key={p.name} className="border-t border-border">
+                  <td className="p-3 font-medium">{p.name}</td><td className="p-3">{p.pct}%</td><td className="p-3">{p.units}</td><td className="p-3">{p.pct}%</td><td className="p-3">{p.pct}%</td>
+                  <td className="p-3 text-right tabular-nums">{usd(sc.valuation * p.pct / 100)}</td>
+                  <td className="p-3 text-right tabular-nums">{usd(sc.grossShare)}</td>
+                </tr>
+              ))}
+              <tr className="border-t border-border bg-muted/30 font-medium">
+                <td className="p-3">Total</td><td className="p-3">100%</td><td className="p-3">100</td><td className="p-3">100%</td><td className="p-3">100%</td>
+                <td className="p-3 text-right tabular-nums">{usd(sc.valuation)}</td><td className="p-3 text-right tabular-nums">{usd(sc.grossShare * 4)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+          Based on 100 pools: {usd(sc.gross)} gross at {sc.margin}. Equal partnership: no majority holder; decisions need 51% (3 partners) or unanimity per the operating agreement.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 const NDA_VERSION = 'v1-2026-10';
 const ACCESS_KEY = 'wl_investor_nda';
 
@@ -146,6 +231,30 @@ export default function InvestorDataRoom() {
                 ? <a key={r.n} href={r.href} target="_blank" rel="noreferrer">{inner}</a>
                 : <Link key={r.n} to={r.to!}>{inner}</Link>;
             })}
+          </div>
+
+          <div className="mt-20 border-t border-border/60 pt-10">
+            <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Section II — Ownership</p>
+            <h2 className="mb-10 mt-3 font-serif text-4xl font-light tracking-tight sm:text-5xl">Cap Table</h2>
+            <CapTable />
+          </div>
+
+          <div className="mt-20 border-t border-border/60 pt-10">
+            <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Section III — Library</p>
+            <h2 className="mb-10 mt-3 font-serif text-4xl font-light tracking-tight sm:text-5xl">Documents</h2>
+            <div className="divide-y divide-border border-y border-border">
+              {DOCS.map((d, i) => (
+                <div key={d.title} className="flex flex-wrap items-center gap-4 py-5">
+                  <span className="w-8 text-[11px] tabular-nums text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-serif text-2xl font-light">{d.title}</p>
+                    <p className="text-xs text-muted-foreground">{d.meta} · {d.body}</p>
+                  </div>
+                  <a href={d.url} target="_blank" rel="noreferrer" className="text-[10px] uppercase tracking-[0.35em] hover:underline">View</a>
+                  <a href={d.url} download className="text-[10px] uppercase tracking-[0.35em] hover:underline">Download</a>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       ) : (
