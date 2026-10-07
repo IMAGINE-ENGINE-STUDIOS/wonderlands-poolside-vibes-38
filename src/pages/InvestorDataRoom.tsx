@@ -33,8 +33,6 @@ const DOCS = [
   { title: 'One Platform Mastery', meta: 'PDF · 16 pages', body: 'The full platform, module by module.', url: platformDoc.url },
   { title: 'Go-To-Market Strategy 2026', meta: 'PDF · 10 pages', body: 'Channels, launch sequence and targets.', url: gtmDoc.url },
   { title: 'Business Plan', meta: 'PDF · 25 pages', body: 'Wonderlands Worlds Experience business plan.', url: planDoc.url },
-  { title: 'Cap Table (branded)', meta: 'HTML', body: 'Original branded cap table sheet.', url: capDoc.url, html: 'captable' as const },
-  { title: 'Digital Assets & Partners', meta: 'Links', body: 'Every link to our digital assets and partners.', url: assetsDoc.url, html: 'digitalassets' as const },
 ];
 
 /** Cap table — from the uploaded "25% Each" sheet. */
