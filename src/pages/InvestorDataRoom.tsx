@@ -25,7 +25,7 @@ import xlSoft from '@/assets/investors/xl-software.html.asset.json';
 import assetsDoc from '@/assets/investors/digitalassets.html.asset.json';
 
 const DOCS = [
-  { title: 'Investor Deck — 100 Pools (latest numbers)', meta: 'HTML', body: 'Current investor deck with updated figures.', url: deck100Doc.url },
+  { title: 'Investor Deck — 100 Pools (latest numbers)', meta: 'HTML', body: 'Current investor deck with updated figures.', url: deck100Doc.url, html: 'deck100' as const },
   { title: '100 Pools — Financial Model', meta: 'Spreadsheet', body: '$5M plan, $5M vs $10M, 5-year projection, dashboard.', url: xlPools.url, sheet: 'pools' as const },
   { title: 'Software Sales — Financial Model', meta: 'Spreadsheet', body: 'SaaS packages, scale and 5-year projection.', url: xlSoft.url, sheet: 'software' as const },
   { title: 'Cap Table — 25% Each (spreadsheet)', meta: 'Spreadsheet', body: 'Partner ownership table.', url: xlCap.url, sheet: 'captable' as const },
@@ -33,8 +33,8 @@ const DOCS = [
   { title: 'One Platform Mastery', meta: 'PDF · 16 pages', body: 'The full platform, module by module.', url: platformDoc.url },
   { title: 'Go-To-Market Strategy 2026', meta: 'PDF · 10 pages', body: 'Channels, launch sequence and targets.', url: gtmDoc.url },
   { title: 'Business Plan', meta: 'PDF · 25 pages', body: 'Wonderlands Worlds Experience business plan.', url: planDoc.url },
-  { title: 'Cap Table (branded)', meta: 'HTML', body: 'Original branded cap table sheet.', url: capDoc.url },
-  { title: 'Digital Assets & Partners', meta: 'Links', body: 'Every link to our digital assets and partners.', url: assetsDoc.url },
+  { title: 'Cap Table (branded)', meta: 'HTML', body: 'Original branded cap table sheet.', url: capDoc.url, html: 'captable' as const },
+  { title: 'Digital Assets & Partners', meta: 'Links', body: 'Every link to our digital assets and partners.', url: assetsDoc.url, html: 'digitalassets' as const },
 ];
 
 /** Cap table — from the uploaded "25% Each" sheet. */
@@ -154,6 +154,13 @@ const SUBS = [
 ];
 
 /** In-page, view-only reader: PDF toolbar hidden, right-click blocked, no download links. */
+// HTML documents bundled as text (lazy) so they render in-page instead of downloading.
+const HTML_DOCS = {
+  captable: () => import('@/assets/investors/html/captable.html?raw'),
+  deck100: () => import('@/assets/investors/html/deck100.html?raw'),
+  digitalassets: () => import('@/assets/investors/html/digitalassets.html?raw'),
+};
+
 function DocumentViewer() {
   const [active, setActive] = useState(0);
   const doc = DOCS[active];
@@ -165,7 +172,7 @@ function DocumentViewer() {
     if (isPdf || doc.sheet) return;
     let alive = true;
     setHtml(null);
-    fetch(doc.url).then((r) => r.text()).then((t) => {
+    (doc.html ? HTML_DOCS[doc.html]().then((m) => m.default) : fetch(doc.url).then((r) => r.text())).then((t) => {
       if (!alive) return;
       const base = '<base target="_blank">';
       setHtml(t.includes('<head>') ? t.replace('<head>', `<head>${base}`) : base + t);
