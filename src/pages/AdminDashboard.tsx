@@ -47,6 +47,7 @@ import NotificationBell from '@/components/NotificationBell';
 import AdminActionQueue from '@/components/admin/AdminActionQueue';
 import AdminTechnologyHub from '@/components/admin/AdminTechnologyHub';
 import AdminCompanies from '@/components/admin/AdminCompanies';
+import AdminDataRoom from '@/components/admin/AdminDataRoom';
 
 // Navigation Item Component — Noir & Gold
 const NavItem = ({
@@ -265,6 +266,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
               <div className="space-y-0.5">
                 <NavItem icon={Activity} label="Today" active={activeSection === "today"} onClick={() => { setActiveSection("today"); setMobileNavOpen(false); }} />
                 <NavItem icon={Building2} label="Licensed companies" active={activeSection === "companies"} onClick={() => { setActiveSection("companies"); setMobileNavOpen(false); }} />
+                <NavItem icon={FolderOpen} label="Data Room" active={activeSection === "data-room"} onClick={() => { setActiveSection("data-room"); setMobileNavOpen(false); }} />
                 <NavItem icon={Briefcase} label="Preview company workspace" active={false} onClick={() => navigate('/admin/preview/workspace')} />
                 <NavItem icon={Users} label="Preview customer account" active={false} onClick={() => navigate('/admin/preview/account')} />
                 <NavItem icon={Database} label="Products" active={activeSection === "unified-products"} onClick={() => { setActiveSection("unified-products"); setMobileNavOpen(false); }} />
@@ -429,6 +431,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
 
           {isMainAdmin && activeSection === 'today' && <AdminTechnologyHub />}
           {isMainAdmin && activeSection === 'companies' && <AdminCompanies />}
+          {isMainAdmin && activeSection === 'data-room' && <AdminDataRoom />}
 
           {/* Products Tab - Only for main admins */}
           {isMainAdmin && activeSection === "unified-products" && <div className="space-y-6 animate-fade-in">
