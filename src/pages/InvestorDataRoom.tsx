@@ -18,6 +18,7 @@ import gtmDoc from '@/assets/investors/gtm.pdf.asset.json';
 import planDoc from '@/assets/investors/plan.pdf.asset.json';
 import capDoc from '@/assets/investors/captable.html.asset.json';
 import deck100Doc from '@/assets/investors/deck100.html.asset.json';
+import { INVESTOR_SHEETS } from '@/data/investorSheets';
 import xlPools from '@/assets/investors/xl-pools.html.asset.json';
 import xlCap from '@/assets/investors/xl-captable.html.asset.json';
 import xlSoft from '@/assets/investors/xl-software.html.asset.json';
@@ -25,9 +26,9 @@ import assetsDoc from '@/assets/investors/digitalassets.html.asset.json';
 
 const DOCS = [
   { title: 'Investor Deck — 100 Pools (latest numbers)', meta: 'HTML', body: 'Current investor deck with updated figures.', url: deck100Doc.url },
-  { title: '100 Pools — Financial Model', meta: 'Spreadsheet', body: '$5M plan, $5M vs $10M, 5-year projection, dashboard.', url: xlPools.url },
-  { title: 'Software Sales — Financial Model', meta: 'Spreadsheet', body: 'SaaS packages, scale and 5-year projection.', url: xlSoft.url },
-  { title: 'Cap Table — 25% Each (spreadsheet)', meta: 'Spreadsheet', body: 'Partner ownership table.', url: xlCap.url },
+  { title: '100 Pools — Financial Model', meta: 'Spreadsheet', body: '$5M plan, $5M vs $10M, 5-year projection, dashboard.', url: xlPools.url, sheet: 'pools' as const },
+  { title: 'Software Sales — Financial Model', meta: 'Spreadsheet', body: 'SaaS packages, scale and 5-year projection.', url: xlSoft.url, sheet: 'software' as const },
+  { title: 'Cap Table — 25% Each (spreadsheet)', meta: 'Spreadsheet', body: 'Partner ownership table.', url: xlCap.url, sheet: 'captable' as const },
   { title: 'Investor Deck v6', meta: 'PDF · 12 pages', body: 'High-Value Studio — $50k/yr, $2.5M 2027.', url: deckDoc.url },
   { title: 'One Platform Mastery', meta: 'PDF · 16 pages', body: 'The full platform, module by module.', url: platformDoc.url },
   { title: 'Go-To-Market Strategy 2026', meta: 'PDF · 10 pages', body: 'Channels, launch sequence and targets.', url: gtmDoc.url },
@@ -161,7 +162,7 @@ function DocumentViewer() {
   // HTML files are served as downloads, so fetch their text and embed it via srcDoc.
   const [html, setHtml] = useState<string | null>(null);
   useEffect(() => {
-    if (isPdf) return;
+    if (isPdf || doc.sheet) return;
     let alive = true;
     setHtml(null);
     fetch(doc.url).then((r) => r.text()).then((t) => {
@@ -186,9 +187,26 @@ function DocumentViewer() {
         ))}
       </div>
       <div className="select-none border border-border bg-card">
-        <iframe key={doc.url} title={doc.title} src={src}
+        {doc.sheet ? (
+          <div className="h-[80vh] overflow-auto p-6">
+            {INVESTOR_SHEETS[doc.sheet].map((sh) => (
+              <div key={sh.title} className="mb-12">
+                <h3 className="mb-4 border-b border-border pb-2 font-serif text-2xl font-light">{sh.title}</h3>
+                <table className="w-full text-xs">
+                  <tbody>
+                    {sh.rows.map((r, i) => (
+                      <tr key={i} className="border-b border-border/60">
+                        {r.map((c, j) => <td key={j} className={`px-2 py-2 align-top ${j === 0 ? 'font-medium' : 'tabular-nums'}`}>{c}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        ) : <iframe key={doc.url} title={doc.title} src={src}
           {...(isPdf ? {} : { srcDoc: html ?? '<p style="font-family:serif;padding:24px;color:#888">Loading…</p>', sandbox: 'allow-scripts allow-popups allow-popups-to-escape-sandbox' })}
-          className="h-[80vh] w-full" />
+          className="h-[80vh] w-full" />}
         <p className="border-t border-border px-4 py-2 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Confidential · view only · covered by your NDA</p>
       </div>
     </div>
