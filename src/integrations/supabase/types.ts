@@ -2131,6 +2131,42 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_nda_signatures: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          nda_version: string
+          signature: string
+          signed_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          nda_version?: string
+          signature: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          nda_version?: string
+          signature?: string
+          signed_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           company_id: string
@@ -5178,6 +5214,17 @@ export type Database = {
       promote_user_to_main_admin: {
         Args: { user_email: string }
         Returns: boolean
+      }
+      sign_investor_nda: {
+        Args: {
+          _email: string
+          _first: string
+          _last: string
+          _signature: string
+          _ua?: string
+          _version?: string
+        }
+        Returns: string
       }
       site_slug_for_domain: { Args: { _host: string }; Returns: string }
       submit_site_lead: {

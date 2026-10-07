@@ -61,6 +61,7 @@ const StudioShowroom = lazy(() => import("./pages/StudioShowroom"));
 const StudioLanding = lazy(() => import("./pages/StudioLanding"));
 const JobsPage = lazy(() => import("./pages/JobsPage"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
+const InvestorDataRoom = lazy(() => import("./pages/InvestorDataRoom"));
 const ConsentPage = lazy(() => import("./pages/ConsentPage"));
 const ApiDocumentation = lazy(() => import("./pages/ApiDocumentation"));
 const SharedProjectView = lazy(() => import("./pages/SharedProjectView"));
@@ -210,6 +211,7 @@ const App = () => {
             <Route path="/design-studio" element={<DesignStudio />} />
             <Route path="/jobs" element={<JobsPage />} />
             <Route path="/deck" element={<InvestorDeck />} />
+            <Route path="/investors" element={<InvestorDataRoom />} />
             <Route path="/twilio-poc" element={<TwilioPOC />} />
             <Route path="/consent" element={<ConsentPage />} />
             <Route path="/api" element={<ApiDocumentation />} />
