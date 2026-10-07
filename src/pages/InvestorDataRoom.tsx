@@ -157,7 +157,20 @@ function DocumentViewer() {
   const [active, setActive] = useState(0);
   const doc = DOCS[active];
   const isPdf = doc.url.toLowerCase().endsWith('.pdf');
-  const src = isPdf ? `${doc.url}#toolbar=0&navpanes=0&statusbar=0&view=FitH` : doc.url;
+  const src = isPdf ? `${doc.url}#toolbar=0&navpanes=0&statusbar=0&view=FitH` : undefined;
+  // HTML files are served as downloads, so fetch their text and embed it via srcDoc.
+  const [html, setHtml] = useState<string | null>(null);
+  useEffect(() => {
+    if (isPdf) return;
+    let alive = true;
+    setHtml(null);
+    fetch(doc.url).then((r) => r.text()).then((t) => {
+      if (!alive) return;
+      const base = '<base target="_blank">';
+      setHtml(t.includes('<head>') ? t.replace('<head>', `<head>${base}`) : base + t);
+    }).catch(() => alive && setHtml('<p style="font-family:serif;padding:24px">This document could not be loaded.</p>'));
+    return () => { alive = false; };
+  }, [doc.url, isPdf]);
   return (
     <div className="grid gap-6 lg:grid-cols-[280px_1fr]" onContextMenu={(e) => e.preventDefault()}>
       <div className="divide-y divide-border border-y border-border">
@@ -174,7 +187,7 @@ function DocumentViewer() {
       </div>
       <div className="select-none border border-border bg-card">
         <iframe key={doc.url} title={doc.title} src={src}
-          {...(isPdf ? {} : { sandbox: 'allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox' })}
+          {...(isPdf ? {} : { srcDoc: html ?? '<p style="font-family:serif;padding:24px;color:#888">Loading…</p>', sandbox: 'allow-scripts allow-popups allow-popups-to-escape-sandbox' })}
           className="h-[80vh] w-full" />
         <p className="border-t border-border px-4 py-2 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Confidential · view only · covered by your NDA</p>
       </div>
