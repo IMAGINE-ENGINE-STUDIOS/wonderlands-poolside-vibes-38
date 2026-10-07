@@ -18,10 +18,16 @@ import gtmDoc from '@/assets/investors/gtm.pdf.asset.json';
 import planDoc from '@/assets/investors/plan.pdf.asset.json';
 import capDoc from '@/assets/investors/captable.html.asset.json';
 import deck100Doc from '@/assets/investors/deck100.html.asset.json';
+import xlPools from '@/assets/investors/xl-pools.html.asset.json';
+import xlCap from '@/assets/investors/xl-captable.html.asset.json';
+import xlSoft from '@/assets/investors/xl-software.html.asset.json';
 import assetsDoc from '@/assets/investors/digitalassets.html.asset.json';
 
 const DOCS = [
   { title: 'Investor Deck — 100 Pools (latest numbers)', meta: 'HTML', body: 'Current investor deck with updated figures.', url: deck100Doc.url },
+  { title: '100 Pools — Financial Model', meta: 'Spreadsheet', body: '$5M plan, $5M vs $10M, 5-year projection, dashboard.', url: xlPools.url },
+  { title: 'Software Sales — Financial Model', meta: 'Spreadsheet', body: 'SaaS packages, scale and 5-year projection.', url: xlSoft.url },
+  { title: 'Cap Table — 25% Each (spreadsheet)', meta: 'Spreadsheet', body: 'Partner ownership table.', url: xlCap.url },
   { title: 'Investor Deck v6', meta: 'PDF · 12 pages', body: 'High-Value Studio — $50k/yr, $2.5M 2027.', url: deckDoc.url },
   { title: 'One Platform Mastery', meta: 'PDF · 16 pages', body: 'The full platform, module by module.', url: platformDoc.url },
   { title: 'Go-To-Market Strategy 2026', meta: 'PDF · 10 pages', body: 'Channels, launch sequence and targets.', url: gtmDoc.url },
