@@ -17,6 +17,7 @@ import platformDoc from '@/assets/investors/platform.pdf.asset.json';
 import gtmDoc from '@/assets/investors/gtm.pdf.asset.json';
 import planDoc from '@/assets/investors/plan.pdf.asset.json';
 import capDoc from '@/assets/investors/captable.html.asset.json';
+import assetsDoc from '@/assets/investors/digitalassets.html.asset.json';
 
 const DOCS = [
   { title: 'Investor Deck v6', meta: 'PDF · 12 pages', body: 'High-Value Studio — $50k/yr, $2.5M 2027.', url: deckDoc.url },
@@ -24,6 +25,7 @@ const DOCS = [
   { title: 'Go-To-Market Strategy 2026', meta: 'PDF · 10 pages', body: 'Channels, launch sequence and targets.', url: gtmDoc.url },
   { title: 'Business Plan', meta: 'PDF · 25 pages', body: 'Wonderlands Worlds Experience business plan.', url: planDoc.url },
   { title: 'Cap Table (branded)', meta: 'HTML', body: 'Original branded cap table sheet.', url: capDoc.url },
+  { title: 'Digital Assets & Partners', meta: 'Links', body: 'Every link to our digital assets and partners.', url: assetsDoc.url },
 ];
 
 /** Cap table — from the uploaded "25% Each" sheet. */
@@ -144,7 +146,7 @@ function DocumentViewer() {
       </div>
       <div className="select-none border border-border bg-card">
         <iframe key={doc.url} title={doc.title} src={src}
-          {...(isPdf ? {} : { sandbox: 'allow-same-origin' })}
+          {...(isPdf ? {} : { sandbox: 'allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox' })}
           className="h-[80vh] w-full" />
         <p className="border-t border-border px-4 py-2 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Confidential · view only · covered by your NDA</p>
       </div>
