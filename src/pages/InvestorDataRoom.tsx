@@ -132,6 +132,26 @@ const ROOM = [
   { n: '08', title: 'Book a call with the founder', body: 'Thirty minutes with Ricardo.', href: 'https://calendly.com/wonderlandsworlds/30min' },
 ];
 
+
+/** Subcontractor network (from CONTRACTORS.xlsx). */
+const SUBS = [
+  { name: 'BAM Shotcrete Inc.', trade: 'Shotcrete', web: 'https://bamshotcrete.com', phone: '(623) 462-0230', area: 'Various locations', email: '' },
+  { name: 'Prestige Shotcrete', trade: 'Shotcrete', web: 'https://prestige-gunite.com', phone: '(407) 468-0344', area: 'Tampa, Orlando, Fort Myers, Venice, East Coast', email: '' },
+  { name: 'High Pressure Shotcrete', trade: 'Shotcrete', web: 'https://www.highpressureshotcretefl.com', phone: '(352) 354-2002', area: 'Ocala', email: '' },
+  { name: 'Kennedy Concrete', trade: 'Shotcrete', web: 'https://kennedyconcrete.com', phone: '(407) 708-9175', area: 'Central Florida, East and West', email: '' },
+  { name: 'Preferred Materials, Inc.', trade: 'Shotcrete', web: 'https://preferredmaterials.com', phone: '(855) 591-4375', area: 'Various locations', email: '' },
+  { name: 'Elite Gunite, LLC', trade: 'Shotcrete', web: 'https://www.elitegunite.net', phone: '(813) 756-6926', area: 'Various locations', email: 'estimates@elitegunite.net' },
+  { name: 'Davis Concrete', trade: 'Shotcrete', web: 'https://www.davisconcreteinc.com', phone: '1-800-910-6928', area: 'Clearwater, Bradenton, Tampa, Lakeland', email: 'info@davisconcreteinc.com' },
+  { name: 'Spray Rock Building Systems', trade: 'Shotcrete', web: 'https://sprayrock.com', phone: '(954) 205-9577', area: '—', email: 'larry@sprayrock.com' },
+  { name: 'El Plomero Latino Inc.', trade: 'Plumbing', web: 'https://elplomerolatino.com', phone: '(407) 362-7654', area: 'Orlando, Orange, Osceola and Seminole Counties', email: '' },
+  { name: 'D&J Pool Prep', trade: 'Pool builder', web: '', phone: '(407) 879-5103', area: 'Central Florida', email: '' },
+  { name: 'SIROME LLC', trade: 'Electrical', web: '', phone: '(407) 618-9291', area: 'Central Florida', email: '' },
+  { name: 'Victor Bandera', trade: 'Pool builder', web: '', phone: '(407) 684-3292', area: 'Central Florida', email: '' },
+  { name: 'Trullis Pools', trade: 'Pool builder', web: 'https://www.trullispools.com', phone: '(407) 373-9870', area: 'Central Florida', email: '' },
+  { name: 'V & V Tools', trade: 'Pavers', web: '', phone: '(407) 910-9716', area: 'Central Florida', email: '' },
+  { name: 'Total Pavers', trade: 'Pavers', web: 'https://totalbrickpavers.com', phone: '', area: 'Central Florida', email: '' },
+];
+
 /** In-page, view-only reader: PDF toolbar hidden, right-click blocked, no download links. */
 function DocumentViewer() {
   const [active, setActive] = useState(0);
@@ -292,6 +312,29 @@ export default function InvestorDataRoom() {
             <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Section III — Library</p>
             <h2 className="mb-10 mt-3 font-serif text-4xl font-light tracking-tight sm:text-5xl">Documents</h2>
             <DocumentViewer />
+          </div>
+
+          <div className="mt-20 border-t border-border/60 pt-10">
+            <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Section — Build network</p>
+            <h2 className="mb-10 mt-3 font-serif text-4xl font-light tracking-tight sm:text-5xl">Subcontractors</h2>
+            <div className="overflow-x-auto border-y border-border">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead className="border-b border-border text-left text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                  <tr><th className="py-3 font-normal">Company</th><th className="font-normal">Trade</th><th className="font-normal">Area</th><th className="font-normal">Phone</th><th className="font-normal">Contact</th></tr>
+                </thead>
+                <tbody>
+                  {SUBS.map((c) => (
+                    <tr key={c.name} className="border-b border-border/60 align-top">
+                      <td className="py-4 font-serif text-lg">{c.web ? <a href={c.web} target="_blank" rel="noreferrer" className="hover:underline">{c.name}</a> : c.name}</td>
+                      <td className="py-4">{c.trade}</td>
+                      <td className="max-w-[260px] py-4 text-muted-foreground">{c.area}</td>
+                      <td className="py-4 tabular-nums">{c.phone ? <a href={`tel:${c.phone.replace(/[^0-9+]/g, '')}`} className="hover:underline">{c.phone}</a> : '—'}</td>
+                      <td className="py-4">{c.email ? <a href={`mailto:${c.email}`} className="hover:underline">{c.email}</a> : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="mt-20 border-t border-border/60 pt-10">
