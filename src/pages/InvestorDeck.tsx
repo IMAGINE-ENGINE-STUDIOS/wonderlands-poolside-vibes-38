@@ -12,7 +12,7 @@ import firePitImg from "@/assets/deck/fire-pit.webp";
 import lanaiDeluxe from "@/assets/enclosures/lanai-deluxe.webp";
 
 const usd = (n: number) =>
-  n >= 1e6 ? `$${(n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 2).replace(/\.?0+$/, "")}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${n}`;
+  n >= 1e6 ? `$${parseFloat((n / 1e6).toFixed(2))}M` : n >= 1e3 ? `$${parseFloat((n / 1e3).toFixed(1))}K` : `$${n}`;
 
 const MIX = [
   { cat: "Pool Construction", n: 30, avg: 90000, rev: 2700000, m: "35%", gp: 945000 },
