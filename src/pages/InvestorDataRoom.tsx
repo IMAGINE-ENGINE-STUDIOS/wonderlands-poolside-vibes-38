@@ -122,6 +122,36 @@ const ROOM = [
   { n: '08', title: 'Book a call with the founder', body: 'Thirty minutes with Ricardo.', href: 'https://calendly.com/wonderlandsworlds/30min' },
 ];
 
+/** In-page, view-only reader: PDF toolbar hidden, right-click blocked, no download links. */
+function DocumentViewer() {
+  const [active, setActive] = useState(0);
+  const doc = DOCS[active];
+  const isPdf = doc.url.toLowerCase().endsWith('.pdf');
+  const src = isPdf ? `${doc.url}#toolbar=0&navpanes=0&statusbar=0&view=FitH` : doc.url;
+  return (
+    <div className="grid gap-6 lg:grid-cols-[280px_1fr]" onContextMenu={(e) => e.preventDefault()}>
+      <div className="divide-y divide-border border-y border-border">
+        {DOCS.map((d, i) => (
+          <button key={d.title} type="button" onClick={() => setActive(i)}
+            className={`flex w-full items-start gap-3 py-4 text-left transition-opacity ${i === active ? '' : 'opacity-50 hover:opacity-100'}`}>
+            <span className="w-6 text-[11px] tabular-nums text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
+            <span className="min-w-0">
+              <span className="block font-serif text-lg font-light leading-tight">{d.title}</span>
+              <span className="block text-[11px] text-muted-foreground">{d.meta}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+      <div className="select-none border border-border bg-card">
+        <iframe key={doc.url} title={doc.title} src={src}
+          {...(isPdf ? {} : { sandbox: 'allow-same-origin' })}
+          className="h-[80vh] w-full" />
+        <p className="border-t border-border px-4 py-2 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Confidential · view only · covered by your NDA</p>
+      </div>
+    </div>
+  );
+}
+
 function SignaturePad({ onChange }: { onChange: (dataUrl: string | null) => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
