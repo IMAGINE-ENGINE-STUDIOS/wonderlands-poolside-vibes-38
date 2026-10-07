@@ -242,19 +242,7 @@ export default function InvestorDataRoom() {
           <div className="mt-20 border-t border-border/60 pt-10">
             <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Section III — Library</p>
             <h2 className="mb-10 mt-3 font-serif text-4xl font-light tracking-tight sm:text-5xl">Documents</h2>
-            <div className="divide-y divide-border border-y border-border">
-              {DOCS.map((d, i) => (
-                <div key={d.title} className="flex flex-wrap items-center gap-4 py-5">
-                  <span className="w-8 text-[11px] tabular-nums text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-serif text-2xl font-light">{d.title}</p>
-                    <p className="text-xs text-muted-foreground">{d.meta} · {d.body}</p>
-                  </div>
-                  <a href={d.url} target="_blank" rel="noreferrer" className="text-[10px] uppercase tracking-[0.35em] hover:underline">View</a>
-                  <a href={d.url} download className="text-[10px] uppercase tracking-[0.35em] hover:underline">Download</a>
-                </div>
-              ))}
-            </div>
+            <DocumentViewer />
           </div>
         </section>
       ) : (
