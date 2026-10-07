@@ -273,6 +273,15 @@ export default function InvestorDataRoom() {
             <CapTable />
           </div>
 
+          <a href="https://www.meta.ai/share/a/be06d155-2c94-462b-8bdc-2750a055824c" target="_blank" rel="noreferrer"
+            className="mt-20 flex flex-col items-center justify-between gap-4 bg-foreground px-8 py-10 text-background transition-opacity hover:opacity-90 sm:flex-row">
+            <span>
+              <span className="block text-[10px] uppercase tracking-[0.5em] opacity-70">Confidential</span>
+              <span className="mt-2 block font-serif text-4xl font-light tracking-tight sm:text-5xl">Current Financials</span>
+            </span>
+            <span className="border border-background px-8 py-4 text-xs uppercase tracking-[0.35em]">Open financials →</span>
+          </a>
+
           <div className="mt-20 border-t border-border/60 pt-10">
             <p className="text-[9px] uppercase tracking-[0.5em] text-muted-foreground">Section III — Library</p>
             <h2 className="mb-10 mt-3 font-serif text-4xl font-light tracking-tight sm:text-5xl">Documents</h2>
