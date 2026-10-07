@@ -16,13 +16,11 @@ import deckDoc from '@/assets/investors/deck.pdf.asset.json';
 import platformDoc from '@/assets/investors/platform.pdf.asset.json';
 import gtmDoc from '@/assets/investors/gtm.pdf.asset.json';
 import planDoc from '@/assets/investors/plan.pdf.asset.json';
-import capDoc from '@/assets/investors/captable.html.asset.json';
 import deck100Doc from '@/assets/investors/deck100.html.asset.json';
 import { INVESTOR_SHEETS } from '@/data/investorSheets';
 import xlPools from '@/assets/investors/xl-pools.html.asset.json';
 import xlCap from '@/assets/investors/xl-captable.html.asset.json';
 import xlSoft from '@/assets/investors/xl-software.html.asset.json';
-import assetsDoc from '@/assets/investors/digitalassets.html.asset.json';
 
 const DOCS = [
   { title: 'Investor Deck — 100 Pools (latest numbers)', meta: 'HTML', body: 'Current investor deck with updated figures.', url: deck100Doc.url, html: 'deck100' as const },
@@ -154,9 +152,7 @@ const SUBS = [
 /** In-page, view-only reader: PDF toolbar hidden, right-click blocked, no download links. */
 // HTML documents bundled as text (lazy) so they render in-page instead of downloading.
 const HTML_DOCS = {
-  captable: () => import('@/assets/investors/html/captable.html?raw'),
   deck100: () => import('@/assets/investors/html/deck100.html?raw'),
-  digitalassets: () => import('@/assets/investors/html/digitalassets.html?raw'),
 };
 
 function DocumentViewer() {
