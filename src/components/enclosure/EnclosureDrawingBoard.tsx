@@ -933,7 +933,7 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
       tagFeature(index, mode === 'door' ? 'door' : 'house', t);
       return;
     }
-    if (layout.points.length > 2 && dist(layout.points[0], p) < 10) {
+    if (layout.points.length > 2 && dist(layout.points[0], p) * view.z < 22) {
       onChange({ ...layout, closed: true });
       return;
     }
@@ -941,7 +941,9 @@ const EnclosureDrawingBoard = ({ layout, onChange, onMeasure, onSnapshot, frameC
   };
 
   const handleMove = (e: React.MouseEvent) => {
-    const p = toLocal(e);
+    let p = toLocal(e);
+    // magnetic close: the cursor snaps onto the first post when it comes near
+    if (mode === 'draw' && !layout.closed && layout.points.length > 2 && dist(layout.points[0], p) * view.z < 22) p = layout.points[0];
     setHover(p);
     if (dragIndex !== null) {
       onChange({ ...layout, points: layout.points.map((pt, i) => (i === dragIndex ? p : pt)) });

@@ -1393,7 +1393,14 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
       return;
     }
     if (mode !== 'draw' || !draft.length) return;
-    setHover({ x: snap(raw.x), y: snap(raw.y) });
+    {
+      const first = draft[0];
+      if (mode === 'draw' && draft.length > 2 && first && Math.hypot(raw.x - first.x, raw.y - first.y) < 22 / (viewRef.current.z || 1)) {
+        setHover({ x: first.x, y: first.y }); // magnet onto the first point
+      } else {
+        setHover({ x: snap(raw.x), y: snap(raw.y) });
+      }
+    }
   };
 
 
@@ -1431,7 +1438,8 @@ export const SiteDrawingBoard: React.FC<Props> = ({ data, onChange, onSnapshot, 
     // clicking the first vertex closes the polygon
     if (draft.length > 2) {
       const first = draft[0];
-      if (Math.hypot(p.x - first.x, p.y - first.y) < 10) {
+      /* magnetic close: within ~22 screen px of the first vertex, whatever the zoom */
+      if (Math.hypot(raw.x - first.x, raw.y - first.y) < 22 / (viewRef.current.z || 1)) {
         commitDraft(draft, true);
         return;
       }
