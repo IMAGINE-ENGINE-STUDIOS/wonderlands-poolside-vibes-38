@@ -110,7 +110,7 @@ export function pickToAsset(pick: SketchfabPick, type: TerrainAsset['type'] = 'o
     format: 'glb',
     position: [0, 0, 0],
     rotation: [0, 0, 0],
-    scale: type === 'terrain' ? 1 : 1,
+    scale: type === 'terrain' || type === 'skydome' ? 3.28084 : 1, // metres → feet
     visible: true,
     autoFit: type !== 'terrain' && type !== 'skydome',
   };
