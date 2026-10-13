@@ -18,7 +18,17 @@ export interface ShowroomWidget {
   description: string;
   /** Plain words a guest may use for this widget */
   keywords: string[];
+  /** Frame family — decides the frame chrome so each solution looks distinct. */
+  family?: ShowroomFamily;
+  /** Editorial copy shared with /tools (eyebrow, headline, capabilities, launch route). */
+  eyebrow?: string;
+  headline?: string;
+  capabilities?: string[];
+  route?: string;
+  cta?: string;
 }
+
+export type ShowroomFamily = 'cad' | 'magazine' | 'console' | 'desk' | 'terminal' | 'commerce' | 'catalog';
 
 const w = (
   id: string,
@@ -29,7 +39,31 @@ const w = (
   keywords: string[],
 ): ShowroomWidget => ({ id, index, title, tag, description, keywords });
 
-export const SHOWROOM_WIDGETS: ShowroomWidget[] = [
+const FLAGSHIP: ShowroomWidget[] = [
+  w('design-studio', 'S1', 'Design Studio — 2D & 3D', 'CAD engine',
+    'A dual-view design engine: a real-time 3D scene and a plan-view board bound to the same geometry at 10 px per foot. Draw or edit the shell outline and the depth profile rebuilds from linear anchors, with coping, waterline tile, deck elevation and walls generated automatically. Switch 2D ↔ 3D at any time; the scene is remembered.',
+    ['design studio', '3d', '2d', 'pool designer', 'draw a pool', '3d pool', 'designer']),
+  w('flip-v8', 'S2', 'FLIP V8 — The Calm Edition', 'Publishing',
+    'The current FLIP magazine shipped on the home page: every category as a book, model dossiers, live tool widgets, cart and estimate — turned page by page with calm arrow-only reading.',
+    ['flip', 'flip v8', 'magazine', 'book', 'catalog book', 'edition']),
+  w('flip-builder', 'S3', 'Flip Builder V3', 'Publishing',
+    'The current builder, same as in SOCIALITE: 50 fonts, kindle mode, colour wheel, reader controls (arrows, curl, page counter, share, study), shopping blocks, minibooks and jump links, category import and one-click publishing.',
+    ['flip builder', 'builder', 'make a book', 'create a flip', 'flip it']),
+  w('socialite', 'S4', 'SOCIALITE', 'Growth platform',
+    'The marketing and communications platform: publish to Facebook, Instagram, Threads, X and YouTube, schedule email, SMS, WhatsApp and calls, run campaigns, quotes and invoices, live insights, Genius knowledge and Shield safe-sending rules.',
+    ['socialite', 'social media', 'marketing', 'campaign', 'post', 'schedule posts', 'email campaign']),
+  w('solar', 'S5', 'Total Solar Calculator', 'Estimating engine',
+    'A solar instrument built on measured roofs rather than averages. Search an address, capture roof planes from high-resolution aerial imagery, and each face is scored for sun exposure from azimuth, pitch, latitude and shade.',
+    ['solar', 'solar panels', 'roof', 'solar calculator']),
+  w('global-board', 'S6', 'Global Design Board', 'Platform',
+    'The one-stop board for an entire project. Site, pool, deck, spa, enclosure, fence, turf, planting and solar each bring their own splines, options and features, priced exactly as in the Studio and the FLIP book.',
+    ['global board', 'whole property', 'all trades', 'planting', 'landscape plan']),
+  w('wonderlands-studio', 'S7', 'Configuration Studio', 'Platform',
+    'The full configuration platform that hosts the other modules: category navigation, product catalogue, option engine, unit-priced trades and a single running total across the whole build.',
+    ['wonderlands studio', 'configuration studio', 'studio', 'configure everything']),
+];
+
+const BASE_WIDGETS: ShowroomWidget[] = [
   w('search', '01', 'Advanced Search', 'Navigation',
     'Catalog-wide search with filters, category routing and inline results. Shown in the full and slim variants used across the site.',
     ['search', 'find', 'look up', 'catalog search', 'filters']),
@@ -118,6 +152,73 @@ export const SHOWROOM_WIDGETS: ShowroomWidget[] = [
     'Main page footer: navigation, contact details, scheduling link and legal information.',
     ['footer', 'contact details']),
 ];
+
+/* Editorial copy and frame family — mirrors the /tools descriptions. */
+type Detail = Pick<ShowroomWidget, 'family' | 'eyebrow' | 'headline' | 'capabilities' | 'route' | 'cta'>;
+const DETAILS: Record<string, Detail> = {
+  'design-studio': { family: 'cad', eyebrow: 'Real-time WebGL. True scale.', headline: 'Walk the water before it exists.', route: '/design-studio', cta: 'Open the Designer',
+    capabilities: ['Bidirectional 2D ↔ 3D geometry sync with scene memory', 'Linear depth anchors with auto wall generation', 'Coping, waterline and deck at 1 ft UV texture scale', 'Snap-to-wall lighting with gradient presets', 'Live cost model per shell, deck and feature'] },
+  'flip-v8': { family: 'magazine', eyebrow: 'The book, read calmly.', headline: 'Every category, one edition.', route: '/', cta: 'Open on the home page',
+    capabilities: ['Arrow-only page turning, keyboard friendly', 'Category editions and model dossiers', 'Live tool widgets inside the pages', 'Cart, estimate and quote from any page', 'Genius narrator on every leaf'] },
+  'flip-builder': { family: 'magazine', eyebrow: 'Compose. Publish. Sell.', headline: 'Your own edition, page by page.', route: '/flip', cta: 'Open Flip Builder V3',
+    capabilities: ['50 fonts, colour wheel and kindle mode', 'Reader controls: arrows, curl, counter, share, study', 'Shopping blocks, minibooks and page-jump links', 'Category import from the catalogue', 'One-click publishing to /flip/:slug'] },
+  socialite: { family: 'console', eyebrow: 'Publish. Message. Grow.', headline: 'Every channel, one console.', route: '/socialite', cta: 'Open SOCIALITE',
+    capabilities: ['Posts to Facebook, Instagram, Threads, X and YouTube', 'Timed email, SMS, WhatsApp and calls', 'Campaign Console with flip-book emails', 'Live insights from your own accounts', 'Shield safe-sending rules and Genius knowledge'] },
+  solar: { family: 'terminal', eyebrow: 'Aerial roof capture. Real yield.', headline: 'Only the panels the roof can hold.', route: '/solar-board', cta: 'Open the Solar Board',
+    capabilities: ['Address search over high-resolution aerial tiles', 'Roof plane capture with editable outlines', 'Per-face exposure from azimuth, pitch and shade', 'Astronomical sun path and yearly simulation', 'Electricity tariffs and contractor bill of materials'] },
+  'global-board': { family: 'cad', eyebrow: 'Every trade. One take-off.', headline: 'The whole property, priced as it is drawn.', route: '/global-design-board', cta: 'Open the Global Board',
+    capabilities: ['All trade layers on one canvas', 'Studio-identical imagery, options and pricing', 'Automatic overlap cropping between trades', 'Project-wide dossier with payment schedule', 'One-click load into the blueprint plan set'] },
+  'wonderlands-studio': { family: 'commerce', eyebrow: 'The master instrument.', headline: 'Every category, one running total.', route: '/wonderlands-studio', cta: 'Enter the Studio',
+    capabilities: ['Fourteen product categories in one surface', 'Unit-priced trades alongside catalogue products', 'Real-time autosave and viewport restoration', 'Single running total across the whole build', 'Handoff into the quote and document engines'] },
+  search: { family: 'catalog', eyebrow: 'The whole catalog, one field.', headline: 'Find it by name, or by number.', route: '/', cta: 'Search the Catalog',
+    capabilities: ['Single index across products, trades and specifications', 'Filter chips with category-scoped routing', 'Inline results with direct deep links', 'Full and slim presentation variants'] },
+  'flip-search': { family: 'magazine' },
+  cart: { family: 'commerce' },
+  features: { family: 'commerce', eyebrow: 'Category-aware options.', headline: 'Pools and saunas ask different questions.', route: '/wonderlands-studio', cta: 'Configure a Product',
+    capabilities: ['Declarative feature configs per product type', 'Carousels, toggles and counters generated automatically', 'Business rules and restrictions enforced centrally', 'Selections priced into the running total'] },
+  media: { family: 'catalog' },
+  'pool-calc': { family: 'terminal', eyebrow: 'Volume. Heat. Area.', headline: 'The numbers behind the water.', route: '/pool-calculator', cta: 'Run the Numbers',
+    capabilities: ['Volume and turnover by shape and depth profile', 'Heater sizing by temperature rise and surface area', 'Inline square-foot and linear-foot estimators', 'Results write back into the active configuration'] },
+  'heater-calc': { family: 'terminal' },
+  'inline-calc': { family: 'terminal' },
+  'flip-calculators': { family: 'terminal' },
+  'site-planner': { family: 'cad', eyebrow: 'Plan view. Survey accurate.', headline: 'One continuous line, drawn to scale.', route: '/blueprint-builder', cta: 'Open the Board',
+    capabilities: ['Layered site polygons with per-layer styling', 'Vertex-level editing and dimension callouts', 'Automatic area and impervious-coverage totals', 'Exports geometry to the plan set and the designer'] },
+  fence: { family: 'cad', eyebrow: 'Barrier logic, built in.', headline: 'Every run, every gate, measured.', route: '/studio-showroom#fence', cta: 'Design a Fence',
+    capabilities: ['Segment-level gate flagging with hardware rules', 'Automatic linear footage, panel and post takeoff', 'Height and style pricing by barrier compliance', 'Separate material and installation lines'] },
+  enclosure: { family: 'cad', eyebrow: 'Structure, priced as you draw.', headline: 'Draw the footprint, price the structure.', route: '/studio-showroom#enclosure', cta: 'Configure an Enclosure',
+    capabilities: ['Vertex drawing with house-attached wall segments', 'Fixed-size door bays', 'Fabric, gauge, roof style and wind-load options', 'Customer turnkey price and contractor cost view'] },
+  grass: { family: 'cad', eyebrow: 'Any silhouette. Any size.', headline: 'Turf, drawn free-hand.', route: '/wonderlands-studio', cta: 'Open the Grass Board',
+    capabilities: ['Polygon and spline areas with per-area takeoff', 'Multi-region drawing with independent products', 'Live retail pricing per square foot', 'Infill, base and labour broken out'] },
+  blueprint: { family: 'desk', eyebrow: 'Permit ready. Print ready.', headline: 'The whole plan set, editable in place.', route: '/blueprint-builder', cta: 'Open Blueprint Builder',
+    capabilities: ['Inline editing of every information block', 'PDF / JPG / PNG underlay with scale calibration', 'DXF and SVG vector import with layer mapping', 'Multi-sheet templates with true-scale print output'] },
+  signature: { family: 'desk', eyebrow: 'Florida statutory signature.', headline: 'Signed, sealed, and verifiable.', route: '/blueprint-builder', cta: 'Open the Signature Tool',
+    capabilities: ['Draw, type or upload — one normalised output', 'Transparent PNG suitable for sheet embedding', 'SHA-256 authentication code over the document', 'Engineer, contractor and owner signature blocks'] },
+  depth: { family: 'cad' },
+  'scene-objects': { family: 'cad' },
+  financing: { family: 'commerce' },
+  quote: { family: 'desk', eyebrow: 'Intake to signed proposal.', headline: 'One survey becomes the document.', route: '/quote', cta: 'Build a Proposal',
+    capabilities: ['Guided intake with required contact capture', 'Itemised component and feature summation', 'Passcode-gated text and price overrides', 'Downloadable PDF, invoice and email handoff'] },
+  turnkey: { family: 'desk' },
+  'sauna-card': { family: 'catalog' },
+  'sauna-pricing': { family: 'commerce' },
+};
+
+export const SHOWROOM_WIDGETS: ShowroomWidget[] = [...FLAGSHIP, ...BASE_WIDGETS].map((x) => ({
+  family: 'catalog' as ShowroomFamily,
+  ...x,
+  ...DETAILS[x.id],
+}));
+
+export const SHOWROOM_FAMILY_LABEL: Record<ShowroomFamily, string> = {
+  cad: 'Design & drawing',
+  magazine: 'FLIP publishing',
+  console: 'SOCIALITE',
+  desk: 'Documents & permits',
+  terminal: 'Estimating',
+  commerce: 'Commerce',
+  catalog: 'Catalog & home page',
+};
 
 export const findShowroomWidget = (id: string) => SHOWROOM_WIDGETS.find((s) => s.id === id);
 
