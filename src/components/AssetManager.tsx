@@ -24,6 +24,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import * as THREE from 'three';
 import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './scene3d/poolAssetTypes';
 import { PoolLightConfig, TextureConfig } from './scene3d/types';
+import { ObjectsPanel, StairStyleControls, BarStoolControls, ContourWrapButtons, BAR_STOOL_PRESET, PANEL_TABS_LIST, PANEL_TAB } from './scene3d/AssetEditorExtras';
+import type { TerrainAsset } from './scene3d/TerrainEditor';
+import type { GizmoMode } from './scene3d/TerrainAssetsRenderer';
+import { Box } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,6 +69,12 @@ interface AssetManagerProps {
   isNightMode?: boolean;
   availableFinishes?: TextureConfig[];
   onRequestFuseStairSeating?: (stairId: string, seatingId: string) => void;
+  sceneObjects?: TerrainAsset[];
+  onSceneObjectsChange?: (assets: TerrainAsset[]) => void;
+  selectedObjectId?: string | null;
+  onSelectObject?: (id: string | null) => void;
+  gizmoMode?: GizmoMode;
+  onGizmoModeChange?: (m: GizmoMode) => void;
 }
 
 export function AssetManager({ 
@@ -84,10 +94,16 @@ export function AssetManager({
   poolFinishTexture = '',
   isNightMode = false,
   availableFinishes = [],
-  onRequestFuseStairSeating
+  onRequestFuseStairSeating,
+  sceneObjects = [],
+  onSceneObjectsChange,
+  selectedObjectId,
+  onSelectObject,
+  gizmoMode,
+  onGizmoModeChange
 }: AssetManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('stairs');
+  const [activeTab, setActiveTab] = useState('objects');
   const [showTextureSync, setShowTextureSync] = useState(false);
   const [pendingTextureSync, setPendingTextureSync] = useState<string | null>(null);
   const [showTextureMenu, setShowTextureMenu] = useState<string | null>(null);
@@ -147,7 +163,13 @@ export function AssetManager({
   }, [stairs, onStairsChange, onSelectAsset, poolFinishTexture]);
 
   // Add new chair/bench
-  const handleAddChair = useCallback((preset: 'lounge' | 'bench' | 'corner') => {
+  const handleAddChair = useCallback((preset: 'lounge' | 'bench' | 'corner' | 'barstool') => {
+    if (preset === 'barstool') {
+      const stool: PoolChairConfig = { id: `chair-${Date.now()}`, wallPosition: 0.3, textureUrl: poolFinishTexture, ...BAR_STOOL_PRESET };
+      onChairsChange?.([...chairs, stool]);
+      onSelectAsset?.(stool.id);
+      return;
+    }
     const presets = {
       lounge: { width: 2.5, depth: 6, height: 1.5, name: 'Tanning Ledge' },
       bench: { width: 6, depth: 1.5, height: 1.0, name: 'Pool Bench' },
@@ -283,24 +305,24 @@ export function AssetManager({
 
         {hasPoolAssets ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="p-2">
-            <TabsList className="grid grid-cols-4 w-full h-9 bg-muted/30">
-              <TabsTrigger value="stairs" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Footprints className="h-3 w-3 mr-1" />
-                Stairs
-              </TabsTrigger>
-              <TabsTrigger value="chairs" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Armchair className="h-3 w-3 mr-1" />
-                Seating
-              </TabsTrigger>
-              <TabsTrigger value="lights" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Lightbulb className="h-3 w-3 mr-1" />
-                Lights
-              </TabsTrigger>
-              <TabsTrigger value="jets" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Droplets className="h-3 w-3 mr-1" />
-                Jets
-              </TabsTrigger>
+            <TabsList className={`${PANEL_TABS_LIST} grid-cols-5`}>
+              <TabsTrigger value="objects" className={PANEL_TAB}><Box className="h-3 w-3" />Objects</TabsTrigger>
+              <TabsTrigger value="stairs" className={PANEL_TAB}><Footprints className="h-3 w-3" />Stairs</TabsTrigger>
+              <TabsTrigger value="chairs" className={PANEL_TAB}><Armchair className="h-3 w-3" />Seating</TabsTrigger>
+              <TabsTrigger value="lights" className={PANEL_TAB}><Lightbulb className="h-3 w-3" />Lights</TabsTrigger>
+              <TabsTrigger value="jets" className={PANEL_TAB}><Droplets className="h-3 w-3" />Jets</TabsTrigger>
             </TabsList>
+
+            {/* OBJECTS TAB — scene objects, gizmo, 3D model gallery */}
+            <TabsContent value="objects" className="mt-2">
+              <ScrollArea className="h-[420px]">
+                <div className="pr-2">
+                  <ObjectsPanel sceneObjects={sceneObjects} onChange={onSceneObjectsChange}
+                    selectedId={selectedObjectId} onSelect={onSelectObject}
+                    gizmoMode={gizmoMode} onGizmoModeChange={onGizmoModeChange} />
+                </div>
+              </ScrollArea>
+            </TabsContent>
 
             {/* STAIRS TAB */}
             <TabsContent value="stairs" className="mt-2">
@@ -376,6 +398,8 @@ export function AssetManager({
                         />
                       </div>
 
+                      <StairStyleControls stair={selectedStair} onChange={(u) => updateStair(selectedStair.id, u)} />
+
                       {selectedStair.shape === 'curved' && (
                         <div className="space-y-2">
                           <Label className="text-xs">Corner Radius: {selectedStair.cornerRadius?.toFixed(1)} ft</Label>
@@ -420,6 +444,10 @@ export function AssetManager({
                     <Button variant="outline" size="sm" onClick={() => handleAddChair('corner')} className="text-xs flex-col h-auto py-2">
                       <Armchair className="h-4 w-4 mb-1" />
                       Corner
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleAddChair('barstool')} className="text-xs flex-col h-auto py-2">
+                      <Armchair className="h-4 w-4 mb-1" />
+                      Bar stools
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleAddContourSeating} className="text-xs flex-col h-auto py-2 border-dashed">
                       <Spline className="h-4 w-4 mb-1" />
@@ -480,6 +508,8 @@ export function AssetManager({
                           step={0.01}
                         />
                       </div>
+
+                      <ContourWrapButtons seating={selectedContour} onChange={(u) => updateContour(selectedContour.id, u)} />
 
                       <div className="space-y-2">
                         <Label className="text-xs">Width: {selectedContour.width.toFixed(1)} ft</Label>
@@ -557,6 +587,7 @@ export function AssetManager({
                       </div>
 
                       <div className="space-y-2">
+                        <BarStoolControls chair={selectedChair} onChange={(u) => updateChair(selectedChair.id, u)} />
                         <Label className="text-xs">Top Depth: {selectedChair.height.toFixed(1)} ft below water</Label>
                         <Slider
                           value={[selectedChair.height]}

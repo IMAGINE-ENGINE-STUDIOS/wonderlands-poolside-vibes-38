@@ -1681,6 +1681,10 @@ export function UnifiedPoolVisualizer({
               }
               setTerrainAssets(next);
             }}
+          selectedObjectId={selectedTerrainAssetId}
+          onSelectObject={setSelectedTerrainAssetId}
+          gizmoMode={gizmoMode}
+          onGizmoModeChange={setGizmoMode}
           />
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
@@ -2084,6 +2088,21 @@ export function UnifiedPoolVisualizer({
           poolFinishTexture={linerTextureUrl}
           isNightMode={isNightMode}
           availableFinishes={textureLibrary.finishes}
+          sceneObjects={terrainAssets}
+          onSceneObjectsChange={(next) => {
+            if (next.length > terrainAssets.length) {
+              const added = next[next.length - 1];
+              if (added) {
+                setSelectedTerrainAssetId(added.id);
+                focusOnAsset(added.position as [number, number, number]);
+              }
+            }
+            setTerrainAssets(next);
+          }}
+          selectedObjectId={selectedTerrainAssetId}
+          onSelectObject={setSelectedTerrainAssetId}
+          gizmoMode={gizmoMode}
+          onGizmoModeChange={setGizmoMode}
         />
 
 

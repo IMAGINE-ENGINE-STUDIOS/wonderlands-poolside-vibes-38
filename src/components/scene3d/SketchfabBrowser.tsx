@@ -28,8 +28,9 @@ export interface SketchfabPick {
   uid: string;
 }
 
-export function SketchfabBrowser({ onAdd }: { onAdd: (pick: SketchfabPick) => void }) {
-  const [query, setQuery] = useState('patio furniture');
+export function SketchfabBrowser({ onAdd, quick = QUICK, defaultQuery }: { onAdd: (pick: SketchfabPick) => void; quick?: string[]; defaultQuery?: string }) {
+  const [query, setQuery] = useState(defaultQuery ?? quick[0] ?? 'patio furniture');
+  useEffect(() => { if (defaultQuery) setQuery(defaultQuery); }, [defaultQuery]);
   const [results, setResults] = useState<SFModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [busyUid, setBusyUid] = useState<string | null>(null);
@@ -85,7 +86,7 @@ export function SketchfabBrowser({ onAdd }: { onAdd: (pick: SketchfabPick) => vo
         <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search Sketchfab…" className="h-8 pl-7 text-xs" />
       </div>
       <div className="flex flex-wrap gap-1">
-        {QUICK.map((q) => (
+        {quick.map((q) => (
           <button key={q} type="button" onClick={() => setQuery(q)}
             className={`rounded-full border px-2 py-0.5 text-[10px] ${query === q ? 'border-primary bg-primary/10' : 'hover:border-primary/50'}`}>
             {q}

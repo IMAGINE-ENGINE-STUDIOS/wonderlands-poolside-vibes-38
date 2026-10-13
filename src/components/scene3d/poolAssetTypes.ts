@@ -10,6 +10,10 @@ export interface PoolStairConfig {
   id: string;
   wallPosition: number;      // 0-1 position along pool perimeter
   shape: 'linear' | 'curved';
+  /** Visual style: classic full steps, tiered wedding-cake, wide bench entry, or floating slabs */
+  style?: 'classic' | 'wedding-cake' | 'bench' | 'floating';
+  /** Soft (rounded) edge radius on every step, in feet (0 = sharp) */
+  softEdge?: number;
   width: number;             // Width in feet
   numSteps: number;
   stepHeight: number;        // Height per step (default 7.5 inches = 0.625 ft)
@@ -31,6 +35,11 @@ export interface PoolChairConfig {
   snapToWall: boolean;       // Whether to snap to wall or free-position
   followFloor: boolean;      // Whether to follow pool floor depth
   name?: string;
+  /** 'block' = tanning ledge / bench, 'barstool' = submerged round bar stools */
+  style?: 'block' | 'barstool';
+  /** Bar stools: how many in the row and the gap between centres (ft) */
+  count?: number;
+  spacing?: number;
 }
 
 export interface PoolJetConfig {
