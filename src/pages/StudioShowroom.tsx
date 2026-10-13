@@ -764,56 +764,61 @@ const StudioShowroom = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="relative overflow-hidden border-b border-border/70">
-        <div className="container mx-auto px-6 pt-28 pb-16">
-          <Link to="/" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
+      {/* Editorial masthead — same magazine language as the home page. */}
+      <header className="relative border-b border-border/70">
+        <div className="container mx-auto flex items-center justify-between px-6 pt-24 pb-6 text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+          <Link to="/" className="inline-flex items-center gap-2 hover:text-foreground transition-colors">
             <ArrowLeft className="h-3 w-3" /> Wonderlands World
           </Link>
-          <div className="mt-14 grid gap-12 lg:grid-cols-[1.4fr_1fr] lg:items-end">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">The Showroom · Edition {new Date().getFullYear()}</p>
-              <h1 className="mt-5 font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight">
-                Every tool that builds<br /><em className="font-light">a Wonderlands project.</em>
-              </h1>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Try each solution right here — nothing to install, nothing to sign. Build a website, draw a pool in 2D,
-                walk it in 3D, publish a book and run a campaign. Ask Genius at any time and she will open the right tool for you.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button asChild className="rounded-none px-7 text-[10px] uppercase tracking-[0.28em]">
-                  <a href="#website-builder"><Play className="mr-2 h-3.5 w-3.5" /> Start with the Website Builder</a>
+          <span className="hidden md:inline">The Showroom</span>
+          <span>Edition {new Date().getFullYear()}</span>
+        </div>
+        <div className="container mx-auto px-6">
+          <div className="border-t border-foreground" />
+          <div className="grid gap-10 py-14 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:py-20">
+            <div className="flex flex-col justify-between">
+              <div>
+                <p className="font-serif italic text-lg text-muted-foreground">Try before you build</p>
+                <h1 className="mt-4 font-serif text-5xl leading-[0.92] tracking-tight md:text-7xl xl:text-8xl">
+                  The Showroom
+                </h1>
+                <p className="mt-8 max-w-lg font-serif text-xl leading-snug md:text-2xl">
+                  Every tool behind a Wonderlands project, open and working on one page.
+                </p>
+                <p className="mt-5 max-w-lg text-sm leading-relaxed text-muted-foreground">
+                  Build a website, draw a pool in 2D, walk it in 3D, publish a book and run a campaign —
+                  nothing to install and no sign-in. Ask Genius at any time and she opens the right tool for you.
+                </p>
+              </div>
+              <div className="mt-10 flex flex-wrap gap-3">
+                <Button asChild className="rounded-none px-8 py-6 text-[10px] uppercase tracking-[0.3em]">
+                  <a href="#website-builder"><Play className="mr-2 h-3.5 w-3.5" /> Begin the tour</a>
                 </Button>
-                <Button asChild variant="outline" className="rounded-none px-7 text-[10px] uppercase tracking-[0.28em]">
-                  <a href="https://calendly.com/wonderlandsworlds/30min" target="_blank" rel="noreferrer">Book a guided tour <ArrowUpRight className="ml-2 h-3.5 w-3.5" /></a>
+                <Button asChild variant="outline" className="rounded-none px-8 py-6 text-[10px] uppercase tracking-[0.3em]">
+                  <a href="https://calendly.com/wonderlandsworlds/30min" target="_blank" rel="noreferrer">Book a guided visit <ArrowUpRight className="ml-2 h-3.5 w-3.5" /></a>
                 </Button>
               </div>
             </div>
-            <dl className="grid grid-cols-2 border-t border-l border-border/70">
-              {[
-                [String(SHOWROOM_WIDGETS.length), 'live solutions'],
-                ['2D + 3D', 'design engines'],
-                ['4', 'dashboards'],
-                ['0', 'installs needed'],
-              ].map(([n, l]) => (
-                <div key={l} className="border-b border-r border-border/70 p-5">
-                  <dt className="font-serif text-3xl">{n}</dt>
-                  <dd className="mt-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{l}</dd>
-                </div>
-              ))}
-            </dl>
+            <figure className="relative">
+              <img src={heroPool} alt="A Wonderlands pool at golden hour" loading="lazy" className="aspect-[4/5] w-full object-cover lg:aspect-auto lg:h-full" />
+              <figcaption className="mt-3 flex justify-between text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                <span>{SHOWROOM_WIDGETS.length} live solutions</span>
+                <span>2D · 3D · Web · Print</span>
+              </figcaption>
+            </figure>
           </div>
         </div>
-        <nav className="sticky top-0 z-30 border-t border-border/70 bg-background/90 backdrop-blur">
-          <div className="container mx-auto grid grid-cols-2 md:grid-cols-4 px-6">
-            {SHOWROOM_TIERS.map((t) => (
-              <a key={t.id} href={`#tier-${t.id}`} className="group border-r border-border/70 py-4 pr-4 last:border-r-0 md:pl-4 first:pl-0">
-                <span className="font-serif italic text-muted-foreground">{t.number}.</span>{' '}
-                <span className="text-[11px] uppercase tracking-[0.22em] group-hover:underline">{t.title}</span>
-              </a>
-            ))}
-          </div>
-        </nav>
       </header>
+      <nav className="sticky top-0 z-30 border-b border-border/70 bg-background/95 backdrop-blur">
+        <div className="container mx-auto grid grid-cols-2 px-6 md:grid-cols-4">
+          {SHOWROOM_TIERS.map((t) => (
+            <a key={t.id} href={`#tier-${t.id}`} className="group border-r border-border/70 py-4 pr-4 last:border-r-0 md:pl-4 first:pl-0">
+              <span className="font-serif italic text-muted-foreground">{t.number}.</span>{' '}
+              <span className="text-[11px] uppercase tracking-[0.22em] group-hover:underline">{t.title}</span>
+            </a>
+          ))}
+        </div>
+      </nav>
 
       <main className="container mx-auto px-6 py-16">
         {SHOWROOM_TIERS.map((tier) => {
