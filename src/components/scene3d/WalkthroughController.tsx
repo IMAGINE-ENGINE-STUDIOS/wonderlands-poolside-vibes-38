@@ -17,7 +17,30 @@ export function WalkthroughController({
   playerHeight = 5.5, // 5.5 feet eye height
   moveSpeed = 8
 }: WalkthroughControllerProps) {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
+
+  // Exact-shape collision: rays against the real triangles of scene meshes
+  // (pool, stairs, seating, deck, dropped objects) — no bounding boxes.
+  const ray = useRef(new THREE.Raycaster());
+  const colliders = useRef<THREE.Object3D[]>([]);
+  const lastCollect = useRef(0);
+  const collectColliders = () => {
+    const list: THREE.Object3D[] = [];
+    scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || !m.visible) return;
+      const mat = m.material as THREE.Material | THREE.Material[];
+      const first = Array.isArray(mat) ? mat[0] : mat;
+      // Skip water, glass, highlights, grids and other see-through helpers
+      if (first && (first.transparent && first.opacity < 0.95) && !m.userData.walkable) return;
+      if ((first as THREE.Material & { type?: string })?.type === 'ShaderMaterial' && !m.userData.walkable) return;
+      list.push(m);
+    });
+    colliders.current = list;
+  };
+  const STEP_UP = 1.1;   // ft a person can step up (stairs, ledges)
+  const KNEE = 1.3;      // obstacle probe height above the feet
+  const RADIUS = 0.9;    // body radius
   
   // Movement state
   const velocity = useRef(new THREE.Vector3());
@@ -288,12 +311,47 @@ export function WalkthroughController({
       velocity.current.z *= 0.9;
     }
 
-    // Horizontal movement
-    camera.position.x += velocity.current.x * delta;
-    camera.position.z += velocity.current.z * delta;
+    if (state.clock.elapsedTime - lastCollect.current > 1) {
+      collectColliders();
+      lastCollect.current = state.clock.elapsedTime;
+    }
+    const feetY = camera.position.y - playerHeight;
+    const r = ray.current;
+
+    // Horizontal movement with obstacle collision at knee and chest height
+    const dx = velocity.current.x * delta;
+    const dz = velocity.current.z * delta;
+    const stepLen = Math.hypot(dx, dz);
+    let blocked = false;
+    if (stepLen > 1e-5 && colliders.current.length) {
+      const dir = new THREE.Vector3(dx / stepLen, 0, dz / stepLen);
+      for (const h of [KNEE, 4]) {
+        r.set(new THREE.Vector3(camera.position.x, feetY + h, camera.position.z), dir);
+        r.far = stepLen + RADIUS;
+        const hit = r.intersectObjects(colliders.current, false)[0];
+        if (hit) { blocked = true; break; }
+      }
+    }
+    if (!blocked) {
+      camera.position.x += dx;
+      camera.position.z += dz;
+    } else {
+      velocity.current.x = 0;
+      velocity.current.z = 0;
+    }
+
+    // Ground under the feet: the real surface (deck, stairs, pool floor, object tops)
+    let groundY = groundLevel;
+    if (colliders.current.length) {
+      r.set(new THREE.Vector3(camera.position.x, feetY + STEP_UP, camera.position.z), new THREE.Vector3(0, -1, 0));
+      r.far = 60;
+      const hit = r.intersectObjects(colliders.current, false)[0];
+      if (hit) groundY = hit.point.y;
+    }
 
     // Vertical movement - gravity + jumping
-    const floorY = groundLevel + playerHeight;
+    const floorY = groundY + playerHeight;
+    if (isGrounded.current && camera.position.y > floorY + 0.05) isGrounded.current = false;
     if (!isGrounded.current || verticalVelocity.current !== 0) {
       verticalVelocity.current -= GRAVITY * delta;
       camera.position.y += verticalVelocity.current * delta;
