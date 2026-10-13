@@ -358,7 +358,10 @@ const StudioShowroom = () => {
     ),
     'studio-3d': (
       <AutoMount fit title="the 3D Studio" note="A rectangular pool, live in 3D. Orbit, change finishes and lights, and walk the deck.">
-        <ShowroomStudio3D />
+        <ShowroomStudio3D height={680} />
+        <div className="mt-4 flex justify-end">
+          <Link to="/studio-3d" className="text-[10px] uppercase tracking-[0.28em] underline-offset-4 hover:underline">Open the 3D Studio full screen</Link>
+        </div>
       </AutoMount>
     ),
     'flip-v8': (
@@ -733,8 +736,8 @@ const StudioShowroom = () => {
       </>
     ),
     'website-builder': (
-      <AutoMount title="Website Builder" note="Edit your company website right here. Sign in with a company account to save and publish.">
-        <ShowroomSiteBuilder />
+      <AutoMount title="Website Builder" note="Opened on a demo company — edit, save and publish a real site without signing in.">
+        <ShowroomDemoSession><ShowroomSiteBuilder /></ShowroomDemoSession>
       </AutoMount>
     ),
     'dash-command': (
@@ -743,18 +746,18 @@ const StudioShowroom = () => {
       </AutoMount>
     ),
     'dash-workspace': (
-      <AutoMount title="Company Workspace" note="Your company workspace. Sign in with a company account to see your own data.">
-        <CompanyWorkspaceTool />
+      <AutoMount title="Company Workspace" note="The company workspace, opened on a demo company — CRM, pipeline, website and projects.">
+        <ShowroomDemoSession><CompanyWorkspaceTool /></ShowroomDemoSession>
       </AutoMount>
     ),
     'dash-account': (
-      <AutoMount title="Customer Account" note="The homeowner account. Sign in to see your own projects.">
-        <CustomerAccountTool />
+      <AutoMount title="Customer Account" note="The homeowner account, opened on a demo profile.">
+        <ShowroomDemoSession><CustomerAccountTool /></ShowroomDemoSession>
       </AutoMount>
     ),
     'dash-salesrep': (
-      <AutoMount title="Sales Rep Dashboard" note="The sales team dashboard. Sign in with a sales account to see your leads.">
-        <SalesRepTool />
+      <AutoMount title="Sales Rep Dashboard" note="The sales team dashboard, opened on the demo session.">
+        <ShowroomDemoSession><SalesRepTool /></ShowroomDemoSession>
       </AutoMount>
     ),
   };
