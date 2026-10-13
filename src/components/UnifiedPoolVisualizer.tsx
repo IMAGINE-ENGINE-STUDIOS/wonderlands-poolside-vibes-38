@@ -248,8 +248,9 @@ function SelectionZoomController({
 export function UnifiedPoolVisualizer({
   scene: initialScene,
   textureLibrary,
-  onSceneChange
-}: UnifiedPoolVisualizerProps) {
+  onSceneChange,
+  embedded = false
+}: UnifiedPoolVisualizerProps & { embedded?: boolean }) {
   const isMobile = useIsMobile();
   
   // Validate scene before using it
@@ -1335,7 +1336,7 @@ export function UnifiedPoolVisualizer({
   }, [poolTransformMode, transformStepSize, handlePoolPositionChange]);
 
   return (
-    <div className="fixed inset-0 z-[9999]">
+    <div className={embedded ? "absolute inset-0 z-0" : "fixed inset-0 z-[9999]"}>
       {/* Main 3D Canvas - Full screen */}
       <div 
         ref={canvasContainerRef} 
