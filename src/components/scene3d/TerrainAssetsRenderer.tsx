@@ -140,10 +140,9 @@ function FitToRealSize({ asset, children }: { asset: TerrainAsset; children: Rea
       g.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(g, true);
       if (box.isEmpty()) { if (tries++ < 20) requestAnimationFrame(apply); return; }
-      const parent = g.parent;
-      const parentScale = parent ? new THREE.Vector3().setFromMatrixScale(parent.matrixWorld) : new THREE.Vector3(1, 1, 1);
-      const size = box.getSize(new THREE.Vector3()).divide(parentScale);
-      const min = box.min.clone().sub(parent ? new THREE.Vector3().setFromMatrixPosition(parent.matrixWorld) : new THREE.Vector3()).divide(parentScale);
+      box.applyMatrix4(g.matrixWorld.clone().invert());
+      const size = box.getSize(new THREE.Vector3());
+      const min = box.min;
       if (asset.autoFit !== false && (asset.type === 'object' || asset.type === 'furniture' || asset.type === 'tree' || asset.type === 'landscape' || asset.type === 'custom')) {
         const k = realWorldFit(asset.name, asset.type, size);
         g.scale.setScalar(k);
