@@ -224,6 +224,27 @@ export function DraggablePoolChair({
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
     >
+      {chair.style === 'barstool' ? (
+        // Submerged bar stools: round seat on a pedestal, in a row along the wall
+        Array.from({ length: Math.max(1, chair.count ?? 3) }).map((_, i, arr) => {
+          const gap = chair.spacing ?? 2.2;
+          const x = (i - (arr.length - 1) / 2) * gap;
+          const seatR = Math.min(chair.width, chair.depth) / 2;
+          const pedestalH = Math.max(0.2, topY - 0.15 - bottomY);
+          return (
+            <group key={i} position={[x, 0, 0]}>
+              <mesh position={[0, topY - 0.075, 0]} castShadow>
+                <cylinderGeometry args={[seatR, seatR * 0.92, 0.15, 40]} />
+                <meshStandardMaterial map={texture} roughness={0.55} metalness={0.1} />
+              </mesh>
+              <mesh position={[0, bottomY + pedestalH / 2, 0]}>
+                <cylinderGeometry args={[0.22, 0.32, pedestalH, 24]} />
+                <meshStandardMaterial map={texture} roughness={0.6} metalness={0.15} />
+              </mesh>
+            </group>
+          );
+        })
+      ) : (
       <mesh geometry={geometry}>
         <meshStandardMaterial
           map={texture}
@@ -232,11 +253,12 @@ export function DraggablePoolChair({
           side={THREE.DoubleSide}
         />
       </mesh>
+      )}
       
       {/* Selection highlight */}
       {isSelected && (
         <mesh position={[0, topY + 0.05, 0]}>
-          <boxGeometry args={[chair.width + 0.1, 0.05, chair.depth + 0.1]} />
+          <boxGeometry args={[chair.style === 'barstool' ? Math.max(1, chair.count ?? 3) * (chair.spacing ?? 2.2) : chair.width + 0.1, 0.05, chair.depth + 0.1]} />
           <meshBasicMaterial color="#00ffff" transparent opacity={0.5} />
         </mesh>
       )}
