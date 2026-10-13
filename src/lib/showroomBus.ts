@@ -28,7 +28,7 @@ export interface ShowroomWidget {
   cta?: string;
 }
 
-export type ShowroomFamily = 'cad' | 'magazine' | 'console' | 'desk' | 'terminal' | 'commerce' | 'catalog';
+export type ShowroomFamily = 'cad' | 'magazine' | 'console' | 'desk' | 'terminal' | 'commerce' | 'catalog' | 'dashboard';
 
 const w = (
   id: string,
@@ -61,6 +61,24 @@ const FLAGSHIP: ShowroomWidget[] = [
   w('wonderlands-studio', 'S7', 'Configuration Studio', 'Platform',
     'The full configuration platform that hosts the other modules: category navigation, product catalogue, option engine, unit-priced trades and a single running total across the whole build.',
     ['wonderlands studio', 'configuration studio', 'studio', 'configure everything']),
+];
+
+const BUILDER_AND_DASHBOARDS: ShowroomWidget[] = [
+  w('website-builder', 'S8', 'Website Builder V2', 'Web platform',
+    'The company website builder: start from the Wonderlands template, edit every text, image, product card and colour, add pages, link anything to any page, then publish to your own address.',
+    ['website builder', 'web builder', 'site builder', 'my website', 'build a website']),
+  w('dash-command', 'D1', 'Command Center', 'Dashboard',
+    'The Wonderlands executive dashboard: today, pipeline, projects, finance, data room and the technology hub — shown here in safe preview mode.',
+    ['command center', 'admin', 'admin dashboard']),
+  w('dash-workspace', 'D2', 'Company & Contractor Workspace', 'Dashboard',
+    'Every licensed company gets this workspace: CRM pipeline, accounts, website builder, clients, quotes, bids, projects, payouts and messages.',
+    ['workspace', 'contractor dashboard', 'company dashboard', 'crm']),
+  w('dash-account', 'D3', 'Customer Account', 'Dashboard',
+    'The homeowner account: projects, quotes, invoices and documents in one place.',
+    ['customer account', 'my account', 'homeowner']),
+  w('dash-salesrep', 'D4', 'Sales Rep Dashboard', 'Dashboard',
+    'The sales team dashboard: assigned leads, pipeline stages and quote tools.',
+    ['sales rep', 'sales dashboard', 'sales team']),
 ];
 
 const BASE_WIDGETS: ShowroomWidget[] = [
@@ -202,13 +220,33 @@ const DETAILS: Record<string, Detail> = {
   turnkey: { family: 'desk' },
   'sauna-card': { family: 'catalog' },
   'sauna-pricing': { family: 'commerce' },
+  'website-builder': { family: 'cad', eyebrow: 'Design. Publish. Launch.', headline: 'Your whole website, edited in place.',
+    capabilities: ['Wonderlands template as the starting point', 'Multipage with links to any page or element', 'Text, image, product card and colour controls', 'Desktop, tablet and mobile views', 'Publish and connect your own domain'] },
+  'dash-command': { family: 'dashboard' },
+  'dash-workspace': { family: 'dashboard' },
+  'dash-account': { family: 'dashboard' },
+  'dash-salesrep': { family: 'dashboard' },
 };
 
-export const SHOWROOM_WIDGETS: ShowroomWidget[] = [...FLAGSHIP, ...BASE_WIDGETS].map((x) => ({
-  family: 'catalog' as ShowroomFamily,
-  ...x,
-  ...DETAILS[x.id],
-}));
+/* Showroom order: most powerful solutions first, atomic widgets after, dashboards last. */
+const ORDER = [
+  'design-studio', 'website-builder', 'global-board', 'wonderlands-studio', 'flip-builder', 'flip-v8', 'socialite', 'solar',
+  'site-planner', 'enclosure', 'fence', 'grass', 'depth', 'scene-objects',
+  'quote', 'blueprint', 'signature', 'turnkey', 'sauna-pricing', 'flip-calculators', 'pool-calc', 'heater-calc', 'inline-calc',
+  'features', 'cart', 'financing', 'search', 'flip-search', 'media', 'sauna-card',
+  'home-sections', 'browse-categories', 'mission', 'section-banner', 'hero', 'site-header', 'site-footer',
+  'dash-command', 'dash-workspace', 'dash-account', 'dash-salesrep',
+];
+
+const ALL = [...FLAGSHIP, ...BUILDER_AND_DASHBOARDS, ...BASE_WIDGETS];
+export const SHOWROOM_WIDGETS: ShowroomWidget[] = ORDER.map((id) => ALL.find((x) => x.id === id)!)
+  .filter(Boolean)
+  .map((x, i) => ({
+    family: 'catalog' as ShowroomFamily,
+    ...x,
+    ...DETAILS[x.id],
+    index: String(i + 1).padStart(2, '0'),
+  }));
 
 export const SHOWROOM_FAMILY_LABEL: Record<ShowroomFamily, string> = {
   cad: 'Design & drawing',
@@ -218,6 +256,7 @@ export const SHOWROOM_FAMILY_LABEL: Record<ShowroomFamily, string> = {
   terminal: 'Estimating',
   commerce: 'Commerce',
   catalog: 'Catalog & home page',
+  dashboard: 'Dashboards',
 };
 
 export const findShowroomWidget = (id: string) => SHOWROOM_WIDGETS.find((s) => s.id === id);
