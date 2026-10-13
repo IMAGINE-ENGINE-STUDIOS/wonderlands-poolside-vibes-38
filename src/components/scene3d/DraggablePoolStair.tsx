@@ -78,7 +78,10 @@ export function DraggablePoolStair({
     const stepWidth = stair.width;
     const stepDepth = stair.stepDepth;
     const stepHeight = stair.stepHeight;
-    const cornerRadius = stair.shape === 'curved' ? (stair.cornerRadius || 0.5) : 0;
+    const style = stair.style ?? 'classic';
+    const soft = stair.softEdge ?? 0;
+    const cornerRadius = Math.max(soft, stair.shape === 'curved' ? (stair.cornerRadius || 0.5) : 0);
+    const useProfile = style !== 'classic' || cornerRadius > 0.05;
     
     const allVertices: number[] = [];
     const allUVs: number[] = [];
@@ -98,22 +101,27 @@ export function DraggablePoolStair({
       const worldZ = position.z + Math.cos(worldAngle) * (stepZOffset + stepDepth / 2);
       const localFloorDepth = getFloorDepthAt ? getFloorDepthAt(worldX, worldZ) : poolDepth;
       
-      const stepBottomY = -localFloorDepth;
+      const stepBottomY = style === 'floating' ? stepTopY - 0.33 : -localFloorDepth;
       const blockHeight = Math.max(0.1, stepTopY - stepBottomY);
       
-      const hw = stepWidth / 2;
-      const zStart = stepZOffset;
+      const hw = (style === 'bench' && i === 0 ? stepWidth + 4 : stepWidth) / 2;
+      const zStart = style === 'wedding-cake' ? 0 : stepZOffset;
       const zEnd = stepZOffset + stepDepth;
       
       // Effective corner radius (can't be more than half the width or depth)
       const effectiveRadius = Math.min(cornerRadius, hw, stepDepth / 2);
       
-      if (stair.shape === 'curved' && effectiveRadius > 0.1) {
-        // Generate rounded step with proper corner arcs
-        const cornerSegments = 6;
-        
-        // Build profile path for rounded rectangle
+      if (useProfile) {
+        // Rounded step profile (soft edges) — or a half-ellipse for wedding cake
+        const cornerSegments = 8;
         const profilePoints: Array<{x: number, z: number}> = [];
+        if (style === 'wedding-cake') {
+          const seg = 24;
+          for (let k = 0; k <= seg; k++) {
+            const a = Math.PI - (Math.PI * k) / seg;
+            profilePoints.push({ x: Math.cos(a) * hw, z: Math.sin(a) * zEnd });
+          }
+        } else {
         
         // Bottom-left corner arc
         const blCorner = generateCornerArc(
@@ -150,6 +158,7 @@ export function DraggablePoolStair({
           cornerSegments
         );
         profilePoints.push(...tlCorner);
+        }
         
         // Close the loop
         profilePoints.push(profilePoints[0]);
@@ -203,6 +212,22 @@ export function DraggablePoolStair({
           
           vertexOffset += 4;
           wallCumulativeDist += segLen;
+        }
+
+        // Floating slabs need an underside
+        if (style === 'floating') {
+          const bBase = vertexOffset;
+          allVertices.push(0, stepBottomY, centerZ);
+          allUVs.push(0, centerZ);
+          vertexOffset++;
+          for (let j = 0; j < profilePoints.length - 1; j++) {
+            allVertices.push(profilePoints[j].x, stepBottomY, profilePoints[j].z);
+            allUVs.push(profilePoints[j].x, profilePoints[j].z);
+            vertexOffset++;
+          }
+          for (let j = 0; j < profilePoints.length - 2; j++) {
+            allIndices.push(bBase, bBase + j + 2, bBase + j + 1);
+          }
         }
         
       } else {
