@@ -269,6 +269,8 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                 </p>
               </div>
             )}
+            {/* Pool Structure, Landscape and Water Features are hidden for now (owner request). Set SHOW_EXTRA_FEATURE_SECTIONS to true to bring them back. */}
+            {SHOW_EXTRA_FEATURE_SECTIONS && (<>
 
             {/* ═══ POOL FEATURES ═══ */}
             <SectionHeader
@@ -385,6 +387,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                 )}
               </div>
             )}
+            </>)}
 
             {/* ═══ DEPTH ═══ */}
             <SectionHeader
