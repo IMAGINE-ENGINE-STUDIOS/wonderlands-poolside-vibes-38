@@ -48,7 +48,10 @@ import {
   type ShowroomWidget,
   type ShowroomFamily,
   SHOWROOM_FAMILY_LABEL,
+  SHOWROOM_TIERS,
+  showroomTierOf,
 } from '@/lib/showroomBus';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SocialiteGate } from '@/components/socialite/SocialiteAuth';
@@ -82,6 +85,8 @@ const BlueprintImportDialog = React.lazy(() =>
 const DepthProfileEditor = React.lazy(() =>
   import('@/components/scene3d/DepthProfileEditor').then((m) => ({ default: m.DepthProfileEditor })),
 );
+const ShowroomStudio3D = React.lazy(() => import('@/components/showroom/ShowroomStudio3D'));
+const ShowroomDemoSession = React.lazy(() => import('@/components/showroom/ShowroomDemoSession'));
 const SiteBuilderTool = React.lazy(() => import('@/components/siteBuilder/SiteBuilder'));
 const AdminDashboardTool = React.lazy(() => import('@/pages/AdminDashboard'));
 const CompanyWorkspaceTool = React.lazy(() => import('@/pages/CompanyWorkspace'));
@@ -190,7 +195,7 @@ const Frame = ({
 };
 
 /** Auto-mounts page-scale tools when their frame scrolls near, so every tool plays in place yet the page stays fast. */
-const AutoMount = ({ title, note, children }: { title: string; note: string; children: React.ReactNode }) => {
+const AutoMount = ({ title, note, children, fit }: { title: string; note: string; children: React.ReactNode; fit?: boolean }) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const [on, setOn] = React.useState(false);
   React.useEffect(() => {
@@ -211,7 +216,7 @@ const AutoMount = ({ title, note, children }: { title: string; note: string; chi
     );
   }
   return (
-    <div className="relative max-h-[85vh] overflow-auto bg-background">
+    <div className={cn('relative bg-background', fit ? 'overflow-x-auto' : 'max-h-[85vh] overflow-auto')}>
       <React.Suspense fallback={<Fallback />}>{children}</React.Suspense>
     </div>
   );
@@ -283,6 +288,7 @@ const StudioShowroom = () => {
   const [homeSection, setHomeSection] = React.useState('pools');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [activeWidget, setActiveWidget] = React.useState<string | null>(null);
+  const [planner3D, setPlanner3D] = React.useState<{ scene: any; lib: any } | null>(null);
 
   const ActiveHomeSection = HOME_COMPONENTS[homeSection] ?? HOME_COMPONENTS.pools;
 
@@ -345,10 +351,15 @@ const StudioShowroom = () => {
   const renderers: Record<string, React.ReactNode> = {
     'design-studio': (
       <>
-          <AutoMount title="Design Studio" note="The latest 2D board and 3D scene in one tool. Draw in 2D, switch to 3D and back — your pool, textures and shape stay as you left them.">
+          <AutoMount fit title="Design Studio" note="The latest 2D board and 3D scene in one tool. Draw in 2D, switch to 3D and back — your pool, textures and shape stay as you left them.">
             <DesignStudioTool />
           </AutoMount>
       </>
+    ),
+    'studio-3d': (
+      <AutoMount fit title="the 3D Studio" note="A rectangular pool, live in 3D. Orbit, change finishes and lights, and walk the deck.">
+        <ShowroomStudio3D />
+      </AutoMount>
     ),
     'flip-v8': (
       <>
@@ -366,12 +377,14 @@ const StudioShowroom = () => {
     ),
     'socialite': (
       <>
-          <AutoMount title="SOCIALITE" note="The full SOCIALITE console. Sign in with your Wonderlands account to use it here.">
-            <SocialiteGate>
-              <SocialiteCloudSync>
-                <SocialiteTool />
-              </SocialiteCloudSync>
-            </SocialiteGate>
+          <AutoMount title="SOCIALITE" note="The full SOCIALITE console, opened on a demo account — no sign in needed.">
+            <ShowroomDemoSession>
+              <SocialiteGate>
+                <SocialiteCloudSync>
+                  <SocialiteTool />
+                </SocialiteCloudSync>
+              </SocialiteGate>
+            </ShowroomDemoSession>
           </AutoMount>
       </>
     ),
@@ -488,7 +501,7 @@ const StudioShowroom = () => {
     'site-planner': (
       <>
           <React.Suspense fallback={<Fallback />}>
-            <StudioSitePlanner modelName="Maxima" meta="16' × 40'" categoryId="pools" />
+            <StudioSitePlanner modelName="Maxima" meta="16' × 40'" categoryId="pools" onViewIn3D={(scene, lib) => setPlanner3D({ scene, lib })} />
           </React.Suspense>
       </>
     ),
@@ -748,50 +761,100 @@ const StudioShowroom = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/70">
-        <div className="container mx-auto px-6 py-10">
-          <Link to="/" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-3 w-3" /> Wonderlands
+      <header className="relative overflow-hidden border-b border-border/70">
+        <div className="container mx-auto px-6 pt-8 pb-16">
+          <Link to="/" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-3 w-3" /> Wonderlands World
           </Link>
-          <h1 className="mt-8 text-4xl md:text-6xl font-light tracking-tight">Studio Widget Showroom</h1>
-          <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed text-muted-foreground">
-            Every interactive component of the Wonderlands Studio, live and fully functional, with a short note on what
-            each one does. Ask Genius for anything — a search, a design, a full product explanation or a finished quote —
-            and she will open the right tool here and work it with you.
-          </p>
-          <div className="mt-8 space-y-3">
-            {(Object.keys(SHOWROOM_FAMILY_LABEL) as ShowroomFamily[]).map((fam) => {
-              const items = SHOWROOM_WIDGETS.filter((s) => s.family === fam);
-              if (!items.length) return null;
-              return (
-                <div key={fam} className="flex flex-wrap items-center gap-2">
-                  <span className="w-40 shrink-0 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{SHOWROOM_FAMILY_LABEL[fam]}</span>
+          <div className="mt-14 grid gap-12 lg:grid-cols-[1.4fr_1fr] lg:items-end">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">The Showroom · Edition {new Date().getFullYear()}</p>
+              <h1 className="mt-5 font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight">
+                Every tool that builds<br /><em className="font-light">a Wonderlands project.</em>
+              </h1>
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
+                Try each solution right here — nothing to install, nothing to sign. Build a website, draw a pool in 2D,
+                walk it in 3D, publish a book and run a campaign. Ask Genius at any time and she will open the right tool for you.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button asChild className="rounded-none px-7 text-[10px] uppercase tracking-[0.28em]">
+                  <a href="#website-builder"><Play className="mr-2 h-3.5 w-3.5" /> Start with the Website Builder</a>
+                </Button>
+                <Button asChild variant="outline" className="rounded-none px-7 text-[10px] uppercase tracking-[0.28em]">
+                  <a href="https://calendly.com/wonderlandsworlds/30min" target="_blank" rel="noreferrer">Book a guided tour <ArrowUpRight className="ml-2 h-3.5 w-3.5" /></a>
+                </Button>
+              </div>
+            </div>
+            <dl className="grid grid-cols-2 border-t border-l border-border/70">
+              {[
+                [String(SHOWROOM_WIDGETS.length), 'live solutions'],
+                ['2D + 3D', 'design engines'],
+                ['4', 'dashboards'],
+                ['0', 'installs needed'],
+              ].map(([n, l]) => (
+                <div key={l} className="border-b border-r border-border/70 p-5">
+                  <dt className="font-serif text-3xl">{n}</dt>
+                  <dd className="mt-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{l}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+        <nav className="sticky top-0 z-30 border-t border-border/70 bg-background/90 backdrop-blur">
+          <div className="container mx-auto grid grid-cols-2 md:grid-cols-4 px-6">
+            {SHOWROOM_TIERS.map((t) => (
+              <a key={t.id} href={`#tier-${t.id}`} className="group border-r border-border/70 py-4 pr-4 last:border-r-0 md:pl-4 first:pl-0">
+                <span className="font-serif italic text-muted-foreground">{t.number}.</span>{' '}
+                <span className="text-[11px] uppercase tracking-[0.22em] group-hover:underline">{t.title}</span>
+              </a>
+            ))}
+          </div>
+        </nav>
+      </header>
+
+      <main className="container mx-auto px-6 py-16">
+        {SHOWROOM_TIERS.map((tier) => {
+          const items = SHOWROOM_WIDGETS.filter((w) => renderers[w.id] && showroomTierOf(w.id) === tier.id);
+          if (!items.length) return null;
+          return (
+            <section key={tier.id} id={`tier-${tier.id}`} className="scroll-mt-20 pb-24">
+              <div className="mb-14 grid gap-6 border-b border-foreground pb-8 md:grid-cols-[auto_1fr_auto] md:items-end">
+                <span className="font-serif text-7xl md:text-8xl leading-none">{tier.number}</span>
+                <div>
+                  <h2 className="font-serif text-3xl md:text-5xl tracking-tight">{tier.title}</h2>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">{tier.lede}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 md:max-w-sm md:justify-end">
                   {items.map((s) => (
-                    <a key={s.id} href={`#${s.id}`} onClick={() => setActiveWidget(s.id)}>
-                      <Badge variant="secondary" className="rounded-none text-[11px] tracking-wide">
-                        {s.index} · {s.title}
-                      </Badge>
+                    <a key={s.id} href={`#${s.id}`} onClick={() => setActiveWidget(s.id)} className="border border-border/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:border-foreground hover:text-foreground transition-colors">
+                      {s.title}
                     </a>
                   ))}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-6 py-14 space-y-16">
-        {SHOWROOM_WIDGETS.map((w) =>
-          renderers[w.id] ? (
-            <Frame key={w.id} section={w} active={isActive(w.id)}>
-              {renderers[w.id]}
-            </Frame>
-          ) : null,
-        )}
+              </div>
+              <div className="space-y-20">
+                {items.map((w) => (
+                  <Frame key={w.id} section={w} active={isActive(w.id)}>
+                    {renderers[w.id]}
+                  </Frame>
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </main>
 
+      <Dialog open={!!planner3D} onOpenChange={(o) => !o && setPlanner3D(null)}>
+        <DialogContent className="max-w-[95vw] w-[95vw] p-0 overflow-hidden">
+          <DialogTitle className="sr-only">Site plan in 3D</DialogTitle>
+          <React.Suspense fallback={<Fallback />}>
+            {planner3D && <ShowroomStudio3D scene={planner3D.scene} textureLibrary={planner3D.lib} height="85vh" />}
+          </React.Suspense>
+        </DialogContent>
+      </Dialog>
+
       <footer className="border-t border-border/70 py-10 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
-        Wonderlands World · Internal component showroom
+        Wonderlands World · The Showroom
       </footer>
     </div>
   );
