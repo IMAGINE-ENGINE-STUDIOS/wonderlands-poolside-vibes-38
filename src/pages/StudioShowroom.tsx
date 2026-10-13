@@ -49,6 +49,8 @@ import {
   type ShowroomFamily,
   SHOWROOM_FAMILY_LABEL,
 } from '@/lib/showroomBus';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { SocialiteGate } from '@/components/socialite/SocialiteAuth';
 
 const DesignStudioTool = React.lazy(() => import('@/pages/DesignStudio'));
@@ -80,6 +82,12 @@ const BlueprintImportDialog = React.lazy(() =>
 const DepthProfileEditor = React.lazy(() =>
   import('@/components/scene3d/DepthProfileEditor').then((m) => ({ default: m.DepthProfileEditor })),
 );
+const SiteBuilderTool = React.lazy(() => import('@/components/siteBuilder/SiteBuilder'));
+const AdminDashboardTool = React.lazy(() => import('@/pages/AdminDashboard'));
+const CompanyWorkspaceTool = React.lazy(() => import('@/pages/CompanyWorkspace'));
+const CustomerAccountTool = React.lazy(() => import('@/pages/CustomerAccount'));
+const SalesRepTool = React.lazy(() => import('@/pages/SalesRepDashboard'));
+const BlueprintBuilderTool = React.lazy(() => import('@/pages/BlueprintBuilder'));
 const SaunaProductCard = React.lazy(() => import('@/components/SaunaProductCard'));
 
 // Home page catalog sections — lazy so only the selected one loads
@@ -118,6 +126,7 @@ const FAMILY_CHROME: Record<ShowroomFamily, { bar: string; body: string; label: 
   desk: { bar: 'bg-background text-foreground border-b border-dashed border-foreground/40', body: 'border-dashed border-foreground/50 border', label: 'Document desk' },
   terminal: { bar: 'bg-secondary text-secondary-foreground font-mono', body: 'border-secondary border-2', label: 'Estimator terminal' },
   commerce: { bar: 'bg-accent text-accent-foreground', body: 'border-accent border', label: 'Commerce' },
+  dashboard: { bar: 'bg-foreground/90 text-background font-mono', body: 'border-foreground/60 border-2 border-double', label: 'Dashboard · live' },
   catalog: { bar: 'bg-muted/60 text-muted-foreground', body: 'border-border/70 border', label: 'Catalog' },
 };
 
@@ -150,7 +159,7 @@ const Frame = ({
           {section.headline && <p className="mt-1 font-serif text-xl">{section.headline}</p>}
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">{section.description}</p>
         </div>
-        {(section.capabilities?.length || section.route) && (
+        {section.capabilities?.length ? (
           <aside className="border-l border-border/70 pl-5 text-sm">
             {section.capabilities?.length ? (
               <ul className="space-y-1.5 text-muted-foreground">
@@ -159,13 +168,9 @@ const Frame = ({
                 ))}
               </ul>
             ) : null}
-            {section.route && (
-              <Link to={section.route} className="mt-4 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-foreground underline underline-offset-4">
-                {section.cta ?? 'Open'} <ArrowUpRight className="h-3 w-3" />
-              </Link>
-            )}
+
           </aside>
-        )}
+        ) : null}
       </div>
       <div
         className={cn(
@@ -176,7 +181,7 @@ const Frame = ({
       >
         <div className={cn('flex items-center justify-between px-4 py-2 text-[10px] uppercase tracking-[0.25em]', chrome.bar)}>
           <span>{section.index} · {chrome.label}</span>
-          <span className="truncate opacity-70">{section.route ?? '/studio-showroom'}</span>
+          <span className="truncate opacity-70">Live in the showroom</span>
         </div>
         <div className="p-4 md:p-6">{children}</div>
       </div>
@@ -184,15 +189,23 @@ const Frame = ({
   );
 };
 
-/** Mount-on-demand for page-scale tools so the showroom stays fast. */
-const Launcher = ({ title, note, children }: { title: string; note: string; children: React.ReactNode }) => {
+/** Auto-mounts page-scale tools when their frame scrolls near, so every tool plays in place yet the page stays fast. */
+const AutoMount = ({ title, note, children }: { title: string; note: string; children: React.ReactNode }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
   const [on, setOn] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el || on) return;
+    const io = new IntersectionObserver((e) => { if (e[0]?.isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: '300px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [on]);
   if (!on) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <div ref={ref} className="flex flex-col items-center justify-center gap-4 py-16 text-center">
         <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{note}</p>
         <Button className="rounded-none px-7 text-[10px] uppercase tracking-[0.28em]" onClick={() => setOn(true)}>
-          <Play className="mr-2 h-3.5 w-3.5" /> Load {title}
+          <Play className="mr-2 h-3.5 w-3.5" /> Play {title}
         </Button>
       </div>
     );
@@ -202,6 +215,24 @@ const Launcher = ({ title, note, children }: { title: string; note: string; chil
       <React.Suspense fallback={<Fallback />}>{children}</React.Suspense>
     </div>
   );
+};
+
+/** Website builder bound to the signed-in user's company. */
+const ShowroomSiteBuilder = () => {
+  const { user } = useAuth();
+  const [co, setCo] = React.useState<{ id: string; name: string } | null | undefined>(undefined);
+  React.useEffect(() => {
+    if (!user) { setCo(null); return; }
+    let alive = true;
+    (async () => {
+      const { data } = await supabase.from('company_members').select('company_id, companies(name)').eq('user_id', user.id).eq('is_active', true).limit(1).maybeSingle();
+      if (alive) setCo(data ? { id: data.company_id, name: (data as any).companies?.name ?? 'My company' } : null);
+    })();
+    return () => { alive = false; };
+  }, [user]);
+  if (co === undefined) return <Fallback />;
+  if (!co) return <p className="py-12 text-center text-sm text-muted-foreground">Sign in with a company account to build your website here.</p>;
+  return <SiteBuilderTool companyId={co.id} companyName={co.name} />;
 };
 
 const DEMO_SCENE_GROUPS = [
@@ -311,6 +342,410 @@ const StudioShowroom = () => {
   const demoSauna = React.useMemo(() => saunas[0], []);
   const isActive = (id: string) => activeWidget === id;
 
+  const renderers: Record<string, React.ReactNode> = {
+    'design-studio': (
+      <>
+          <AutoMount title="Design Studio" note="The latest 2D board and 3D scene in one tool. Draw in 2D, switch to 3D and back — your pool, textures and shape stay as you left them.">
+            <DesignStudioTool />
+          </AutoMount>
+      </>
+    ),
+    'flip-v8': (
+      <>
+          <AutoMount title="FLIP V8" note="The magazine exactly as it opens on the home page. Turn pages with the arrows.">
+            <FlipMagazine variant="v8" hideHeader />
+          </AutoMount>
+      </>
+    ),
+    'flip-builder': (
+      <>
+          <AutoMount title="Flip Builder V3" note="Build your own book here. Work in the showroom is saved separately from your real books.">
+            <FlipBuilderV2 storageKey="showroom.flip.v3" />
+          </AutoMount>
+      </>
+    ),
+    'socialite': (
+      <>
+          <AutoMount title="SOCIALITE" note="The full SOCIALITE console. Sign in with your Wonderlands account to use it here.">
+            <SocialiteGate>
+              <SocialiteCloudSync>
+                <SocialiteTool />
+              </SocialiteCloudSync>
+            </SocialiteGate>
+          </AutoMount>
+      </>
+    ),
+    'solar': (
+      <>
+          <AutoMount title="the Solar Board" note="Search an address, trace the roof and see what it can produce.">
+            <SolarCalculatorBoard height={620} />
+          </AutoMount>
+      </>
+    ),
+    'global-board': (
+      <>
+          <AutoMount title="the Global Board" note="Every trade on one property drawing, priced as you draw.">
+            <GlobalDesignBoardTool />
+          </AutoMount>
+      </>
+    ),
+    'wonderlands-studio': (
+      <>
+          <AutoMount title="the Configuration Studio" note="Every category with one running total.">
+            <WonderlandsStudioTool />
+          </AutoMount>
+      </>
+    ),
+    'search': (
+      <>
+          <div className="space-y-8">
+            <div>
+              <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Default variant</p>
+              <AdvancedSearch externalQuery={searchQuery} />
+            </div>
+            <Separator />
+            <div>
+              <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Slim variant (studio)</p>
+              <AdvancedSearch variant="slim" />
+            </div>
+          </div>
+      </>
+    ),
+    'flip-search': (
+      <>
+          <React.Suspense fallback={<Fallback />}>
+            <FlipSearch
+              onOpenCategory={(categoryId) => navigate(`/flip?category=${encodeURIComponent(categoryId)}`)}
+              onOpenProduct={(categoryId, entry) =>
+                navigate(`/flip?category=${encodeURIComponent(categoryId)}&product=${encodeURIComponent(entry.id)}`)
+              }
+            />
+          </React.Suspense>
+      </>
+    ),
+    'cart': (
+      <>
+          <div className="max-w-md">
+            <StudioCartWidget
+              currentPrice={68500}
+              currentName="Wonderlands Aurora 14x28"
+              currentCategory="Pool"
+              currentExtras={[
+                { name: 'Salt system', price: 2400, key: 'demo-salt' },
+                { name: 'LED lighting', price: 1200, key: 'demo-led' },
+              ]}
+              onQuote={() => setQuoteOpen(true)}
+            />
+          </div>
+      </>
+    ),
+    'features': (
+      <>
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div>
+              <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Pool options</p>
+              <DynamicFeatureRenderer productType="pool" selectedExtras={extrasPool} onExtrasChange={setExtrasPool} />
+            </div>
+            <div>
+              <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Sauna options</p>
+              <DynamicFeatureRenderer productType="sauna" selectedExtras={extrasSauna} onExtrasChange={setExtrasSauna} />
+            </div>
+          </div>
+      </>
+    ),
+    'media': (
+      <>
+          <div className="max-w-2xl">
+            <ProductMediaGallery media={media} productName="Wonderlands Aurora" />
+          </div>
+      </>
+    ),
+    'pool-calc': (
+      <>
+          <PoolCalculator />
+      </>
+    ),
+    'heater-calc': (
+      <>
+          <HeaterSizeCalculator currentSelection={heater} onSelectHeater={setHeater} />
+          {heater && <p className="mt-4 text-sm text-muted-foreground">Selected heater: {heater}</p>}
+      </>
+    ),
+    'inline-calc': (
+      <>
+          <div className="grid gap-6 md:grid-cols-2">
+            <InlineCalculator type="screen" onResult={setInlineResult} />
+            <InlineCalculator type="fence" onResult={setInlineResult} />
+          </div>
+          {inlineResult && <p className="mt-4 text-sm text-muted-foreground">Last result: {inlineResult}</p>}
+      </>
+    ),
+    'flip-calculators': (
+      <>
+          <QuoteCalculators heading="FLIP Calculators" eyebrow="Every discipline" />
+      </>
+    ),
+    'site-planner': (
+      <>
+          <React.Suspense fallback={<Fallback />}>
+            <StudioSitePlanner modelName="Maxima" meta="16' × 40'" categoryId="pools" />
+          </React.Suspense>
+      </>
+    ),
+    'fence': (
+      <>
+          <React.Suspense fallback={<Fallback />}>
+            <div className="space-y-8">
+              <FenceDrawingBoard layout={fenceLayout} onChange={setFenceLayout} />
+              <Separator />
+              <FenceConfigurator />
+            </div>
+          </React.Suspense>
+      </>
+    ),
+    'enclosure': (
+      <>
+          <React.Suspense fallback={<Fallback />}>
+            <div className="space-y-8">
+              <EnclosureDrawingBoard layout={enclosureLayout} onChange={setEnclosureLayout} />
+              <Separator />
+              <EnclosureConfigurator />
+            </div>
+          </React.Suspense>
+      </>
+    ),
+    'grass': (
+      <>
+          <React.Suspense fallback={<Fallback />}>
+            <GrassConfigurator />
+          </React.Suspense>
+      </>
+    ),
+    'blueprint': (
+      <>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={() => setBlueprintOpen(true)}>Import a plan set</Button>
+
+            <span className="text-xs text-muted-foreground">
+              {importedPlan.shapes.length
+                ? `${importedPlan.shapes.length} geometry layers imported and editable`
+                : 'PDF, JPG, DXF, SVG'}
+            </span>
+          </div>
+          <div className="mt-6">
+            <AutoMount title="the Blueprint Builder" note="The full plan-set builder, editable right here.">
+              <BlueprintBuilderTool />
+            </AutoMount>
+          </div>
+          <React.Suspense fallback={null}>
+            {blueprintOpen && (
+              <BlueprintImportDialog
+                open={blueprintOpen}
+                onOpenChange={setBlueprintOpen}
+                site={importedPlan}
+                onApply={setImportedPlan}
+              />
+            )}
+          </React.Suspense>
+      </>
+    ),
+    'signature': (
+      <>
+          <div className="flex flex-wrap items-center gap-4">
+            <Button onClick={() => setSignatureOpen(true)}>Sign</Button>
+            {signature && (
+              <img src={signature} alt="Applied signature" className="h-16 border border-border/60 bg-background px-3" />
+            )}
+          </div>
+          <React.Suspense fallback={null}>
+            {signatureOpen && (
+              <SignaturePad
+                open={signatureOpen}
+                onOpenChange={setSignatureOpen}
+                title="Wonderlands signature"
+                onApply={(dataUrl) => setSignature(dataUrl)}
+              />
+            )}
+          </React.Suspense>
+      </>
+    ),
+    'depth': (
+      <>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={() => setDepthOpen(true)}>Edit the depth profile</Button>
+            <span className="text-xs text-muted-foreground">{anchors.length} depth anchors on a 16 × 40 shell</span>
+          </div>
+          <React.Suspense fallback={null}>
+            {depthOpen && (
+              <DepthProfileEditor
+                isOpen={depthOpen}
+                onClose={() => setDepthOpen(false)}
+                linearDepthAnchors={anchors}
+                onLinearDepthAnchorsChange={setAnchors}
+                selectedAnchorId={selectedAnchor}
+                onSelectAnchor={setSelectedAnchor}
+                poolShallowDepth={3.75}
+                poolDeepDepth={8.5}
+                poolDimensions={{ length: 40, width: 16, depth: 8.5 }}
+                depthAxis={depthAxis}
+                onDepthAxisChange={setDepthAxis}
+              />
+            )}
+          </React.Suspense>
+      </>
+    ),
+    'scene-objects': (
+      <>
+          <div className="max-w-sm">
+            <SceneObjectsPanel groups={DEMO_SCENE_GROUPS} defaultOpen />
+          </div>
+      </>
+    ),
+    'financing': (
+      <>
+          <div className="max-w-xl">
+            <FinancingOptions totalPrice={68500} productName="Wonderlands Aurora 14x28" productId="showroom-demo" />
+          </div>
+      </>
+    ),
+    'quote': (
+      <>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={() => setQuoteOpen(true)}>Open the quote tool</Button>
+            <span className="text-xs text-muted-foreground">Seeded with {quoteSeed.name}</span>
+          </div>
+          <React.Suspense fallback={null}>
+            {quoteOpen && (
+              <SurveyQuoteTool
+                pool={null}
+                isOpen={quoteOpen}
+                onClose={() => setQuoteOpen(false)}
+                customProduct={{ name: quoteSeed.name, price: quoteSeed.price, type: quoteSeed.type }}
+              />
+            )}
+          </React.Suspense>
+      </>
+    ),
+    'turnkey': (
+      <>
+          <div className="grid gap-8 lg:grid-cols-2">
+            <FlipProjectPipeline categoryId="pools" part="scope" />
+            <FlipProjectPipeline categoryId="pools" part="steps" />
+          </div>
+      </>
+    ),
+    'sauna-card': (
+      <>
+          <div className="max-w-sm">
+            <React.Suspense fallback={<Fallback />}>
+              {demoSauna && <SaunaProductCard sauna={demoSauna as any} />}
+            </React.Suspense>
+          </div>
+      </>
+    ),
+    'sauna-pricing': (
+      <>
+          <Button variant="outline" onClick={() => setSaunaPricingOpen(true)}>Open sales pricing (passcode)</Button>
+          <React.Suspense fallback={null}>
+            {saunaPricingOpen && (
+              <SaunaSalesPricingDialog
+                open={saunaPricingOpen}
+                onOpenChange={setSaunaPricingOpen}
+                name="Almost Heaven Grandview"
+                unitCost={9995}
+                capacity="4 person"
+                optionsRetail={1800}
+              />
+            )}
+          </React.Suspense>
+      </>
+    ),
+    'site-header': (
+      <>
+          <div className="relative">
+            <Header />
+          </div>
+      </>
+    ),
+    'hero': (
+      <>
+          <Hero />
+      </>
+    ),
+    'mission': (
+      <>
+          <MissionVisionValues />
+      </>
+    ),
+    'browse-categories': (
+      <>
+          <BrowseCategoriesEditorial activeId={browseActive} onSelect={setBrowseActive} />
+          <p className="mt-4 text-xs uppercase tracking-[0.2em] text-muted-foreground">Selected: {browseActive}</p>
+      </>
+    ),
+    'section-banner': (
+      <>
+          <SectionBanner
+            image={saunaBanner}
+            alt="Premium saunas"
+            title="Premium Saunas"
+            subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas"
+          />
+      </>
+    ),
+    'home-sections': (
+      <>
+          <div className="flex flex-wrap gap-2">
+            {SHOWROOM_HOME_SECTIONS.map((s) => (
+              <Button
+                key={s.id}
+                size="sm"
+                variant={homeSection === s.id ? 'default' : 'outline'}
+                className="rounded-none text-xs"
+                onClick={() => setHomeSection(s.id)}
+              >
+                {s.label}
+              </Button>
+            ))}
+          </div>
+          <Separator className="my-6" />
+          <React.Suspense fallback={<Fallback />}>
+            <ActiveHomeSection />
+          </React.Suspense>
+      </>
+    ),
+    'site-footer': (
+      <>
+          <Footer />
+      </>
+    ),
+    'website-builder': (
+      <AutoMount title="Website Builder" note="Edit your company website right here. Sign in with a company account to save and publish.">
+        <ShowroomSiteBuilder />
+      </AutoMount>
+    ),
+    'dash-command': (
+      <AutoMount title="Command Center" note="Safe preview of the Command Center. No private data is shown unless you are a main admin.">
+        <AdminDashboardTool previewMode />
+      </AutoMount>
+    ),
+    'dash-workspace': (
+      <AutoMount title="Company Workspace" note="Your company workspace. Sign in with a company account to see your own data.">
+        <CompanyWorkspaceTool />
+      </AutoMount>
+    ),
+    'dash-account': (
+      <AutoMount title="Customer Account" note="The homeowner account. Sign in to see your own projects.">
+        <CustomerAccountTool />
+      </AutoMount>
+    ),
+    'dash-salesrep': (
+      <AutoMount title="Sales Rep Dashboard" note="The sales team dashboard. Sign in with a sales account to see your leads.">
+        <SalesRepTool />
+      </AutoMount>
+    ),
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border/70">
@@ -346,343 +781,13 @@ const StudioShowroom = () => {
       </header>
 
       <main className="container mx-auto px-6 py-14 space-y-16">
-        <Frame section={W('design-studio')} active={isActive('design-studio')}>
-          <Launcher title="Design Studio" note="The latest 2D board and 3D scene in one tool. Draw in 2D, switch to 3D and back — your pool, textures and shape stay as you left them.">
-            <DesignStudioTool />
-          </Launcher>
-        </Frame>
-
-        <Frame section={W('flip-v8')} active={isActive('flip-v8')}>
-          <Launcher title="FLIP V8" note="The magazine exactly as it opens on the home page. Turn pages with the arrows.">
-            <FlipMagazine variant="v8" hideHeader />
-          </Launcher>
-        </Frame>
-
-        <Frame section={W('flip-builder')} active={isActive('flip-builder')}>
-          <Launcher title="Flip Builder V3" note="Build your own book here. Work in the showroom is saved separately from your real books.">
-            <FlipBuilderV2 storageKey="showroom.flip.v3" />
-          </Launcher>
-        </Frame>
-
-        <Frame section={W('socialite')} active={isActive('socialite')}>
-          <Launcher title="SOCIALITE" note="The full SOCIALITE console. Sign in with your Wonderlands account to use it here.">
-            <SocialiteGate>
-              <SocialiteCloudSync>
-                <SocialiteTool />
-              </SocialiteCloudSync>
-            </SocialiteGate>
-          </Launcher>
-        </Frame>
-
-        <Frame section={W('solar')} active={isActive('solar')}>
-          <Launcher title="the Solar Board" note="Search an address, trace the roof and see what it can produce.">
-            <SolarCalculatorBoard height={620} />
-          </Launcher>
-        </Frame>
-
-        <Frame section={W('global-board')} active={isActive('global-board')}>
-          <Launcher title="the Global Board" note="Every trade on one property drawing, priced as you draw.">
-            <GlobalDesignBoardTool />
-          </Launcher>
-        </Frame>
-
-        <Frame section={W('wonderlands-studio')} active={isActive('wonderlands-studio')}>
-          <Launcher title="the Configuration Studio" note="Every category with one running total.">
-            <WonderlandsStudioTool />
-          </Launcher>
-        </Frame>
-
-        <Frame section={W('search')} active={isActive('search')}>
-          <div className="space-y-8">
-            <div>
-              <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Default variant</p>
-              <AdvancedSearch externalQuery={searchQuery} />
-            </div>
-            <Separator />
-            <div>
-              <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Slim variant (studio)</p>
-              <AdvancedSearch variant="slim" />
-            </div>
-          </div>
-        </Frame>
-
-        <Frame section={W('flip-search')} active={isActive('flip-search')}>
-          <React.Suspense fallback={<Fallback />}>
-            <FlipSearch
-              onOpenCategory={(categoryId) => navigate(`/flip?category=${encodeURIComponent(categoryId)}`)}
-              onOpenProduct={(categoryId, entry) =>
-                navigate(`/flip?category=${encodeURIComponent(categoryId)}&product=${encodeURIComponent(entry.id)}`)
-              }
-            />
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('cart')} active={isActive('cart')}>
-          <div className="max-w-md">
-            <StudioCartWidget
-              currentPrice={68500}
-              currentName="Wonderlands Aurora 14x28"
-              currentCategory="Pool"
-              currentExtras={[
-                { name: 'Salt system', price: 2400, key: 'demo-salt' },
-                { name: 'LED lighting', price: 1200, key: 'demo-led' },
-              ]}
-              onQuote={() => setQuoteOpen(true)}
-            />
-          </div>
-        </Frame>
-
-
-        <Frame section={W('features')} active={isActive('features')}>
-          <div className="grid gap-8 lg:grid-cols-2">
-            <div>
-              <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Pool options</p>
-              <DynamicFeatureRenderer productType="pool" selectedExtras={extrasPool} onExtrasChange={setExtrasPool} />
-            </div>
-            <div>
-              <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Sauna options</p>
-              <DynamicFeatureRenderer productType="sauna" selectedExtras={extrasSauna} onExtrasChange={setExtrasSauna} />
-            </div>
-          </div>
-        </Frame>
-
-        <Frame section={W('media')} active={isActive('media')}>
-          <div className="max-w-2xl">
-            <ProductMediaGallery media={media} productName="Wonderlands Aurora" />
-          </div>
-        </Frame>
-
-        <Frame section={W('pool-calc')} active={isActive('pool-calc')}>
-          <PoolCalculator />
-        </Frame>
-
-        <Frame section={W('heater-calc')} active={isActive('heater-calc')}>
-          <HeaterSizeCalculator currentSelection={heater} onSelectHeater={setHeater} />
-          {heater && <p className="mt-4 text-sm text-muted-foreground">Selected heater: {heater}</p>}
-        </Frame>
-
-        <Frame section={W('inline-calc')} active={isActive('inline-calc')}>
-          <div className="grid gap-6 md:grid-cols-2">
-            <InlineCalculator type="screen" onResult={setInlineResult} />
-            <InlineCalculator type="fence" onResult={setInlineResult} />
-          </div>
-          {inlineResult && <p className="mt-4 text-sm text-muted-foreground">Last result: {inlineResult}</p>}
-        </Frame>
-
-        <Frame section={W('flip-calculators')} active={isActive('flip-calculators')}>
-          <QuoteCalculators heading="FLIP Calculators" eyebrow="Every discipline" />
-        </Frame>
-
-        <Frame section={W('site-planner')} active={isActive('site-planner')}>
-          <React.Suspense fallback={<Fallback />}>
-            <StudioSitePlanner modelName="Maxima" meta="16' × 40'" categoryId="pools" />
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('fence')} active={isActive('fence')}>
-          <React.Suspense fallback={<Fallback />}>
-            <div className="space-y-8">
-              <FenceDrawingBoard layout={fenceLayout} onChange={setFenceLayout} />
-              <Separator />
-              <FenceConfigurator />
-            </div>
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('enclosure')} active={isActive('enclosure')}>
-          <React.Suspense fallback={<Fallback />}>
-            <div className="space-y-8">
-              <EnclosureDrawingBoard layout={enclosureLayout} onChange={setEnclosureLayout} />
-              <Separator />
-              <EnclosureConfigurator />
-            </div>
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('grass')} active={isActive('grass')}>
-          <React.Suspense fallback={<Fallback />}>
-            <GrassConfigurator />
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('blueprint')} active={isActive('blueprint')}>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={() => setBlueprintOpen(true)}>Import a plan set</Button>
-            <Button variant="outline" onClick={() => navigate('/blueprint-builder')}>
-              Open the Blueprint Builder
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              {importedPlan.shapes.length
-                ? `${importedPlan.shapes.length} geometry layers imported and editable`
-                : 'PDF, JPG, DXF, SVG'}
-            </span>
-          </div>
-          <React.Suspense fallback={null}>
-            {blueprintOpen && (
-              <BlueprintImportDialog
-                open={blueprintOpen}
-                onOpenChange={setBlueprintOpen}
-                site={importedPlan}
-                onApply={setImportedPlan}
-              />
-            )}
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('signature')} active={isActive('signature')}>
-          <div className="flex flex-wrap items-center gap-4">
-            <Button onClick={() => setSignatureOpen(true)}>Sign</Button>
-            {signature && (
-              <img src={signature} alt="Applied signature" className="h-16 border border-border/60 bg-background px-3" />
-            )}
-          </div>
-          <React.Suspense fallback={null}>
-            {signatureOpen && (
-              <SignaturePad
-                open={signatureOpen}
-                onOpenChange={setSignatureOpen}
-                title="Wonderlands signature"
-                onApply={(dataUrl) => setSignature(dataUrl)}
-              />
-            )}
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('depth')} active={isActive('depth')}>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={() => setDepthOpen(true)}>Edit the depth profile</Button>
-            <span className="text-xs text-muted-foreground">{anchors.length} depth anchors on a 16 × 40 shell</span>
-          </div>
-          <React.Suspense fallback={null}>
-            {depthOpen && (
-              <DepthProfileEditor
-                isOpen={depthOpen}
-                onClose={() => setDepthOpen(false)}
-                linearDepthAnchors={anchors}
-                onLinearDepthAnchorsChange={setAnchors}
-                selectedAnchorId={selectedAnchor}
-                onSelectAnchor={setSelectedAnchor}
-                poolShallowDepth={3.75}
-                poolDeepDepth={8.5}
-                poolDimensions={{ length: 40, width: 16, depth: 8.5 }}
-                depthAxis={depthAxis}
-                onDepthAxisChange={setDepthAxis}
-              />
-            )}
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('scene-objects')} active={isActive('scene-objects')}>
-          <div className="max-w-sm">
-            <SceneObjectsPanel groups={DEMO_SCENE_GROUPS} defaultOpen />
-          </div>
-        </Frame>
-
-        <Frame section={W('financing')} active={isActive('financing')}>
-          <div className="max-w-xl">
-            <FinancingOptions totalPrice={68500} productName="Wonderlands Aurora 14x28" productId="showroom-demo" />
-          </div>
-        </Frame>
-
-        <Frame section={W('quote')} active={isActive('quote')}>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={() => setQuoteOpen(true)}>Open the quote tool</Button>
-            <span className="text-xs text-muted-foreground">Seeded with {quoteSeed.name}</span>
-          </div>
-          <React.Suspense fallback={null}>
-            {quoteOpen && (
-              <SurveyQuoteTool
-                pool={null}
-                isOpen={quoteOpen}
-                onClose={() => setQuoteOpen(false)}
-                customProduct={{ name: quoteSeed.name, price: quoteSeed.price, type: quoteSeed.type }}
-              />
-            )}
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('turnkey')} active={isActive('turnkey')}>
-          <div className="grid gap-8 lg:grid-cols-2">
-            <FlipProjectPipeline categoryId="pools" part="scope" />
-            <FlipProjectPipeline categoryId="pools" part="steps" />
-          </div>
-        </Frame>
-
-        <Frame section={W('sauna-card')} active={isActive('sauna-card')}>
-          <div className="max-w-sm">
-            <React.Suspense fallback={<Fallback />}>
-              {demoSauna && <SaunaProductCard sauna={demoSauna as any} />}
-            </React.Suspense>
-          </div>
-        </Frame>
-
-        <Frame section={W('sauna-pricing')} active={isActive('sauna-pricing')}>
-          <Button variant="outline" onClick={() => setSaunaPricingOpen(true)}>Open sales pricing (passcode)</Button>
-          <React.Suspense fallback={null}>
-            {saunaPricingOpen && (
-              <SaunaSalesPricingDialog
-                open={saunaPricingOpen}
-                onOpenChange={setSaunaPricingOpen}
-                name="Almost Heaven Grandview"
-                unitCost={9995}
-                capacity="4 person"
-                optionsRetail={1800}
-              />
-            )}
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('site-header')} active={isActive('site-header')}>
-          <div className="relative">
-            <Header />
-          </div>
-        </Frame>
-
-        <Frame section={W('hero')} active={isActive('hero')}>
-          <Hero />
-        </Frame>
-
-        <Frame section={W('mission')} active={isActive('mission')}>
-          <MissionVisionValues />
-        </Frame>
-
-        <Frame section={W('browse-categories')} active={isActive('browse-categories')}>
-          <BrowseCategoriesEditorial activeId={browseActive} onSelect={setBrowseActive} />
-          <p className="mt-4 text-xs uppercase tracking-[0.2em] text-muted-foreground">Selected: {browseActive}</p>
-        </Frame>
-
-        <Frame section={W('section-banner')} active={isActive('section-banner')}>
-          <SectionBanner
-            image={saunaBanner}
-            alt="Premium saunas"
-            title="Premium Saunas"
-            subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas"
-          />
-        </Frame>
-
-        <Frame section={W('home-sections')} active={isActive('home-sections')}>
-          <div className="flex flex-wrap gap-2">
-            {SHOWROOM_HOME_SECTIONS.map((s) => (
-              <Button
-                key={s.id}
-                size="sm"
-                variant={homeSection === s.id ? 'default' : 'outline'}
-                className="rounded-none text-xs"
-                onClick={() => setHomeSection(s.id)}
-              >
-                {s.label}
-              </Button>
-            ))}
-          </div>
-          <Separator className="my-6" />
-          <React.Suspense fallback={<Fallback />}>
-            <ActiveHomeSection />
-          </React.Suspense>
-        </Frame>
-
-        <Frame section={W('site-footer')} active={isActive('site-footer')}>
-          <Footer />
-        </Frame>
+        {SHOWROOM_WIDGETS.map((w) =>
+          renderers[w.id] ? (
+            <Frame key={w.id} section={w} active={isActive(w.id)}>
+              {renderers[w.id]}
+            </Frame>
+          ) : null,
+        )}
       </main>
 
       <footer className="border-t border-border/70 py-10 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">

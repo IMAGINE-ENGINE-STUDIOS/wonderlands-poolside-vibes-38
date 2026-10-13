@@ -17,6 +17,7 @@ import ContractorAgreement from '@/components/ContractorAgreement';
 import ContractorProcurementTab from '@/components/contractor/ContractorProcurementTab';
 import ContractorCurrentProjectsTab from '@/components/contractor/ContractorCurrentProjectsTab';
 import NotificationBell from '@/components/NotificationBell';
+const SiteBuilder = React.lazy(() => import('@/components/siteBuilder/SiteBuilder'));
 
 interface Service {
   id?: string;
@@ -402,7 +403,7 @@ const ContractorProfile = () => {
         )}
 
         <Tabs defaultValue="services" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="services" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4" /> Services
             </TabsTrigger>
@@ -418,7 +419,20 @@ const ContractorProfile = () => {
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <Building2 className="w-4 h-4" /> Company Info
             </TabsTrigger>
+            <TabsTrigger value="website" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" /> Website
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="website">
+            {contractor.company_id ? (
+              <React.Suspense fallback={<div className="py-10 text-center text-sm text-gray-600">Loading website builder…</div>}>
+                <SiteBuilder companyId={contractor.company_id} companyName={contractor.company_name} />
+              </React.Suspense>
+            ) : (
+              <Card><CardContent className="pt-6 text-sm text-gray-600">Your profile is not linked to a company yet. Open your workspace to set up your company, then build your website here.</CardContent></Card>
+            )}
+          </TabsContent>
 
           {/* Services Tab */}
           <TabsContent value="services" className="space-y-6">
