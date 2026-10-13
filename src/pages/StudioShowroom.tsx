@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Loader2, Sparkles, Waves, Boxes } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Loader2, Play, Waves, Boxes } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import AdvancedSearch from '@/components/AdvancedSearch';
@@ -46,7 +46,19 @@ import {
   registerShowroomControls,
   type ShowroomControls,
   type ShowroomWidget,
+  type ShowroomFamily,
+  SHOWROOM_FAMILY_LABEL,
 } from '@/lib/showroomBus';
+import { SocialiteGate } from '@/components/socialite/SocialiteAuth';
+
+const DesignStudioTool = React.lazy(() => import('@/pages/DesignStudio'));
+const FlipMagazine = React.lazy(() => import('@/components/flip/FlipMagazine'));
+const FlipBuilderV2 = React.lazy(() => import('@/components/flip/FlipBuilderV2'));
+const SocialiteTool = React.lazy(() => import('@/pages/Socialite'));
+const SocialiteCloudSync = React.lazy(() => import('@/components/socialite/SocialiteCloudSync'));
+const SolarCalculatorBoard = React.lazy(() => import('@/components/solar/SolarCalculatorBoard'));
+const GlobalDesignBoardTool = React.lazy(() => import('@/pages/GlobalDesignBoard'));
+const WonderlandsStudioTool = React.lazy(() => import('@/pages/WonderlandsStudio'));
 
 const FenceDrawingBoard = React.lazy(() => import('@/components/fence/FenceDrawingBoard'));
 const FenceConfigurator = React.lazy(() => import('@/components/fence/FenceConfigurator'));
@@ -98,6 +110,17 @@ const Fallback = () => (
 
 const W = (id: string): ShowroomWidget => findShowroomWidget(id)!;
 
+/* Each solution family gets its own frame chrome so frames are told apart at a glance. */
+const FAMILY_CHROME: Record<ShowroomFamily, { bar: string; body: string; label: string }> = {
+  cad: { bar: 'bg-foreground text-background', body: 'border-foreground/80 border-2', label: 'CAD · live canvas' },
+  magazine: { bar: 'bg-muted text-foreground font-serif italic', body: 'border-double border-4 border-foreground/40', label: 'FLIP · edition' },
+  console: { bar: 'bg-primary text-primary-foreground', body: 'border-primary/60 border-2', label: 'SOCIALITE · console' },
+  desk: { bar: 'bg-background text-foreground border-b border-dashed border-foreground/40', body: 'border-dashed border-foreground/50 border', label: 'Document desk' },
+  terminal: { bar: 'bg-secondary text-secondary-foreground font-mono', body: 'border-secondary border-2', label: 'Estimator terminal' },
+  commerce: { bar: 'bg-accent text-accent-foreground', body: 'border-accent border', label: 'Commerce' },
+  catalog: { bar: 'bg-muted/60 text-muted-foreground', body: 'border-border/70 border', label: 'Catalog' },
+};
+
 const Frame = ({
   section,
   active,
@@ -106,29 +129,80 @@ const Frame = ({
   section: ShowroomWidget;
   active?: boolean;
   children: React.ReactNode;
-}) => (
-  <section id={section.id} className="scroll-mt-28">
-    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-      <span className="font-mono text-xs tracking-[0.3em] text-muted-foreground">{section.index}</span>
-      <h2 className="text-2xl md:text-3xl font-light tracking-tight">{section.title}</h2>
-      <Badge variant="outline" className="rounded-none text-[10px] tracking-[0.2em] uppercase">{section.tag}</Badge>
-      {active && (
-        <Badge className="rounded-none text-[10px] tracking-[0.2em] uppercase">
-          <Sparkles className="mr-1 h-3 w-3" /> Genius here
-        </Badge>
-      )}
+}) => {
+  const fam = section.family ?? 'catalog';
+  const chrome = FAMILY_CHROME[fam];
+  return (
+    <section id={section.id} className="scroll-mt-28">
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div>
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+            <span className="font-mono text-xs tracking-[0.3em] text-muted-foreground">{section.index}</span>
+            <h2 className="text-2xl md:text-3xl font-light tracking-tight">{section.title}</h2>
+            <Badge variant="outline" className="rounded-none text-[10px] tracking-[0.2em] uppercase">{section.tag}</Badge>
+            {active && (
+              <Badge className="rounded-none text-[10px] tracking-[0.2em] uppercase">Genius here</Badge>
+            )}
+          </div>
+          {section.eyebrow && (
+            <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{section.eyebrow}</p>
+          )}
+          {section.headline && <p className="mt-1 font-serif text-xl">{section.headline}</p>}
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">{section.description}</p>
+        </div>
+        {(section.capabilities?.length || section.route) && (
+          <aside className="border-l border-border/70 pl-5 text-sm">
+            {section.capabilities?.length ? (
+              <ul className="space-y-1.5 text-muted-foreground">
+                {section.capabilities.map((c) => (
+                  <li key={c} className="flex gap-2"><span className="text-foreground">—</span>{c}</li>
+                ))}
+              </ul>
+            ) : null}
+            {section.route && (
+              <Link to={section.route} className="mt-4 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-foreground underline underline-offset-4">
+                {section.cta ?? 'Open'} <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            )}
+          </aside>
+        )}
+      </div>
+      <div
+        className={cn(
+          'mt-6 overflow-hidden bg-card transition-shadow duration-500',
+          chrome.body,
+          active && 'ring-1 ring-primary/50 shadow-[0_30px_90px_-50px_hsl(var(--primary)/0.6)]',
+        )}
+      >
+        <div className={cn('flex items-center justify-between px-4 py-2 text-[10px] uppercase tracking-[0.25em]', chrome.bar)}>
+          <span>{section.index} · {chrome.label}</span>
+          <span className="truncate opacity-70">{section.route ?? '/studio-showroom'}</span>
+        </div>
+        <div className="p-4 md:p-6">{children}</div>
+      </div>
+    </section>
+  );
+};
+
+/** Mount-on-demand for page-scale tools so the showroom stays fast. */
+const Launcher = ({ title, note, children }: { title: string; note: string; children: React.ReactNode }) => {
+  const [on, setOn] = React.useState(false);
+  if (!on) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+        <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{note}</p>
+        <Button className="rounded-none px-7 text-[10px] uppercase tracking-[0.28em]" onClick={() => setOn(true)}>
+          <Play className="mr-2 h-3.5 w-3.5" /> Load {title}
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="relative max-h-[85vh] overflow-auto bg-background">
+      <React.Suspense fallback={<Fallback />}>{children}</React.Suspense>
     </div>
-    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">{section.description}</p>
-    <Card
-      className={cn(
-        'mt-6 rounded-none border-border/70 bg-card p-4 md:p-6 overflow-hidden transition-shadow duration-500',
-        active && 'ring-1 ring-primary/50 shadow-[0_30px_90px_-50px_hsl(var(--primary)/0.6)]',
-      )}
-    >
-      {children}
-    </Card>
-  </section>
-);
+  );
+};
 
 const DEMO_SCENE_GROUPS = [
   {
@@ -250,19 +324,74 @@ const StudioShowroom = () => {
             each one does. Ask Genius for anything — a search, a design, a full product explanation or a finished quote —
             and she will open the right tool here and work it with you.
           </p>
-          <div className="mt-8 flex flex-wrap gap-2">
-            {SHOWROOM_WIDGETS.map((s) => (
-              <a key={s.id} href={`#${s.id}`} onClick={() => setActiveWidget(s.id)}>
-                <Badge variant="secondary" className="rounded-none text-[11px] tracking-wide">
-                  {s.index} · {s.title}
-                </Badge>
-              </a>
-            ))}
+          <div className="mt-8 space-y-3">
+            {(Object.keys(SHOWROOM_FAMILY_LABEL) as ShowroomFamily[]).map((fam) => {
+              const items = SHOWROOM_WIDGETS.filter((s) => s.family === fam);
+              if (!items.length) return null;
+              return (
+                <div key={fam} className="flex flex-wrap items-center gap-2">
+                  <span className="w-40 shrink-0 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{SHOWROOM_FAMILY_LABEL[fam]}</span>
+                  {items.map((s) => (
+                    <a key={s.id} href={`#${s.id}`} onClick={() => setActiveWidget(s.id)}>
+                      <Badge variant="secondary" className="rounded-none text-[11px] tracking-wide">
+                        {s.index} · {s.title}
+                      </Badge>
+                    </a>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-14 space-y-16">
+        <Frame section={W('design-studio')} active={isActive('design-studio')}>
+          <Launcher title="Design Studio" note="The latest 2D board and 3D scene in one tool. Draw in 2D, switch to 3D and back — your pool, textures and shape stay as you left them.">
+            <DesignStudioTool />
+          </Launcher>
+        </Frame>
+
+        <Frame section={W('flip-v8')} active={isActive('flip-v8')}>
+          <Launcher title="FLIP V8" note="The magazine exactly as it opens on the home page. Turn pages with the arrows.">
+            <FlipMagazine variant="v8" hideHeader />
+          </Launcher>
+        </Frame>
+
+        <Frame section={W('flip-builder')} active={isActive('flip-builder')}>
+          <Launcher title="Flip Builder V3" note="Build your own book here. Work in the showroom is saved separately from your real books.">
+            <FlipBuilderV2 storageKey="showroom.flip.v3" />
+          </Launcher>
+        </Frame>
+
+        <Frame section={W('socialite')} active={isActive('socialite')}>
+          <Launcher title="SOCIALITE" note="The full SOCIALITE console. Sign in with your Wonderlands account to use it here.">
+            <SocialiteGate>
+              <SocialiteCloudSync>
+                <SocialiteTool />
+              </SocialiteCloudSync>
+            </SocialiteGate>
+          </Launcher>
+        </Frame>
+
+        <Frame section={W('solar')} active={isActive('solar')}>
+          <Launcher title="the Solar Board" note="Search an address, trace the roof and see what it can produce.">
+            <SolarCalculatorBoard height={620} />
+          </Launcher>
+        </Frame>
+
+        <Frame section={W('global-board')} active={isActive('global-board')}>
+          <Launcher title="the Global Board" note="Every trade on one property drawing, priced as you draw.">
+            <GlobalDesignBoardTool />
+          </Launcher>
+        </Frame>
+
+        <Frame section={W('wonderlands-studio')} active={isActive('wonderlands-studio')}>
+          <Launcher title="the Configuration Studio" note="Every category with one running total.">
+            <WonderlandsStudioTool />
+          </Launcher>
+        </Frame>
+
         <Frame section={W('search')} active={isActive('search')}>
           <div className="space-y-8">
             <div>
