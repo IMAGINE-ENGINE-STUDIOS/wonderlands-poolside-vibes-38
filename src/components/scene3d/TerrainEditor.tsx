@@ -11,6 +11,17 @@ import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { isSupported3DFile, getSupportedFormats, Model3DFormat } from './Model3DLoader';
 import type { GizmoMode, GizmoSnapSettings } from './TerrainAssetsRenderer';
+import { SketchfabBrowser } from './SketchfabBrowser';
+import { pickToAsset } from './AssetEditorExtras';
+
+/** Sketchfab gallery searches per Terrain Editor tab */
+const GALLERY_QUICK: Record<string, string[]> = {
+  terrain: ['terrain', 'grass ground', 'backyard', 'garden landscape', 'beach sand', 'hill terrain'],
+  sky: ['skybox', 'hdri sky', 'sky dome', 'sunset sky', 'night sky'],
+  nature: ['palm tree', 'tropical plant', 'bush', 'flowers', 'rock', 'boulder'],
+  library: ['outdoor', 'garden', 'landscape', 'fence', 'pergola', 'fountain'],
+};
+const GALLERY_TYPE: Record<string, TerrainAsset['type']> = { terrain: 'terrain', sky: 'skydome', nature: 'tree', library: 'landscape' };
 
 export interface TerrainAsset {
   id: string;
@@ -268,7 +279,7 @@ export function TerrainEditor({
       <Button
         variant="outline"
         size="sm"
-        className="w-full"
+        className="w-full text-xs"
         onClick={() => openUploadFor(type)}
       >
         <Upload className="h-4 w-4 mr-2" />
@@ -277,6 +288,16 @@ export function TerrainEditor({
       <p className="text-xs text-muted-foreground text-center">
         Supports: {getSupportedFormats().join(', ')}
       </p>
+    </div>
+  );
+
+  const renderGallery = (tab: string) => (
+    <div className="border-t pt-3 space-y-1.5">
+      <h4 className="text-xs font-medium">3D model gallery</h4>
+      <SketchfabBrowser
+        quick={GALLERY_QUICK[tab]}
+        onAdd={(pick) => onTerrainAssetsChange([...terrainAssets, pickToAsset(pick, GALLERY_TYPE[tab])])}
+      />
     </div>
   );
 
@@ -340,7 +361,7 @@ export function TerrainEditor({
           </TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="h-80">
+        <ScrollArea className="h-[420px]">
           {/* Terrain Tab */}
           <TabsContent value="terrain" className="p-3 space-y-4 m-0">
             {renderUploadButton('terrain', 'Terrain')}
@@ -348,6 +369,7 @@ export function TerrainEditor({
               <h4 className="text-xs font-medium mb-2">Active Terrain Assets</h4>
               {renderAssetList('terrain')}
             </div>
+            {renderGallery('terrain')}
           </TabsContent>
 
           {/* Sky Tab */}
@@ -357,16 +379,17 @@ export function TerrainEditor({
               <h4 className="text-xs font-medium mb-2">Active Skydome Assets</h4>
               {renderAssetList('skydome')}
             </div>
+            {renderGallery('sky')}
           </TabsContent>
 
           {/* Nature Tab */}
           <TabsContent value="nature" className="p-3 space-y-4 m-0">
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={() => openUploadFor('tree')}>
+              <Button variant="outline" size="sm" className="text-xs" onClick={() => openUploadFor('tree')}>
                 <Trees className="h-4 w-4 mr-1" />
                 Add Trees
               </Button>
-              <Button variant="outline" size="sm" onClick={() => openUploadFor('landscape')}>
+              <Button variant="outline" size="sm" className="text-xs" onClick={() => openUploadFor('landscape')}>
                 <Mountain className="h-4 w-4 mr-1" />
                 Add Rocks
               </Button>
@@ -379,6 +402,7 @@ export function TerrainEditor({
               <h4 className="text-xs font-medium mb-2">Landscape Elements</h4>
               {renderAssetList('landscape')}
             </div>
+            {renderGallery('nature')}
           </TabsContent>
 
           {/* Library Tab */}
@@ -425,7 +449,7 @@ export function TerrainEditor({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1"
+                className="flex-1 text-xs"
                 onClick={() => libraryInputRef.current?.click()}
               >
                 <Plus className="h-4 w-4 mr-1" />
@@ -471,6 +495,7 @@ export function TerrainEditor({
                 )}
               </CollapsibleContent>
             </Collapsible>
+            {renderGallery('library')}
           </TabsContent>
         </ScrollArea>
 
