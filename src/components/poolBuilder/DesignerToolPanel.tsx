@@ -1,5 +1,6 @@
 import * as React from 'react';
 const { useState } = React;
+const SHOW_EXTRA_FEATURE_SECTIONS = false;
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
