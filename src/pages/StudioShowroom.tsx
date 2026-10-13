@@ -762,7 +762,7 @@ const StudioShowroom = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="relative overflow-hidden border-b border-border/70">
-        <div className="container mx-auto px-6 pt-8 pb-16">
+        <div className="container mx-auto px-6 pt-28 pb-16">
           <Link to="/" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-3 w-3" /> Wonderlands World
           </Link>
