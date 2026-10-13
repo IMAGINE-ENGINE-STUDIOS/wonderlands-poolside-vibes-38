@@ -22,6 +22,10 @@ export interface TerrainAsset {
   rotation: [number, number, number];
   scale: number | [number, number, number];
   visible: boolean;
+  /** Normalise the loaded model to real-world feet (see realScale.ts) */
+  autoFit?: boolean;
+  /** Measured real size in feet after normalisation (shown in the inspector) */
+  sizeFt?: [number, number, number];
 }
 
 export interface AssetLibraryItem {

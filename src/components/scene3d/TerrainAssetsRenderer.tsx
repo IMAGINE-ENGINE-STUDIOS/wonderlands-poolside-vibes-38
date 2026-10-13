@@ -3,6 +3,7 @@ import { TransformControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { Model3DLoader } from './Model3DLoader';
 import { TerrainAsset } from './TerrainEditor';
+import { realWorldFit } from './realScale';
 
 export type GizmoMode = 'translate' | 'rotate' | 'scale';
 
@@ -108,15 +109,51 @@ function TerrainAssetItem({
       }}
     >
       <Suspense fallback={null}>
-        <Model3DLoader
-          url={asset.url}
-          format={asset.format}
-          scale={1}
-          onError={(error) => console.error(`Failed to load ${asset.name}:`, error)}
-        />
+        <FitToRealSize asset={asset}>
+          <Model3DLoader
+            url={asset.url}
+            format={asset.format}
+            scale={1}
+            onError={(error) => console.error(`Failed to load ${asset.name}:`, error)}
+          />
+        </FitToRealSize>
       </Suspense>
     </group>
   );
+}
+
+/**
+ * Mounts only after the model has loaded (inside Suspense), measures its
+ * bounding box and rescales it to plausible real-world feet, resting on y=0.
+ * Meshes are tagged `walkable` so the walkthrough can collide with the
+ * model's real triangles instead of a box.
+ */
+function FitToRealSize({ asset, children }: { asset: TerrainAsset; children: React.ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  React.useLayoutEffect(() => {
+    const g = ref.current;
+    if (!g) return;
+    let tries = 0;
+    const apply = () => {
+      g.scale.setScalar(1);
+      g.position.set(0, 0, 0);
+      g.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(g, true);
+      if (box.isEmpty()) { if (tries++ < 20) requestAnimationFrame(apply); return; }
+      const parent = g.parent;
+      const parentScale = parent ? new THREE.Vector3().setFromMatrixScale(parent.matrixWorld) : new THREE.Vector3(1, 1, 1);
+      const size = box.getSize(new THREE.Vector3()).divide(parentScale);
+      const min = box.min.clone().sub(parent ? new THREE.Vector3().setFromMatrixPosition(parent.matrixWorld) : new THREE.Vector3()).divide(parentScale);
+      if (asset.autoFit !== false && (asset.type === 'object' || asset.type === 'furniture' || asset.type === 'tree' || asset.type === 'landscape' || asset.type === 'custom')) {
+        const k = realWorldFit(asset.name, asset.type, size);
+        g.scale.setScalar(k);
+        g.position.y = -min.y * k;
+      }
+      g.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.userData.walkable = true; });
+    };
+    apply();
+  }, [asset.url, asset.name, asset.type, asset.autoFit]);
+  return <group ref={ref}>{children}</group>;
 }
 
 export function TerrainAssetsRenderer({
