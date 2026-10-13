@@ -39,11 +39,14 @@ export const StudioSitePlanner: React.FC<Props> = ({
   // Seed the board with the selected product footprint the first time it opens
   const seeded = React.useRef(false);
   React.useEffect(() => {
-    if (seeded.current || plan.shapes.length) return;
+    if (seeded.current) return;
+    const hasProduct = plan.shapes.some((s) => s.layer === 'pool' || s.layer === 'spa');
+    if (hasProduct) { seeded.current = true; return; }
     const seed = buildProductSitePlan({ categoryId, modelName, meta });
     if (seed) {
       seeded.current = true;
-      setPlan(seed);
+      // always open with the pool on the board; keep anything already drawn
+      setPlan(plan.shapes.length ? { ...seed, shapes: [...plan.shapes, ...seed.shapes] } : seed);
     }
   }, [categoryId, modelName, meta, plan.shapes.length, setPlan]);
 

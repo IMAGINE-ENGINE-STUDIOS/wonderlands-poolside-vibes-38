@@ -679,7 +679,7 @@ const GrassDrawingBoard: React.FC<Props> = ({
     const drawing = tool === 'draw' ? layout.areas.find(a => !a.closed) : null;
     if (drawing && drawing.points.length >= 3) {
       const first = drawing.points[0];
-      if (Math.hypot(first.x - w.x, first.y - w.y) * view.zoom <= HIT_PX + 4) {
+      if (Math.hypot(first.x - w.x, first.y - w.y) * view.zoom <= HIT_PX + 14) {
         patch(layout.areas.map(a => (a.id === drawing.id ? { ...a, closed: true } : a)));
         setSelection(null);
         return;
@@ -722,7 +722,7 @@ const GrassDrawingBoard: React.FC<Props> = ({
     } else {
       const a = areas[idx];
       const first = a.points[0];
-      if (a.points.length >= 3 && first && Math.hypot(first.x - snapped.x, first.y - snapped.y) * view.zoom <= HIT_PX + 4) {
+      if (a.points.length >= 3 && first && Math.hypot(first.x - snapped.x, first.y - snapped.y) * view.zoom <= HIT_PX + 14) {
         areas[idx] = { ...a, closed: true };
       } else {
         areas[idx] = { ...a, points: [...a.points, snapped] };

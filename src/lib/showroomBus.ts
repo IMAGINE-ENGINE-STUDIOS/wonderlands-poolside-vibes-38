@@ -40,7 +40,10 @@ const w = (
 ): ShowroomWidget => ({ id, index, title, tag, description, keywords });
 
 const FLAGSHIP: ShowroomWidget[] = [
-  w('design-studio', 'S1', 'Design Studio — 2D & 3D', 'CAD engine',
+  w('studio-3d', 'S1b', '3D Studio', 'Real-time 3D',
+    'The real-time 3D scene on its own, opened on a rectangular 16 × 36 pool. Orbit, walk the deck, change finishes, coping, waterline tile and lights, shape the floor and drop objects in the yard.',
+    ['3d studio', '3d', '3d pool', 'walk the pool', 'textures', 'render']),
+  w('design-studio', 'S1', 'Design Studio — 2D', 'CAD engine',
     'A dual-view design engine: a real-time 3D scene and a plan-view board bound to the same geometry at 10 px per foot. Draw or edit the shell outline and the depth profile rebuilds from linear anchors, with coping, waterline tile, deck elevation and walls generated automatically. Switch 2D ↔ 3D at any time; the scene is remembered.',
     ['design studio', '3d', '2d', 'pool designer', 'draw a pool', '3d pool', 'designer']),
   w('flip-v8', 'S2', 'FLIP V8 — The Calm Edition', 'Publishing',
@@ -176,6 +179,8 @@ type Detail = Pick<ShowroomWidget, 'family' | 'eyebrow' | 'headline' | 'capabili
 const DETAILS: Record<string, Detail> = {
   'design-studio': { family: 'cad', eyebrow: 'Real-time WebGL. True scale.', headline: 'Walk the water before it exists.', route: '/design-studio', cta: 'Open the Designer',
     capabilities: ['Bidirectional 2D ↔ 3D geometry sync with scene memory', 'Linear depth anchors with auto wall generation', 'Coping, waterline and deck at 1 ft UV texture scale', 'Snap-to-wall lighting with gradient presets', 'Live cost model per shell, deck and feature'] },
+  'studio-3d': { family: 'cad', eyebrow: 'Orbit it. Walk it. Light it.', headline: 'See the finished backyard tonight.', route: '/design-studio', cta: 'Open the 3D Studio',
+    capabilities: ['Rectangular pool ready on open', 'Finishes, coping, waterline and pavers from the real catalogue', 'Depth profile and shape editing', 'Night lighting and walkthrough camera', 'Objects library for the yard'] },
   'flip-v8': { family: 'magazine', eyebrow: 'The book, read calmly.', headline: 'Every category, one edition.', route: '/', cta: 'Open on the home page',
     capabilities: ['Arrow-only page turning, keyboard friendly', 'Category editions and model dossiers', 'Live tool widgets inside the pages', 'Cart, estimate and quote from any page', 'Genius narrator on every leaf'] },
   'flip-builder': { family: 'magazine', eyebrow: 'Compose. Publish. Sell.', headline: 'Your own edition, page by page.', route: '/flip', cta: 'Open Flip Builder V3',
@@ -230,7 +235,7 @@ const DETAILS: Record<string, Detail> = {
 
 /* Showroom order: most powerful solutions first, atomic widgets after, dashboards last. */
 const ORDER = [
-  'design-studio', 'website-builder', 'global-board', 'wonderlands-studio', 'flip-builder', 'flip-v8', 'socialite', 'solar',
+  'website-builder', 'design-studio', 'studio-3d', 'global-board', 'wonderlands-studio', 'flip-builder', 'flip-v8', 'socialite', 'solar',
   'site-planner', 'enclosure', 'fence', 'grass', 'depth', 'scene-objects',
   'quote', 'blueprint', 'signature', 'turnkey', 'sauna-pricing', 'flip-calculators', 'pool-calc', 'heater-calc', 'inline-calc',
   'features', 'cart', 'financing', 'search', 'flip-search', 'media', 'sauna-card',
@@ -258,6 +263,22 @@ export const SHOWROOM_FAMILY_LABEL: Record<ShowroomFamily, string> = {
   catalog: 'Catalog & home page',
   dashboard: 'Dashboards',
 };
+
+/** The four chapters the showroom is told in — most powerful first. */
+export type ShowroomTier = 'flagship' | 'boards' | 'selling' | 'dashboards';
+export const SHOWROOM_TIERS: { id: ShowroomTier; number: string; title: string; lede: string }[] = [
+  { id: 'flagship', number: 'I', title: 'The flagship engines', lede: 'Build your website, design the backyard in 2D and 3D, publish books and grow on every channel.' },
+  { id: 'boards', number: 'II', title: 'Drawing boards', lede: 'Fences, screens, turf, floors and plan sets — drawn to scale and priced as you draw.' },
+  { id: 'selling', number: 'III', title: 'Quote & sell', lede: 'Proposals, signatures, calculators, options, cart, financing and the catalogue your clients browse.' },
+  { id: 'dashboards', number: 'IV', title: 'Dashboards', lede: 'Where the business runs — company workspace, customer account, sales team and command center.' },
+];
+const TIER_OF: Record<string, ShowroomTier> = {
+  'website-builder': 'flagship', 'design-studio': 'flagship', 'studio-3d': 'flagship', 'global-board': 'flagship',
+  'wonderlands-studio': 'flagship', 'flip-builder': 'flagship', 'flip-v8': 'flagship', socialite: 'flagship', solar: 'flagship',
+  'site-planner': 'boards', enclosure: 'boards', fence: 'boards', grass: 'boards', depth: 'boards', 'scene-objects': 'boards', blueprint: 'boards',
+  'dash-command': 'dashboards', 'dash-workspace': 'dashboards', 'dash-account': 'dashboards', 'dash-salesrep': 'dashboards',
+};
+export const showroomTierOf = (id: string): ShowroomTier => TIER_OF[id] ?? 'selling';
 
 export const findShowroomWidget = (id: string) => SHOWROOM_WIDGETS.find((s) => s.id === id);
 
