@@ -19,6 +19,21 @@ const SYSTEM = `You design residential backyard pools in feet. Reply with ONE JS
 }
 Pick sensible real-world values when the brief doesn't say. No prose, no markdown.`;
 
+// Pick the best chat model this Groq account can use (cached per instance).
+const PREFERRED = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'llama-4-maverick', 'llama-4-scout', 'qwen', 'llama-3.1-70b', 'gpt-oss', 'llama'];
+let cachedModel: string | null = null;
+async function pickModel(key: string): Promise<string> {
+  if (cachedModel) return cachedModel;
+  const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { Authorization: `Bearer ${key}` } });
+  const ids: string[] = r.ok ? ((await r.json()).data || []).map((m: { id: string }) => m.id) : [];
+  const chat = ids.filter((id) => !/whisper|tts|guard|embed|playai|orpheus|distil/i.test(id));
+  for (const pref of PREFERRED) {
+    const hit = chat.find((id) => id.toLowerCase().includes(pref));
+    if (hit) return (cachedModel = hit);
+  }
+  return (cachedModel = chat[0] || 'llama-3.3-70b-versatile');
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   const json = (b: unknown, status = 200) =>
@@ -37,7 +52,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: await pickModel(key),
         temperature: 0.4,
         response_format: { type: 'json_object' },
         messages: [
@@ -50,6 +65,7 @@ Deno.serve(async (req) => {
     if (!res.ok) {
       const t = await res.text();
       console.error('groq error', res.status, t.slice(0, 300));
+      if (res.status === 404) cachedModel = null;
       const msg = res.status === 429 ? 'Genius is busy right now. Try again in a minute.' : 'Genius could not design that. Try again.';
       return json({ error: msg }, res.status === 429 ? 429 : 502);
     }
