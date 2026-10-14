@@ -1,84 +1,76 @@
 /**
  * Real-world sizing for dropped 3D models. Scene units are feet.
  *
- * Most Sketchfab / glTF files are authored in metres, so we first try a
- * metres→feet conversion. If that gives an implausible height for what the
- * object is (by name keyword, then by asset type), we scale it to a typical
- * real height instead. The live pool + deck size (`SiteRef`) is then used as
- * the reference: trees are capped relative to the pool, furniture to the deck
- * width, and terrains/skydomes are sized to frame the whole pool + deck.
+ * Deterministic: a model's raw file units are ignored. Every object is scaled
+ * to a fixed real-world target size picked by name keyword (then by asset
+ * type), and that target is anchored to the live pool (`SiteRef`):
+ *  - furniture/people/props → fixed human-scale sizes (a chair ≈ 1.7 ft wide, 3.5 ft tall)
+ *  - trees/palms → proportional to the pool (16 ft wide pool → ~18 ft tree)
+ *  - terrains → 6× the pool + deck envelope; skydomes → 14× (horizon illusion)
+ *  - anything else → capped to the pool footprint
+ * The same rules run in the Asset Manager and the Terrain Editor.
  */
 import * as THREE from 'three';
-
-const M_TO_FT = 3.28084;
 
 /** Live pool/deck reference used to scale every model. */
 export interface SiteRef { poolLength: number; poolWidth: number; deckWidth: number }
 
-/** [min, typical, max] height in feet */
-const KEYWORDS: Array<[RegExp, [number, number, number]]> = [
-  [/bar ?stool|stool/i, [2, 2.6, 3.6]],
-  [/chair|seat|armchair/i, [2.3, 3, 4]],
-  [/lounge|chaise|sunbed|daybed/i, [1, 2.2, 3.5]],
-  [/sofa|couch|sectional/i, [2, 2.8, 3.5]],
-  [/table/i, [1.2, 2.5, 3.6]],
-  [/umbrella|parasol/i, [6.5, 8, 10]],
-  [/pergola|gazebo|cabana/i, [8, 10, 14]],
-  [/palm/i, [10, 18, 40]],
-  [/tree/i, [8, 16, 50]],
-  [/bush|shrub|plant|flower/i, [0.8, 2.5, 6]],
-  [/planter|pot|vase/i, [1, 2, 4]],
-  [/grill|bbq|barbecue/i, [3, 3.8, 4.5]],
-  [/fire ?pit/i, [1, 1.5, 2.5]],
-  [/rock|stone|boulder/i, [0.5, 2, 6]],
-  [/lamp|lantern|light/i, [1, 5, 12]],
-  [/person|human|man|woman/i, [5, 5.8, 6.5]],
-  [/car|truck|suv/i, [4.5, 5, 7]],
-  [/house|building|villa/i, [10, 20, 40]],
+/** Target size in feet. `h` = height, `w` = largest footprint side (optional). */
+type Target = { h: number; w?: number };
+
+const KEYWORDS: Array<[RegExp, Target | ((s: SiteRef) => Target)]> = [
+  [/bar ?stool|stool/i, { h: 3, w: 1.3 }],
+  [/lounge|chaise|sunbed|daybed|lounger/i, { h: 2.6, w: 6.5 }],
+  [/armchair|chair|seat/i, { h: 3.5, w: 1.8 }],
+  [/sofa|couch|sectional/i, { h: 2.8, w: 7 }],
+  [/table/i, { h: 2.5, w: 4 }],
+  [/umbrella|parasol/i, { h: 8, w: 9 }],
+  [/pergola|gazebo|cabana/i, { h: 10, w: 14 }],
+  [/palm/i, (s) => ({ h: Math.max(14, s.poolWidth * 1.3) })],
+  [/tree|oak|pine|birch|maple|cypress/i, (s) => ({ h: Math.max(12, s.poolWidth * 1.1) })],
+  [/bush|shrub|hedge/i, { h: 3, w: 3.5 }],
+  [/flower|plant|fern|grass/i, { h: 1.8 }],
+  [/planter|pot|vase/i, { h: 2 }],
+  [/grill|bbq|barbecue/i, { h: 3.8, w: 4.5 }],
+  [/fire ?pit/i, { h: 1.5, w: 4 }],
+  [/boulder/i, { h: 3 }],
+  [/rock|stone/i, { h: 1.5 }],
+  [/lamp|lantern/i, { h: 5 }],
+  [/light/i, { h: 3 }],
+  [/person|human|man|woman|girl|boy|character/i, { h: 5.8 }],
+  [/dog/i, { h: 2 }],
+  [/car|truck|suv/i, { h: 5, w: 15 }],
+  [/house|building|villa|home/i, (s) => ({ h: 24, w: Math.max(40, s.poolLength * 1.6) })],
 ];
 
-const BY_TYPE: Record<string, [number, number, number]> = {
-  furniture: [1.5, 3, 5],
-  object: [0.5, 3, 12],
-  tree: [6, 16, 50],
-  landscape: [0.5, 2, 8],
-  custom: [0.5, 3, 20],
+const BY_TYPE: Record<string, Target | ((s: SiteRef) => Target)> = {
+  furniture: { h: 3, w: 3 },
+  tree: (s) => ({ h: Math.max(12, s.poolWidth * 1.1) }),
+  landscape: { h: 2.5 },
+  object: { h: 3 },
+  custom: { h: 3 },
 };
 
-const FURNITURE_RE = /stool|chair|seat|lounge|chaise|sunbed|daybed|sofa|couch|sectional|table|grill|bbq|planter|pot/i;
+const DEFAULT_SITE: SiteRef = { poolLength: 32, poolWidth: 16, deckWidth: 6 };
 
 /** Returns the uniform scale factor to apply to the raw model. */
 export function realWorldFit(name: string, type: string, size: THREE.Vector3, site?: SiteRef): number {
+  const s = site ?? DEFAULT_SITE;
   const h = Math.max(size.y, 1e-4);
   const footprint = Math.max(size.x, size.z, 1e-4);
+  const env = Math.max(s.poolLength, s.poolWidth) + 2 * s.deckWidth;
 
-  // Ground / sky: frame the full pool + deck envelope.
-  if (type === 'terrain' || type === 'skydome') {
-    const env = site ? Math.max(site.poolLength, site.poolWidth) + 2 * site.deckWidth : 50;
-    const target = env * (type === 'skydome' ? 6 : 4);
-    return target / footprint;
-  }
+  // Ground and sky frame the whole site; skydome big enough to read as horizon.
+  if (type === 'terrain') return (env * 6) / footprint;
+  if (type === 'skydome') return (env * 14) / Math.max(footprint, h);
 
-  const range = KEYWORDS.find(([re]) => re.test(name))?.[1] ?? BY_TYPE[type] ?? BY_TYPE.custom;
-  const [min, typical, max] = range;
-  // Files come in metres, feet, inches, centimetres or millimetres. Try each
-  // unit (metres first, the glTF standard) and keep the first that gives a
-  // plausible height; otherwise force the typical real height.
-  const UNITS = [M_TO_FT, 1, 1 / 12, M_TO_FT / 100, M_TO_FT / 1000];
-  const unit = UNITS.find((u) => h * u >= min && h * u <= max);
-  let k = unit ?? typical / h;
-  if (!site) return k;
-
-  const poolMax = Math.max(site.poolLength, site.poolWidth);
-  // Vegetation: height ≤ 1.1× pool length, canopy ≤ 0.6× pool width.
-  if (type === 'tree' || /palm|tree/i.test(name)) {
-    k = Math.min(k, (poolMax * 1.1) / h, (site.poolWidth * 0.6 + 4) / footprint);
-  } else if (type === 'furniture' || FURNITURE_RE.test(name)) {
-    // Furniture must fit on the deck band.
-    k = Math.min(k, Math.max(3, site.deckWidth * 1.2) / footprint);
-  } else {
-    // Any other object: never larger than the pool itself.
-    k = Math.min(k, poolMax / footprint);
-  }
+  const rule = KEYWORDS.find(([re]) => re.test(name))?.[1] ?? BY_TYPE[type] ?? BY_TYPE.custom;
+  const t = typeof rule === 'function' ? rule(s) : rule;
+  let k = t.h / h;
+  // Footprint target wins when the model is wide/flat (e.g. a lounger).
+  if (t.w) k = Math.min(k, t.w / footprint) * 0.5 + (t.h / h) * 0.5 > 0 ? Math.min(t.h / h, (t.w * 1.25) / footprint) : k;
+  // Nothing (except houses) may outgrow the pool footprint.
+  const poolMax = Math.max(s.poolLength, s.poolWidth);
+  if (!/house|building|villa|home/i.test(name)) k = Math.min(k, (poolMax * 1.5) / footprint);
   return k;
 }
