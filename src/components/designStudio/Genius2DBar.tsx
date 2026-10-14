@@ -65,7 +65,7 @@ export function Genius2DBar({ onScene }: { onScene: (scene: any) => void }) {
   };
 
   return (
-    <div className="pointer-events-auto fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-4xl items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-1.5 shadow-lg backdrop-blur-xl">
+    <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-40 mx-auto flex max-w-4xl items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-1.5 shadow-lg backdrop-blur-xl">
       <Wand2 className="h-4 w-4 shrink-0 text-primary" aria-hidden />
       <input
         value={prompt}
