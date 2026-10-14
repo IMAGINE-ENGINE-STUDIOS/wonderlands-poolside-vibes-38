@@ -50,7 +50,9 @@ function shapePoints(shape: Shape, W: number, L: number): { x: number; y: number
   switch (shape) {
     case 'oval': return ring((t) => [Math.cos(t) * hw, Math.sin(t) * hl]);
     case 'kidney': return ring((t) => {
-      const pinch = 1 - 0.28 * Math.max(0, Math.cos(t)) ** 2 * Math.abs(Math.sin(t * 0.5) * 0 + 1) * (Math.abs(Math.sin(t)) < 0.6 ? 1 : 0.2);
+      // pinch the +x side in the middle → bean shape
+      const d = Math.atan2(Math.sin(t), Math.cos(t));
+      const pinch = 1 - 0.38 * Math.exp(-(d * d) / 0.25);
       return [Math.cos(t) * hw * pinch, Math.sin(t) * hl];
     });
     case 'freeform': return ring((t) => {
@@ -58,12 +60,9 @@ function shapePoints(shape: Shape, W: number, L: number): { x: number; y: number
       return [Math.cos(t) * hw * r, Math.sin(t) * hl * r];
     });
     case 'roman': {
-      const pts: { x: number; y: number }[] = [];
-      const r = Math.min(hw, hl * 0.3);
-      pts.push({ x: -hw, y: -hl }, { x: hw, y: -hl });
-      for (let i = 0; i <= 24; i++) { const a = (i / 24) * Math.PI; pts.push({ x: hw - r + r * Math.cos(-Math.PI / 2 + a) * 0 + r * Math.sin(a) * 0, y: 0 }); pts.pop(); }
-      pts.push({ x: hw, y: hl - r });
-      for (let i = 1; i < 24; i++) { const a = (i / 24) * Math.PI; pts.push({ x: hw * Math.cos(a), y: hl - r + r * Math.sin(a) }); }
+      const r = Math.min(hw, hl);
+      const pts = [{ x: -hw, y: -hl }, { x: hw, y: -hl }, { x: hw, y: hl - r }];
+      for (let i = 1; i < 32; i++) { const a = (i / 32) * Math.PI; pts.push({ x: hw * Math.cos(a), y: hl - r + r * Math.sin(a) }); }
       pts.push({ x: -hw, y: hl - r });
       return pts;
     }
