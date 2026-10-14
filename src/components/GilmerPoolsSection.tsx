@@ -2,8 +2,6 @@ import * as React from "react";
 import { gilmerPools } from "@/data/gilmerPools";
 import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import ProductScrollRow from "./ProductScrollRow";
-import { Badge } from "@/components/ui/badge";
-import { Waves, Shield } from "lucide-react";
 import EditorialSectionHeader from "./EditorialSectionHeader";
 const sortedPools = [...gilmerPools].sort((a, b) => a.price - b.price);
 
@@ -19,17 +17,6 @@ const GilmerPoolsSection = () => {
             description="Premium fiberglass pools built to last — Gilmer Glass construction with a lifetime warranty."
           />
 
-          {/* Feature Badges */}
-          <div className="flex flex-wrap items-center gap-3 mb-10">
-            <Badge className="bg-gradient-to-r from-primary to-teal text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
-              <Shield className="h-4 w-4 mr-2" />
-              Life Warranty
-            </Badge>
-            <Badge className="bg-gradient-to-r from-teal to-primary text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
-              <Waves className="h-4 w-4 mr-2" />
-              Fiber Construction
-            </Badge>
-          </div>
 
           {/* Pool Scroll */}
           <ProductScrollRow className="mb-8">
