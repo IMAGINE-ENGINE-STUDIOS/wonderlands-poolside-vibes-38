@@ -217,7 +217,6 @@ function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey
 }
 /** Deck slab thickness (3 in), same as the pool's own deck border. */
 const DECK_SLAB_FT = 0.25;
-}
 
 export function BoardElements3D({ holes = [] }: { holes?: XZ[][] }) {
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
