@@ -17,6 +17,25 @@ const select = (sel: BoardSelection) => (e: { stopPropagation: () => void }) => 
   e.stopPropagation();
   window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: sel }));
 };
+/**
+ * Catalog photo material (same photos and 1 ft UV × repeat as the main pool),
+ * or a plain color when the value is a hex. Textures are cached per URL.
+ */
+const texCache = new Map<string, THREE.Texture>();
+const isUrl = (v: string) => /^(\/|https?:)/.test(v);
+const photoMat = (v: string, repeatFt: number, opts: THREE.MeshStandardMaterialParameters) => {
+  if (!isUrl(v)) return new THREE.MeshStandardMaterial({ color: v, ...opts });
+  let t = texCache.get(v);
+  if (!t) { t = new THREE.TextureLoader().load(v); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; texCache.set(v, t); }
+  const tc = t.clone(); tc.needsUpdate = true; tc.repeat.set(1 / repeatFt, 1 / repeatFt);
+  return new THREE.MeshStandardMaterial({ map: tc, ...opts });
+};
+/** World-space planar UVs in feet so photos keep real scale on any outline. */
+const planarUV = (g: THREE.BufferGeometry, wall = false) => {
+  const a = g.attributes.position as THREE.BufferAttribute; const uv: number[] = [];
+  for (let k = 0; k < a.count; k++) { const x = a.getX(k), y = a.getY(k), z = a.getZ(k); uv.push(wall ? x + z : x, wall ? y : z); }
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); return g;
+};
 /** Polished architectural metal: any color reads as powder-coated aluminum. */
 const metalMat = (color: string) => new THREE.MeshStandardMaterial({ color, roughness: 0.22, metalness: 0.92, envMapIntensity: 1.4 });
 
@@ -130,30 +149,30 @@ function Water({ w, i }: { w: Water3D; i: number }) {
     const g = new THREE.ShapeGeometry(new THREE.Shape(dense.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2);
     const a = g.attributes.position as THREE.BufferAttribute;
     for (let k = 0; k < a.count; k++) a.setY(k, -depthAt(a.getX(k), a.getZ(k)));
-    a.needsUpdate = true; g.computeVertexNormals(); return g;
+    a.needsUpdate = true; g.computeVertexNormals(); return planarUV(g);
   }, [dense, depthAt]);
   const walls = React.useMemo(() => {
     const pos: number[] = [];
     dense.forEach((a, k) => { const b = dense[(k + 1) % dense.length]; const Da = depthAt(a.x, a.z), Db = depthAt(b.x, b.z);
       pos.push(a.x, 0, a.z, b.x, 0, b.z, b.x, -Db, b.z, a.x, 0, a.z, b.x, -Db, b.z, a.x, -Da, a.z); });
-    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return planarUV(g, true);
   }, [dense, depthAt]);
   const band = React.useMemo(() => {
     const pos: number[] = [];
     w.pts.forEach((a, k) => { const b = w.pts[(k + 1) % w.pts.length];
       pos.push(a.x, 0.01, a.z, b.x, 0.01, b.z, b.x, -0.5, b.z, a.x, 0.01, a.z, b.x, -0.5, b.z, a.x, -0.5, a.z); });
-    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return planarUV(g, true);
   }, [w.pts]);
   const coping = React.useMemo(() => {
     const { base, offset } = mitredOffsetRing(w.pts, w.copingWidth);
     const sh = new THREE.Shape(offset.map((p) => new THREE.Vector2(p.x, -p.z)));
     sh.holes.push(new THREE.Path(base.map((p) => new THREE.Vector2(p.x, -p.z))));
     const g = new THREE.ExtrudeGeometry(sh, { depth: 0.2, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2 });
-    g.rotateX(-Math.PI / 2); return g;
+    g.rotateX(-Math.PI / 2); return planarUV(g);
   }, [w.pts, w.copingWidth]);
-  const fin = React.useMemo(() => new THREE.MeshStandardMaterial({ color: w.finish, roughness: 0.6, side: THREE.DoubleSide }), [w.finish]);
-  const tile = React.useMemo(() => new THREE.MeshStandardMaterial({ color: w.waterline, roughness: 0.15, metalness: 0.1, side: THREE.DoubleSide }), [w.waterline]);
-  const cop = React.useMemo(() => new THREE.MeshStandardMaterial({ color: w.coping, roughness: 0.8 }), [w.coping]);
+  const fin = React.useMemo(() => photoMat(w.finish, 4, { roughness: 0.6, side: THREE.DoubleSide }), [w.finish]);
+  const tile = React.useMemo(() => photoMat(w.waterline, 1, { roughness: 0.15, metalness: 0.1, side: THREE.DoubleSide }), [w.waterline]);
+  const cop = React.useMemo(() => photoMat(w.coping, 2, { roughness: 0.8 }), [w.coping]);
   const water = React.useMemo(() => new THREE.MeshPhysicalMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.05, transmission: 0.4 }), []);
   return (
     <group name={`board-${w.kind}`} onClick={select({ type: "water", i })}>
