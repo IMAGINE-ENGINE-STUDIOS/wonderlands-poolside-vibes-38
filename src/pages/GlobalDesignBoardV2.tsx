@@ -22,6 +22,15 @@ import usePersistentState from "@/hooks/usePersistentState";
 import { getAllProducts } from "@/data/poolProductLookup";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { cn } from "@/lib/utils";
+import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator";
+import { SCREEN_ENCLOSURE_PRICING, CONCRETE_DECK_PRICE_PER_SQFT } from "@/utils/paverPricing";
+import { paverTypes } from "@/data/paverData";
+import { artificialGrassOptions, getGrassPricePerSqFt } from "@/data/artificialGrassData";
+
+const TURF_COLORS: Record<string, string> = { "light-green": "#7fb24a", "dark-green": "#3f7a32", "natural-green": "#5b9a40", emerald: "#2f8a4a", olive: "#6f7f3a" };
+const GRASS_PRODUCTS_FOR_BOARD = () => artificialGrassOptions.map((g) => ({
+  id: `turf:${g.id}`, kind: "turf" as const, label: `${g.name} turf`, detail: "Artificial turf", rate: getGrassPricePerSqFt(g.name), unit: "sqft" as const, color: TURF_COLORS[g.id] ?? "#5b9a40",
+}));
 
 type Kind = "pool" | "spa" | "deck" | "turf" | "fence" | "enclosure";
 type Pt = { x: number; y: number };
