@@ -79,6 +79,11 @@ const ShowroomStudio3D: React.FC<Props> = ({ scene, textureLibrary, height = 720
       <div className="relative">
         <UnifiedPoolVisualizer scene={current} textureLibrary={library} onSceneChange={setCurrent} showcase={!entered} />
         {!entered && <div className="fixed inset-0 z-[10060]"><PreScreen full onEnter={() => setEntered(true)} /></div>}
+        {fromBoard && entered && (
+          <a href="/global-design-board-v2" className="fixed left-1/2 top-3 z-[10050] -translate-x-1/2 bg-foreground px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-background hover:bg-foreground/85">
+            Save &amp; return to the design board
+          </a>
+        )}
       </div>
     );
   }
