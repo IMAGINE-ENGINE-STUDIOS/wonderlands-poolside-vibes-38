@@ -24,7 +24,8 @@ export function densifyPoolOutline<T extends Point2D & { curveType?: OutlineCurv
   shape: 'rectangle' | 'kidney' | 'freeform' | string | undefined
 ): Point2D[] {
   const n = points.length;
-  if (n < 3 || shape === 'rectangle') return points.map(p => ({ x: p.x, y: p.y }));
+  const anyCurved = points.some(p => p.curveType && p.curveType !== 'linear');
+  if (n < 3 || (shape === 'rectangle' && !anyCurved)) return points.map(p => ({ x: p.x, y: p.y }));
   const hasTypes = points.some(p => p.curveType);
   const curvedCount = hasTypes ? points.filter(p => p.curveType && p.curveType !== 'linear').length : n;
   if (curvedCount === 0) return points.map(p => ({ x: p.x, y: p.y }));

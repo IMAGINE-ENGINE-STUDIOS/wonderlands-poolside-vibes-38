@@ -25,7 +25,7 @@ import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
 import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
 /* Seamless full-bleed grass (catalog swatches carry white borders that tile as a grid). Credit: Imagine Engine Studios Corp */
 import grassTexture from "@/assets/turf/grass-texture.avif";
-import { PoolDesignerHeader } from "@/components/scene3d/PoolDesignerHeader";
+import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from "@/components/scene3d/PoolDesignerHeader";
 import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
 
 /* ---------- catalog (same lists as the Global Design Board) ---------- */
@@ -365,9 +365,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
  * (PoolDesignerHeader), fed the same pool geometry in feet, plus fences,
  * screens and turf as extra lines. Credit: Imagine Engine Studios Corp.
  */
-export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: Pt[]; poolDepth?: number; deckWidth?: number; copingWidth?: number; poolPrice?: number; stats?: unknown; totals?: unknown }> = ({ scale, poolPts, deckPts, poolDepth = 6, deckWidth = 4, copingWidth = 1, poolPrice = 0 }) => {
+export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: Pt[]; poolDepth?: number; deckWidth?: number; copingWidth?: number; poolPrice?: number; stats?: unknown; totals?: unknown; deckAreaSqFt?: number; featuresList?: Array<{ type: string; cost: number }>; additionalPools?: Array<{ id: string; type?: string; points: Pt[] }> }> = ({ scale, poolPts, deckPts, poolDepth = 6, deckWidth = 4, copingWidth = 1, poolPrice = 0, deckAreaSqFt, featuresList = [], additionalPools = [] }) => {
   const [items] = useSiteElements();
   const feet = React.useMemo(() => poolPts.map((p) => ({ x: p.x / scale, y: p.y / scale })), [poolPts, scale]);
-  const extras = items.map((e) => { const q = e.kind === "turf" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { name: `${e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }; }).filter((l) => l.price > 0);
-  return <PoolDesignerHeader poolPoints={feet as never} poolDepth={poolDepth} deckWidth={deckWidth} copingWidth={copingWidth} poolPrice={poolPrice} additionalFeatures={extras} />;
+  // Every element on the board: site pieces, placed features and extra water bodies.
+  const extras = React.useMemo(() => {
+    const site = items.map((e) => { const q = e.kind === "turf" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { name: `${e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }; });
+    const counts = new Map<string, { n: number; cost: number }>();
+    featuresList.forEach((f) => { const c = counts.get(f.type) ?? { n: 0, cost: 0 }; c.n++; c.cost += f.cost; counts.set(f.type, c); });
+    const feats = [...counts].map(([t, c]) => ({ name: `${t.replace(/-/g, " ").replace(/^./, (m) => m.toUpperCase())}${c.n > 1 ? ` × ${c.n}` : ""}`, price: c.cost }));
+    return [...site, ...feats].filter((l) => l.price > 0);
+  }, [items, poolPts, deckPts, scale, featuresList]);
+  const bodies = React.useMemo(() => additionalPools.filter((p) => p.points?.length >= 3).map((p, i) => {
+    const a = areaFt(p.points, scale);
+    const label = p.type === "spa" ? "Spa" : p.type === "tanning-ledge" ? "Tanning ledge" : "Pool";
+    return { name: `${label} ${i + 1}`, areaSqFt: a, price: a * POOL_SHELL_PRICE_PER_SQFT };
+  }), [additionalPools, scale]);
+  return <PoolDesignerHeader poolPoints={feet as never} poolDepth={poolDepth} deckWidth={deckWidth} copingWidth={copingWidth} poolPrice={poolPrice} deckAreaSqFt={deckAreaSqFt} additionalFeatures={extras} additionalBodies={bodies} />;
 };

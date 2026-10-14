@@ -116,9 +116,6 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
         {/* Header */}
         <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
           <span className="text-sm font-semibold text-foreground">2D Designer</span>
-          <span className="text-xs text-muted-foreground font-mono">
-            {formatCurrency(props.projectCost.total)}
-          </span>
         </div>
 
         <ScrollArea className="flex-1 min-h-0">
@@ -429,67 +426,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
               </div>
             )}
 
-            {/* ═══ COST BREAKDOWN ═══ */}
-            <SectionHeader
-              label="Cost Estimate"
-              icon={<span className="text-[10px] font-bold">$</span>}
-              expanded={expandedSection === 'cost'}
-              onToggle={() => toggleSection('cost')}
-              badge={formatCurrency(props.projectCost.total)}
-            />
-            {expandedSection === 'cost' && (
-              <div className="px-2 pb-2 space-y-1.5">
-                {/* Pool Shell */}
-                <CostRowDetailed
-                  label="Pool Shell"
-                  value={props.projectCost.poolCost}
-                  detail={props.projectCost.poolArea && props.projectCost.poolRate
-                    ? `${props.projectCost.poolArea.toFixed(0)} sq ft × $${props.projectCost.poolRate}/sqft`
-                    : undefined}
-                />
-                {/* Deck / Pavers */}
-                <CostRowDetailed
-                  label="Deck/Pavers"
-                  value={props.projectCost.deckCost}
-                  detail={props.projectCost.deckArea && props.projectCost.deckRate
-                    ? `${props.projectCost.deckArea.toFixed(0)} sq ft × $${props.projectCost.deckRate}/sqft`
-                    : undefined}
-                />
-                {/* Coping */}
-                <CostRowDetailed
-                  label="Coping"
-                  value={props.projectCost.copingCost}
-                  detail={props.projectCost.copingArea && props.projectCost.copingRate
-                    ? `${props.projectCost.copingArea.toFixed(0)} sq ft × $${props.projectCost.copingRate}/sqft`
-                    : undefined}
-                />
-                {/* Features */}
-                <CostRowDetailed
-                  label="Features"
-                  value={props.projectCost.featuresCost}
-                  detail={props.projectCost.featuresList && props.projectCost.featuresList.length > 0
-                    ? `${props.projectCost.featuresList.length} items`
-                    : undefined}
-                />
-                {/* Feature list detail */}
-                {props.projectCost.featuresList && props.projectCost.featuresList.length > 0 && (
-                  <div className="bg-muted/15 rounded px-2 py-1 space-y-0.5">
-                    {props.projectCost.featuresList.filter(f => f.cost > 0).map((f, i) => (
-                      <div key={i} className="flex justify-between text-[9px]">
-                        <span className="text-muted-foreground capitalize">{f.type.replace(/-/g, ' ')}</span>
-                        <span className="text-foreground">${f.cost.toLocaleString()}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="border-t border-border/30 pt-1.5 flex justify-between items-center">
-                  <span className="text-[11px] font-semibold text-foreground">Total Estimate</span>
-                  <span className="text-sm font-bold text-primary">
-                    ${props.projectCost.total.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            )}
+            {/* Cost estimate lives only in the header take-off dropdown. */}
 
             {/* ═══ TEXTURES ═══ */}
             <SectionHeader

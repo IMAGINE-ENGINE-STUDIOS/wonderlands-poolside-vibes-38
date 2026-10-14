@@ -1990,14 +1990,15 @@ export function PoolBuilder({
 
       // Create path for pool outline
       ctx.beginPath();
-      if (poolShape === 'rectangle') {
+      const perPointCurves = points.some(p => p.curveType && p.curveType !== 'linear');
+      if (poolShape === 'rectangle' && !perPointCurves) {
         // Draw with straight lines
         ctx.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
           ctx.lineTo(points[i].x, points[i].y);
         }
         ctx.closePath();
-      } else if (poolShape === 'freeform' && points.some(p => p.curveType)) {
+      } else if (points.some(p => p.curveType)) {
         // Custom drawn pool - use individual curveTypes
         ctx.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
@@ -2056,9 +2057,9 @@ export function PoolBuilder({
             const p2 = points[(i + 1) % points.length];
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
-            if (poolShape === 'freeform' && p1.curveType) {
+            if (points.some(pt => pt.curveType)) {
               drawPoolSegment(ctx, p1, p2);
-            } else if (poolShape !== 'rectangle') {
+            } else if (poolShape !== 'rectangle' && !points.some(pt => pt.curveType)) {
               const p0 = points[(i - 1 + points.length) % points.length];
               const p3 = points[(i + 2) % points.length];
               const cp1x = p1.x + (p2.x - p0.x) / 6;
@@ -2092,7 +2093,14 @@ export function PoolBuilder({
 
         // Create a coping path
         const copingPath = new Path2D();
-        if (poolShape === 'rectangle') {
+        if (points.some(p => p.curveType)) {
+          // Per-point curve types — same segments as the pool wall (Imagine Engine Studios Corp)
+          const pathCtx = copingPath as unknown as CanvasRenderingContext2D;
+          copingPath.moveTo(points[0].x, points[0].y);
+          for (let i = 1; i < points.length; i++) drawPoolSegment(pathCtx, points[i - 1], points[i]);
+          drawPoolSegment(pathCtx, points[points.length - 1], points[0]);
+          copingPath.closePath();
+        } else if (poolShape === 'rectangle') {
           copingPath.moveTo(points[0].x, points[0].y);
           for (let i = 1; i < points.length; i++) {
             copingPath.lineTo(points[i].x, points[i].y);
@@ -5908,6 +5916,7 @@ export function PoolBuilder({
                 }
               } : null);
             } else {
+              if (curveType !== 'linear') setPoolShape('freeform');
               setPoints(prev => prev.map(p => p.id === pointId ? {
                 ...p,
                 curveType

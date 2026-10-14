@@ -28,6 +28,8 @@ interface PoolDesignerHeaderProps {
   additionalFeatures?: Array<{ name: string; price: number }>;
   /** Additional water bodies (spas / tanning ledges / extra pools) */
   additionalBodies?: Array<{ name: string; areaSqFt: number; multiplierLabel?: string; price: number }>;
+  /** Exact drawn deck area (sq ft); when given it replaces the perimeter estimate */
+  deckAreaSqFt?: number;
 }
 
 // Calculate pool area from points
@@ -84,7 +86,8 @@ export function PoolDesignerHeader({
   paverPricePerSqft,
   copingPricePerSqft,
   additionalFeatures = [],
-  additionalBodies = []
+  additionalBodies = [],
+  deckAreaSqFt
 }: PoolDesignerHeaderProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
@@ -101,7 +104,7 @@ export function PoolDesignerHeader({
     const { width, length } = calculateDimensions(poolPoints);
 
     // Deck area approximation (perimeter * deckWidth + corners)
-    const deckArea = perimeter * deckWidth + Math.PI * deckWidth * deckWidth;
+    const deckArea = deckAreaSqFt ?? (perimeter * deckWidth + Math.PI * deckWidth * deckWidth);
 
     // Coping area (perimeter * copingWidth)
     const copingArea = perimeter * copingWidth;
@@ -120,7 +123,7 @@ export function PoolDesignerHeader({
       waterVolume,
       gallons
     };
-  }, [poolPoints, poolDepth, deckWidth, copingWidth]);
+  }, [poolPoints, poolDepth, deckWidth, copingWidth, deckAreaSqFt]);
 
   // Store rates — derived from the actual products the user selected
   const rates = useMemo(() => {
@@ -269,10 +272,12 @@ export function PoolDesignerHeader({
             </span>
           </div>
         </button>
+      </div>
 
-        <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}>
-          <div className="overflow-hidden">
-            <div className="border-t border-slate-100 max-h-[70vh] overflow-y-auto">
+      {/* Breakdown drops down over the drawing board, never upward — Imagine Engine Studios Corp */}
+      <div className={`absolute right-0 top-full mt-2 z-50 w-full grid transition-[grid-template-rows] duration-300 ease-out ${isExpanded ? '' : 'pointer-events-none'}`} style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}>
+          <div className={`overflow-hidden bg-white rounded-[20px] ${isExpanded ? 'border border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : ''}`}>
+            <div className="max-h-[calc(100vh-7rem)] overflow-y-auto">
               <div className="grid grid-cols-2 border-b border-slate-100 divide-x divide-y divide-slate-100 bg-white">
                 <Stat label="Pool Area" value={measurements.poolArea.toFixed(0)} unit="sq ft" />
                 <Stat label="Perimeter" value={measurements.perimeter.toFixed(1)} unit="ft" />
@@ -354,7 +359,6 @@ export function PoolDesignerHeader({
               </div>
             </div>
           </div>
-        </div>
       </div>
 
       {showQuote && (
