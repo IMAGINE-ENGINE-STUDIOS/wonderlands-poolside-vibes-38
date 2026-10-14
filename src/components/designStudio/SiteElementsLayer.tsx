@@ -1,0 +1,302 @@
+/**
+ * SiteElementsLayer — the Global Design Board features inside the 2D Design Studio.
+ * Imagine Engine Studios Corp.
+ *
+ * The pool, its auto-attached deck, extra pools/spas and features stay owned by
+ * PoolBuilder (the canonical 2D pool + deck tool). This layer draws the rest of
+ * the property on the SAME board, in the SAME world pixels (10 px = 1 ft) and
+ * with the SAME pan/zoom transform PoolBuilder uses, so everything lines up:
+ *   - Fences: material → height → color, then click the line on the board.
+ *   - Screen enclosures: cage style → height → frame color, then click the footprint.
+ *   - Artificial turf: product, then click the area (pools/deck are cut out).
+ * Product-first: nothing can be drawn until a product is chosen.
+ * Rates come only from the site's own price lists (fence configurator, screen
+ * enclosure pricing, turf catalog) — never invented here.
+ * Elements persist per browser and are handed to the 3D Studio by `siteElementsTo3D`.
+ */
+import * as React from "react";
+import { Fence, Grid2x2, Layers, MousePointer2, Trash2, Undo2, Check, X } from "lucide-react";
+import usePersistentState from "@/hooks/usePersistentState";
+import { cn } from "@/lib/utils";
+import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator";
+import { SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
+import { artificialGrassOptions, getGrassPricePerSqFt } from "@/data/artificialGrassData";
+import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
+import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
+import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
+
+/* ---------- catalog (same lists as the Global Design Board) ---------- */
+const MAIN_FENCE_IMG = "/media/96e12412-10ac-45a5-b879-6ed8fc8e8046.webp";
+const MAIN_SCREEN_IMG = "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp";
+export const FENCE_MATERIALS = [
+  { id: "alu", label: "Aluminum picket", image: MAIN_FENCE_IMG },
+  { id: "vinyl", label: "Vinyl privacy", image: (vinylFenceAsset as { url: string }).url },
+  { id: "glass", label: "Glass pool fence", image: aluFenceImg },
+];
+export const FENCE_COLORS = [{ id: "black", hex: "#1f1f1f" }, { id: "bronze", hex: "#6b4a2b" }, { id: "white", hex: "#f4f4f2" }];
+export const FENCE_HEIGHTS = CONFIG_FENCE_HEIGHTS.map((h) => ({ ft: h.heightIn / 12, rate: h.pricePerFt, label: h.label }));
+export const SCREEN_STYLES = [
+  { id: "standard", label: "Standard cage", rate: SCREEN_ENCLOSURE_PRICING.standard, heights: [8, 10], image: MAIN_SCREEN_IMG },
+  { id: "deluxe", label: "Deluxe cage", rate: SCREEN_ENCLOSURE_PRICING.deluxe, heights: [10, 12], image: MAIN_SCREEN_IMG },
+  { id: "premium", label: "2-story cage", rate: SCREEN_ENCLOSURE_PRICING.premium, heights: [18, 20], image: screenPremiumImg },
+];
+export const SCREEN_COLORS = [{ id: "bronze", hex: "#6b4a2b" }, { id: "white", hex: "#e9e9e6" }, { id: "black", hex: "#222222" }];
+const TURF_COLORS: Record<string, string> = { "light-green": "#7fb24a", "dark-green": "#3f7a32", "natural-green": "#5b9a40", emerald: "#2f8a4a", olive: "#6f7f3a" };
+export const TURFS = artificialGrassOptions.map((g) => ({ id: g.id, label: `${g.name} turf`, rate: getGrassPricePerSqFt(g.name), color: TURF_COLORS[g.id] ?? "#5b9a40", image: g.image }));
+
+/* ---------- model ---------- */
+export type SiteKind = "fence" | "enclosure" | "turf";
+type Pt = { x: number; y: number };
+export interface SiteElement {
+  id: string; kind: SiteKind; pts: Pt[]; label: string; detail: string;
+  color: string; height?: number; style?: string; rate: number; unit: "lf" | "sqft";
+}
+type Choice = Omit<SiteElement, "id" | "pts">;
+export interface BoardView { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number }
+
+export const SITE_ELEMENTS_KEY = "design_studio_site_elements_v1";
+const ft = (px: number, scale: number) => px / scale;
+const lengthFt = (pts: Pt[], scale: number) => pts.slice(1).reduce((s, p, i) => s + Math.hypot(p.x - pts[i].x, p.y - pts[i].y), 0) / scale;
+const areaFt = (pts: Pt[], scale: number) => Math.abs(pts.reduce((s, p, i) => { const q = pts[(i + 1) % pts.length]; return s + p.x * q.y - q.x * p.y; }, 0) / 2) / (scale * scale);
+export const elementQty = (e: SiteElement, scale: number) => (e.unit === "lf" ? lengthFt(e.pts, scale) : areaFt(e.pts, scale));
+const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
+
+/** Read-only hook for other parts of the studio (take-off, 3D hand-off). */
+export function useSiteElements() { return usePersistentState<SiteElement[]>(SITE_ELEMENTS_KEY, []); }
+
+interface Props {
+  view: BoardView | null;
+  /** Pool + deck totals from PoolBuilder so the take-off covers the whole property. */
+  poolTotals?: { pool: number; deck: number; coping: number; features: number; deckArea: number; area: number } | null;
+}
+
+export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
+  const [items, setItems] = useSiteElements();
+  const [tab, setTab] = React.useState<SiteKind | null>(null);
+  const [choice, setChoice] = React.useState<Choice | null>(null);
+  const [draft, setDraft] = React.useState<Pt[]>([]);
+  const [hover, setHover] = React.useState<Pt | null>(null);
+  const [selected, setSelected] = React.useState<string | null>(null);
+  // Product-first selection steps
+  const [fMat, setFMat] = React.useState<string | null>(null);
+  const [fH, setFH] = React.useState<number | null>(null);
+  const [sStyle, setSStyle] = React.useState<string | null>(null);
+  const [sH, setSH] = React.useState<number | null>(null);
+  const svgRef = React.useRef<SVGSVGElement>(null);
+  const scale = view?.scale ?? 10;
+  const drawing = !!choice;
+
+  const toWorld = React.useCallback((e: React.MouseEvent) => {
+    const r = svgRef.current!.getBoundingClientRect();
+    const v = view!;
+    const sx = e.clientX - r.left, sy = e.clientY - r.top;
+    const x = (sx - v.width / 2 - v.pan.x) / v.zoom + v.width / 2;
+    const y = (sy - v.height / 2 - v.pan.y) / v.zoom + v.height / 2;
+    // 1 ft snap keeps measurements clean
+    return { x: Math.round(x / scale) * scale, y: Math.round(y / scale) * scale };
+  }, [view, scale]);
+
+  const finish = React.useCallback(() => {
+    if (!choice) return;
+    const min = choice.kind === "fence" ? 2 : 3;
+    if (draft.length >= min) {
+      const id = `${choice.kind}-${Date.now().toString(36)}`;
+      setItems((prev) => [...prev, { ...choice, id, pts: draft }]);
+      setSelected(id);
+    }
+    setDraft([]); setChoice(null);
+  }, [choice, draft, setItems]);
+
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!drawing) return;
+      if (e.key === "Enter") finish();
+      if (e.key === "Escape") { setDraft([]); setChoice(null); }
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") { e.preventDefault(); setDraft((d) => d.slice(0, -1)); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [drawing, finish]);
+
+  const onClick = (e: React.MouseEvent) => {
+    if (!view || !choice) return;
+    const p = toWorld(e);
+    // Auto-close: clicking near the first point finishes closed shapes.
+    if (choice.kind !== "fence" && draft.length >= 3 && Math.hypot(p.x - draft[0].x, p.y - draft[0].y) < scale * 1.5) { finish(); return; }
+    setDraft((d) => [...d, p]);
+  };
+
+  const t = view ? `translate(${view.width / 2 + view.pan.x} ${view.height / 2 + view.pan.y}) scale(${view.zoom}) translate(${-view.width / 2} ${-view.height / 2})` : undefined;
+  const sitesTotal = items.reduce((s, e) => s + elementQty(e, scale) * e.rate, 0);
+  const poolTotal = poolTotals ? poolTotals.pool + poolTotals.deck + poolTotals.coping + poolTotals.features : 0;
+
+  const startFence = (colorHex: string, colorId: string) => {
+    const m = FENCE_MATERIALS.find((x) => x.id === fMat)!; const h = FENCE_HEIGHTS.find((x) => x.ft === fH)!;
+    setChoice({ kind: "fence", label: m.label, detail: `${colorId} · ${h.label}`, color: colorHex, height: h.ft, style: m.id, rate: h.rate, unit: "lf" });
+  };
+  const startScreen = (colorHex: string, colorId: string) => {
+    const s = SCREEN_STYLES.find((x) => x.id === sStyle)!;
+    setChoice({ kind: "enclosure", label: s.label, detail: `${colorId} frame · ${sH}' tall`, color: colorHex, height: sH!, style: s.id, rate: s.rate, unit: "sqft" });
+  };
+
+  const Step = ({ n, label, children }: { n: number; label: string; children: React.ReactNode }) => (
+    <div className="mt-3">
+      <p className="mb-1.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{n}. {label}</p>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  );
+  const Chip = ({ on, onClick, children }: { on?: boolean; onClick: () => void; children: React.ReactNode }) => (
+    <button onClick={onClick} className={cn("border px-2.5 py-1.5 text-[11px] transition-colors", on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground")}>{children}</button>
+  );
+
+  return (
+    <>
+      {/* Drawing overlay — same transform as the PoolBuilder canvas */}
+      {view && (
+        <svg ref={svgRef} className="absolute inset-0 z-[5]" width={view.width} height={view.height}
+          style={{ pointerEvents: drawing ? "auto" : "none", cursor: drawing ? "crosshair" : undefined }}
+          onClick={onClick} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => drawing && setHover(toWorld(e))}>
+          <defs>
+            {TURFS.map((g) => (
+              <pattern key={g.id} id={`turf-${g.id}`} width="6" height="6" patternUnits="userSpaceOnUse">
+                <rect width="6" height="6" fill={g.color} /><path d="M1 6 L1.6 2 M4 6 L4.6 1.5" stroke="#000" strokeOpacity=".18" strokeWidth=".6" />
+              </pattern>
+            ))}
+            <pattern id="screen-mesh" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0 L4 4 M4 0 L0 4" stroke="#000" strokeOpacity=".12" strokeWidth=".4" /></pattern>
+          </defs>
+          <g transform={t}>
+            {items.map((e) => {
+              const pts = e.pts.map((p) => `${p.x},${p.y}`).join(" ");
+              const sel = selected === e.id;
+              const turf = TURFS.find((g) => g.color === e.color);
+              return (
+                <g key={e.id} style={{ pointerEvents: "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
+                  {e.kind === "turf" && <polygon points={pts} fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.85} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
+                  {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={(sel ? 4 : 2.5) / (view.zoom || 1)} />}
+                  {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={(sel ? 5 : 3) / (view.zoom || 1)} strokeDasharray={e.style === "glass" ? "2 2" : undefined} />}
+                  {e.kind === "fence" && e.pts.map((p, i) => <rect key={i} x={p.x - 2} y={p.y - 2} width={4} height={4} fill={e.color} />)}
+                </g>
+              );
+            })}
+            {drawing && draft.length > 0 && (
+              <>
+                <polyline points={[...draft, ...(hover ? [hover] : [])].map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke={choice!.color} strokeWidth={2 / view.zoom} strokeDasharray="5 4" />
+                {draft.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={4 / view.zoom} fill={i === 0 ? "hsl(var(--primary))" : choice!.color} />)}
+                {hover && <text x={hover.x + 8} y={hover.y - 8} fontSize={12 / view.zoom} fill="hsl(var(--foreground))">{(Math.hypot(hover.x - draft[draft.length - 1].x, hover.y - draft[draft.length - 1].y) / scale).toFixed(1)} ft</text>}
+              </>
+            )}
+          </g>
+        </svg>
+      )}
+
+      {/* Drawing hint */}
+      {drawing && (
+        <div className="absolute left-1/2 top-3 z-[30] flex -translate-x-1/2 items-center gap-3 border border-border bg-background/95 px-4 py-2 text-xs shadow-sm backdrop-blur">
+          <span><b>{choice!.label}</b> · {choice!.kind === "fence" ? "click each post" : "click each corner, click the first point to close"} · Enter to finish</span>
+          <button onClick={() => setDraft((d) => d.slice(0, -1))} title="Undo last point" className="hover:text-foreground text-muted-foreground"><Undo2 className="h-3.5 w-3.5" /></button>
+          <button onClick={finish} title="Finish" className="hover:text-foreground text-muted-foreground"><Check className="h-3.5 w-3.5" /></button>
+          <button onClick={() => { setDraft([]); setChoice(null); }} title="Cancel" className="hover:text-foreground text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
+        </div>
+      )}
+
+      {/* Site catalog + take-off */}
+      <aside className="absolute right-3 top-3 z-[30] w-72 max-h-[calc(100%-1.5rem)] overflow-y-auto border border-border bg-background/95 p-4 text-sm shadow-sm backdrop-blur">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Whole property</p>
+        <div className="mt-2 grid grid-cols-3 gap-1">
+          {([["fence", "Fences", Fence], ["enclosure", "Screens", Layers], ["turf", "Turf", Grid2x2]] as const).map(([k, l, Icon]) => (
+            <button key={k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex flex-col items-center gap-1 border py-2 text-[11px]", tab === k ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground")}>
+              <Icon className="h-4 w-4" />{l}
+            </button>
+          ))}
+        </div>
+
+        {tab === "fence" && (
+          <>
+            <Step n={1} label="Material">
+              {FENCE_MATERIALS.map((m) => (
+                <button key={m.id} onClick={() => { setFMat(m.id); setFH(null); }} className={cn("w-[31%] border text-left text-[10px]", fMat === m.id ? "border-foreground" : "border-border")}>
+                  <img src={m.image} alt={m.label} loading="lazy" className="aspect-square w-full object-cover" /><span className="block p-1">{m.label}</span>
+                </button>
+              ))}
+            </Step>
+            {fMat && <Step n={2} label="Height">{FENCE_HEIGHTS.map((h) => <Chip key={h.ft} on={fH === h.ft} onClick={() => setFH(h.ft)}>{h.label} · ${h.rate}/lf</Chip>)}</Step>}
+            {fMat && fH && <Step n={3} label="Color — then draw">{FENCE_COLORS.map((c) => <Chip key={c.id} onClick={() => startFence(c.hex, c.id)}><span className="mr-1 inline-block h-2.5 w-2.5 align-middle" style={{ background: c.hex }} />{c.id}</Chip>)}</Step>}
+          </>
+        )}
+        {tab === "enclosure" && (
+          <>
+            <Step n={1} label="Cage">
+              {SCREEN_STYLES.map((s) => (
+                <button key={s.id} onClick={() => { setSStyle(s.id); setSH(null); }} className={cn("w-[31%] border text-left text-[10px]", sStyle === s.id ? "border-foreground" : "border-border")}>
+                  <img src={s.image} alt={s.label} loading="lazy" className="aspect-square w-full object-cover" /><span className="block p-1">{s.label} · ${s.rate}/sqft</span>
+                </button>
+              ))}
+            </Step>
+            {sStyle && <Step n={2} label="Height">{SCREEN_STYLES.find((s) => s.id === sStyle)!.heights.map((h) => <Chip key={h} on={sH === h} onClick={() => setSH(h)}>{h}′</Chip>)}</Step>}
+            {sStyle && sH && <Step n={3} label="Frame color — then draw">{SCREEN_COLORS.map((c) => <Chip key={c.id} onClick={() => startScreen(c.hex, c.id)}><span className="mr-1 inline-block h-2.5 w-2.5 align-middle" style={{ background: c.hex }} />{c.id}</Chip>)}</Step>}
+          </>
+        )}
+        {tab === "turf" && (
+          <Step n={1} label="Turf — then draw">
+            {TURFS.map((g) => (
+              <button key={g.id} onClick={() => setChoice({ kind: "turf", label: g.label, detail: "Artificial turf", color: g.color, rate: g.rate, unit: "sqft" })} className="w-[31%] border border-border text-left text-[10px] hover:border-foreground">
+                <img src={g.image} alt={g.label} loading="lazy" className="aspect-square w-full object-cover" /><span className="block p-1">{g.label} · ${g.rate}/sqft</span>
+              </button>
+            ))}
+          </Step>
+        )}
+
+        {/* Live take-off */}
+        <div className="mt-4 border-t border-border pt-3">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Take-off</p>
+          <ul className="mt-2 space-y-1 text-[12px]">
+            {poolTotals && poolTotals.pool > 0 && <li className="flex justify-between"><span>Pool · {Math.round(poolTotals.area)} sqft</span><span>{money(poolTotals.pool)}</span></li>}
+            {poolTotals && poolTotals.deck > 0 && <li className="flex justify-between"><span>Deck · {Math.round(poolTotals.deckArea)} sqft</span><span>{money(poolTotals.deck)}</span></li>}
+            {poolTotals && poolTotals.coping > 0 && <li className="flex justify-between"><span>Coping</span><span>{money(poolTotals.coping)}</span></li>}
+            {poolTotals && poolTotals.features > 0 && <li className="flex justify-between"><span>Pool features</span><span>{money(poolTotals.features)}</span></li>}
+            {items.map((e) => {
+              const q = elementQty(e, scale);
+              return (
+                <li key={e.id} className={cn("flex items-center justify-between gap-2", selected === e.id && "font-semibold")}>
+                  <button onClick={() => setSelected(e.id)} className="truncate text-left">{e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · {e.label} · {Math.round(q)} {e.unit}</button>
+                  <span className="flex items-center gap-1.5">{money(q * e.rate)}
+                    <button onClick={() => { setItems((p) => p.filter((x) => x.id !== e.id)); setSelected(null); }} title="Remove" className="text-muted-foreground hover:text-foreground"><Trash2 className="h-3 w-3" /></button>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="mt-2 flex justify-between border-t border-border pt-2 font-semibold"><span>Total</span><span>{money(poolTotal + sitesTotal)}</span></div>
+          {!items.length && <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground"><MousePointer2 className="h-3 w-3" />Pick fences, screens or turf above, then draw on the board.</p>}
+        </div>
+      </aside>
+    </>
+  );
+};
+
+/* ---------- 3D hand-off ---------- */
+import { netRegions } from "@/lib/design/boardNetArea";
+import type { Board3D } from "@/lib/design/board3D";
+
+/**
+ * Builds the 3D Studio hand-off from the Design Studio: fences, screens and turf
+ * in 3D feet, centred on the main pool's bounding-box centre (the 3D viewer
+ * centres the pool the same way). Pools cut the turf. No extra waters are sent:
+ * the Design Studio's extra pools/spas already travel inside its own scene.
+ */
+export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number): Board3D {
+  const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
+  const pool = poolPts.map(f);
+  let c = { x: 0, y: 0 };
+  if (pool.length >= 3) { const xs = pool.map((p) => p.x), ys = pool.map((p) => p.y); c = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; }
+  const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
+  const net = [...(pool.length >= 3 ? [{ id: "__pool", kind: "pool", pts: pool }] : []), ...items.map((e) => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) }))];
+  const out: Board3D = { origin: c, fences: [], screens: [], surfaces: [], waters: [] };
+  for (const e of items) {
+    const pts = e.pts.map(f);
+    if (e.kind === "fence") out.fences.push({ itemId: e.id, pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: e.color });
+    else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, pts: pts.map(to), height: e.height ?? 10, color: e.color });
+    else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
+  }
+  return out;
+}
