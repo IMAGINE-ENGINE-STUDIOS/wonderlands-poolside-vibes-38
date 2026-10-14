@@ -193,7 +193,12 @@ function holeMaterial(color: string, rough: number, holes: XZ[][]) {
 }
 function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const mat = React.useMemo(() => holeMaterial(s.color, s.kind === "turf" ? 1 : 0.85, holes), [s.color, s.kind, holesKey]);
+  const mat = React.useMemo(() => {
+    const m = holeMaterial(s.color, s.kind === "turf" ? 1 : 0.85, holes) as THREE.MeshStandardMaterial;
+    /* Selected turf photo at 4 ft per tile, same scale as the 2D board. */
+    if (s.image && "map" in m) { const tx = (photoMat(s.image, 4, {}) as THREE.MeshStandardMaterial).map; if (tx) { m.map = tx; m.color = new THREE.Color("#ffffff"); m.needsUpdate = true; } }
+    return m;
+  }, [s.color, s.kind, s.image, holesKey]);
   const geo = React.useMemo(() => {
     const shapes = s.regions.filter((r) => r[0]?.length >= 3).map((r) => {
       const sh = new THREE.Shape(r[0].map((p) => new THREE.Vector2(p.x, -p.z)));
@@ -201,7 +206,7 @@ function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey
       return sh;
     });
     if (!shapes.length) return null;
-    const g = new THREE.ShapeGeometry(shapes); g.rotateX(-Math.PI / 2); return g;
+    const g = new THREE.ShapeGeometry(shapes); g.rotateX(-Math.PI / 2); return planarUV(g);
   }, [s.regions]);
   if (!geo) return null;
   return <mesh geometry={geo} material={mat} position={[0, s.kind === "turf" ? 0.04 : 0.08, 0]} receiveShadow />;

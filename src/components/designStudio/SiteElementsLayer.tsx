@@ -76,7 +76,19 @@ export const elementQty = (e: SiteElement, scale: number) => (e.unit === "lf" ? 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
 /** Read-only hook for other parts of the studio (take-off, 3D hand-off). */
-export function useSiteElements() { return usePersistentState<SiteElement[]>(SITE_ELEMENTS_KEY, []); }
+export function useSiteElements(): [SiteElement[], React.Dispatch<React.SetStateAction<SiteElement[]>>] {
+  const [v, setV] = usePersistentState<SiteElement[]>(SITE_ELEMENTS_KEY, []);
+  /* Keep every reader (board layer, header take-off) in step. */
+  React.useEffect(() => {
+    const on = (e: Event) => setV((e as CustomEvent<SiteElement[]>).detail);
+    window.addEventListener(SITE_EVENT, on); return () => window.removeEventListener(SITE_EVENT, on);
+  }, [setV]);
+  const set: React.Dispatch<React.SetStateAction<SiteElement[]>> = React.useCallback((u) => {
+    setV((prev) => { const next = typeof u === "function" ? (u as (p: SiteElement[]) => SiteElement[])(prev) : u; queueMicrotask(() => window.dispatchEvent(new CustomEvent(SITE_EVENT, { detail: next }))); return next; });
+  }, [setV]);
+  return [v, set];
+}
+const SITE_EVENT = "design-studio:site-elements";
 
 interface Props {
   view: BoardView | null;
@@ -159,8 +171,6 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   };
 
   const t = view ? `translate(${view.width / 2 + view.pan.x} ${view.height / 2 + view.pan.y}) scale(${view.zoom}) translate(${-view.width / 2} ${-view.height / 2})` : undefined;
-  const sitesTotal = items.reduce((s, e) => s + elementQty(e, scale) * e.rate, 0);
-  const poolTotal = poolTotals ? poolTotals.pool + poolTotals.deck + poolTotals.coping + poolTotals.features : 0;
 
   const startFence = (colorHex: string, colorId: string) => {
     const m = FENCE_MATERIALS.find((x) => x.id === fMat)!; const h = FENCE_HEIGHTS.find((x) => x.ft === fH)!;
@@ -171,6 +181,13 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     setChoice({ kind: "enclosure", label: s.label, detail: `${colorId} frame · ${sH}' tall`, color: colorHex, height: sH!, style: s.id, rate: s.rate, unit: "sqft" });
   };
 
+  const sel = items.find((x) => x.id === selected);
+  const Row = ({ id, label }: { id: string; label: string }) => (
+    <li className={cn("flex items-center justify-between gap-2", selected === id && "font-semibold")}>
+      <button onClick={() => setSelected(id)} className="truncate text-left">{label}</button>
+      <button onClick={() => { setSelected(id); if (id === "__pool") view?.erasePool?.(); else if (id === "__deck") view?.setDeck?.([]); else setItems((p) => p.filter((x) => x.id !== id)); setSelected(null); }} title="Erase" className="text-muted-foreground hover:text-foreground"><Trash2 className="h-3 w-3" /></button>
+    </li>
+  );
   const Step = ({ n, label, children }: { n: number; label: string; children: React.ReactNode }) => (
     <div className="mt-3">
       <p className="mb-1.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{n}. {label}</p>
@@ -285,27 +302,24 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
           </Step>
         )}
 
-        {/* Live take-off */}
+        {/* Erase / edit — everything on the board, pool and deck included */}
         <div className="mt-4 border-t border-border pt-3">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Take-off</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">On the board</p>
+            <button onClick={() => { setDraft([]); setChoice(DECK_CHOICE); }} className="border border-border px-2 py-1 text-[10px] hover:border-foreground">Draw deck</button>
+          </div>
           <ul className="mt-2 space-y-1 text-[12px]">
-            {poolTotals && poolTotals.pool > 0 && <li className="flex justify-between"><span>Pool · {Math.round(poolTotals.area)} sqft</span><span>{money(poolTotals.pool)}</span></li>}
-            {poolTotals && poolTotals.deck > 0 && <li className="flex justify-between"><span>Deck · {Math.round(poolTotals.deckArea)} sqft</span><span>{money(poolTotals.deck)}</span></li>}
-            {poolTotals && poolTotals.coping > 0 && <li className="flex justify-between"><span>Coping</span><span>{money(poolTotals.coping)}</span></li>}
-            {poolTotals && poolTotals.features > 0 && <li className="flex justify-between"><span>Pool features</span><span>{money(poolTotals.features)}</span></li>}
-            {items.map((e) => {
-              const q = elementQty(e, scale);
-              return (
-                <li key={e.id} className={cn("flex items-center justify-between gap-2", selected === e.id && "font-semibold")}>
-                  <button onClick={() => setSelected(e.id)} className="truncate text-left">{e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · {e.label} · {Math.round(q)} {e.unit}</button>
-                  <span className="flex items-center gap-1.5">{money(q * e.rate)}
-                    <button onClick={() => { setItems((p) => p.filter((x) => x.id !== e.id)); setSelected(null); }} title="Remove" className="text-muted-foreground hover:text-foreground"><Trash2 className="h-3 w-3" /></button>
-                  </span>
-                </li>
-              );
-            })}
+            {(view?.poolPts?.length ?? 0) >= 3 && <Row id="__pool" label="Pool" />}
+            {(view?.deckPts?.length ?? 0) >= 3 && <Row id="__deck" label={`Deck · ${Math.round(poolTotals?.deckArea ?? 0)} sqft`} />}
+            {items.map((e) => <Row key={e.id} id={e.id} label={`${e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · ${e.label} · ${Math.round(e.kind === "turf" ? turfNetSqft(e, items, view?.poolPts ?? [], view?.deckPts ?? [], scale) : elementQty(e, scale))} ${e.unit}`} />)}
           </ul>
-          <div className="mt-2 flex justify-between border-t border-border pt-2 font-semibold"><span>Total</span><span>{money(poolTotal + sitesTotal)}</span></div>
+          {sel && sel.kind !== "turf" && (
+            <div className="mt-2">
+              <p className="mb-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Color</p>
+              <div className="flex gap-1.5">{(sel.kind === "fence" ? FENCE_COLORS : SCREEN_COLORS).map((c) => <Chip key={c.id} on={sel.color === c.hex} onClick={() => recolor(c.hex, c.id)}><span className="mr-1 inline-block h-2.5 w-2.5 align-middle" style={{ background: c.hex }} />{c.id}</Chip>)}</div>
+            </div>
+          )}
+          {selected && <p className="mt-2 text-[10px] text-muted-foreground">Press Delete to erase the selected piece.</p>}
           {!items.length && <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground"><MousePointer2 className="h-3 w-3" />Pick fences, screens or turf above, then draw on the board.</p>}
         </div>
       </aside>
@@ -323,19 +337,52 @@ import type { Board3D } from "@/lib/design/board3D";
  * centres the pool the same way). Pools cut the turf. No extra waters are sent:
  * the Design Studio's extra pools/spas already travel inside its own scene.
  */
-export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number): Board3D {
+export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = []): Board3D {
   const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
   const pool = poolPts.map(f);
   let c = { x: 0, y: 0 };
   if (pool.length >= 3) { const xs = pool.map((p) => p.x), ys = pool.map((p) => p.y); c = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; }
   const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
-  const net = [...(pool.length >= 3 ? [{ id: "__pool", kind: "pool", pts: pool }] : []), ...items.map((e) => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) }))];
+  const net = [...(pool.length >= 3 ? [{ id: "__pool", kind: "pool", pts: pool }] : []), ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []), ...items.map((e) => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) }))];
   const out: Board3D = { origin: c, fences: [], screens: [], surfaces: [], waters: [] };
   for (const e of items) {
     const pts = e.pts.map(f);
     if (e.kind === "fence") out.fences.push({ itemId: e.id, pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: e.color });
     else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, pts: pts.map(to), height: e.height ?? 10, color: e.color });
-    else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
+    else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.image, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
   }
   return out;
 }
+
+/* ---------- Header take-off (one place for every measure and cost) ---------- */
+import { ChevronDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: Pt[]; stats: { perimeter: number; area: number; corners: number; features: number; deckArea: number } | null; totals: { pool: number; deck: number; coping: number; features: number } | null }> = ({ scale, poolPts, deckPts, stats, totals }) => {
+  const [items] = useSiteElements();
+  const lines = items.map((e) => { const q = e.kind === "turf" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { id: e.id, label: `${e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · ${e.label}`, q, unit: e.unit, cost: q * e.rate }; });
+  const total = (totals ? totals.pool + totals.deck + totals.coping + totals.features : 0) + lines.reduce((s, l) => s + l.cost, 0);
+  const Li = ({ l, r }: { l: string; r: string }) => <li className="flex justify-between gap-4"><span className="text-muted-foreground">{l}</span><span>{r}</span></li>;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="flex h-9 items-center gap-2 border border-border px-3 text-xs font-semibold hover:border-foreground">Scene · {money(total)}<ChevronDown className="h-3.5 w-3.5" /></button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 rounded-none p-4 text-[12px]">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Measures</p>
+        <ul className="mt-2 space-y-1">
+          {stats && <><Li l="Pool perimeter" r={`${stats.perimeter.toFixed(1)} ft`} /><Li l="Pool area" r={`${stats.area.toFixed(1)} sqft`} /><Li l="Corners" r={`${stats.corners}`} /><Li l="Deck area" r={`${stats.deckArea.toFixed(1)} sqft`} /></>}
+          {lines.map((l) => <Li key={l.id} l={l.label} r={`${Math.round(l.q)} ${l.unit}`} />)}
+        </ul>
+        <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Costs</p>
+        <ul className="mt-2 space-y-1">
+          {totals && totals.pool > 0 && <Li l="Pool" r={money(totals.pool)} />}
+          {totals && totals.deck > 0 && <Li l="Deck" r={money(totals.deck)} />}
+          {totals && totals.coping > 0 && <Li l="Coping" r={money(totals.coping)} />}
+          {totals && totals.features > 0 && <Li l="Pool features" r={money(totals.features)} />}
+          {lines.filter((l) => l.cost > 0).map((l) => <Li key={l.id} l={l.label} r={money(l.cost)} />)}
+        </ul>
+        <div className="mt-3 flex justify-between border-t border-border pt-2 font-semibold"><span>Total</span><span>{money(total)}</span></div>
+      </PopoverContent>
+    </Popover>
+  );
+};
