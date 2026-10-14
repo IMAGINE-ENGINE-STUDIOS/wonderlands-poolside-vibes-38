@@ -3,9 +3,9 @@ import LandscapingSection from "@/components/LandscapingSection";
 
 const LandscapingPage: React.FC = () => {
   useEffect(() => {
-    document.title = "Landscaping & Quote Tool | Wonderlands";
+    document.title = "Landscaping Studio — Plan, Plant & Price | Wonderlands";
     const desc =
-      "Browse our landscaping plant catalog and build an instant quote for yard refresh, full makeover, or luxury outdoor spaces.";
+      "Design your Florida garden: start from a look, draw beds, place real plants at true size, ask Genius, and get an instant landscaping estimate.";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
@@ -23,19 +23,18 @@ const LandscapingPage: React.FC = () => {
   }, []);
 
   return (
-    <>
-      <main className="min-h-screen bg-background">
-        <header className="container mx-auto px-4 pt-10 pb-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            Landscaping
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Pick your plants and build a quote in seconds.
-          </p>
-        </header>
-        <LandscapingSection />
-      </main>
-    </>
+    <main className="min-h-screen bg-background">
+      <header className="container mx-auto px-4 pt-14 pb-6 border-b border-border/60">
+        <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">Wonderlands — The Landscaping Studio</p>
+        <h1 className="font-serif text-4xl md:text-6xl font-light tracking-tight text-foreground mt-3">
+          Plan it. Plant it. Price it.
+        </h1>
+        <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">
+          Four chapters — inspire, design, choose plants, estimate & book. Your plan saves automatically on this device.
+        </p>
+      </header>
+      <LandscapingSection />
+    </main>
   );
 };
 

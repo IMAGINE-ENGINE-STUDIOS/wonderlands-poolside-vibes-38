@@ -71,5 +71,8 @@ export const LANDSCAPE_LOOKS: LandscapeLook[] = [
 ];
 
 export function buildLook(look: LandscapeLook, hole?: Frame["hole"]): LandscapeLayout {
-  return look.recipe.reduce((layout, edit) => applyLandscapeEdit(layout, edit, hole), { ...emptyLandscapeLayout(), irrigation: true });
+  return look.recipe.reduce<LandscapeLayout>(
+    (layout, edit) => applyLandscapeEdit(layout, edit, hole),
+    { ...emptyLandscapeLayout(), irrigation: true },
+  );
 }
