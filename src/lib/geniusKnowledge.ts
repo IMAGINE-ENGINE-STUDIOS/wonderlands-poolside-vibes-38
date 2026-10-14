@@ -117,7 +117,7 @@ export function toEnglishIntent(text: string): string {
 }
 
 const areaOf = (dims?: string) => {
-  const nums = (dims ?? '').match(/\d+(?:'\s*\d+)?/g)?.slice(0, 2).map((d) => {
+  const nums = (dims ?? '').match(/\d+(?:\.\d+)?(?:'\s*\d+(?!\s*'))?/g)?.slice(0, 2).map((d) => {
     const [ft, inch] = d.split(/'\s*/);
     return Number(ft) + (Number(inch) || 0) / 12;
   });
