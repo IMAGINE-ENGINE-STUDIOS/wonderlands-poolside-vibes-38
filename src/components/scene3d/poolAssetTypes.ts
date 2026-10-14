@@ -60,8 +60,9 @@ export interface SeatingSplinePoint {
 export interface ContourSeatingConfig {
   id: string;
   startPosition: number;    // 0-1 position along pool perimeter (start)
-  endPosition: number;      // 0-1 position along pool perimeter (end)
+  endPosition: number;      // end along perimeter; may exceed 1 (wraps the seam, up to start + 1 = full 360°)
   width: number;            // Width extending into pool (default 1.5 ft)
+  softEdge?: number;        // rounded nosing radius on the inner top edge (ft)
   height: number;           // Depth below water for top surface (default 1 ft)
   textureUrl: string;
   splinePoints?: SeatingSplinePoint[];  // Control points for variable width/depth

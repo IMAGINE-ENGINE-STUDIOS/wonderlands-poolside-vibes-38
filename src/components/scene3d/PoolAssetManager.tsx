@@ -466,17 +466,16 @@ export function PoolAssetManager({
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs">Start Position: {(selectedContour.startPosition * 100).toFixed(0)}%</Label>
-                    <Slider value={[selectedContour.startPosition]} onValueChange={([v]) => updateContour(selectedContour.id, {
-                  startPosition: v
-                })} min={0} max={0.95} step={0.01} />
+                    <Label className="text-xs">Position around pool: {(selectedContour.startPosition * 100).toFixed(0)}%</Label>
+<Slider value={[selectedContour.startPosition]} onValueChange={([v]) => { const len = selectedContour.endPosition - selectedContour.startPosition; updateContour(selectedContour.id, { startPosition: v, endPosition: v + len }); }} min={0} max={1} step={0.005} />
                   </div>
-
                   <div className="space-y-2">
-                    <Label className="text-xs">End Position: {(selectedContour.endPosition * 100).toFixed(0)}%</Label>
-                    <Slider value={[selectedContour.endPosition]} onValueChange={([v]) => updateContour(selectedContour.id, {
-                  endPosition: v
-                })} min={0.05} max={1} step={0.01} />
+                    <Label className="text-xs">Length around pool: {Math.round((selectedContour.endPosition - selectedContour.startPosition) * 360)}°</Label>
+                    <Slider value={[Math.min(1, Math.max(0.02, selectedContour.endPosition - selectedContour.startPosition))]} onValueChange={([v]) => updateContour(selectedContour.id, { endPosition: selectedContour.startPosition + v })} min={0.02} max={1} step={0.005} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Rounded edge: {(selectedContour.softEdge ?? 0.15).toFixed(2)} ft</Label>
+                    <Slider value={[selectedContour.softEdge ?? 0.15]} onValueChange={([v]) => updateContour(selectedContour.id, { softEdge: v })} min={0} max={0.6} step={0.01} />
                   </div>
 
                   <div className="space-y-2">
