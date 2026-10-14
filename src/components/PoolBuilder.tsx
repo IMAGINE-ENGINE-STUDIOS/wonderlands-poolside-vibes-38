@@ -143,7 +143,7 @@ interface PoolBuilderProps {
     };
   }) => void;
   /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
-  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number }) => React.ReactNode;
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; setDeck: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void }) => React.ReactNode;
 }
 
 // Helper function to shade colors
@@ -5848,7 +5848,12 @@ export function PoolBuilder({
       {/* Canvas area */}
       <div className="flex-1 overflow-hidden relative">
         {/* Site layer (fences/screens/turf) drawn with this canvas's own pan/zoom. */}
-        {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale })}
+        {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale,
+          poolPts: points, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck',
+          /* Hand-drawn deck boundary (overlay draws it, same board transform) — Imagine Engine Studios Corp. */
+          setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: `h${Date.now().toString(36)}${i}` }))),
+          endDeckMode: () => setActiveTool('select'),
+          erasePool: () => { setPoints([]); setHardscapePoints([]); setFeatures([]); } })}
         {/* Main Canvas - fills viewport */}
         <div className="w-full h-full">
             <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={(e) => {
