@@ -22,7 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PoolBuilder } from "@/components/PoolBuilder";
-import { SiteElementsLayer, siteElementsTo3D, SITE_ELEMENTS_KEY } from "@/components/designStudio/SiteElementsLayer";
+import { SiteElementsLayer, SiteTakeoffMenu, siteElementsTo3D, SITE_ELEMENTS_KEY } from "@/components/designStudio/SiteElementsLayer";
 import { saveBoard3D } from "@/lib/design/board3D";
 import { cacheRead } from "@/lib/uiCache";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
@@ -376,10 +376,10 @@ const DesignStudio = () => {
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
-      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10));
+      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? []));
     } catch { /* ignore */ }
     setActiveView('3d');
-    // Auto-enter fullscreen when switching to 3D Viewer
+    // Auto-enter fullscreen when switching to 3D Studio
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen?.();
       setIsFullscreen(true);
@@ -463,6 +463,9 @@ const DesignStudio = () => {
                   <p className="text-xs text-muted-foreground">{selectedProduct.dimensions}</p>
                 </div>
               </div>} headerRight={<div className="flex items-center gap-2">
+                <SiteTakeoffMenu scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []}
+                  stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
+                  totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} />
                 <Tabs value={activeView} onValueChange={v => {
           if (v === '3d') handleSwitch3D();else handleSwitch2D();
         }}>
@@ -473,7 +476,7 @@ const DesignStudio = () => {
                     </TabsTrigger>
                     <TabsTrigger value="3d" className="gap-1.5 text-xs px-3">
                       <Box className="h-3.5 w-3.5" />
-                      3D Viewer
+                      3D Studio
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
@@ -503,7 +506,7 @@ const DesignStudio = () => {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>} />
-          <SubToolbar hideTools category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={poolBuilderData ? {
+          <SubToolbar hideTools category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={null && poolBuilderData ? {
         perimeter: poolBuilderData.perimeter,
         area: poolBuilderData.area,
         corners: poolBuilderData.points?.length || 0,
@@ -525,7 +528,10 @@ const DesignStudio = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Tabs value={activeView} onValueChange={v => {
+            <SiteTakeoffMenu scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []}
+                  stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
+                  totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} />
+                <Tabs value={activeView} onValueChange={v => {
           if (v === '3d') handleSwitch3D();else handleSwitch2D();
         }}>
               <TabsList className="h-9">
@@ -535,7 +541,7 @@ const DesignStudio = () => {
                 </TabsTrigger>
                 <TabsTrigger value="3d" className="gap-1.5 text-xs px-3">
                   <Box className="h-3.5 w-3.5" />
-                  3D Viewer
+                  3D Studio
                 </TabsTrigger>
               </TabsList>
             </Tabs>
