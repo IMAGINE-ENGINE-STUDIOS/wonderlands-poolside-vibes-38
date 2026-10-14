@@ -17,6 +17,7 @@ import { CopingGeometry } from './scene3d/CopingGeometry';
 import { DeckBorderGeometry } from './scene3d/DeckBorderGeometry';
 import earcut from 'earcut';
 import grassTexture from '@/assets/turf/grass-texture.avif';
+import { loadBoard3D, BOARD_3D_EVENT } from '@/lib/design/board3D';
 import { resolveDeckBoundaries, sanitizeBoundary, smoothCurvedRing } from '@/utils/deckSurface';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
 
@@ -710,6 +711,13 @@ const GrassTerrainFallback: React.FC<{
   deckWidth?: number;
 }> = ({ poolCurve3D = [], hardscapeCurve3D, copingWidth = 1.0, copingEnabled = true, poolPosition = [0, 0, 0], deckWidth = 3 }) => {
   const texture = useTexture(grassTexture);
+  // Extra pools/spas from the Global Design Board each cut their own opening.
+  const [boardWaters, setBoardWaters] = React.useState(() => loadBoard3D()?.waters ?? []);
+  React.useEffect(() => {
+    const on = () => setBoardWaters(loadBoard3D()?.waters ?? []);
+    window.addEventListener(BOARD_3D_EVENT, on);
+    return () => window.removeEventListener(BOARD_3D_EVENT, on);
+  }, []);
 
   const terrainGeometry = useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -741,6 +749,13 @@ const GrassTerrainFallback: React.FC<{
         hole.closePath();
         terrainShape.holes.push(hole);
       }
+      for (const w of boardWaters) {
+        if (!w.pts || w.pts.length < 3) continue;
+        const h = new THREE.Path();
+        w.pts.forEach((p, i) => (i ? h.lineTo(p.x, -p.z) : h.moveTo(p.x, -p.z)));
+        h.closePath();
+        terrainShape.holes.push(h);
+      }
     } catch (error) {
       // No hole is always safer than a hole with nothing under it.
       console.warn('GrassTerrain: cutout skipped', error);
@@ -757,7 +772,7 @@ const GrassTerrainFallback: React.FC<{
       geometry.rotateX(-Math.PI / 2);
       return geometry;
     }
-  }, [texture, poolCurve3D, hardscapeCurve3D, copingWidth, copingEnabled, deckWidth, poolPosition]);
+  }, [texture, poolCurve3D, hardscapeCurve3D, copingWidth, copingEnabled, deckWidth, poolPosition, boardWaters]);
 
   return (
     <mesh geometry={terrainGeometry} position={[0, -0.06, 0]} receiveShadow>
