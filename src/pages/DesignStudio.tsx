@@ -403,6 +403,7 @@ const DesignStudio = () => {
    */
   const buildPersistedScene = () => {
     const base = productToScene(selectedProduct, { ...selectedExtras, customPoolShape }, paverTypes, finishOptions);
+    console.log("DBG3D", JSON.stringify({ n: customPoolShape?.length, pts: customPoolShape?.slice(0,4), shape: selectedExtras.poolBuilderData?.poolShape, hs: selectedExtras.poolBuilderData?.hardscapePoints?.length, dims: base.pool.dimensions }));
     const last = lastScene3DRef.current;
     if (!last?.pool || !last?.deck) return base;
     const use3DMaterials = !materials2DDirtyRef.current;
