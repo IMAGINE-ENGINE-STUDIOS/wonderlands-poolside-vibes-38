@@ -212,40 +212,36 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
         varying float vWaveHeight;
         varying float vDepth;
         
-        // Multi-octave wave function
-        float wave(vec2 pos, float freq, float time) {
-          float wave1 = sin(pos.x * freq + time * waveSpeed) * cos(pos.y * freq * 0.8 + time * waveSpeed * 0.7);
-          float wave2 = sin((pos.x - pos.y) * freq * 1.3 + time * waveSpeed * 1.5) * 0.5;
-          float wave3 = cos(pos.x * freq * 0.6 + pos.y * freq * 0.9 + time * waveSpeed * 0.9) * 0.3;
-          return (wave1 + wave2 + wave3) / 1.8;
+        // Lightweight Gerstner wave simulation: 4 directional waves summed
+        // analytically (position + exact normal), no textures, no CPU work.
+        vec3 gerstner(vec2 p, vec2 dir, float steep, float wl, float t, inout vec3 tan, inout vec3 bin) {
+          float k = 6.28318 / wl;
+          float c = sqrt(32.17 / k) * waveSpeed;   // deep-water dispersion (ft/s²)
+          vec2 d = normalize(dir);
+          float f = k * (dot(d, p) - c * t);
+          float a = steep / k * waveHeight * 6.0;
+          float sf = sin(f), cf = cos(f);
+          tan += vec3(-d.x * d.x * steep * sf, d.x * steep * cf, -d.x * d.y * steep * sf) * waveHeight * 6.0;
+          bin += vec3(-d.x * d.y * steep * sf, d.y * steep * cf, -d.y * d.y * steep * sf) * waveHeight * 6.0;
+          return vec3(d.x * a * cf, a * sf, d.y * a * cf);
         }
-        
+
         void main() {
-          vPosition = position;
           vUv = uv;
           vDepth = depth;
-          
-          // Calculate wave displacement
-          float displacement = wave(position.xz, waveFrequency, time) * waveHeight;
-          displacement += wave(position.xz * 2.0, waveFrequency * 1.5, time * 1.3) * waveHeight * 0.4;
-          displacement += wave(position.xz * 0.5, waveFrequency * 0.8, time * 0.7) * waveHeight * 0.6;
-          
-          vWaveHeight = displacement;
-          
-          vec3 newPosition = position;
-          newPosition.y += displacement;
-          
-          // Calculate normal for lighting
-          float eps = 0.1;
-          float dx = wave(position.xz + vec2(eps, 0.0), waveFrequency, time) * waveHeight 
-                   - wave(position.xz - vec2(eps, 0.0), waveFrequency, time) * waveHeight;
-          float dz = wave(position.xz + vec2(0.0, eps), waveFrequency, time) * waveHeight 
-                   - wave(position.xz - vec2(0.0, eps), waveFrequency, time) * waveHeight;
-          
-          vec3 tangentX = normalize(vec3(1.0, dx / (2.0 * eps), 0.0));
-          vec3 tangentZ = normalize(vec3(0.0, dz / (2.0 * eps), 1.0));
-          vNormal = normalize(cross(tangentZ, tangentX));
-          
+          vec3 tan = vec3(1.0, 0.0, 0.0);
+          vec3 bin = vec3(0.0, 0.0, 1.0);
+          vec2 p = position.xz;
+          vec3 off = vec3(0.0);
+          off += gerstner(p, vec2(1.0, 0.35), 0.10, 9.0, time, tan, bin);
+          off += gerstner(p, vec2(-0.4, 1.0), 0.08, 5.5, time, tan, bin);
+          off += gerstner(p, vec2(0.7, -0.8), 0.06, 3.2, time, tan, bin);
+          off += gerstner(p, vec2(-1.0, -0.2), 0.04, 1.7, time, tan, bin);
+          off.y *= 0.5; // pools are calm: keep the swell subtle
+          vec3 newPosition = position + off;
+          vPosition = newPosition;
+          vWaveHeight = off.y;
+          vNormal = normalize(cross(bin, tan));
           gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
         }
       `,

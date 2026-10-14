@@ -35,6 +35,8 @@ export function SketchfabBrowser({ onAdd, quick = QUICK, defaultQuery }: { onAdd
   const [loading, setLoading] = useState(false);
   const [busyUid, setBusyUid] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [nextUrl, setNextUrl] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     const q = query.trim();
@@ -49,6 +51,7 @@ export function SketchfabBrowser({ onAdd, quick = QUICK, defaultQuery }: { onAdd
         );
         const json = await res.json();
         setResults(json.results || []);
+        setNextUrl(json.next || null);
       } catch {
         /* aborted or offline */
       } finally {
@@ -57,6 +60,20 @@ export function SketchfabBrowser({ onAdd, quick = QUICK, defaultQuery }: { onAdd
     }, 400);
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [query]);
+
+  // Sketchfab pages 24 at a time; "More models" keeps fetching the full catalogue.
+  const loadMore = async () => {
+    if (!nextUrl || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const json = await (await fetch(nextUrl)).json();
+      setResults((r) => {
+        const seen = new Set(r.map((m) => m.uid));
+        return [...r, ...((json.results || []) as SFModel[]).filter((m) => !seen.has(m.uid))];
+      });
+      setNextUrl(json.next || null);
+    } catch { /* offline */ } finally { setLoadingMore(false); }
+  };
 
   const download = async (m: SFModel) => {
     setBusyUid(m.uid);
@@ -114,6 +131,11 @@ export function SketchfabBrowser({ onAdd, quick = QUICK, defaultQuery }: { onAdd
               </div>
             </div>
           ))}
+          {nextUrl && (
+            <Button size="sm" variant="outline" className="col-span-2 h-7 bg-white text-[11px]" disabled={loadingMore} onClick={loadMore}>
+              {loadingMore ? <Loader2 className="h-3 w-3 animate-spin" /> : `More models (${results.length} shown)`}
+            </Button>
+          )}
           {!results.length && <p className="col-span-2 py-4 text-center text-[11px] text-muted-foreground">No downloadable models found.</p>}
         </div>
       )}

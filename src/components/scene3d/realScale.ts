@@ -61,8 +61,12 @@ export function realWorldFit(name: string, type: string, size: THREE.Vector3, si
 
   const range = KEYWORDS.find(([re]) => re.test(name))?.[1] ?? BY_TYPE[type] ?? BY_TYPE.custom;
   const [min, typical, max] = range;
-  const asMetres = h * M_TO_FT;
-  let k = asMetres >= min && asMetres <= max ? M_TO_FT : h >= min && h <= max ? 1 : typical / h;
+  // Files come in metres, feet, inches, centimetres or millimetres. Try each
+  // unit (metres first, the glTF standard) and keep the first that gives a
+  // plausible height; otherwise force the typical real height.
+  const UNITS = [M_TO_FT, 1, 1 / 12, M_TO_FT / 100, M_TO_FT / 1000];
+  const unit = UNITS.find((u) => h * u >= min && h * u <= max);
+  let k = unit ?? typical / h;
   if (!site) return k;
 
   const poolMax = Math.max(site.poolLength, site.poolWidth);

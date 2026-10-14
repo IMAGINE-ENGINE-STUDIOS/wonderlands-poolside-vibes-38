@@ -230,6 +230,7 @@ export function TerrainEditor({
 
   const selectedAsset = terrainAssets.find(a => a.id === selectedAssetId);
 
+  const hasType = (type: TerrainAsset['type']) => terrainAssets.some(a => a.type === type);
   const renderAssetList = (type: TerrainAsset['type']) => {
     const filtered = terrainAssets.filter(a => a.type === type);
     
@@ -364,45 +365,54 @@ export function TerrainEditor({
         <ScrollArea className="h-[420px]">
           {/* Terrain Tab */}
           <TabsContent value="terrain" className="p-3 space-y-4 m-0">
-            {renderUploadButton('terrain', 'Terrain')}
-            <div className="border-t pt-3">
-              <h4 className="text-xs font-medium mb-2">Active Terrain Assets</h4>
-              {renderAssetList('terrain')}
-            </div>
+            {/* Gallery first; "active" lists only appear once something is placed. */}
             {renderGallery('terrain')}
+            {hasType('terrain') && (
+              <div className="border-t pt-3">
+                <h4 className="text-xs font-medium mb-2">Active Terrain Assets</h4>
+                {renderAssetList('terrain')}
+              </div>
+            )}
+            {renderUploadButton('terrain', 'Terrain')}
           </TabsContent>
 
           {/* Sky Tab */}
           <TabsContent value="sky" className="p-3 space-y-4 m-0">
-            {renderUploadButton('skydome', 'Skydome')}
-            <div className="border-t pt-3">
-              <h4 className="text-xs font-medium mb-2">Active Skydome Assets</h4>
-              {renderAssetList('skydome')}
-            </div>
             {renderGallery('sky')}
+            {hasType('skydome') && (
+              <div className="border-t pt-3">
+                <h4 className="text-xs font-medium mb-2">Active Skydome Assets</h4>
+                {renderAssetList('skydome')}
+              </div>
+            )}
+            {renderUploadButton('skydome', 'Skydome')}
           </TabsContent>
 
           {/* Nature Tab */}
           <TabsContent value="nature" className="p-3 space-y-4 m-0">
+            {renderGallery('nature')}
+            {hasType('tree') && (
+              <div className="border-t pt-3">
+                <h4 className="text-xs font-medium mb-2">Trees</h4>
+                {renderAssetList('tree')}
+              </div>
+            )}
+            {hasType('landscape') && (
+              <div className="border-t pt-3">
+                <h4 className="text-xs font-medium mb-2">Landscape Elements</h4>
+                {renderAssetList('landscape')}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" className="text-xs" onClick={() => openUploadFor('tree')}>
+              <Button variant="outline" size="sm" className="text-xs bg-white" onClick={() => openUploadFor('tree')}>
                 <Trees className="h-4 w-4 mr-1" />
                 Add Trees
               </Button>
-              <Button variant="outline" size="sm" className="text-xs" onClick={() => openUploadFor('landscape')}>
+              <Button variant="outline" size="sm" className="text-xs bg-white" onClick={() => openUploadFor('landscape')}>
                 <Mountain className="h-4 w-4 mr-1" />
                 Add Rocks
               </Button>
             </div>
-            <div className="border-t pt-3">
-              <h4 className="text-xs font-medium mb-2">Trees</h4>
-              {renderAssetList('tree')}
-            </div>
-            <div className="border-t pt-3">
-              <h4 className="text-xs font-medium mb-2">Landscape Elements</h4>
-              {renderAssetList('landscape')}
-            </div>
-            {renderGallery('nature')}
           </TabsContent>
 
           {/* Library Tab */}

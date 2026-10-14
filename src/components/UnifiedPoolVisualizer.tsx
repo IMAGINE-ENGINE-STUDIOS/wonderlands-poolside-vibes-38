@@ -1,5 +1,5 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
-import { OrbitControls, TransformControls, Sky, Grid } from '@react-three/drei';
+import { OrbitControls, TransformControls, Sky, Grid, PerformanceMonitor } from '@react-three/drei';
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation, Point, PoolLightConfig, LinearDepthAnchor } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
@@ -478,6 +478,11 @@ export function UnifiedPoolVisualizer({
   const DEFAULT_STEP_DEPTH = 0.9167; // 11 inches
   
   const poolDepth = scene.pool.dimensions?.depth || 8;
+
+  // Adaptive GPU quality (see PerformanceMonitor in the Canvas).
+  const [perfDpr, setPerfDpr] = useState(1.5);
+  const [shadowRes, setShadowRes] = useState(2048);
+  const sceneHeavy = terrainAssets.length + assets3D.length > 10;
 
   // Live cost inputs for the designer header — mirrors the products the user selected
   const designerFeatureLines = useMemo(
@@ -1684,7 +1689,7 @@ export function UnifiedPoolVisualizer({
             {texturesReady && (
               <R3FCanvas
                 shadows
-                dpr={[1, 1.5]} // Cap pixel ratio: HiDPI screens were rendering 2-4x the pixels
+                dpr={sceneHeavy ? Math.min(perfDpr, 1) : perfDpr} // adaptive: drops when FPS < 30 or scene is heavy
                 gl={{ 
                   preserveDrawingBuffer: false, // Changed to false for better memory
                   antialias: true,
@@ -1731,6 +1736,13 @@ export function UnifiedPoolVisualizer({
               >
           {/* Force re-render on state changes */}
           <SceneInvalidator scene={scene} isNightMode={isNightMode} sunPosition={sunPosition} />
+          {/* Adaptive quality: below 30 FPS lower resolution + shadows, recover when it's smooth again */}
+          <PerformanceMonitor
+            bounds={() => [30, 55]}
+            flipflops={4}
+            onDecline={() => { setPerfDpr(d => Math.max(0.75, +(d - 0.25).toFixed(2))); setShadowRes(1024); }}
+            onIncline={() => { setPerfDpr(d => Math.min(1.5, +(d + 0.25).toFixed(2))); if (!sceneHeavy) setShadowRes(2048); }}
+          />
           
           {/* Dynamic Sky with Clouds - Day/Night modes */}
           {!isNightMode ? (
@@ -1753,8 +1765,8 @@ export function UnifiedPoolVisualizer({
                 position={sunPosition}
                 intensity={1.2}
                 castShadow
-                shadow-mapSize-width={2048}
-                shadow-mapSize-height={2048}
+                shadow-mapSize-width={shadowRes}
+                shadow-mapSize-height={shadowRes}
                 shadow-camera-near={0.5}
                 shadow-camera-far={140}
                 shadow-camera-left={-28}
