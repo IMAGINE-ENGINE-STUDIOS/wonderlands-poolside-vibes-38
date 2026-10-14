@@ -7,7 +7,18 @@
  */
 import * as React from "react";
 import * as THREE from "three";
-import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D } from "@/lib/design/board3D";
+import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D } from "@/lib/design/board3D";
+import { mitredOffsetRing } from "@/utils/polygonGeometry";
+
+/** Clicking a board element opens its widget (BoardElementEditor). */
+export const BOARD_SELECT_EVENT = "studio3d:boardSelect";
+export type BoardSelection = { type: "fence" | "screen" | "water"; i: number } | null;
+const select = (sel: BoardSelection) => (e: { stopPropagation: () => void }) => {
+  e.stopPropagation();
+  window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: sel }));
+};
+/** Polished architectural metal: any color reads as powder-coated aluminum. */
+const metalMat = (color: string) => new THREE.MeshStandardMaterial({ color, roughness: 0.22, metalness: 0.92, envMapIntensity: 1.4 });
 
 type XZ = { x: number; z: number };
 const segs = (pts: XZ[], closed: boolean) => {
@@ -36,16 +47,16 @@ function Beam({ a, b, y, h, t, mat }: { a: XZ; b: XZ; y: number; h: number; t: n
   );
 }
 
-function Fence({ f }: { f: Fence3D }) {
-  const metal = React.useMemo(() => new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.45, metalness: 0.5 }), [f.color]);
+function Fence({ f, i }: { f: Fence3D; i: number }) {
+  const metal = React.useMemo(() => metalMat(f.color), [f.color]);
   const panel = React.useMemo(() => f.style === "glass"
     ? new THREE.MeshPhysicalMaterial({ color: "#cfe9ef", transparent: true, opacity: 0.3, roughness: 0.05 })
-    : new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.7 }), [f.style, f.color]);
+    : f.style === "alu" ? metalMat(f.color) : new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.7 }), [f.style, f.color]);
   const H = f.height;
   const posts = along(f.pts, 6, false);
   const pickets = f.style === "alu" ? along(f.pts, 0.33, false) : [];
   return (
-    <group name="board-fence">
+    <group name="board-fence" onClick={select({ type: "fence", i })}>
       {posts.map((p, i) => <mesh key={i} material={metal} position={[p.x, H / 2, p.z]} castShadow><boxGeometry args={[0.2, H + 0.15, 0.2]} /></mesh>)}
       {segs(f.pts, false).map(([a, b], i) => f.style === "alu"
         ? <React.Fragment key={i}><Beam a={a} b={b} y={H - 0.1} h={0.1} t={0.08} mat={metal} /><Beam a={a} b={b} y={0.35} h={0.1} t={0.08} mat={metal} /></React.Fragment>
@@ -55,26 +66,86 @@ function Fence({ f }: { f: Fence3D }) {
   );
 }
 
-function Screen({ s }: { s: Screen3D }) {
-  const frame = React.useMemo(() => new THREE.MeshStandardMaterial({ color: s.color, roughness: 0.5, metalness: 0.4 }), [s.color]);
-  const mesh = React.useMemo(() => new THREE.MeshStandardMaterial({ color: "#2a2a2a", transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false }), []);
-  const roofGeo = React.useMemo(() => {
-    if (s.pts.length < 3) return null;
-    const g = new THREE.ShapeGeometry(new THREE.Shape(s.pts.map((p) => new THREE.Vector2(p.x, -p.z))));
-    g.rotateX(-Math.PI / 2); return g;
-  }, [s.pts]);
+/** Florida-style pool cage: kick plate, chair rail, purlins every 3 ft, mansard roof. */
+function Screen({ s, i }: { s: Screen3D; i: number }) {
+  const frame = React.useMemo(() => metalMat(s.color), [s.color]);
+  const kick = React.useMemo(() => new THREE.MeshStandardMaterial({ color: s.color, roughness: 0.35, metalness: 0.8 }), [s.color]);
+  const mesh = React.useMemo(() => new THREE.MeshStandardMaterial({ color: "#1c1c1c", transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false }), []);
   const H = s.height;
+  const mansard = (s.roof ?? "mansard") === "mansard" && s.pts.length >= 3;
+  const RISE = mansard ? Math.min(4, H * 0.3) : 0;
+  const top = React.useMemo(() => (mansard ? mitredOffsetRing(s.pts, -Math.min(4, H * 0.35)).offset : s.pts), [s.pts, mansard, H]);
+  const geo = React.useMemo(() => {
+    if (s.pts.length < 3) return null;
+    const pos: number[] = [];
+    if (mansard) {
+      const base = mitredOffsetRing(s.pts, -Math.min(4, H * 0.35)).base;
+      for (let k = 0; k < base.length; k++) {
+        const a = base[k], b = base[(k + 1) % base.length], c = top[(k + 1) % top.length], d = top[k];
+        pos.push(a.x, H, a.z, b.x, H, b.z, c.x, H + RISE, c.z, a.x, H, a.z, c.x, H + RISE, c.z, d.x, H + RISE, d.z);
+      }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    return g;
+  }, [s.pts, top, mansard, H, RISE]);
+  const lid = React.useMemo(() => {
+    if (top.length < 3) return null;
+    const g = new THREE.ShapeGeometry(new THREE.Shape(top.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g;
+  }, [top]);
   return (
-    <group name="board-screen">
-      {along(s.pts, 6, true).map((p, i) => <mesh key={i} material={frame} position={[p.x, H / 2, p.z]} castShadow><boxGeometry args={[0.25, H, 0.25]} /></mesh>)}
-      {segs(s.pts, true).map(([a, b], i) => (
-        <React.Fragment key={i}>
+    <group name="board-screen" onClick={select({ type: "screen", i })}>
+      {along(s.pts, 6, true).map((p, k) => <mesh key={k} material={frame} position={[p.x, H / 2, p.z]} castShadow><boxGeometry args={[0.25, H, 0.25]} /></mesh>)}
+      {along(s.pts, 3, true).map((p, k) => <mesh key={`m${k}`} material={frame} position={[p.x, H / 2, p.z]}><boxGeometry args={[0.08, H, 0.08]} /></mesh>)}
+      {segs(s.pts, true).map(([a, b], k) => (
+        <React.Fragment key={k}>
           <Beam a={a} b={b} y={H} h={0.4} t={0.25} mat={frame} />
+          <Beam a={a} b={b} y={1} h={2} t={0.05} mat={kick} />
           <Beam a={a} b={b} y={3} h={0.15} t={0.15} mat={frame} />
           <Beam a={a} b={b} y={H / 2} h={H} t={0.02} mat={mesh} />
         </React.Fragment>
       ))}
-      {roofGeo && <mesh geometry={roofGeo} material={mesh} position={[0, H, 0]} />}
+      {mansard && segs(top, true).map(([a, b], k) => <Beam key={`t${k}`} a={a} b={b} y={H + RISE} h={0.25} t={0.2} mat={frame} />)}
+      {geo && <mesh geometry={geo} material={mesh} />}
+      {lid && <mesh geometry={lid} material={mesh} position={[0, H + RISE, 0]} />}
+      {top.length >= 3 && along(top, 4, true).map((p, k) => <mesh key={`r${k}`} material={frame} position={[p.x, H + RISE + 0.1, p.z]}><boxGeometry args={[0.12, 0.2, 0.12]} /></mesh>)}
+    </group>
+  );
+}
+
+/** Extra pool / spa: shell finish, water, waterline tile band, coping ring. */
+function Water({ w, i }: { w: Water3D; i: number }) {
+  const shape = React.useMemo(() => new THREE.Shape(w.pts.map((p) => new THREE.Vector2(p.x, -p.z))), [w.pts]);
+  const floor = React.useMemo(() => { const g = new THREE.ShapeGeometry(shape); g.rotateX(-Math.PI / 2); return g; }, [shape]);
+  const walls = React.useMemo(() => {
+    const pos: number[] = []; const D = w.depth;
+    w.pts.forEach((a, k) => { const b = w.pts[(k + 1) % w.pts.length];
+      pos.push(a.x, 0, a.z, b.x, 0, b.z, b.x, -D, b.z, a.x, 0, a.z, b.x, -D, b.z, a.x, -D, a.z); });
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
+  }, [w.pts, w.depth]);
+  const band = React.useMemo(() => {
+    const pos: number[] = [];
+    w.pts.forEach((a, k) => { const b = w.pts[(k + 1) % w.pts.length];
+      pos.push(a.x, 0.01, a.z, b.x, 0.01, b.z, b.x, -0.5, b.z, a.x, 0.01, a.z, b.x, -0.5, b.z, a.x, -0.5, a.z); });
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
+  }, [w.pts]);
+  const coping = React.useMemo(() => {
+    const { base, offset } = mitredOffsetRing(w.pts, w.copingWidth);
+    const sh = new THREE.Shape(offset.map((p) => new THREE.Vector2(p.x, -p.z)));
+    sh.holes.push(new THREE.Path(base.map((p) => new THREE.Vector2(p.x, -p.z))));
+    const g = new THREE.ExtrudeGeometry(sh, { depth: 0.2, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2 });
+    g.rotateX(-Math.PI / 2); return g;
+  }, [w.pts, w.copingWidth]);
+  const fin = React.useMemo(() => new THREE.MeshStandardMaterial({ color: w.finish, roughness: 0.6, side: THREE.DoubleSide }), [w.finish]);
+  const tile = React.useMemo(() => new THREE.MeshStandardMaterial({ color: w.waterline, roughness: 0.15, metalness: 0.1, side: THREE.DoubleSide }), [w.waterline]);
+  const cop = React.useMemo(() => new THREE.MeshStandardMaterial({ color: w.coping, roughness: 0.8 }), [w.coping]);
+  const water = React.useMemo(() => new THREE.MeshPhysicalMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.05, transmission: 0.4 }), []);
+  return (
+    <group name={`board-${w.kind}`} onClick={select({ type: "water", i })}>
+      <mesh geometry={floor} material={fin} position={[0, -w.depth, 0]} receiveShadow />
+      <mesh geometry={walls} material={fin} />
+      <mesh geometry={band} material={tile} />
+      <mesh geometry={floor} material={water} position={[0, -0.25, 0]} />
+      <mesh geometry={coping} material={cop} position={[0, 0.02, 0]} castShadow receiveShadow />
     </group>
   );
 }
@@ -106,8 +177,9 @@ export function BoardElements3D() {
   return (
     <group name="global-design-board">
       {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} />)}
-      {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} />)}
-      {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} />)}
+      {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} i={i} />)}
+      {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} i={i} />)}
+      {(data.waters ?? []).map((w, i) => <Water key={`w${i}`} w={w} i={i} />)}
     </group>
   );
 }

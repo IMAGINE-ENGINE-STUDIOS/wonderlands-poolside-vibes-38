@@ -11,3 +11,12 @@
 - [ ] Zero-entry quote line — blocked: needs the owner's price
 - [ ] Hands-on check of showroom quote/signature flows and "two quotes buttons" — needs the owner to try in preview
 - [ ] Publish — waits for the owner's request
+
+## Global Design Board V2 + 3D (Oct 14)
+- [x] Hide $0 take-off lines; prefix lines with Pool/Spa/Fence/Screen/Deck/Turf
+- [x] Click-to-select/drag placed pieces; one undo/redo set; black buttons
+- [x] Product photos in palette; custom-shape drawing for pool/spa/deck
+- [x] Search Enter answers via Genius (Groq)
+- [x] 3D: metallic fence material (keep geometry)
+- [x] 3D: second pools/spas rendered with waterline, coping, deck, finish, editable
+- [x] 3D: fence widget (color, height) and screen-enclosure widget (color, height, real cage look)
