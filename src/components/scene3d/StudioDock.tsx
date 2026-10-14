@@ -40,8 +40,8 @@ interface Props {
 }
 
 /* ---------------- shapes (feet, centred) ---------------- */
-type Shape = 'rectangle' | 'oval' | 'kidney' | 'l-shape' | 'freeform' | 'roman';
-function shapePoints(shape: Shape, W: number, L: number): { x: number; y: number }[] {
+export type Shape = 'rectangle' | 'oval' | 'kidney' | 'l-shape' | 'freeform' | 'roman';
+export function shapePoints(shape: Shape, W: number, L: number): { x: number; y: number }[] {
   const hw = W / 2, hl = L / 2;
   const N = 96;
   const ring = (fn: (t: number) => [number, number]) =>
