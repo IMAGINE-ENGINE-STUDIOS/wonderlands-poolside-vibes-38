@@ -7,6 +7,7 @@ import { runGeniusCartCommand, type GeniusCartAdapter } from '@/lib/geniusCartCo
 import { advanceBooking, isBookingActive, startBooking, wantsAppointment } from '@/lib/geniusBooking';
 import { resolveShowroomRequest } from '@/lib/geniusShowroom';
 import { supabase } from '@/integrations/supabase/client';
+import { buildKnowledgeDigest } from '@/lib/geniusKnowledge';
 
 export interface GeniusTurn {
   id: string;
@@ -67,6 +68,7 @@ export function useGenius(options?: GeniusOptions) {
               }
             : undefined,
           cart: cart?.items.length ? cart.items.map((i) => `${i.name} ($${Math.round(i.price).toLocaleString()})`).join(', ') : undefined,
+          catalog: buildKnowledgeDigest(),
         },
       });
       if (error || !data?.reply) return null;
