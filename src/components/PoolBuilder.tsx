@@ -6,6 +6,7 @@ const {
   useMemo,
   useCallback
 } = React;
+import { outwardBulgeSign } from '@/utils/curveUtils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';

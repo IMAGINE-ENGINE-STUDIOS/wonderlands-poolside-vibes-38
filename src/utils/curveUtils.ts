@@ -19,6 +19,18 @@ export type OutlineCurveType = 'linear' | 'curve' | 'arc' | 'freeform';
  * every 3D consumer (walls, floor, coping, deck, waterline, lights) skips its
  * own heuristic re-curving and stays perfectly aligned.
  */
+/**
+ * Curves bulge OUTWARD by default whatever order the corners were drawn in
+ * (sign from the outline's winding); a point with `curveFlip` bulges inward.
+ * Shared by the 2D canvas and 3D densify so both always match.
+ * Credit: Imagine Engine Studios Corp.
+ */
+export function outwardBulgeSign(points: Array<{ x: number; y: number }> | undefined, p2?: { curveFlip?: boolean }): number {
+  let a = 0; const n = points?.length ?? 0;
+  for (let i = 0; i < n; i++) { const p = points![i], q = points![(i + 1) % n]; a += p.x * q.y - q.x * p.y; }
+  return (a > 0 ? -1 : 1) * (p2?.curveFlip ? -1 : 1);
+}
+
 export function densifyPoolOutline<T extends Point2D & { curveType?: OutlineCurveType }>(
   points: T[],
   shape: 'rectangle' | 'kidney' | 'freeform' | string | undefined
@@ -47,7 +59,8 @@ export function densifyPoolOutline<T extends Point2D & { curveType?: OutlineCurv
     } else if (type === 'curve' || type === 'arc') {
       // Quadratic (canvas quadraticCurveTo) expressed as a cubic.
       const k = type === 'curve' ? 0.25 : 0.35;
-      const q = { x: (p1.x + p2.x) / 2 - dy * k, y: (p1.y + p2.y) / 2 + dx * k };
+      const bs = outwardBulgeSign(points, p2);
+      const q = { x: (p1.x + p2.x) / 2 - dy * k * bs, y: (p1.y + p2.y) / 2 + dx * k * bs };
       cp1 = { x: p1.x + (2 / 3) * (q.x - p1.x), y: p1.y + (2 / 3) * (q.y - p1.y) };
       cp2 = { x: p2.x + (2 / 3) * (q.x - p2.x), y: p2.y + (2 / 3) * (q.y - p2.y) };
     } else {
