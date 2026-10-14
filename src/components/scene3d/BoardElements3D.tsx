@@ -7,7 +7,7 @@
  */
 import * as React from "react";
 import * as THREE from "three";
-import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D } from "@/lib/design/board3D";
+import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D, waterDepthAt } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
@@ -112,16 +112,32 @@ function Screen({ s, i }: { s: Screen3D; i: number }) {
   );
 }
 
-/** Extra pool / spa: shell finish, water, waterline tile band, coping ring. */
+/**
+ * Extra pool / spa: shell finish, water, waterline tile band, coping ring.
+ * The floor follows this body's own depth profile (anchors + axis + zero entry)
+ * via waterDepthAt; the outline is sampled every foot so slopes read correctly.
+ */
 function Water({ w, i }: { w: Water3D; i: number }) {
-  const shape = React.useMemo(() => new THREE.Shape(w.pts.map((p) => new THREE.Vector2(p.x, -p.z))), [w.pts]);
-  const floor = React.useMemo(() => { const g = new THREE.ShapeGeometry(shape); g.rotateX(-Math.PI / 2); return g; }, [shape]);
+  const dense = React.useMemo(() => {
+    const out: XZ[] = [];
+    w.pts.forEach((a, k) => { const b = w.pts[(k + 1) % w.pts.length]; const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z)));
+      for (let s = 0; s < n; s++) out.push({ x: a.x + ((b.x - a.x) * s) / n, z: a.z + ((b.z - a.z) * s) / n }); });
+    return out;
+  }, [w.pts]);
+  const depthAt = React.useCallback((x: number, z: number) => Math.max(0.05, waterDepthAt(w, x, z)), [w]);
+  const flatFloor = React.useMemo(() => { const g = new THREE.ShapeGeometry(new THREE.Shape(w.pts.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g; }, [w.pts]);
+  const floor = React.useMemo(() => {
+    const g = new THREE.ShapeGeometry(new THREE.Shape(dense.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2);
+    const a = g.attributes.position as THREE.BufferAttribute;
+    for (let k = 0; k < a.count; k++) a.setY(k, -depthAt(a.getX(k), a.getZ(k)));
+    a.needsUpdate = true; g.computeVertexNormals(); return g;
+  }, [dense, depthAt]);
   const walls = React.useMemo(() => {
-    const pos: number[] = []; const D = w.depth;
-    w.pts.forEach((a, k) => { const b = w.pts[(k + 1) % w.pts.length];
-      pos.push(a.x, 0, a.z, b.x, 0, b.z, b.x, -D, b.z, a.x, 0, a.z, b.x, -D, b.z, a.x, -D, a.z); });
+    const pos: number[] = [];
+    dense.forEach((a, k) => { const b = dense[(k + 1) % dense.length]; const Da = depthAt(a.x, a.z), Db = depthAt(b.x, b.z);
+      pos.push(a.x, 0, a.z, b.x, 0, b.z, b.x, -Db, b.z, a.x, 0, a.z, b.x, -Db, b.z, a.x, -Da, a.z); });
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
-  }, [w.pts, w.depth]);
+  }, [dense, depthAt]);
   const band = React.useMemo(() => {
     const pos: number[] = [];
     w.pts.forEach((a, k) => { const b = w.pts[(k + 1) % w.pts.length];
@@ -141,10 +157,10 @@ function Water({ w, i }: { w: Water3D; i: number }) {
   const water = React.useMemo(() => new THREE.MeshPhysicalMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.05, transmission: 0.4 }), []);
   return (
     <group name={`board-${w.kind}`} onClick={select({ type: "water", i })}>
-      <mesh geometry={floor} material={fin} position={[0, -w.depth, 0]} receiveShadow />
+      <mesh geometry={floor} material={fin} receiveShadow />
       <mesh geometry={walls} material={fin} />
       <mesh geometry={band} material={tile} />
-      <mesh geometry={floor} material={water} position={[0, -0.25, 0]} />
+      <mesh geometry={flatFloor} material={water} position={[0, -0.25, 0]} />
       <mesh geometry={coping} material={cop} position={[0, 0.02, 0]} castShadow receiveShadow />
     </group>
   );
@@ -179,7 +195,7 @@ export function BoardElements3D() {
       {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} />)}
       {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} i={i} />)}
-      {(data.waters ?? []).map((w, i) => <Water key={`w${i}`} w={w} i={i} />)}
+      {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} />)}
     </group>
   );
 }

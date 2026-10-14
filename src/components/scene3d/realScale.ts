@@ -13,7 +13,7 @@
 import * as THREE from 'three';
 
 /** Live pool/deck reference used to scale every model. */
-export interface SiteRef { poolLength: number; poolWidth: number; deckWidth: number; /** Exact pool+deck footprint in world XZ (terrain cutout). */ outline?: { x: number; z: number }[]; outlineKey?: string }
+export interface SiteRef { poolLength: number; poolWidth: number; deckWidth: number; /** Exact pool+deck footprint in world XZ (terrain cutout). */ outline?: { x: number; z: number }[]; /** Extra pool/spa footprints (board hand-off), one hole each. */ holes?: { x: number; z: number }[][]; outlineKey?: string }
 
 /** Target size in feet. `h` = height, `w` = largest footprint side (optional). */
 type Target = { h: number; w?: number };

@@ -27,7 +27,7 @@ import { gilmerSpas } from "@/data/gilmerSpas";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { computeNetAreas } from "@/lib/design/boardNetArea";
-import { boardTo3D, saveBoard3D } from "@/lib/design/board3D";
+import { boardTo3D, saveBoard3D, loadBoard3D, applyBoard3DToItems, BOARD_3D_EVENT } from "@/lib/design/board3D";
 import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator";
 import { SCREEN_ENCLOSURE_PRICING, CONCRETE_DECK_PRICE_PER_SQFT } from "@/utils/paverPricing";
 import { paverTypes } from "@/data/paverData";
@@ -237,6 +237,14 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
   const wrapRef = React.useRef<HTMLDivElement>(null);
   const drag = React.useRef<{ id?: string; vi?: number; last: Pt; pan?: boolean } | null>(null);
   const [size, setSize] = React.useState({ w: 900, h: 600 });
+
+  /* ---------- 3D → board: extra pool/spa edits come back by item id ---------- */
+  React.useEffect(() => {
+    const pull = () => setItems((prev) => applyBoard3DToItems(prev, loadBoard3D()));
+    pull();
+    window.addEventListener(BOARD_3D_EVENT, pull); window.addEventListener("storage", pull);
+    return () => { window.removeEventListener(BOARD_3D_EVENT, pull); window.removeEventListener("storage", pull); };
+  }, [setItems]);
 
   /* ---------- undo / redo ---------- */
   const past = React.useRef<BoardItem[][]>([]);
