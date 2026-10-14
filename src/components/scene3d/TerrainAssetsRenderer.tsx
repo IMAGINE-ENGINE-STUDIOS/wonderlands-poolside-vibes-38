@@ -1,5 +1,6 @@
 import React, { Suspense, useEffect, useMemo, useRef } from 'react';
 import { TransformControls } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Model3DLoader } from './Model3DLoader';
 import { TerrainAsset } from './TerrainEditor';
@@ -134,6 +135,7 @@ function TerrainAssetItem({
  */
 function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; siteRef?: SiteRef; children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null);
+  const gl = useThree((st) => st.gl);
   React.useLayoutEffect(() => {
     const g = ref.current;
     if (!g) return;
@@ -152,8 +154,35 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
       if (isEnv || asset.autoFit !== false) {
         const k = realWorldFit(asset.name, asset.type, size, siteRef);
         g.scale.setScalar(k);
-        g.position.y = asset.type === 'skydome' ? -(min.y + size.y / 2) * k * 0.2 : -min.y * k;
+        g.position.y = asset.type === 'skydome'
+          ? -(min.y + size.y / 2) * k * 0.2
+          : asset.type === 'terrain' ? -min.y * k - 0.3 : -min.y * k;
       }
+      // Sharp textures at grazing angles (terrains looked low-res).
+      const aniso = gl.capabilities.getMaxAnisotropy();
+      g.traverse((o) => {
+        const mats = ((o as THREE.Mesh).material ? ([] as THREE.Material[]).concat((o as THREE.Mesh).material as any) : []);
+        mats.forEach((m: any) => {
+          ['map', 'normalMap', 'roughnessMap', 'aoMap'].forEach((key) => {
+            const t = m[key] as THREE.Texture | undefined;
+            if (t) { t.anisotropy = aniso; t.needsUpdate = true; }
+          });
+          // Terrains never cover the pool: cut out the pool + deck footprint.
+          if (asset.type === 'terrain' && siteRef && !m.userData.poolCut) {
+            m.userData.poolCut = true;
+            const half = new THREE.Vector2(
+              siteRef.poolWidth / 2 + siteRef.deckWidth + 1,
+              siteRef.poolLength / 2 + siteRef.deckWidth + 1,
+            );
+            m.onBeforeCompile = (sh: any) => {
+              sh.uniforms.uPoolHalf = { value: half };
+              sh.vertexShader = 'varying vec3 vPoolW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvPoolW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+              sh.fragmentShader = 'uniform vec2 uPoolHalf;\nvarying vec3 vPoolW;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  if (abs(vPoolW.x) < max(uPoolHalf.x, uPoolHalf.y) && abs(vPoolW.z) < max(uPoolHalf.x, uPoolHalf.y)) discard;');
+            };
+            m.needsUpdate = true;
+          }
+        });
+      });
       g.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.userData.walkable = true; });
     };
     apply();
