@@ -1336,7 +1336,7 @@ export function UnifiedPoolVisualizer({
         {/* Fullscreen Toggle Button */}
         <button
           onClick={toggleFullscreen}
-          className="absolute top-4 right-4 z-10 bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors"
+          className="absolute top-4 right-4 z-10 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50"
           title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
         >
           {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
@@ -1354,12 +1354,12 @@ export function UnifiedPoolVisualizer({
           <button
             onClick={undo}
             disabled={!canUndo}
-            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
+            className="relative w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
             title={`Undo (Ctrl+Z)${historyLength > 0 ? ` - ${historyLength} change${historyLength > 1 ? 's' : ''} in history` : ''}`}
           >
-            <Undo2 className="w-4 h-4 md:w-5 md:h-5" />
+            <Undo2 className="w-4 h-4" strokeWidth={1.8} />
             {historyLength > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full px-1">
+              <span className="absolute -top-1 -right-1 bg-slate-900 text-white text-[10px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full px-1">
                 {historyLength}
               </span>
             )}
@@ -1367,12 +1367,12 @@ export function UnifiedPoolVisualizer({
           <button
             onClick={redo}
             disabled={!canRedo}
-            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
+            className="relative w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
             title={`Redo (Ctrl+Y)${futureLength > 0 ? ` - ${futureLength} change${futureLength > 1 ? 's' : ''} available` : ''}`}
           >
-            <Redo2 className="w-4 h-4 md:w-5 md:h-5" />
+            <Redo2 className="w-4 h-4" strokeWidth={1.8} />
             {futureLength > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full px-1">
+              <span className="absolute -top-1 -right-1 bg-slate-900 text-white text-[10px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full px-1">
                 {futureLength}
               </span>
             )}
@@ -1384,10 +1384,10 @@ export function UnifiedPoolVisualizer({
                 flyCamera(controlsRef.current, [40, 30, 40], [0, 0, 0], 1000);
               }
             }}
-            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors"
+            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50"
             title="Reset View"
           >
-            <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
+            <RotateCcw className="w-4 h-4" strokeWidth={1.8} />
           </button>
           <button
             onClick={() => {
@@ -1396,38 +1396,38 @@ export function UnifiedPoolVisualizer({
               setShowMeasurements(newShowGrid);
               setShowRulers(newShowGrid);
             }}
-            className={`p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${showGrid ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
+            className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${showGrid ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
             title={showGrid ? "Hide Grid & Measurements" : "Show Grid & Measurements"}
           >
-            <Grid3x3 className="w-4 h-4 md:w-5 md:h-5" />
+            <Grid3x3 className="w-4 h-4" strokeWidth={1.8} />
           </button>
           <button
             onClick={() => setShowWater(!showWater)}
-            className={`p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${showWater ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
+            className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${showWater ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
             title={showWater ? "Hide Water" : "Show Water"}
           >
-            <Waves className="w-4 h-4 md:w-5 md:h-5" />
+            <Waves className="w-4 h-4" strokeWidth={1.8} />
           </button>
           <button
             onClick={() => setShowClimateController(!showClimateController)}
-            className={`p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${isNightMode ? 'bg-blue-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${isNightMode ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
             title="Climate Controls"
           >
-            {isNightMode ? <Moon className="w-4 h-4 md:w-5 md:h-5" /> : <Sun className="w-4 h-4 md:w-5 md:h-5" />}
+            {isNightMode ? <Moon className="w-4 h-4" strokeWidth={1.8} /> : <Sun className="w-4 h-4" strokeWidth={1.8} />}
           </button>
           <button
             onClick={() => setIsWalkthroughMode(!isWalkthroughMode)}
-            className={`hidden md:block p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${isWalkthroughMode ? 'bg-green-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            className={`hidden md:flex w-9 h-9 md:w-10 md:h-10 items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${isWalkthroughMode ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
             title="Walkthrough Mode (WASD)"
           >
-            <PersonStanding className="w-4 h-4 md:w-5 md:h-5" />
+            <PersonStanding className="w-4 h-4" strokeWidth={1.8} />
           </button>
           <button
             onClick={() => setShowDepthProfileEditor(!showDepthProfileEditor)}
-            className={`hidden md:block p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${showDepthProfileEditor ? 'bg-cyan-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            className={`hidden md:flex w-9 h-9 md:w-10 md:h-10 items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${showDepthProfileEditor ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
             title="Depth Profile Editor"
           >
-            <ArrowUpDown className="w-4 h-4 md:w-5 md:h-5" />
+            <ArrowUpDown className="w-4 h-4" strokeWidth={1.8} />
           </button>
           {/* 3D Spline Editor deprecated — deck & coping now live in the Deck/Coping settings panel. */}
         </div>

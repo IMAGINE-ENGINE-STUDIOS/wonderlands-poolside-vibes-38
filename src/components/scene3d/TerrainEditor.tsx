@@ -306,7 +306,7 @@ export function TerrainEditor({
       <Button
         variant="outline"
         size="icon"
-        className="glass-btn fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full"
+        className="fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full bg-white border-slate-200/80 text-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.06)] hover:bg-slate-50"
         onClick={() => setIsOpen(true)}
       >
         <div className="relative">
