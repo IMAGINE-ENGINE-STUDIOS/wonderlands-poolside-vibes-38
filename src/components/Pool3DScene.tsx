@@ -553,6 +553,7 @@ const PoolMesh: React.FC<{
         position={[0, 0, 0]}
         onClick={(e) => {
           e.stopPropagation();
+          if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
           onSelectComponent?.('pool');
         }}
       >
@@ -576,6 +577,7 @@ const PoolMesh: React.FC<{
         position={[0, 0, 0]}
         onClick={(e) => {
           e.stopPropagation();
+          if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
           onSelectComponent?.('pool');
         }}
       >
@@ -1224,6 +1226,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {/* Pool Mesh */}
       <group onClick={(e) => {
         e.stopPropagation();
+          if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
         onSelectCategory?.('pool');
         onSelectComponent?.('pool');
       }}>
@@ -1250,6 +1253,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           {copingEnabled && (
             <group onClick={(e) => {
               e.stopPropagation();
+          if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
               onSelectCategory?.('coping');
               onSelectComponent?.('coping');
             }}>
@@ -1269,6 +1273,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           {/* Deck Border - outer face around coping, 3" tall, min 3ft wide */}
           <group onClick={(e) => {
             e.stopPropagation();
+          if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
             onSelectCategory?.('deck');
             onSelectComponent?.('deck');
           }}>
@@ -1292,6 +1297,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {/* Waterline Tile */}
       <group onClick={(e) => {
         e.stopPropagation();
+          if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
         onSelectCategory?.('waterline');
         onSelectComponent?.('waterline');
       }}>
