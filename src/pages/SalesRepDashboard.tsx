@@ -47,7 +47,8 @@ interface ClientAutomation {
 }
 
 
-const SalesRepDashboard = () => {
+/** `embedded` (showroom): never redirects away from the host page. */
+const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
@@ -84,11 +85,11 @@ const SalesRepDashboard = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      if (!embedded) navigate('/auth');
       return;
     }
 
-    if (profile?.role !== 'sales_rep' as any) {
+    if (profile?.role !== 'sales_rep' as any && !embedded) {
       navigate('/');
       return;
     }
@@ -96,7 +97,7 @@ const SalesRepDashboard = () => {
     // Check if user is Head of Sales
     checkHeadOfSalesStatus();
     fetchAssignedClients();
-  }, [user, profile, navigate]);
+  }, [user, profile, navigate, embedded]);
 
   const checkHeadOfSalesStatus = async () => {
     if (!user) return;

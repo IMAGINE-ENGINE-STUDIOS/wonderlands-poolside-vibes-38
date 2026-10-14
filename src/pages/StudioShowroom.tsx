@@ -757,7 +757,7 @@ const StudioShowroom = () => {
     ),
     'dash-salesrep': (
       <AutoMount title="Sales Rep Dashboard" note="The sales team dashboard, opened on the demo session.">
-        <ShowroomDemoSession><SalesRepTool /></ShowroomDemoSession>
+        <ShowroomDemoSession><SalesRepTool embedded /></ShowroomDemoSession>
       </AutoMount>
     ),
   };
