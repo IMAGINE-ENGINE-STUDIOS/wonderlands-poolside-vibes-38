@@ -25,6 +25,9 @@ import usePersistentState from "@/hooks/usePersistentState";
 import { getAllProducts } from "@/data/poolProductLookup";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { computeNetAreas } from "@/lib/design/boardNetArea";
+import { boardTo3D, saveBoard3D } from "@/lib/design/board3D";
 import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator";
 import { SCREEN_ENCLOSURE_PRICING, CONCRETE_DECK_PRICE_PER_SQFT } from "@/utils/paverPricing";
 import { paverTypes } from "@/data/paverData";
@@ -59,9 +62,9 @@ const FENCE_STYLES = [
 const FENCE_COLORS = [{ id: "black", hex: "#1f1f1f" }, { id: "bronze", hex: "#6b4a2b" }, { id: "white", hex: "#f4f4f2" }];
 const FENCE_HEIGHTS = CONFIG_FENCE_HEIGHTS.map((h) => ({ ft: h.heightIn / 12, rate: h.pricePerFt, label: h.label }));
 const SCREEN_STYLES = [
-  { id: "standard", label: "Standard cage", rate: SCREEN_ENCLOSURE_PRICING.standard },
-  { id: "deluxe", label: "Deluxe cage", rate: SCREEN_ENCLOSURE_PRICING.deluxe },
-  { id: "premium", label: "2-story cage", rate: SCREEN_ENCLOSURE_PRICING.premium },
+  { id: "standard", label: "Standard cage", rate: SCREEN_ENCLOSURE_PRICING.standard, heights: [8, 10] },
+  { id: "deluxe", label: "Deluxe cage", rate: SCREEN_ENCLOSURE_PRICING.deluxe, heights: [10, 12] },
+  { id: "premium", label: "2-story cage", rate: SCREEN_ENCLOSURE_PRICING.premium, heights: [18, 20] },
 ];
 const SCREEN_COLORS = [{ id: "bronze", hex: "#6b4a2b" }, { id: "white", hex: "#e9e9e6" }, { id: "black", hex: "#222" }];
 const DECK_COLORS: Record<string, string> = { appian: "#b98a62", catalina: "#c9a27c", travertine: "#e2d3b8", coralina: "#d8d2c8" };
@@ -75,7 +78,7 @@ const buildCatalog = (): Product[] => {
   const fences: Product[] = FENCE_STYLES.flatMap((s) => FENCE_COLORS.flatMap((c) => FENCE_HEIGHTS.map((h) => ({
     id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex,
   }))));
-  const screens: Product[] = SCREEN_STYLES.flatMap((s) => SCREEN_COLORS.map((c) => ({ id: `enclosure:${s.id}:${c.id}`, kind: "enclosure" as Kind, label: s.label, detail: `${c.id} frame`, rate: s.rate, unit: "sqft" as const, color: c.hex })));
+  const screens: Product[] = SCREEN_STYLES.flatMap((s) => SCREEN_COLORS.flatMap((c) => s.heights.map((h) => ({ id: `enclosure:${s.id}:${c.id}:${h}`, kind: "enclosure" as Kind, label: s.label, detail: `${c.id} frame · ${h}' tall`, rate: s.rate, unit: "sqft" as const, color: c.hex }))));
   const turf: Product[] = GRASS_PRODUCTS_FOR_BOARD();
   const deck: Product[] = [
     { id: "deck:concrete", kind: "deck", label: "Concrete deck", detail: "Broom finish", rate: CONCRETE_DECK_PRICE_PER_SQFT, unit: "sqft", color: "#c9c3b8" },
@@ -142,20 +145,21 @@ const texture = (kind: Kind, color: string) => {
   return c;
 };
 
-const priceOf = (it: BoardItem, p?: Product) => {
+const priceOf = (it: BoardItem, p?: Product, net?: number) => {
   if (!p) return 0;
   if (p.price) return p.price;
-  const q = p.unit === "lf" ? length(it.pts) : area(it.pts);
+  const q = p.unit === "lf" ? length(it.pts) : net ?? area(it.pts);
   return q * (p.rate ?? 0);
 };
 
 /* ---------- grouping: fences / screens are chosen style first, then color ---------- */
-const groupOf = (p: Product) => {
-  const s = p.id.split(":");
-  return p.kind === "fence" ? `${s[0]}:${s[1]}:${s[3]}` : p.kind === "enclosure" ? `${s[0]}:${s[1]}` : p.id;
-};
+/* Fences & screens: 1. material  2. model size (height)  3. color for that material.
+   Ids: fence:<material>:<color>:<heightFt>, enclosure:<material>:<color>:<heightFt>. */
+const materialOf = (p: Product) => p.id.split(":")[1] ?? "";
 const colorOf = (p: Product) => p.id.split(":")[2] ?? "";
-const TWO_STEP = (k: Kind) => k === "fence" || k === "enclosure";
+const sizeOf = (p: Product) => p.id.split(":")[3] ?? "";
+const STEPPED = (k: Kind) => k === "fence" || k === "enclosure";
+type Step = "material" | "size" | "color";
 
 const ft = (n: number) => `${Math.round(n * 10) / 10}'`;
 const bbox = (pts: Pt[]) => {
@@ -184,8 +188,10 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
   const [items, setItems] = usePersistentState<BoardItem[]>("global_design_v2_scene", []);
   const [kind, setKind] = usePersistentState<Kind>("global_design_v2_kind", "pool");
   const [productId, setProductId] = React.useState<string | null>(null);
-  const [group, setGroup] = React.useState<string | null>(null);
-  const [needColor, setNeedColor] = React.useState(false);
+  const [material, setMaterial] = React.useState<string | null>(null);
+  const [sizeSel, setSizeSel] = React.useState<string | null>(null);
+  const [needStep, setNeedStep] = React.useState<Step | null>(null);
+  const navigate = useNavigate();
   const [draft, setDraft] = React.useState<Pt[]>([]);
   const [hover, setHover] = React.useState<Hover | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
@@ -225,13 +231,20 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
 
   const product = productId ? byId.get(productId) : undefined;
   const choices = React.useMemo(() => catalog.filter((p) => p.kind === kind), [catalog, kind]);
-  const groups = React.useMemo(() => {
-    if (!TWO_STEP(kind)) return [];
-    const m = new Map<string, Product[]>();
-    choices.forEach((p) => { const g = groupOf(p); m.set(g, [...(m.get(g) ?? []), p]); });
-    return [...m.entries()].map(([id, list]) => ({ id, list, first: list[0] }));
+  const materials = React.useMemo(() => {
+    if (!STEPPED(kind)) return [];
+    const m = new Map<string, Product>();
+    choices.forEach((p) => { if (!m.has(materialOf(p))) m.set(materialOf(p), p); });
+    return [...m.entries()].map(([id, first]) => ({ id, first }));
   }, [choices, kind]);
-  const pickKind = (k: Kind) => { setKind(k); setProductId(null); setGroup(null); setDraft([]); setNeedColor(false); };
+  const sizes = React.useMemo(() => {
+    const m = new Map<string, Product>();
+    choices.filter((p) => materialOf(p) === material).forEach((p) => { if (!m.has(sizeOf(p))) m.set(sizeOf(p), p); });
+    return [...m.entries()].map(([id, first]) => ({ id, first }));
+  }, [choices, material]);
+  const colors = React.useMemo(() => choices.filter((p) => materialOf(p) === material && sizeOf(p) === sizeSel), [choices, material, sizeSel]);
+  const resetSteps = () => { setMaterial(null); setSizeSel(null); setNeedStep(null); };
+  const pickKind = (k: Kind) => { setKind(k); setProductId(null); resetSteps(); setDraft([]); };
 
   React.useEffect(() => {
     const el = wrapRef.current; if (!el) return;
@@ -354,9 +367,10 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
     const r = e.currentTarget.getBoundingClientRect();
     const w = toWorld(e.clientX - r.left, e.clientY - r.top);
     if (e.button === 1 || e.shiftKey) { drag.current = { pan: true, last: { x: e.clientX, y: e.clientY } }; return; }
-    if (group && !product) {
-      setNeedColor(true);
-      toast({ title: "Choose a color first", description: "Pick one of the highlighted colors, then draw." });
+    if (STEPPED(kind) && !product) {
+      const step: Step = !material ? "material" : !sizeSel ? "size" : "color";
+      setNeedStep(step);
+      toast({ title: step === "material" ? "Choose the material first" : step === "size" ? "Choose a size" : "Choose a color", description: "Pick one of the highlighted options, then draw." });
       return;
     }
     if (product) {
@@ -408,16 +422,23 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
       if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
       if (mod && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
       if (e.key === "Enter") finish();
-      if (e.key === "Escape") { setDraft([]); setProductId(null); setGroup(null); setHover(null); }
+      if (e.key === "Escape") { setDraft([]); setProductId(null); resetSteps(); setHover(null); }
       if ((e.key === "Delete" || e.key === "Backspace") && selected) removeSelected();
     };
     window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
   });
 
   /* ---------- take-off & summary ---------- */
-  const lines = items.map((it) => { const p = byId.get(it.productId); return { it, p, qty: p?.unit === "lf" ? length(it.pts) : p?.unit === "sqft" ? area(it.pts) : 1, total: priceOf(it, p) }; });
+  const net = React.useMemo(() => computeNetAreas(items), [items]);
+  const netOf = (i: BoardItem) => net.get(i.id) ?? area(i.pts);
+  const lines = items.map((it) => { const p = byId.get(it.productId); const n = netOf(it); return { it, p, gross: area(it.pts), qty: p?.unit === "lf" ? length(it.pts) : p?.unit === "sqft" ? n : 1, total: priceOf(it, p, n) }; });
   const total = lines.reduce((s, l) => s + l.total, 0);
   const sum = (k: Kind, f: (pts: Pt[]) => number) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + f(i.pts), 0));
+  const sumNet = (k: Kind) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + netOf(i), 0));
+  const open3D = () => {
+    saveBoard3D(boardTo3D(items, (id) => byId.get(id), (it) => (it as BoardItem).productId));
+    navigate("/studio-3d?from=board");
+  };
   const selItem = items.find((i) => i.id === selected);
   const selBox = selItem ? bbox(selItem.pts) : null;
   const hint = KINDS.find((k) => k.id === kind)?.hint;
@@ -440,15 +461,15 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
             <>
               <span className="text-foreground">{byId.get(selItem.productId)?.label}</span>
               <span>{ft(selBox.h)} × {ft(selBox.w)}</span>
-              {selItem.kind !== "fence" && <span>{Math.round(area(selItem.pts))} sq ft</span>}
+              {selItem.kind !== "fence" && <span>{Math.round(netOf(selItem))} sq ft{Math.round(netOf(selItem)) !== Math.round(area(selItem.pts)) ? ` net (${Math.round(area(selItem.pts))} drawn)` : ""}</span>}
               <span>{Math.round(selItem.kind === "fence" ? length(selItem.pts) : length([...selItem.pts, selItem.pts[0]]))} lin ft</span>
             </>
           ) : (
             <>
               <span>Pools {items.filter((i) => i.kind === "pool").length}</span>
               <span>Spas {items.filter((i) => i.kind === "spa").length}</span>
-              <span>Deck {sum("deck", area)} sq ft</span>
-              <span>Turf {sum("turf", area)} sq ft</span>
+              <span>Deck {sumNet("deck")} sq ft</span>
+              <span>Turf {sumNet("turf")} sq ft</span>
               <span>Fence {sum("fence", length)} lin ft</span>
               <span>Screens {sum("enclosure", area)} sq ft</span>
             </>
@@ -458,6 +479,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
           <Button size="sm" variant="outline" className={iconBtn} onClick={undo} disabled={!past.current.length} aria-label="Undo"><Undo2 className="h-3.5 w-3.5" /></Button>
           <Button size="sm" variant="outline" className={iconBtn} onClick={redo} disabled={!future.current.length} aria-label="Redo"><Redo2 className="h-3.5 w-3.5" /></Button>
           <Button size="sm" variant="outline" className={cn(iconBtn, "text-[10px] uppercase tracking-[0.2em]")} onClick={saveProject}><Save className="mr-1 h-3.5 w-3.5" />Save</Button>
+          <Button size="sm" variant="outline" className={cn(iconBtn, "text-[10px] uppercase tracking-[0.2em]")} disabled={!items.length} onClick={open3D}><Layers className="mr-1 h-3.5 w-3.5" />3D Studio</Button>
           <div className="relative">
             <Button size="sm" variant="outline" className={cn(iconBtn, "text-[10px] uppercase tracking-[0.2em]")} onClick={() => setProjOpen((o) => !o)}><FolderOpen className="mr-1 h-3.5 w-3.5" />Projects</Button>
             {projOpen && (
@@ -493,31 +515,49 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
             ))}
           </div>
           <p className="border-b border-border px-3 py-2 text-[11px] text-muted-foreground">
-            {TWO_STEP(kind) ? `1. Choose the ${kind === "fence" ? "fence" : "screen"} · 2. Choose the color · 3. ${hint}` : `1. Choose the product · 2. ${hint}`}
+            {STEPPED(kind) ? `1. Material · 2. Size · 3. Color · 4. ${hint}` : `1. Choose the product · 2. ${hint}`}
           </p>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {TWO_STEP(kind)
-              ? groups.map(({ id, list, first }) => (
-                <div key={id} className="border-b border-border/60">
-                  <button onClick={() => { setGroup(id === group ? null : id); setProductId(null); setNeedColor(false); setDraft([]); setSelected(null); }}
-                    className={cn("flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-muted/50", group === id && "bg-muted")}>
-                    <span className="min-w-0 flex-1"><span className="block truncate text-sm">{first.label}</span><span className="block truncate text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{first.kind === "fence" ? first.detail.split(" · ")[1] : `${list.length} frame colors`}</span></span>
-                    <span className="shrink-0 text-xs">{`$${first.rate}/${first.unit}`}</span>
-                    {group === id && <Check className="h-3.5 w-3.5" />}
-                  </button>
-                  {group === id && (
-                    <div className={cn("flex flex-wrap gap-2 px-3 pb-3 transition-all", needColor && !productId && "animate-pulse rounded ring-2 ring-primary")}>
-                      <p className="w-full text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Color</p>
-                      {list.map((p) => (
-                        <button key={p.id} onClick={() => { setProductId(p.id); setNeedColor(false); }} aria-label={colorOf(p)}
-                          className={cn("flex items-center gap-1.5 border px-2 py-1 text-[10px] uppercase tracking-[0.15em]", productId === p.id ? "border-foreground bg-foreground text-background" : "border-border")}>
-                          <span className="h-3.5 w-3.5 border border-border" style={{ background: p.color }} />{colorOf(p)}
-                        </button>
-                      ))}
+            {STEPPED(kind)
+              ? (() => {
+                const box = (st: Step) => cn("border-b border-border/60 px-3 py-3", needStep === st && "animate-pulse ring-2 ring-inset ring-primary");
+                const chip = (on: boolean) => cn("border px-2 py-1 text-[10px] uppercase tracking-[0.15em]", on ? "border-foreground bg-foreground text-background" : "border-border hover:bg-muted/50");
+                return (<>
+                  <div className={box("material")}>
+                    <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">1 · Material</p>
+                    {materials.map(({ id, first }) => (
+                      <button key={id} onClick={() => { setMaterial(id); setSizeSel(null); setProductId(null); setNeedStep(null); setDraft([]); setSelected(null); }}
+                        className={cn("mb-1 flex w-full items-center justify-between border px-2 py-2 text-left text-sm", material === id ? "border-foreground bg-muted" : "border-border hover:bg-muted/50")}>
+                        <span>{first.label}</span>{material === id && <Check className="h-3.5 w-3.5" />}
+                      </button>
+                    ))}
+                  </div>
+                  {material && (
+                    <div className={box("size")}>
+                      <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">2 · {kind === "fence" ? "Height" : "Cage height"}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {sizes.map(({ id, first }) => (
+                          <button key={id} onClick={() => { setSizeSel(id); setProductId(null); setNeedStep(null); }} className={chip(sizeSel === id)}>
+                            {`${id}' · $${first.rate}/${first.unit === "lf" ? "lin ft" : "sq ft"}`}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
-              ))
+                  {material && sizeSel && (
+                    <div className={box("color")}>
+                      <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">3 · Color</p>
+                      <div className="flex flex-wrap gap-2">
+                        {colors.map((p) => (
+                          <button key={p.id} onClick={() => { setProductId(p.id); setNeedStep(null); }} aria-label={colorOf(p)} className={cn(chip(productId === p.id), "flex items-center gap-1.5")}>
+                            <span className="h-3.5 w-3.5 border border-border" style={{ background: p.color }} />{colorOf(p)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>);
+              })()
               : choices.map((p) => (
                 <button key={p.id} onClick={() => { setProductId(p.id === productId ? null : p.id); setDraft([]); setSelected(null); }}
                   className={cn("flex w-full items-center gap-3 border-b border-border/60 px-3 py-2 text-left hover:bg-muted/50", productId === p.id && "bg-muted")}>
@@ -535,7 +575,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
           <canvas ref={canvasRef} width={size.w} height={size.h} className={cn("block", product ? "cursor-crosshair" : "cursor-grab")}
             onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={() => setHover(null)} onDoubleClick={() => finish()} />
           <div className="absolute left-3 top-3 flex gap-1">
-            <Button size="sm" variant={product ? "outline" : "default"} className="h-8 rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => { setProductId(null); setGroup(null); setDraft([]); }}><MousePointer2 className="mr-1 h-3 w-3" />Select / move</Button>
+            <Button size="sm" variant={product ? "outline" : "default"} className="h-8 rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => { setProductId(null); resetSteps(); setDraft([]); }}><MousePointer2 className="mr-1 h-3 w-3" />Select / move</Button>
             <Button size="sm" variant="outline" className={iconBtn} onClick={undo} disabled={!past.current.length} aria-label="Undo"><Undo2 className="h-3 w-3" /></Button>
             <Button size="sm" variant="outline" className={iconBtn} onClick={redo} disabled={!future.current.length} aria-label="Redo"><Redo2 className="h-3 w-3" /></Button>
             {draft.length > 0 && <>
@@ -554,16 +594,17 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
           <p className="border-b border-border px-3 py-2 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Take-off</p>
           <div className="min-h-0 flex-1 overflow-y-auto">
             {!lines.length && <p className="px-3 py-6 text-sm text-muted-foreground">Nothing drawn yet.</p>}
-            {lines.map(({ it, p, qty, total: t }) => (
+            {lines.map(({ it, p, qty, gross, total: t }) => (
               <button key={it.id} onClick={() => setSelected(it.id)} className={cn("block w-full border-b border-border/60 px-3 py-2 text-left", selected === it.id && "bg-muted")}>
                 <span className="flex justify-between gap-2 text-sm"><span className="truncate">{p?.label}</span><span>{money(t)}</span></span>
-                <span className="block text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{p?.detail}{p?.unit ? ` · ${Math.round(qty)} ${p.unit === "lf" ? "lin ft" : "sq ft"}` : ""}</span>
+                <span className="block text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{p?.detail}{p?.unit ? ` · ${Math.round(qty)} ${p.unit === "lf" ? "lin ft" : "sq ft"}` : ""}{p?.unit === "sqft" && Math.round(qty) !== Math.round(gross) ? ` net of ${Math.round(gross)} drawn` : ""}</span>
               </button>
             ))}
           </div>
           <div className="border-t border-border p-3">
             <div className="flex justify-between font-serif text-lg"><span>Total</span><span>{money(total)}</span></div>
             <Button className="mt-2 w-full rounded-none text-[10px] uppercase tracking-[0.2em]" disabled={!items.length} onClick={() => setQuoteOpen(true)}><FileText className="mr-1 h-3.5 w-3.5" />Quote</Button>
+            <Button variant="outline" className="mt-2 w-full rounded-none text-[10px] uppercase tracking-[0.2em]" disabled={!items.length} onClick={open3D}><Layers className="mr-1 h-3.5 w-3.5" />3D Studio</Button>
             <Button variant="outline" className="mt-2 w-full rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => { if (window.confirm("Clear the whole board?")) { commit([]); setSelected(null); } }}>Clear board</Button>
           </div>
         </aside>

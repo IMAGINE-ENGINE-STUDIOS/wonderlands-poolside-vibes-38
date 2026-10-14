@@ -13,7 +13,7 @@ const Studio3DPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <React.Suspense fallback={<div className="p-12 text-center text-sm text-muted-foreground">Opening the 3D Studio…</div>}>
-        <ShowroomStudio3D embedded={false} />
+        <ShowroomStudio3D embedded={false} fromBoard={new URLSearchParams(window.location.search).get('from') === 'board'} />
       </React.Suspense>
     </div>
   );

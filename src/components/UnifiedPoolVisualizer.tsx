@@ -41,6 +41,7 @@ import { validateScene } from '@/utils/sceneValidator';
 import { textureCache } from '@/utils/textureCache';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { LandscapePlants3D } from './scene3d/LandscapePlants3D';
+import { BoardElements3D } from './scene3d/BoardElements3D';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -1759,6 +1760,7 @@ export function UnifiedPoolVisualizer({
           
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
+          <BoardElements3D />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}

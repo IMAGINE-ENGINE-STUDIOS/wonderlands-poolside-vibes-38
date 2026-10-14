@@ -16,6 +16,7 @@ import { paverTypes } from '@/data/paverData';
 import { poolFinishes } from '@/data/consolidatedProducts';
 import { buildCatalogTextureLibrary } from '@/data/textureLibrary';
 import { Button } from '@/components/ui/button';
+import { loadBoard3D } from '@/lib/design/board3D';
 
 const finishOptions = poolFinishes.map((f: any) => ({
   name: f.name, price: f.price, image: f.image, collection: f.collection || 'Standard', description: f.description,
@@ -36,6 +37,8 @@ interface Props {
   textureLibrary?: any;
   height?: number | string;
   embedded?: boolean;
+  /** Size the pool from the Global Design Board V2 hand-off. */
+  fromBoard?: boolean;
 }
 
 const PreScreen: React.FC<{ onEnter: () => void; full: boolean }> = ({ onEnter, full }) => (
@@ -60,9 +63,14 @@ const PreScreen: React.FC<{ onEnter: () => void; full: boolean }> = ({ onEnter, 
   </div>
 );
 
-const ShowroomStudio3D: React.FC<Props> = ({ scene, textureLibrary, height = 720, embedded = true }) => {
+const ShowroomStudio3D: React.FC<Props> = ({ scene, textureLibrary, height = 720, embedded = true, fromBoard = false }) => {
   const library = React.useMemo(() => textureLibrary ?? buildCatalogTextureLibrary(), [textureLibrary]);
-  const [current, setCurrent] = React.useState<any>(() => scene ?? productToScene(RECT_POOL, {}, paverTypes, finishOptions));
+  const [current, setCurrent] = React.useState<any>(() => {
+    if (scene) return scene;
+    const bp = fromBoard ? loadBoard3D()?.pool : undefined;
+    const base = bp ? { ...RECT_POOL, name: `Pool ${bp.w} × ${bp.l}`, model: `Pool ${bp.w} × ${bp.l}`, dimensions: `${bp.w}' × ${bp.l}'` } : RECT_POOL;
+    return productToScene(base, {}, paverTypes, finishOptions);
+  });
   const [entered, setEntered] = React.useState(!!scene);
   React.useEffect(() => { if (scene) { setCurrent(scene); setEntered(true); } }, [scene]);
 
