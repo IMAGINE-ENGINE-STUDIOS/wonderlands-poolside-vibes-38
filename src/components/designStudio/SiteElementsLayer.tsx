@@ -367,7 +367,7 @@ export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: 
       <PopoverTrigger asChild>
         <button className="flex h-9 items-center gap-2 border border-border px-3 text-xs font-semibold hover:border-foreground">Scene · {money(total)}<ChevronDown className="h-3.5 w-3.5" /></button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 rounded-none p-4 text-[12px]">
+      <PopoverContent align="end" className="z-[60] w-80 rounded-none border border-border bg-background p-4 text-[12px] text-foreground opacity-100 shadow-md">
         <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Measures</p>
         <ul className="mt-2 space-y-1">
           {stats && <><Li l="Pool perimeter" r={`${stats.perimeter.toFixed(1)} ft`} /><Li l="Pool area" r={`${stats.area.toFixed(1)} sqft`} /><Li l="Corners" r={`${stats.corners}`} /><Li l="Deck area" r={`${stats.deckArea.toFixed(1)} sqft`} /></>}
