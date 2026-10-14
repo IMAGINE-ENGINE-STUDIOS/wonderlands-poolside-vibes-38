@@ -44,11 +44,31 @@ interface FlipCartProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+/* Only one Order Desk may be live per page: when several tools (showroom
+   widgets, suites) each mount a cart, the most recently mounted one owns the
+   button, the drawer and the global open/quote events. */
+let deskIds: number[] = [];
+let deskSeq = 0;
+const deskSubs = new Set<() => void>();
+const deskOwner = () => deskIds[deskIds.length - 1];
+const useIsDeskOwner = () => {
+  const id = React.useMemo(() => ++deskSeq, []);
+  const [, force] = React.useReducer((x: number) => x + 1, 0);
+  React.useEffect(() => {
+    deskIds.push(id); deskSubs.add(force); deskSubs.forEach((f) => f());
+    return () => { deskIds = deskIds.filter((d) => d !== id); deskSubs.delete(force); deskSubs.forEach((f) => f()); };
+  }, [id]);
+  return deskOwner() === id;
+};
+
 /* The ONE cart of the site: the magazine, every suite, the studio, the solar
    board and the quotation tool all render this Order Desk. */
 const FlipCart: React.FC<FlipCartProps> = ({ current, onQuote, onOpenChange }) => {
   const cart = useOptionalShoppingCart();
   const navigate = useNavigate();
+  const isOwner = useIsDeskOwner();
+  const ownerRef = React.useRef(isOwner);
+  ownerRef.current = isOwner;
   const [open, setOpenState] = React.useState(false);
   const setOpen = React.useCallback(
     (next: boolean) => {
@@ -62,6 +82,7 @@ const FlipCart: React.FC<FlipCartProps> = ({ current, onQuote, onOpenChange }) =
   const [quote, setQuote] = React.useState<QuoteTarget | null>(null);
   React.useEffect(() => {
     const onQuote = (e: Event) => {
+      if (!ownerRef.current) return;
       setOpen(false);
       setQuote((e as CustomEvent<QuoteTarget>).detail ?? { name: "Your Wonderlands order", price: 0, type: "Order" });
     };
@@ -72,12 +93,19 @@ const FlipCart: React.FC<FlipCartProps> = ({ current, onQuote, onOpenChange }) =
   /* Any "Add to the order" control in the magazine opens this desk, so the
      reader always sees where the item landed. */
   React.useEffect(() => {
-    const onOpen = () => setOpen(true);
+    const onOpen = () => { if (ownerRef.current) setOpen(true); };
     window.addEventListener("wl:open-order-desk", onOpen);
     return () => window.removeEventListener("wl:open-order-desk", onOpen);
   }, []);
 
-  if (!cart) return null;
+  React.useEffect(() => {
+    if (!open) return;
+    const k = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [open, setOpen]);
+
+  if (!cart || !isOwner) return null;
 
   const { cartItems, getCartCount, getCartTotal, removeFromCart, updateQuantity, removeExtra, updateExtra, clearCart, getDuplicateCategories } = cart;
   const currentInCart = !!current?.name && cartItems.some((c) => c.name === current.name);
@@ -104,7 +132,7 @@ const FlipCart: React.FC<FlipCartProps> = ({ current, onQuote, onOpenChange }) =
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[10080] flex justify-end">
           <button
             aria-label="Close the order desk"
             onClick={() => setOpen(false)}

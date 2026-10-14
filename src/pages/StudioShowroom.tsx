@@ -62,7 +62,7 @@ const FlipBuilderV2 = React.lazy(() => import('@/components/flip/FlipBuilderV2')
 const SocialiteTool = React.lazy(() => import('@/pages/Socialite'));
 const SocialiteCloudSync = React.lazy(() => import('@/components/socialite/SocialiteCloudSync'));
 const SolarCalculatorBoard = React.lazy(() => import('@/components/solar/SolarCalculatorBoard'));
-const GlobalDesignBoardTool = React.lazy(() => import('@/pages/GlobalDesignBoard'));
+const GlobalDesignBoardTool = React.lazy(() => import('@/pages/GlobalDesignBoardV2'));
 const WonderlandsStudioTool = React.lazy(() => import('@/pages/WonderlandsStudio'));
 
 const FenceDrawingBoard = React.lazy(() => import('@/components/fence/FenceDrawingBoard'));
@@ -223,6 +223,36 @@ const AutoMount = ({ title, note, children, fit }: { title: string; note: string
   );
 };
 
+/** 2D Design Studio in the showroom: a start screen, then the studio locked inside its frame
+ *  (transform makes even fixed panels stay inside, so no tool spills off the widget). */
+const ShowroomDesignStudio = () => {
+  const [on, setOn] = React.useState(false);
+  if (!on) {
+    return (
+      <div className="relative flex min-h-[520px] items-end bg-gradient-to-t from-muted/60 to-background p-6 md:p-12">
+        <div className="max-w-xl border border-border/70 bg-background/80 p-6 backdrop-blur-md md:p-10">
+          <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Wonderlands · 2D Studio</p>
+          <h3 className="mt-3 font-serif text-3xl leading-tight md:text-5xl">Draw your pool to scale.</h3>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            Sketch the outline point by point, set the deck, depth, finishes and features, then switch to 3D and back — nothing is lost.
+          </p>
+          <dl className="mt-6 grid grid-cols-3 gap-4 border-t border-border/70 pt-4 text-xs">
+            <div><dt className="uppercase tracking-[0.2em] text-muted-foreground">Scale</dt><dd className="mt-1 font-serif text-lg">1 ft grid</dd></div>
+            <div><dt className="uppercase tracking-[0.2em] text-muted-foreground">Views</dt><dd className="mt-1 font-serif text-lg">2D · 3D</dd></div>
+            <div><dt className="uppercase tracking-[0.2em] text-muted-foreground">Price</dt><dd className="mt-1 font-serif text-lg">Live</dd></div>
+          </dl>
+          <Button onClick={() => setOn(true)} className="mt-6 rounded-none px-8 text-[10px] uppercase tracking-[0.3em]">Enter the 2D Studio</Button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="relative h-[760px] w-full overflow-hidden bg-background [&>div]:!min-h-0 [&>div]:h-full" style={{ transform: 'translateZ(0)' }}>
+      <React.Suspense fallback={<Fallback />}><DesignStudioTool /></React.Suspense>
+    </div>
+  );
+};
+
 /** Website builder bound to the signed-in user's company. */
 const ShowroomSiteBuilder = () => {
   const { user } = useAuth();
@@ -359,9 +389,7 @@ const StudioShowroom = () => {
   const renderers: Record<string, React.ReactNode> = {
     'design-studio': (
       <>
-          <AutoMount fit title="Design Studio" note="The latest 2D board and 3D scene in one tool. Draw in 2D, switch to 3D and back — your pool, textures and shape stay as you left them.">
-            <DesignStudioTool />
-          </AutoMount>
+          <ShowroomDesignStudio />
       </>
     ),
     'landscape-studio': (
@@ -413,8 +441,8 @@ const StudioShowroom = () => {
     ),
     'global-board': (
       <>
-          <AutoMount title="the Global Board" note="Every trade on one property drawing, priced as you draw.">
-            <GlobalDesignBoardTool />
+          <AutoMount fit title="the Global Board" note="Choose a product, then draw it: pools, spas, decks, turf, fences and screens on one board, priced as you draw.">
+            <GlobalDesignBoardTool embedded />
           </AutoMount>
       </>
     ),

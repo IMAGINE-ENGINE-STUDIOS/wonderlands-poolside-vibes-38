@@ -110,9 +110,9 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const scaleVal = props.scale || 10;
 
   return (
-    <div className="absolute top-6 right-6 z-20 w-80 max-h-[calc(100vh-120px)] flex flex-col">
+    <div className="absolute top-6 right-6 z-20 w-80 max-h-[calc(100%-3rem)] flex flex-col">
       {/* Same visual language as the 3D component panel (glass card, bold header). */}
-      <div className="glass-panel rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="glass-panel rounded-xl shadow-2xl overflow-hidden flex flex-col min-h-0 max-h-full">
         {/* Header */}
         <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
           <span className="text-sm font-semibold text-foreground">2D Designer</span>
@@ -121,7 +121,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
           </span>
         </div>
 
-        <ScrollArea className="flex-1 max-h-[calc(100vh-180px)]">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-1.5 space-y-1">
 
             {/* ═══ TOOLS ═══ */}
