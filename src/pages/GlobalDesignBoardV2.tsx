@@ -106,8 +106,8 @@ const buildCatalog = (): Product[] => {
   const spas: Product[] = gilmerSpas.map((s) => ({ id: `spa:${s.model}`, kind: "spa", label: s.model, detail: s.dimensions ?? "", image: (s as any).image, price: s.price, color: "#1f8fb3", size: parseSize(s.dimensions) }));
   getAllProducts().filter((p) => p.category === "Spa" && !spas.some((x) => x.label === p.name)).forEach((p) => spas.push({ id: `spa:${p.name}`, kind: "spa", label: p.name, detail: p.dimensions ?? "", image: (p as any).image, price: p.price, color: "#1f8fb3", size: parseSize(p.dimensions) }));
   // Draw-from-scratch shapes, priced at the 2D studio shell rate.
-  pools.unshift({ id: "pool:custom", kind: "pool", label: "Custom shape pool", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#2aa7c9" });
-  spas.unshift({ id: "spa:custom", kind: "spa", label: "Custom shape spa", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#1f8fb3" });
+  pools.unshift({ id: "pool:custom", kind: "pool", label: "Custom shape pool", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#2aa7c9", brand: "Wonderlands" });
+  spas.unshift({ id: "spa:custom", kind: "spa", label: "Custom shape spa", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#1f8fb3", brand: "Wonderlands" });
   const fences: Product[] = FENCE_STYLES.flatMap((s) => FENCE_COLORS.flatMap((c) => FENCE_HEIGHTS.map((h) => ({
     id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex, image: s.id === "alu" ? MAIN_FENCE_IMG : s.id === "vinyl" ? vinylFenceAsset.url : aluFenceImg,
   }))));
@@ -508,7 +508,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
   const sum = (k: Kind, f: (pts: Pt[]) => number) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + f(i.pts), 0));
   const sumNet = (k: Kind) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + netOf(i), 0));
   const open3D = () => {
-    saveBoard3D(boardTo3D(items, (id) => byId.get(id), (it) => (it as BoardItem).productId));
+    saveBoard3D(boardTo3D(items, (id) => byId.get(id), (it) => (it as BoardItem).productId, (it) => { const b = it as BoardItem; const pr = byId.get(b.productId); return (finishesFor(pr?.brand).find((f) => f.id === b.finish) ?? defaultFinishFor(pr?.brand))?.image; }));
     navigate("/studio-3d?from=board");
   };
   const selItem = items.find((i) => i.id === selected);

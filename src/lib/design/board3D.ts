@@ -10,7 +10,8 @@
  * Every pool/spa after the first is a `Water3D` keyed by the board item id
  * (`itemId`), never by array position: each one owns its own depth profile,
  * depth axis, zero entry, finish, waterline, coping and outline, so editing one
- * never changes another. Re-opening the 3D Studio keeps those 3D-only settings.
+ * never changes another. The first pool is sent as `primaryId`/`primaryPts` and its
+ * 3D edits (shape, size) flow back the same way via applyBoard3DToItems. Re-opening the 3D Studio keeps those 3D-only settings.
  */
 import { netRegions, type NetItem } from "@/lib/design/boardNetArea";
 import type { DepthAxis, LinearDepthAnchor } from "@/components/scene3d/types";
@@ -33,7 +34,10 @@ export interface Water3D {
   axis?: DepthAxis;
   finish: string; coping: string; waterline: string; copingWidth: number;
 }
-export interface Board3D { pool?: { w: number; l: number }; origin?: { x: number; y: number }; fences: Fence3D[]; screens: Screen3D[]; surfaces: Surface3D[]; waters?: Water3D[] }
+export interface Board3D {
+  pool?: { w: number; l: number };
+  /** First pool/spa = the studio's main pool: its board id, outline (centred on origin) and finish photo. */
+  primaryId?: string; primaryPts?: XZ[]; primaryFinish?: string; origin?: { x: number; y: number }; fences: Fence3D[]; screens: Screen3D[]; surfaces: Surface3D[]; waters?: Water3D[] }
 
 /** 3D-side edits from the element widgets. Keeps the same storage + event. */
 export function updateBoard3D(fn: (d: Board3D) => Board3D) {
@@ -45,7 +49,7 @@ type BoardProduct = { id: string; color: string; size?: { w: number; l: number }
 
 const centroid = (pts: { x: number; y: number }[]) => pts.reduce((a, p) => ({ x: a.x + p.x / pts.length, y: a.y + p.y / pts.length }), { x: 0, y: 0 });
 
-export function boardTo3D(items: NetItem[], productOf: (id: string) => BoardProduct | undefined, productIdOf: (it: NetItem) => string): Board3D {
+export function boardTo3D(items: NetItem[], productOf: (id: string) => BoardProduct | undefined, productIdOf: (it: NetItem) => string, finishUrlOf?: (it: NetItem) => string | undefined): Board3D {
   const prev = new Map((loadBoard3D()?.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w]));
   const pool = items.find((i) => i.kind === "pool") ?? items.find((i) => i.kind === "spa");
   let c = { x: 0, y: 0 };
@@ -53,7 +57,10 @@ export function boardTo3D(items: NetItem[], productOf: (id: string) => BoardProd
   else if (items.length) { const all = items.flatMap((i) => i.pts); const xs = all.map((p) => p.x), ys = all.map((p) => p.y); c = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; }
   const to = (p: { x: number; y: number }): XZ => ({ x: p.x - c.x, z: p.y - c.y });
   const out: Board3D = { origin: c, fences: [], screens: [], surfaces: [], waters: [] };
-  if (pool) { const p = productOf(productIdOf(pool)); if (p?.size) out.pool = p.size; }
+  if (pool) {
+    const p = productOf(productIdOf(pool)); if (p?.size) out.pool = p.size;
+    out.primaryId = pool.id; out.primaryPts = pool.pts.map(to); out.primaryFinish = finishUrlOf?.(pool);
+  }
   for (const it of items) {
     const p = productOf(productIdOf(it)); if (!p) continue;
     const parts = p.id.split(":");
@@ -62,6 +69,7 @@ export function boardTo3D(items: NetItem[], productOf: (id: string) => BoardProd
       out.waters!.push({
         depth: it.kind === "spa" ? 3 : 5, finish: "#5fb7d4", coping: "#d8d2c8", waterline: "#2f6f8f", copingWidth: 1,
         ...old,
+        ...(finishUrlOf?.(it) && !old?.finish?.startsWith("/") ? { finish: finishUrlOf(it)! } : {}),
         itemId: it.id, kind: it.kind, label: (p as BoardProduct & { label?: string }).label ?? it.kind, pts: it.pts.map(to),
       });
     }
@@ -78,9 +86,10 @@ export function boardTo3D(items: NetItem[], productOf: (id: string) => BoardProd
  * changed so callers can skip a state update.
  */
 export function applyBoard3DToItems<T extends { id: string; pts: { x: number; y: number }[] }>(items: T[], data: Board3D | null): T[] {
-  if (!data?.origin || !data.waters?.length) return items;
+  if (!data?.origin) return items;
   const o = data.origin;
-  const byId = new Map(data.waters.filter((w) => w.itemId).map((w) => [w.itemId!, w]));
+  const byId = new Map<string, { pts: XZ[] }>((data.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w]));
+  if (data.primaryId && data.primaryPts) byId.set(data.primaryId, { pts: data.primaryPts });
   let changed = false;
   const next = items.map((it) => {
     const w = byId.get(it.id); if (!w || w.pts.length < 3) return it;
