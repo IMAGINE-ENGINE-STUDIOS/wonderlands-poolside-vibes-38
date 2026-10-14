@@ -11,6 +11,7 @@ import { DistanceMeasurements } from './DistanceMeasurements';
 import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { flyCamera } from './scene3d/cameraFly';
+import { StudioDock } from './scene3d/StudioDock';
 import { ComponentControlPanel } from './ComponentControlPanel';
 import { ClimateController } from './scene3d/ClimateController';
 import { EnhancedPoolLights, createDefaultPoolLights } from './scene3d/EnhancedPoolLights';
@@ -2089,6 +2090,14 @@ export function UnifiedPoolVisualizer({
           onGizmoModeChange={setGizmoMode}
         />
 
+
+        {/* Genius / Projects gallery / Music */}
+        <StudioDock
+          snapshot={{ scene, poolStairs, poolChairs, contourSeating, poolLights, terrainAssets }}
+          apply={(next) => pushSnapshot(next as any)}
+          textureLibrary={textureLibrary}
+          setNight={setIsNightMode}
+        />
 
         {/* Terrain Editor */}
         <TerrainEditor
