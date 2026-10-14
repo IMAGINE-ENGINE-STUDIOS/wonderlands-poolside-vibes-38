@@ -5,14 +5,14 @@
  * function, which holds the platform Sketchfab key server-side, and use
  * the GLB variant so the existing 3D loader can place it.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Download, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const API = 'https://api.sketchfab.com/v3';
-const QUICK = ['patio furniture', 'outdoor lounge chair', 'palm tree', 'umbrella', 'pergola', 'fire pit', 'planter', 'grill'];
+const QUICK = ['patio furniture', 'outdoor lounge chair', 'bar stool', 'outdoor sofa', 'dining table', 'palm tree', 'umbrella', 'pergola', 'cabana', 'fire pit', 'planter', 'grill', 'outdoor kitchen', 'garden lamp', 'waterfall rock', 'hot tub'];
 
 interface SFModel {
   uid: string;
@@ -75,6 +75,16 @@ export function SketchfabBrowser({ onAdd, quick = QUICK, defaultQuery }: { onAdd
     } catch { /* offline */ } finally { setLoadingMore(false); }
   };
 
+  // Infinite scroll: fetch the next page when the end of the list comes into view.
+  const sentinel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !nextUrl) return;
+    const io = new IntersectionObserver((e) => { if (e[0]?.isIntersecting) loadMore(); }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  });
+
   const download = async (m: SFModel) => {
     setBusyUid(m.uid);
     setNote(null);
@@ -136,6 +146,7 @@ export function SketchfabBrowser({ onAdd, quick = QUICK, defaultQuery }: { onAdd
               {loadingMore ? <Loader2 className="h-3 w-3 animate-spin" /> : `More models (${results.length} shown)`}
             </Button>
           )}
+          {nextUrl && <div ref={sentinel} className="col-span-2 h-1" />}
           {!results.length && <p className="col-span-2 py-4 text-center text-[11px] text-muted-foreground">No downloadable models found.</p>}
         </div>
       )}

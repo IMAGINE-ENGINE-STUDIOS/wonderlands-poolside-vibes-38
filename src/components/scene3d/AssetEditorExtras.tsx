@@ -138,10 +138,13 @@ export function ObjectsPanel({
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
+        <Label className="text-xs">3D model gallery</Label>
+        <SketchfabBrowser onAdd={(pick) => onChange?.([...sceneObjects, pickToAsset(pick)])} />
+      </div>
+      {objects.length > 0 && (
+      <div className="space-y-1.5">
         <Label className="text-xs">In the scene</Label>
-        {objects.length === 0 ? (
-          <p className="text-[11px] text-muted-foreground">No objects yet. Pick one from the gallery below.</p>
-        ) : objects.map((a) => (
+        {objects.map((a) => (
           <div key={a.id} onClick={() => onSelect?.(a.id)}
             className={cn('flex items-center gap-2 p-2 border rounded cursor-pointer transition-colors', selectedId === a.id ? 'border-primary bg-primary/10' : 'hover:bg-muted/50')}>
             <span className="flex-1 truncate text-xs font-medium">{a.name}</span>
@@ -155,6 +158,7 @@ export function ObjectsPanel({
         ))}
       </div>
 
+      )}
       {selected && (
         <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
           <Label className="text-xs font-medium">Move, rotate or scale in the scene</Label>
@@ -184,10 +188,6 @@ export function ObjectsPanel({
         </div>
       )}
 
-      <div className="border-t pt-2 space-y-1.5">
-        <Label className="text-xs">3D model gallery</Label>
-        <SketchfabBrowser onAdd={(pick) => onChange?.([...sceneObjects, pickToAsset(pick)])} />
-      </div>
     </div>
   );
 }
