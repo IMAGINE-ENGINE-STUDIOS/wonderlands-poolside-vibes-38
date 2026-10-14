@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { findProductInfo } from '@/data/poolProductLookup';
 import { supabase } from '@/integrations/supabase/client';
-import { answerPriceQuestion, answerIntent, buildKnowledgeDigest } from '@/lib/geniusKnowledge';
+import { answerPriceQuestion, answerIntent, buildKnowledgeDigest, intentProducts } from '@/lib/geniusKnowledge';
 import { detectLanguage, translateText } from '@/lib/genius/geniusLanguage';
 import { PLATFORM_TOOLS, matchPlatformTools } from '@/lib/genius/platformTools';
 
@@ -66,6 +66,19 @@ export function useInlineAISearch() {
       // Always answer in the guest's language (catalog answers are written in English).
       if (!lang.startsWith('en')) fullText = await translateText(fullText, lang);
       const parsedResponse = parseAIResponse(fullText);
+      // Real product cards, ordered by price/size as asked (live main-page catalog).
+      const picks = intentProducts(clean);
+      if (picks.length) {
+        parsedResponse.products = picks.map((p, i) => ({
+          id: `${p.category}-${p.name}-${i}`,
+          name: p.name,
+          price: p.price,
+          category: p.category,
+          image: p.image,
+          dimensions: p.dimensions,
+          depth: p.depth,
+        }));
+      }
       setAIResponse(parsedResponse);
       
     } catch (err) {
