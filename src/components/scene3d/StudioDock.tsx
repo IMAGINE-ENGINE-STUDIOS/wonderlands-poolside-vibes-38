@@ -35,7 +35,7 @@ export interface DockSnapshot {
 interface Props {
   snapshot: DockSnapshot;
   apply: (next: Partial<DockSnapshot>) => void;
-  textureLibrary: { finishes: TextureConfig[]; pavers: TextureConfig[]; coping: TextureConfig[] };
+  textureLibrary: { finishes: TextureConfig[]; pavers: TextureConfig[]; coping: TextureConfig[]; waterlines?: TextureConfig[] };
   setNight?: (v: boolean) => void;
 }
 
@@ -95,6 +95,59 @@ async function sketchfabFirst(query: string): Promise<{ name: string; url: strin
   return null;
 }
 
+/* ---------------- Genius plan helpers ---------------- */
+const SHAPES: Shape[] = ['rectangle', 'oval', 'kidney', 'l-shape', 'freeform', 'roman'];
+interface GeniusPlan {
+  summary?: string;
+  pool?: { shape?: string; width?: number; length?: number; cornerRadius?: number; depthProfile?: { position: number; depth: number }[]; zeroEntry?: { length?: number } };
+  deck?: { width?: number; copingWidth?: number };
+  finishHint?: string; copingHint?: string; waterlineHint?: string; paverHint?: string;
+  stairs?: unknown[]; seating?: unknown[]; lights?: number; night?: boolean; models?: unknown[];
+}
+
+/** Common edits are read directly from the words so they never depend on the model. */
+function applyLocalIntent(text: string, plan: GeniusPlan): GeniusPlan {
+  const t = text.toLowerCase();
+  const out: GeniusPlan = { ...plan, pool: { ...(plan.pool || {}) } };
+  if (/\b(round(ed)?|soft(en)?|radius|curved?)\b.*\bcorners?\b|\bcorners?\b.*\b(round(ed)?|soft)\b/.test(t) && !out.pool!.cornerRadius) {
+    const ft = t.match(/(\d+(?:\.\d+)?)\s*(?:ft|feet|foot|')\s*(?:radius|round)/);
+    out.pool!.cornerRadius = ft ? Number(ft[1]) : 2.5;
+  }
+  if (/\b(sharp|square)\s+corners?\b/.test(t)) out.pool!.cornerRadius = 0;
+  if (/\b(zero[\s-]?entry|beach entry|walk[\s-]?in entry|zero depth entry)\b/.test(t) && !out.pool!.zeroEntry) out.pool!.zeroEntry = { length: 8 };
+  const coping = t.match(/coping\s+(?:in|to|with|of)?\s*([a-z ]{3,30})|([a-z]{3,20})\s+coping/);
+  if (coping && !out.copingHint) out.copingHint = (coping[1] || coping[2]).trim();
+  return out;
+}
+
+function centred(points: { x: number; y: number }[]) {
+  const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  return points.map((p) => ({ x: p.x - cx, y: p.y - cy }));
+}
+
+/** Round sharp corners with a smooth arc; already-curved runs stay as they are. */
+export function roundCorners(pts: { x: number; y: number }[], radius: number, samples = 10) {
+  const n = pts.length;
+  if (n < 3) return pts;
+  const out: { x: number; y: number }[] = [];
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n];
+    const ax = p0.x - p1.x, ay = p0.y - p1.y, bx = p2.x - p1.x, by = p2.y - p1.y;
+    const la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+    const turn = Math.acos(Math.max(-1, Math.min(1, (ax * bx + ay * by) / (la * lb || 1))));
+    if (la < 1e-6 || lb < 1e-6 || turn > (155 * Math.PI) / 180) { out.push(p1); continue; }
+    const r = Math.min(radius, la * 0.45, lb * 0.45);
+    const s0 = { x: p1.x + (ax / la) * r, y: p1.y + (ay / la) * r };
+    const s1 = { x: p1.x + (bx / lb) * r, y: p1.y + (by / lb) * r };
+    for (let k = 0; k <= samples; k++) {
+      const u = k / samples, v = 1 - u;
+      out.push({ x: v * v * s0.x + 2 * v * u * p1.x + u * u * s1.x, y: v * v * s0.y + 2 * v * u * p1.y + u * u * s1.y });
+    }
+  }
+  return out;
+}
+
 /* ---------------- Genius ---------------- */
 function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
   const [prompt, setPrompt] = useState('');
@@ -106,95 +159,125 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
     setBusy(true); setNote('Designing…');
     try {
       const s = snapshot.scene;
+      const dims = s.pool.dimensions || { width: 16, length: 32, depth: 6 };
       const { data, error } = await supabase.functions.invoke('scene-genius', {
-        body: { prompt, current: { dimensions: s.pool.dimensions, shape: s.pool.shape, stairs: snapshot.poolStairs.length, lights: snapshot.poolLights.length } },
+        body: {
+          prompt,
+          current: {
+            shape: s.pool.shape, width: dims.width, length: dims.length,
+            depthProfile: (s.pool.linearDepthAnchors || []).map((a) => ({ position: a.position, depth: a.depth })),
+            finish: s.pool.finish?.name, coping: s.deck.coping?.name, waterline: s.deck.waterline?.name, paver: s.deck.paver?.name,
+            copingWidth: s.deck.copingWidth, stairs: snapshot.poolStairs.length, seating: snapshot.poolChairs.length + snapshot.contourSeating.length,
+            lights: snapshot.poolLights.length,
+          },
+        },
       });
       if (error || !data?.plan) { setNote(data?.error || 'Genius could not design that. Try again.'); return; }
-      const plan = data.plan as any;
+      const plan = applyLocalIntent(prompt, data.plan as GeniusPlan);
+      const p = plan.pool || {};
+      const changesOutline = p.shape !== undefined || p.width !== undefined || p.length !== undefined || p.cornerRadius !== undefined;
 
-      const W = clamp(plan.pool?.width, 8, 30, 16);
-      const L = clamp(plan.pool?.length, 10, 60, 32);
-      const shape: Shape = ['rectangle', 'oval', 'kidney', 'l-shape', 'freeform', 'roman'].includes(plan.pool?.shape) ? plan.pool.shape : 'rectangle';
-      const anchorsRaw: any[] = Array.isArray(plan.pool?.depthProfile) ? plan.pool.depthProfile.slice(0, 8) : [];
-      const anchors = (anchorsRaw.length >= 2 ? anchorsRaw : [{ position: 0, depth: 3.5 }, { position: 1, depth: 6 }])
-        .map((a, i) => ({ id: `ga-${i}`, position: clamp(a.position, 0, 1, i), depth: clamp(a.depth, 3, 10, 5) }))
-        .sort((a, b) => a.position - b.position);
-      const minD = Math.min(...anchors.map((a) => a.depth)), maxD = Math.max(...anchors.map((a) => a.depth));
+      // Unchanged keys keep the current design — Genius only edits what was asked.
+      let scene: Scene3D = { ...s, pool: { ...s.pool }, deck: { ...s.deck } };
+      const W = clamp(p.width, 8, 30, dims.width || 16);
+      const L = clamp(p.length, 10, 60, dims.length || 32);
+      if (changesOutline) {
+        const shape: Shape = SHAPES.includes(p.shape as Shape) ? (p.shape as Shape) : ((SHAPES.includes(s.pool.shape as Shape) ? s.pool.shape : 'rectangle') as Shape);
+        const keepCurrent = p.shape === undefined && p.width === undefined && p.length === undefined && s.pool.points?.length >= 3;
+        let pts = keepCurrent ? centred(s.pool.points) : shapePoints(shape, W, L);
+        const radius = clamp(p.cornerRadius, 0, 6, 0);
+        if (radius > 0) pts = roundCorners(pts, radius);
+        const fresh = productToScene(
+          { name: 'Genius design', model: 'Genius design', dimensions: `${W}' × ${L}'`, depth: `3' - 6'`, price: 0, category: 'pool', type: 'pool' },
+          { customPoolShape: pts.map((q, i) => ({ x: q.x * 10, y: q.y * 10, id: `p${i + 1}` })), poolBuilderData: { scale: 10, poolShape: radius > 0 || shape !== 'rectangle' ? 'freeform' : 'rectangle' } },
+          paverTypes,
+          poolFinishes.map((f: any) => ({ name: f.name, price: f.price, image: f.image, collection: f.collection || 'Standard', description: f.description })),
+        ) as Scene3D;
+        scene.pool = { ...s.pool, points: fresh.pool.points, sourcePoints: (fresh.pool as any).sourcePoints, shape: fresh.pool.shape, dimensions: { ...dims, width: W, length: L } } as any;
+      }
 
-      const pts = shapePoints(shape, W, L);
-      const fresh = productToScene(
-        { name: 'Genius design', model: 'Genius design', dimensions: `${W}' × ${L}'`, depth: `${minD}' - ${maxD}'`, price: 0, category: 'pool', type: 'pool' },
-        { customPoolShape: pts.map((p, i) => ({ x: p.x * 10, y: p.y * 10, id: `p${i + 1}` })), poolBuilderData: { scale: 10, poolShape: shape === 'rectangle' || shape === 'l-shape' ? 'rectangle' : 'freeform' } },
-        paverTypes,
-        poolFinishes.map((f: any) => ({ name: f.name, price: f.price, image: f.image, collection: f.collection || 'Standard', description: f.description })),
-      ) as Scene3D;
+      let anchors = Array.isArray(p.depthProfile) && p.depthProfile.length >= 2
+        ? p.depthProfile.slice(0, 8).map((a, i) => ({ id: `ga-${i}`, position: clamp(a.position, 0, 1, i), depth: clamp(a.depth, 0, 12, 5) }))
+        : (s.pool.linearDepthAnchors || []).map((a) => ({ ...a }));
+      if (p.zeroEntry) {
+        const len = clamp(p.zeroEntry.length, 4, 15, 8);
+        const f = Math.min(0.45, len / (L || 32));
+        const rest = (anchors.length >= 2 ? anchors : [{ id: 'a0', position: 0, depth: 3.5 }, { id: 'a1', position: 1, depth: 6 }])
+          .map((a) => ({ ...a, position: f + a.position * (1 - f) }));
+        anchors = [{ id: 'ze-0', position: 0, depth: 0 }, { id: 'ze-1', position: f * 0.6, depth: 1 }, ...rest];
+      }
+      if (anchors.length >= 2) {
+        anchors = anchors.sort((a, b) => a.position - b.position).map((a, i) => ({ ...a, id: `ga-${i}` }));
+        scene.pool.linearDepthAnchors = anchors;
+        scene.pool.dimensions = { ...(scene.pool.dimensions || dims), depth: Math.max(...anchors.map((a) => a.depth)) } as any;
+      }
 
-      const copingWidth = clamp(plan.deck?.copingWidth, 0.5, 2, 1);
-      const deckW = clamp(plan.deck?.width, 3, 20, 6);
-      const ring = fresh.pool.points.map((p) => ({ x: p.x, z: p.y }));
-      const outer = mitredOffsetRing(ring, copingWidth + deckW, { miterLimit: 2.5 }).offset;
-
-      const scene: Scene3D = {
-        ...fresh,
-        pool: {
-          ...fresh.pool,
-          finish: pickTexture(textureLibrary.finishes, plan.finishHint, s.pool.finish),
-          linearDepthAnchors: anchors,
-          dimensions: { length: L, width: W, depth: maxD },
-        },
-        deck: {
-          ...fresh.deck,
-          ...s.deck,
-          paver: pickTexture(textureLibrary.pavers, plan.paverHint, s.deck.paver),
-          copingWidth,
-          points: outer.length >= 3 ? outer.map((p, i) => ({ x: p.x, y: p.z, id: `d${i}` })) : fresh.deck.points,
-        },
-      };
+      if (plan.finishHint) scene.pool.finish = pickTexture(textureLibrary.finishes, plan.finishHint, s.pool.finish);
+      if (plan.copingHint) scene.deck.coping = pickTexture(textureLibrary.coping, plan.copingHint, s.deck.coping);
+      if (plan.waterlineHint && textureLibrary.waterlines?.length) scene.deck.waterline = pickTexture(textureLibrary.waterlines, plan.waterlineHint, s.deck.waterline as TextureConfig);
+      if (plan.paverHint) scene.deck.paver = pickTexture(textureLibrary.pavers, plan.paverHint, s.deck.paver);
+      const copingWidth = clamp(plan.deck?.copingWidth, 0.5, 2, s.deck.copingWidth ?? 1);
+      scene.deck.copingWidth = copingWidth;
+      if (changesOutline || plan.deck?.width !== undefined) {
+        const deckW = clamp(plan.deck?.width, 3, 20, 6);
+        const outer = mitredOffsetRing(scene.pool.points.map((q) => ({ x: q.x, z: q.y })), copingWidth + deckW, { miterLimit: 2.5 }).offset;
+        if (outer.length >= 3) scene.deck.points = outer.map((q, i) => ({ x: q.x, y: q.z, id: `d${i}` }));
+      }
 
       const finishUrl = scene.pool.finish.url;
       const now = Date.now();
-      const stairs: PoolStairConfig[] = (Array.isArray(plan.stairs) ? plan.stairs.slice(0, 4) : []).map((st: any, i: number) => ({
+      const next: Partial<DockSnapshot> = { scene };
+      if (Array.isArray(plan.stairs)) next.poolStairs = plan.stairs.slice(0, 4).map((st: any, i: number) => ({
         id: `stair-${now}-${i}`, wallPosition: clamp(st.wallPosition, 0, 1, 0.1), shape: 'linear',
         style: ['classic', 'wedding-cake', 'bench', 'floating'].includes(st.style) ? st.style : 'classic',
         softEdge: clamp(st.softEdge, 0, 0.5, 0.17), width: clamp(st.width, 3, 14, 6), numSteps: 4,
         stepHeight: 0.625, stepDepth: 0.917, textureUrl: finishUrl, cornerRadius: 0.5,
       }));
-      const chairs: PoolChairConfig[] = [];
-      const contour: ContourSeatingConfig[] = [];
-      (Array.isArray(plan.seating) ? plan.seating.slice(0, 6) : []).forEach((se: any, i: number) => {
-        const wp = clamp(se.wallPosition, 0, 1, 0.5);
-        if (se.type === 'contour') {
-          contour.push({ id: `contour-${now}-${i}`, startPosition: wp, endPosition: Math.min(1, wp + 0.2), width: 1.5, height: 1, textureUrl: finishUrl });
-        } else if (se.type === 'barstool') {
-          chairs.push({ id: `chair-${now}-${i}`, wallPosition: wp, textureUrl: finishUrl, ...BAR_STOOL_PRESET, count: clamp(se.count, 1, 8, 3) });
-        } else {
-          const p = se.type === 'lounge' ? { width: 2.5, depth: 6, height: 1.5, name: 'Tanning Ledge' }
-            : se.type === 'corner' ? { width: 2, depth: 2, height: 1, name: 'Corner Seat' }
-            : { width: 6, depth: 1.5, height: 1, name: 'Pool Bench' };
-          chairs.push({ id: `chair-${now}-${i}`, wallPosition: wp, ...p, cornerRadius: 0.3, textureUrl: finishUrl, snapToWall: true, followFloor: true });
-        }
-      });
-      const nLights = Math.round(clamp(plan.lights, 0, 8, 2));
-      const lights: PoolLightConfig[] = Array.from({ length: nLights }, (_, i) => ({
-        id: `light-${now}-${i}`, wallPosition: (i + 0.5) / Math.max(1, nLights), depthFromSurface: 2,
-        color: '#ffffff', colorMode: 'gradient', intensity: 2, isOn: !!plan.night, angle: 0,
-      }));
-
-      apply({ scene, poolStairs: stairs, poolChairs: chairs, contourSeating: contour, poolLights: lights });
+      if (Array.isArray(plan.seating)) {
+        const chairs: PoolChairConfig[] = [];
+        const contour: ContourSeatingConfig[] = [];
+        plan.seating.slice(0, 6).forEach((se: any, i: number) => {
+          const wp = clamp(se.wallPosition, 0, 1, 0.5);
+          if (se.type === 'contour') contour.push({ id: `contour-${now}-${i}`, startPosition: wp, endPosition: wp + 0.2, width: 1.5, height: 1, textureUrl: finishUrl });
+          else if (se.type === 'barstool') chairs.push({ id: `chair-${now}-${i}`, wallPosition: wp, textureUrl: finishUrl, ...BAR_STOOL_PRESET, count: clamp(se.count, 1, 8, 3) });
+          else {
+            const pr = se.type === 'lounge' ? { width: 2.5, depth: 6, height: 1.5, name: 'Tanning Ledge' }
+              : se.type === 'corner' ? { width: 2, depth: 2, height: 1, name: 'Corner Seat' }
+              : { width: 6, depth: 1.5, height: 1, name: 'Pool Bench' };
+            chairs.push({ id: `chair-${now}-${i}`, wallPosition: wp, ...pr, cornerRadius: 0.3, textureUrl: finishUrl, snapToWall: true, followFloor: true });
+          }
+        });
+        next.poolChairs = chairs; next.contourSeating = contour;
+      }
+      if (typeof plan.lights === 'number') {
+        const n = Math.round(clamp(plan.lights, 0, 8, 2));
+        next.poolLights = Array.from({ length: n }, (_, i) => ({
+          id: `light-${now}-${i}`, wallPosition: (i + 0.5) / Math.max(1, n), depthFromSurface: 2,
+          color: '#ffffff', colorMode: 'gradient', intensity: 2, isOn: !!plan.night, angle: 0,
+        })) as PoolLightConfig[];
+      }
+      apply(next);
       if (typeof plan.night === 'boolean') setNight?.(plan.night);
 
-      const models: any[] = Array.isArray(plan.models) ? plan.models.slice(0, 10) : [];
+      // 3D models only when the user actually named them in the request.
+      const asked = prompt.toLowerCase();
+      const models = (Array.isArray(plan.models) ? plan.models : []).filter((m: any) =>
+        typeof m?.query === 'string' && m.query.toLowerCase().split(/\s+/).some((w: string) => w.length > 3 && asked.includes(w.replace(/s$/, ''))),
+      ).slice(0, 6);
       let placed = 0;
       if (models.length) {
-        setNote(`${plan.summary || 'Design ready.'} Adding ${models.length} 3D models…`);
-        const found = await Promise.all(models.map(async (m) => {
-          if (typeof m?.query !== 'string') return null;
+        setNote(`${plan.summary || 'Design updated.'} Adding ${models.length} 3D models…`);
+        const reach = Math.max(W, L) / 2 + copingWidth + 8;
+        const found = await Promise.all(models.map(async (m: any, i: number) => {
           const hit = await sketchfabFirst(m.query);
           if (!hit) return null;
           const kind: TerrainAsset['type'] = ['object', 'tree', 'terrain', 'skydome'].includes(m.kind) ? m.kind : 'object';
+          // Keep props just outside the deck, never inside the pool.
+          const ang = Math.atan2(clamp(m.z, -80, 80, 1), clamp(m.x, -80, 80, 1)) || (i * Math.PI) / 3;
+          const r = Math.max(reach, Math.hypot(clamp(m.x, -80, 80, 0), clamp(m.z, -80, 80, 0)));
           return {
-            id: `sf-${hit.uid}-${Math.random().toString(36).slice(2, 7)}`, name: hit.name, type: kind, url: hit.url, format: 'glb',
-            position: [clamp(m.x, -60, 60, 20), 0, clamp(m.z, -60, 60, 20)], rotation: [0, 0, 0],
+            id: `sf-${hit.uid}-${now}-${i}`, name: hit.name, type: kind, url: hit.url, format: 'glb',
+            position: kind === 'terrain' || kind === 'skydome' ? [0, 0, 0] : [Math.cos(ang) * r, 0, Math.sin(ang) * r], rotation: [0, 0, 0],
             scale: 1, visible: true, autoFit: true,
           } as TerrainAsset;
         }));
@@ -202,7 +285,7 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
         placed = assets.length;
         if (assets.length) apply({ terrainAssets: [...snapshot.terrainAssets, ...assets] });
       }
-      setNote(`${plan.summary || 'Design ready.'}${models.length ? ` ${placed} of ${models.length} 3D models placed.` : ''}`);
+      setNote(`${plan.summary || 'Design updated.'}${models.length ? ` ${placed} of ${models.length} 3D models placed.` : ''}`);
     } catch {
       setNote('Something went wrong. Try again.');
     } finally {
