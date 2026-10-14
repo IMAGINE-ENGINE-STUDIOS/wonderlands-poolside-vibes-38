@@ -23,7 +23,7 @@ export const BOARD_3D_EVENT = "studio3d:globalDesign";
 type XZ = { x: number; z: number };
 export interface Fence3D { pts: XZ[]; style: string; height: number; color: string; itemId?: string }
 export interface Screen3D { pts: XZ[]; height: number; color: string; roof?: "mansard" | "flat"; itemId?: string }
-export interface Surface3D { kind: "turf" | "deck"; color: string; regions: XZ[][][]; itemId?: string }
+export interface Surface3D { kind: "turf" | "deck"; color: string; /** Catalog photo for turf (real texture in 3D). */ image?: string; regions: XZ[][][]; itemId?: string }
 /** Extra water bodies (every pool/spa after the first, which is the studio's main pool). */
 export interface Water3D {
   itemId?: string;
