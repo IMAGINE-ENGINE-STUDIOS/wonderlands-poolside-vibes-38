@@ -377,7 +377,7 @@ const DesignStudio = () => {
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
-      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? []));
+      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? []));
     } catch { /* ignore */ }
     setActiveView('3d');
     // Auto-enter fullscreen when switching to 3D Studio
@@ -516,6 +516,11 @@ const DesignStudio = () => {
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
+            {/* Return to the 2D designer — same white header pill style. */}
+            <Button variant="outline" size="sm" onClick={handleSwitch2D} className="gap-1.5 h-9 rounded-full bg-background text-foreground" title="Back to the 2D designer — your shape, finishes and 3D settings are kept">
+              <Layers className="h-3.5 w-3.5" />
+              Edit in 2D
+            </Button>
           </div>
           
           <div className="flex items-center gap-2">
@@ -572,11 +577,7 @@ const DesignStudio = () => {
             <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} />
           </div> : <div className="w-full h-full">
             <UnifiedPoolVisualizer scene={buildPersistedScene()} textureLibrary={studioTextureLibrary} onSceneChange={handle3DSceneChange} />
-            {/* Always-visible return to 2D (stays on top even in fullscreen 3D). */}
-            <Button size="sm" onClick={handleSwitch2D} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[10050] gap-1.5 h-11 rounded-xl px-5 bg-slate-900 text-white text-[13.5px] font-semibold hover:bg-slate-800 shadow-[0_2px_10px_rgba(15,23,42,0.15)]" title="Back to the 2D designer — your shape, finishes and 3D settings are kept">
-              <Layers className="h-3.5 w-3.5" />
-              Edit in 2D
-            </Button>
+            
           </div>}
       </main>
     </div>;

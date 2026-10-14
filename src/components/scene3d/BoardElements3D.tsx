@@ -197,7 +197,8 @@ function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey
     /* Turf regions arrive pre-clipped (netRegions) — a second shader cut caused triangular voids. */
     const m = (s.kind === "turf" ? new THREE.MeshStandardMaterial({ color: s.color, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2 }) : holeMaterial(s.color, 0.85, holes)) as THREE.MeshStandardMaterial;
     /* Selected turf photo at 4 ft per tile, same scale as the 2D board. */
-    if (s.image && "map" in m) { const tx = (photoMat(s.image, 4, {}) as THREE.MeshStandardMaterial).map; if (tx) { m.map = tx; m.color = s.kind === "turf" ? new THREE.Color(s.color).lerp(new THREE.Color("#ffffff"), 0.45) : new THREE.Color("#ffffff"); m.needsUpdate = true; } }
+    /* Turf photo every 4 ft; drawn decks use the pool deck's 1×1 ft paver scale. */
+    if (s.image && "map" in m) { const tx = (photoMat(s.image, s.kind === "deck" ? 1 : 4, {}) as THREE.MeshStandardMaterial).map; if (tx) { m.map = tx; m.color = s.kind === "turf" ? new THREE.Color(s.color).lerp(new THREE.Color("#ffffff"), 0.45) : new THREE.Color("#ffffff"); m.needsUpdate = true; } }
     return m;
   }, [s.color, s.kind, s.image, holesKey]);
   const geo = React.useMemo(() => {
@@ -207,11 +208,15 @@ function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey
       return sh;
     });
     if (!shapes.length) return null;
-    const g = new THREE.ShapeGeometry(shapes); g.rotateX(-Math.PI / 2); return planarUV(g);
-  }, [s.regions]);
+    /* Drawn decks = same slab as the pool deck: 3" thick with side skirt. */
+    const g = s.kind === "deck" ? new THREE.ExtrudeGeometry(shapes, { depth: DECK_SLAB_FT, bevelEnabled: false }) : new THREE.ShapeGeometry(shapes);
+    g.rotateX(-Math.PI / 2); return planarUV(g);
+  }, [s.regions, s.kind]);
   if (!geo) return null;
-  return <mesh geometry={geo} material={mat} position={[0, s.kind === "turf" ? 0.04 : 0.08, 0]} receiveShadow />;
+  return <mesh geometry={geo} material={mat} position={[0, s.kind === "turf" ? 0.04 : 0, 0]} castShadow={s.kind === "deck"} receiveShadow />;
 }
+/** Deck slab thickness (3 in), same as the pool's own deck border. */
+const DECK_SLAB_FT = 0.25;
 
 export function BoardElements3D({ holes = [] }: { holes?: XZ[][] }) {
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());

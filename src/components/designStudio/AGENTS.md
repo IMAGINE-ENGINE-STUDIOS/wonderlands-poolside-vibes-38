@@ -1,2 +1,3 @@
 # 2D Design Studio rules
 - 2D Design Studio = PoolBuilder (canonical pool + auto-attached deck) + `designStudio/SiteElementsLayer` (fences/screens/turf drawn on the same board via PoolBuilder's renderOverlay pan/zoom, priced from site lists); switching to 3D rewrites the board3D hand-off from the studio and refuses to show a pool not drawn in 2D — why: one board, 3D always shows exactly the 2D design.
+- siteElementsTo3D sends extra pools/spas as Board3D waters with their own 4 ft deck ring; drawn decks are 3" slabs at 1 ft paver scale and the pool's own deck is last in the cut order so nothing overlaps it; curves bulge outward via curveUtils.outwardBulgeSign (curveFlip per point) — why: 2D and 3D always match.
