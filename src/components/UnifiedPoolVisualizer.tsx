@@ -10,7 +10,7 @@ import { Scene3DAnnotations } from './Scene3DAnnotations';
 import { DistanceMeasurements } from './DistanceMeasurements';
 import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
-import { SplineLegend } from './SplineLegend';
+import { flyCamera } from './scene3d/cameraFly';
 import { ComponentControlPanel } from './ComponentControlPanel';
 import { ClimateController } from './scene3d/ClimateController';
 import { EnhancedPoolLights, createDefaultPoolLights } from './scene3d/EnhancedPoolLights';
@@ -949,15 +949,7 @@ export function UnifiedPoolVisualizer({
     const config = cameraConfigs[selectedCategory];
     if (config && controlsRef.current) {
       // Smoothly animate camera
-      const controls = controlsRef.current;
-      controls.target.set(...config.target);
-      
-      // Update camera position
-      const camera = controls.object;
-      camera.position.set(...config.position);
-      camera.lookAt(new THREE.Vector3(...config.target));
-      
-      controls.update();
+      flyCamera(controlsRef.current, config.position, config.target, 1200);
     }
   }, [selectedCategory]);
 
@@ -1003,9 +995,7 @@ export function UnifiedPoolVisualizer({
     
     // Update camera via controls ref
     if (controlsRef.current) {
-      controlsRef.current.target.set(target[0], target[1], target[2]);
-      controlsRef.current.object.position.set(position[0], position[1], position[2]);
-      controlsRef.current.update();
+      flyCamera(controlsRef.current, position, target, 1000);
     }
     
     setScene({
@@ -1390,12 +1380,7 @@ export function UnifiedPoolVisualizer({
             onClick={() => {
               if (controlsRef.current) {
                 // Reset camera to default isometric view
-                const controls = controlsRef.current;
-                controls.target.set(0, 0, 0);
-                const camera = controls.object;
-                camera.position.set(40, 30, 40);
-                camera.lookAt(0, 0, 0);
-                controls.update();
+                flyCamera(controlsRef.current, [40, 30, 40], [0, 0, 0], 1000);
               }
             }}
             className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors"
@@ -1548,8 +1533,7 @@ export function UnifiedPoolVisualizer({
          {/* Quick Controls Bar - Bottom Left */}
          <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
            {/* Spline Editor Legend */}
-           {(enablePoolSplineEdit || enableDeckSplineEdit) && <SplineLegend />}
-         </div>
+          </div>
 
          {/* Component-Specific Control Panel - Hidden in spline edit mode */}
          {!isSplineEditMode && (
