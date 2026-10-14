@@ -68,7 +68,7 @@ export function realWorldFit(name: string, type: string, size: THREE.Vector3, si
   const t = typeof rule === 'function' ? rule(s) : rule;
   let k = t.h / h;
   // Footprint target wins when the model is wide/flat (e.g. a lounger).
-  if (t.w) k = Math.min(k, t.w / footprint) * 0.5 + (t.h / h) * 0.5 > 0 ? Math.min(t.h / h, (t.w * 1.25) / footprint) : k;
+  if (t.w) k = Math.min(k, (t.w * 1.25) / footprint);
   // Nothing (except houses) may outgrow the pool footprint.
   const poolMax = Math.max(s.poolLength, s.poolWidth);
   if (!/house|building|villa|home/i.test(name)) k = Math.min(k, (poolMax * 1.5) / footprint);
