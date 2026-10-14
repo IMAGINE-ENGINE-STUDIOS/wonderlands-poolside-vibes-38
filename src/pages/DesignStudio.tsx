@@ -24,6 +24,7 @@ import {
 import { PoolBuilder } from "@/components/PoolBuilder";
 import { SiteElementsLayer, siteElementsTo3D, SITE_ELEMENTS_KEY } from "@/components/designStudio/SiteElementsLayer";
 import { saveBoard3D } from "@/lib/design/board3D";
+import { cacheRead } from "@/lib/uiCache";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene, scene3DToPoolBuilder } from "@/components/scene3d/SceneConverter";
 import { pools, spas } from "@/components/PoolCatalog";
@@ -369,8 +370,7 @@ const DesignStudio = () => {
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
-      const site = JSON.parse(localStorage.getItem(SITE_ELEMENTS_KEY) || '[]');
-      saveBoard3D(siteElementsTo3D(Array.isArray(site) ? site : (site?.value ?? []), customPoolShape ?? [], poolBuilderData?.scale || 10));
+      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10));
     } catch { /* ignore */ }
     setActiveView('3d');
     // Auto-enter fullscreen when switching to 3D Viewer
