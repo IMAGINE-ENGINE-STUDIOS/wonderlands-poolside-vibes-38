@@ -145,6 +145,7 @@ export function productToScene(
       y: pt.y * pixelsToFeet,
       id: pt.id || `p${idx + 1}`,
       ...(pt.curveType ? { curveType: pt.curveType } : {}),
+      ...(pt.curveFlip ? { curveFlip: true } : {}),
     })) as Point[];
     // Sample the outline exactly as the 2D canvas draws it (kidney/freeform
     // curves stay round in 3D instead of collapsing into straight chords).
