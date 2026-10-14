@@ -144,7 +144,41 @@ export function resolveDeckBoundaries(params: {
     outer = offsetPolygonSingle(inner, ringWidth);
   }
 
+  // Round off faceted curves on the outer edge (sharp design corners are kept).
+  const smoothed = smoothCurvedRing(outer);
+  if (smoothed.length >= 3 && polygonContainsPolygon(smoothed, inner)) outer = smoothed;
+
   return { inner, outer };
+}
+
+/**
+ * Corner-preserving Chaikin smoothing + densify. Vertices whose turn is gentler
+ * than `cornerDeg` are treated as part of a curve and rounded; real corners
+ * (rectangle corners, sharp tips) are left exactly where they are. Removes the
+ * visible flat segments on curved decks without moving straight edges.
+ */
+export function smoothCurvedRing(ring: P3[], iterations = 3, cornerDeg = 50): P3[] {
+  let pts = dedupe(ring);
+  if (pts.length < 4) return pts;
+  const cosLimit = Math.cos((cornerDeg * Math.PI) / 180);
+  for (let it = 0; it < iterations; it++) {
+    const n = pts.length;
+    const out: P3[] = [];
+    for (let i = 0; i < n; i++) {
+      const a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n];
+      const v1x = b.x - a.x, v1z = b.z - a.z, v2x = c.x - b.x, v2z = c.z - b.z;
+      const l1 = Math.hypot(v1x, v1z), l2 = Math.hypot(v2x, v2z);
+      const cos = l1 > 1e-6 && l2 > 1e-6 ? (v1x * v2x + v1z * v2z) / (l1 * l2) : 1;
+      const isCorner = cos < cosLimit;
+      const isStraight = cos > 0.99995;
+      if (isCorner || isStraight) { out.push(b); continue; }
+      out.push({ x: b.x * 0.75 + a.x * 0.25, z: b.z * 0.75 + a.z * 0.25 });
+      out.push({ x: b.x * 0.75 + c.x * 0.25, z: b.z * 0.75 + c.z * 0.25 });
+    }
+    pts = out;
+    if (pts.length > 2400) break;
+  }
+  return pts;
 }
 
 /**
@@ -172,7 +206,7 @@ export function buildDeckRingGeometry(
     holes,
     topY,
     bottomY,
-    maxEdgeLength: 2,
+    maxEdgeLength: 1,
   });
 }
 
