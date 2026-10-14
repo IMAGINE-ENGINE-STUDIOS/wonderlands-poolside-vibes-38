@@ -1,5 +1,5 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
-import { OrbitControls, TransformControls, Sky, Grid } from '@react-three/drei';
+import { OrbitControls, TransformControls, Sky, Grid, PerformanceMonitor } from '@react-three/drei';
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation, Point, PoolLightConfig, LinearDepthAnchor } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
