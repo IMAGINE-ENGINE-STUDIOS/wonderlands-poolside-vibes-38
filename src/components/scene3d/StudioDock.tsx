@@ -200,11 +200,8 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
         ? p.depthProfile.slice(0, 8).map((a, i) => ({ id: `ga-${i}`, position: clamp(a.position, 0, 1, i), depth: clamp(a.depth, 0, 12, 5) }))
         : (s.pool.linearDepthAnchors || []).map((a) => ({ ...a }));
       if (p.zeroEntry) {
-        const len = clamp(p.zeroEntry.length, 4, 15, 8);
-        const f = Math.min(0.45, len / (L || 32));
-        const rest = (anchors.length >= 2 ? anchors : [{ id: 'a0', position: 0, depth: 3.5 }, { id: 'a1', position: 1, depth: 6 }])
-          .map((a) => ({ ...a, position: f + a.position * (1 - f) }));
-        anchors = [{ id: 'ze-0', position: 0, depth: 0 }, { id: 'ze-1', position: f * 0.6, depth: 1 }, ...rest];
+        // Shared zero-entry definition (same as the Depth Profile Editor toggle).
+        anchors = applyZeroEntry(anchors as any, clamp(p.zeroEntry.length, 4, 15, 8), L || 32) as any;
       }
       if (anchors.length >= 2) {
         anchors = anchors.sort((a, b) => a.position - b.position).map((a, i) => ({ ...a, id: `ga-${i}` }));

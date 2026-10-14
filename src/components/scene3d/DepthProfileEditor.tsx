@@ -18,6 +18,9 @@ import {
   createDefaultLinearAnchors,
   getPoolBounds,
   positionAlongAxis,
+  getZeroEntry,
+  applyZeroEntry,
+  removeZeroEntry,
 } from './depthUtils';
 
 interface DepthProfileEditorProps {
@@ -515,6 +518,35 @@ export function DepthProfileEditor({
             ))}
           </div>
         </div>
+
+        {/* Zero entry — walk-in beach shelf, editable length, on/off */}
+        {(() => {
+          const ze = getZeroEntry(anchors);
+          const lenFt = Math.round((ze ? ze.fraction : 0.25) * length);
+          return (
+            <div className="space-y-2 rounded-lg border p-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium">Zero entry (walk-in shelf)</Label>
+                <Button size="sm" variant={ze ? 'default' : 'outline'} className="h-6 text-[11px]"
+                  onClick={() => updateAnchors(ze ? removeZeroEntry(anchors) : applyZeroEntry(anchors, 8, length))}>
+                  {ze ? 'On' : 'Off'}
+                </Button>
+              </div>
+              {ze && (
+                <>
+                  <div className="flex justify-between text-[11px] text-muted-foreground">
+                    <span>Shelf length</span><span>{lenFt} ft</span>
+                  </div>
+                  <Slider min={4} max={Math.max(5, Math.round(length * 0.5))} step={1} value={[lenFt]}
+                    onValueChange={([v]) => updateAnchors(applyZeroEntry(anchors, v, length))} />
+                  <Button size="sm" variant="outline" className="h-6 w-full text-[11px]" onClick={flipAxis}>
+                    Move shelf to the other end
+                  </Button>
+                </>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Depth direction gizmo */}
         <div className="space-y-2">
