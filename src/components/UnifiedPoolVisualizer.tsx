@@ -42,6 +42,7 @@ import { textureCache } from '@/utils/textureCache';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { LandscapePlants3D } from './scene3d/LandscapePlants3D';
 import { BoardElements3D } from './scene3d/BoardElements3D';
+import { BoardElementEditor } from './scene3d/BoardElementEditor';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -1555,6 +1556,9 @@ export function UnifiedPoolVisualizer({
             onSunAngleChange={setSunAngle}
             onSunPositionChange={setSunPosition}
           />
+
+          {/* Global Design Board piece widget (fence / screen / extra pools & spas) */}
+          <BoardElementEditor />
 
           {/* Pool Asset Manager (Stairs, Seating, Lights, Jets) */}
           <PoolAssetManager

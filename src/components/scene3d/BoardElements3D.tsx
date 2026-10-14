@@ -67,7 +67,7 @@ function Fence({ f, i }: { f: Fence3D; i: number }) {
 }
 
 /** Florida-style pool cage: kick plate, chair rail, purlins every 3 ft, mansard roof. */
-function Screen({ s, i }: { s: Screen3D & { roof?: "mansard" | "flat" }; i: number }) {
+function Screen({ s, i }: { s: Screen3D; i: number }) {
   const frame = React.useMemo(() => metalMat(s.color), [s.color]);
   const kick = React.useMemo(() => new THREE.MeshStandardMaterial({ color: s.color, roughness: 0.35, metalness: 0.8 }), [s.color]);
   const mesh = React.useMemo(() => new THREE.MeshStandardMaterial({ color: "#1c1c1c", transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false }), []);
