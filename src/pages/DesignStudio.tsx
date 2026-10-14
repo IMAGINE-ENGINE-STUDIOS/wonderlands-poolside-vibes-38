@@ -367,6 +367,12 @@ const DesignStudio = () => {
 
   // Handle switching to 3D view
   const handleSwitch3D = useCallback(() => {
+    // Never show a pool that isn't on the 2D board: 3D only opens the pool drawn here
+    // (or the catalog model the studio was opened with).
+    if (!(customPoolShape && customPoolShape.length >= 3) && !searchParams.get('model')) {
+      toast({ title: 'Draw your pool first', description: 'Draw the pool on the 2D board — the 3D Studio shows exactly that pool, its deck and everything around it.' });
+      return;
+    }
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
@@ -384,7 +390,7 @@ const DesignStudio = () => {
         description: `Your custom pool design with ${customPoolShape.length} points is now in 3D!`
       });
     }
-  }, [customPoolShape, poolBuilderData?.scale, toast]);
+  }, [customPoolShape, poolBuilderData?.scale, searchParams, toast]);
   const handleSwitch2D = useCallback(() => {
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     setIsFullscreen(false);
