@@ -4731,6 +4731,26 @@ export function PoolBuilder({
       y = snapToGridRelative(y, cY, scale, snapSize);
     }
 
+    // Add-point mode wins over any pending placement (it used to fall through and drop grass).
+    // The point is projected onto the nearest pool edge at click time and inserted into that edge.
+    if (activeTool === 'add' && points.length >= 3) {
+      let best = { i: 0, x: world.x, y: world.y, d: Infinity };
+      for (let i = 0; i < points.length; i++) {
+        const a = points[i], b = points[(i + 1) % points.length];
+        const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy || 1;
+        const t = Math.max(0, Math.min(1, ((world.x - a.x) * dx + (world.y - a.y) * dy) / L));
+        const px = a.x + t * dx, py = a.y + t * dy, d = Math.hypot(world.x - px, world.y - py);
+        if (d < best.d) best = { i, x: px, y: py, d };
+      }
+      const updated = [...points];
+      updated.splice(best.i + 1, 0, { x: best.x, y: best.y, id: Date.now().toString(), curveType: points[best.i].curveType });
+      setPoints(updated);
+      setPendingLandscapePlacement(null);
+      setPendingPoolFeaturePlacement(null);
+      setSnapPoint(null);
+      return;
+    }
+
     // V2: Handle landscape click-to-place
     if (pendingLandscapePlacement) {
       createLandscapeFeatureAt(pendingLandscapePlacement, x, y);

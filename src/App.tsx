@@ -93,6 +93,7 @@ const SaunaSuite = lazy(() => import("./pages/suites/SaunaSuite"));
 const CategorySuite = lazy(() => import("./pages/suites/CategorySuite"));
 const SpaSuite = lazy(() => import("./pages/suites/SpaSuite"));
 const PoolAndSpaSuite = lazy(() => import("./pages/suites/PoolAndSpaSuite"));
+const GlobalDesignBoardV2 = lazy(() => import("./pages/GlobalDesignBoardV2"));
 const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"));
 /* Screen enclosures + lanai + fencing share one suite (three trades, one page) */
 const EnclosureSuite = lazy(() => import("./pages/suites/EnclosureSuite"));
@@ -256,6 +257,7 @@ const App = () => {
             <Route path="/suites/saunas" element={<SaunaSuite />} />
             <Route path="/suites/spas" element={<SpaSuite />} />
             <Route path="/suites/pools-and-spas" element={<PoolAndSpaSuite />} />
+            <Route path="/global-design-board-v2" element={<GlobalDesignBoardV2 />} />
             <Route path="/suites/tanning-ledges" element={<TanningLedgeSuite />} />
             <Route path="/suites/enclosures" element={<EnclosureSuite />} />
             <Route path="/suites/lanai" element={<EnclosureSuite />} />
