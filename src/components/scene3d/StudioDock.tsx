@@ -196,7 +196,7 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
           return {
             id: `sf-${hit.uid}-${Math.random().toString(36).slice(2, 7)}`, name: hit.name, type: kind, url: hit.url, format: 'glb',
             position: [clamp(m.x, -60, 60, 20), 0, clamp(m.z, -60, 60, 20)], rotation: [0, 0, 0],
-            scale: kind === 'terrain' || kind === 'skydome' ? 3.28084 : 1, visible: true, autoFit: kind !== 'terrain' && kind !== 'skydome',
+            scale: 1, visible: true, autoFit: true,
           } as TerrainAsset;
         }));
         const assets = found.filter(Boolean) as TerrainAsset[];

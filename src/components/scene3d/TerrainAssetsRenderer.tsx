@@ -150,9 +150,7 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
       const isEnv = asset.type === 'terrain' || asset.type === 'skydome';
       // Environments are always framed to the pool + deck; objects honour autoFit.
       if (isEnv || asset.autoFit !== false) {
-        // Asset scale is applied on the parent; neutralise legacy env pre-scale.
-        const parentK = isEnv ? (typeof asset.scale === 'number' ? asset.scale : asset.scale?.[0] || 1) : 1;
-        const k = realWorldFit(asset.name, asset.type, size, siteRef) / parentK;
+        const k = realWorldFit(asset.name, asset.type, size, siteRef);
         g.scale.setScalar(k);
         g.position.y = asset.type === 'skydome' ? -(min.y + size.y / 2) * k * 0.2 : -min.y * k;
       }
