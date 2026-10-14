@@ -21,6 +21,9 @@ import { drivewayGates } from '@/data/drivewayGates';
 import { gilmerPools } from '@/data/gilmerPools';
 import { cn } from '@/lib/utils';
 import productImages from '@/data/productImages';
+import { matchPlatformTools, SEARCH_PROMPTS } from '@/lib/genius/platformTools';
+import { answerPriceQuestion } from '@/lib/geniusKnowledge';
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder';
 
 // Import Wonderlands pool images for search
 import madrePerlaImage from '@/assets/pools/wonderlands/madre-perla.webp';
@@ -74,9 +77,11 @@ interface AdvancedSearchProps {
   variant?: 'default' | 'slim';
   /** Query pushed in from outside (Genius, deep links). Runs the search on change. */
   externalQuery?: string;
+  /** Fires when the dropdown (results or categories) opens/closes. */
+  onOpenChange?: (open: boolean) => void;
 }
 
-const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchProps) => {
+const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: AdvancedSearchProps) => {
   const isSlim = variant === 'slim';
   const [searchQuery, setSearchQuery] = usePersistentState(`search_query_${variant}`, '');
   const [lastQuery, setLastQuery] = useState('');
@@ -566,6 +571,19 @@ const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchPr
   // Show section menu when focused and no search query
   const shouldShowSectionMenu = isFocused && !searchQuery && !showResults;
 
+  // Genius layer: platform tools + instant local price answers (free, no network)
+  const toolHits = React.useMemo(() => matchPlatformTools(searchQuery), [searchQuery]);
+  const geniusLine = React.useMemo(
+    () => (searchQuery.trim().length > 3 ? answerPriceQuestion(searchQuery) : null),
+    [searchQuery],
+  );
+  const resultsOpen = !!searchQuery.trim() && (showResults || toolHits.length > 0 || !!geniusLine);
+  const typed = useTypewriterPlaceholder(SEARCH_PROMPTS, !isSlim && !isFocused && !searchQuery);
+
+  // Let the host (Hero) hide what sits below while the dropdown is open
+  const anyOpen = resultsOpen || shouldShowSectionMenu;
+  useEffect(() => { onOpenChange?.(anyOpen); }, [anyOpen, onOpenChange]);
+
   return (
     <div 
       className={`relative w-full max-w-lg md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto transition-transform duration-300 ${
@@ -605,13 +623,20 @@ const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchPr
             isListening ? "Speak now..." : 
             aiResponse?.needsTextInput ? "Type your answer..." :
             isSlim ? "Search products..." :
-            "Search anything about pools, spas, pavers..."
+            (typed || "Ask Genius anything…")
           }
           value={isListening ? (searchQuery + interimTranscript) : searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && searchQuery.trim()) {
+              // A clear tool intent with no product match opens the tool directly
+              if (toolHits.length && !searchResults.length) {
+                const t = toolHits[0];
+                setSearchQuery('');
+                navigate(t.route);
+                return;
+              }
               handleAskAI();
             }
           }}
@@ -894,16 +919,41 @@ const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchPr
         </Card>
       )}
 
-      {/* Search Results */}
-      {showResults && (
-        <Card className="absolute top-full left-0 right-0 mt-2 max-h-96 overflow-y-auto z-50 bg-background border-2 border-primary/20 shadow-xl">
+      {/* Search Results — Genius answer, platform tools, then products */}
+      {resultsOpen && (
+        <Card className="absolute top-full left-0 right-0 mt-2 max-h-[28rem] overflow-y-auto z-50 bg-background border-2 border-primary/20 shadow-xl">
           <div className="p-2">
+            {geniusLine && (
+              <div className="mb-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">Genius</div>
+                <p className="mt-1 text-sm text-foreground">{geniusLine}</p>
+              </div>
+            )}
+            {toolHits.length > 0 && (
+              <div className="mb-2">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground px-2 mb-1">Tools & solutions</div>
+                {toolHits.map((t) => (
+                  <button
+                    type="button"
+                    key={t.id}
+                    onClick={() => { setSearchQuery(''); setShowResults(false); navigate(t.route); }}
+                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-primary/10"
+                  >
+                    <span>
+                      <span className="block font-medium text-foreground">{t.label}</span>
+                      <span className="block text-xs text-muted-foreground">{t.description}</span>
+                    </span>
+                    <span aria-hidden className="text-xs text-primary">Open →</span>
+                  </button>
+                ))}
+              </div>
+            )}
             {isLoading ? (
               <div className="text-center py-4 text-muted-foreground">Searching...</div>
             ) : searchResults.length > 0 ? (
               <>
                 <div className="text-sm text-muted-foreground mb-2 px-2">
-                  Found {searchResults.length} results
+                  Found {searchResults.length} products
                 </div>
                 {searchResults.map((result) => (
                   <div
@@ -932,9 +982,9 @@ const AdvancedSearch = ({ variant = 'default', externalQuery }: AdvancedSearchPr
                   </div>
                 ))}
               </>
-            ) : (
+            ) : (toolHits.length || geniusLine) ? null : (
               <div className="text-center py-4 text-muted-foreground">
-                No results found for "{searchQuery}"
+                Press Enter and Genius will answer "{searchQuery}"
               </div>
             )}
           </div>
