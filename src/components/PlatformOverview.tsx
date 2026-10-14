@@ -39,7 +39,7 @@ const SOLUTIONS: Solution[] = [
     image: outdoorImage,
     alt: "Resort-style pool with sun deck and water feature",
     to: "/#pools",
-    suite: { to: "/suites/spas", label: "Spa & Sauna Suites" },
+    suite: { to: "/suites/pools-and-spas", label: "Pool & Spa Suites" },
   },
   {
     eyebrow: "02 — Home Transformation",
@@ -61,7 +61,7 @@ const SOLUTIONS: Solution[] = [
     image: solarImage,
     alt: "Rooftop solar array on a Florida home",
     to: "/#solar",
-    suite: { to: "/solar-board", label: "Total Solar Calculator" },
+    suite: { to: "/solar-genius", label: "Solar Genius" },
   },
 ];
 

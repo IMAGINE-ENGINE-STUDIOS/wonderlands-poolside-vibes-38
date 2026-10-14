@@ -7,6 +7,7 @@
 export const DEDICATED_SUITES: Record<string, string> = {
   saunas: "/suites/saunas",
   spas: "/suites/spas",
+  "pools-and-spas": "/suites/pools-and-spas",
   "tanning-ledges": "/suites/tanning-ledges",
   "screen-enclosures": "/suites/enclosures",
   lanai: "/suites/lanai",

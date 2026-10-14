@@ -10,13 +10,14 @@
  */
 import * as React from "react";
 import { Suspense, lazy, useMemo, useState } from "react";
-import { Droplets, FileText, MapPinned, Ruler, Send, Shovel, Waves } from "lucide-react";
+import { Box as Box3, Droplets, FileText, MapPinned, Ruler, Send, Shovel, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { setFlipBoardValue, useFlipBoard, getFlipBoardValue } from "@/components/flip/flipBoardStore";
 import { measureLandscapeLayout, type LandscapeLayout, type LandscapeTakeoff } from "@/lib/landscape/landscapeEstimate";
 import { LANDSCAPE_LOOKS, buildLook } from "@/lib/landscape/presets";
+import { layoutTo3D, saveLandscape3D } from "@/lib/landscape/landscape3D";
 import { applyLandscapeEdit, parseLocalEdit, type Frame, type LandscapeEdit } from "@/lib/landscape/landscapeOps";
 
 const LandscapeDrawingBoard = lazy(() => import("./LandscapeDrawingBoard"));
@@ -41,9 +42,11 @@ interface Props {
   /** Called when a look that is priced by an agent is chosen */
   onAgentLook?: () => void;
   compact?: boolean;
+  /** Override the 3D handoff (e.g. showroom opens its own 3D studio) */
+  onView3D?: () => void;
 }
 
-export default function LandscapeStudio({ onTakeoff, onAgentLook, compact }: Props) {
+export default function LandscapeStudio({ onTakeoff, onAgentLook, compact, onView3D }: Props) {
   const board = useFlipBoard(LANDSCAPE_STUDIO_BOARD);
   const layout = board.landscape;
   const [prompt, setPrompt] = useState("");
@@ -140,6 +143,10 @@ export default function LandscapeStudio({ onTakeoff, onAgentLook, compact }: Pro
           <div className="flex gap-2">
             <Button size="sm" variant="outline" className="rounded-none text-[10px] uppercase tracking-[0.3em]" onClick={() => setLayout({ ...layout, irrigation: !layout.irrigation })}>
               Irrigation {layout.irrigation ? "on" : "off"}
+            </Button>
+            <Button size="sm" className="rounded-none text-[10px] uppercase tracking-[0.3em]" disabled={!layout.plantings.length && !layout.beds.length}
+              onClick={() => { saveLandscape3D(layoutTo3D(layout, hole)); if (onView3D) onView3D(); else window.open("/studio-3d", "_blank", "noopener"); }}>
+              <Box3 className="h-3.5 w-3.5 mr-2" /> View in 3D
             </Button>
             <Button size="sm" variant="ghost" className="rounded-none text-[10px] uppercase tracking-[0.3em]" onClick={() => { setLayout({ beds: [], plantings: [], irrigation: false }); setLookId(null); }}>
               Clear plan
