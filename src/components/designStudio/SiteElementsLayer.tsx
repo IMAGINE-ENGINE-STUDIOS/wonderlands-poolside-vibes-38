@@ -51,8 +51,22 @@ export interface SiteElement {
   id: string; kind: SiteKind; pts: Pt[]; label: string; detail: string;
   color: string; height?: number; style?: string; rate: number; unit: "lf" | "sqft";
 }
-type Choice = Omit<SiteElement, "id" | "pts">;
-export interface BoardView { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number }
+type Choice = Omit<SiteElement, "id" | "pts" | "kind"> & { kind: SiteKind | "deck" };
+const DECK_CHOICE: Choice = { kind: "deck", label: "Deck", detail: "Paver deck boundary", color: "#c9b79c", rate: 0, unit: "sqft" };
+
+/** Net turf area: turf never sits under the pool or the deck. */
+export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], deckPts: Pt[], scale: number) {
+  const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
+  const net = [...(poolPts.length >= 3 ? [{ id: "__pool", kind: "pool", pts: poolPts.map(f) }] : []), ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []), ...all.map((x) => ({ id: x.id, kind: x.kind, pts: x.pts.map(f) }))];
+  const ringArea = (r: { x: number; y: number }[]) => Math.abs(r.reduce((s, p, i) => { const q = r[(i + 1) % r.length]; return s + p.x * q.y - q.x * p.y; }, 0) / 2);
+  return netRegions(net, net.find((n) => n.id === e.id)!).reduce((s, poly) => s + poly.reduce((a, r, k) => a + (k === 0 ? ringArea(r) : -ringArea(r)), 0), 0);
+}
+export interface BoardView {
+  width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number;
+  /** Main pool + its deck (PoolBuilder state) — turf is cut around both. */
+  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean;
+  setDeck?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
+}
 
 export const SITE_ELEMENTS_KEY = "design_studio_site_elements_v1";
 const ft = (px: number, scale: number) => px / scale;
@@ -99,16 +113,34 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const finish = React.useCallback(() => {
     if (!choice) return;
     const min = choice.kind === "fence" ? 2 : 3;
+    if (choice.kind === "deck") {
+      if (draft.length >= 3) view?.setDeck?.(draft);
+      view?.endDeckMode?.(); setDraft([]); setChoice(null); return;
+    }
     if (draft.length >= min) {
       const id = `${choice.kind}-${Date.now().toString(36)}`;
-      setItems((prev) => [...prev, { ...choice, id, pts: draft }]);
+      setItems((prev) => [...prev, { ...(choice as Omit<SiteElement, "id" | "pts">), id, pts: draft }]);
       setSelected(id);
     }
     setDraft([]); setChoice(null);
-  }, [choice, draft, setItems]);
+  }, [choice, draft, setItems, view]);
+
+  /* Header "Deck" tool → draw the deck boundary on this same board. */
+  React.useEffect(() => { if (view?.deckMode && !choice) { setDraft([]); setChoice(DECK_CHOICE); } }, [view?.deckMode, choice]);
+
+  const removeSelected = React.useCallback(() => {
+    if (!selected) return;
+    if (selected === "__pool") view?.erasePool?.();
+    else if (selected === "__deck") view?.setDeck?.([]);
+    else setItems((p) => p.filter((x) => x.id !== selected));
+    setSelected(null);
+  }, [selected, setItems, view]);
+  const recolor = (hex: string, id: string) => setItems((p) => p.map((x) => x.id === selected ? { ...x, color: hex, detail: x.detail.replace(/^\w+/, id) } : x));
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const typing = /input|textarea|select/i.test((e.target as HTMLElement)?.tagName ?? "");
+      if (!drawing && !typing && selected && (e.key === "Delete" || e.key === "Backspace")) { e.preventDefault(); removeSelected(); return; }
       if (!drawing) return;
       if (e.key === "Enter") finish();
       if (e.key === "Escape") { setDraft([]); setChoice(null); }
@@ -116,7 +148,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [drawing, finish]);
+  }, [drawing, finish, selected, removeSelected]);
 
   const onClick = (e: React.MouseEvent) => {
     if (!view || !choice) return;
@@ -158,10 +190,17 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
           onClick={onClick} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => drawing && setHover(toWorld(e))}>
           <defs>
             {TURFS.map((g) => (
-              <pattern key={g.id} id={`turf-${g.id}`} width="6" height="6" patternUnits="userSpaceOnUse">
-                <rect width="6" height="6" fill={g.color} /><path d="M1 6 L1.6 2 M4 6 L4.6 1.5" stroke="#000" strokeOpacity=".18" strokeWidth=".6" />
+              <pattern key={g.id} id={`turf-${g.id}`} width={scale * 4} height={scale * 4} patternUnits="userSpaceOnUse">
+                <rect width={scale * 4} height={scale * 4} fill={g.color} />
+                <image href={g.image} width={scale * 4} height={scale * 4} preserveAspectRatio="xMidYMid slice" />
               </pattern>
             ))}
+            {/* Turf cut-out: pool + deck are holes, turf never sits on top of them. */}
+            <mask id="turf-cut" maskUnits="userSpaceOnUse" x={-1e5} y={-1e5} width={2e5} height={2e5}>
+              <rect x={-1e5} y={-1e5} width={2e5} height={2e5} fill="#fff" />
+              {(view.deckPts?.length ?? 0) >= 3 && <polygon points={view.deckPts!.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
+              {(view.poolPts?.length ?? 0) >= 3 && <polygon points={view.poolPts!.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
+            </mask>
             <pattern id="screen-mesh" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0 L4 4 M4 0 L0 4" stroke="#000" strokeOpacity=".12" strokeWidth=".4" /></pattern>
           </defs>
           <g transform={t}>
@@ -171,7 +210,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               const turf = TURFS.find((g) => g.color === e.color);
               return (
                 <g key={e.id} style={{ pointerEvents: "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
-                  {e.kind === "turf" && <polygon points={pts} fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.85} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
+                  {e.kind === "turf" && <polygon points={pts} mask="url(#turf-cut)" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
                   {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={(sel ? 4 : 2.5) / (view.zoom || 1)} />}
                   {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={(sel ? 5 : 3) / (view.zoom || 1)} strokeDasharray={e.style === "glass" ? "2 2" : undefined} />}
                   {e.kind === "fence" && e.pts.map((p, i) => <rect key={i} x={p.x - 2} y={p.y - 2} width={4} height={4} fill={e.color} />)}
