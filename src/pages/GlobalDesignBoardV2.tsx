@@ -16,7 +16,10 @@
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Fence, Grid2x2, Layers, MousePointer2, Trash2, Undo2, Waves, Droplets, Check } from "lucide-react";
+import { ArrowLeft, Fence, Grid2x2, Layers, MousePointer2, Trash2, Undo2, Redo2, Waves, Droplets, Check, Save, FolderOpen, FileText } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
+const SurveyQuoteTool = React.lazy(() => import("@/components/SurveyQuoteTool"));
 import { Button } from "@/components/ui/button";
 import usePersistentState from "@/hooks/usePersistentState";
 import { getAllProducts } from "@/data/poolProductLookup";
