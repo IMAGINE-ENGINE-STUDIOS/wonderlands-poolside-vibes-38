@@ -58,7 +58,7 @@ const FLAGSHIP: ShowroomWidget[] = [
   w('socialite', 'S4', 'SOCIALITE', 'Growth platform',
     'The marketing and communications platform: publish to Facebook, Instagram, Threads, X and YouTube, schedule email, SMS, WhatsApp and calls, run campaigns, quotes and invoices, live insights, Genius knowledge and Shield safe-sending rules.',
     ['socialite', 'social media', 'marketing', 'campaign', 'post', 'schedule posts', 'email campaign']),
-  w('solar', 'S5', 'Solar Genius', 'Estimating engine',
+  w('solar', 'S5', 'Total Solar Calculator', 'Estimating engine',
     'A solar instrument built on measured roofs rather than averages. Search an address, capture roof planes from high-resolution aerial imagery, and each face is scored for sun exposure from azimuth, pitch, latitude and shade.',
     ['solar', 'solar panels', 'roof', 'solar calculator']),
   w('global-board', 'S6', 'Global Design Board', 'Platform',
