@@ -479,7 +479,7 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
   const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
   // Every extra pool/spa from the 2D designer (feet), plus its own auto deck ring.
   const extras = extraPools.filter((p) => p.points?.length >= 3).map((p) => ({ ...p, ring: densifyPoolOutline(p.points as never, p.shape ?? "freeform").map(f) }));
-  const extraDecks = extras.map((p) => ({ id: `__deck_${p.id}`, kind: "deck", pts: mitredOffsetRing(p.ring, EXTRA_DECK_FT).offset }));
+  const extraDecks = extras.map((p) => ({ id: `__deck_${p.id}`, kind: "deck", pts: mitredOffsetRing(p.ring.map((q) => ({ x: q.x, z: q.y })), EXTRA_DECK_FT).offset.map((q) => ({ x: q.x, y: q.z })) }));
   // Order matters: a later deck cuts an earlier one, so the pool's own deck sits
   // last and drawn decks never cover it (one continuous slab, no overlap).
   const net = [

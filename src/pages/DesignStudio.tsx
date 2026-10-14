@@ -377,7 +377,7 @@ const DesignStudio = () => {
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
-      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? []));
+      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? []));
     } catch { /* ignore */ }
     setActiveView('3d');
     // Auto-enter fullscreen when switching to 3D Studio
