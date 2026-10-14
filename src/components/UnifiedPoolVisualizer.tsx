@@ -553,8 +553,8 @@ export function UnifiedPoolVisualizer({
     const pts = scene.pool.points;
     if (!pts || pts.length < 3) return base;
     const b = getPoolBounds(pts);
-    const ring = pts.map((p) => ({ x: p.x - b.centerX, y: p.y - b.centerZ }));
-    const off = mitredOffsetRing(ring, deckWidth + 1).offset.map((p) => ({ x: p.x, z: p.y }));
+    const ring = pts.map((p) => ({ x: p.x - b.centerX, z: p.y - b.centerZ }));
+    const off = mitredOffsetRing(ring, deckWidth + 1).offset.map((p) => ({ x: p.x, z: p.z }));
     return { ...base, outline: off, outlineKey: off.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join('|') };
   }, [scene.pool.points, scene.pool.dimensions, scene.deck]);
 
