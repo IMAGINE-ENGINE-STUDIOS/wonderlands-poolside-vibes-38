@@ -232,3 +232,42 @@ export const DEPTH_PRESETS: Array<{
     ],
   },
 ];
+
+/* ------------------------------------------------------------------ *
+ * Zero entry (walk-in beach shelf) — one shared definition used by the
+ * Depth Profile Editor and Genius. A profile "has" zero entry when its
+ * shallowest anchor sits at ≤ 0.1 ft; the shelf runs until the first
+ * anchor deeper than ZE_SHELF_DEPTH. Applying it compresses the existing
+ * profile into the remaining length, so the rest of the floor is kept.
+ * ------------------------------------------------------------------ */
+const ZE_SHELF_DEPTH = 1.05;
+
+export function getZeroEntry(anchors: LinearDepthAnchor[]): { fraction: number } | null {
+  const s = [...anchors].sort((a, b) => a.position - b.position);
+  if (s.length < 2 || s[0].depth > 0.1) return null;
+  const firstDeep = s.find((a) => a.depth > ZE_SHELF_DEPTH);
+  return { fraction: firstDeep ? firstDeep.position : 0.3 };
+}
+
+export function removeZeroEntry(anchors: LinearDepthAnchor[]): LinearDepthAnchor[] {
+  const ze = getZeroEntry(anchors);
+  if (!ze) return anchors;
+  const f = ze.fraction;
+  const rest = anchors.filter((a) => a.depth > ZE_SHELF_DEPTH || a.position >= f);
+  if (rest.length < 2) return createDefaultLinearAnchors(3.5, Math.max(...anchors.map((a) => a.depth), 5));
+  return rest
+    .map((a) => ({ ...a, position: f >= 1 ? a.position : Math.min(1, Math.max(0, (a.position - f) / (1 - f))) }))
+    .sort((a, b) => a.position - b.position);
+}
+
+/** lengthFt = shelf length along the depth axis; poolLengthFt = axis length. */
+export function applyZeroEntry(anchors: LinearDepthAnchor[], lengthFt: number, poolLengthFt: number): LinearDepthAnchor[] {
+  const base = removeZeroEntry(anchors.length >= 2 ? anchors : createDefaultLinearAnchors(3.5, 6));
+  const f = Math.min(0.5, Math.max(0.08, lengthFt / Math.max(8, poolLengthFt)));
+  const rest = base.map((a) => ({ ...a, position: f + a.position * (1 - f) }));
+  return [
+    { id: 'ze-0', position: 0, depth: 0 },
+    { id: 'ze-1', position: f * 0.6, depth: 1 },
+    ...rest,
+  ];
+}

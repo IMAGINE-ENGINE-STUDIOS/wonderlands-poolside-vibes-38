@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useDraggablePanel } from './useDraggablePanel';
 import { Mountain, Trees, Cloud, Upload, FolderOpen, Search, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, Move3d, RotateCw, Maximize, Magnet, Armchair, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -302,6 +303,7 @@ export function TerrainEditor({
     </div>
   );
 
+  const dragPanel = useDraggablePanel('terrain-editor');
   if (!isOpen) {
     return (
       <Button
@@ -319,7 +321,7 @@ export function TerrainEditor({
   }
 
   return (
-    <div className="absolute top-20 right-20 lg:right-[26rem] z-50 w-80 max-h-[calc(100%-11rem)] overflow-y-auto glass-panel rounded-xl">
+    <div {...dragPanel.panelProps} className="absolute top-20 right-20 z-50 w-80 max-h-[calc(100%-11rem)] overflow-y-auto glass-panel rounded-xl">
       <input
         type="file"
         ref={fileInputRef}

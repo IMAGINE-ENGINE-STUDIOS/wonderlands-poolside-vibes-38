@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useDraggablePanel } from './scene3d/useDraggablePanel';
 import { 
   Package, 
   X, 
@@ -276,6 +277,7 @@ export function AssetManager({
     onAddAsset?.(newAsset);
   };
 
+  const dragPanel = useDraggablePanel('asset-manager');
   if (!isOpen) {
     return (
       <Button
@@ -292,7 +294,7 @@ export function AssetManager({
 
   return (
     <>
-      <div className="absolute top-20 right-20 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl max-h-[calc(100%-11rem)] overflow-hidden flex flex-col">
+      <div {...dragPanel.panelProps} className="absolute top-20 right-20 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl max-h-[calc(100%-11rem)] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-3 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
           <h3 className="font-semibold text-sm flex items-center gap-2">
             <Package className="h-4 w-4 text-primary" />
