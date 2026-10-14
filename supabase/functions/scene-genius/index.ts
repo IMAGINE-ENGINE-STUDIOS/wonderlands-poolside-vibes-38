@@ -3,21 +3,26 @@
 // and 3D models to search for) using Groq. The client applies the plan.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
-const SYSTEM = `You design residential backyard pools in feet. Reply with ONE JSON object only, matching:
+const SYSTEM = `You EDIT a residential backyard pool design in feet. You receive the current design and the user's request.
+Reply with ONE JSON object only. Include ONLY the keys the user's request changes — omit everything else so it stays as is.
 {
- "summary": string (one sentence describing the design),
+ "summary": string (one sentence describing what you changed),
  "pool": { "shape": "rectangle"|"oval"|"kidney"|"l-shape"|"freeform"|"roman", "length": number 10-60, "width": number 8-30,
-           "depthProfile": [ { "position": number 0-1, "depth": number 3-10 } ] (2-6 anchors, shallow end at 0) },
+           "cornerRadius": number 0-6 (feet; set when the user asks for rounded/soft/radius corners, 0 for sharp),
+           "depthProfile": [ { "position": number 0-1, "depth": number 0-12 } ] (2-8 anchors, shallow end at 0),
+           "zeroEntry": { "length": number 4-15 } (only when the user asks for zero entry / beach entry / walk-in entry) },
  "deck": { "width": number 3-20, "copingWidth": number 0.5-2 },
+ "finishHint": string (pool interior finish words, e.g. "blue", "white", "graphite"),
+ "copingHint": string (coping material/color words, e.g. "travertine", "white", "bullnose"),
+ "waterlineHint": string (waterline tile words),
+ "paverHint": string (deck paver words, e.g. "travertine", "gray", "brick"),
  "stairs": [ { "style": "classic"|"wedding-cake"|"bench"|"floating", "width": number 3-14, "wallPosition": number 0-1, "softEdge": number 0-0.5 } ],
  "seating": [ { "type": "bench"|"lounge"|"corner"|"barstool"|"contour", "wallPosition": number 0-1, "count": number } ],
  "lights": number 0-8,
- "finishHint": string (e.g. "blue", "white", "graphite"),
- "paverHint": string (e.g. "travertine", "gray", "brick"),
  "night": boolean,
- "models": [ { "query": string (a short 3D model search like "palm tree"), "kind": "object"|"tree"|"terrain"|"skydome", "x": number -60..60, "z": number -60..60 } ] (0-10 items; keep x/z outside the pool and deck)
+ "models": [ { "query": string, "kind": "object"|"tree"|"terrain"|"skydome", "x": number, "z": number } ]
 }
-Pick sensible real-world values when the brief doesn't say. No prose, no markdown.`;
+Rules: "models" ONLY when the user explicitly names objects, plants, trees, furniture, terrain or sky to add — the query must be exactly the thing they named. Never add palm trees or decor on your own. Keep x/z outside the pool and deck. No prose, no markdown.`;
 
 // Pick the best chat model this Groq account can use (cached per instance).
 const PREFERRED = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'llama-4-maverick', 'llama-4-scout', 'qwen', 'llama-3.1-70b', 'gpt-oss', 'llama'];

@@ -282,7 +282,7 @@ export function AssetManager({
         variant="outline"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className="absolute bottom-4 right-4 z-50 h-12 w-12 rounded-full bg-white border-slate-200/80 text-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.06)] hover:bg-slate-50"
+        className="absolute top-20 right-4 z-40 h-12 w-12 rounded-full bg-white border-slate-200/80 text-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.06)] hover:bg-slate-50"
         title="Asset Manager"
       >
         <Package className="h-5 w-5 text-slate-700" strokeWidth={1.8} />
@@ -292,7 +292,7 @@ export function AssetManager({
 
   return (
     <>
-      <div className="absolute bottom-20 right-4 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl max-h-[calc(100vh-160px)] overflow-hidden flex flex-col">
+      <div className="absolute top-20 right-20 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl max-h-[calc(100%-11rem)] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-3 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
           <h3 className="font-semibold text-sm flex items-center gap-2">
             <Package className="h-4 w-4 text-primary" />

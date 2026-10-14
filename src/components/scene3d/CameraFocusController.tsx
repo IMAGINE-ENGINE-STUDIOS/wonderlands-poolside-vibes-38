@@ -55,9 +55,9 @@ export function CameraFocusController({
 
     // Blend toward the requested distance instead of forcing it — avoids
     // abrupt zoom jumps when the user is already framed well.
-    const requested = Math.max(6, request.distance ?? 14);
+    const requested = Math.max(4, request.distance ?? 14);
     const distance = currentDistance > 0.01
-      ? THREE.MathUtils.clamp(currentDistance * 0.55 + requested * 0.45, requested * 0.75, Math.max(requested * 1.6, currentDistance))
+      ? Math.min(currentDistance, requested)
       : requested;
 
 
@@ -92,8 +92,12 @@ export function CameraFocusController({
 
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(step);
+    // The user takes over the moment they orbit/pan/zoom — no fighting.
+    const cancel = () => { if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; } };
+    controls?.addEventListener?.('start', cancel);
 
     return () => {
+      controls?.removeEventListener?.('start', cancel);
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;

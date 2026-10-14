@@ -146,106 +146,6 @@ function SceneInvalidator({ scene, isNightMode, sunPosition }: {
   return null;
 }
 
-// Smooth zoom controller for component selection
-function SelectionZoomController({
-  selectedComponent,
-  controlsRef,
-  poolDimensions
-}: {
-  selectedComponent: 'pool' | 'deck' | 'coping' | 'waterline' | null;
-  controlsRef: React.RefObject<any>;
-  poolDimensions?: { width?: number; length?: number };
-}) {
-  const { camera } = useThree();
-  const animationRef = useRef<number | null>(null);
-  const previousComponent = useRef<string | null>(null);
-  
-  useEffect(() => {
-    // Only animate when selection changes to a new component
-    if (selectedComponent === previousComponent.current) return;
-    previousComponent.current = selectedComponent;
-    
-    if (!selectedComponent || !controlsRef.current) return;
-    
-    const controls = controlsRef.current;
-    const width = poolDimensions?.width || 15;
-    const length = poolDimensions?.length || 30;
-    const poolSize = Math.max(width, length);
-
-    // Distance + look-at height per component. The viewing angle the user
-    // already chose is preserved — we only re-center and adjust distance so
-    // the move never feels abrupt.
-    const zoomConfigs: Record<string, { distance: number; target: [number, number, number] }> = {
-      pool: { distance: poolSize * 1.25, target: [0, -2, 0] },
-      deck: { distance: poolSize * 1.5, target: [0, 0, 0] },
-      coping: { distance: Math.max(8, poolSize * 0.5), target: [0, 0.4, 0] },
-      waterline: { distance: Math.max(7, poolSize * 0.42), target: [0, -0.6, 0] }
-    };
-
-    const config = zoomConfigs[selectedComponent];
-    if (!config) return;
-
-    const startPosition = camera.position.clone();
-    const startTarget = controls.target.clone();
-    let endTarget = new THREE.Vector3(...config.target);
-
-    // Preserve the current orbit direction (azimuth + elevation).
-    const dir = startPosition.clone().sub(startTarget);
-    if (dir.lengthSq() < 0.0001) dir.set(1, 0.8, 1);
-    dir.normalize();
-    if (dir.y < 0.18) { dir.y = 0.18; dir.normalize(); }
-
-    let endPosition = endTarget.clone().add(dir.clone().multiplyScalar(config.distance));
-
-    // Waterline: macro close-up of the FAR wall tile band, camera hovering
-    // ~3.5 ft away above the water so the tile texture fills the view.
-    if (selectedComponent === 'waterline') {
-      const horiz = new THREE.Vector3(dir.x, 0, dir.z);
-      if (horiz.lengthSq() < 0.0001) horiz.set(1, 0, 0);
-      horiz.normalize();
-      const half = Math.min(width, length) / 2;
-      endTarget = horiz.clone().multiplyScalar(-half * 0.95).setY(-0.25);
-      endPosition = endTarget.clone().add(horiz.clone().multiplyScalar(3.2)).setY(1.1);
-    }
-
-    let progress = 0;
-    const duration = 1100; // ms — slower, gentler glide
-    const startTime = performance.now();
-
-    const easeInOut = (t: number) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-    const animate = (currentTime: number) => {
-      progress = Math.min((currentTime - startTime) / duration, 1);
-      const eased = easeInOut(progress);
-
-      camera.position.lerpVectors(startPosition, endPosition, eased);
-      controls.target.lerpVectors(startTarget, endTarget, eased);
-      controls.update();
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    };
-
-    // Cancel any existing animation
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [selectedComponent, camera, controlsRef, poolDimensions]);
-
-  
-  return null;
-}
-
 export function UnifiedPoolVisualizer({
   scene: initialScene,
   textureLibrary,
@@ -436,6 +336,14 @@ export function UnifiedPoolVisualizer({
     focusTokenRef.current += 1;
     setFocusRequest({ position, distance, token: focusTokenRef.current });
   }, []);
+  // Selecting a pool part glides to the exact point the user clicked, keeping
+  // the current viewing side. One camera authority: CameraFocusController.
+  const lastPickRef = useRef<[number, number, number] | null>(null);
+  const PART_DISTANCE: Record<string, number> = { pool: 20, deck: 16, coping: 8, waterline: 6 };
+  const selectComponentAtPick = useCallback((c: 'pool' | 'deck' | 'coping' | 'waterline' | null) => {
+    setSelectedComponent(c);
+    if (c && lastPickRef.current) { setAutoRotate(false); focusOn(lastPickRef.current, PART_DISTANCE[c]); }
+  }, [focusOn]);
   // Center on a freshly dropped 3D model
   const focusOnAsset = useCallback((position: [number, number, number]) => {
     focusOn(position, 16);
@@ -943,26 +851,6 @@ export function UnifiedPoolVisualizer({
     preloadTextures();
   }, [linerTextureUrl, paverTextureUrl, copingTextureUrl, waterlineTextureUrl]);
 
-  // Camera centering when category is selected
-  useEffect(() => {
-    if (!selectedCategory || !controlsRef.current) return;
-    
-    const cameraConfigs: Record<string, { position: [number, number, number], target: [number, number, number] }> = {
-      pool: { position: [0, 40, 0], target: [0, -3, 0] },
-      deck: { position: [25, 15, 25], target: [0, 0, 0] },
-      coping: { position: [15, 5, 15], target: [0, 0.1, 0] },
-      waterline: { position: [20, 2, 20], target: [0, -0.2, 0] },
-      water: { position: [0, 30, 30], target: [0, 0, 0] }
-    };
-    
-    const config = cameraConfigs[selectedCategory];
-    if (config && controlsRef.current) {
-      // Smoothly animate camera
-      flyCamera(controlsRef.current, config.position, config.target, 1200);
-    }
-  }, [selectedCategory]);
-
-
   const handleTextureChange = (category: 'pool' | 'deck' | 'coping' | 'waterline', texture: TextureConfig) => {
     const updated = { ...scene };
     
@@ -1351,7 +1239,7 @@ export function UnifiedPoolVisualizer({
         </button>
 
         {/* Scene Objects Widget */}
-        <div className="absolute top-16 right-4 z-20">
+        <div className="absolute top-4 right-16 md:right-[4.25rem] z-20">
           <SceneObjectsPanel groups={sceneObjectGroups} />
         </div>
 
@@ -1848,15 +1736,10 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* Smooth zoom on component selection */}
-          <SelectionZoomController
-            selectedComponent={selectedComponent}
-            controlsRef={controlsRef}
-            poolDimensions={scene.pool.dimensions}
-          />
           
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
-          <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}>
+          <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}
+            onPointerDown={(e) => { lastPickRef.current = [e.point.x, e.point.y, e.point.z]; }}>
             <Pool3DScene
               points={scene.pool.points}
               depthPoints={scene.pool.depthPoints}
@@ -1879,7 +1762,7 @@ export function UnifiedPoolVisualizer({
               poolDimensions={scene.pool.dimensions}
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
-              onSelectComponent={setSelectedComponent}
+              onSelectComponent={selectComponentAtPick}
               fenceHeight={fenceHeight}
               paverTextureScale={scene.deck.paver.scale || 1.8}
               copingTextureScale={scene.deck.coping.scale || 1.8}
