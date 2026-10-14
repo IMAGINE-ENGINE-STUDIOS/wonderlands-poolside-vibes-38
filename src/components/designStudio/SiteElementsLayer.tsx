@@ -25,6 +25,8 @@ import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
 import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
 /* Seamless full-bleed grass (catalog swatches carry white borders that tile as a grid). Credit: Imagine Engine Studios Corp */
 import grassTexture from "@/assets/turf/grass-texture.avif";
+import { paverTypes } from "@/data/paverData";
+import { densifyPoolOutline } from "@/utils/curveUtils";
 import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from "@/components/scene3d/PoolDesignerHeader";
 import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
 
@@ -48,19 +50,25 @@ const TURF_COLORS: Record<string, string> = { "light-green": "#7fb24a", "dark-gr
 export const TURFS = artificialGrassOptions.map((g) => ({ id: g.id, label: `${g.name} turf`, rate: getGrassPricePerSqFt(g.name), color: TURF_COLORS[g.id] ?? "#5b9a40", image: g.image, texture: grassTexture }));
 
 /* ---------- model ---------- */
-export type SiteKind = "fence" | "enclosure" | "turf";
+export type SiteKind = "fence" | "enclosure" | "turf" | "deck";
 type Pt = { x: number; y: number };
 export interface SiteElement {
   id: string; kind: SiteKind; pts: Pt[]; label: string; detail: string;
   color: string; height?: number; style?: string; rate: number; unit: "lf" | "sqft";
 }
-type Choice = Omit<SiteElement, "id" | "pts" | "kind"> & { kind: SiteKind | "deck" };
-const DECK_CHOICE: Choice = { kind: "deck", label: "Deck", detail: "Paver deck boundary", color: "#c9b79c", rate: 0, unit: "sqft" };
+type Choice = Omit<SiteElement, "id" | "pts" | "kind"> & { kind: SiteKind };
+/** Drawn decks use the main page paver list (photo + rate per sq ft). */
+export const DECK_PAVERS = paverTypes.filter((x) => x.category === "paver").map((x) => ({ id: x.id, label: x.name, rate: x.basePrice, image: x.image }));
+const deckChoice = (id?: string): Choice => { const d = DECK_PAVERS.find((x) => x.id === id) ?? DECK_PAVERS[0]; return { kind: "deck", label: d?.label ?? "Deck", detail: "Paver deck", color: "#c9b79c", style: d?.id, rate: d?.rate ?? 0, unit: "sqft" }; };
+const DECK_CHOICE: Choice = deckChoice();
+/** Pool outline exactly as the canvas draws it (curves sampled) so cuts follow curves. */
+const poolRing = (pts: Pt[]) => (pts.length >= 3 ? densifyPoolOutline(pts as never, "freeform") : pts);
+const KIND_LABEL: Record<SiteKind, string> = { fence: "Fence", enclosure: "Screen", turf: "Turf", deck: "Deck" };
 
 /** Net turf area: turf never sits under the pool or the deck. */
 export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], deckPts: Pt[], scale: number) {
   const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
-  const net = [...(poolPts.length >= 3 ? [{ id: "__pool", kind: "pool", pts: poolPts.map(f) }] : []), ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []), ...all.map((x) => ({ id: x.id, kind: x.kind, pts: x.pts.map(f) }))];
+  const net = [...(poolPts.length >= 3 ? [{ id: "__pool", kind: "pool", pts: poolRing(poolPts).map(f) }] : []), ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []), ...all.map((x) => ({ id: x.id, kind: x.kind, pts: x.pts.map(f) }))];
   const ringArea = (r: { x: number; y: number }[]) => Math.abs(r.reduce((s, p, i) => { const q = r[(i + 1) % r.length]; return s + p.x * q.y - q.x * p.y; }, 0) / 2);
   return netRegions(net, net.find((n) => n.id === e.id)!).reduce((s, poly) => s + poly.reduce((a, r, k) => a + (k === 0 ? ringArea(r) : -ringArea(r)), 0), 0);
 }
@@ -68,7 +76,7 @@ export interface BoardView {
   width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number;
   /** Main pool + its deck (PoolBuilder state) — turf is cut around both. */
   poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean;
-  setDeck?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
+  setDeck?: (pts: Pt[]) => void; setPool?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
 }
 
 export const SITE_ELEMENTS_KEY = "design_studio_site_elements_v1";
@@ -115,23 +123,20 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const scale = view?.scale ?? 10;
   const drawing = !!choice;
 
-  const toWorld = React.useCallback((e: React.MouseEvent) => {
+  const toWorld = React.useCallback((e: { clientX: number; clientY: number }, snap = true) => {
     const r = svgRef.current!.getBoundingClientRect();
     const v = view!;
     const sx = e.clientX - r.left, sy = e.clientY - r.top;
     const x = (sx - v.width / 2 - v.pan.x) / v.zoom + v.width / 2;
     const y = (sy - v.height / 2 - v.pan.y) / v.zoom + v.height / 2;
     // 1 ft snap keeps measurements clean
-    return { x: Math.round(x / scale) * scale, y: Math.round(y / scale) * scale };
+    return snap ? { x: Math.round(x / scale) * scale, y: Math.round(y / scale) * scale } : { x, y };
   }, [view, scale]);
 
   const finish = React.useCallback(() => {
     if (!choice) return;
     const min = choice.kind === "fence" ? 2 : 3;
-    if (choice.kind === "deck") {
-      if (draft.length >= 3) view?.setDeck?.(draft);
-      view?.endDeckMode?.(); setDraft([]); setChoice(null); return;
-    }
+    if (choice.kind === "deck") view?.endDeckMode?.();
     if (draft.length >= min) {
       const id = `${choice.kind}-${Date.now().toString(36)}`;
       setItems((prev) => [...prev, { ...(choice as Omit<SiteElement, "id" | "pts">), id, pts: draft }]);
@@ -145,10 +150,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
   const removeSelected = React.useCallback(() => {
     if (!selected) return;
-    if (selected === "__pool") view?.erasePool?.();
-    else if (selected === "__deck") view?.setDeck?.([]);
-    else setItems((p) => p.filter((x) => x.id !== selected));
-    setSelected(null);
+    eraseId(selected);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, setItems, view]);
   const recolor = (hex: string, id: string) => setItems((p) => p.map((x) => x.id === selected ? { ...x, color: hex, detail: x.detail.replace(/^\w+/, id) } : x));
 
@@ -175,6 +178,65 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
   const t = view ? `translate(${view.width / 2 + view.pan.x} ${view.height / 2 + view.pan.y}) scale(${view.zoom}) translate(${-view.width / 2} ${-view.height / 2})` : undefined;
 
+  /* ---------- spline editing: any spline (pool, decks, fences, screens, turf) ---------- */
+  const [menu, setMenu] = React.useState<{ x: number; y: number; id: string; at: Pt; seg: number; sub?: boolean } | null>(null);
+  const [editId, setEditId] = React.useState<string | null>(null);
+  const [moving, setMoving] = React.useState<{ id: string; start: Pt; orig: Pt[]; deck?: Pt[] } | null>(null);
+  const dragRef = React.useRef<{ id: string; i: number } | null>(null);
+  const getPts = React.useCallback((id: string): Pt[] => id === "__pool" ? view?.poolPts ?? [] : id === "__deck" ? view?.deckPts ?? [] : items.find((x) => x.id === id)?.pts ?? [], [view, items]);
+  const setPts = React.useCallback((id: string, pts: Pt[]) => {
+    if (id === "__pool") view?.setPool?.(pts); else if (id === "__deck") view?.setDeck?.(pts);
+    else setItems((p) => p.map((x) => x.id === id ? { ...x, pts } : x));
+  }, [view, setItems]);
+  const isOpen = (id: string) => items.find((x) => x.id === id)?.kind === "fence";
+  /** Nearest spline segment to a world point — the anchor for "Add point". */
+  const nearest = React.useCallback((w: Pt) => {
+    const ids = [...items.map((x) => x.id).reverse(), ...((view?.deckPts?.length ?? 0) >= 3 ? ["__deck"] : []), ...((view?.poolPts?.length ?? 0) >= 3 ? ["__pool"] : [])];
+    let best: { id: string; seg: number; d: number; at: Pt } | null = null;
+    for (const id of ids) {
+      const pts = getPts(id); const n = isOpen(id) ? pts.length - 1 : pts.length;
+      for (let i = 0; i < n; i++) {
+        const a = pts[i], b = pts[(i + 1) % pts.length]; const dx = b.x - a.x, dy = b.y - a.y; const L = dx * dx + dy * dy || 1;
+        const t = Math.max(0, Math.min(1, ((w.x - a.x) * dx + (w.y - a.y) * dy) / L)); const at = { x: a.x + dx * t, y: a.y + dy * t };
+        const d = Math.hypot(w.x - at.x, w.y - at.y); if (!best || d < best.d) best = { id, seg: i, d, at };
+      }
+    }
+    return best && best.d < 14 / (view?.zoom || 1) ? best : null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, view, getPts]);
+  const insertPoint = (id: string, seg: number, at: Pt) => {
+    const pts = getPts(id);
+    const np = id === "__pool" ? { ...at, id: String(Math.max(0, ...pts.map((p) => parseInt((p as { id?: string }).id ?? "0") || 0)) + 1), curveType: "linear" } : id === "__deck" ? { ...at, id: `h${Date.now().toString(36)}` } : at;
+    setPts(id, [...pts.slice(0, seg + 1), np as Pt, ...pts.slice(seg + 1)]);
+  };
+  const eraseId = (id: string) => { if (id === "__pool") view?.erasePool?.(); else if (id === "__deck") view?.setDeck?.([]); else setItems((p) => p.filter((x) => x.id !== id)); setSelected(null); setEditId(null); };
+  /* Right-click or double-click on any spline opens its menu (canvas keeps every other click). */
+  React.useEffect(() => {
+    const host = svgRef.current?.parentElement; if (!host || !view) return;
+    const open = (e: MouseEvent) => {
+      if (drawing) return; const hit = nearest(toWorld(e, false)); if (!hit) return;
+      e.preventDefault(); e.stopPropagation();
+      const r = host.getBoundingClientRect(); setSelected(hit.id); setMenu({ x: e.clientX - r.left, y: e.clientY - r.top, id: hit.id, seg: hit.seg, at: hit.at });
+    };
+    host.addEventListener("contextmenu", open, true); host.addEventListener("dblclick", open, true);
+    return () => { host.removeEventListener("contextmenu", open, true); host.removeEventListener("dblclick", open, true); };
+  }, [view, drawing, nearest, toWorld]);
+  /* Vertex dragging + whole-shape move. */
+  React.useEffect(() => {
+    const mv = (e: MouseEvent) => {
+      if (dragRef.current) { const w = toWorld(e); const { id, i } = dragRef.current; const pts = getPts(id); setPts(id, pts.map((p, k) => k === i ? { ...p, x: w.x, y: w.y } : p)); }
+      else if (moving) { const w = toWorld(e); const dx = w.x - moving.start.x, dy = w.y - moving.start.y; setPts(moving.id, moving.orig.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); if (moving.deck) view?.setDeck?.(moving.deck.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); }
+    };
+    const up = () => { dragRef.current = null; };
+    window.addEventListener("mousemove", mv); window.addEventListener("mouseup", up);
+    return () => { window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
+  }, [moving, toWorld, getPts, setPts, view]);
+  const retexture = (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
+  const menuItem = items.find((x) => x.id === menu?.id);
+  const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))
+    : menuItem.kind === "deck" ? DECK_PAVERS.map((d) => ({ key: d.id, label: `${d.label} · $${d.rate}/sqft`, apply: { style: d.id, label: d.label, rate: d.rate } }))
+    : (menuItem.kind === "fence" ? FENCE_COLORS : SCREEN_COLORS).map((c) => ({ key: c.id, label: c.id, apply: { color: c.hex } }));
+
   const startFence = (colorHex: string, colorId: string) => {
     const m = FENCE_MATERIALS.find((x) => x.id === fMat)!; const h = FENCE_HEIGHTS.find((x) => x.ft === fH)!;
     setChoice({ kind: "fence", label: m.label, detail: `${colorId} · ${h.label}`, color: colorHex, height: h.ft, style: m.id, rate: h.rate, unit: "lf" });
@@ -188,7 +250,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const Row = ({ id, label }: { id: string; label: string }) => (
     <li className={cn("flex items-center justify-between gap-2", selected === id && "font-semibold")}>
       <button onClick={() => setSelected(id)} className="truncate text-left">{label}</button>
-      <button onClick={() => { setSelected(id); if (id === "__pool") view?.erasePool?.(); else if (id === "__deck") view?.setDeck?.([]); else setItems((p) => p.filter((x) => x.id !== id)); setSelected(null); }} title="Erase" className="text-muted-foreground hover:text-foreground"><Trash2 className="h-3 w-3" /></button>
+      <button onClick={() => eraseId(id)} title="Erase" className="text-muted-foreground hover:text-foreground"><Trash2 className="h-3 w-3" /></button>
     </li>
   );
   const Step = ({ n, label, children }: { n: number; label: string; children: React.ReactNode }) => (
@@ -206,8 +268,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       {/* Drawing overlay — same transform as the PoolBuilder canvas */}
       {view && (
         <svg ref={svgRef} className="absolute inset-0 z-[5]" width={view.width} height={view.height}
-          style={{ pointerEvents: drawing ? "auto" : "none", cursor: drawing ? "crosshair" : undefined }}
-          onClick={onClick} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => drawing && setHover(toWorld(e))}>
+          style={{ pointerEvents: drawing || moving ? "auto" : "none", cursor: drawing ? "crosshair" : moving ? "move" : undefined }}
+          onClick={(e) => { if (moving) { setMoving(null); return; } onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => drawing && setHover(toWorld(e))}>
           <defs>
             {TURFS.map((g) => (
               <pattern key={g.id} id={`turf-${g.id}`} width={scale * 4} height={scale * 4} patternUnits="userSpaceOnUse">
@@ -215,22 +277,29 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                 <image href={g.texture} width={scale * 4} height={scale * 4} preserveAspectRatio="xMidYMid slice" style={{ mixBlendMode: "multiply" }} opacity={0.9} />
               </pattern>
             ))}
+            {DECK_PAVERS.map((d) => (
+              <pattern key={d.id} id={`paver-${d.id}`} width={scale * 2} height={scale * 2} patternUnits="userSpaceOnUse">
+                <image href={d.image} width={scale * 2} height={scale * 2} preserveAspectRatio="xMidYMid slice" />
+              </pattern>
+            ))}
             {/* Turf cut-out: pool + deck are holes, turf never sits on top of them. */}
             <mask id="turf-cut" maskUnits="userSpaceOnUse" x={-1e5} y={-1e5} width={2e5} height={2e5}>
               <rect x={-1e5} y={-1e5} width={2e5} height={2e5} fill="#fff" />
               {(view.deckPts?.length ?? 0) >= 3 && <polygon points={view.deckPts!.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
-              {(view.poolPts?.length ?? 0) >= 3 && <polygon points={view.poolPts!.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
+              {items.filter((x) => x.kind === "deck").map((d) => <polygon key={d.id} points={d.pts.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />)}
+              {(view.poolPts?.length ?? 0) >= 3 && <polygon points={poolRing(view.poolPts!).map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
             </mask>
             <pattern id="screen-mesh" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0 L4 4 M4 0 L0 4" stroke="#000" strokeOpacity=".12" strokeWidth=".4" /></pattern>
           </defs>
           <g transform={t}>
-            {items.map((e) => {
+            {[...items].sort((a, b) => (a.kind === "turf" ? 0 : a.kind === "deck" ? 1 : 2) - (b.kind === "turf" ? 0 : b.kind === "deck" ? 1 : 2)).map((e) => {
               const pts = e.pts.map((p) => `${p.x},${p.y}`).join(" ");
               const sel = selected === e.id;
               const turf = TURFS.find((g) => g.color === e.color);
               return (
                 <g key={e.id} style={{ pointerEvents: "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
                   {e.kind === "turf" && <polygon points={pts} mask="url(#turf-cut)" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
+                  {e.kind === "deck" && <polygon points={pts} fill={`url(#paver-${e.style ?? DECK_PAVERS[0]?.id})`} stroke={sel ? "hsl(var(--foreground))" : "#8a7a62"} strokeWidth={(sel ? 2.5 : 1.5) / (view.zoom || 1)} />}
                   {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={(sel ? 4 : 2.5) / (view.zoom || 1)} />}
                   {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={(sel ? 5 : 3) / (view.zoom || 1)} strokeDasharray={e.style === "glass" ? "2 2" : undefined} />}
                   {e.kind === "fence" && e.pts.map((p, i) => <rect key={i} x={p.x - 2} y={p.y - 2} width={4} height={4} fill={e.color} />)}
@@ -244,8 +313,33 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                 {hover && <text x={hover.x + 8} y={hover.y - 8} fontSize={12 / view.zoom} fill="hsl(var(--foreground))">{(Math.hypot(hover.x - draft[draft.length - 1].x, hover.y - draft[draft.length - 1].y) / scale).toFixed(1)} ft</text>}
               </>
             )}
+            {editId && (() => { const pts = getPts(editId); const z = view.zoom || 1; const open = isOpen(editId); return (
+              <g style={{ pointerEvents: "auto" }}>
+                {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={4 / z} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
+                {pts.map((p, i) => <rect key={`v${i}`} x={p.x - 5 / z} y={p.y - 5 / z} width={10 / z} height={10 / z} fill="hsl(var(--foreground))" style={{ cursor: "grab" }} onMouseDown={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onContextMenu={(ev) => { ev.preventDefault(); ev.stopPropagation(); if (pts.length > (open ? 2 : 3)) setPts(editId, pts.filter((_, k) => k !== i)); }} />)}
+              </g>); })()}
           </g>
         </svg>
+      )}
+
+      {/* Spline menu — right-click or double-click any spline */}
+      {menu && (
+        <div className="absolute z-[40] w-52 border border-border bg-background/95 p-1 text-[12px] shadow-sm backdrop-blur" style={{ left: menu.x, top: menu.y }} onMouseLeave={() => setMenu(null)}>
+          <p className="px-2 py-1 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{menu.id === "__pool" ? "Pool" : menu.id === "__deck" ? "Pool deck" : `${KIND_LABEL[menuItem!.kind]} · ${menuItem!.label}`}</p>
+          {!menu.sub ? (<>
+            <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { setEditId(menu.id); setMenu(null); }}>Edit spline</button>
+            <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { insertPoint(menu.id, menu.seg, menu.at); setEditId(menu.id); setMenu(null); }}>Add point here</button>
+            <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { setMoving({ id: menu.id, start: menu.at, orig: getPts(menu.id), deck: menu.id === "__pool" ? view?.deckPts : undefined }); setMenu(null); }}>Move</button>
+            {textureOptions.length > 0 && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => setMenu({ ...menu, sub: true })}>{menuItem!.kind === "fence" || menuItem!.kind === "enclosure" ? "Change color" : "Change texture"}</button>}
+            <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id); setMenu(null); }}>Erase</button>
+          </>) : textureOptions.map((o) => <button key={o.key} className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { retexture(menu.id, o.apply); setMenu(null); }}>{o.label}</button>)}
+        </div>
+      )}
+      {(editId || moving) && (
+        <div className="absolute left-1/2 top-3 z-[30] flex -translate-x-1/2 items-center gap-3 border border-border bg-background/95 px-4 py-2 text-xs shadow-sm backdrop-blur">
+          <span>{moving ? "Move the mouse, click to drop" : "Drag squares to move points · click a circle to add a point · right-click a square to remove it"}</span>
+          <button onClick={() => { setEditId(null); setMoving(null); }} title="Done" className="text-muted-foreground hover:text-foreground"><Check className="h-3.5 w-3.5" /></button>
+        </div>
       )}
 
       {/* Drawing hint */}
@@ -261,8 +355,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       {/* Site catalog + take-off */}
       <aside className="absolute left-3 top-16 z-[30] w-72 max-h-[calc(100%-9rem)] overflow-y-auto border border-border bg-background/95 p-4 text-sm shadow-sm backdrop-blur">
         <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Whole property</p>
-        <div className="mt-2 grid grid-cols-3 gap-1">
-          {([["fence", "Fences", Fence], ["enclosure", "Screens", Layers], ["turf", "Turf", Grid2x2]] as const).map(([k, l, Icon]) => (
+        <div className="mt-2 grid grid-cols-4 gap-1">
+          {([["fence", "Fences", Fence], ["enclosure", "Screens", Layers], ["turf", "Turf", Grid2x2], ["deck", "Decks", Layers]] as const).map(([k, l, Icon]) => (
             <button key={k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex flex-col items-center gap-1 border py-2 text-[11px]", tab === k ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground")}>
               <Icon className="h-4 w-4" />{l}
             </button>
@@ -305,6 +399,16 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
           </Step>
         )}
 
+        {tab === "deck" && (
+          <Step n={1} label="Paver — then draw (any number of decks)">
+            {DECK_PAVERS.map((d) => (
+              <button key={d.id} onClick={() => { setDraft([]); setChoice(deckChoice(d.id)); }} className="w-[31%] border border-border text-left text-[10px] hover:border-foreground">
+                <img src={d.image} alt={d.label} loading="lazy" className="aspect-square w-full object-cover" /><span className="block p-1">{d.label} · ${d.rate}/sqft</span>
+              </button>
+            ))}
+          </Step>
+        )}
+
         {/* Erase / edit — everything on the board, pool and deck included */}
         <div className="mt-4 border-t border-border pt-3">
           <div className="flex items-center justify-between">
@@ -313,16 +417,16 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
           </div>
           <ul className="mt-2 space-y-1 text-[12px]">
             {(view?.poolPts?.length ?? 0) >= 3 && <Row id="__pool" label="Pool" />}
-            {(view?.deckPts?.length ?? 0) >= 3 && <Row id="__deck" label={`Deck · ${Math.round(poolTotals?.deckArea ?? 0)} sqft`} />}
-            {items.map((e) => <Row key={e.id} id={e.id} label={`${e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · ${e.label} · ${Math.round(e.kind === "turf" ? turfNetSqft(e, items, view?.poolPts ?? [], view?.deckPts ?? [], scale) : elementQty(e, scale))} ${e.unit}`} />)}
+            {(view?.deckPts?.length ?? 0) >= 3 && <Row id="__deck" label={`Pool deck · ${Math.round(poolTotals?.deckArea ?? 0)} sqft`} />}
+            {items.map((e) => <Row key={e.id} id={e.id} label={`${KIND_LABEL[e.kind]} · ${e.label} · ${Math.round(e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, view?.poolPts ?? [], view?.deckPts ?? [], scale) : elementQty(e, scale))} ${e.unit}`} />)}
           </ul>
-          {sel && sel.kind !== "turf" && (
+          {sel && (sel.kind === "fence" || sel.kind === "enclosure") && (
             <div className="mt-2">
               <p className="mb-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Color</p>
               <div className="flex gap-1.5">{(sel.kind === "fence" ? FENCE_COLORS : SCREEN_COLORS).map((c) => <Chip key={c.id} on={sel.color === c.hex} onClick={() => recolor(c.hex, c.id)}><span className="mr-1 inline-block h-2.5 w-2.5 align-middle" style={{ background: c.hex }} />{c.id}</Chip>)}</div>
             </div>
           )}
-          {selected && <p className="mt-2 text-[10px] text-muted-foreground">Press Delete to erase the selected piece.</p>}
+          {selected && <p className="mt-2 text-[10px] text-muted-foreground">Press Delete to erase. Right-click or double-click any line to edit, add a point, move, retexture or erase.</p>}
           {!items.length && <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground"><MousePointer2 className="h-3 w-3" />Pick fences, screens or turf above, then draw on the board.</p>}
         </div>
       </aside>
@@ -342,7 +446,7 @@ import type { Board3D } from "@/lib/design/board3D";
  */
 export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = []): Board3D {
   const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
-  const pool = poolPts.map(f);
+  const pool = poolRing(poolPts).map(f);
   let c = { x: 0, y: 0 };
   if (pool.length >= 3) { const xs = pool.map((p) => p.x), ys = pool.map((p) => p.y); c = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; }
   const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
@@ -352,6 +456,7 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
     const pts = e.pts.map(f);
     if (e.kind === "fence") out.fences.push({ itemId: e.id, pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: e.color });
     else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, pts: pts.map(to), height: e.height ?? 10, color: e.color });
+    else if (e.kind === "deck") out.surfaces.push({ itemId: e.id, kind: "deck", color: "#ffffff", image: (DECK_PAVERS.find((d) => d.id === e.style) ?? DECK_PAVERS[0])?.image, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
     else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.texture, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
   }
   return out;
@@ -370,7 +475,7 @@ export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: 
   const feet = React.useMemo(() => poolPts.map((p) => ({ x: p.x / scale, y: p.y / scale })), [poolPts, scale]);
   // Every element on the board: site pieces, placed features and extra water bodies.
   const extras = React.useMemo(() => {
-    const site = items.map((e) => { const q = e.kind === "turf" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { name: `${e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }; });
+    const site = items.map((e) => { const q = e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { name: `${KIND_LABEL[e.kind]} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }; });
     const counts = new Map<string, { n: number; cost: number }>();
     featuresList.forEach((f) => { const c = counts.get(f.type) ?? { n: 0, cost: 0 }; c.n++; c.cost += f.cost; counts.set(f.type, c); });
     const feats = [...counts].map(([t, c]) => ({ name: `${t.replace(/-/g, " ").replace(/^./, (m) => m.toUpperCase())}${c.n > 1 ? ` × ${c.n}` : ""}`, price: c.cost }));

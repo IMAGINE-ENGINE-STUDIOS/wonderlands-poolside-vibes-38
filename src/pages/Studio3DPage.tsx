@@ -11,7 +11,7 @@ const ShowroomStudio3D = React.lazy(() => import('@/components/showroom/Showroom
 const Studio3DPage = () => {
   React.useEffect(() => { document.title = '3D Studio · Wonderlands World'; }, []);
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background select-none">
       <React.Suspense fallback={<div className="p-12 text-center text-sm text-muted-foreground">Opening the 3D Studio…</div>}>
         <ShowroomStudio3D embedded={false} fromBoard={new URLSearchParams(window.location.search).get('from') === 'board'} />
       </React.Suspense>
