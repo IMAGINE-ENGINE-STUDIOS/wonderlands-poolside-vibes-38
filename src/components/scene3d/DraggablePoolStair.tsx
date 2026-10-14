@@ -46,12 +46,23 @@ export function DraggablePoolStair({
 
   const stairTopY = -1; // 1ft below water surface
 
-  // Auto-calculate number of steps needed to reach the bottom
+  // Floor sensing: walk down step by step, sampling the real floor depth under
+  // each tread, and stop as soon as the next tread would touch or pass the
+  // floor. This prevents phantom steps below the floor (inside-out geometry).
   const actualNumSteps = useMemo(() => {
-    const depthToTravel = poolDepth - 1;
-    const stepsNeeded = Math.ceil(depthToTravel / stair.stepHeight);
-    return Math.max(stair.numSteps, stepsNeeded);
-  }, [poolDepth, stair.stepHeight, stair.numSteps]);
+    if ((stair.style ?? 'classic') === 'floating') return Math.max(1, stair.numSteps);
+    let n = 0;
+    for (let i = 0; i < 40; i++) {
+      const top = stairTopY - i * stair.stepHeight;
+      const reach = i * stair.stepDepth + stair.stepDepth / 2;
+      const x = position.x + Math.sin(position.angle) * reach;
+      const z = position.z + Math.cos(position.angle) * reach;
+      const floor = getFloorDepthAt ? getFloorDepthAt(x, z) : poolDepth;
+      if (!Number.isFinite(floor) || top <= -floor + 0.2) break;
+      n++;
+    }
+    return Math.max(1, n);
+  }, [poolDepth, stair.stepHeight, stair.stepDepth, stair.numSteps, stair.style, position.x, position.z, position.angle, getFloorDepthAt]);
 
   // Generate rounded corner path points
   const generateCornerArc = (
