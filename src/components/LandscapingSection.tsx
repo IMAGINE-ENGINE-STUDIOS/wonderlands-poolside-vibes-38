@@ -12,7 +12,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ShoppingCart as CartIcon, Plus, Minus, FileText, Trash2, Printer, Send } from "lucide-react";
+import { ShoppingCart as CartIcon, Plus, Minus, FileText, Trash2, Printer, Send, MapPinned, CalendarDays } from "lucide-react";
+import LandscapeStudio, { LANDSCAPE_STUDIO_BOARD } from "./landscape/LandscapeStudio";
+import { setFlipBoardValue } from "./flip/flipBoardStore";
+import { plantTraits, HEIGHT_LABEL, type HeightBand } from "@/lib/landscape/plantTraits";
+import type { LandscapeTakeoff } from "@/lib/landscape/landscapeEstimate";
 import { useToast } from "@/hooks/use-toast";
 import {
   landscapingPlants,
@@ -63,7 +67,7 @@ const PlantImage = ({
   );
 };
 
-const LandscapingSection = () => {
+const LandscapingSection = ({ compact = false }: { compact?: boolean }) => {
   const { toast } = useToast();
   const [activeCat, setActiveCat] = useState<LandscapingCategory | "All">("All");
   const [selected, setSelected] = useState<LandscapingPlant | null>(null);
@@ -96,12 +100,27 @@ const LandscapingSection = () => {
     Record<string, { plantName: string; variantLabel: string; sizeLabel: string; price: number; qty: number; image: string }>
   >({});
 
+  const [planTakeoff, setPlanTakeoff] = useState<LandscapeTakeoff | null>(null);
+  const [search, setSearch] = useState("");
+  const [traitFilter, setTraitFilter] = useState({ sun: false, shade: false, salt: false, pet: false, bloom: false });
+  const [heightFilter, setHeightFilter] = useState<HeightBand | null>(null);
+
+  // Catalog order is preserved — filters only hide rows.
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return landscapingPlants.filter((p) => {
       if (activeCat !== "All" && p.category !== activeCat) return false;
+      if (q && !p.name.toLowerCase().includes(q)) return false;
+      const t = plantTraits(p);
+      if (traitFilter.sun && !t.sun.includes("full")) return false;
+      if (traitFilter.shade && !t.sun.includes("shade")) return false;
+      if (traitFilter.salt && !t.saltTolerant) return false;
+      if (traitFilter.pet && !t.petSafe) return false;
+      if (traitFilter.bloom && !t.flowering) return false;
+      if (heightFilter && t.height !== heightFilter) return false;
       return true;
     });
-  }, [activeCat]);
+  }, [activeCat, search, traitFilter, heightFilter]);
 
   const openPlant = (plant: LandscapingPlant) => {
     setSelected(plant);
@@ -131,16 +150,53 @@ const LandscapingSection = () => {
       <section className="py-12 bg-background">
         <div className="container mx-auto px-4">
           <EditorialSectionHeader
-            eyebrow="Volume XIII — Planting"
+            eyebrow="Volume XIII — The Landscaping Studio"
             title="Landscaping"
-            description="Premium plants, palms, trees and grasses — bringing the drawing to life."
+            description="Start from a look, draw your beds, place real plants at their true size — the estimate writes itself."
           />
+
+          <div className="mb-16">
+            <LandscapeStudio compact={compact} onTakeoff={setPlanTakeoff} onAgentLook={() => setQuoteTier("themed")} />
+          </div>
+
+          <p className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground border-b border-border/60 pb-3 mb-6">
+            III. Choose plants — {filtered.length} of {landscapingPlants.length}
+          </p>
+
+          {/* Garden filters */}
+          <div className="max-w-5xl mx-auto mb-4 flex flex-wrap gap-2 justify-center items-center">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search plants"
+              className="rounded-none h-8 w-44 text-sm"
+            />
+            {([
+              ["sun", "Full sun"], ["shade", "Shade"], ["salt", "Salt tolerant"], ["pet", "Pet safe"], ["bloom", "Flowering"],
+            ] as const).map(([k, label]) => (
+              <Badge
+                key={k}
+                variant={traitFilter[k] ? "default" : "outline"}
+                onClick={() => setTraitFilter((p) => ({ ...p, [k]: !p[k] }))}
+                className="cursor-pointer px-3 py-1 text-xs"
+              >
+                {label}
+              </Badge>
+            ))}
+            {(Object.keys(HEIGHT_LABEL) as HeightBand[]).map((h) => (
+              <Badge
+                key={h}
+                variant={heightFilter === h ? "default" : "outline"}
+                onClick={() => setHeightFilter((cur) => (cur === h ? null : h))}
+                className="cursor-pointer px-3 py-1 text-xs"
+              >
+                {HEIGHT_LABEL[h]}
+              </Badge>
+            ))}
+          </div>
 
           {/* Category filter */}
           <div className="max-w-5xl mx-auto mb-8">
-            <p className="text-center text-sm text-muted-foreground mb-3">
-              Browse the catalog and add plants to your quote
-            </p>
             <div className="flex flex-wrap gap-2 justify-center">
               <Badge
                 variant={activeCat === "All" ? "default" : "outline"}
@@ -201,6 +257,15 @@ const LandscapingSection = () => {
                     <h3 className="font-serif text-xl sm:text-2xl font-light leading-[1.05] tracking-tight text-foreground line-clamp-2 min-h-[2.5rem]">
                       {plant.name}
                     </h3>
+                    {(() => {
+                      const tr = plantTraits(plant);
+                      return (
+                        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                          <span className="h-2.5 w-2.5 rounded-full border border-border" style={{ background: tr.bloom ?? tr.foliage }} />
+                          <span>{Math.round(tr.heightFt)} ft tall · {tr.spacingFt} ft apart</span>
+                        </div>
+                      );
+                    })()}
                     <div className="mt-auto border-t border-border/60 pt-4">
                       <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">Starting at</p>
                       <p className="font-serif text-2xl font-light text-foreground">
@@ -236,7 +301,8 @@ const LandscapingSection = () => {
               (sum, it) => sum + it.price * it.qty,
               0,
             );
-            const computedTotal = baseCost + plantsCost;
+            const planCost = planTakeoff?.total ?? 0;
+            const computedTotal = baseCost + plantsCost + planCost;
             const total =
               isAdmin && overrideTotal !== "" && !isNaN(parseFloat(overrideTotal))
                 ? parseFloat(overrideTotal)
@@ -329,9 +395,14 @@ const LandscapingSection = () => {
                     </div>
                     <div className="text-sm border-l border-border/60 pl-4">
                       <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-                        Selected Plants
+                        Plan + Selected Plants
                       </div>
-                      <div className="font-serif text-xl font-light text-foreground mt-1">{fmt(plantsCost)}</div>
+                      <div className="font-serif text-xl font-light text-foreground mt-1">{fmt(planCost + plantsCost)}</div>
+                      {planCost > 0 && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Plan {fmt(planCost)} · {planTakeoff!.plantCount} plants
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -665,6 +736,7 @@ const LandscapingSection = () => {
 
                               <div class="totals">
                                 <div class="row"><span>Service Base</span><span>${isCallForQuote ? "Quoted by agent" : fmt(baseCost)}</span></div>
+                                ${planCost > 0 ? `<div class="row"><span>Planting Plan (beds, plants, edging, irrigation)</span><span>${fmt(planCost)}</span></div>` : ""}
                                 <div class="row"><span>Plants & Materials</span><span>${fmt(plantsCost)}</span></div>
                                 <div class="row total"><span>TOTAL</span><span>${fmt(total)}</span></div>
                               </div>
@@ -711,6 +783,15 @@ const LandscapingSection = () => {
                               category: "Landscaping",
                             });
                           }
+                          if (planCost > 0) {
+                            addToCart({
+                              id: `landscaping-plan-${Date.now()}`,
+                              name: `Planting plan — ${planTakeoff!.plantCount} plants, ${Math.round(planTakeoff!.bedSqFt)} sq ft beds`,
+                              price: planCost,
+                              image: "",
+                              category: "Landscaping",
+                            });
+                          }
                           Object.entries(quoteItems).forEach(([key, it]) => {
                             for (let i = 0; i < it.qty; i++) {
                               addToCart({
@@ -732,6 +813,12 @@ const LandscapingSection = () => {
                       >
                         <Send className="h-4 w-4 mr-1.5" />
                         Submit Quote
+                      </Button>
+                      <Button asChild variant="outline" className="rounded-none">
+                        <a href="https://calendly.com/wonderlandsworlds/30min" target="_blank" rel="noopener noreferrer">
+                          <CalendarDays className="h-4 w-4 mr-1.5" />
+                          Book a consult
+                        </a>
                       </Button>
                     </div>
                   </div>
@@ -866,6 +953,20 @@ const LandscapingSection = () => {
                           >
                             <CartIcon className="h-3 w-3 mr-1" />
                             Cart
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setFlipBoardValue(LANDSCAPE_STUDIO_BOARD, { plantKey: `${selected.id}|${activeVariant.id}|${opt.size}` });
+                              setSelected(null);
+                              document.getElementById("landscape-design")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                              toast({ title: "Ready to plant", description: `${selected.name} (${opt.size}) is armed — click or drag on the board.` });
+                            }}
+                            className="h-7 text-xs"
+                          >
+                            <MapPinned className="h-3 w-3 mr-1" />
+                            Plan
                           </Button>
                         </div>
                       </div>
