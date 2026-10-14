@@ -4,11 +4,16 @@
  * Most Sketchfab / glTF files are authored in metres, so we first try a
  * metres→feet conversion. If that gives an implausible height for what the
  * object is (by name keyword, then by asset type), we scale it to a typical
- * real height instead.
+ * real height instead. The live pool + deck size (`SiteRef`) is then used as
+ * the reference: trees are capped relative to the pool, furniture to the deck
+ * width, and terrains/skydomes are sized to frame the whole pool + deck.
  */
 import * as THREE from 'three';
 
 const M_TO_FT = 3.28084;
+
+/** Live pool/deck reference used to scale every model. */
+export interface SiteRef { poolLength: number; poolWidth: number; deckWidth: number }
 
 /** [min, typical, max] height in feet */
 const KEYWORDS: Array<[RegExp, [number, number, number]]> = [
@@ -40,13 +45,36 @@ const BY_TYPE: Record<string, [number, number, number]> = {
   custom: [0.5, 3, 20],
 };
 
+const FURNITURE_RE = /stool|chair|seat|lounge|chaise|sunbed|daybed|sofa|couch|sectional|table|grill|bbq|planter|pot/i;
+
 /** Returns the uniform scale factor to apply to the raw model. */
-export function realWorldFit(name: string, type: string, size: THREE.Vector3): number {
+export function realWorldFit(name: string, type: string, size: THREE.Vector3, site?: SiteRef): number {
   const h = Math.max(size.y, 1e-4);
+  const footprint = Math.max(size.x, size.z, 1e-4);
+
+  // Ground / sky: frame the full pool + deck envelope.
+  if (type === 'terrain' || type === 'skydome') {
+    const env = site ? Math.max(site.poolLength, site.poolWidth) + 2 * site.deckWidth : 50;
+    const target = env * (type === 'skydome' ? 6 : 4);
+    return target / footprint;
+  }
+
   const range = KEYWORDS.find(([re]) => re.test(name))?.[1] ?? BY_TYPE[type] ?? BY_TYPE.custom;
   const [min, typical, max] = range;
   const asMetres = h * M_TO_FT;
-  if (asMetres >= min && asMetres <= max) return M_TO_FT;
-  if (h >= min && h <= max) return 1; // already in feet
-  return typical / h;
+  let k = asMetres >= min && asMetres <= max ? M_TO_FT : h >= min && h <= max ? 1 : typical / h;
+  if (!site) return k;
+
+  const poolMax = Math.max(site.poolLength, site.poolWidth);
+  // Vegetation: height ≤ 1.1× pool length, canopy ≤ 0.6× pool width.
+  if (type === 'tree' || /palm|tree/i.test(name)) {
+    k = Math.min(k, (poolMax * 1.1) / h, (site.poolWidth * 0.6 + 4) / footprint);
+  } else if (type === 'furniture' || FURNITURE_RE.test(name)) {
+    // Furniture must fit on the deck band.
+    k = Math.min(k, Math.max(3, site.deckWidth * 1.2) / footprint);
+  } else {
+    // Any other object: never larger than the pool itself.
+    k = Math.min(k, poolMax / footprint);
+  }
+  return k;
 }

@@ -17,7 +17,7 @@ import { CopingGeometry } from './scene3d/CopingGeometry';
 import { DeckBorderGeometry } from './scene3d/DeckBorderGeometry';
 import earcut from 'earcut';
 import grassTexture from '@/assets/turf/grass-texture.avif';
-import { resolveDeckBoundaries, sanitizeBoundary } from '@/utils/deckSurface';
+import { resolveDeckBoundaries, sanitizeBoundary, smoothCurvedRing } from '@/utils/deckSurface';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
 
 import { Maximize2, Minimize2, Move } from 'lucide-react';
@@ -301,10 +301,12 @@ const PoolMesh: React.FC<{
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    const normalizedPoints = curvedPoints.map(p => ({
+    // Same corner-preserving smoothing as the deck/coping/waterline ring, so the
+    // wall faces share one outline and no flat facets show on curves.
+    const normalizedPoints = smoothCurvedRing(curvedPoints.map(p => ({
       x: p.x - centerX,
       z: p.y - centerY
-    }));
+    })));
 
     const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
     const getDepthAtPosition = (positionRatio: number): number => {
@@ -1026,7 +1028,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     const poolCurve2D = points.map(p => ({ x: p.x, y: p.y }));
     const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
     
-    return smoothPoolCurve.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y }));
+    // Smoothed once here → walls, coping, waterline and deck all share it.
+    return smoothCurvedRing(smoothPoolCurve.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y })));
   }, [points, poolFrameCenter]);
   
   // Calculate normalized hardscape points for exact deck sync (same origin as the pool)

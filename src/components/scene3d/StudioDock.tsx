@@ -8,7 +8,6 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Wand2, FolderOpen, Music2, VolumeX, Loader2, Save, Trash2, X } from 'lucide-react';
@@ -196,7 +195,7 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
           return {
             id: `sf-${hit.uid}-${Math.random().toString(36).slice(2, 7)}`, name: hit.name, type: kind, url: hit.url, format: 'glb',
             position: [clamp(m.x, -60, 60, 20), 0, clamp(m.z, -60, 60, 20)], rotation: [0, 0, 0],
-            scale: kind === 'terrain' || kind === 'skydome' ? 3.28084 : 1, visible: true, autoFit: kind !== 'terrain' && kind !== 'skydome',
+            scale: 1, visible: true, autoFit: true,
           } as TerrainAsset;
         }));
         const assets = found.filter(Boolean) as TerrainAsset[];
@@ -212,14 +211,21 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
   };
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-muted-foreground">Describe the whole project. Genius builds the pool, depth, deck, stairs, seating, lights and adds 3D models.</p>
-      <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={4} className="text-xs"
-        placeholder="e.g. 14×30 kidney pool, 3.5 to 7 ft deep, travertine deck 8 ft wide, wedding cake stairs, 3 bar stools, palm trees and a pergola, night lights" />
-      <Button size="sm" className="w-full text-xs" onClick={run} disabled={busy || prompt.trim().length < 3}>
-        {busy ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Wand2 className="h-3 w-3 mr-1" />}Design it
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <Wand2 className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+      <input
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') run(); }}
+        aria-label="Describe your project for Genius"
+        placeholder="Ask Genius: 14×30 kidney pool, 3.5–7 ft deep, travertine deck, wedding cake stairs, palm trees…"
+        className="h-9 min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/80 focus:outline-none"
+      />
+      {note && <span className="hidden max-w-[32%] truncate text-[11px] text-muted-foreground lg:inline" title={note}>{note}</span>}
+      <Button size="sm" className="h-8 shrink-0 rounded-full px-4 text-xs" onClick={run} disabled={busy || prompt.trim().length < 3}>
+        {busy ? <Loader2 className="h-3 w-3 animate-spin sm:mr-1" /> : <Wand2 className="h-3 w-3 sm:mr-1" />}
+        <span className="hidden sm:inline">Design it</span>
       </Button>
-      {note && <p className="text-[11px] text-muted-foreground">{note}</p>}
     </div>
   );
 }
@@ -291,39 +297,38 @@ function MusicPanel() {
 }
 
 /* ---------------- Dock ---------------- */
-type Tab = 'genius' | 'projects' | 'music' | null;
+type Tab = 'projects' | 'music' | null;
 export function StudioDock(props: Props) {
   const [tab, setTab] = useState<Tab>(null);
   const [musicOn, setMusicOn] = useState(ambientMusic.isPlaying());
   useEffect(() => ambientMusic.subscribe(setMusicOn), []);
   useEffect(() => () => ambientMusic.stop(), []);
   const toggle = useCallback((t: Tab) => setTab((cur) => (cur === t ? null : t)), []);
-  const titles = { genius: 'Genius — design from a prompt', projects: 'Projects gallery', music: 'Music' } as const;
-  const btn = (t: Exclude<Tab, null>, Icon: typeof Wand2, label: string) => (
-    <button type="button" onClick={() => toggle(t)} title={label}
-      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs shadow-lg transition-colors ${tab === t ? 'bg-primary text-primary-foreground' : 'bg-background/90 hover:bg-background'}`}>
-      <Icon className="h-3.5 w-3.5" />{label}
-    </button>
-  );
+  const titles = { projects: 'Projects gallery', music: 'Music' } as const;
+  const glass = 'border border-white/25 bg-background/60 shadow-[0_8px_32px_-8px_hsl(var(--foreground)/0.25)] backdrop-blur-xl backdrop-saturate-150';
+  const pill = (active: boolean) =>
+    `flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs transition-colors ${active ? 'bg-primary text-primary-foreground' : 'text-foreground/80 hover:bg-foreground/5'}`;
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2">
+    // Full-width glass bar along the bottom of the 3D viewer.
+    <div className="absolute inset-x-3 bottom-3 z-30 md:inset-x-6">
       {tab && (
-        <div className="w-80 rounded-xl border bg-background/95 p-3 shadow-2xl backdrop-blur-md">
+        <div className={`absolute bottom-full right-0 mb-2 w-[min(20rem,100%)] rounded-2xl p-3 ${glass}`}>
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold">{titles[tab]}</p>
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setTab(null)}><X className="h-3.5 w-3.5" /></Button>
           </div>
-          {tab === 'genius' && <GeniusPanel {...props} />}
           {tab === 'projects' && <ProjectsPanel {...props} />}
           {tab === 'music' && <MusicPanel />}
         </div>
       )}
-      <div className="flex gap-1.5">
-        {btn('genius', Wand2, 'Genius')}
-        {btn('projects', FolderOpen, 'Projects')}
-        <button type="button" onClick={() => toggle('music')} title="Music"
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs shadow-lg transition-colors ${tab === 'music' ? 'bg-primary text-primary-foreground' : 'bg-background/90 hover:bg-background'}`}>
-          {musicOn ? <Music2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}Music
+      <div className={`flex items-center gap-2 rounded-full py-1 pl-4 pr-1.5 ${glass}`}>
+        <GeniusPanel {...props} />
+        <span className="h-5 w-px shrink-0 bg-foreground/10" aria-hidden />
+        <button type="button" onClick={() => toggle('projects')} title="Projects" className={pill(tab === 'projects')}>
+          <FolderOpen className="h-3.5 w-3.5" /><span className="hidden md:inline">Projects</span>
+        </button>
+        <button type="button" onClick={() => toggle('music')} title="Music" className={pill(tab === 'music')}>
+          {musicOn ? <Music2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}<span className="hidden md:inline">Music</span>
         </button>
       </div>
     </div>
