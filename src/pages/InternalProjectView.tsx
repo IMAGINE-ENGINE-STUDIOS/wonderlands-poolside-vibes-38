@@ -203,13 +203,11 @@ const InternalProjectView: React.FC = () => {
 
       const { data: urlData } = supabase.storage.from('project-documents').getPublicUrl(filePath);
 
-      await supabase.from('item_documents').insert({
-        item_id: itemId,
-        file_name: file.name,
-        file_url: urlData.publicUrl,
-        file_type: file.type,
-        file_size: file.size,
+      const { error: docErr } = await supabase.rpc('add_shared_project_document' as any, {
+        _token: token, _item_id: itemId, _file_name: file.name,
+        _file_url: urlData.publicUrl, _file_type: file.type, _file_size: file.size,
       });
+      if (docErr) throw docErr;
 
       // If a price was entered, create a cost item automatically
       const priceStr = quotationPrices[itemId];

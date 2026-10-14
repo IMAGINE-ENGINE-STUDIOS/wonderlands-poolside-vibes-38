@@ -28,7 +28,8 @@ Deno.serve(async (req) => {
     const { channel, contact_ids, subject, timezone } = parsed.data;
     const shield = await guard(auth.userId, auth.isAdmin, channel === "call" ? "sms" : channel, { text: parsed.data.message, subject, recipients: contact_ids.length, timezone });
     if (!shield.ok) return json({ error: shield.blocks.map((b) => b.message).join(" · "), shield }, 422);
-    const message = shield.text;
+    // Calls are spoken aloud: never add the SMS "Reply STOP" line to them.
+    const message = channel === "call" ? parsed.data.message : shield.text;
     // Commercial metering: one unit per recipient, checked before sending.
     const check = await meter(auth.userId, auth.isAdmin, channel, contact_ids.length, {}, true);
     if (!check.ok) return json({ error: check.reason, billing: true }, 402);

@@ -5099,6 +5099,17 @@ export type Database = {
       }
     }
     Functions: {
+      add_shared_project_document: {
+        Args: {
+          _file_name: string
+          _file_size: number
+          _file_type: string
+          _file_url: string
+          _item_id: string
+          _token: string
+        }
+        Returns: string
+      }
       admin_login: {
         Args: { email_param: string; password_param: string }
         Returns: {
