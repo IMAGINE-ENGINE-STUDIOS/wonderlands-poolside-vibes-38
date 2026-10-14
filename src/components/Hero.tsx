@@ -10,6 +10,7 @@ import wonderlandsLogo from "@/assets/brand/wonderlands-logo.webp";
 
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   return <>
     <section className="relative h-screen w-full overflow-hidden bg-background">
       {/* Header film — same footage as the FLIP first page, with a still fallback */}
@@ -21,7 +22,7 @@ const Hero = () => {
       {/* Centered logo + search engine */}
       <div className="absolute inset-0 z-10 flex items-center justify-center">
         <div className="container mx-auto px-4">
-          <div className="mx-auto flex max-w-2xl flex-col items-center">
+          <div className="mx-auto flex max-w-4xl flex-col items-center">
             <img
               src={wonderlandsLogo}
               alt="Wonderlands World"
@@ -30,10 +31,13 @@ const Hero = () => {
               decoding="async"
               className="mb-8 h-20 w-auto object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.35)] md:h-28"
             />
-            <div className="w-full">
-              <AdvancedSearch />
+            <div className="relative z-20 w-full">
+              <AdvancedSearch onOpenChange={setSearchOpen} />
             </div>
-            <nav className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <nav
+              aria-hidden={searchOpen}
+              className={`mt-10 flex flex-wrap items-center justify-center gap-3 transition-opacity duration-200 ${searchOpen ? "pointer-events-none invisible opacity-0" : "opacity-100"}`}
+            >
               <Link
                 to="/consultation"
                 className="inline-flex min-w-[10rem] items-center justify-center gap-2 rounded-full bg-primary-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-primary shadow-lg ring-1 ring-primary-foreground/20 backdrop-blur-sm transition hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-xl"
