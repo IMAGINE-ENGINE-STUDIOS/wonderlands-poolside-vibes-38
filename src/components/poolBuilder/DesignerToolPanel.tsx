@@ -112,10 +112,10 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   return (
     <div className="absolute top-6 right-6 z-20 w-80 max-h-[calc(100%-3rem)] flex flex-col">
       {/* Same visual language as the 3D component panel (glass card, bold header). */}
-      <div className="glass-panel rounded-xl shadow-2xl overflow-hidden flex flex-col min-h-0 max-h-full">
+      <div className="border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0 max-h-full">
         {/* Header */}
         <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
-          <span className="text-sm font-semibold text-foreground">2D Designer</span>
+          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">2D Designer</span>
         </div>
 
         <ScrollArea className="flex-1 min-h-0">
@@ -460,10 +460,10 @@ function SectionHeader({ label, icon, expanded, onToggle, badge }: {
   return (
     <button
       onClick={onToggle}
-      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all text-left ${
+      className={`w-full flex items-center gap-2 px-2 py-1.5 border transition-colors text-left text-[11px] uppercase tracking-[0.2em] ${
         expanded
-          ? 'bg-primary/10 text-primary'
-          : 'hover:bg-muted/30 text-foreground'
+          ? 'border-foreground bg-foreground text-background'
+          : 'border-transparent hover:border-border text-foreground'
       }`}
     >
       <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0">

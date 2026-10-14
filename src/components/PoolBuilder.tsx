@@ -143,7 +143,7 @@ interface PoolBuilderProps {
     };
   }) => void;
   /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
-  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; setDeck: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void }) => React.ReactNode;
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void }) => React.ReactNode;
 }
 
 // Helper function to shade colors
@@ -5657,14 +5657,14 @@ export function PoolBuilder({
     setDraggingAdditionalPoolPoint(null);
     setDraggingDrawPointId(null);
   };
+  /* Add point: anchored on the pool spline, midway after the selected corner (or on the longest edge). */
   const addPoint = () => {
-    const newId = (Math.max(...points.map(p => parseInt(p.id))) + 1).toString();
-    const lastPoint = points[points.length - 1];
-    setPoints([...points, {
-      x: lastPoint.x + 50,
-      y: lastPoint.y,
-      id: newId
-    }]);
+    if (points.length < 2) return;
+    const newId = (Math.max(...points.map(p => parseInt(p.id) || 0)) + 1).toString();
+    let i = selectedPoint ? points.findIndex(p => p.id === selectedPoint) : -1;
+    if (i < 0) { let best = -1; points.forEach((p, k) => { const q = points[(k + 1) % points.length]; const d = Math.hypot(q.x - p.x, q.y - p.y); if (d > best) { best = d; i = k; } }); }
+    const a = points[i], b = points[(i + 1) % points.length];
+    setPoints([...points.slice(0, i + 1), { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, id: newId, curveType: 'linear' } as Point, ...points.slice(i + 1)]);
   };
   const removePoint = () => {
     if (points.length > 3 && selectedPoint) {
@@ -5859,7 +5859,8 @@ export function PoolBuilder({
         {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale,
           poolPts: points, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck',
           /* Hand-drawn deck boundary (overlay draws it, same board transform) — Imagine Engine Studios Corp. */
-          setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: `h${Date.now().toString(36)}${i}` }))),
+          setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${Date.now().toString(36)}${i}` }))),
+          setPool: (pts) => setPoints(pts as Point[]),
           endDeckMode: () => setActiveTool('select'),
           erasePool: () => { setPoints([]); setHardscapePoints([]); setFeatures([]); } })}
         {/* Main Canvas - fills viewport */}
