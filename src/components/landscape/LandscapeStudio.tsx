@@ -10,7 +10,7 @@
  */
 import * as React from "react";
 import { Suspense, lazy, useMemo, useState } from "react";
-import { Box as Box3, Droplets, FileText, MapPinned, Ruler, Send, Shovel, Waves } from "lucide-react";
+import { TreePalm as Box3, Droplets, FileText, MapPinned, Ruler, Send, Shovel, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
