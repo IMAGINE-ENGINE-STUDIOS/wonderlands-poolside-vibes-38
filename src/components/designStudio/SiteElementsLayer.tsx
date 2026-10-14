@@ -200,7 +200,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       )}
 
       {/* Site catalog + take-off */}
-      <aside className="absolute right-3 top-3 z-[30] w-72 max-h-[calc(100%-1.5rem)] overflow-y-auto border border-border bg-background/95 p-4 text-sm shadow-sm backdrop-blur">
+      <aside className="absolute left-3 top-16 z-[30] w-72 max-h-[calc(100%-9rem)] overflow-y-auto border border-border bg-background/95 p-4 text-sm shadow-sm backdrop-blur">
         <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Whole property</p>
         <div className="mt-2 grid grid-cols-3 gap-1">
           {([["fence", "Fences", Fence], ["enclosure", "Screens", Layers], ["turf", "Turf", Grid2x2]] as const).map(([k, l, Icon]) => (
