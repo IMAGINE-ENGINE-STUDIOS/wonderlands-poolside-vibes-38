@@ -112,8 +112,9 @@ export function DraggablePoolStair({
       const worldZ = position.z + Math.cos(worldAngle) * (stepZOffset + stepDepth / 2);
       const localFloorDepth = getFloorDepthAt ? getFloorDepthAt(worldX, worldZ) : poolDepth;
       
+      if (style !== 'floating' && stepTopY <= -localFloorDepth + 0.05) break; // reached the floor
       const stepBottomY = style === 'floating' ? stepTopY - 0.33 : -localFloorDepth;
-      const blockHeight = Math.max(0.1, stepTopY - stepBottomY);
+      const blockHeight = stepTopY - stepBottomY;
       
       const hw = (style === 'bench' && i === 0 ? stepWidth + 4 : stepWidth) / 2;
       const zStart = style === 'wedding-cake' ? 0 : stepZOffset;
