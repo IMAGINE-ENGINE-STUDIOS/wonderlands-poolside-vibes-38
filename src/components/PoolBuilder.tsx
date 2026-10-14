@@ -157,6 +157,14 @@ const shadeColor = (color: string, percent: number) => {
 };
 import { buildFinishTextures } from '@/data/textureLibrary';
 // Same finish catalogue the 3D viewer offers, so 2D and 3D show identical choices.
+/** Pattern scaled to real feet so 2D textures match the 3D Studio's 1 ft UV (Imagine Engine Studios Corp). */
+const scaledPattern = (ctx: CanvasRenderingContext2D, img: CanvasImageSource & { width: number; height: number }, tilePx: number) => {
+  const pat = ctx.createPattern(img, 'repeat');
+  if (pat && img.width && img.height && typeof DOMMatrix !== 'undefined') pat.setTransform(new DOMMatrix().scale(tilePx / img.width, tilePx / img.height));
+  return pat;
+};
+/** Pool finish photo covers 4 ft, coping/paver photo covers 1 ft — same as the 3D viewer. */
+const FINISH_TILE_FT = 4;
 const CATALOG_FINISHES_2D = buildFinishTextures().map(t => ({ id: `cat-${t.id}`, name: t.name, image: t.url as string }));
 
 export function PoolBuilder({
@@ -410,7 +418,7 @@ export function PoolBuilder({
   const [isDraggingRoof, setIsDraggingRoof] = useState(false);
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
   const [selectedCopingId, setSelectedCopingId] = useState('appian-adobe');
-  const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
+  const [selectedFinishId, setSelectedFinishId] = useState(() => CATALOG_FINISHES_2D.find(f => /tahoe/i.test(f.name))?.id ?? 'aquamarine');
   const [paverSize] = useState(24); // Larger paver size for better visibility (24 inches / 2 feet)
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('freeform');
   const [copingThickness, setCopingThickness] = useState(10); // Adjusted for new scale
@@ -2072,7 +2080,7 @@ export function PoolBuilder({
             }
             if (copingTexture) {
               ctx.lineWidth = paverSizeInPixels;
-              const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+              const copingPattern = scaledPattern(ctx, copingTexture as HTMLCanvasElement, scale);
               if (copingPattern) {
                 ctx.strokeStyle = copingPattern;
                 ctx.stroke();
@@ -2129,7 +2137,7 @@ export function PoolBuilder({
         ctx.lineWidth = paverSizeInPixels; // Use same size as deck pavers
 
         // Create pattern from coping texture
-        const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+        const copingPattern = scaledPattern(ctx, copingTexture as HTMLCanvasElement, scale);
         if (copingPattern) {
           ctx.strokeStyle = copingPattern;
           ctx.stroke();
@@ -2154,10 +2162,9 @@ export function PoolBuilder({
       ctx.clip();
 
       // Load and use sapphire blue pool texture
-      const poolTextureImg = new Image();
-      poolTextureImg.src = poolTextureSapphire;
-      if (poolTextureImg.complete) {
-        const pattern = ctx.createPattern(poolTextureImg, 'repeat');
+      const poolTextureImg = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+      if (poolTextureImg) {
+        const pattern = scaledPattern(ctx, poolTextureImg as HTMLCanvasElement, scale * FINISH_TILE_FT);
         if (pattern) {
           ctx.fillStyle = pattern;
           ctx.fill();
@@ -2166,7 +2173,7 @@ export function PoolBuilder({
         // Fallback while loading
         const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
         if (linerTexture) {
-          const pattern = ctx.createPattern(linerTexture, 'repeat');
+          const pattern = scaledPattern(ctx, linerTexture as HTMLCanvasElement, scale * FINISH_TILE_FT);
           if (pattern) {
             ctx.fillStyle = pattern;
             ctx.fill();
@@ -4297,7 +4304,7 @@ export function PoolBuilder({
             }
             if (copingTexture) {
               ctx.lineWidth = paverSizeInPixels;
-              const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+              const copingPattern = scaledPattern(ctx, copingTexture as HTMLCanvasElement, scale);
               if (copingPattern) {
                 ctx.strokeStyle = copingPattern;
                 ctx.stroke();
@@ -4344,7 +4351,7 @@ export function PoolBuilder({
         if (copingTexture) {
           ctx.save();
           ctx.lineWidth = paverSizeInPixels;
-          const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+          const copingPattern = scaledPattern(ctx, copingTexture as HTMLCanvasElement, scale);
           if (copingPattern) {
             ctx.strokeStyle = copingPattern;
             ctx.stroke();
@@ -4471,10 +4478,9 @@ export function PoolBuilder({
       }
       ctx.closePath();
       ctx.clip();
-      const poolTextureImg = new Image();
-      poolTextureImg.src = poolTextureSapphire;
-      if (poolTextureImg.complete) {
-        const pattern = ctx.createPattern(poolTextureImg, 'repeat');
+      const poolTextureImg = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+      if (poolTextureImg) {
+        const pattern = scaledPattern(ctx, poolTextureImg as HTMLCanvasElement, scale * FINISH_TILE_FT);
         if (pattern) {
           ctx.fillStyle = pattern;
           ctx.fill();
@@ -4482,7 +4488,7 @@ export function PoolBuilder({
       } else {
         const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
         if (linerTexture) {
-          const pattern = ctx.createPattern(linerTexture, 'repeat');
+          const pattern = scaledPattern(ctx, linerTexture as HTMLCanvasElement, scale * FINISH_TILE_FT);
           if (pattern) {
             ctx.fillStyle = pattern;
             ctx.fill();
