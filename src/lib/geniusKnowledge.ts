@@ -11,6 +11,7 @@ import { getAllProducts, type PoolProductInfo } from '@/data/poolProductLookup';
 import { gilmerSpas } from '@/data/gilmerSpas';
 import { saunas } from '@/data/saunaData';
 import { DISCIPLINES } from '@/lib/quoteDisciplines';
+import { paverTypes } from '@/data/paverData';
 
 export interface KnowledgeItem { name: string; category: string; brand?: string; price: number; dimensions?: string; depth?: string; note?: string; image?: string }
 
