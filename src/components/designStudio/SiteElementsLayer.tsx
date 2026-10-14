@@ -462,7 +462,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
 /* ---------- 3D hand-off ---------- */
 import { netRegions } from "@/lib/design/boardNetArea";
-import type { Board3D } from "@/lib/design/board3D";
+import { loadBoard3D, type Board3D } from "@/lib/design/board3D";
+import { mitredOffsetRing } from "@/utils/polygonGeometry";
 
 /**
  * Builds the 3D Studio hand-off from the Design Studio: fences, screens and turf
@@ -470,23 +471,44 @@ import type { Board3D } from "@/lib/design/board3D";
  * centres the pool the same way). Pools cut the turf. No extra waters are sent:
  * the Design Studio's extra pools/spas already travel inside its own scene.
  */
-export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = []): Board3D {
+export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string }> = []): Board3D {
   const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
   const pool = poolRing(poolPts).map(f);
   let c = { x: 0, y: 0 };
   if (pool.length >= 3) { const xs = pool.map((p) => p.x), ys = pool.map((p) => p.y); c = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; }
   const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
-  const net = [...(pool.length >= 3 ? [{ id: "__pool", kind: "pool", pts: pool }] : []), ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []), ...items.map((e) => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) }))];
+  // Every extra pool/spa from the 2D designer (feet), plus its own auto deck ring.
+  const extras = extraPools.filter((p) => p.points?.length >= 3).map((p) => ({ ...p, ring: densifyPoolOutline(p.points as never, p.shape ?? "freeform").map(f) }));
+  const extraDecks = extras.map((p) => ({ id: `__deck_${p.id}`, kind: "deck", pts: mitredOffsetRing(p.ring, EXTRA_DECK_FT).offset }));
+  // Order matters: a later deck cuts an earlier one, so the pool's own deck sits
+  // last and drawn decks never cover it (one continuous slab, no overlap).
+  const net = [
+    ...(pool.length >= 3 ? [{ id: "__pool", kind: "pool", pts: pool }] : []),
+    ...extras.map((p) => ({ id: p.id, kind: p.type === "spa" ? "spa" : "pool", pts: p.ring })),
+    ...items.map((e) => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) })),
+    ...extraDecks,
+    ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []),
+  ];
+  const regionsOf = (id: string) => netRegions(net, net.find((n) => n.id === id)!).map((poly) => poly.map((r) => r.map(to)));
+  const prev = new Map((loadBoard3D()?.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w]));
   const out: Board3D = { origin: c, fences: [], screens: [], surfaces: [], waters: [] };
+  const paver0 = DECK_PAVERS[0]?.image;
+  for (const p of extras) {
+    const old = prev.get(p.id);
+    out.waters!.push({ depth: p.type === "spa" ? 3 : 5, finish: "#5fb7d4", coping: "#d8d2c8", waterline: "#2f6f8f", copingWidth: 1, ...old, itemId: p.id, kind: p.type === "spa" ? "spa" : "pool", label: p.type === "spa" ? "Spa" : "Pool", pts: p.ring.map(to) });
+    out.surfaces.push({ itemId: `__deck_${p.id}`, kind: "deck", color: "#ffffff", image: paver0, regions: regionsOf(`__deck_${p.id}`) });
+  }
   for (const e of items) {
     const pts = e.pts.map(f);
     if (e.kind === "fence") out.fences.push({ itemId: e.id, pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: e.color });
     else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, pts: pts.map(to), height: e.height ?? 10, color: e.color });
-    else if (e.kind === "deck") out.surfaces.push({ itemId: e.id, kind: "deck", color: "#ffffff", image: (DECK_PAVERS.find((d) => d.id === e.style) ?? DECK_PAVERS[0])?.image, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
-    else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.texture, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
+    else if (e.kind === "deck") out.surfaces.push({ itemId: e.id, kind: "deck", color: "#ffffff", image: (DECK_PAVERS.find((d) => d.id === e.style) ?? DECK_PAVERS[0])?.image, regions: regionsOf(e.id) });
+    else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.texture, regions: regionsOf(e.id) });
   }
   return out;
 }
+/** Auto deck width around each extra pool/spa (ft), same default as the main pool. */
+const EXTRA_DECK_FT = 4;
 
 /* ---------- Header take-off (one place for every measure and cost) ---------- */
 import { ChevronDown } from "lucide-react";
