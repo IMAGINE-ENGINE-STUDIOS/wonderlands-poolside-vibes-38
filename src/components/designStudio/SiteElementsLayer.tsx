@@ -82,7 +82,7 @@ export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], d
 export interface BoardView {
   width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number;
   /** Main pool + its deck (PoolBuilder state) — turf is cut around both. */
-  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean;
+  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean;
   setDeck?: (pts: Pt[]) => void; setPool?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
 }
 
