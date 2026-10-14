@@ -546,22 +546,21 @@ function MaterialSelect({ label, value, onChange, options }: {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-semibold">{label}</Label>
+        <Label className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{label}</Label>
         <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">{current?.name}</span>
       </div>
-      <div className="grid grid-cols-3 gap-1.5 max-h-44 overflow-y-auto pr-1">
+      {/* Same swatch card as the Whole property picker — square photo, name below (Imagine Engine Studios Corp). */}
+      <div className="grid grid-cols-3 gap-1.5 max-h-56 overflow-y-auto pr-1">
         {options.map(opt => (
           <button
             key={opt.id}
             type="button"
             onClick={() => onChange(opt.id)}
             title={opt.name}
-            className={`relative group rounded-lg overflow-hidden border-2 transition-all ${opt.id === value ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}
+            className={`flex flex-col border text-left text-[10px] transition-colors ${opt.id === value ? 'border-foreground' : 'border-border hover:border-foreground'}`}
           >
-            <img loading="lazy" decoding="async" src={opt.image} alt={opt.name} className="w-full h-14 object-cover" />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/70 to-transparent px-1 py-0.5">
-              <span className="block text-[9px] font-medium text-background truncate">{opt.name}</span>
-            </div>
+            <img loading="lazy" decoding="async" src={opt.image} alt={opt.name} className="aspect-square w-full object-cover" />
+            <span className="block min-h-[2.25rem] p-1 leading-tight">{opt.name}</span>
           </button>
         ))}
       </div>
