@@ -154,9 +154,16 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
       if (isEnv || asset.autoFit !== false) {
         const k = realWorldFit(asset.name, asset.type, size, siteRef);
         g.scale.setScalar(k);
+        // Center the pivot on X/Z: many models are authored far from their origin,
+        // which made them land off-target or appear the wrong size/position.
+        const cx = (box.min.x + box.max.x) / 2;
+        const cz = (box.min.z + box.max.z) / 2;
+        g.position.x = -cx * k;
+        g.position.z = -cz * k;
         g.position.y = asset.type === 'skydome'
           ? -(min.y + size.y / 2) * k * 0.2
-          : asset.type === 'terrain' ? -min.y * k - 0.3 : -min.y * k;
+          // Terrains sit just under the deck so hills never rise over the pool.
+          : asset.type === 'terrain' ? -(min.y + size.y * 0.35) * k - 0.4 : -min.y * k;
       }
       // Sharp textures at grazing angles (terrains looked low-res).
       const aniso = gl.capabilities.getMaxAnisotropy();
@@ -165,9 +172,15 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
         mats.forEach((m: any) => {
           ['map', 'normalMap', 'roughnessMap', 'aoMap'].forEach((key) => {
             const t = m[key] as THREE.Texture | undefined;
-            if (t) { t.anisotropy = aniso; t.needsUpdate = true; }
+            if (t) {
+              t.anisotropy = aniso;
+              t.minFilter = THREE.LinearMipmapLinearFilter;
+              t.generateMipmaps = true;
+              t.needsUpdate = true;
+            }
           });
-          // Terrains never cover the pool: cut out the pool + deck footprint.
+          // Terrains never cover the pool: cut out the pool + deck footprint
+          // (rounded rectangle, soft margin) in world space.
           if (asset.type === 'terrain' && siteRef && !m.userData.poolCut) {
             m.userData.poolCut = true;
             const half = new THREE.Vector2(
@@ -177,7 +190,7 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
             m.onBeforeCompile = (sh: any) => {
               sh.uniforms.uPoolHalf = { value: half };
               sh.vertexShader = 'varying vec3 vPoolW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvPoolW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-              sh.fragmentShader = 'uniform vec2 uPoolHalf;\nvarying vec3 vPoolW;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  if (abs(vPoolW.x) < max(uPoolHalf.x, uPoolHalf.y) && abs(vPoolW.z) < max(uPoolHalf.x, uPoolHalf.y)) discard;');
+              sh.fragmentShader = 'uniform vec2 uPoolHalf;\nvarying vec3 vPoolW;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  float hx = max(uPoolHalf.x, uPoolHalf.y); vec2 q = abs(vPoolW.xz) - vec2(hx) + 2.0;\n  if (length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - 2.0 < 0.0 && vPoolW.y > -6.0) discard;');
             };
             m.needsUpdate = true;
           }
