@@ -34,6 +34,7 @@ import { buildCatalogTextureLibrary } from "@/data/textureLibrary";
 import { useToast } from "@/hooks/use-toast";
 import { CategoryToolbar } from "@/components/designStudio/CategoryToolbar";
 import { SubToolbar } from "@/components/designStudio/SubToolbar";
+import { Genius2DBar } from "@/components/designStudio/Genius2DBar";
 import type { DesignCategory, ToolDefinition } from "@/components/designStudio/featureTypes";
 interface Product {
   model?: string;
@@ -556,6 +557,8 @@ const DesignStudio = () => {
       <main className="flex-1 relative overflow-hidden">
         {activeView === '2d' ? <div className="w-full h-full">
             <PoolBuilder key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} />
+            {/* Genius draws a full pool + depth + deck from a sentence (same brief as 3D). */}
+            <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} />
           </div> : <div className="w-full h-full">
             <UnifiedPoolVisualizer scene={buildPersistedScene()} textureLibrary={studioTextureLibrary} onSceneChange={handle3DSceneChange} />
             {/* Always-visible return to 2D (stays on top even in fullscreen 3D). */}

@@ -87,7 +87,8 @@ export const BAR_STOOL_PRESET: Omit<PoolChairConfig, 'id' | 'wallPosition' | 'te
 };
 
 export function ContourWrapButtons({ seating, onChange }: { seating: ContourSeatingConfig; onChange: (u: Partial<ContourSeatingConfig>) => void }) {
-  const span = (f: number) => onChange({ endPosition: Math.min(1, seating.startPosition + f) });
+  // endPosition may exceed 1 — the bench wraps across the seam (up to a full 360° loop).
+  const span = (f: number) => onChange({ endPosition: seating.startPosition + f });
   return (
     <div className="space-y-1.5">
       <Label className="text-xs">Wrap around the pool</Label>
@@ -95,7 +96,7 @@ export function ContourWrapButtons({ seating, onChange }: { seating: ContourSeat
         <Button variant="outline" size="sm" className={cn(PANEL_BTN, 'px-0')} onClick={() => span(0.125)}>1/8</Button>
         <Button variant="outline" size="sm" className={cn(PANEL_BTN, 'px-0')} onClick={() => span(0.25)}>1/4</Button>
         <Button variant="outline" size="sm" className={cn(PANEL_BTN, 'px-0')} onClick={() => span(0.5)}>1/2</Button>
-        <Button variant="outline" size="sm" className={cn(PANEL_BTN, 'px-0')} onClick={() => onChange({ startPosition: 0, endPosition: 1 })}>Full</Button>
+        <Button variant="outline" size="sm" className={cn(PANEL_BTN, 'px-0')} onClick={() => onChange({ endPosition: seating.startPosition + 1 })}>360°</Button>
       </div>
     </div>
   );

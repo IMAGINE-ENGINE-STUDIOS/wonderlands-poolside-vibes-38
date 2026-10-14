@@ -259,6 +259,12 @@ const DEMO_SCENE_GROUPS = [
   },
 ];
 
+/** Warm the quote + signature tools so their buttons open instantly. */
+const preloadDocTools = () => {
+  void import('@/components/SurveyQuoteTool');
+  void import('@/components/blueprint/SignaturePad');
+};
+
 const EMPTY_PLAN: SitePlanData = { shapes: [], pxPerFt: DEFAULT_PX_PER_FT };
 
 const StudioShowroom = () => {
@@ -291,6 +297,7 @@ const StudioShowroom = () => {
   const [planner3D, setPlanner3D] = React.useState<{ scene: any; lib: any } | null>(null);
 
   const ActiveHomeSection = HOME_COMPONENTS[homeSection] ?? HOME_COMPONENTS.pools;
+  React.useEffect(() => { const t = window.setTimeout(preloadDocTools, 1500); return () => window.clearTimeout(t); }, []);
 
   /* Genius reads this screen and can operate every widget on it. */
   React.useEffect(() => {
@@ -573,7 +580,7 @@ const StudioShowroom = () => {
               <img src={signature} alt="Applied signature" className="h-16 border border-border/60 bg-background px-3" />
             )}
           </div>
-          <React.Suspense fallback={null}>
+          <React.Suspense fallback={signatureOpen ? <Fallback /> : null}>
             {signatureOpen && (
               <SignaturePad
                 open={signatureOpen}
@@ -630,7 +637,7 @@ const StudioShowroom = () => {
             <Button onClick={() => setQuoteOpen(true)}>Open the quote tool</Button>
             <span className="text-xs text-muted-foreground">Seeded with {quoteSeed.name}</span>
           </div>
-          <React.Suspense fallback={null}>
+          <React.Suspense fallback={quoteOpen ? <Fallback /> : null}>
             {quoteOpen && (
               <SurveyQuoteTool
                 pool={null}
@@ -757,7 +764,7 @@ const StudioShowroom = () => {
     ),
     'dash-salesrep': (
       <AutoMount title="Sales Rep Dashboard" note="The sales team dashboard, opened on the demo session.">
-        <ShowroomDemoSession><SalesRepTool /></ShowroomDemoSession>
+        <ShowroomDemoSession><SalesRepTool embedded /></ShowroomDemoSession>
       </AutoMount>
     ),
   };
