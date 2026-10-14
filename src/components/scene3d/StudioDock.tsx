@@ -308,7 +308,7 @@ export function StudioDock(props: Props) {
   return (
     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2">
       {tab && (
-        <div className="w-80 rounded-xl border bg-background/98 p-3 shadow-2xl backdrop-blur-md">
+        <div className="w-80 rounded-xl border bg-background/95 p-3 shadow-2xl backdrop-blur-md">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold">{titles[tab]}</p>
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setTab(null)}><X className="h-3.5 w-3.5" /></Button>
