@@ -116,9 +116,6 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
         {/* Header */}
         <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
           <span className="text-sm font-semibold text-foreground">2D Designer</span>
-          <span className="text-xs text-muted-foreground font-mono">
-            {formatCurrency(props.projectCost.total)}
-          </span>
         </div>
 
         <ScrollArea className="flex-1 min-h-0">

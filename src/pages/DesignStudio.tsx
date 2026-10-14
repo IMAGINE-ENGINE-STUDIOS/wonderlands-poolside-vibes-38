@@ -92,6 +92,7 @@ const DesignStudio = () => {
       copingCost: number;
       featuresCost: number;
       total: number;
+      featuresList?: Array<{ type: string; cost: number }>;
     };
   } | null>(null);
   const [resetKey, setResetKey] = useState(0);
