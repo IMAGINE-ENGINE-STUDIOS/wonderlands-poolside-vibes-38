@@ -24,15 +24,9 @@ import { Headphones, Pause, Play, Send, Languages } from "lucide-react";
 import useNarrator from "@/hooks/useNarrator";
 import useGenius from "@/hooks/useGenius";
 import { speakGeniusText, stopGeniusVoice } from "@/lib/geniusVoiceChannel";
+import { GENIUS_LANGUAGES, detectLanguage, translateText, translateTexts } from "@/lib/genius/geniusLanguage";
 
-const LANGUAGES = [
-  { code: "en-US", label: "English", name: "English" },
-  { code: "es-ES", label: "Español", name: "Spanish" },
-  { code: "pt-BR", label: "Português", name: "Portuguese" },
-  { code: "fr-FR", label: "Français", name: "French" },
-  { code: "de-DE", label: "Deutsch", name: "German" },
-  { code: "it-IT", label: "Italiano", name: "Italian" },
-];
+const LANGUAGES = GENIUS_LANGUAGES;
 
 const STORAGE_KEY = "wl.narrator.console.lang";
 
@@ -42,7 +36,7 @@ const FlipNarratorConsole: React.FC = () => {
 
   const [lang, setLang] = React.useState<string>(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) || "en-US";
+      return localStorage.getItem(STORAGE_KEY) || detectLanguage("");
     } catch {
       return "en-US";
     }
@@ -58,7 +52,6 @@ const FlipNarratorConsole: React.FC = () => {
   }, [lang]);
 
   const english = lang.startsWith("en");
-  const languageName = LANGUAGES.find((l) => l.code === lang)?.name ?? "English";
 
   const play = React.useCallback(() => {
     if (narrator.isSpeaking) {
@@ -69,10 +62,13 @@ const FlipNarratorConsole: React.FC = () => {
       void narrator.narrate();
       return;
     }
-    /* Another tongue: keep the local script, read it with the browser engine. */
-    void narrator.narrate({ withVoice: false }).then((script) => {
+    /* Another tongue: translate the local script, then read it with a native voice. */
+    void narrator.narrate({ withVoice: false }).then(async (script) => {
       const text = script || narrator.script;
-      if (text) speakGeniusText(text, lang);
+      if (!text) return;
+      const spoken = await translateText(text, lang);
+      setShownScript(spoken);
+      speakGeniusText(spoken, lang);
     });
   }, [english, lang, narrator]);
 
@@ -82,15 +78,38 @@ const FlipNarratorConsole: React.FC = () => {
       const text = draft.trim();
       if (!text || genius.isThinking) return;
       setDraft("");
-      const framed = english ? text : `${text}\n(Answer in ${languageName}.)`;
-      void genius.ask(framed);
+      /* Typing in another tongue switches the console to it. */
+      const typed = detectLanguage(text);
+      if (!typed.startsWith("en") && typed !== lang) setLang(typed);
+      void genius.ask(text);
     },
-    [draft, english, genius, languageName],
+    [draft, genius, lang],
   );
 
   React.useEffect(() => () => stopGeniusVoice(), []);
 
-  const transcript = narrator.script;
+  const [shownScript, setShownScript] = React.useState<string>("");
+  React.useEffect(() => { if (english) setShownScript(""); }, [english]);
+  const transcript = (!english && shownScript) || narrator.script;
+
+  /* Chat turns are answered in English locally/by Genius, then shown in the chosen tongue. */
+  const [translated, setTranslated] = React.useState<Record<string, string>>({});
+  const recent = genius.turns.slice(-8);
+  const pendingKey = english ? "" : recent.filter((t) => !translated[`${lang}|${t.id}`]).map((t) => t.id).join(",");
+  React.useEffect(() => {
+    if (!pendingKey) return;
+    const todo = recent.filter((t) => !translated[`${lang}|${t.id}`]);
+    void translateTexts(todo.map((t) => t.content), lang).then((out) => {
+      setTranslated((prev) => {
+        const next = { ...prev };
+        todo.forEach((t, i) => (next[`${lang}|${t.id}`] = out[i]));
+        return next;
+      });
+      const last = todo[todo.length - 1];
+      if (last?.role === "assistant") speakGeniusText(out[todo.length - 1], lang);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingKey, lang]);
 
   return (
     <div className="space-y-4">
@@ -137,7 +156,7 @@ const FlipNarratorConsole: React.FC = () => {
       {/* Chat */}
       {genius.turns.length > 0 && (
         <div className="max-h-40 space-y-2 overflow-y-auto pr-1">
-          {genius.turns.slice(-8).map((turn) => (
+          {recent.map((turn) => (
             <p
               key={turn.id}
               className={
@@ -149,7 +168,7 @@ const FlipNarratorConsole: React.FC = () => {
               <span className="mr-2 text-[8px] uppercase tracking-[0.3em] text-muted-foreground">
                 {turn.role === "user" ? "You" : "Genius"}
               </span>
-              {turn.content}
+              {(!english && translated[`${lang}|${turn.id}`]) || turn.content}
             </p>
           ))}
         </div>

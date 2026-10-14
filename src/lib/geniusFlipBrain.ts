@@ -23,7 +23,7 @@ import { GENIUS_DESTINATIONS, isGeniusAllowedPath } from '@/lib/geniusAccess';
 import { readFlipViewport } from '@/lib/flipViewportReader';
 import { getAllProducts } from '@/data/poolProductLookup';
 import { ITEMS } from '@/components/FlipIndex';
-import { answerPriceQuestion } from '@/lib/geniusKnowledge';
+import { answerIntent as answerPriceQuestion } from '@/lib/geniusKnowledge';
 
 export interface GeniusResolution {
   handled: boolean;
@@ -58,6 +58,20 @@ function matchProduct(text: string) {
     }) ??
     null
   );
+}
+
+/** Which book chapter holds a catalog product? Category labels differ from chapter labels. */
+const CAT_TO_CHAPTER: [RegExp, string][] = [
+  [/tanning/, 'tanning-ledges'], [/spa|hot tub/, 'spas'], [/sauna/, 'saunas'], [/cover/, 'covers'],
+  [/gate/, 'driveway-gates'], [/fenc/, 'patio-fencing'], [/screen|enclosure/, 'screen-enclosures'],
+  [/paver/, 'pavers'], [/turf|grass/, 'artificial-grass'], [/solar/, 'solar'], [/pool/, 'pools'],
+];
+function chapterFor(product: { category?: string; brand?: string; name?: string }) {
+  const c = norm(product.category ?? '');
+  const brand = norm((product as any).brand ?? '');
+  if (/pool/.test(c) && /wonderlands|concrete/.test(brand)) return ITEMS.find((i) => i.id === 'concrete-pools') ?? null;
+  const id = CAT_TO_CHAPTER.find(([re]) => re.test(c))?.[1];
+  return (id && ITEMS.find((i) => i.id === id)) || matchCategory(product.category ?? '');
 }
 
 function matchRoute(text: string) {
@@ -161,7 +175,14 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
 
   /* ----------------------- price questions (cheapest etc.) ------------------ */
   const priceAnswer = answerPriceQuestion(raw);
-  if (priceAnswer) return { handled: true, reply: priceAnswer, actions: bookChips() };
+  if (priceAnswer) {
+    /* Flip the book to the winning model, not just talk about it. */
+    const top = priceAnswer.match(/(?:is the|: )([^;,]+?) (?:by|at) /)?.[1];
+    const hit = top ? matchProduct(top) : null;
+    const chapter = hit ? chapterFor(hit as any) : null;
+    if (controls && hit && chapter) controls.openProduct(chapter.id, hit.name);
+    return { handled: true, reply: hit && chapter && controls ? `${priceAnswer} Opening its book now.` : priceAnswer, actions: bookChips() };
+  }
 
   /* ------------------------- products and disciplines ----------------------- */
 
@@ -169,8 +190,8 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
   const product = matchProduct(raw);
   if (product) {
     const price = money(product.price);
-    const category = ITEMS.find((i) => norm(i.label) === norm(product.category ?? '')) ?? matchCategory(product.category ?? '');
-    if (controls && category) controls.openProduct(category.id, String((product as any).id ?? product.name));
+    const category = chapterFor(product as any);
+    if (controls && category) controls.openProduct(category.id, product.name);
     const bits = [
       `${product.name}${product.category ? ` — ${product.category}` : ''}.`,
       price ? `Turnkey from ${price}, delivery and installation included.` : null,

@@ -20,3 +20,8 @@
 - [x] 3D: metallic fence material (keep geometry)
 - [x] 3D: second pools/spas rendered with waterline, coping, deck, finish, editable
 - [x] 3D: fence widget (color, height) and screen-enclosure widget (color, height, real cage look)
+
+## Genius search + narrator (latest)
+- [x] Home search infers intent (small/large, cheapest, "what do you have") and shows Genius answers
+- [x] Language detection + auto-translation in search and narrator; native voices
+- [x] Book Genius flips to the named/cheapest product

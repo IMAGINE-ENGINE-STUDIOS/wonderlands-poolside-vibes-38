@@ -99,3 +99,59 @@ export function answerPriceQuestion(text: string): string | null {
   const pick = cheap ? sorted.slice(0, 3) : sorted.slice(-3).reverse();
   return `The ${cheap ? 'most accessible' : 'most premium'} ${label} is the ${desc(pick[0])}, delivery and installation included.${pick.length > 1 ? ` Close behind: ${pick.slice(1).map(desc).join('; ')}.` : ''}`;
 }
+
+/* ---------------- Intent inference (search bar + Genius) — © Imagine Engine Studios Corp. ------------- */
+
+/** Map common non-English shopping words to English so one parser serves every tongue. */
+const WORD_MAP: Array<[RegExp, string]> = [
+  [/\b(piscinas?|piscine|schwimmbad)\b/gi, 'pool'],
+  [/\b(jacuzzi|whirlpool|banheira)\b/gi, 'spa'],
+  [/\b(m[aá]s barat[oa]|barat[oa]|économique|moins cher|g[üu]nstigste?|economic[oa]|pi[uù] economic[oa])\b/gi, 'cheapest'],
+  [/\b(m[aá]s car[oa]|plus cher|teuerste?|pi[uù] costos[oa])\b/gi, 'most expensive'],
+  [/\b(peque[ñn][oa]|pequena|petite?|klein(e|er|es)?|piccol[ao])\b/gi, 'small'],
+  [/\b(grande|gro(ß|ss)(e|er|es)?)\b/gi, 'large'],
+  [/\b(menos de|moins de|unter|sotto|abaixo de)\b/gi, 'under'],
+];
+export function toEnglishIntent(text: string): string {
+  return WORD_MAP.reduce((s, [re, en]) => s.replace(re, en), text);
+}
+
+const areaOf = (dims?: string) => {
+  const nums = (dims ?? '').match(/\d+(?:\.\d+)?(?:'\s*\d+(?!\s*'))?/g)?.slice(0, 2).map((d) => {
+    const [ft, inch] = d.split(/'\s*/);
+    return Number(ft) + (Number(inch) || 0) / 12;
+  });
+  return nums && nums.length === 2 ? nums[0] * nums[1] : 0;
+};
+
+/**
+ * One local answer for conversational searches: price questions, "small pool",
+ * "large spa", "what do you have?". Returns null when Genius should be asked instead.
+ */
+export function answerIntent(raw: string): string | null {
+  const text = toEnglishIntent(raw);
+  const price = answerPriceQuestion(text);
+  if (price) return price;
+  const t = text.toLowerCase();
+  if (/\b(what (do )?you (have|sell|offer)|what('s| is) available|show me everything|catalog|options)\b/.test(t)) {
+    const items = getKnowledgeItems();
+    const count = (c: string) => items.filter((i) => i.category === c).length;
+    const from = (c: string) => {
+      const p = items.filter((i) => i.category === c).map((i) => i.price).filter((n) => n > 0);
+      return p.length ? ` from ${money(Math.min(...p))}` : '';
+    };
+    return `We offer ${count('Pool')} pools${from('Pool')} (Wonderlands concrete, Latham and GlimmerGlass fiberglass), ${count('Spa')} spas${from('Spa')}, ${count('Sauna')} saunas${from('Sauna')}, plus solar, pavers, screen enclosures, fencing, turf and landscaping — and design tools like the 3D Studio, the Global Design Board and Solar Genius.`;
+  }
+  const small = /\b(small|compact|tiny|little|smallest)\b/.test(t);
+  const large = /\b(large|big|biggest|largest|huge)\b/.test(t);
+  if (small || large) {
+    const category = CAT_WORDS.find(([re]) => re.test(t))?.[1] ?? 'Pool';
+    const list = getKnowledgeItems().filter((i) => i.category === category && areaOf(i.dimensions) > 0);
+    if (!list.length) return null;
+    const sorted = [...list].sort((a, b) => areaOf(a.dimensions) - areaOf(b.dimensions));
+    const pick = (small ? sorted : sorted.reverse()).slice(0, 3);
+    const desc = (i: KnowledgeItem) => `${i.name}${i.brand ? ` by ${i.brand}` : ''} (${i.dimensions}, ${money(i.price)})`;
+    return `Our ${small ? 'most compact' : 'largest'} ${category.toLowerCase()}s: ${pick.map(desc).join('; ')}. Delivery and installation included.`;
+  }
+  return null;
+}

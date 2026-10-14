@@ -1987,10 +1987,19 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
       openHome,
       openCategory,
       openProduct: (catId, productId) => {
-        const list = getCachedCategoryEntries(catId);
-        const entry = list?.find((e) => String(e.id) === String(productId));
-        if (entry) openProduct(catId, entry);
-        else openCategory(catId);
+        /* Genius passes a product id OR name; entry ids are "<name>-<i>", so match on name too,
+           and load the chapter when it is not cached yet. */
+        const n = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+        const want = n(String(productId));
+        const pick = (list?: ConsoleEntry[]) =>
+          list?.find((e) => String(e.id) === String(productId)) ??
+          list?.find((e) => n(e.name) === want) ??
+          list?.find((e) => n(e.name).startsWith(want) || want.startsWith(n(e.name)));
+        const hit = pick(getCachedCategoryEntries(catId));
+        if (hit) return openProduct(catId, hit);
+        loadCategoryEntries(catId)
+          .then((list) => { const e = pick(list); e ? openProduct(catId, e) : openCategory(catId); })
+          .catch(() => openCategory(catId));
       },
       /* The search bar is always live in the desk, so this is a no-op kept for the
          page-registry contract; the narrator console is what pops on demand. */
