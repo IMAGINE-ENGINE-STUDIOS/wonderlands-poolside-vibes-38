@@ -59,7 +59,7 @@ export function densifyPoolOutline<T extends Point2D & { curveType?: OutlineCurv
     } else if (type === 'curve' || type === 'arc') {
       // Quadratic (canvas quadraticCurveTo) expressed as a cubic.
       const k = type === 'curve' ? 0.25 : 0.35;
-      const bs = outwardBulgeSign(points, p2);
+      const bs = outwardBulgeSign(points, p2 as { curveFlip?: boolean });
       const q = { x: (p1.x + p2.x) / 2 - dy * k * bs, y: (p1.y + p2.y) / 2 + dx * k * bs };
       cp1 = { x: p1.x + (2 / 3) * (q.x - p1.x), y: p1.y + (2 / 3) * (q.y - p1.y) };
       cp2 = { x: p2.x + (2 / 3) * (q.x - p2.x), y: p2.y + (2 / 3) * (q.y - p2.y) };
