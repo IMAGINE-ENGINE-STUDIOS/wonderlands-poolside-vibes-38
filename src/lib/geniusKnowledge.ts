@@ -12,7 +12,7 @@ import { gilmerSpas } from '@/data/gilmerSpas';
 import { saunas } from '@/data/saunaData';
 import { DISCIPLINES } from '@/lib/quoteDisciplines';
 
-export interface KnowledgeItem { name: string; category: string; brand?: string; price: number; dimensions?: string; depth?: string; note?: string }
+export interface KnowledgeItem { name: string; category: string; brand?: string; price: number; dimensions?: string; depth?: string; note?: string; image?: string }
 
 /** Trade rates already used by the app's estimators. */
 const TRADE_RATES = [
@@ -36,15 +36,48 @@ export function getKnowledgeItems(): KnowledgeItem[] {
     seen.add(k);
     out.push(i);
   };
+  /* Same live catalog files the main page renders — new products appear automatically. */
   getAllProducts().forEach((p: PoolProductInfo) =>
-    push({ name: p.name, category: p.category, brand: p.brand, price: p.price, dimensions: p.dimensions, depth: p.depth }),
+    push({ name: p.name, category: p.category, brand: p.brand, price: p.price, dimensions: p.dimensions, depth: p.depth, image: p.image }),
   );
-  gilmerSpas.forEach((s) =>
-    push({ name: s.model, category: 'Spa', brand: s.brand, price: s.price, dimensions: s.dimensions, depth: s.depth, note: s.warranty }),
+  gilmerSpas.forEach((s: any) =>
+    push({ name: s.model, category: 'Spa', brand: s.brand, price: s.price, dimensions: s.dimensions, depth: s.depth, note: s.warranty, image: s.image ?? s.images?.[0] }),
   );
-  saunas.forEach((s: any) => push({ name: s.model ?? s.name, category: 'Sauna', brand: 'Almost Heaven', price: s.price }));
+  saunas.forEach((s: any) => push({ name: s.model ?? s.name, category: 'Sauna', brand: 'Almost Heaven', price: s.price, dimensions: s.dimensions, image: s.image }));
   cache = out;
   return out;
+}
+
+/**
+ * Structured product picks for a search query — sorted by price or size when
+ * asked, so the search shows real product cards, not just text.
+ * © Imagine Engine Studios Corp.
+ */
+export function intentProducts(raw: string, limit = 6): KnowledgeItem[] {
+  const t = toEnglishIntent(raw).toLowerCase();
+  const catHit = CAT_WORDS.find(([re]) => re.test(t))?.[1];
+  let list = getKnowledgeItems();
+  if (catHit) list = list.filter((i) => i.category === catHit);
+  if (/concrete/.test(t)) list = list.filter((i) => i.brand === 'Wonderlands');
+  if (/fiberglass/.test(t)) list = list.filter((i) => i.brand !== 'Wonderlands');
+  const brand = ['latham', 'glimmerglass', 'wonderlands', 'gilmer', 'almost heaven'].find((b) => t.includes(b));
+  if (brand) list = list.filter((i) => (i.brand ?? '').toLowerCase().includes(brand));
+  const words = t.split(/\W+/).filter((w) => w.length > 3);
+  const named = list.filter((i) => words.some((w) => i.name.toLowerCase().includes(w)));
+  const under = t.match(/\b(?:under|below|less than)\s*\$?\s*(\d+(?:\.\d+)?)\s*(k)?/);
+  const over = t.match(/\b(?:over|above|more than)\s*\$?\s*(\d+(?:\.\d+)?)\s*(k)?/);
+  if (under) list = list.filter((i) => i.price <= Number(under[1]) * (under[2] ? 1000 : 1));
+  if (over) list = list.filter((i) => i.price >= Number(over[1]) * (over[2] ? 1000 : 1));
+  const cheap = /\b(cheapest|least expensive|lowest|affordable|budget|cheap)\b/.test(t) || !!under;
+  const dear = /\b(most expensive|priciest|highest|premium|luxury)\b/.test(t);
+  const small = /\b(small|compact|tiny|little|smallest)\b/.test(t);
+  const large = /\b(large|big|biggest|largest|huge)\b/.test(t);
+  if (!catHit && !brand && !named.length && !cheap && !dear && !small && !large && !over) return [];
+  if (named.length && !cheap && !dear && !small && !large) list = named;
+  const sorted = [...list];
+  if (small || large) sorted.sort((a, b) => (areaOf(a.dimensions) - areaOf(b.dimensions)) * (large ? -1 : 1));
+  else sorted.sort((a, b) => (a.price - b.price) * (dear ? -1 : 1));
+  return sorted.slice(0, limit);
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
