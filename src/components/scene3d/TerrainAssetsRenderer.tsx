@@ -183,14 +183,37 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
           // (rounded rectangle, soft margin) in world space.
           if (asset.type === 'terrain' && siteRef && !m.userData.poolCut) {
             m.userData.poolCut = true;
+            // Exact pool+deck footprint (world XZ, centred), max 96 points;
+            // falls back to the rounded envelope when no outline is known.
+            const ring = (siteRef.outline || []).slice();
+            const step = Math.max(1, Math.ceil(ring.length / 96));
+            const pts = ring.filter((_, i) => i % step === 0).slice(0, 96);
+            const arr = Array.from({ length: 96 }, (_, i) => new THREE.Vector2(pts[i]?.x ?? 0, pts[i]?.z ?? 0));
             const half = new THREE.Vector2(
               siteRef.poolWidth / 2 + siteRef.deckWidth + 1,
               siteRef.poolLength / 2 + siteRef.deckWidth + 1,
             );
             m.onBeforeCompile = (sh: any) => {
               sh.uniforms.uPoolHalf = { value: half };
+              sh.uniforms.uRing = { value: arr };
+              sh.uniforms.uRingN = { value: pts.length >= 3 ? pts.length : 0 };
               sh.vertexShader = 'varying vec3 vPoolW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvPoolW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-              sh.fragmentShader = 'uniform vec2 uPoolHalf;\nvarying vec3 vPoolW;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  float hx = max(uPoolHalf.x, uPoolHalf.y); vec2 q = abs(vPoolW.xz) - vec2(hx) + 2.0;\n  if (length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - 2.0 < 0.0 && vPoolW.y > -6.0) discard;');
+              sh.fragmentShader = 'uniform vec2 uPoolHalf;\nuniform vec2 uRing[96];\nuniform int uRingN;\nvarying vec3 vPoolW;\n' + sh.fragmentShader.replace('void main() {', `void main() {
+  if (vPoolW.y > -6.0) {
+    if (uRingN >= 3) {
+      bool inside = false; vec2 p = vPoolW.xz;
+      for (int i = 0; i < 96; i++) {
+        if (i >= uRingN) break;
+        int j = i == 0 ? uRingN - 1 : i - 1;
+        vec2 a = uRing[i]; vec2 b = uRing[j];
+        if (((a.y > p.y) != (b.y > p.y)) && (p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y + 1e-6) + a.x)) inside = !inside;
+      }
+      if (inside) discard;
+    } else {
+      float hx = max(uPoolHalf.x, uPoolHalf.y); vec2 q = abs(vPoolW.xz) - vec2(hx) + 2.0;
+      if (length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - 2.0 < 0.0) discard;
+    }
+  }`);
             };
             m.needsUpdate = true;
           }
@@ -199,7 +222,7 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
       g.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.userData.walkable = true; });
     };
     apply();
-  }, [asset.url, asset.name, asset.type, asset.autoFit, siteRef?.poolLength, siteRef?.poolWidth, siteRef?.deckWidth]);
+  }, [asset.url, asset.name, asset.type, asset.autoFit, siteRef?.poolLength, siteRef?.poolWidth, siteRef?.deckWidth, siteRef?.outlineKey]);
   return <group ref={ref}>{children}</group>;
 }
 

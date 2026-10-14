@@ -22,6 +22,7 @@ import type { PoolLightConfig } from './types';
 import type { TerrainAsset } from './TerrainEditor';
 import { BAR_STOOL_PRESET } from './AssetEditorExtras';
 import { ambientMusic } from './ambientMusic';
+import { applyZeroEntry } from './depthUtils';
 
 export interface DockSnapshot {
   scene: Scene3D;

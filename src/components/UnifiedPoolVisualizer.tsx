@@ -1,3 +1,4 @@
+import { mitredOffsetRing } from '@/utils/polygonGeometry';
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Sky, Grid, PerformanceMonitor } from '@react-three/drei';
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react';
@@ -540,6 +541,22 @@ export function UnifiedPoolVisualizer({
     }));
     return computePerimeterDepths(normalized, linearDepthAnchors, depthAxis);
   }, [scene.pool.points, scene.pool.perimeterDepthPoints, linearDepthAnchors, depthAxis]);
+
+  // Terrain cutout footprint: exact pool outline offset by the deck, world XZ.
+  const terrainSiteRef = useMemo(() => {
+    const deckWidth = Number((scene.deck as any)?.width ?? (scene.deck as any)?.deckWidth) || 6;
+    const base = {
+      poolLength: scene.pool.dimensions?.length || 32,
+      poolWidth: scene.pool.dimensions?.width || 16,
+      deckWidth,
+    };
+    const pts = scene.pool.points;
+    if (!pts || pts.length < 3) return base;
+    const b = getPoolBounds(pts);
+    const ring = pts.map((p) => ({ x: p.x - b.centerX, y: p.y - b.centerZ }));
+    const off = mitredOffsetRing(ring, deckWidth + 1).offset.map((p) => ({ x: p.x, z: p.y }));
+    return { ...base, outline: off, outlineKey: off.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join('|') };
+  }, [scene.pool.points, scene.pool.dimensions, scene.deck]);
 
   // Interior floor depth (pool-centred coords, same space as the perimeter depths).
   const floorDepthAtCentered = useCallback(
@@ -1827,11 +1844,7 @@ export function UnifiedPoolVisualizer({
           {/* Terrain Assets from Terrain Editor - selectable with transform gizmo + snapping */}
           <TerrainAssetsRenderer
             assets={terrainAssets}
-            siteRef={{
-              poolLength: scene.pool.dimensions?.length || 32,
-              poolWidth: scene.pool.dimensions?.width || 16,
-              deckWidth: Number((scene.deck as any)?.width ?? (scene.deck as any)?.deckWidth) || 6,
-            }}
+            siteRef={terrainSiteRef}
             selectedAssetId={selectedTerrainAssetId}
             onAssetClick={(id) => setSelectedTerrainAssetId(id)}
             gizmoEnabled={!isWalkthroughMode && !isSplineEditMode}
