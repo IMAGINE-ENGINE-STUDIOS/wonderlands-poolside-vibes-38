@@ -42,6 +42,7 @@ import { textureCache } from '@/utils/textureCache';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { LandscapePlants3D } from './scene3d/LandscapePlants3D';
 import { BoardElements3D } from './scene3d/BoardElements3D';
+import { loadBoard3D, BOARD_3D_EVENT } from '@/lib/design/board3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
 
 interface UnifiedPoolVisualizerProps {
