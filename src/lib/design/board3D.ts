@@ -15,6 +15,7 @@
  */
 import { netRegions, type NetItem } from "@/lib/design/boardNetArea";
 import type { DepthAxis, LinearDepthAnchor } from "@/components/scene3d/types";
+import type { PoolStairConfig, ContourSeatingConfig } from "@/components/scene3d/poolAssetTypes";
 
 export const BOARD_3D_KEY = "studio3d.globalDesign.v1";
 export const BOARD_3D_EVENT = "studio3d:globalDesign";
@@ -32,7 +33,10 @@ export interface Water3D {
   /** Own shallow→deep profile + axis, in this water body's centred plan coords. */
   anchors?: LinearDepthAnchor[];
   axis?: DepthAxis;
-  finish: string; coping: string; waterline: string; copingWidth: number;
+  /** Catalog photo URLs (same library as the main pool); hex kept for legacy saves. */
+  finish: string; coping: string; waterline: string; copingWidth: number; copingHeight?: number;
+  /** Own stairs / contour seats, same configs the main pool's asset manager edits. */
+  stairs?: PoolStairConfig[]; seating?: ContourSeatingConfig[];
 }
 export interface Board3D {
   pool?: { w: number; l: number };
@@ -47,10 +51,15 @@ export function updateBoard3D(fn: (d: Board3D) => Board3D) {
 
 type BoardProduct = { id: string; color: string; size?: { w: number; l: number } };
 
+/** Keeps only the 3D-edited fields of a previous hand-off entry. */
+const pick = <T extends object>(o: T | undefined, keys: (keyof T)[]): Partial<T> => { const r: Partial<T> = {}; if (o) keys.forEach((k) => { if (o[k] !== undefined) r[k] = o[k]; }); return r; };
 const centroid = (pts: { x: number; y: number }[]) => pts.reduce((a, p) => ({ x: a.x + p.x / pts.length, y: a.y + p.y / pts.length }), { x: 0, y: 0 });
 
 export function boardTo3D(items: NetItem[], productOf: (id: string) => BoardProduct | undefined, productIdOf: (it: NetItem) => string, finishUrlOf?: (it: NetItem) => string | undefined): Board3D {
-  const prev = new Map((loadBoard3D()?.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w]));
+  const last = loadBoard3D();
+  const prev = new Map((last?.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w]));
+  const prevF = new Map((last?.fences ?? []).filter((f) => f.itemId).map((f) => [f.itemId!, f]));
+  const prevS = new Map((last?.screens ?? []).filter((f) => f.itemId).map((f) => [f.itemId!, f]));
   const pool = items.find((i) => i.kind === "pool") ?? items.find((i) => i.kind === "spa");
   let c = { x: 0, y: 0 };
   if (pool) c = centroid(pool.pts);
@@ -73,8 +82,8 @@ export function boardTo3D(items: NetItem[], productOf: (id: string) => BoardProd
         itemId: it.id, kind: it.kind, label: (p as BoardProduct & { label?: string }).label ?? it.kind, pts: it.pts.map(to),
       });
     }
-    else if (it.kind === "fence") out.fences.push({ itemId: it.id, pts: it.pts.map(to), style: parts[1], height: parseFloat(parts[3]) || 4, color: p.color });
-    else if (it.kind === "enclosure") out.screens.push({ itemId: it.id, pts: it.pts.map(to), height: parseFloat(parts[3]) || 10, color: p.color });
+    else if (it.kind === "fence") out.fences.push({ height: parseFloat(parts[3]) || 4, color: p.color, ...pick(prevF.get(it.id), ["height", "color"]), itemId: it.id, pts: it.pts.map(to), style: parts[1] });
+    else if (it.kind === "enclosure") out.screens.push({ height: parseFloat(parts[3]) || 10, color: p.color, ...pick(prevS.get(it.id), ["height", "color", "roof"]), itemId: it.id, pts: it.pts.map(to) });
     else if (it.kind === "turf" || it.kind === "deck") out.surfaces.push({ itemId: it.id, kind: it.kind, color: p.color, regions: netRegions(items, it).map((poly) => poly.map((r) => r.map(to))) });
   }
   return out;

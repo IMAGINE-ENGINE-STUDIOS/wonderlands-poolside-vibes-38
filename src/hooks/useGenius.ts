@@ -1,3 +1,4 @@
+import { detectLanguage, setActiveLanguage, translateText } from '@/lib/genius/geniusLanguage';
 import * as React from 'react';
 import { type NarratorAction, type NarratorContext } from '@/lib/narratorStore';
 import { resolveGeniusRequest, bookChips } from '@/lib/geniusFlipBrain';
@@ -90,7 +91,12 @@ export function useGenius(options?: GeniusOptions) {
       setActions([]);
       setIsThinking(true);
 
-      const settle = (reply: string, chips: NarratorAction[]) => {
+      /* Reply in the guest's language: intents run on English, the answer is translated back. */
+      const typed = detectLanguage(text);
+      if (!typed.startsWith('en') || text.length > 12) setActiveLanguage(typed);
+      const lang = typed;
+      const settle = async (raw: string, chips: NarratorAction[]) => {
+        const reply = lang.startsWith('en') ? raw : await translateText(raw, lang);
         setTurns((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: reply }]);
         setActions(chips.length ? chips : bookChips());
         setIsThinking(false);

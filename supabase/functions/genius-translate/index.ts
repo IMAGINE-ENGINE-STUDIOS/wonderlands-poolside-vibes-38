@@ -2,7 +2,7 @@
 // into the guest's language. Groq only. © Imagine Engine Studios Corp.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
-const MODEL = 'llama-3.3-70b-versatile';
+import { groqChat } from '../_shared/groqChat.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -15,11 +15,7 @@ Deno.serve(async (req) => {
     if (!texts.length || !language) return json({ error: 'texts and language required' }, 400);
     const key = Deno.env.get('GROQ_API_KEY');
     if (!key) return json({ translations: texts });
-    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: MODEL,
+    const r = await groqChat(key, ({
         temperature: 0.2,
         response_format: { type: 'json_object' },
         messages: [
@@ -29,8 +25,7 @@ Deno.serve(async (req) => {
           },
           { role: 'user', content: JSON.stringify({ strings: texts }) },
         ],
-      }),
-    });
+      }));
     if (!r.ok) return json({ translations: texts, status: r.status });
     const data = await r.json();
     const parsed = JSON.parse(data?.choices?.[0]?.message?.content ?? '{}');

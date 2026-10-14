@@ -1,3 +1,4 @@
+import { activeLanguage, translateText } from '@/lib/genius/geniusLanguage';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { generateFlipPitch } from '@/lib/flipPitchGenerator';
@@ -72,6 +73,10 @@ export function useNarrator() {
   const speak = React.useCallback(
     async (text: string, key: string) => {
       if (muted || !text) return;
+      // Other languages: the recorded voice is English-only, so read the
+      // translated script with a native browser voice for that language.
+      const lang = activeLanguage();
+      if (!lang.startsWith('en')) { speakGeniusText(await translateText(text, lang), lang); return; }
       try {
         let url = getCachedAudio(key);
         if (!url) {
@@ -111,7 +116,8 @@ export function useNarrator() {
 
       const cached = getCachedScript(key);
       if (cached) {
-        setScript(cached.script);
+        const cl = activeLanguage();
+        setScript(cl.startsWith('en') ? cached.script : await translateText(cached.script, cl));
         setActions(cached.actions);
         if (opts?.withVoice !== false) void speak(cached.script, key);
         return cached.script;
@@ -129,10 +135,12 @@ export function useNarrator() {
         const data = saved ? { ...local, script: saved } : local;
         cacheScript(key, data);
         historyRef.current = [...historyRef.current, ctx.title].slice(-4);
-        setScript(data.script);
+        const lang = activeLanguage();
+        const shown = lang.startsWith('en') ? data.script : await translateText(data.script, lang);
+        setScript(shown);
         setActions(data.actions ?? []);
         if (opts?.withVoice !== false) void speak(data.script, key);
-        return data.script;
+        return shown;
       } finally {
         setIsLoading(false);
       }

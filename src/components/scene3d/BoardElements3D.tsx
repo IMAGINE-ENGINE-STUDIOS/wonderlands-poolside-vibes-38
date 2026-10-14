@@ -7,12 +7,21 @@
  */
 import * as React from "react";
 import * as THREE from "three";
-import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D, waterDepthAt } from "@/lib/design/board3D";
+import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D, waterDepthAt, waterCenter, updateBoard3D } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
+import { smoothCurvedRing } from "@/utils/deckSurface";
+import { generateCurvedPoolPoints } from "@/utils/curveUtils";
+import { PoolMesh } from "@/components/Pool3DScene";
+import { CopingGeometry } from "./CopingGeometry";
+import { WaterlineMesh } from "@/components/WaterlineMesh";
+import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
+import { useThree } from "@react-three/fiber";
+import { applyHoleCut } from "./holeCutShader";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
 export const BOARD_SELECT_EVENT = "studio3d:boardSelect";
-export type BoardSelection = { type: "fence" | "screen" | "water"; i: number } | null;
+export type WaterPart = "pool" | "coping" | "waterline" | "deck";
+export type BoardSelection = { type: "fence" | "screen" | "water"; i: number; part?: WaterPart } | null;
 const select = (sel: BoardSelection) => (e: { stopPropagation: () => void }) => {
   e.stopPropagation();
   window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: sel }));
@@ -132,61 +141,59 @@ function Screen({ s, i }: { s: Screen3D; i: number }) {
 }
 
 /**
- * Extra pool / spa: shell finish, water, waterline tile band, coping ring.
- * The floor follows this body's own depth profile (anchors + axis + zero entry)
- * via waterDepthAt; the outline is sampled every foot so slopes read correctly.
+ * Extra pool / spa — built with the main pool's own parts (PoolMesh shell +
+ * floor, CopingGeometry, WaterlineMesh, PoolAssetsRenderer stairs/seats), each
+ * with its own outline, depth profile, finish, coping, waterline and assets.
+ * Only the data differs from the main pool; the technology is the same.
  */
+const BASE_FINISH = "/textures/finishes/sapphire-blue-g3.webp";
+const urlOr = (v: string | undefined, fb?: string) => (v && isUrl(v) ? v : fb);
 function Water({ w, i }: { w: Water3D; i: number }) {
-  const dense = React.useMemo(() => {
-    const out: XZ[] = [];
-    w.pts.forEach((a, k) => { const b = w.pts[(k + 1) % w.pts.length]; const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z)));
-      for (let s = 0; s < n; s++) out.push({ x: a.x + ((b.x - a.x) * s) / n, z: a.z + ((b.z - a.z) * s) / n }); });
-    return out;
-  }, [w.pts]);
-  const depthAt = React.useCallback((x: number, z: number) => Math.max(0.05, waterDepthAt(w, x, z)), [w]);
-  const flatFloor = React.useMemo(() => { const g = new THREE.ShapeGeometry(new THREE.Shape(w.pts.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g; }, [w.pts]);
-  const floor = React.useMemo(() => {
-    const g = new THREE.ShapeGeometry(new THREE.Shape(dense.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2);
-    const a = g.attributes.position as THREE.BufferAttribute;
-    for (let k = 0; k < a.count; k++) a.setY(k, -depthAt(a.getX(k), a.getZ(k)));
-    a.needsUpdate = true; g.computeVertexNormals(); return planarUV(g);
-  }, [dense, depthAt]);
-  const walls = React.useMemo(() => {
-    const pos: number[] = [];
-    dense.forEach((a, k) => { const b = dense[(k + 1) % dense.length]; const Da = depthAt(a.x, a.z), Db = depthAt(b.x, b.z);
-      pos.push(a.x, 0, a.z, b.x, 0, b.z, b.x, -Db, b.z, a.x, 0, a.z, b.x, -Db, b.z, a.x, -Da, a.z); });
-    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return planarUV(g, true);
-  }, [dense, depthAt]);
-  const band = React.useMemo(() => {
-    const pos: number[] = [];
-    w.pts.forEach((a, k) => { const b = w.pts[(k + 1) % w.pts.length];
-      pos.push(a.x, 0.01, a.z, b.x, 0.01, b.z, b.x, -0.5, b.z, a.x, 0.01, a.z, b.x, -0.5, b.z, a.x, -0.5, a.z); });
-    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return planarUV(g, true);
-  }, [w.pts]);
-  const coping = React.useMemo(() => {
-    const { base, offset } = mitredOffsetRing(w.pts, w.copingWidth);
-    const sh = new THREE.Shape(offset.map((p) => new THREE.Vector2(p.x, -p.z)));
-    sh.holes.push(new THREE.Path(base.map((p) => new THREE.Vector2(p.x, -p.z))));
-    const g = new THREE.ExtrudeGeometry(sh, { depth: 0.2, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2 });
-    g.rotateX(-Math.PI / 2); return planarUV(g);
-  }, [w.pts, w.copingWidth]);
-  const fin = React.useMemo(() => photoMat(w.finish, 4, { roughness: 0.6, side: THREE.DoubleSide }), [w.finish]);
-  const tile = React.useMemo(() => photoMat(w.waterline, 1, { roughness: 0.15, metalness: 0.1, side: THREE.DoubleSide }), [w.waterline]);
-  const cop = React.useMemo(() => photoMat(w.coping, 2, { roughness: 0.8 }), [w.coping]);
+  const c = React.useMemo(() => waterCenter(w.pts), [w.pts]);
+  const local = React.useMemo(() => w.pts.map((p, k) => ({ x: p.x - c.x, y: p.z - c.z, id: `${w.itemId ?? i}-p${k}` })), [w.pts, c, w.itemId, i]);
+  const curve = React.useMemo(() => smoothCurvedRing(generateCurvedPoolPoints(local.map((p) => ({ x: p.x, y: p.y })), 30, 0.3).map((p) => ({ x: p.x, z: p.y }))), [local]);
+  const depthAt = React.useCallback((x: number, z: number) => Math.max(0.05, waterDepthAt(w, x + c.x, z + c.z)), [w, c]);
+  const perimeter = React.useMemo(() => curve.map((p, k) => ({ x: p.x, z: p.z, depth: depthAt(p.x, p.z), id: `pd-${k}`, type: "smooth" as const })), [curve, depthAt]);
+  const deep = React.useMemo(() => Math.max(...perimeter.map((p) => p.depth), w.depth), [perimeter, w.depth]);
+  const dims = React.useMemo(() => { const xs = local.map((p) => p.x), ys = local.map((p) => p.y); return { length: Math.max(...ys) - Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), depth: deep }; }, [local, deep]);
+  const waterGeo = React.useMemo(() => { const g = new THREE.ShapeGeometry(new THREE.Shape(curve.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g; }, [curve]);
   const water = React.useMemo(() => new THREE.MeshPhysicalMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.05, transmission: 0.4 }), []);
+  const copingH = w.copingHeight ?? 2 / 12;
+  const pick = (part: WaterPart) => (e: any) => { if (e.delta > 4) return; select({ type: "water", i, part })(e); };
+  const setAssets = (patch: Partial<Water3D>) => updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((x, k) => (k === i ? { ...x, ...patch } : x)) }));
   return (
-    <group name={`board-${w.kind}`} onClick={select({ type: "water", i })}>
-      <mesh geometry={floor} material={fin} receiveShadow />
-      <mesh geometry={walls} material={fin} />
-      <mesh geometry={band} material={tile} />
-      <mesh geometry={flatFloor} material={water} position={[0, -0.25, 0]} />
-      <mesh geometry={coping} material={cop} position={[0, 0.02, 0]} castShadow receiveShadow />
+    <group name={`board-${w.kind}`} position={[c.x, 0, c.z]}>
+      <group onClick={pick("pool")}>
+        <PoolMesh points={local as any} depthPoints={[]} perimeterDepthPoints={perimeter} floorDepthAt={depthAt}
+          linerTextureUrl={urlOr(w.finish, BASE_FINISH)!} poolDimensions={dims} copingHeight={copingH} />
+      </group>
+      <group onClick={pick("coping")}>
+        <CopingGeometry poolPoints={curve} copingWidth={w.copingWidth} copingHeight={copingH} textureUrl={urlOr(w.coping)} />
+      </group>
+      <group onClick={pick("waterline")}>
+        <WaterlineMesh poolPoints={local as any} wallCurve={curve} waterlineTextureUrl={urlOr(w.waterline)} copingHeight={copingH} />
+      </group>
+      <mesh geometry={waterGeo} material={water} position={[0, -0.25, 0]} />
+      <PoolAssetsRenderer poolPoints={local as any} poolDepth={deep} getFloorDepthAt={depthAt}
+        stairs={w.stairs ?? []} onStairsChange={(stairs) => setAssets({ stairs })}
+        chairs={[]} onChairsChange={() => {}}
+        contourSeating={w.seating ?? []} onContourSeatingChange={(seating) => setAssets({ seating })}
+        selectedAssetId={null} onSelectAsset={() => {}} />
     </group>
   );
 }
 
-function Surface({ s }: { s: Surface3D }) {
-  const mat = React.useMemo(() => new THREE.MeshStandardMaterial({ color: s.color, roughness: s.kind === "turf" ? 1 : 0.85 }), [s.color, s.kind]);
+/**
+ * Turf / deck pieces from the board. Every pool and spa (main + extras, each
+ * with its coping/deck ring) is cut out per fragment with the same even-odd
+ * segment test the ground uses, so turf never covers water.
+ */
+function holeMaterial(color: string, rough: number, holes: XZ[][]) {
+  return applyHoleCut(new THREE.MeshStandardMaterial({ color, roughness: rough, polygonOffset: true, polygonOffsetFactor: -2 }), holes);
+}
+function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const mat = React.useMemo(() => holeMaterial(s.color, s.kind === "turf" ? 1 : 0.85, holes), [s.color, s.kind, holesKey]);
   const geo = React.useMemo(() => {
     const shapes = s.regions.filter((r) => r[0]?.length >= 3).map((r) => {
       const sh = new THREE.Shape(r[0].map((p) => new THREE.Vector2(p.x, -p.z)));
@@ -200,8 +207,13 @@ function Surface({ s }: { s: Surface3D }) {
   return <mesh geometry={geo} material={mat} position={[0, s.kind === "turf" ? 0.04 : 0.08, 0]} receiveShadow />;
 }
 
-export function BoardElements3D() {
+export function BoardElements3D({ holes = [] }: { holes?: XZ[][] }) {
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
+  const invalidate = useThree((st) => st.invalidate);
+  // The studio renders on demand: redraw as soon as a widget edits a piece.
+  React.useEffect(() => { invalidate(); }, [data, invalidate]);
+  const allHoles = React.useMemo(() => [...holes, ...(data?.waters ?? []).filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(w.pts, (w.copingWidth || 1) + 0.05).offset)], [holes, data?.waters]);
+  const holesKey = React.useMemo(() => allHoles.map((h) => h.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join("|")).join("#"), [allHoles]);
   React.useEffect(() => {
     const on = () => setData(loadBoard3D());
     window.addEventListener(BOARD_3D_EVENT, on);
@@ -211,7 +223,7 @@ export function BoardElements3D() {
   if (!data) return null;
   return (
     <group name="global-design-board">
-      {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} />)}
+      {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} />)}
       {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} i={i} />)}
       {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} />)}

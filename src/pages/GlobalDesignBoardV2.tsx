@@ -182,7 +182,8 @@ const priceOf = (it: BoardItem, p?: Product, net?: number) => {
   if (!p) return 0;
   if (p.price) return p.price + (it.finish ? finishesFor(p.brand).find((f) => f.id === it.finish)?.price ?? 0 : 0);
   const q = p.unit === "lf" ? length(it.pts) : net ?? area(it.pts);
-  return q * (p.rate ?? 0);
+  const fin = (it.kind === "pool" || it.kind === "spa") && it.finish ? finishesFor(p.brand).find((f) => f.id === it.finish)?.price ?? 0 : 0;
+  return q * (p.rate ?? 0) + fin;
 };
 
 /* ---------- grouping: fences / screens are chosen style first, then color ---------- */
@@ -253,7 +254,19 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
 
   /* ---------- 3D → board: extra pool/spa edits come back by item id ---------- */
   React.useEffect(() => {
-    const pull = () => setItems((prev) => applyBoard3DToItems(prev, loadBoard3D()));
+    // Outlines by item id, plus finishes picked in 3D (catalog photo → finish id) so prices follow.
+    const pull = () => setItems((prev) => {
+      const d = loadBoard3D(); let next = applyBoard3DToItems(prev, d);
+      const urls = new Map<string, string>((d?.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w.finish]));
+      if (d?.primaryId && d.primaryFinish) urls.set(d.primaryId, d.primaryFinish);
+      let changed = next !== prev;
+      next = next.map((it) => {
+        const u = urls.get(it.id); if (!u) return it;
+        const f = finishesFor(byId.get(it.productId)?.brand).find((x) => x.image === u);
+        if (!f || f.id === it.finish) return it; changed = true; return { ...it, finish: f.id };
+      });
+      return changed ? next : prev;
+    });
     pull();
     window.addEventListener(BOARD_3D_EVENT, pull); window.addEventListener("storage", pull);
     return () => { window.removeEventListener(BOARD_3D_EVENT, pull); window.removeEventListener("storage", pull); };

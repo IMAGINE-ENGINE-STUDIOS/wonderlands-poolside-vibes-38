@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { applyHoleCut } from './holeCutShader';
 import { useMemo, useEffect, useState } from 'react';
 import { resolveDeckBoundaries, buildDeckRingGeometry } from '@/utils/deckSurface';
 import { textureCache } from '@/utils/textureCache';
@@ -17,6 +18,8 @@ interface DeckBorderGeometryProps {
   textureOffset?: [number, number];
   /** Texture rotation in degrees */
   textureRotation?: number;
+  /** World-XZ rings (extra pools/spas + coping) the deck tucks around. */
+  cutouts?: Array<Array<{ x: number; z: number }>>;
 }
 
 export const DeckBorderGeometry = ({ 
@@ -30,7 +33,8 @@ export const DeckBorderGeometry = ({
   textureUrl,
   textureScale = 1,
   textureOffset = [0, 0],
-  textureRotation = 0
+  textureRotation = 0,
+  cutouts,
 }: DeckBorderGeometryProps) => {
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
@@ -100,9 +104,11 @@ export const DeckBorderGeometry = ({
     return buildDeckRingGeometry(boundaries.inner, boundaries.outer, deckTopY, deckBottomY, poolPoints);
   }, [poolPoints, outerPoints, deckWidth, copingWidth, borderHeight, borderWidth, deckElevation]);
   
+  const cutKey = (cutouts ?? []).map((r) => r.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join("|")).join("#");
   return (
     <mesh key={texture?.uuid || 'no-deck-texture'} geometry={geometry} receiveShadow>
       <meshPhongMaterial
+        ref={(m: THREE.MeshPhongMaterial | null) => { if (m && m.userData.cutKey !== cutKey) { m.userData.cutKey = cutKey; applyHoleCut(m, cutouts ?? []); } }}
         map={texture || null}
         color={texture ? '#ffffff' : '#d9d4cc'}
         shininess={40}

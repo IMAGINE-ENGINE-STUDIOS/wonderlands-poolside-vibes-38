@@ -76,3 +76,13 @@ export function pickVoice(lang: string): SpeechSynthesisVoice | null {
     (v.lang.toLowerCase() === lang.toLowerCase() ? 4 : 0) + (/natural|neural|online|premium|google/i.test(v.name) ? 2 : 0) + (v.localService ? 0 : 1);
   return same.sort((a, b) => score(b) - score(a))[0] ?? null;
 }
+
+/* ---------- active guest language (shared by Genius chat, narrator and voice) ---------- */
+const ACTIVE_KEY = 'wl.narrator.console.lang';
+/** The language the guest is using now (last typed/spoken/selected); English by default. */
+export function activeLanguage(): string {
+  try { return localStorage.getItem(ACTIVE_KEY) || detectLanguage(''); } catch { return 'en-US'; }
+}
+export function setActiveLanguage(code: string) {
+  try { localStorage.setItem(ACTIVE_KEY, code); } catch { /* private mode */ }
+}

@@ -3,7 +3,7 @@
  * the pool widgets. Click a fence, screen cage or extra pool/spa to edit it:
  *  - Fence: metal color, height.
  *  - Screen enclosure: frame color, wall height, roof (mansard / flat).
- *  - Pool / spa: finish, waterline tile, coping color + width, depth, length, width.
+ *  - Pools / spas are edited by the main pool widgets (see UnifiedPoolVisualizer activeWater).
  * Edits write back through updateBoard3D so they persist and re-render live.
  * Imagine Engine Studios Corp.
  */
@@ -97,39 +97,6 @@ export const BoardElementEditor: React.FC = () => {
             className={`glass-btn h-8 flex-1 rounded-lg text-xs capitalize ${(s.roof ?? "mansard") === r ? "ring-2 ring-primary" : ""}`}>{r}</button>
         ))}</div>
       </div>
-    </>;
-  } else if (sel.type === "water" && data.waters?.[sel.i]) {
-    const w = data.waters[sel.i]; const { L, W } = dims(w.pts);
-    title = `${w.kind === "spa" ? "Spa" : "Pool"} · ${w.label}`;
-    body = <>
-      <Swatches label="Finish" list={photos().f} value={w.finish} onPick={(c) => edit((d) => { d.waters![sel.i].finish = c; })} />
-      <Swatches label="Waterline tile" list={photos().t} value={w.waterline} onPick={(c) => edit((d) => { d.waters![sel.i].waterline = c; })} />
-      <Swatches label="Coping" list={photos().k} value={w.coping} onPick={(c) => edit((d) => { d.waters![sel.i].coping = c; })} />
-      <Range label="Coping width" v={w.copingWidth} min={0.5} max={2} step={0.1} on={(n) => edit((d) => { d.waters![sel.i].copingWidth = n; })} />
-      {(() => {
-        // Each pool/spa owns its profile; editing it never touches the others.
-        const anchors = w.anchors ?? createDefaultLinearAnchors(w.kind === "spa" ? 3 : 3.5, w.kind === "spa" ? 3 : Math.max(w.depth, 5));
-        const shallow = Math.min(...anchors.map((a) => a.depth)), deep = Math.max(...anchors.map((a) => a.depth));
-        const ze = getZeroEntry(anchors);
-        const setA = (a: typeof anchors) => edit((d) => { d.waters![sel.i].anchors = a; });
-        return <>
-          <Range label="Shallow end" v={shallow} min={0} max={8} step={0.25} on={(n) => setA(createDefaultLinearAnchors(n, Math.max(n, deep)))} />
-          <Range label="Deep end" v={deep} min={1} max={12} step={0.25} on={(n) => setA(createDefaultLinearAnchors(Math.min(shallow, n), n))} />
-          <div className="flex gap-1.5">
-            <button onClick={() => setA(ze ? removeZeroEntry(anchors) : applyZeroEntry(anchors, 6, Math.max(L, W)))} className={`glass-btn h-8 flex-1 rounded-lg text-xs ${ze ? "ring-2 ring-primary" : ""}`}>{ze ? "Remove zero entry" : "Add zero entry"}</button>
-            <button onClick={() => setProfileOpen(true)} className="glass-btn h-8 flex-1 rounded-lg text-xs">Depth profile</button>
-          </div>
-          {profileOpen && (() => {
-            const c = waterCenter(w.pts);
-            return <DepthProfileEditor isOpen onClose={() => setProfileOpen(false)} linearDepthAnchors={anchors} onLinearDepthAnchorsChange={setA}
-              selectedAnchorId={anchorSel} onSelectAnchor={setAnchorSel}
-              poolPoints={w.pts.map((p) => ({ x: p.x - c.x, y: p.z - c.z })) as any} poolDimensions={{ length: L, width: W }}
-              depthAxis={waterAxis(w)} onDepthAxisChange={(a) => edit((d) => { d.waters![sel.i].axis = a; })} />;
-          })()}
-        </>;
-      })()}
-      <Range label="Length" v={L} min={4} max={60} step={0.5} on={(n) => edit((d) => { d.waters![sel.i].pts = resize(w.pts, n, W); })} />
-      <Range label="Width" v={W} min={4} max={30} step={0.5} on={(n) => edit((d) => { d.waters![sel.i].pts = resize(w.pts, L, n); })} />
     </>;
   } else return null;
 

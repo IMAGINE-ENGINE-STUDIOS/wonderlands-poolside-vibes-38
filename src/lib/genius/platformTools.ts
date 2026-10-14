@@ -34,24 +34,37 @@ export const PLATFORM_TOOLS: PlatformTool[] = [
 
 /** Score tools against a query; best first. */
 export function matchPlatformTools(query: string, limit = 4): PlatformTool[] {
+  return scorePlatformTools(query).slice(0, limit).map((x) => x.t);
+}
+
+/** Stop words never match a tool (e.g. "and" inside "landscape"). */
+const STOP = new Set(['and', 'the', 'you', 'your', 'does', 'how', 'what', 'with', 'for', 'can', 'are', 'have', 'take', 'long', 'much', 'want', 'need', 'this', 'that', 'from', 'about']);
+/** Whole-word keyword hits only; partial words must be ≥4 letters and prefix a keyword. */
+export function scorePlatformTools(query: string): { t: PlatformTool; s: number }[] {
   const q = query.toLowerCase().trim();
   if (q.length < 2) return [];
-  const words = q.split(/\s+/).filter((w) => w.length > 2);
+  const words = q.split(/[^a-z0-9áéíóúñü]+/).filter((w) => w.length > 2 && !STOP.has(w));
   return PLATFORM_TOOLS.map((t) => {
     let s = 0;
     const hay = `${t.label} ${t.description}`.toLowerCase();
     if (hay.includes(q)) s += 5;
     t.keywords.forEach((k) => {
-      if (q.includes(k)) s += 4;
-      else if (words.some((w) => k.includes(w))) s += 2;
+      if (new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(q)) s += 4;
+      else if (words.some((w) => w.length >= 4 && k.startsWith(w))) s += 2;
     });
-    words.forEach((w) => { if (hay.includes(w)) s += 1; });
+    words.forEach((w) => { if (w.length >= 4 && new RegExp(`\\b${w}`).test(hay)) s += 1; });
     return { t, s };
   })
     .filter((x) => x.s >= 2)
-    .sort((a, b) => b.s - a.s)
-    .slice(0, limit)
-    .map((x) => x.t);
+    .sort((a, b) => b.s - a.s);
+}
+
+/** Enter opens a tool directly only for short, clear tool requests — never for questions. */
+export function directToolIntent(query: string): PlatformTool | null {
+  const q = query.trim();
+  if (/\?$/.test(q) || q.split(/\s+/).length > 5 || /^(how|what|why|when|where|who|which|do|does|can|is|are|cu[aá]l|c[oó]mo|qu[eé]|quel|comment|qual|como)\b/i.test(q)) return null;
+  const top = scorePlatformTools(q)[0];
+  return top && top.s >= 4 ? top.t : null;
 }
 
 /** Rotating hero prompts typed by the typewriter placeholder. */

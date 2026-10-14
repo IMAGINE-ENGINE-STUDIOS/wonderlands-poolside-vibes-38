@@ -16,6 +16,7 @@ import { DeckGeometry } from './scene3d/DeckGeometry';
 import { CopingGeometry } from './scene3d/CopingGeometry';
 import { DeckBorderGeometry } from './scene3d/DeckBorderGeometry';
 import earcut from 'earcut';
+import polygonClipping from 'polygon-clipping';
 import grassTexture from '@/assets/turf/grass-texture.avif';
 import { loadBoard3D, BOARD_3D_EVENT } from '@/lib/design/board3D';
 import { resolveDeckBoundaries, sanitizeBoundary, smoothCurvedRing } from '@/utils/deckSurface';
@@ -134,7 +135,7 @@ export interface Pool3DSceneProps {
   onDebugBoundariesChange?: (show: boolean) => void;
 }
 
-const PoolMesh: React.FC<{
+export const PoolMesh: React.FC<{
   points: Point[];
   depthPoints: DepthPoint[];
   perimeterDepthPoints?: Array<{ x: number; z: number; depth: number; id: string; type?: 'linear' | 'smooth' }>;
@@ -735,24 +736,21 @@ const GrassTerrainFallback: React.FC<{
       // The deck slab sits on top of the grass, so grass runs continuously
       // underneath it — a gap outside the deck is now geometrically impossible.
       // NOTE: ShapeGeometry.rotateX(-π/2) maps shape-y → world -z, so z is negated.
+      // Every opening (main pool + each board pool/spa) is unioned first, so
+      // touching or overlapping water bodies still give one clean lawn cut.
+      const rings: [number, number][][] = [];
       const pool = sanitizeBoundary(poolCurve3D);
       if (pool.length >= 3) {
         const tuck = copingEnabled ? Math.min(0.4, Math.max(0.1, copingWidth * 0.5)) : 0.05;
         const ring = sanitizeBoundary(generateOffsetCurve(pool, tuck));
-        const holePoints = (ring.length >= 3 ? ring : pool).map(p => ({
-          x: p.x + poolPosition[0],
-          y: -(p.z + poolPosition[2]),
-        }));
-        const hole = new THREE.Path();
-        hole.moveTo(holePoints[0].x, holePoints[0].y);
-        for (let i = 1; i < holePoints.length; i++) hole.lineTo(holePoints[i].x, holePoints[i].y);
-        hole.closePath();
-        terrainShape.holes.push(hole);
+        rings.push((ring.length >= 3 ? ring : pool).map(p => [p.x + poolPosition[0], -(p.z + poolPosition[2])] as [number, number]));
       }
-      for (const w of boardWaters) {
-        if (!w.pts || w.pts.length < 3) continue;
+      for (const w of boardWaters) if (w.pts && w.pts.length >= 3) rings.push(w.pts.map((p) => [p.x, -p.z] as [number, number]));
+      const merged = rings.length > 1 ? (polygonClipping.union as any)(...rings.map((r) => [[...r, r[0]]])) : rings.map((r) => [r]);
+      for (const poly of merged as [number, number][][][]) {
+        const outer = poly[0]; if (!outer || outer.length < 3) continue;
         const h = new THREE.Path();
-        w.pts.forEach((p, i) => (i ? h.lineTo(p.x, -p.z) : h.moveTo(p.x, -p.z)));
+        outer.forEach(([x, y], i) => (i ? h.lineTo(x, y) : h.moveTo(x, y)));
         h.closePath();
         terrainShape.holes.push(h);
       }
@@ -1035,6 +1033,15 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     };
   }, [points]);
 
+  // Extra board pools/spas: the main deck tucks around each one (outline + its coping).
+  const [boardDeckWaters, setBoardDeckWaters] = useState(() => loadBoard3D()?.waters ?? []);
+  useEffect(() => {
+    const on = () => setBoardDeckWaters(loadBoard3D()?.waters ?? []);
+    window.addEventListener(BOARD_3D_EVENT, on);
+    return () => window.removeEventListener(BOARD_3D_EVENT, on);
+  }, []);
+  const boardDeckCutouts = useMemo(() => boardDeckWaters.filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(w.pts, Math.max(0.05, (w.copingWidth || 1) - 0.1)).offset), [boardDeckWaters]);
+
   // Calculate normalized pool curve for deck/coping geometry
   const poolCurve3D = useMemo(() => {
     if (points.length < 3) return [];
@@ -1307,6 +1314,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
               textureScale={paverTextureScale}
               textureOffset={paverTextureOffset}
               textureRotation={paverTextureRotation}
+              cutouts={boardDeckCutouts}
             />
           </group>
         </>
