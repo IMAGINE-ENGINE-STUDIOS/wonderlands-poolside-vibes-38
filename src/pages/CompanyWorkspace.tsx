@@ -107,7 +107,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
   if (company === undefined) return <div className="min-h-screen bg-background p-8"><Skeleton h="h-40" /></div>;
   if (company === null) return (
     <div className="min-h-screen bg-background p-8 flex items-center justify-center">
-      <EmptyState title="No company workspace" body="This account is not part of a company yet. Create a business account to get your workspace." action={<Button asChild><Link to="/auth?mode=signup&type=business">Create business account</Link></Button>} />
+      <EmptyState title="No company workspace" body="This account is not part of a company yet. Sign out, then create a business account to get your workspace." action={<Button onClick={async () => { await signOut(); window.location.assign('/auth?mode=signup&type=business'); }}>Sign out and create business account</Button>} />
     </div>
   );
 

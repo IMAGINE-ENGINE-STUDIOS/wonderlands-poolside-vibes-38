@@ -37,15 +37,22 @@ const parseSize = (d?: string) => {
 };
 
 /* ---------- catalog (built once) ---------- */
+// Rates come from the site's own price lists (fence configurator, screen
+// enclosure pricing, turf configurator, paver catalog) — never invented here.
 const FENCE_STYLES = [
-  { id: "alu", label: "Aluminum picket", base: 28 },
-  { id: "vinyl", label: "Vinyl privacy", base: 38 },
-  { id: "glass", label: "Glass pool fence", base: 48 },
+  { id: "alu", label: "Aluminum picket", delta: 0 },
+  { id: "vinyl", label: "Vinyl privacy", delta: 0 },
+  { id: "glass", label: "Glass pool fence", delta: 0 },
 ];
 const FENCE_COLORS = [{ id: "black", hex: "#1f1f1f" }, { id: "bronze", hex: "#6b4a2b" }, { id: "white", hex: "#f4f4f2" }];
-const FENCE_HEIGHTS = [4, 5, 6];
-const SCREEN_STYLES = [{ id: "mansard", label: "Mansard cage", rate: 18 }, { id: "gable", label: "Gable cage", rate: 20 }, { id: "flat", label: "Flat roof cage", rate: 14 }, { id: "hip", label: "Hip roof cage", rate: 22 }];
+const FENCE_HEIGHTS = CONFIG_FENCE_HEIGHTS.map((h) => ({ ft: h.heightIn / 12, rate: h.pricePerFt, label: h.label }));
+const SCREEN_STYLES = [
+  { id: "standard", label: "Standard cage", rate: SCREEN_ENCLOSURE_PRICING.standard },
+  { id: "deluxe", label: "Deluxe cage", rate: SCREEN_ENCLOSURE_PRICING.deluxe },
+  { id: "premium", label: "2-story cage", rate: SCREEN_ENCLOSURE_PRICING.premium },
+];
 const SCREEN_COLORS = [{ id: "bronze", hex: "#6b4a2b" }, { id: "white", hex: "#e9e9e6" }, { id: "black", hex: "#222" }];
+const DECK_COLORS: Record<string, string> = { appian: "#b98a62", catalina: "#c9a27c", travertine: "#e2d3b8", coralina: "#d8d2c8" };
 
 const buildCatalog = (): Product[] => {
   const seen = new Set<string>();
@@ -54,19 +61,16 @@ const buildCatalog = (): Product[] => {
     .map((p) => ({ id: `pool:${p.name}`, kind: "pool", label: p.name, detail: `${p.dimensions} · ${(p as any).brand ?? ""}`, price: p.price, color: "#2aa7c9", size: parseSize(p.dimensions) }));
   const spas: Product[] = gilmerSpas.map((s) => ({ id: `spa:${s.model}`, kind: "spa", label: s.model, detail: s.dimensions ?? "", price: s.price, color: "#1f8fb3", size: parseSize(s.dimensions) }));
   const fences: Product[] = FENCE_STYLES.flatMap((s) => FENCE_COLORS.flatMap((c) => FENCE_HEIGHTS.map((h) => ({
-    id: `fence:${s.id}:${c.id}:${h}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h}' tall`, rate: s.base + (h - 4) * 5, unit: "lf" as const, color: c.hex,
+    id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex,
   }))));
   const screens: Product[] = SCREEN_STYLES.flatMap((s) => SCREEN_COLORS.map((c) => ({ id: `enclosure:${s.id}:${c.id}`, kind: "enclosure" as Kind, label: s.label, detail: `${c.id} frame`, rate: s.rate, unit: "sqft" as const, color: c.hex })));
-  const turf: Product[] = [
-    { id: "turf:plush", kind: "turf", label: "Luxury plush turf", detail: "Lawn", rate: 12, unit: "sqft", color: "#4f8f3a" },
-    { id: "turf:pet", kind: "turf", label: "Pet turf", detail: "Drains fast", rate: 11, unit: "sqft", color: "#5b9a40" },
-    { id: "turf:putting", kind: "turf", label: "Putting green", detail: "Short pile", rate: 14, unit: "sqft", color: "#3f8a4a" },
-    { id: "turf:value", kind: "turf", label: "Value lawn", detail: "Everyday", rate: 9, unit: "sqft", color: "#6aa548" },
-  ];
+  const turf: Product[] = GRASS_PRODUCTS_FOR_BOARD();
   const deck: Product[] = [
-    { id: "deck:concrete", kind: "deck", label: "Concrete deck", detail: "Broom finish", rate: 10, unit: "sqft", color: "#c9c3b8" },
-    { id: "deck:travertine", kind: "deck", label: "Travertine pavers", detail: "Ivory", rate: 18, unit: "sqft", color: "#e2d3b8" },
-    { id: "deck:coralina", kind: "deck", label: "Coralina porcelain", detail: "Porcelain paver", rate: 25, unit: "sqft", color: "#d8d2c8" },
+    { id: "deck:concrete", kind: "deck", label: "Concrete deck", detail: "Broom finish", rate: CONCRETE_DECK_PRICE_PER_SQFT, unit: "sqft", color: "#c9c3b8" },
+    ...paverTypes.filter((p) => p.category === "paver").map((p) => ({
+      id: `deck:${p.id}`, kind: "deck" as Kind, label: p.name, detail: "Paver", rate: p.basePrice, unit: "sqft" as const,
+      color: DECK_COLORS[Object.keys(DECK_COLORS).find((k) => p.id.includes(k)) ?? ""] ?? "#d6cbb8",
+    })),
   ];
   return [...pools, ...spas, ...deck, ...turf, ...fences, ...screens];
 };
