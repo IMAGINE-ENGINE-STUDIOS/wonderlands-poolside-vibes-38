@@ -66,6 +66,12 @@ export function realWorldFit(name: string, type: string, size: THREE.Vector3, si
 
   const rule = KEYWORDS.find(([re]) => re.test(name))?.[1] ?? BY_TYPE[type] ?? BY_TYPE.custom;
   const t = typeof rule === 'function' ? rule(s) : rule;
+  // 1:1 first: glTF/Sketchfab files are authored in real units (meters by spec,
+  // sometimes cm/mm/in/ft). Pick the unit whose real height is closest to the
+  // expected real size; if it lands within 2× of it, keep the model's TRUE size.
+  const UNIT_TO_FT = [3.28084, 0.0328084, 0.00328084, 1 / 12, 1];
+  const best = UNIT_TO_FT.map((u) => ({ u, err: Math.abs(Math.log((h * u) / t.h)) })).sort((a, b) => a.err - b.err)[0];
+  if (best.err < Math.log(2)) return best.u;
   let k = t.h / h;
   // Footprint target wins when the model is wide/flat (e.g. a lounger).
   if (t.w) k = Math.min(k, (t.w * 1.25) / footprint);
