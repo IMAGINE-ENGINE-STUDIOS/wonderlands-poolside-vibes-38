@@ -306,7 +306,7 @@ export function StudioDock(props: Props) {
     </button>
   );
   return (
-    <div className="absolute bottom-4 left-4 z-30 flex flex-col items-start gap-2">
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2">
       {tab && (
         <div className="w-80 rounded-xl border bg-background/98 p-3 shadow-2xl backdrop-blur-md">
           <div className="mb-2 flex items-center justify-between">
