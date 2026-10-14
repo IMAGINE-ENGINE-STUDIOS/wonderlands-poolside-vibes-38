@@ -101,12 +101,10 @@ const SharedProjectView: React.FC = () => {
         .from('project-documents')
         .getPublicUrl(filePath);
 
-      const { error: docErr } = await supabase.from('item_documents').insert({
-        item_id: itemId,
-        file_name: file.name,
-        file_url: urlData.publicUrl,
-        file_type: file.type,
-        file_size: file.size,
+      // Saved through the share link check (works without signing in).
+      const { error: docErr } = await supabase.rpc('add_shared_project_document' as any, {
+        _token: token, _item_id: itemId, _file_name: file.name,
+        _file_url: urlData.publicUrl, _file_type: file.type, _file_size: file.size,
       });
       if (docErr) throw docErr;
 

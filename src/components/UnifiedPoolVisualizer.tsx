@@ -1007,12 +1007,14 @@ export function UnifiedPoolVisualizer({
   };
 
   const handlePoolPointsChange = (points: Point[]) => {
-    console.log('Pool points updated:', points);
+    // A 3D wall/corner edit makes the edited outline the new truth: drop the
+    // old 2D control points so going back to 2D keeps this shape.
     setScene({
       ...scene,
       pool: {
         ...scene.pool,
-        points
+        points,
+        sourcePoints: undefined,
       }
     });
   };
