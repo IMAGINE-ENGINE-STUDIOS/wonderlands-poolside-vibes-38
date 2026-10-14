@@ -1967,16 +1967,18 @@ export function PoolBuilder({
         const midY = (p1.y + p2.y) / 2;
         const dx = p2.x - p1.x;
         const dy = p2.y - p1.y;
-        const perpX = -dy * 0.25;
-        const perpY = dx * 0.25;
+        const bs = outwardBulgeSign(points, p2 as any);
+        const perpX = -dy * 0.25 * bs;
+        const perpY = dx * 0.25 * bs;
         ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
       } else if (curveType === 'arc') {
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
         const dx = p2.x - p1.x;
         const dy = p2.y - p1.y;
-        const perpX = -dy * 0.35;
-        const perpY = dx * 0.35;
+        const bs = outwardBulgeSign(points, p2 as any);
+        const perpX = -dy * 0.35 * bs;
+        const perpY = dx * 0.35 * bs;
         ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
       } else if (curveType === 'freeform') {
         const dx = p2.x - p1.x;
@@ -3734,8 +3736,9 @@ export function PoolBuilder({
         const midY = (p1.y + p2.y) / 2;
         const dx = p2.x - p1.x;
         const dy = p2.y - p1.y;
-        const perpX = -dy * 0.25;
-        const perpY = dx * 0.25;
+        const bs = outwardBulgeSign(points, p2 as any);
+        const perpX = -dy * 0.25 * bs;
+        const perpY = dx * 0.25 * bs;
         ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
       } else if (curveType === 'arc') {
         // Circular arc
@@ -3744,8 +3747,9 @@ export function PoolBuilder({
         const dist = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
         const dx = p2.x - p1.x;
         const dy = p2.y - p1.y;
-        const perpX = -dy * 0.35;
-        const perpY = dx * 0.35;
+        const bs = outwardBulgeSign(points, p2 as any);
+        const perpX = -dy * 0.35 * bs;
+        const perpY = dx * 0.35 * bs;
         ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
       } else if (curveType === 'freeform') {
         // Natural freeform with slight wobble
