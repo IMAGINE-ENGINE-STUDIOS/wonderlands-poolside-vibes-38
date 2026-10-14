@@ -33,18 +33,31 @@ import { SCREEN_ENCLOSURE_PRICING, CONCRETE_DECK_PRICE_PER_SQFT } from "@/utils/
 import { paverTypes } from "@/data/paverData";
 import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
 import fenceBannerImg from "@/assets/banners/patio-fencing-banner.webp";
-import screenBannerImg from "@/assets/banners/screen-enclosure-banner.webp";
+import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
+import { poolFinishes } from "@/data/consolidatedProducts";
+import { pebbleTecFinishes } from "@/data/pebbleTecFinishes";
+const BoardPoolDesigner = React.lazy(() => import("@/components/design/BoardPoolDesigner"));
+// Same photos as the main page sections (PatioFencingSection / ScreenEnclosureSection).
+const MAIN_FENCE_IMG = "/media/96e12412-10ac-45a5-b879-6ed8fc8e8046.webp";
+const MAIN_SCREEN_IMG = "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp";
+type Finish = { id: string; name: string; image?: string; price: number; group: string };
+/** Finishes scoped by brand: concrete (Wonderlands) gets concrete + Pebble Tec, fiberglass brands get the fiberglass range. */
+const finishesFor = (brand?: string): Finish[] => {
+  const concrete = /wonderlands/i.test(brand ?? "");
+  const base = poolFinishes.filter((f: any) => f.poolType === (concrete ? "concrete" : "fiberglass")).map((f: any) => ({ id: f.id, name: f.name, image: f.image, price: f.price ?? 0, group: f.collection ?? "Finishes" }));
+  return concrete ? [...base, ...pebbleTecFinishes.map((p) => ({ id: p.id, name: p.name, image: p.image, price: 0, group: p.collection }))] : base;
+};
 import { artificialGrassOptions, getGrassPricePerSqFt } from "@/data/artificialGrassData";
 
 const TURF_COLORS: Record<string, string> = { "light-green": "#7fb24a", "dark-green": "#3f7a32", "natural-green": "#5b9a40", emerald: "#2f8a4a", olive: "#6f7f3a" };
 const GRASS_PRODUCTS_FOR_BOARD = () => artificialGrassOptions.map((g) => ({
-  id: `turf:${g.id}`, kind: "turf" as const, label: `${g.name} turf`, detail: "Artificial turf", rate: getGrassPricePerSqFt(g.name), unit: "sqft" as const, color: TURF_COLORS[g.id] ?? "#5b9a40",
+  id: `turf:${g.id}`, kind: "turf" as const, label: `${g.name} turf`, detail: "Artificial turf", rate: getGrassPricePerSqFt(g.name), unit: "sqft" as const, color: TURF_COLORS[g.id] ?? "#5b9a40", image: g.image,
 }));
 
 type Kind = "pool" | "spa" | "deck" | "turf" | "fence" | "enclosure";
 type Pt = { x: number; y: number };
-type Product = { id: string; kind: Kind; label: string; detail: string; image?: string; price?: number; rate?: number; unit?: "sqft" | "lf"; color: string; size?: { w: number; l: number } };
-type BoardItem = { id: string; productId: string; kind: Kind; pts: Pt[] };
+type Product = { id: string; kind: Kind; label: string; detail: string; image?: string; price?: number; rate?: number; unit?: "sqft" | "lf"; color: string; size?: { w: number; l: number }; brand?: string };
+type BoardItem = { id: string; productId: string; kind: Kind; pts: Pt[]; finish?: string };
 
 const PX_PER_FT = 10;
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -76,21 +89,21 @@ const buildCatalog = (): Product[] => {
   const seen = new Set<string>();
   const pools: Product[] = getAllProducts()
     .filter((p) => p.category === "Pool" && !seen.has(p.name) && seen.add(p.name))
-    .map((p) => ({ id: `pool:${p.name}`, kind: "pool", label: p.name, detail: `${p.dimensions}${(p as any).brand ? ` · ${(p as any).brand}` : ""}`, image: (p as any).image, price: p.price, color: "#2aa7c9", size: parseSize(p.dimensions) }));
+    .map((p) => ({ id: `pool:${p.name}`, kind: "pool", label: p.name, detail: `${p.dimensions}${(p as any).brand ? ` · ${(p as any).brand}` : ""}`, image: (p as any).image, price: p.price, color: "#2aa7c9", size: parseSize(p.dimensions), brand: (p as any).brand }));
   const spas: Product[] = gilmerSpas.map((s) => ({ id: `spa:${s.model}`, kind: "spa", label: s.model, detail: s.dimensions ?? "", image: (s as any).image, price: s.price, color: "#1f8fb3", size: parseSize(s.dimensions) }));
   getAllProducts().filter((p) => p.category === "Spa" && !spas.some((x) => x.label === p.name)).forEach((p) => spas.push({ id: `spa:${p.name}`, kind: "spa", label: p.name, detail: p.dimensions ?? "", image: (p as any).image, price: p.price, color: "#1f8fb3", size: parseSize(p.dimensions) }));
   // Draw-from-scratch shapes, priced at the 2D studio shell rate.
   pools.unshift({ id: "pool:custom", kind: "pool", label: "Custom shape pool", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#2aa7c9" });
   spas.unshift({ id: "spa:custom", kind: "spa", label: "Custom shape spa", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#1f8fb3" });
   const fences: Product[] = FENCE_STYLES.flatMap((s) => FENCE_COLORS.flatMap((c) => FENCE_HEIGHTS.map((h) => ({
-    id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex, image: s.id === "alu" ? aluFenceImg : fenceBannerImg,
+    id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex, image: s.id === "alu" ? MAIN_FENCE_IMG : s.id === "vinyl" ? fenceBannerImg : aluFenceImg,
   }))));
-  const screens: Product[] = SCREEN_STYLES.flatMap((s) => SCREEN_COLORS.flatMap((c) => s.heights.map((h) => ({ id: `enclosure:${s.id}:${c.id}:${h}`, kind: "enclosure" as Kind, label: s.label, detail: `${c.id} frame · ${h}' tall`, rate: s.rate, unit: "sqft" as const, color: c.hex, image: screenBannerImg }))));
+  const screens: Product[] = SCREEN_STYLES.flatMap((s) => SCREEN_COLORS.flatMap((c) => s.heights.map((h) => ({ id: `enclosure:${s.id}:${c.id}:${h}`, kind: "enclosure" as Kind, label: s.label, detail: `${c.id} frame · ${h}' tall`, rate: s.rate, unit: "sqft" as const, color: c.hex, image: s.id === "premium" ? screenPremiumImg : MAIN_SCREEN_IMG }))));
   const turf: Product[] = GRASS_PRODUCTS_FOR_BOARD();
   const deck: Product[] = [
     { id: "deck:concrete", kind: "deck", label: "Concrete deck", detail: "Broom finish", rate: CONCRETE_DECK_PRICE_PER_SQFT, unit: "sqft", color: "#c9c3b8" },
     ...paverTypes.filter((p) => p.category === "paver").map((p) => ({
-      id: `deck:${p.id}`, kind: "deck" as Kind, label: p.name, detail: "Paver", rate: p.basePrice, unit: "sqft" as const,
+      id: `deck:${p.id}`, kind: "deck" as Kind, label: p.name, detail: "Paver", rate: p.basePrice, unit: "sqft" as const, image: p.image,
       color: DECK_COLORS[Object.keys(DECK_COLORS).find((k) => p.id.includes(k)) ?? ""] ?? "#d6cbb8",
     })),
   ];
@@ -154,7 +167,7 @@ const texture = (kind: Kind, color: string) => {
 
 const priceOf = (it: BoardItem, p?: Product, net?: number) => {
   if (!p) return 0;
-  if (p.price) return p.price;
+  if (p.price) return p.price + (it.finish ? finishesFor(p.brand).find((f) => f.id === it.finish)?.price ?? 0 : 0);
   const q = p.unit === "lf" ? length(it.pts) : net ?? area(it.pts);
   return q * (p.rate ?? 0);
 };
@@ -188,6 +201,20 @@ const SizeChip: React.FC<{ w: number; l: number }> = ({ w, l }) => {
   );
 };
 
+/** Full-cover product card: the product photo fills the tile, name and price over it. */
+const CoverCard: React.FC<{ image?: string; color?: string; title: string; sub?: string; price?: string; size?: { w: number; l: number }; active?: boolean; onClick: () => void }> = ({ image, color, title, sub, price, size, active, onClick }) => (
+  <button onClick={onClick} className={cn("relative mb-2 block h-28 w-full overflow-hidden border-2 text-left transition-colors", active ? "border-foreground" : "border-transparent hover:border-foreground/40")}>
+    {image ? <img src={image} alt={title} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" /> : <span className="absolute inset-0" style={{ background: color }} />}
+    <span className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/20 to-transparent" />
+    {size && <span className="absolute right-1.5 top-1.5 bg-background/90 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.15em] text-foreground">{size.w}′ × {size.l}′</span>}
+    {active && <span className="absolute left-1.5 top-1.5 bg-background p-0.5 text-foreground"><Check className="h-3 w-3" /></span>}
+    <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2 text-background">
+      <span className="min-w-0"><span className="block truncate font-serif text-base leading-tight">{title}</span>{sub && <span className="block truncate text-[9px] uppercase tracking-[0.15em] text-background/75">{sub}</span>}</span>
+      {price && <span className="shrink-0 text-xs">{price}</span>}
+    </span>
+  </button>
+);
+
 const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => {
   const { user } = useAuth();
   const catalog = React.useMemo(buildCatalog, []);
@@ -198,6 +225,8 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
   const [material, setMaterial] = React.useState<string | null>(null);
   const [sizeSel, setSizeSel] = React.useState<string | null>(null);
   const [needStep, setNeedStep] = React.useState<Step | null>(null);
+  const [finishSel, setFinishSel] = React.useState<string | null>(null);
+  const [designerOpen, setDesignerOpen] = React.useState(false);
   const navigate = useNavigate();
   const [draft, setDraft] = React.useState<Pt[]>([]);
   const [hover, setHover] = React.useState<Hover | null>(null);
@@ -250,7 +279,8 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
     return [...m.entries()].map(([id, first]) => ({ id, first }));
   }, [choices, material]);
   const colors = React.useMemo(() => choices.filter((p) => materialOf(p) === material && sizeOf(p) === sizeSel), [choices, material, sizeSel]);
-  const resetSteps = () => { setMaterial(null); setSizeSel(null); setNeedStep(null); };
+  const resetSteps = () => { setMaterial(null); setSizeSel(null); setNeedStep(null); setFinishSel(null); };
+  const finishes = React.useMemo(() => (product && (product.kind === "pool" || product.kind === "spa") ? finishesFor(product.brand) : []), [product]);
   const pickKind = (k: Kind) => { setKind(k); setProductId(null); resetSteps(); setDraft([]); };
 
   React.useEffect(() => {
@@ -364,7 +394,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
     if (!product) return;
     const min = product.kind === "fence" ? 2 : 3;
     const pts = closeFence && draft.length > 2 ? [...draft, draft[0]] : draft;
-    if (pts.length >= min) commit([...items, { id: `${Date.now()}`, productId: product.id, kind: product.kind, pts }]);
+    if (pts.length >= min) commit([...items, { id: `${Date.now()}`, productId: product.id, kind: product.kind, pts, finish: finishSel ?? undefined }]);
     setDraft([]);
   }, [draft, product, items, commit]);
 
@@ -374,21 +404,30 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
     const r = e.currentTarget.getBoundingClientRect();
     const w = toWorld(e.clientX - r.left, e.clientY - r.top);
     if (e.button === 1 || e.shiftKey) { drag.current = { pan: true, last: { x: e.clientX, y: e.clientY } }; return; }
-    if (STEPPED(kind) && !product) {
+    // 1. Selected piece's corner handles, 2. any placed piece — always selectable/movable,
+    //    unless a drawing is in progress or the click lands on a different kind while drawing.
+    const selIt = items.find((i) => i.id === selected);
+    const tolV = 10 / (PX_PER_FT * view.zoom);
+    const vIdx = selIt && !draft.length ? selIt.pts.findIndex((q) => Math.hypot(q.x - w.x, q.y - w.y) < tolV) : -1;
+    if (selIt && vIdx >= 0) { snapshot(); drag.current = { id: selIt.id, vi: vIdx, last: w }; e.currentTarget.setPointerCapture(e.pointerId); return; }
+    const pre = !draft.length ? hit(w) : undefined;
+    if (pre && (!product || pre.kind === kind || pre.id === selected)) {
+      setSelected(pre.id); snapshot(); drag.current = { id: pre.id, last: w }; e.currentTarget.setPointerCapture(e.pointerId); return;
+    }
+    if (STEPPED(kind) && !product && (material || sizeSel)) {
       const step: Step = !material ? "material" : !sizeSel ? "size" : "color";
       setNeedStep(step);
-      toast({ title: step === "material" ? "Choose the material first" : step === "size" ? "Choose a size" : "Choose a color", description: "Pick one of the highlighted options, then draw." });
+      toast({ title: step === "material" ? "Choose the material first" : step === "size" ? "Choose a height" : "Choose a color", description: "Pick one of the highlighted options, then draw." });
       return;
     }
-    // Clicking a placed piece of the current kind selects it (drag to move) instead of drawing.
-    const pre = !draft.length ? hit(w) : undefined;
-    if (pre && (pre.id === selected || pre.kind === kind || !product)) {
-      setSelected(pre.id); snapshot(); drag.current = { id: pre.id, last: w }; e.currentTarget.setPointerCapture(e.pointerId); return;
+    if (product && finishes.length && !finishSel) {
+      toast({ title: "Choose a finish", description: "Pick the interior finish for this model, then place it." });
+      return;
     }
     if (product) {
       if (product.size) {
         const { w: W, l: L } = product.size; const c = { x: Math.round(w.x * 2) / 2, y: Math.round(w.y * 2) / 2 };
-        commit([...items, { id: `${Date.now()}`, productId: product.id, kind: product.kind, pts: [
+        commit([...items, { id: `${Date.now()}`, productId: product.id, kind: product.kind, finish: finishSel ?? undefined, pts: [
           { x: c.x - L / 2, y: c.y - W / 2 }, { x: c.x + L / 2, y: c.y - W / 2 }, { x: c.x + L / 2, y: c.y + W / 2 }, { x: c.x - L / 2, y: c.y + W / 2 },
         ] }]);
         return;
@@ -398,11 +437,6 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
       setDraft((d) => [...d, h.pt]);
       return;
     }
-    // vertex editing on the selected item
-    const sel = items.find((i) => i.id === selected);
-    const tol = 10 / (PX_PER_FT * view.zoom);
-    const vi = sel ? sel.pts.findIndex((q) => Math.hypot(q.x - w.x, q.y - w.y) < tol) : -1;
-    if (sel && vi >= 0) { snapshot(); drag.current = { id: sel.id, vi, last: w }; e.currentTarget.setPointerCapture(e.pointerId); return; }
     const h = hit(w);
     setSelected(h?.id ?? null);
     if (h) snapshot();
@@ -539,19 +573,19 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
                   <div className={box("material")}>
                     <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">1 · Material</p>
                     {materials.map(({ id, first }) => (
-                      <button key={id} onClick={() => { setMaterial(id); setSizeSel(null); setProductId(null); setNeedStep(null); setDraft([]); setSelected(null); }}
-                        className={cn("mb-1 flex w-full items-center justify-between border px-2 py-2 text-left text-sm", material === id ? "border-foreground bg-muted" : "border-border hover:bg-muted/50")}>
-                        <span className="flex items-center gap-2">{first.image && <img src={first.image} alt={first.label} loading="lazy" className="h-10 w-14 object-cover" />}{first.label}</span>{material === id && <Check className="h-3.5 w-3.5" />}
-                      </button>
+                      <CoverCard key={id} image={first.image} title={first.label} sub={kind === "fence" ? "Pick a height next" : "Pick a cage height next"} active={material === id}
+                        onClick={() => { setMaterial(id); setSizeSel(null); setProductId(null); setNeedStep(null); setDraft([]); setSelected(null); }} />
                     ))}
                   </div>
                   {material && (
                     <div className={box("size")}>
                       <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">2 · {kind === "fence" ? "Height" : "Cage height"}</p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-3 gap-1.5">
                         {sizes.map(({ id, first }) => (
-                          <button key={id} onClick={() => { setSizeSel(id); setProductId(null); setNeedStep(null); }} className={chip(sizeSel === id)}>
-                            {`${id}' · $${first.rate}/${first.unit === "lf" ? "lin ft" : "sq ft"}`}
+                          <button key={id} onClick={() => { setSizeSel(id); setProductId(null); setNeedStep(null); }}
+                            className={cn("flex flex-col items-center border py-2.5 transition-colors", sizeSel === id ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50")}>
+                            <span className="font-serif text-xl leading-none">{id}′</span>
+                            <span className={cn("mt-1 text-[9px] uppercase tracking-[0.15em]", sizeSel === id ? "text-background/70" : "text-muted-foreground")}>${first.rate}/{first.unit === "lf" ? "lin ft" : "sq ft"}</span>
                           </button>
                         ))}
                       </div>
@@ -571,16 +605,33 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
                   )}
                 </>);
               })()
-              : choices.map((p) => (
-                <button key={p.id} onClick={() => { setProductId(p.id === productId ? null : p.id); setDraft([]); setSelected(null); }}
-                  className={cn("flex w-full items-center gap-3 border-b border-border/60 px-3 py-2 text-left hover:bg-muted/50", productId === p.id && "bg-muted")}>
-                  {p.image ? <img src={p.image} alt={p.label} loading="lazy" className="h-10 w-14 shrink-0 object-cover" /> : null}
-                  {p.size ? <SizeChip w={p.size.w} l={p.size.l} /> : !p.image && <span className="h-6 w-6 shrink-0 border border-border" style={{ background: p.color }} />}
-                  <span className="min-w-0 flex-1"><span className="block truncate text-sm">{p.label}</span><span className="block truncate text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{p.detail}</span></span>
-                  <span className="shrink-0 text-xs">{p.price ? money(p.price) : `$${p.rate}/${p.unit}`}</span>
-                  {productId === p.id && <Check className="h-3.5 w-3.5" />}
-                </button>
-              ))}
+              : <div className="space-y-2 p-3">
+                {(kind === "pool" || kind === "spa") && (
+                  <button onClick={() => setDesignerOpen(true)} className="w-full border border-foreground bg-foreground py-2.5 text-[10px] uppercase tracking-[0.2em] text-background hover:bg-foreground/85">
+                    Design a {kind} from scratch · 2D Studio tools
+                  </button>
+                )}
+                {choices.map((p) => (
+                  <React.Fragment key={p.id}>
+                    <CoverCard image={p.image} color={p.color} title={p.label} sub={p.detail} price={p.price ? money(p.price) : `$${p.rate}/${p.unit === "lf" ? "lin ft" : "sq ft"}`} size={p.size} active={productId === p.id}
+                      onClick={() => { setProductId(p.id === productId ? null : p.id); setFinishSel(null); setDraft([]); setSelected(null); }} />
+                    {productId === p.id && finishes.length > 0 && (
+                      <div className={cn("border border-border p-2", !finishSel && "ring-2 ring-inset ring-primary")}>
+                        <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Interior finish · {p.brand ?? "Pool"}</p>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {finishes.map((f) => (
+                            <button key={f.id} onClick={() => setFinishSel(f.id)} title={f.name}
+                              className={cn("relative h-16 overflow-hidden border-2", finishSel === f.id ? "border-foreground" : "border-transparent hover:border-foreground/40")}>
+                              {f.image && <img src={f.image} alt={f.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />}
+                              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/80 to-transparent px-1.5 pb-1 pt-3 text-left text-[9px] uppercase tracking-[0.1em] text-background">{f.name}{f.price ? ` · +${money(f.price)}` : ""}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>}
           </div>
         </aside>
 
@@ -594,12 +645,19 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
               <Button size="sm" className="h-8 rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => finish()}>Finish</Button>
               <Button size="sm" variant="outline" className="h-8 rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => setDraft((d) => d.slice(0, -1))}>Remove last point</Button>
             </>}
-            {selected && <Button size="sm" variant="outline" className={iconBtn} onClick={removeSelected} aria-label="Delete selected"><Trash2 className="h-3 w-3" /></Button>}
+            {selected && <Button size="sm" className="h-8 rounded-none bg-foreground text-background hover:bg-foreground/85 text-[10px] uppercase tracking-[0.2em]" onClick={removeSelected}><Trash2 className="mr-1 h-3 w-3" />Erase selected</Button>}
           </div>
           <p className="absolute bottom-3 left-3 bg-background/85 px-2 py-1 text-[10px] text-muted-foreground">
             {product ? `Drawing: ${product.label} — ${product.detail}. Guides line up corners, sides snap to equal lengths, click the first point to close.` : selected ? "Drag a corner square to reshape, or drag the piece to move it." : "Pick a product on the left to draw. Drag empty space to pan, scroll to zoom."} · 1 square = 1 ft
           </p>
         </div>
+
+        {designerOpen && (
+          <React.Suspense fallback={null}>
+            <BoardPoolDesigner kind={kind === "spa" ? "spa" : "pool"} onClose={() => setDesignerOpen(false)}
+              onPlace={(pts) => { const id = `${kind === "spa" ? "spa" : "pool"}:custom`; commit([...items, { id: `${Date.now()}`, productId: id, kind: kind === "spa" ? "spa" : "pool", pts }]); setDesignerOpen(false); }} />
+          </React.Suspense>
+        )}
 
         {/* Take-off */}
         <aside className="hidden w-72 shrink-0 flex-col border-l border-border lg:flex">
@@ -608,7 +666,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
             {!lines.length && <p className="px-3 py-6 text-sm text-muted-foreground">Nothing drawn yet.</p>}
             {lines.map(({ it, p, qty, gross, total: t }) => (
               <button key={it.id} onClick={() => setSelected(it.id)} className={cn("block w-full border-b border-border/60 px-3 py-2 text-left", selected === it.id && "bg-muted")}>
-                <span className="flex justify-between gap-2 text-sm"><span className="truncate">{CAT[it.kind]} · {p?.label}</span><span>{money(t)}</span></span>
+                <span className="flex justify-between gap-2 text-sm"><span className="truncate">{CAT[it.kind]} · {p?.label}{it.finish ? ` · ${finishesFor(p?.brand).find((f) => f.id === it.finish)?.name ?? ""}` : ""}</span><span>{money(t)}</span></span>
                 <span className="block text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{p?.detail}{p?.unit ? ` · ${Math.round(qty)} ${p.unit === "lf" ? "lin ft" : "sq ft"}` : ""}{p?.unit === "sqft" && Math.round(qty) !== Math.round(gross) ? ` net of ${Math.round(gross)} drawn` : ""}</span>
               </button>
             ))}
