@@ -3,7 +3,7 @@ import { TransformControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { Model3DLoader } from './Model3DLoader';
 import { TerrainAsset } from './TerrainEditor';
-import { realWorldFit } from './realScale';
+import { realWorldFit, type SiteRef } from './realScale';
 
 export type GizmoMode = 'translate' | 'rotate' | 'scale';
 
@@ -36,6 +36,8 @@ interface TerrainAssetsRendererProps {
   gizmoMode?: GizmoMode;
   snap?: GizmoSnapSettings;
   onAssetTransform?: (id: string, next: Partial<TerrainAsset>) => void;
+  /** Live pool/deck size used as the scale reference for every model. */
+  siteRef?: SiteRef;
 }
 
 function SelectedAssetGizmo({
@@ -78,10 +80,12 @@ function TerrainAssetItem({
   asset,
   onAssetClick,
   registerRef,
+  siteRef,
 }: {
   asset: TerrainAsset;
   onAssetClick?: (id: string) => void;
   registerRef: (id: string, obj: THREE.Group | null) => void;
+  siteRef?: SiteRef;
 }) {
   const groupRef = useRef<THREE.Group>(null);
 
@@ -109,7 +113,7 @@ function TerrainAssetItem({
       }}
     >
       <Suspense fallback={null}>
-        <FitToRealSize asset={asset}>
+        <FitToRealSize asset={asset} siteRef={siteRef}>
           <Model3DLoader
             url={asset.url}
             format={asset.format}
@@ -128,7 +132,7 @@ function TerrainAssetItem({
  * Meshes are tagged `walkable` so the walkthrough can collide with the
  * model's real triangles instead of a box.
  */
-function FitToRealSize({ asset, children }: { asset: TerrainAsset; children: React.ReactNode }) {
+function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; siteRef?: SiteRef; children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null);
   React.useLayoutEffect(() => {
     const g = ref.current;
@@ -143,15 +147,19 @@ function FitToRealSize({ asset, children }: { asset: TerrainAsset; children: Rea
       box.applyMatrix4(g.matrixWorld.clone().invert());
       const size = box.getSize(new THREE.Vector3());
       const min = box.min;
-      if (asset.autoFit !== false && (asset.type === 'object' || asset.type === 'furniture' || asset.type === 'tree' || asset.type === 'landscape' || asset.type === 'custom')) {
-        const k = realWorldFit(asset.name, asset.type, size);
+      const isEnv = asset.type === 'terrain' || asset.type === 'skydome';
+      // Environments are always framed to the pool + deck; objects honour autoFit.
+      if (isEnv || asset.autoFit !== false) {
+        // Asset scale is applied on the parent; neutralise legacy env pre-scale.
+        const parentK = isEnv ? (typeof asset.scale === 'number' ? asset.scale : asset.scale?.[0] || 1) : 1;
+        const k = realWorldFit(asset.name, asset.type, size, siteRef) / parentK;
         g.scale.setScalar(k);
-        g.position.y = -min.y * k;
+        g.position.y = asset.type === 'skydome' ? -(min.y + size.y / 2) * k * 0.2 : -min.y * k;
       }
       g.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.userData.walkable = true; });
     };
     apply();
-  }, [asset.url, asset.name, asset.type, asset.autoFit]);
+  }, [asset.url, asset.name, asset.type, asset.autoFit, siteRef?.poolLength, siteRef?.poolWidth, siteRef?.deckWidth]);
   return <group ref={ref}>{children}</group>;
 }
 
@@ -163,6 +171,7 @@ export function TerrainAssetsRenderer({
   gizmoMode = 'translate',
   snap = DEFAULT_GIZMO_SNAP,
   onAssetTransform,
+  siteRef,
 }: TerrainAssetsRendererProps) {
   const refs = useRef(new Map<string, THREE.Group>());
   const [, forceRender] = React.useReducer((n: number) => n + 1, 0);
@@ -185,6 +194,7 @@ export function TerrainAssetsRenderer({
           asset={asset}
           onAssetClick={onAssetClick}
           registerRef={registerRef}
+          siteRef={siteRef}
         />
       ))}
 
