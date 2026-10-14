@@ -1,4 +1,6 @@
+/** Genius concierge (Groq). Imagine Engine Studios Corp. */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { groqChat } from "../_shared/groqChat.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,11 +86,7 @@ serve(async (req) => {
     const body = (await req.json()) as GeniusRequest;
     const turns = (body.messages ?? []).slice(-12).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+    const res = await groqChat(apiKey, ({
         temperature: 0.4,
         response_format: { type: "json_object" },
         messages: [
@@ -96,8 +94,7 @@ serve(async (req) => {
           { role: "system", content: buildContext(body) },
           ...turns,
         ],
-      }),
-    });
+      }));
 
     if (!res.ok) {
       const details = await res.text().catch(() => "");

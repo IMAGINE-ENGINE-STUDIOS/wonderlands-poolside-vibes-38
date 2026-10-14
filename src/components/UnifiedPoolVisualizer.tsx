@@ -42,7 +42,8 @@ import { textureCache } from '@/utils/textureCache';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { LandscapePlants3D } from './scene3d/LandscapePlants3D';
 import { BoardElements3D } from './scene3d/BoardElements3D';
-import { loadBoard3D, BOARD_3D_EVENT } from '@/lib/design/board3D';
+import { loadBoard3D, BOARD_3D_EVENT, updateBoard3D, waterAxis, waterCenter } from '@/lib/design/board3D';
+import { BOARD_SELECT_EVENT, type BoardSelection } from './scene3d/BoardElements3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
 
 interface UnifiedPoolVisualizerProps {
@@ -554,6 +555,57 @@ export function UnifiedPoolVisualizer({
     window.addEventListener(BOARD_3D_EVENT, on);
     return () => window.removeEventListener(BOARD_3D_EVENT, on);
   }, []);
+  /**
+   * Extra board pool/spa being edited. The main pool's own widgets
+   * (ComponentControlPanel + PoolAssetManager) are pointed at it through a
+   * proxy scene, so every pool uses the exact same controls; edits map back
+   * into that water body only. Imagine Engine Studios Corp.
+   */
+  const [activeWater, setActiveWater] = useState<number | null>(null);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<BoardSelection>).detail;
+      if (d?.type === 'water') { setActiveWater(d.i); setSelectedComponent((d.part ?? 'pool') as any); setShowPoolAssetManager(false); }
+      else setActiveWater(null);
+    };
+    window.addEventListener(BOARD_SELECT_EVENT, on);
+    return () => window.removeEventListener(BOARD_SELECT_EVENT, on);
+  }, []);
+  const activeW = activeWater != null ? boardWaters[activeWater] : undefined;
+  const waterScene = useMemo(() => {
+    if (!activeW) return null;
+    const c = waterCenter(activeW.pts);
+    const isUrl = (v?: string) => !!v && /^(\/|https?:)/.test(v);
+    const pts = activeW.pts.map((p, k) => ({ x: p.x - c.x, y: p.z - c.z, id: `w${k}` }));
+    const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+    const anchors = activeW.anchors ?? createDefaultLinearAnchors(activeW.kind === 'spa' ? 3 : 3.5, activeW.kind === 'spa' ? 3 : Math.max(activeW.depth, 5));
+    return {
+      ...scene,
+      pool: { ...scene.pool, points: pts as any, sourcePoints: undefined, perimeterDepthPoints: undefined, linearDepthAnchors: anchors, depthAxis: waterAxis(activeW),
+        finish: { ...scene.pool.finish, url: isUrl(activeW.finish) ? activeW.finish : '/textures/finishes/sapphire-blue-g3.webp' },
+        dimensions: { length: Math.max(...ys) - Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), depth: Math.max(...anchors.map((a) => a.depth)) } },
+      deck: { ...scene.deck, copingWidth: activeW.copingWidth, copingHeight: activeW.copingHeight ?? scene.deck.copingHeight,
+        coping: { ...scene.deck.coping, url: isUrl(activeW.coping) ? activeW.coping : scene.deck.coping.url },
+        waterline: { ...(scene.deck.waterline ?? scene.deck.coping), url: isUrl(activeW.waterline) ? activeW.waterline : (scene.deck.waterline?.url ?? '') } },
+    } as typeof scene;
+  }, [activeW, scene]);
+  const onWaterSceneChange = useCallback((next: typeof scene) => {
+    if (activeWater == null || !activeW) return;
+    const c = waterCenter(activeW.pts);
+    updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => k !== activeWater ? w : {
+      ...w,
+      finish: next.pool.finish?.url || w.finish,
+      coping: next.deck.coping?.url || w.coping,
+      waterline: next.deck.waterline?.url || w.waterline,
+      copingWidth: next.deck.copingWidth ?? w.copingWidth,
+      copingHeight: next.deck.copingHeight ?? w.copingHeight,
+      anchors: next.pool.linearDepthAnchors ?? w.anchors,
+      axis: next.pool.depthAxis ?? w.axis,
+      pts: next.pool.points?.length >= 3 ? next.pool.points.map((p) => ({ x: p.x + c.x, z: p.y + c.z })) : w.pts,
+    }) }));
+  }, [activeWater, activeW]);
+  const setWaterStairs = useCallback((u: any) => { if (activeWater == null) return; updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => k === activeWater ? { ...w, stairs: typeof u === 'function' ? u(w.stairs ?? []) : u } : w) })); }, [activeWater]);
+  const setWaterSeating = useCallback((u: any) => { if (activeWater == null) return; updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => k === activeWater ? { ...w, seating: typeof u === 'function' ? u(w.seating ?? []) : u } : w) })); }, [activeWater]);
   const terrainSiteRef = useMemo(() => {
     const deckWidth = Number((scene.deck as any)?.width ?? (scene.deck as any)?.deckWidth) || 6;
     const base = {
@@ -1468,12 +1520,13 @@ export function UnifiedPoolVisualizer({
          {!isSplineEditMode && (
            <ComponentControlPanel
               selectedComponent={selectedComponent}
-              scene={scene}
+              scene={waterScene ?? scene}
               onClose={() => {
                 setSelectedComponent(null);
                 setSelectedCategory(null);
+                setActiveWater(null);
               }}
-              onSceneChange={setScene}
+              onSceneChange={waterScene ? onWaterSceneChange : setScene}
               onSelectComponent={setSelectedComponent}
               textureLibrary={textureLibrary}
               poolCategory={new URLSearchParams(window.location.search).get('category') || 'deluxe'}
@@ -1574,12 +1627,12 @@ export function UnifiedPoolVisualizer({
           <PoolAssetManager
             isOpen={showPoolAssetManager}
             onToggle={() => setShowPoolAssetManager(!showPoolAssetManager)}
-            stairs={poolStairs}
-            onStairsChange={setPoolStairs}
+            stairs={activeW ? (activeW.stairs ?? []) : poolStairs}
+            onStairsChange={activeW ? setWaterStairs : setPoolStairs}
             chairs={poolChairs}
             onChairsChange={setPoolChairs}
-            contourSeating={contourSeating}
-            onContourSeatingChange={setContourSeating}
+            contourSeating={activeW ? (activeW.seating ?? []) : contourSeating}
+            onContourSeatingChange={activeW ? setWaterSeating : setContourSeating}
             lights={poolLights}
             onLightsChange={handlePoolLightsChange}
             selectedAssetId={selectedPoolAssetId}
@@ -1774,7 +1827,7 @@ export function UnifiedPoolVisualizer({
           
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
-          <BoardElements3D />
+          <BoardElements3D holes={"outline" in terrainSiteRef && terrainSiteRef.outline ? [terrainSiteRef.outline] : []} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}

@@ -21,7 +21,7 @@ import { drivewayGates } from '@/data/drivewayGates';
 import { gilmerPools } from '@/data/gilmerPools';
 import { cn } from '@/lib/utils';
 import productImages from '@/data/productImages';
-import { matchPlatformTools, SEARCH_PROMPTS } from '@/lib/genius/platformTools';
+import { matchPlatformTools, directToolIntent, SEARCH_PROMPTS } from '@/lib/genius/platformTools';
 import { answerIntent, toEnglishIntent } from '@/lib/geniusKnowledge';
 import { detectLanguage, languageName, translateText } from '@/lib/genius/geniusLanguage';
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder';
@@ -643,8 +643,8 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
           onKeyDown={(e) => {
             if (e.key === 'Enter' && searchQuery.trim()) {
               // A clear tool intent with no product match opens the tool directly
-              if (toolHits.length && !searchResults.length) {
-                const t = toolHits[0];
+              const t = !searchResults.length ? directToolIntent(toEnglishIntent(searchQuery)) : null;
+              if (t) {
                 setSearchQuery('');
                 navigate(t.route);
                 return;

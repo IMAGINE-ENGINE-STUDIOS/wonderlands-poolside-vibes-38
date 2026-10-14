@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { findProductInfo } from '@/data/poolProductLookup';
 import { supabase } from '@/integrations/supabase/client';
-import { answerPriceQuestion, buildKnowledgeDigest } from '@/lib/geniusKnowledge';
+import { answerPriceQuestion, answerIntent, buildKnowledgeDigest } from '@/lib/geniusKnowledge';
+import { detectLanguage, translateText } from '@/lib/genius/geniusLanguage';
 import { PLATFORM_TOOLS, matchPlatformTools } from '@/lib/genius/platformTools';
 
 interface AIResponse {
@@ -39,8 +40,9 @@ export function useInlineAISearch() {
     
     try {
       // Genius = one agent for the whole platform (Groq via the `genius` function).
-      const clean = query.replace(/^I'm looking for:\s*/i, '');
-      const local = answerPriceQuestion(clean);
+      const clean = query.replace(/^I'm looking for:\s*/i, '').replace(/\s*\(Answer in [^)]+\.\)\s*$/, '');
+      const lang = detectLanguage(clean);
+      const local = answerPriceQuestion(clean) ?? (lang.startsWith('en') ? null : answerIntent(clean));
       let fullText = local ?? '';
       if (!local) {
         const tools = PLATFORM_TOOLS.map((t) => `${t.label} (${t.route}): ${t.description}`).join('\n');
@@ -51,12 +53,18 @@ export function useInlineAISearch() {
             catalog: `${buildKnowledgeDigest()}\n\nPLATFORM TOOLS\n${tools}`,
           },
         });
-        if (error || !data?.reply) throw new Error(data?.error || 'Genius is unavailable right now');
-        fullText = String(data.reply);
+        if (error || !data?.reply) {
+          // Service down: the catalog still answers locally instead of failing.
+          const fb = answerIntent(clean);
+          if (!fb) throw new Error(data?.error || 'Genius is unavailable right now');
+          fullText = fb;
+        } else fullText = String(data.reply);
       }
       const tool = matchPlatformTools(clean, 1)[0];
       if (tool) fullText += ` You can open the ${tool.label} at ${tool.route}.`;
       // Parse the AI response to extract summary, products, and follow-up question
+      // Always answer in the guest's language (catalog answers are written in English).
+      if (!lang.startsWith('en')) fullText = await translateText(fullText, lang);
       const parsedResponse = parseAIResponse(fullText);
       setAIResponse(parsedResponse);
       

@@ -69,7 +69,7 @@ const saveMainPoolToBoard = (scene: any) => {
   if (!pts || pts.length < 3) return;
   const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
-  updateBoard3D((d) => (d.primaryId ? { ...d, primaryPts: pts.map((p) => ({ x: p.x - cx, z: p.y - cy })) } : d));
+  updateBoard3D((d) => (d.primaryId ? { ...d, primaryPts: pts.map((p) => ({ x: p.x - cx, z: p.y - cy })), primaryFinish: scene?.pool?.finish?.url || d.primaryFinish } : d));
 };
 
 const ShowroomStudio3D: React.FC<Props> = ({ scene, textureLibrary, height = 720, embedded = true, fromBoard = false }) => {

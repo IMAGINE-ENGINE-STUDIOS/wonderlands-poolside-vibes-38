@@ -189,12 +189,13 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
             // even-odd over all of them cuts one hole per water body.
             const rings = [siteRef.outline || [], ...(siteRef.holes || [])].filter((r: any[]) => r.length >= 3);
             const per = Math.max(8, Math.floor(192 / Math.max(1, rings.length)));
-            const segsArr: THREE.Vector4[] = [];
-            rings.forEach((r: { x: number; z: number }[]) => {
+            const segsArr: THREE.Vector4[] = []; const ringIds: number[] = [];
+            rings.forEach((r: { x: number; z: number }[], ri: number) => {
               const step = Math.max(1, Math.ceil(r.length / per));
               const pts = r.filter((_, i) => i % step === 0);
-              pts.forEach((p, i) => { const q = pts[(i + 1) % pts.length]; if (segsArr.length < 192) segsArr.push(new THREE.Vector4(p.x, p.z, q.x, q.z)); });
+              pts.forEach((p, i) => { const q = pts[(i + 1) % pts.length]; if (segsArr.length < 192) { segsArr.push(new THREE.Vector4(p.x, p.z, q.x, q.z)); ringIds.push(ri); } });
             });
+            const ids = Array.from({ length: 192 }, (_, i) => ringIds[i] ?? -1);
             const segN = segsArr.length;
             const arr = Array.from({ length: 192 }, (_, i) => segsArr[i] ?? new THREE.Vector4());
             const half = new THREE.Vector2(
@@ -205,13 +206,16 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
               sh.uniforms.uPoolHalf = { value: half };
               sh.uniforms.uSeg = { value: arr };
               sh.uniforms.uSegN = { value: segN };
+              sh.uniforms.uRing = { value: ids };
               sh.vertexShader = 'varying vec3 vPoolW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvPoolW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-              sh.fragmentShader = 'uniform vec2 uPoolHalf;\nuniform vec4 uSeg[192];\nuniform int uSegN;\nvarying vec3 vPoolW;\n' + sh.fragmentShader.replace('void main() {', `void main() {
+              sh.fragmentShader = 'uniform vec2 uPoolHalf;\nuniform float uRing[192];\nuniform vec4 uSeg[192];\nuniform int uSegN;\nvarying vec3 vPoolW;\n' + sh.fragmentShader.replace('void main() {', `void main() {
   if (vPoolW.y > -6.0) {
     if (uSegN >= 3) {
-      bool inside = false; vec2 p = vPoolW.xz;
+      // Per ring: inside ANY pool/spa ring cuts, so overlapping rings never cancel.
+      bool inside = false; float cur = uRing[0]; vec2 p = vPoolW.xz;
       for (int i = 0; i < 192; i++) {
         if (i >= uSegN) break;
+        if (uRing[i] != cur) { if (inside) discard; inside = false; cur = uRing[i]; }
         vec2 a = uSeg[i].xy; vec2 b = uSeg[i].zw;
         if (((a.y > p.y) != (b.y > p.y)) && (p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y + 1e-6) + a.x)) inside = !inside;
       }

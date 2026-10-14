@@ -1,3 +1,4 @@
+import { activeLanguage } from '@/lib/genius/geniusLanguage';
 import { pickVoice } from '@/lib/genius/geniusLanguage';
 /**
  * Genius' single voice channel.
@@ -78,6 +79,7 @@ export function speakGeniusText(text: string, lang?: string): boolean {
   try {
     synth.cancel();
     const utter = new SpeechSynthesisUtterance(text);
+    lang = lang ?? activeLanguage();
     if (lang) {
       utter.lang = lang; // narrator console language selection
       const voice = pickVoice(lang); // native voice, never an English fallback for other tongues
