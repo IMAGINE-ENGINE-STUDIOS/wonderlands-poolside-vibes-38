@@ -31,6 +31,9 @@ import { boardTo3D, saveBoard3D } from "@/lib/design/board3D";
 import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator";
 import { SCREEN_ENCLOSURE_PRICING, CONCRETE_DECK_PRICE_PER_SQFT } from "@/utils/paverPricing";
 import { paverTypes } from "@/data/paverData";
+import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
+import fenceBannerImg from "@/assets/banners/patio-fencing-banner.webp";
+import screenBannerImg from "@/assets/banners/screen-enclosure-banner.webp";
 import { artificialGrassOptions, getGrassPricePerSqFt } from "@/data/artificialGrassData";
 
 const TURF_COLORS: Record<string, string> = { "light-green": "#7fb24a", "dark-green": "#3f7a32", "natural-green": "#5b9a40", emerald: "#2f8a4a", olive: "#6f7f3a" };
@@ -40,7 +43,7 @@ const GRASS_PRODUCTS_FOR_BOARD = () => artificialGrassOptions.map((g) => ({
 
 type Kind = "pool" | "spa" | "deck" | "turf" | "fence" | "enclosure";
 type Pt = { x: number; y: number };
-type Product = { id: string; kind: Kind; label: string; detail: string; price?: number; rate?: number; unit?: "sqft" | "lf"; color: string; size?: { w: number; l: number } };
+type Product = { id: string; kind: Kind; label: string; detail: string; image?: string; price?: number; rate?: number; unit?: "sqft" | "lf"; color: string; size?: { w: number; l: number } };
 type BoardItem = { id: string; productId: string; kind: Kind; pts: Pt[] };
 
 const PX_PER_FT = 10;
@@ -73,12 +76,16 @@ const buildCatalog = (): Product[] => {
   const seen = new Set<string>();
   const pools: Product[] = getAllProducts()
     .filter((p) => p.category === "Pool" && !seen.has(p.name) && seen.add(p.name))
-    .map((p) => ({ id: `pool:${p.name}`, kind: "pool", label: p.name, detail: `${p.dimensions} · ${(p as any).brand ?? ""}`, price: p.price, color: "#2aa7c9", size: parseSize(p.dimensions) }));
-  const spas: Product[] = gilmerSpas.map((s) => ({ id: `spa:${s.model}`, kind: "spa", label: s.model, detail: s.dimensions ?? "", price: s.price, color: "#1f8fb3", size: parseSize(s.dimensions) }));
+    .map((p) => ({ id: `pool:${p.name}`, kind: "pool", label: p.name, detail: `${p.dimensions}${(p as any).brand ? ` · ${(p as any).brand}` : ""}`, image: (p as any).image, price: p.price, color: "#2aa7c9", size: parseSize(p.dimensions) }));
+  const spas: Product[] = gilmerSpas.map((s) => ({ id: `spa:${s.model}`, kind: "spa", label: s.model, detail: s.dimensions ?? "", image: (s as any).image, price: s.price, color: "#1f8fb3", size: parseSize(s.dimensions) }));
+  getAllProducts().filter((p) => p.category === "Spa" && !spas.some((x) => x.label === p.name)).forEach((p) => spas.push({ id: `spa:${p.name}`, kind: "spa", label: p.name, detail: p.dimensions ?? "", image: (p as any).image, price: p.price, color: "#1f8fb3", size: parseSize(p.dimensions) }));
+  // Draw-from-scratch shapes, priced at the 2D studio shell rate.
+  pools.unshift({ id: "pool:custom", kind: "pool", label: "Custom shape pool", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#2aa7c9" });
+  spas.unshift({ id: "spa:custom", kind: "spa", label: "Custom shape spa", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#1f8fb3" });
   const fences: Product[] = FENCE_STYLES.flatMap((s) => FENCE_COLORS.flatMap((c) => FENCE_HEIGHTS.map((h) => ({
-    id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex,
+    id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex, image: s.id === "alu" ? aluFenceImg : fenceBannerImg,
   }))));
-  const screens: Product[] = SCREEN_STYLES.flatMap((s) => SCREEN_COLORS.flatMap((c) => s.heights.map((h) => ({ id: `enclosure:${s.id}:${c.id}:${h}`, kind: "enclosure" as Kind, label: s.label, detail: `${c.id} frame · ${h}' tall`, rate: s.rate, unit: "sqft" as const, color: c.hex }))));
+  const screens: Product[] = SCREEN_STYLES.flatMap((s) => SCREEN_COLORS.flatMap((c) => s.heights.map((h) => ({ id: `enclosure:${s.id}:${c.id}:${h}`, kind: "enclosure" as Kind, label: s.label, detail: `${c.id} frame · ${h}' tall`, rate: s.rate, unit: "sqft" as const, color: c.hex, image: screenBannerImg }))));
   const turf: Product[] = GRASS_PRODUCTS_FOR_BOARD();
   const deck: Product[] = [
     { id: "deck:concrete", kind: "deck", label: "Concrete deck", detail: "Broom finish", rate: CONCRETE_DECK_PRICE_PER_SQFT, unit: "sqft", color: "#c9c3b8" },
@@ -373,6 +380,11 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
       toast({ title: step === "material" ? "Choose the material first" : step === "size" ? "Choose a size" : "Choose a color", description: "Pick one of the highlighted options, then draw." });
       return;
     }
+    // Clicking a placed piece of the current kind selects it (drag to move) instead of drawing.
+    const pre = !draft.length ? hit(w) : undefined;
+    if (pre && (pre.id === selected || pre.kind === kind || !product)) {
+      setSelected(pre.id); snapshot(); drag.current = { id: pre.id, last: w }; e.currentTarget.setPointerCapture(e.pointerId); return;
+    }
     if (product) {
       if (product.size) {
         const { w: W, l: L } = product.size; const c = { x: Math.round(w.x * 2) / 2, y: Math.round(w.y * 2) / 2 };
@@ -431,7 +443,8 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
   /* ---------- take-off & summary ---------- */
   const net = React.useMemo(() => computeNetAreas(items), [items]);
   const netOf = (i: BoardItem) => net.get(i.id) ?? area(i.pts);
-  const lines = items.map((it) => { const p = byId.get(it.productId); const n = netOf(it); return { it, p, gross: area(it.pts), qty: p?.unit === "lf" ? length(it.pts) : p?.unit === "sqft" ? n : 1, total: priceOf(it, p, n) }; });
+  const CAT: Record<Kind, string> = { pool: "Pool", spa: "Spa", deck: "Deck", turf: "Turf", fence: "Fence", enclosure: "Screen enclosure" };
+  const lines = items.map((it) => { const p = byId.get(it.productId); const n = netOf(it); return { it, p, gross: area(it.pts), qty: p?.unit === "lf" ? length(it.pts) : p?.unit === "sqft" ? n : 1, total: priceOf(it, p, n) }; }).filter((l) => l.p && l.total > 0 && l.qty > 0.5);
   const total = lines.reduce((s, l) => s + l.total, 0);
   const sum = (k: Kind, f: (pts: Pt[]) => number) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + f(i.pts), 0));
   const sumNet = (k: Kind) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + netOf(i), 0));
@@ -479,7 +492,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
           <Button size="sm" variant="outline" className={iconBtn} onClick={undo} disabled={!past.current.length} aria-label="Undo"><Undo2 className="h-3.5 w-3.5" /></Button>
           <Button size="sm" variant="outline" className={iconBtn} onClick={redo} disabled={!future.current.length} aria-label="Redo"><Redo2 className="h-3.5 w-3.5" /></Button>
           <Button size="sm" variant="outline" className={cn(iconBtn, "text-[10px] uppercase tracking-[0.2em]")} onClick={saveProject}><Save className="mr-1 h-3.5 w-3.5" />Save</Button>
-          <Button size="sm" variant="outline" className={cn(iconBtn, "text-[10px] uppercase tracking-[0.2em]")} disabled={!items.length} onClick={open3D}><Layers className="mr-1 h-3.5 w-3.5" />3D Studio</Button>
+          <Button size="sm" className={cn(iconBtn, "bg-foreground text-background hover:bg-foreground/85 text-[10px] uppercase tracking-[0.2em]")} disabled={!items.length} onClick={open3D}><Layers className="mr-1 h-3.5 w-3.5" />3D Studio</Button>
           <div className="relative">
             <Button size="sm" variant="outline" className={cn(iconBtn, "text-[10px] uppercase tracking-[0.2em]")} onClick={() => setProjOpen((o) => !o)}><FolderOpen className="mr-1 h-3.5 w-3.5" />Projects</Button>
             {projOpen && (
@@ -528,7 +541,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
                     {materials.map(({ id, first }) => (
                       <button key={id} onClick={() => { setMaterial(id); setSizeSel(null); setProductId(null); setNeedStep(null); setDraft([]); setSelected(null); }}
                         className={cn("mb-1 flex w-full items-center justify-between border px-2 py-2 text-left text-sm", material === id ? "border-foreground bg-muted" : "border-border hover:bg-muted/50")}>
-                        <span>{first.label}</span>{material === id && <Check className="h-3.5 w-3.5" />}
+                        <span className="flex items-center gap-2">{first.image && <img src={first.image} alt={first.label} loading="lazy" className="h-10 w-14 object-cover" />}{first.label}</span>{material === id && <Check className="h-3.5 w-3.5" />}
                       </button>
                     ))}
                   </div>
@@ -561,7 +574,8 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
               : choices.map((p) => (
                 <button key={p.id} onClick={() => { setProductId(p.id === productId ? null : p.id); setDraft([]); setSelected(null); }}
                   className={cn("flex w-full items-center gap-3 border-b border-border/60 px-3 py-2 text-left hover:bg-muted/50", productId === p.id && "bg-muted")}>
-                  {p.size ? <SizeChip w={p.size.w} l={p.size.l} /> : <span className="h-6 w-6 shrink-0 border border-border" style={{ background: p.color }} />}
+                  {p.image ? <img src={p.image} alt={p.label} loading="lazy" className="h-10 w-14 shrink-0 object-cover" /> : null}
+                  {p.size ? <SizeChip w={p.size.w} l={p.size.l} /> : !p.image && <span className="h-6 w-6 shrink-0 border border-border" style={{ background: p.color }} />}
                   <span className="min-w-0 flex-1"><span className="block truncate text-sm">{p.label}</span><span className="block truncate text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{p.detail}</span></span>
                   <span className="shrink-0 text-xs">{p.price ? money(p.price) : `$${p.rate}/${p.unit}`}</span>
                   {productId === p.id && <Check className="h-3.5 w-3.5" />}
@@ -576,8 +590,6 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
             onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={() => setHover(null)} onDoubleClick={() => finish()} />
           <div className="absolute left-3 top-3 flex gap-1">
             <Button size="sm" variant={product ? "outline" : "default"} className="h-8 rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => { setProductId(null); resetSteps(); setDraft([]); }}><MousePointer2 className="mr-1 h-3 w-3" />Select / move</Button>
-            <Button size="sm" variant="outline" className={iconBtn} onClick={undo} disabled={!past.current.length} aria-label="Undo"><Undo2 className="h-3 w-3" /></Button>
-            <Button size="sm" variant="outline" className={iconBtn} onClick={redo} disabled={!future.current.length} aria-label="Redo"><Redo2 className="h-3 w-3" /></Button>
             {draft.length > 0 && <>
               <Button size="sm" className="h-8 rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => finish()}>Finish</Button>
               <Button size="sm" variant="outline" className="h-8 rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => setDraft((d) => d.slice(0, -1))}>Remove last point</Button>
@@ -596,16 +608,16 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
             {!lines.length && <p className="px-3 py-6 text-sm text-muted-foreground">Nothing drawn yet.</p>}
             {lines.map(({ it, p, qty, gross, total: t }) => (
               <button key={it.id} onClick={() => setSelected(it.id)} className={cn("block w-full border-b border-border/60 px-3 py-2 text-left", selected === it.id && "bg-muted")}>
-                <span className="flex justify-between gap-2 text-sm"><span className="truncate">{p?.label}</span><span>{money(t)}</span></span>
+                <span className="flex justify-between gap-2 text-sm"><span className="truncate">{CAT[it.kind]} · {p?.label}</span><span>{money(t)}</span></span>
                 <span className="block text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{p?.detail}{p?.unit ? ` · ${Math.round(qty)} ${p.unit === "lf" ? "lin ft" : "sq ft"}` : ""}{p?.unit === "sqft" && Math.round(qty) !== Math.round(gross) ? ` net of ${Math.round(gross)} drawn` : ""}</span>
               </button>
             ))}
           </div>
           <div className="border-t border-border p-3">
             <div className="flex justify-between font-serif text-lg"><span>Total</span><span>{money(total)}</span></div>
-            <Button className="mt-2 w-full rounded-none text-[10px] uppercase tracking-[0.2em]" disabled={!items.length} onClick={() => setQuoteOpen(true)}><FileText className="mr-1 h-3.5 w-3.5" />Quote</Button>
-            <Button variant="outline" className="mt-2 w-full rounded-none text-[10px] uppercase tracking-[0.2em]" disabled={!items.length} onClick={open3D}><Layers className="mr-1 h-3.5 w-3.5" />3D Studio</Button>
-            <Button variant="outline" className="mt-2 w-full rounded-none text-[10px] uppercase tracking-[0.2em]" onClick={() => { if (window.confirm("Clear the whole board?")) { commit([]); setSelected(null); } }}>Clear board</Button>
+            <Button className="mt-2 w-full rounded-none bg-foreground text-background hover:bg-foreground/85 text-[10px] uppercase tracking-[0.2em]" disabled={!items.length} onClick={() => setQuoteOpen(true)}><FileText className="mr-1 h-3.5 w-3.5" />Quote</Button>
+            <Button className="mt-2 w-full rounded-none bg-foreground text-background hover:bg-foreground/85 text-[10px] uppercase tracking-[0.2em]" disabled={!items.length} onClick={open3D}><Layers className="mr-1 h-3.5 w-3.5" />3D Studio</Button>
+            <Button className="mt-2 w-full rounded-none bg-foreground text-background hover:bg-foreground/85 text-[10px] uppercase tracking-[0.2em]" onClick={() => { if (window.confirm("Clear the whole board?")) { commit([]); setSelected(null); } }}>Clear board</Button>
           </div>
         </aside>
       </div>

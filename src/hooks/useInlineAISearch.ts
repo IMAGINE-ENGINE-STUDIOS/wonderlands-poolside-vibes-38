@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
 import { findProductInfo } from '@/data/poolProductLookup';
+import { supabase } from '@/integrations/supabase/client';
+import { answerPriceQuestion, buildKnowledgeDigest } from '@/lib/geniusKnowledge';
+import { PLATFORM_TOOLS, matchPlatformTools } from '@/lib/genius/platformTools';
 
 interface AIResponse {
   summary: string;
@@ -35,67 +38,24 @@ export function useInlineAISearch() {
     setError(null);
     
     try {
-      const response = await fetch(
-        `https://bwngxlbnavnhbtahyzbf.supabase.co/functions/v1/ai-assistant`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bmd4bGJuYXZuaGJ0YWh5emJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5NzM0NjMsImV4cCI6MjA2ODU0OTQ2M30.MaEd-hUQAK9S1zaC5L1Caev2oEPCpnIzBJ1kPCv3uOU`,
+      // Genius = one agent for the whole platform (Groq via the `genius` function).
+      const clean = query.replace(/^I'm looking for:\s*/i, '');
+      const local = answerPriceQuestion(clean);
+      let fullText = local ?? '';
+      if (!local) {
+        const tools = PLATFORM_TOOLS.map((t) => `${t.label} (${t.route}): ${t.description}`).join('\n');
+        const { data, error } = await supabase.functions.invoke('genius', {
+          body: {
+            messages: [{ role: 'user', content: clean }],
+            context: { scope: 'site search', route: window.location.pathname },
+            catalog: `${buildKnowledgeDigest()}\n\nPLATFORM TOOLS\n${tools}`,
           },
-          body: JSON.stringify({
-            messages: [{ role: 'user', content: query }],
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error('Too many requests. Please wait a moment.');
-        }
-        if (response.status === 402) {
-          throw new Error('Service temporarily unavailable.');
-        }
-        throw new Error('Failed to get AI response');
+        });
+        if (error || !data?.reply) throw new Error(data?.error || 'Genius is unavailable right now');
+        fullText = String(data.reply);
       }
-
-      // Parse streaming response
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response stream');
-
-      const decoder = new TextDecoder();
-      let fullText = '';
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        buffer += decoder.decode(value, { stream: true });
-        
-        // Process SSE lines
-        let newlineIndex: number;
-        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-          let line = buffer.slice(0, newlineIndex);
-          buffer = buffer.slice(newlineIndex + 1);
-          
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (line.startsWith(':') || line.trim() === '') continue;
-          if (!line.startsWith('data: ')) continue;
-          
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
-          
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) fullText += content;
-          } catch {
-            // Partial JSON, continue
-          }
-        }
-      }
-
+      const tool = matchPlatformTools(clean, 1)[0];
+      if (tool) fullText += ` You can open the ${tool.label} at ${tool.route}.`;
       // Parse the AI response to extract summary, products, and follow-up question
       const parsedResponse = parseAIResponse(fullText);
       setAIResponse(parsedResponse);
