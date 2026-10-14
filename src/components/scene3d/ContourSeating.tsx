@@ -71,7 +71,7 @@ export function ContourSeating({ seating, poolPerimeter, isSelected, onSelect, g
 
   const geometry = useMemo(() => {
     const span = seating.endPosition - seating.startPosition;
-    const closed = span >= 0.995 || (span <= 0 && Math.abs(span) < 1e-4 ? false : span >= 0.995);
+    const closed = span >= 0.995;
     const end = span < 0 ? seating.endPosition + 1 : seating.endPosition; // seam wrap
     const samples = samplePerimeter(seating.startPosition, end, poolPerimeter, closed);
     const geo = new THREE.BufferGeometry();
@@ -79,7 +79,7 @@ export function ContourSeating({ seating, poolPerimeter, isSelected, onSelect, g
 
     const w = Math.max(0.5, seating.width);
     const topY = -seating.height;
-    const r = Math.min(Math.max(0, (seating as any).softEdge ?? 0.15), w * 0.45, 0.6);
+    const r = Math.min(Math.max(0, seating.softEdge ?? 0.15), w * 0.45, 0.6);
     // Cross-section (inward offset, y) — floor depth substituted per sample.
     const ARC = r > 0.01 ? 6 : 0;
     const profile = (floor: number): Array<[number, number]> => {
