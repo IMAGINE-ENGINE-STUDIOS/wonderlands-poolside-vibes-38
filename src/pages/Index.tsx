@@ -194,7 +194,7 @@ const Index = () => {
 
         <Suspense fallback={<SectionFallback />}>
           <SectionBanner id="landscaping" image={landscapingBanner} alt="Landscaping" title="Landscaping" subtitle="Transform your outdoor space with premium plants, palms, trees, and grasses" />
-          <LandscapingSection />
+          <LandscapingSection compact />
         </Suspense>
 
         <Suspense fallback={<SectionFallback />}>

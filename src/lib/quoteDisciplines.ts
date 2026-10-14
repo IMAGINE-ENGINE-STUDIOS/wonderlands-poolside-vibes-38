@@ -7,7 +7,7 @@
 
 export type Discipline =
   | "pool" | "lanai" | "solar" | "sauna" | "enclosure" | "fencing" | "gate"
-  | "cover" | "paver" | "turf" | "liner" | "finish" | "general";
+  | "cover" | "paver" | "turf" | "liner" | "finish" | "landscaping" | "general";
 
 export interface WarrantyLine { label: string; term: string; note?: string }
 
@@ -40,6 +40,7 @@ export const resolveDiscipline = ({ pool, customProduct, extras }: Ctx): Discipl
   if (t.includes("cover")) return "cover";
   if (t.includes("paver") || t.includes("travertine")) return "paver";
   if (t.includes("grass") || t.includes("turf")) return "turf";
+  if (t.includes("landscap") || t.includes("plant")) return "landscaping";
   if (t.includes("liner")) return "liner";
   if (t.includes("finish") || t.includes("tile")) return "finish";
   if (/solar|wonderwall|inverter/.test(n)) return "solar";
@@ -227,6 +228,25 @@ export const DISCIPLINES: Record<Exclude<Discipline, "pool" | "lanai">, Discipli
     ],
     warranties: [
       { label: "Finish material", term: "Per manufacturer" },
+      { label: "Installation workmanship", term: "1 year" },
+    ],
+    disclaimer: STD,
+  },
+  landscaping: {
+    title: "LANDSCAPING QUOTATION",
+    subtitle: "Planting Plan, Beds & Irrigation",
+    includesTitle: "EVERY LANDSCAPING INSTALL INCLUDES",
+    includes: [
+      "Scaled planting plan with real mature canopy sizes",
+      "Bed preparation, soil amendment and haul-off",
+      "Plants in the selected container sizes, set at recommended spacing",
+      "Bed surface (mulch, shell, rock or sod) and edging as drawn",
+      "Drip / bubbler irrigation extension when selected",
+      "Clean-up and watering-in",
+    ],
+    warranties: [
+      { label: "Plant establishment", term: "90 days", note: "Replacement of plants that fail with proper watering." },
+      { label: "Irrigation workmanship", term: "1 year" },
       { label: "Installation workmanship", term: "1 year" },
     ],
     disclaimer: STD,
