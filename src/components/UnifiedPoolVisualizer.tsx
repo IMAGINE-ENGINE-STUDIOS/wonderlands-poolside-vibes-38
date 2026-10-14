@@ -1929,6 +1929,11 @@ export function UnifiedPoolVisualizer({
           {/* Terrain Assets from Terrain Editor - selectable with transform gizmo + snapping */}
           <TerrainAssetsRenderer
             assets={terrainAssets}
+            siteRef={{
+              poolLength: scene.pool.dimensions?.length || 32,
+              poolWidth: scene.pool.dimensions?.width || 16,
+              deckWidth: Number((scene.deck as any)?.width ?? (scene.deck as any)?.deckWidth) || 6,
+            }}
             selectedAssetId={selectedTerrainAssetId}
             onAssetClick={(id) => setSelectedTerrainAssetId(id)}
             gizmoEnabled={!isWalkthroughMode && !isSplineEditMode}
