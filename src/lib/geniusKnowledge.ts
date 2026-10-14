@@ -11,6 +11,7 @@ import { getAllProducts, type PoolProductInfo } from '@/data/poolProductLookup';
 import { gilmerSpas } from '@/data/gilmerSpas';
 import { saunas } from '@/data/saunaData';
 import { DISCIPLINES } from '@/lib/quoteDisciplines';
+import { paverTypes } from '@/data/paverData';
 
 export interface KnowledgeItem { name: string; category: string; brand?: string; price: number; dimensions?: string; depth?: string; note?: string; image?: string }
 
@@ -44,6 +45,8 @@ export function getKnowledgeItems(): KnowledgeItem[] {
     push({ name: s.model, category: 'Spa', brand: s.brand, price: s.price, dimensions: s.dimensions, depth: s.depth, note: s.warranty, image: s.image ?? s.images?.[0] }),
   );
   saunas.forEach((s: any) => push({ name: s.model ?? s.name, category: 'Sauna', brand: 'Almost Heaven', price: s.price, dimensions: s.dimensions, image: s.image }));
+  /* Pavers are priced per square foot (main-page paver catalog). */
+  paverTypes.forEach((p) => push({ name: p.name, category: 'Paver', price: p.basePrice, note: p.description, image: p.image }));
   cache = out;
   return out;
 }
@@ -98,6 +101,7 @@ export function buildKnowledgeDigest(): string {
 }
 
 const CAT_WORDS: Array<[RegExp, string]> = [
+  [/\bpavers?\b|\bporcelain\b|\btravertine\b|\bdeck(ing)?\b|\bgloca\b|\bappian\b|\bcoralina\b|\bcatalina\b/, 'Paver'],
   [/\bspa|hot ?tub/, 'Spa'],
   [/\bsauna/, 'Sauna'],
   [/tanning|ledge/, 'Tanning Ledge'],
@@ -114,15 +118,16 @@ export function answerPriceQuestion(text: string): string | null {
   const under = t.match(/\b(?:under|below|less than)\s*\$?\s*(\d+(?:\.\d+)?)\s*(k)?/);
   if (!cheap && !dear && !under) return null;
   const category = CAT_WORDS.find(([re]) => re.test(t))?.[1] ?? 'Pool';
-  const concrete = /concrete/.test(t);
+  const concrete = /concrete/.test(t) && category === 'Pool';
   const fiberglass = /fiberglass/.test(t);
   let list = getKnowledgeItems().filter((i) => i.category === category);
   if (concrete) list = list.filter((i) => i.brand === 'Wonderlands');
   if (fiberglass) list = list.filter((i) => i.brand !== 'Wonderlands');
   if (!list.length) return null;
   const sorted = [...list].sort((a, b) => a.price - b.price);
+  const perSqft = category === 'Paver';
   const label = `${concrete ? 'concrete ' : fiberglass ? 'fiberglass ' : ''}${category.toLowerCase()}`;
-  const desc = (i: KnowledgeItem) => `${i.name}${i.brand ? ` by ${i.brand}` : ''} at ${money(i.price)}${i.dimensions ? `, ${i.dimensions}` : ''}`;
+  const desc = (i: KnowledgeItem) => `${i.name}${i.brand ? ` by ${i.brand}` : ''} at ${money(i.price)}${perSqft ? '/sqft' : ''}${i.dimensions ? `, ${i.dimensions}` : ''}`;
   if (under) {
     const cap = Number(under[1]) * (under[2] ? 1000 : 1);
     const hits = sorted.filter((i) => i.price <= cap).slice(0, 4);

@@ -23,7 +23,7 @@ import { GENIUS_DESTINATIONS, isGeniusAllowedPath } from '@/lib/geniusAccess';
 import { readFlipViewport } from '@/lib/flipViewportReader';
 import { getAllProducts } from '@/data/poolProductLookup';
 import { ITEMS } from '@/components/FlipIndex';
-import { answerIntent as answerPriceQuestion } from '@/lib/geniusKnowledge';
+import { answerIntent as answerPriceQuestion, getKnowledgeItems } from '@/lib/geniusKnowledge';
 
 export interface GeniusResolution {
   handled: boolean;
@@ -49,12 +49,18 @@ function matchCategory(text: string) {
 /** Which catalog product does this phrase point at? */
 function matchProduct(text: string) {
   const t = norm(text);
-  const products = getAllProducts();
+  /* Every catalog item: pools, spas, saunas, pavers… — © Imagine Engine Studios Corp. */
+  const products = [...getAllProducts(), ...getKnowledgeItems()] as any[];
   return (
     products.find((p) => t.includes(norm(p.name))) ??
     products.find((p) => {
       const words = norm(p.name).split(' ').filter((w) => w.length > 3);
       return words.length > 0 && words.every((w) => t.includes(w));
+    }) ??
+    /* distinctive model word, e.g. "salem", "vienna", "gloca" */
+    products.find((p) => {
+      const w = norm(p.name).split(' ')[0];
+      return w.length > 3 && !/^(the|premium|classic)$/.test(w) && new RegExp(`\\b${w}\\b`).test(t);
     }) ??
     null
   );
@@ -64,7 +70,7 @@ function matchProduct(text: string) {
 const CAT_TO_CHAPTER: [RegExp, string][] = [
   [/tanning/, 'tanning-ledges'], [/spa|hot tub/, 'spas'], [/sauna/, 'saunas'], [/cover/, 'covers'],
   [/gate/, 'driveway-gates'], [/fenc/, 'patio-fencing'], [/screen|enclosure/, 'screen-enclosures'],
-  [/paver/, 'pavers'], [/turf|grass/, 'artificial-grass'], [/solar/, 'solar'], [/pool/, 'pools'],
+  [/paver/, 'pavers'], [/sauna/, 'saunas'], [/turf|grass/, 'artificial-grass'], [/solar/, 'solar'], [/pool/, 'pools'],
 ];
 function chapterFor(product: { category?: string; brand?: string; name?: string }) {
   const c = norm(product.category ?? '');
@@ -190,11 +196,12 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
   const product = matchProduct(raw);
   if (product) {
     const price = money(product.price);
+    const perSqft = /paver/i.test(product.category ?? '');
     const category = chapterFor(product as any);
     if (controls && category) controls.openProduct(category.id, product.name);
     const bits = [
       `${product.name}${product.category ? ` — ${product.category}` : ''}.`,
-      price ? `Turnkey from ${price}, delivery and installation included.` : null,
+      price ? (perSqft ? `${price} per square foot, installed.` : `Turnkey from ${price}, delivery and installation included.`) : null,
       (product as any).dimensions ? `Dimensions ${(product as any).dimensions}.` : null,
       (product as any).depth ? `Depth ${(product as any).depth}.` : null,
       controls && category ? 'I am opening its book now.' : 'Open its edition and I will read it to you.',
