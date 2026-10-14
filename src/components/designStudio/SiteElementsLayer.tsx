@@ -25,7 +25,7 @@ import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
 import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
 /* Seamless full-bleed grass (catalog swatches carry white borders that tile as a grid). Credit: Imagine Engine Studios Corp */
 import grassTexture from "@/assets/turf/grass-texture.avif";
-import { PoolDesignerHeader } from "@/components/scene3d/PoolDesignerHeader";
+import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from "@/components/scene3d/PoolDesignerHeader";
 import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
 
 /* ---------- catalog (same lists as the Global Design Board) ---------- */
