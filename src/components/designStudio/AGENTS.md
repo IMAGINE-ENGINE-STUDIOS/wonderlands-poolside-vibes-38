@@ -1,0 +1,2 @@
+# 2D Design Studio rules
+- 2D Design Studio = PoolBuilder (canonical pool + auto-attached deck) + `designStudio/SiteElementsLayer` (fences/screens/turf drawn on the same board via PoolBuilder's renderOverlay pan/zoom, priced from site lists); switching to 3D rewrites the board3D hand-off from the studio and refuses to show a pool not drawn in 2D — why: one board, 3D always shows exactly the 2D design.

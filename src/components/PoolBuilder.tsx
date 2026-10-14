@@ -142,6 +142,8 @@ interface PoolBuilderProps {
       total: number;
     };
   }) => void;
+  /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number }) => React.ReactNode;
 }
 
 // Helper function to shade colors
@@ -166,7 +168,8 @@ export function PoolBuilder({
   hideInternalTabs = false,
   onToolUsed,
   onExternalUpdate,
-  onPoolDataChange
+  onPoolDataChange,
+  renderOverlay
 }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -4676,8 +4679,15 @@ export function PoolBuilder({
 
   // Notify parent of pool data changes (separate from drawing)
   // Skip when update originated from external (3D viewer) to prevent loops
+  // After a 3D/Genius update, re-notify two frames later so the page learns the
+  // real 2D state (shape type, auto-attached deck, materials) instead of keeping
+  // a half-converted copy — that gap made 3D round rectangles and drop the deck.
+  const [notifyTick, setNotifyTick] = useState(0);
   useEffect(() => {
-    if (isExternalUpdateRef.current) return;
+    if (isExternalUpdateRef.current) {
+      requestAnimationFrame(() => requestAnimationFrame(() => setNotifyTick(t => t + 1)));
+      return;
+    }
     if (onPoolDataChange) {
       const cost = calculateTotalCost();
       const paver = paverTypes.find(p => p.id === selectedPaverId);
@@ -4706,7 +4716,7 @@ export function PoolBuilder({
       } as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools, poolShape, selectedPaverId, selectedCopingId, selectedFinishId]);
+  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools, poolShape, selectedPaverId, selectedCopingId, selectedFinishId, notifyTick]);
 
   // Convert screen (mouse) coordinates to world (canvas) coordinates, accounting for pan+zoom
   const screenToWorld = useCallback((screenX: number, screenY: number): { x: number; y: number } => {
@@ -5837,6 +5847,8 @@ export function PoolBuilder({
 
       {/* Canvas area */}
       <div className="flex-1 overflow-hidden relative">
+        {/* Site layer (fences/screens/turf) drawn with this canvas's own pan/zoom. */}
+        {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale })}
         {/* Main Canvas - fills viewport */}
         <div className="w-full h-full">
             <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={(e) => {

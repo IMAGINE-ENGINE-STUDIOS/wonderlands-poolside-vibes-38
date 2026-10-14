@@ -41,9 +41,13 @@ export function Genius2DBar({ onScene }: { onScene: (scene: any) => void }) {
         .sort((a, b) => a.position - b.position);
       const minD = Math.min(...anchors.map((a) => a.depth)), maxD = Math.max(...anchors.map((a) => a.depth));
       const pts = shapePoints(shape, W, L);
+      // Land the pool in the middle of the 2D board (PoolBuilder's canvas fills the window);
+      // straight shapes keep sharp corners in 2D and 3D alike.
+      const ox = Math.round(window.innerWidth / 2), oy = Math.round(window.innerHeight / 2);
+      const straight = shape === 'rectangle' || shape === 'l-shape';
       const fresh: any = productToScene(
         { name: 'Genius design', model: 'Genius design', dimensions: `${W}' × ${L}'`, depth: `${minD}' - ${maxD}'`, price: 0, category: 'pool', type: 'pool' },
-        { customPoolShape: pts.map((p, i) => ({ x: p.x * 10, y: p.y * 10, id: `p${i + 1}` })), poolBuilderData: { scale: 10, poolShape: shape === 'rectangle' || shape === 'l-shape' ? 'rectangle' : 'freeform' } },
+        { customPoolShape: pts.map((p, i) => ({ x: p.x * 10 + ox, y: p.y * 10 + oy, id: `p${i + 1}`, ...(straight ? { curveType: 'linear' as const } : {}) })), poolBuilderData: { scale: 10, poolShape: shape === 'rectangle' || shape === 'l-shape' ? 'rectangle' : 'freeform' } },
         paverTypes,
         poolFinishes.map((f: any) => ({ name: f.name, price: f.price, image: f.image, collection: f.collection || 'Standard', description: f.description })),
       );

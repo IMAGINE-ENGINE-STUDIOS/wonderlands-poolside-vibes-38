@@ -22,6 +22,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PoolBuilder } from "@/components/PoolBuilder";
+import { SiteElementsLayer, siteElementsTo3D, SITE_ELEMENTS_KEY } from "@/components/designStudio/SiteElementsLayer";
+import { saveBoard3D } from "@/lib/design/board3D";
+import { cacheRead } from "@/lib/uiCache";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene, scene3DToPoolBuilder } from "@/components/scene3d/SceneConverter";
 import { pools, spas } from "@/components/PoolCatalog";
@@ -364,6 +367,17 @@ const DesignStudio = () => {
 
   // Handle switching to 3D view
   const handleSwitch3D = useCallback(() => {
+    // Never show a pool that isn't on the 2D board: 3D only opens the pool drawn here
+    // (or the catalog model the studio was opened with).
+    if (!(customPoolShape && customPoolShape.length >= 3) && !searchParams.get('model')) {
+      toast({ title: 'Draw your pool first', description: 'Draw the pool on the 2D board — the 3D Studio shows exactly that pool, its deck and everything around it.' });
+      return;
+    }
+    // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
+    // leftover design-board data, so the 3D viewer never shows another project.
+    try {
+      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10));
+    } catch { /* ignore */ }
     setActiveView('3d');
     // Auto-enter fullscreen when switching to 3D Viewer
     if (!document.fullscreenElement) {
@@ -376,7 +390,7 @@ const DesignStudio = () => {
         description: `Your custom pool design with ${customPoolShape.length} points is now in 3D!`
       });
     }
-  }, [customPoolShape, toast]);
+  }, [customPoolShape, poolBuilderData?.scale, searchParams, toast]);
   const handleSwitch2D = useCallback(() => {
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     setIsFullscreen(false);
@@ -556,7 +570,7 @@ const DesignStudio = () => {
       {/* Main Content */}
       <main className="flex-1 relative overflow-hidden">
         {activeView === '2d' ? <div className="w-full h-full">
-            <PoolBuilder key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} />
+            <PoolBuilder key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} renderOverlay={(view) => <SiteElementsLayer view={view} poolTotals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost, deck: poolBuilderData.breakdown.deckCost, coping: poolBuilderData.breakdown.copingCost, features: poolBuilderData.breakdown.featuresCost, deckArea: poolBuilderData.deckArea || 0, area: poolBuilderData.area || 0 } : null} />} />
             {/* Genius draws a full pool + depth + deck from a sentence (same brief as 3D). */}
             <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} />
           </div> : <div className="w-full h-full">
