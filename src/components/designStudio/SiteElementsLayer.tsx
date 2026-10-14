@@ -226,7 +226,9 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       const r = host.getBoundingClientRect();
       if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
       if ((e.target as HTMLElement)?.closest?.("aside,button,[data-spline-menu]")) return;
-      const hit = nearest(toWorld(e, false)); if (!hit) return;
+      const hit = nearest(toWorld(e, false));
+      // Double-click on empty board = stop editing any spline, design freely.
+      if (!hit) { if (e.type === "dblclick") { setEditId(null); setMoving(null); setMenu(null); setSelected(null); } return; }
       e.preventDefault(); e.stopPropagation();
       setSelected(hit.id); setMenu({ x: e.clientX - r.left, y: e.clientY - r.top, id: hit.id, seg: hit.seg, at: hit.at });
     };
