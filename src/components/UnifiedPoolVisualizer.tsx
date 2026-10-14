@@ -40,6 +40,7 @@ import { Scene3DErrorBoundary } from './scene3d/Scene3DErrorBoundary';
 import { validateScene } from '@/utils/sceneValidator';
 import { textureCache } from '@/utils/textureCache';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { LandscapePlants3D } from './scene3d/LandscapePlants3D';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -1754,6 +1755,9 @@ export function UnifiedPoolVisualizer({
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
           
+          {/* Landscaping plan handed off from the Landscape Studio */}
+          <LandscapePlants3D />
+
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}
             onPointerDown={(e) => { lastPickRef.current = [e.point.x, e.point.y, e.point.z]; }}>

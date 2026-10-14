@@ -5,7 +5,7 @@
  * studio pick it up; LandscapePlants3D draws it.
  */
 import { LANDSCAPE_PX_PER_FT as PX, type LandscapeLayout } from "@/lib/landscape/landscapeEstimate";
-import { resolvePick, drawnSpreadFt, getPlantSpec, type PlantForm } from "@/lib/landscape/plantSpecs";
+import { resolvePick, drawnSpreadFt, type PlantForm } from "@/lib/landscape/plantSpecs";
 
 export const LANDSCAPE_3D_KEY = "studio3d.landscape.v1";
 export const LANDSCAPE_3D_EVENT = "studio3d:landscape";
@@ -28,8 +28,8 @@ export function layoutTo3D(layout: LandscapeLayout, hole: Hole): Landscape3D {
   for (const p of layout.plantings) {
     const pick = resolvePick(p.plantId, p.variantId, p.size);
     if (!pick) continue;
-    const spec = getPlantSpec(pick.plant, pick.variant?.name);
-    const spread = drawnSpreadFt(spec, p.size ?? "");
+    const spec = pick.spec;
+    const spread = drawnSpreadFt(spec, pick.size);
     const k = spec.spreadFt > 0 ? spread / spec.spreadFt : 1;
     plants.push({ x: p.x / PX - cx, z: p.y / PX - cy, h: Math.max(0.5, spec.heightFt * k), spread, form: spec.form, foliage: spec.foliage, bloom: spec.bloom, rot: p.rot ?? 0 });
   }
