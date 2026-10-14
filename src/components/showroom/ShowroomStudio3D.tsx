@@ -76,6 +76,8 @@ const ShowroomStudio3D: React.FC<Props> = ({ scene, textureLibrary, height = 720
   const library = React.useMemo(() => textureLibrary ?? buildCatalogTextureLibrary(), [textureLibrary]);
   const [current, setCurrent] = React.useState<any>(() => {
     if (scene) return scene;
+    /* Full-screen /studio-3d opens the last 2D Design Studio scene (same key DesignStudio writes). */
+    if (!fromBoard) { try { const raw = localStorage.getItem("design-studio.scene3d.custom"); const saved = raw ? JSON.parse(raw) : null; if (saved?.pool?.points?.length >= 3) return saved; } catch { /* ignore */ } }
     const bd = fromBoard ? loadBoard3D() : null; const bp = bd?.pool;
     const base = bp ? { ...RECT_POOL, name: `Pool ${bp.w} × ${bp.l}`, model: `Pool ${bp.w} × ${bp.l}`, dimensions: `${bp.w}' × ${bp.l}'` } : RECT_POOL;
     // The board's first pool arrives with its exact drawn outline (feet → 2D px at 10 px/ft) and finish photo.
@@ -85,7 +87,7 @@ const ShowroomStudio3D: React.FC<Props> = ({ scene, textureLibrary, height = 720
     if (bd?.primaryFinish && sc?.pool?.finish) sc.pool.finish = { ...sc.pool.finish, url: bd.primaryFinish };
     return sc;
   });
-  const [entered, setEntered] = React.useState(!!scene);
+  const [entered, setEntered] = React.useState(() => { if (scene) return true; try { return !fromBoard && !!JSON.parse(localStorage.getItem("design-studio.scene3d.custom") || "null")?.pool?.points?.length; } catch { return false; } });
   React.useEffect(() => { if (scene) { setCurrent(scene); setEntered(true); } }, [scene]);
 
   if (!embedded) {

@@ -463,7 +463,7 @@ const DesignStudio = () => {
                   <p className="text-xs text-muted-foreground">{selectedProduct.dimensions}</p>
                 </div>
               </div>} headerRight={<div className="flex items-center gap-2">
-                <SiteTakeoffMenu scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []}
+                <SiteTakeoffMenu scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")}
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
                   totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} />
                 <Tabs value={activeView} onValueChange={v => {
@@ -528,7 +528,7 @@ const DesignStudio = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <SiteTakeoffMenu scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []}
+            <SiteTakeoffMenu scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")}
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
                   totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} />
                 <Tabs value={activeView} onValueChange={v => {

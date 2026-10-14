@@ -194,9 +194,10 @@ function holeMaterial(color: string, rough: number, holes: XZ[][]) {
 function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const mat = React.useMemo(() => {
-    const m = holeMaterial(s.color, s.kind === "turf" ? 1 : 0.85, holes) as THREE.MeshStandardMaterial;
+    /* Turf regions arrive pre-clipped (netRegions) — a second shader cut caused triangular voids. */
+    const m = (s.kind === "turf" ? new THREE.MeshStandardMaterial({ color: s.color, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2 }) : holeMaterial(s.color, 0.85, holes)) as THREE.MeshStandardMaterial;
     /* Selected turf photo at 4 ft per tile, same scale as the 2D board. */
-    if (s.image && "map" in m) { const tx = (photoMat(s.image, 4, {}) as THREE.MeshStandardMaterial).map; if (tx) { m.map = tx; m.color = new THREE.Color("#ffffff"); m.needsUpdate = true; } }
+    if (s.image && "map" in m) { const tx = (photoMat(s.image, 4, {}) as THREE.MeshStandardMaterial).map; if (tx) { m.map = tx; m.color = s.kind === "turf" ? new THREE.Color(s.color).lerp(new THREE.Color("#ffffff"), 0.45) : new THREE.Color("#ffffff"); m.needsUpdate = true; } }
     return m;
   }, [s.color, s.kind, s.image, holesKey]);
   const geo = React.useMemo(() => {

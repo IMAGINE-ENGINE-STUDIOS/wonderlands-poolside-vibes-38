@@ -23,6 +23,9 @@ import { SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
 import { artificialGrassOptions, getGrassPricePerSqFt } from "@/data/artificialGrassData";
 import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
 import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
+/* Seamless full-bleed grass (catalog swatches carry white borders that tile as a grid). Credit: Imagine Engine Studios Corp */
+import grassTexture from "@/assets/turf/grass-texture.avif";
+import { PoolDesignerHeader } from "@/components/scene3d/PoolDesignerHeader";
 import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
 
 /* ---------- catalog (same lists as the Global Design Board) ---------- */
@@ -42,7 +45,7 @@ export const SCREEN_STYLES = [
 ];
 export const SCREEN_COLORS = [{ id: "bronze", hex: "#6b4a2b" }, { id: "white", hex: "#e9e9e6" }, { id: "black", hex: "#222222" }];
 const TURF_COLORS: Record<string, string> = { "light-green": "#7fb24a", "dark-green": "#3f7a32", "natural-green": "#5b9a40", emerald: "#2f8a4a", olive: "#6f7f3a" };
-export const TURFS = artificialGrassOptions.map((g) => ({ id: g.id, label: `${g.name} turf`, rate: getGrassPricePerSqFt(g.name), color: TURF_COLORS[g.id] ?? "#5b9a40", image: g.image }));
+export const TURFS = artificialGrassOptions.map((g) => ({ id: g.id, label: `${g.name} turf`, rate: getGrassPricePerSqFt(g.name), color: TURF_COLORS[g.id] ?? "#5b9a40", image: g.image, texture: grassTexture }));
 
 /* ---------- model ---------- */
 export type SiteKind = "fence" | "enclosure" | "turf";
@@ -209,7 +212,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             {TURFS.map((g) => (
               <pattern key={g.id} id={`turf-${g.id}`} width={scale * 4} height={scale * 4} patternUnits="userSpaceOnUse">
                 <rect width={scale * 4} height={scale * 4} fill={g.color} />
-                <image href={g.image} width={scale * 4} height={scale * 4} preserveAspectRatio="xMidYMid slice" />
+                <image href={g.texture} width={scale * 4} height={scale * 4} preserveAspectRatio="xMidYMid slice" style={{ mixBlendMode: "multiply" }} opacity={0.9} />
               </pattern>
             ))}
             {/* Turf cut-out: pool + deck are holes, turf never sits on top of them. */}
@@ -349,7 +352,7 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
     const pts = e.pts.map(f);
     if (e.kind === "fence") out.fences.push({ itemId: e.id, pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: e.color });
     else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, pts: pts.map(to), height: e.height ?? 10, color: e.color });
-    else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.image, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
+    else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.texture, regions: netRegions(net, net.find((n) => n.id === e.id)!).map((poly) => poly.map((r) => r.map(to))) });
   }
   return out;
 }
@@ -357,32 +360,14 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
 /* ---------- Header take-off (one place for every measure and cost) ---------- */
 import { ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: Pt[]; stats: { perimeter: number; area: number; corners: number; features: number; deckArea: number } | null; totals: { pool: number; deck: number; coping: number; features: number } | null }> = ({ scale, poolPts, deckPts, stats, totals }) => {
+/**
+ * Header measures & costs for the 2D Designer — the exact 3D Studio widget
+ * (PoolDesignerHeader), fed the same pool geometry in feet, plus fences,
+ * screens and turf as extra lines. Credit: Imagine Engine Studios Corp.
+ */
+export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: Pt[]; poolDepth?: number; deckWidth?: number; copingWidth?: number; poolPrice?: number; stats?: unknown; totals?: unknown }> = ({ scale, poolPts, deckPts, poolDepth = 6, deckWidth = 4, copingWidth = 1, poolPrice = 0 }) => {
   const [items] = useSiteElements();
-  const lines = items.map((e) => { const q = e.kind === "turf" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { id: e.id, label: `${e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · ${e.label}`, q, unit: e.unit, cost: q * e.rate }; });
-  const total = (totals ? totals.pool + totals.deck + totals.coping + totals.features : 0) + lines.reduce((s, l) => s + l.cost, 0);
-  const Li = ({ l, r }: { l: string; r: string }) => <li className="flex justify-between gap-4"><span className="text-muted-foreground">{l}</span><span>{r}</span></li>;
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="flex h-9 items-center gap-2 border border-border px-3 text-xs font-semibold hover:border-foreground">Scene · {money(total)}<ChevronDown className="h-3.5 w-3.5" /></button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="z-[60] w-80 rounded-none border border-border bg-background p-4 text-[12px] text-foreground opacity-100 shadow-md">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Measures</p>
-        <ul className="mt-2 space-y-1">
-          {stats && <><Li l="Pool perimeter" r={`${stats.perimeter.toFixed(1)} ft`} /><Li l="Pool area" r={`${stats.area.toFixed(1)} sqft`} /><Li l="Corners" r={`${stats.corners}`} /><Li l="Deck area" r={`${stats.deckArea.toFixed(1)} sqft`} /></>}
-          {lines.map((l) => <Li key={l.id} l={l.label} r={`${Math.round(l.q)} ${l.unit}`} />)}
-        </ul>
-        <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Costs</p>
-        <ul className="mt-2 space-y-1">
-          {totals && totals.pool > 0 && <Li l="Pool" r={money(totals.pool)} />}
-          {totals && totals.deck > 0 && <Li l="Deck" r={money(totals.deck)} />}
-          {totals && totals.coping > 0 && <Li l="Coping" r={money(totals.coping)} />}
-          {totals && totals.features > 0 && <Li l="Pool features" r={money(totals.features)} />}
-          {lines.filter((l) => l.cost > 0).map((l) => <Li key={l.id} l={l.label} r={money(l.cost)} />)}
-        </ul>
-        <div className="mt-3 flex justify-between border-t border-border pt-2 font-semibold"><span>Total</span><span>{money(total)}</span></div>
-      </PopoverContent>
-    </Popover>
-  );
+  const feet = React.useMemo(() => poolPts.map((p) => ({ x: p.x / scale, y: p.y / scale })), [poolPts, scale]);
+  const extras = items.map((e) => { const q = e.kind === "turf" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { name: `${e.kind === "fence" ? "Fence" : e.kind === "enclosure" ? "Screen" : "Turf"} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }; }).filter((l) => l.price > 0);
+  return <PoolDesignerHeader poolPoints={feet as never} poolDepth={poolDepth} deckWidth={deckWidth} copingWidth={copingWidth} poolPrice={poolPrice} additionalFeatures={extras} />;
 };
