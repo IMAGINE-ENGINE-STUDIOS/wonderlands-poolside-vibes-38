@@ -142,6 +142,8 @@ interface PoolBuilderProps {
       total: number;
     };
   }) => void;
+  /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number }) => React.ReactNode;
 }
 
 // Helper function to shade colors
@@ -166,7 +168,8 @@ export function PoolBuilder({
   hideInternalTabs = false,
   onToolUsed,
   onExternalUpdate,
-  onPoolDataChange
+  onPoolDataChange,
+  renderOverlay
 }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -5837,6 +5840,8 @@ export function PoolBuilder({
 
       {/* Canvas area */}
       <div className="flex-1 overflow-hidden relative">
+        {/* Site layer (fences/screens/turf) drawn with this canvas's own pan/zoom. */}
+        {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale })}
         {/* Main Canvas - fills viewport */}
         <div className="w-full h-full">
             <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={(e) => {
