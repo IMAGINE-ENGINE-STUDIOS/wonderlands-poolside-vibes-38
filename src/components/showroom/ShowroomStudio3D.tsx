@@ -16,7 +16,7 @@ import { paverTypes } from '@/data/paverData';
 import { poolFinishes } from '@/data/consolidatedProducts';
 import { buildCatalogTextureLibrary } from '@/data/textureLibrary';
 import { Button } from '@/components/ui/button';
-import { loadBoard3D } from '@/lib/design/board3D';
+import { loadBoard3D, updateBoard3D } from '@/lib/design/board3D';
 
 const finishOptions = poolFinishes.map((f: any) => ({
   name: f.name, price: f.price, image: f.image, collection: f.collection || 'Standard', description: f.description,
@@ -63,13 +63,27 @@ const PreScreen: React.FC<{ onEnter: () => void; full: boolean }> = ({ onEnter, 
   </div>
 );
 
+/** Writes the main pool's 3D outline back to the board (kept centred on the board pool's position). */
+const saveMainPoolToBoard = (scene: any) => {
+  const pts: { x: number; y: number }[] | undefined = scene?.pool?.sourcePoints?.length >= 3 ? scene.pool.sourcePoints : scene?.pool?.points;
+  if (!pts || pts.length < 3) return;
+  const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  updateBoard3D((d) => (d.primaryId ? { ...d, primaryPts: pts.map((p) => ({ x: p.x - cx, z: p.y - cy })) } : d));
+};
+
 const ShowroomStudio3D: React.FC<Props> = ({ scene, textureLibrary, height = 720, embedded = true, fromBoard = false }) => {
   const library = React.useMemo(() => textureLibrary ?? buildCatalogTextureLibrary(), [textureLibrary]);
   const [current, setCurrent] = React.useState<any>(() => {
     if (scene) return scene;
-    const bp = fromBoard ? loadBoard3D()?.pool : undefined;
+    const bd = fromBoard ? loadBoard3D() : null; const bp = bd?.pool;
     const base = bp ? { ...RECT_POOL, name: `Pool ${bp.w} × ${bp.l}`, model: `Pool ${bp.w} × ${bp.l}`, dimensions: `${bp.w}' × ${bp.l}'` } : RECT_POOL;
-    return productToScene(base, {}, paverTypes, finishOptions);
+    // The board's first pool arrives with its exact drawn outline (feet → 2D px at 10 px/ft) and finish photo.
+    const extras = bd?.primaryPts && bd.primaryPts.length >= 3
+      ? { customPoolShape: bd.primaryPts.map((p, i) => ({ x: p.x * 10, y: p.z * 10, id: `p${i + 1}` })), poolBuilderData: { scale: 10 } } : {};
+    const sc: any = productToScene(base, extras, paverTypes, finishOptions);
+    if (bd?.primaryFinish && sc?.pool?.finish) sc.pool.finish = { ...sc.pool.finish, url: bd.primaryFinish };
+    return sc;
   });
   const [entered, setEntered] = React.useState(!!scene);
   React.useEffect(() => { if (scene) { setCurrent(scene); setEntered(true); } }, [scene]);
@@ -80,7 +94,7 @@ const ShowroomStudio3D: React.FC<Props> = ({ scene, textureLibrary, height = 720
         <UnifiedPoolVisualizer scene={current} textureLibrary={library} onSceneChange={setCurrent} showcase={!entered} />
         {!entered && <div className="fixed inset-0 z-[10060]"><PreScreen full onEnter={() => setEntered(true)} /></div>}
         {fromBoard && entered && (
-          <a href="/global-design-board-v2" className="fixed left-1/2 top-3 z-[10050] -translate-x-1/2 bg-foreground px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-background hover:bg-foreground/85">
+          <a href="/global-design-board-v2" onClick={() => saveMainPoolToBoard(current)} className="fixed left-1/2 top-3 z-[10050] -translate-x-1/2 bg-foreground px-5 py-2 text-[10px] uppercase tracking-[0.3em] text-background hover:bg-foreground/85">
             Save &amp; return to the design board
           </a>
         )}

@@ -15,21 +15,27 @@ import { useDraggablePanel } from "./useDraggablePanel";
 import { updateBoard3D, loadBoard3D, BOARD_3D_EVENT, type Board3D, waterAxis, waterCenter } from "@/lib/design/board3D";
 import { DepthProfileEditor } from "./DepthProfileEditor";
 import { createDefaultLinearAnchors, getZeroEntry, applyZeroEntry, removeZeroEntry } from "./depthUtils";
+import { buildFinishTextures, buildWaterlineTextures, buildPaverTextures } from "@/data/textureLibrary";
 import { BOARD_SELECT_EVENT, type BoardSelection } from "./BoardElements3D";
 
 const METALS = [{ n: "Black", c: "#1f1f1f" }, { n: "Bronze", c: "#6b4a2b" }, { n: "White", c: "#f4f4f2" }, { n: "Silver", c: "#b8bcc2" }];
-const FINISHES = [{ n: "Pearl white", c: "#dfe8ea" }, { n: "Lagoon blue", c: "#5fb7d4" }, { n: "Midnight", c: "#2b4a66" }, { n: "Tahoe grey", c: "#8fa3ad" }];
-const TILES = [{ n: "Ocean", c: "#2f6f8f" }, { n: "Glass teal", c: "#2aa7a7" }, { n: "Slate", c: "#4a5560" }, { n: "Sand", c: "#c9b28c" }];
-const COPINGS = [{ n: "Travertine", c: "#e2d3b8" }, { n: "Coralina", c: "#d8d2c8" }, { n: "Concrete", c: "#c9c3b8" }, { n: "Appian", c: "#b98a62" }];
+/** Same catalog photos the main pool widgets use (finish, waterline, coping). */
+let photoLists: { f: { n: string; c: string }[]; t: { n: string; c: string }[]; k: { n: string; c: string }[] } | null = null;
+const photos = () => photoLists ??= {
+  f: buildFinishTextures().map((x) => ({ n: x.name, c: x.url })),
+  t: buildWaterlineTextures().map((x) => ({ n: x.name, c: x.url })),
+  k: buildPaverTextures("coping").map((x) => ({ n: x.name, c: x.url })),
+};
 
 const Swatches: React.FC<{ label: string; list: { n: string; c: string }[]; value: string; onPick: (c: string) => void }> = ({ label, list, value, onPick }) => (
   <div className="space-y-1.5">
     <Label className="text-xs">{label}</Label>
-    <div className="grid grid-cols-4 gap-2">
+    <div className="grid max-h-40 grid-cols-4 gap-2 overflow-y-auto pr-1">
       {list.map((o) => (
         <button key={o.c} onClick={() => onPick(o.c)} title={o.n}
           className={`relative h-12 rounded-lg overflow-hidden border-2 transition-all ${value === o.c ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
-          style={{ background: o.c }}>
+          style={/^(\/|https?:)/.test(o.c) ? undefined : { background: o.c }}>
+          {/^(\/|https?:)/.test(o.c) && <img src={o.c} alt={o.n} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />}
           <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1 pb-0.5 text-[9px] font-medium text-white truncate">{o.n}</span>
         </button>
       ))}
@@ -96,9 +102,9 @@ export const BoardElementEditor: React.FC = () => {
     const w = data.waters[sel.i]; const { L, W } = dims(w.pts);
     title = `${w.kind === "spa" ? "Spa" : "Pool"} · ${w.label}`;
     body = <>
-      <Swatches label="Finish" list={FINISHES} value={w.finish} onPick={(c) => edit((d) => { d.waters![sel.i].finish = c; })} />
-      <Swatches label="Waterline tile" list={TILES} value={w.waterline} onPick={(c) => edit((d) => { d.waters![sel.i].waterline = c; })} />
-      <Swatches label="Coping" list={COPINGS} value={w.coping} onPick={(c) => edit((d) => { d.waters![sel.i].coping = c; })} />
+      <Swatches label="Finish" list={photos().f} value={w.finish} onPick={(c) => edit((d) => { d.waters![sel.i].finish = c; })} />
+      <Swatches label="Waterline tile" list={photos().t} value={w.waterline} onPick={(c) => edit((d) => { d.waters![sel.i].waterline = c; })} />
+      <Swatches label="Coping" list={photos().k} value={w.coping} onPick={(c) => edit((d) => { d.waters![sel.i].coping = c; })} />
       <Range label="Coping width" v={w.copingWidth} min={0.5} max={2} step={0.1} on={(n) => edit((d) => { d.waters![sel.i].copingWidth = n; })} />
       {(() => {
         // Each pool/spa owns its profile; editing it never touches the others.

@@ -32,11 +32,10 @@ import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator"
 import { SCREEN_ENCLOSURE_PRICING, CONCRETE_DECK_PRICE_PER_SQFT } from "@/utils/paverPricing";
 import { paverTypes } from "@/data/paverData";
 import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
-import fenceBannerImg from "@/assets/banners/patio-fencing-banner.webp";
+import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
 import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
 import { poolFinishes } from "@/data/consolidatedProducts";
 import { pebbleTecFinishes } from "@/data/pebbleTecFinishes";
-const BoardPoolDesigner = React.lazy(() => import("@/components/design/BoardPoolDesigner"));
 // Same photos as the main page sections (PatioFencingSection / ScreenEnclosureSection).
 const MAIN_FENCE_IMG = "/media/96e12412-10ac-45a5-b879-6ed8fc8e8046.webp";
 const MAIN_SCREEN_IMG = "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp";
@@ -46,6 +45,20 @@ const finishesFor = (brand?: string): Finish[] => {
   const concrete = /wonderlands/i.test(brand ?? "");
   const base = poolFinishes.filter((f: any) => f.poolType === (concrete ? "concrete" : "fiberglass")).map((f: any) => ({ id: f.id, name: f.name, image: f.image, price: f.price ?? 0, group: f.collection ?? "Finishes" }));
   return concrete ? [...base, ...pebbleTecFinishes.map((p) => ({ id: p.id, name: p.name, image: p.image, price: 0, group: p.collection }))] : base;
+};
+/** Default interior when none is picked: Pebble Tec Tahoe Blue (concrete) or the first fiberglass finish. */
+const defaultFinishFor = (brand?: string): Finish | undefined => {
+  const list = finishesFor(brand);
+  return list.find((f) => /tahoe/i.test(f.name)) ?? list.find((f) => /sapphire/i.test(f.name)) ?? list[0];
+};
+/** Finish photo tiles: one photo covers FINISH_TILE_FT feet, same as the 3D viewer's 1 ft UV × repeat. */
+const FINISH_TILE_FT = 4;
+const finishImgCache = new Map<string, HTMLImageElement>();
+const finishImage = (url: string, onLoad: () => void) => {
+  let im = finishImgCache.get(url);
+  if (!im) { im = new Image(); im.crossOrigin = "anonymous"; im.src = url; finishImgCache.set(url, im); }
+  if (!im.complete) im.addEventListener("load", onLoad, { once: true });
+  return im.complete && im.naturalWidth ? im : null;
 };
 import { artificialGrassOptions, getGrassPricePerSqFt } from "@/data/artificialGrassData";
 
@@ -93,10 +106,10 @@ const buildCatalog = (): Product[] => {
   const spas: Product[] = gilmerSpas.map((s) => ({ id: `spa:${s.model}`, kind: "spa", label: s.model, detail: s.dimensions ?? "", image: (s as any).image, price: s.price, color: "#1f8fb3", size: parseSize(s.dimensions) }));
   getAllProducts().filter((p) => p.category === "Spa" && !spas.some((x) => x.label === p.name)).forEach((p) => spas.push({ id: `spa:${p.name}`, kind: "spa", label: p.name, detail: p.dimensions ?? "", image: (p as any).image, price: p.price, color: "#1f8fb3", size: parseSize(p.dimensions) }));
   // Draw-from-scratch shapes, priced at the 2D studio shell rate.
-  pools.unshift({ id: "pool:custom", kind: "pool", label: "Custom shape pool", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#2aa7c9" });
-  spas.unshift({ id: "spa:custom", kind: "spa", label: "Custom shape spa", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#1f8fb3" });
+  pools.unshift({ id: "pool:custom", kind: "pool", label: "Custom shape pool", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#2aa7c9", brand: "Wonderlands" });
+  spas.unshift({ id: "spa:custom", kind: "spa", label: "Custom shape spa", detail: "Draw any outline · concrete shell", rate: 280, unit: "sqft", color: "#1f8fb3", brand: "Wonderlands" });
   const fences: Product[] = FENCE_STYLES.flatMap((s) => FENCE_COLORS.flatMap((c) => FENCE_HEIGHTS.map((h) => ({
-    id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex, image: s.id === "alu" ? MAIN_FENCE_IMG : s.id === "vinyl" ? fenceBannerImg : aluFenceImg,
+    id: `fence:${s.id}:${c.id}:${h.ft}`, kind: "fence" as Kind, label: `${s.label}`, detail: `${c.id} · ${h.label}`, rate: h.rate + s.delta, unit: "lf" as const, color: c.hex, image: s.id === "alu" ? MAIN_FENCE_IMG : s.id === "vinyl" ? vinylFenceAsset.url : aluFenceImg,
   }))));
   const screens: Product[] = SCREEN_STYLES.flatMap((s) => SCREEN_COLORS.flatMap((c) => s.heights.map((h) => ({ id: `enclosure:${s.id}:${c.id}:${h}`, kind: "enclosure" as Kind, label: s.label, detail: `${c.id} frame · ${h}' tall`, rate: s.rate, unit: "sqft" as const, color: c.hex, image: s.id === "premium" ? screenPremiumImg : MAIN_SCREEN_IMG }))));
   const turf: Product[] = GRASS_PRODUCTS_FOR_BOARD();
@@ -226,7 +239,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
   const [sizeSel, setSizeSel] = React.useState<string | null>(null);
   const [needStep, setNeedStep] = React.useState<Step | null>(null);
   const [finishSel, setFinishSel] = React.useState<string | null>(null);
-  const [designerOpen, setDesignerOpen] = React.useState(false);
+  const [texTick, setTexTick] = React.useState(0);
   const navigate = useNavigate();
   const [draft, setDraft] = React.useState<Pt[]>([]);
   const [hover, setHover] = React.useState<Hover | null>(null);
@@ -361,8 +374,16 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
         }
       } else {
         path(it.pts, true);
-        const pat = g.createPattern(texture(k, p.color), "repeat");
-        if (pat) { pat.setTransform(new DOMMatrix().scale(view.zoom)); g.fillStyle = pat; g.fill(); }
+        const fin = (k === "pool" || k === "spa") ? (finishesFor(p.brand).find((f) => f.id === it.finish) ?? defaultFinishFor(p.brand)) : undefined;
+        const photo = fin?.image ? finishImage(fin.image, () => setTexTick((t) => t + 1)) : null;
+        if (photo) {
+          const pat = g.createPattern(photo, "repeat");
+          if (pat) { const k2 = (FINISH_TILE_FT * s) / photo.naturalWidth; pat.setTransform(new DOMMatrix().scale(k2)); g.fillStyle = pat; g.fill(); }
+          g.fillStyle = "rgba(90,190,225,0.22)"; g.fill(); // water tint over the finish
+        } else {
+          const pat = g.createPattern(texture(k, p.color), "repeat");
+          if (pat) { pat.setTransform(new DOMMatrix().scale(view.zoom)); g.fillStyle = pat; g.fill(); }
+        }
         if (k === "pool" || k === "spa") { g.lineWidth = Math.max(3, 1 * s); g.strokeStyle = "#e8e2d6"; g.stroke(); }
         else if (k === "enclosure") { g.lineWidth = 3; g.strokeStyle = p.color; g.stroke(); }
         else { g.lineWidth = 1; g.strokeStyle = "rgba(0,0,0,0.25)"; g.stroke(); }
@@ -395,14 +416,14 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
       if (hover.gy !== undefined) { g.beginPath(); g.moveTo(x0 * s, hover.gy * s); g.lineTo(x1 * s, hover.gy * s); g.stroke(); }
       g.setLineDash([]);
     }
-  }, [items, draft, hover, selected, view, size, byId, product]);
+  }, [items, draft, hover, selected, view, size, byId, product, texTick]);
 
   /* ---------- interaction ---------- */
   const finish = React.useCallback((closeFence = false) => {
     if (!product) return;
     const min = product.kind === "fence" ? 2 : 3;
     const pts = closeFence && draft.length > 2 ? [...draft, draft[0]] : draft;
-    if (pts.length >= min) commit([...items, { id: `${Date.now()}`, productId: product.id, kind: product.kind, pts, finish: finishSel ?? undefined }]);
+    if (pts.length >= min) commit([...items, { id: `${Date.now()}`, productId: product.id, kind: product.kind, pts, finish: finishSel ?? defaultFinishFor(product.brand)?.id }]);
     setDraft([]);
   }, [draft, product, items, commit]);
 
@@ -428,14 +449,10 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
       toast({ title: step === "material" ? "Choose the material first" : step === "size" ? "Choose a height" : "Choose a color", description: "Pick one of the highlighted options, then draw." });
       return;
     }
-    if (product && finishes.length && !finishSel) {
-      toast({ title: "Choose a finish", description: "Pick the interior finish for this model, then place it." });
-      return;
-    }
     if (product) {
       if (product.size) {
         const { w: W, l: L } = product.size; const c = { x: Math.round(w.x * 2) / 2, y: Math.round(w.y * 2) / 2 };
-        commit([...items, { id: `${Date.now()}`, productId: product.id, kind: product.kind, finish: finishSel ?? undefined, pts: [
+        commit([...items, { id: `${Date.now()}`, productId: product.id, kind: product.kind, finish: finishSel ?? defaultFinishFor(product.brand)?.id, pts: [
           { x: c.x - L / 2, y: c.y - W / 2 }, { x: c.x + L / 2, y: c.y - W / 2 }, { x: c.x + L / 2, y: c.y + W / 2 }, { x: c.x - L / 2, y: c.y + W / 2 },
         ] }]);
         return;
@@ -491,7 +508,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
   const sum = (k: Kind, f: (pts: Pt[]) => number) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + f(i.pts), 0));
   const sumNet = (k: Kind) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + netOf(i), 0));
   const open3D = () => {
-    saveBoard3D(boardTo3D(items, (id) => byId.get(id), (it) => (it as BoardItem).productId));
+    saveBoard3D(boardTo3D(items, (id) => byId.get(id), (it) => (it as BoardItem).productId, (it) => { const b = it as BoardItem; const pr = byId.get(b.productId); return (finishesFor(pr?.brand).find((f) => f.id === b.finish) ?? defaultFinishFor(pr?.brand))?.image; }));
     navigate("/studio-3d?from=board");
   };
   const selItem = items.find((i) => i.id === selected);
@@ -615,8 +632,8 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
               })()
               : <div className="space-y-2 p-3">
                 {(kind === "pool" || kind === "spa") && (
-                  <button onClick={() => setDesignerOpen(true)} className="w-full border border-foreground bg-foreground py-2.5 text-[10px] uppercase tracking-[0.2em] text-background hover:bg-foreground/85">
-                    Design a {kind} from scratch · 2D Studio tools
+                  <button onClick={() => { setProductId(`${kind}:custom`); setFinishSel(null); setDraft([]); setSelected(null); }} className="w-full border border-foreground bg-foreground py-2.5 text-[10px] uppercase tracking-[0.2em] text-background hover:bg-foreground/85">
+                    Draw a {kind} from scratch on this board
                   </button>
                 )}
                 {choices.map((p) => (
@@ -660,12 +677,6 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
           </p>
         </div>
 
-        {designerOpen && (
-          <React.Suspense fallback={null}>
-            <BoardPoolDesigner kind={kind === "spa" ? "spa" : "pool"} onClose={() => setDesignerOpen(false)}
-              onPlace={(pts) => { const id = `${kind === "spa" ? "spa" : "pool"}:custom`; commit([...items, { id: `${Date.now()}`, productId: id, kind: kind === "spa" ? "spa" : "pool", pts }]); setDesignerOpen(false); }} />
-          </React.Suspense>
-        )}
 
         {/* Take-off */}
         <aside className="hidden w-72 shrink-0 flex-col border-l border-border lg:flex">
