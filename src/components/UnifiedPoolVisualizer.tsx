@@ -250,8 +250,9 @@ export function UnifiedPoolVisualizer({
   scene: initialScene,
   textureLibrary,
   onSceneChange,
-  embedded = false
-}: UnifiedPoolVisualizerProps & { embedded?: boolean }) {
+  embedded = false,
+  showcase = false
+}: UnifiedPoolVisualizerProps & { embedded?: boolean; showcase?: boolean }) {
   const isMobile = useIsMobile();
   
   // Validate scene before using it
@@ -338,7 +339,9 @@ export function UnifiedPoolVisualizer({
   const [selectedComponent, setSelectedComponent] = useState<'pool' | 'deck' | 'coping' | 'waterline' | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
   const [cameraPreset, setCameraPreset] = useState<CameraPreset | null>(null);
-  const [autoRotate, setAutoRotate] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(showcase);
+  // Showcase pre-screen: the camera orbits slowly until the user enters.
+  useEffect(() => { setAutoRotate(showcase); }, [showcase]);
   const [sunPosition, setSunPosition] = useState<[number, number, number]>([100, 20, 100]);
   const [fenceHeight, setFenceHeight] = useState(6);
   const [isStairsPlacementMode, setIsStairsPlacementMode] = useState(false);
