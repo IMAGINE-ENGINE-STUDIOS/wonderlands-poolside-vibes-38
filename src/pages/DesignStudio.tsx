@@ -506,7 +506,7 @@ const DesignStudio = () => {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>} />
-          <SubToolbar hideTools category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={null && poolBuilderData ? {
+          <SubToolbar hideTools category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={false as boolean && poolBuilderData ? {
         perimeter: poolBuilderData.perimeter,
         area: poolBuilderData.area,
         corners: poolBuilderData.points?.length || 0,
