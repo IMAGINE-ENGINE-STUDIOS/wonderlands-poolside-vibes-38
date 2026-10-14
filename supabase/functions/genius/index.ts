@@ -30,7 +30,7 @@ const SYSTEM = `You are Genius, the voice of Wonderlands World — a warm, cultu
 VOICE: human, articulate, lightly entertaining, never robotic, never hype. Never mention AI, models, software, prompts or that you are a program. You are simply Genius.
 
 WHAT YOU KNOW
-- The catalog, prices and options given to you in this conversation are the truth. Never invent a product, a price or a dimension.
+- The CATALOG below lists every product, price, size, rate and warranty Wonderlands offers. It is the truth: answer price, comparison and "cheapest / most expensive" questions directly from it, naming the model and price. Never say you lack prices. Never invent a product, a price or a dimension not in it.
 - Every price includes delivery, installation and the product as described.
 - Wonderlands builds residential outdoor living only: fiberglass and concrete pools, spas, saunas, pavers and decks, screen enclosures, aluminum fencing, lanais, artificial grass and landscaping.
 
@@ -58,7 +58,7 @@ function buildContext(body: GeniusRequest) {
     body.routes ?? "/ — Home",
     "",
     "CATALOG:",
-    body.catalog ? body.catalog.slice(0, 12000) : "(not supplied)",
+    body.catalog ? body.catalog.slice(0, 24000) : "(not supplied)",
     "",
     "THE GUEST IS LOOKING AT:",
     c.title ? `Page: ${c.title}` : "",
@@ -78,77 +78,38 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+    const apiKey = Deno.env.get("GROQ_API_KEY");
+    if (!apiKey) throw new Error("GROQ_API_KEY is not configured");
 
     const body = (await req.json()) as GeniusRequest;
-    const turns = (body.messages ?? []).slice(-12);
+    const turns = (body.messages ?? []).slice(-12).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
-        "X-Lovable-AIG-SDK": "fetch",
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "openai/gpt-5.6-sol",
-        stream: true,
-        store: false,
-        instructions: SYSTEM,
-        input: [
-          { role: "user", content: [{ type: "input_text", text: buildContext(body) }] },
-          ...turns.map((m) => ({
-            role: m.role,
-            content: [{ type: m.role === "assistant" ? "output_text" : "input_text", text: m.content }],
-          })),
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.4,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "system", content: buildContext(body) },
+          ...turns,
         ],
       }),
     });
 
     if (!res.ok) {
       const details = await res.text().catch(() => "");
-      console.error(`genius gateway error [${res.status}]: ${details}`);
-      const message =
-        res.status === 429
-          ? "Genius is catching her breath — try again in a moment."
-          : res.status === 402
-          ? "Genius is resting: the workspace is out of credits."
-          : "Genius is unavailable right now.";
+      console.error(`genius groq error [${res.status}]: ${details.slice(0, 300)}`);
+      const message = res.status === 429 ? "Genius is catching her breath — try again in a moment." : "Genius is unavailable right now.";
       return new Response(JSON.stringify({ error: message, status: res.status }), {
         status: res.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const reader = res.body!.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let text = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      let idx: number;
-      while ((idx = buffer.indexOf("\n")) !== -1) {
-        const raw = buffer.slice(0, idx).replace(/\r$/, "");
-        buffer = buffer.slice(idx + 1);
-        if (!raw.startsWith("data:")) continue;
-        const payload = raw.slice(5).trim();
-        if (!payload || payload === "[DONE]") continue;
-        try {
-          const evt = JSON.parse(payload);
-          if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") {
-            text += evt.delta;
-          } else if (evt.type === "response.completed" && !text) {
-            text = evt.response?.output_text ?? "";
-          }
-        } catch {
-          // partial event
-        }
-      }
-    }
+    const json = await res.json();
+    const text: string = json?.choices?.[0]?.message?.content ?? "";
 
     const cleaned = text.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
     let parsed: { reply?: string; actions?: unknown[] } = {};

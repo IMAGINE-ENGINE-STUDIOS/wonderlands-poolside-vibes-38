@@ -86,6 +86,7 @@ const DepthProfileEditor = React.lazy(() =>
   import('@/components/scene3d/DepthProfileEditor').then((m) => ({ default: m.DepthProfileEditor })),
 );
 const ShowroomStudio3D = React.lazy(() => import('@/components/showroom/ShowroomStudio3D'));
+const ShowroomLandscape = React.lazy(() => import('@/components/showroom/ShowroomLandscape'));
 const ShowroomDemoSession = React.lazy(() => import('@/components/showroom/ShowroomDemoSession'));
 const SiteBuilderTool = React.lazy(() => import('@/components/siteBuilder/SiteBuilder'));
 const AdminDashboardTool = React.lazy(() => import('@/pages/AdminDashboard'));
@@ -362,6 +363,11 @@ const StudioShowroom = () => {
             <DesignStudioTool />
           </AutoMount>
       </>
+    ),
+    'landscape-studio': (
+      <AutoMount fit title="the Landscape Studio" note="Looks, planting board, Genius edits, live take-off and a 3D view.">
+        <ShowroomLandscape />
+      </AutoMount>
     ),
     'studio-3d': (
       <AutoMount fit title="the 3D Studio" note="A rectangular pool, live in 3D. Orbit, change finishes and lights, and walk the deck.">

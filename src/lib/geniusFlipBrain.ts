@@ -23,6 +23,7 @@ import { GENIUS_DESTINATIONS, isGeniusAllowedPath } from '@/lib/geniusAccess';
 import { readFlipViewport } from '@/lib/flipViewportReader';
 import { getAllProducts } from '@/data/poolProductLookup';
 import { ITEMS } from '@/components/FlipIndex';
+import { answerPriceQuestion } from '@/lib/geniusKnowledge';
 
 export interface GeniusResolution {
   handled: boolean;
@@ -158,7 +159,12 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
     }
   }
 
+  /* ----------------------- price questions (cheapest etc.) ------------------ */
+  const priceAnswer = answerPriceQuestion(raw);
+  if (priceAnswer) return { handled: true, reply: priceAnswer, actions: bookChips() };
+
   /* ------------------------- products and disciplines ----------------------- */
+
 
   const product = matchProduct(raw);
   if (product) {
