@@ -546,6 +546,13 @@ export function UnifiedPoolVisualizer({
   }, [scene.pool.points, scene.pool.perimeterDepthPoints, linearDepthAnchors, depthAxis]);
 
   // Terrain cutout footprint: exact pool outline offset by the deck, world XZ.
+  // Extra pools/spas from the Global Design Board: each cuts its own hole.
+  const [boardWaters, setBoardWaters] = useState(() => loadBoard3D()?.waters ?? []);
+  useEffect(() => {
+    const on = () => setBoardWaters(loadBoard3D()?.waters ?? []);
+    window.addEventListener(BOARD_3D_EVENT, on);
+    return () => window.removeEventListener(BOARD_3D_EVENT, on);
+  }, []);
   const terrainSiteRef = useMemo(() => {
     const deckWidth = Number((scene.deck as any)?.width ?? (scene.deck as any)?.deckWidth) || 6;
     const base = {
@@ -554,12 +561,14 @@ export function UnifiedPoolVisualizer({
       deckWidth,
     };
     const pts = scene.pool.points;
-    if (!pts || pts.length < 3) return base;
+    const holes = boardWaters.filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(w.pts, (w.copingWidth || 1) + 0.5).offset.map((p) => ({ x: p.x, z: p.z })));
+    const holesKey = holes.map((h) => h.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join('|')).join('#');
+    if (!pts || pts.length < 3) return { ...base, holes, outlineKey: holesKey };
     const b = getPoolBounds(pts);
     const ring = pts.map((p) => ({ x: p.x - b.centerX, z: p.y - b.centerZ }));
     const off = mitredOffsetRing(ring, deckWidth + 1).offset.map((p) => ({ x: p.x, z: p.z }));
-    return { ...base, outline: off, outlineKey: off.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join('|') };
-  }, [scene.pool.points, scene.pool.dimensions, scene.deck]);
+    return { ...base, outline: off, holes, outlineKey: off.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join('|') + '#' + holesKey };
+  }, [scene.pool.points, scene.pool.dimensions, scene.deck, boardWaters]);
 
   // Interior floor depth (pool-centred coords, same space as the perimeter depths).
   const floorDepthAtCentered = useCallback(

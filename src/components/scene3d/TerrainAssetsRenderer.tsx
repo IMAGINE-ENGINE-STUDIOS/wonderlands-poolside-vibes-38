@@ -181,13 +181,13 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
           });
           // Terrains never cover the pool: cut out the pool + deck footprint
           // (rounded rectangle, soft margin) in world space.
-          if (asset.type === 'terrain' && siteRef && !m.userData.poolCut) {
-            m.userData.poolCut = true;
+          if (asset.type === 'terrain' && siteRef && m.userData.poolCut !== (siteRef.outlineKey ?? 'base')) {
+            m.userData.poolCut = siteRef.outlineKey ?? 'base';
             // Exact pool+deck footprint (world XZ, centred), max 96 points;
             // falls back to the rounded envelope when no outline is known.
             // Every ring (main pool + each extra pool/spa) becomes edge segments;
             // even-odd over all of them cuts one hole per water body.
-            const rings = [siteRef.outline || [], ...((siteRef as any).holes || [])].filter((r: any[]) => r.length >= 3);
+            const rings = [siteRef.outline || [], ...(siteRef.holes || [])].filter((r: any[]) => r.length >= 3);
             const per = Math.max(8, Math.floor(192 / Math.max(1, rings.length)));
             const segsArr: THREE.Vector4[] = [];
             rings.forEach((r: { x: number; z: number }[]) => {
