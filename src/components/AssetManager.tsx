@@ -282,10 +282,10 @@ export function AssetManager({
         variant="outline"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className="absolute bottom-4 right-4 z-50 h-12 w-12 rounded-full bg-background/95 backdrop-blur-sm shadow-lg border-primary/20 hover:border-primary/50 hover:bg-primary/10"
+        className="absolute bottom-4 right-4 z-50 h-12 w-12 rounded-full bg-white border-slate-200/80 text-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.06)] hover:bg-slate-50"
         title="Asset Manager"
       >
-        <Package className="h-5 w-5 text-primary" />
+        <Package className="h-5 w-5 text-slate-700" strokeWidth={1.8} />
       </Button>
     );
   }

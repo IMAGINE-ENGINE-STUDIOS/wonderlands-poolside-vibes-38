@@ -1,6 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
 import { Point } from './types';
-import { Ruler, DollarSign, Calculator, ChevronDown, ChevronUp, Layers, Lock, Unlock, FileText } from 'lucide-react';
+import { ChevronDown, Lock, Unlock, Waves } from 'lucide-react';
 import { getPaverPricePerSqFt, getCopingPricePerSqFtByName } from '@/utils/paverPricing';
 
 const SurveyQuoteTool = lazy(() => import('@/components/SurveyQuoteTool'));
@@ -224,185 +224,137 @@ export function PoolDesignerHeader({
       <span>{money(value)}</span>
     );
 
+  // Editorial summary card — white, slate type, tabular numbers.
+  const Line = ({ title, sub, detail, amount }: { title: string; sub?: string; detail: React.ReactNode; amount: React.ReactNode }) => (
+    <div className="py-3 flex items-start justify-between gap-3">
+      <div className="flex flex-col min-w-0 flex-1">
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+          <span className="text-[13px] font-medium tracking-tight text-slate-900 leading-tight">{title}</span>
+          {sub && <span className="text-[12px] text-slate-500">— {sub}</span>}
+        </div>
+        <span className="text-[11.5px] text-slate-500 mt-0.5 tabular-nums leading-tight flex items-center gap-1">{detail}</span>
+      </div>
+      <div className="shrink-0 text-right text-[13px] font-semibold tracking-tight text-slate-900 tabular-nums">{amount}</div>
+    </div>
+  );
+  const Stat = ({ label, value, unit }: { label: string; value: string; unit: string }) => (
+    <div className="px-4 py-3 flex flex-col gap-0.5">
+      <span className="text-[10px] font-semibold tracking-[0.07em] uppercase text-slate-400 leading-none">{label}</span>
+      <span className="text-[13.5px] font-semibold tracking-tight text-slate-900 tabular-nums mt-1">{value} <span className="font-normal text-slate-500">{unit}</span></span>
+    </div>
+  );
+
   return (
-    <div className="relative max-w-[280px] md:max-w-none">
-      <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden">
-        {/* Compact Header - inline */}
+    <div className="relative w-[340px] max-w-[calc(100vw-2rem)]">
+      <div className="w-full bg-white rounded-[20px] border border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-between gap-2 md:gap-4 px-2 md:px-3 py-1.5 hover:bg-muted/50 transition-colors"
+          aria-expanded={isExpanded}
+          className="w-full h-14 px-3.5 flex items-center justify-between bg-white hover:bg-slate-50/50 transition-colors duration-200 group text-left"
         >
-          <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-            {/* Pool Dimensions */}
-            <div className="flex items-center gap-1">
-              <Ruler className="w-3 h-3 md:w-3.5 md:h-3.5 text-cyan-500" />
-              <span className="text-[10px] md:text-xs font-medium whitespace-nowrap">
-                {measurements.width.toFixed(0)}' × {measurements.length.toFixed(0)}'
-              </span>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
+              <Waves className="w-3.5 h-3.5 text-slate-700" strokeWidth={1.8} />
             </div>
-
-            {/* Pool Area - hidden on very small screens */}
-            <div className="hidden sm:flex items-center gap-1">
-              <Layers className="w-3 h-3 md:w-3.5 md:h-3.5 text-blue-500" />
-              <span className="text-[10px] md:text-xs whitespace-nowrap">
-                {measurements.poolArea.toFixed(0)} sqft
-              </span>
-            </div>
-
-            {/* Total Cost */}
-            <div className="flex items-center gap-1">
-              <DollarSign className="w-3 h-3 md:w-3.5 md:h-3.5 text-green-500" />
-              <span className="text-[10px] md:text-xs font-semibold text-green-600 whitespace-nowrap">
-                {money(costs.total)}
-              </span>
-            </div>
+            <span className="text-[13.5px] font-semibold tracking-tight text-slate-900 tabular-nums whitespace-nowrap">
+              {measurements.width.toFixed(0)}' × {measurements.length.toFixed(0)}'
+              <span className="text-slate-300 mx-1">·</span>
+              {measurements.poolArea.toFixed(0)} sqft
+            </span>
           </div>
-
-          {isExpanded ? (
-            <ChevronUp className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground flex-shrink-0" />
-          ) : (
-            <ChevronDown className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground flex-shrink-0" />
-          )}
+          <div className="flex items-center gap-2.5 shrink-0 pl-3">
+            <span className="text-[14px] font-semibold tracking-tight text-slate-900 tabular-nums">{money(costs.total)}</span>
+            <span className="w-6 h-6 rounded-full border border-slate-200 bg-white flex items-center justify-center">
+              <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} strokeWidth={2.2} />
+            </span>
+          </div>
         </button>
 
-        {/* Expanded Details */}
-        {isExpanded && (
-          <div className="border-t border-border p-4 space-y-4">
-            {/* Measurements Section */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground">Pool Area</div>
-                <div className="text-sm font-medium">{measurements.poolArea.toFixed(0)} sq ft</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground">Perimeter</div>
-                <div className="text-sm font-medium">{measurements.perimeter.toFixed(1)} ft</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground">Deck Area</div>
-                <div className="text-sm font-medium">{measurements.deckArea.toFixed(0)} sq ft</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-xs text-muted-foreground">Water Volume</div>
-                <div className="text-sm font-medium">{Math.round(measurements.gallons).toLocaleString()} gal</div>
-              </div>
-            </div>
-
-            {/* Cost Breakdown */}
-            <div className="border-t border-border pt-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-semibold">Cost Breakdown</span>
-                </div>
-                <button
-                  onClick={() => (unlocked ? setUnlocked(false) : setShowPasscode(v => !v))}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                  title={unlocked ? 'Lock pricing' : 'Unlock pricing with passcode'}
-                >
-                  {unlocked ? <Unlock className="w-3.5 h-3.5 text-green-600" /> : <Lock className="w-3.5 h-3.5" />}
-                  {unlocked ? 'Editing' : 'Edit prices'}
-                </button>
+        <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}>
+          <div className="overflow-hidden">
+            <div className="border-t border-slate-100 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-2 border-b border-slate-100 divide-x divide-y divide-slate-100 bg-white">
+                <Stat label="Pool Area" value={measurements.poolArea.toFixed(0)} unit="sq ft" />
+                <Stat label="Perimeter" value={measurements.perimeter.toFixed(1)} unit="ft" />
+                <Stat label="Deck Area" value={measurements.deckArea.toFixed(0)} unit="sq ft" />
+                <Stat label="Water Volume" value={Math.round(measurements.gallons).toLocaleString()} unit="gal" />
               </div>
 
-              {showPasscode && !unlocked && (
-                <div className="flex items-center gap-2 mb-3">
-                  <input
-                    type="password"
-                    value={passcode}
-                    placeholder="Passcode"
-                    onChange={e => setPasscode(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && tryUnlock()}
-                    className="flex-1 px-2 py-1 text-xs rounded border border-border bg-background"
-                  />
-                  <button
-                    onClick={tryUnlock}
-                    className="px-2 py-1 text-xs rounded bg-primary text-primary-foreground"
-                  >
-                    Unlock
-                  </button>
+              <div className="px-4 pt-3.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-semibold tracking-[0.06em] uppercase text-slate-400">Cost Breakdown</span>
+                  {unlocked && <span className="text-[11px] text-slate-500 flex items-center gap-1"><Unlock className="w-3 h-3" />Editing</span>}
                 </div>
-              )}
 
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">
-                    Pool Shell ({measurements.poolArea.toFixed(0)} sq ft × <EditableRate id="shell" value={rates.shell} />
-                    /sq ft){finishName ? ` — ${finishName}` : ''}
-                  </span>
-                  <span>{money(costs.pool)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">
-                    {paverName || 'Deck'} ({measurements.deckArea.toFixed(0)} sq ft ×{' '}
-                    <EditableRate id="deck" value={rates.deck} />/sq ft)
-                  </span>
-                  <span>{money(costs.deck)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">
-                    {copingName || 'Coping'} ({measurements.copingArea.toFixed(0)} sq ft ×{' '}
-                    <EditableRate id="coping" value={rates.coping} />/sq ft)
-                  </span>
-                  <span>{money(costs.coping)}</span>
-                </div>
-                {waterlineName && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Waterline Tile — {waterlineName}</span>
-                    <span className="text-xs text-muted-foreground">Included</span>
+                {showPasscode && !unlocked && (
+                  <div className="flex items-center gap-2 my-2">
+                    <input
+                      type="password"
+                      value={passcode}
+                      placeholder="Passcode"
+                      onChange={e => setPasscode(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && tryUnlock()}
+                      className="flex-1 h-9 px-3 text-[12.5px] rounded-[10px] border border-slate-200 bg-white text-slate-900"
+                    />
+                    <button onClick={tryUnlock} className="h-9 px-3 rounded-[10px] bg-slate-900 text-white text-[12.5px] font-semibold">Unlock</button>
                   </div>
                 )}
 
-                {additionalBodies.length > 0 && (
-                  <>
-                    <div className="border-t border-border pt-2 mt-2">
-                      <div className="text-xs text-muted-foreground mb-1">Additional Water Bodies</div>
-                    </div>
-                    {additionalBodies.map(body => (
-                      <div key={body.name} className="flex justify-between items-center pl-2">
-                        <span className="text-muted-foreground">
-                          {body.name} ({Math.round(body.areaSqFt)} sq ft
-                          {body.multiplierLabel ? `, ${body.multiplierLabel}` : ''})
-                        </span>
-                        <EditableAmount id={`body-${body.name}`} value={rateOverrides[`body-${body.name}`] ?? body.price} />
-                      </div>
-                    ))}
-                  </>
-                )}
-
-                {additionalFeatures.length > 0 && (
-                  <>
-                    <div className="border-t border-border pt-2 mt-2">
-                      <div className="text-xs text-muted-foreground mb-1">Additional Features</div>
-                    </div>
-                    {additionalFeatures.map((feature, idx) => (
-                      <div key={`${feature.name}-${idx}`} className="flex justify-between items-center pl-2">
-                        <span className="text-muted-foreground">{feature.name}</span>
-                        <EditableAmount
-                          id={`feature-${feature.name}`}
-                          value={rateOverrides[`feature-${feature.name}`] ?? feature.price}
-                        />
-                      </div>
-                    ))}
-                  </>
-                )}
-
-                <div className="flex justify-between pt-2 border-t border-border font-semibold text-green-600">
-                  <span>Total Estimate</span>
-                  <span>{money(costs.total)}</span>
+                <div className="divide-y divide-slate-100">
+                  <Line title="Pool Shell" sub={finishName || undefined}
+                    detail={<>{measurements.poolArea.toFixed(0)} sq ft × $<EditableRate id="shell" value={rates.shell} />/sq ft</>}
+                    amount={money(costs.pool)} />
+                  <Line title={paverName || 'Deck'}
+                    detail={<>{measurements.deckArea.toFixed(0)} sq ft × $<EditableRate id="deck" value={rates.deck} />/sq ft</>}
+                    amount={money(costs.deck)} />
+                  <Line title={copingName || 'Coping'}
+                    detail={<>{measurements.copingArea.toFixed(0)} sq ft × $<EditableRate id="coping" value={rates.coping} />/sq ft</>}
+                    amount={money(costs.coping)} />
+                  {waterlineName && (
+                    <Line title="Waterline Tile" sub={waterlineName} detail="Perimeter trim"
+                      amount={<span className="text-[12px] font-normal text-slate-400">Included</span>} />
+                  )}
+                  {additionalBodies.map(body => (
+                    <Line key={body.name} title={body.name}
+                      detail={<>{Math.round(body.areaSqFt)} sq ft{body.multiplierLabel ? ` · ${body.multiplierLabel}` : ''}</>}
+                      amount={<EditableAmount id={`body-${body.name}`} value={rateOverrides[`body-${body.name}`] ?? body.price} />} />
+                  ))}
+                  {additionalFeatures.map((feature, idx) => (
+                    <Line key={`${feature.name}-${idx}`} title={feature.name} detail="Additional feature"
+                      amount={<EditableAmount id={`feature-${feature.name}`} value={rateOverrides[`feature-${feature.name}`] ?? feature.price} />} />
+                  ))}
                 </div>
               </div>
 
-              <button
-                onClick={() => setShowQuote(true)}
-                className="mt-4 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition"
-              >
-                <FileText className="w-4 h-4" />
-                Generate Quote
-              </button>
+              <div className="mx-4 mt-1 mb-3 py-3 flex items-center justify-between border-t border-slate-200">
+                <span className="text-[11px] font-bold tracking-[0.08em] uppercase text-slate-900">Total</span>
+                <span className="text-[16px] font-bold tracking-tight text-slate-900 tabular-nums">{money(costs.total)}</span>
+              </div>
+
+              <div className="px-4 pb-4 flex gap-2">
+                <button
+                  onClick={() => (unlocked ? setUnlocked(false) : setShowPasscode(v => !v))}
+                  className="h-11 flex-1 rounded-xl border border-slate-200 bg-white text-[13.5px] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5"
+                >
+                  {unlocked ? <Lock className="w-3.5 h-3.5" /> : null}
+                  {unlocked ? 'Lock prices' : 'Edit prices'}
+                </button>
+                <button
+                  onClick={() => setShowQuote(true)}
+                  className="h-11 flex-[1.35] rounded-xl bg-slate-900 text-white text-[13.5px] font-semibold hover:bg-slate-800 shadow-[0_2px_10px_rgba(15,23,42,0.15)] hover:shadow-[0_4px_16px_rgba(15,23,42,0.2)] transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5"
+                >
+                  Generate Quote
+                </button>
+              </div>
+              <div className="px-4 pb-4">
+                <div className="rounded-[10px] bg-slate-50 border border-slate-100 px-3 py-2 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="text-[11px] text-slate-500 leading-snug">Prices include installation and standard warranty</span>
+                </div>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {showQuote && (
