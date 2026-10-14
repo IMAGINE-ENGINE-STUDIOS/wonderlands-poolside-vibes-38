@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useDraggablePanel } from './useDraggablePanel';
 import { Mountain, Trees, Cloud, Upload, FolderOpen, Search, Plus, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, Move3d, RotateCw, Maximize, Magnet, Armchair, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
