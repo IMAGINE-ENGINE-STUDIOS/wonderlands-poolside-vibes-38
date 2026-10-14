@@ -302,6 +302,7 @@ export function TerrainEditor({
     </div>
   );
 
+  const dragPanel = useDraggablePanel('terrain-editor');
   if (!isOpen) {
     return (
       <Button
@@ -319,7 +320,7 @@ export function TerrainEditor({
   }
 
   return (
-    <div className="absolute top-20 right-20 lg:right-[26rem] z-50 w-80 max-h-[calc(100%-11rem)] overflow-y-auto glass-panel rounded-xl">
+    <div {...dragPanel.panelProps} className="absolute top-20 right-20 z-50 w-80 max-h-[calc(100%-11rem)] overflow-y-auto glass-panel rounded-xl">
       <input
         type="file"
         ref={fileInputRef}
