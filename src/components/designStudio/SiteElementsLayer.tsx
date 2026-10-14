@@ -59,6 +59,13 @@ export interface SiteElement {
 type Choice = Omit<SiteElement, "id" | "pts" | "kind"> & { kind: SiteKind };
 /** Drawn decks use the main page paver list (photo + rate per sq ft). */
 export const DECK_PAVERS = paverTypes.filter((x) => x.category === "paver").map((x) => ({ id: x.id, label: x.name, rate: x.basePrice, image: x.image }));
+/** Pavers grouped by family (Appian, Catalina Grana, …) for a symmetrical picker. */
+const DECK_FAMILIES: [string, typeof DECK_PAVERS][] = (() => {
+  const fams = ["Catalina Grana", "Gloca Mirage", "Appian", "Catalina", "Coralina", "Travertine"];
+  const m = new Map<string, typeof DECK_PAVERS>();
+  for (const d of DECK_PAVERS) { const f = fams.find((x) => d.label.startsWith(x)) ?? "Other"; m.set(f, [...(m.get(f) ?? []), d]); }
+  return [...m.entries()];
+})();
 const deckChoice = (id?: string): Choice => { const d = DECK_PAVERS.find((x) => x.id === id) ?? DECK_PAVERS[0]; return { kind: "deck", label: d?.label ?? "Deck", detail: "Paver deck", color: "#c9b79c", style: d?.id, rate: d?.rate ?? 0, unit: "sqft" }; };
 const DECK_CHOICE: Choice = deckChoice();
 /** Pool outline exactly as the canvas draws it (curves sampled) so cuts follow curves. */
@@ -75,7 +82,7 @@ export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], d
 export interface BoardView {
   width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number;
   /** Main pool + its deck (PoolBuilder state) — turf is cut around both. */
-  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean;
+  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean;
   setDeck?: (pts: Pt[]) => void; setPool?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
 }
 
@@ -201,7 +208,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         const d = Math.hypot(w.x - at.x, w.y - at.y); if (!best || d < best.d) best = { id, seg: i, d, at };
       }
     }
-    return best && best.d < 14 / (view?.zoom || 1) ? best : null;
+    return best && best.d < 24 / (view?.zoom || 1) ? best : null;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, view, getPts]);
   const insertPoint = (id: string, seg: number, at: Pt) => {
@@ -212,14 +219,19 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const eraseId = (id: string) => { if (id === "__pool") view?.erasePool?.(); else if (id === "__deck") view?.setDeck?.([]); else setItems((p) => p.filter((x) => x.id !== id)); setSelected(null); setEditId(null); };
   /* Right-click or double-click on any spline opens its menu (canvas keeps every other click). */
   React.useEffect(() => {
-    const host = svgRef.current?.parentElement; if (!host || !view) return;
+    if (!view) return;
+    // Window-level capture so the canvas underneath can never swallow the gesture.
     const open = (e: MouseEvent) => {
-      if (drawing) return; const hit = nearest(toWorld(e, false)); if (!hit) return;
+      const host = svgRef.current?.parentElement; if (!host || drawing) return;
+      const r = host.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+      if ((e.target as HTMLElement)?.closest?.("aside,button,[data-spline-menu]")) return;
+      const hit = nearest(toWorld(e, false)); if (!hit) return;
       e.preventDefault(); e.stopPropagation();
-      const r = host.getBoundingClientRect(); setSelected(hit.id); setMenu({ x: e.clientX - r.left, y: e.clientY - r.top, id: hit.id, seg: hit.seg, at: hit.at });
+      setSelected(hit.id); setMenu({ x: e.clientX - r.left, y: e.clientY - r.top, id: hit.id, seg: hit.seg, at: hit.at });
     };
-    host.addEventListener("contextmenu", open, true); host.addEventListener("dblclick", open, true);
-    return () => { host.removeEventListener("contextmenu", open, true); host.removeEventListener("dblclick", open, true); };
+    window.addEventListener("contextmenu", open, true); window.addEventListener("dblclick", open, true);
+    return () => { window.removeEventListener("contextmenu", open, true); window.removeEventListener("dblclick", open, true); };
   }, [view, drawing, nearest, toWorld]);
   /* Vertex dragging + whole-shape move. */
   React.useEffect(() => {
@@ -268,8 +280,12 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       {/* Drawing overlay — same transform as the PoolBuilder canvas */}
       {view && (
         <svg ref={svgRef} className="absolute inset-0 z-[5]" width={view.width} height={view.height}
-          style={{ pointerEvents: drawing || moving ? "auto" : "none", cursor: drawing ? "crosshair" : moving ? "move" : undefined }}
-          onClick={(e) => { if (moving) { setMoving(null); return; } onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => drawing && setHover(toWorld(e))}>
+          style={{ pointerEvents: drawing || moving || view.addMode ? "auto" : "none", cursor: drawing || view.addMode ? "crosshair" : moving ? "move" : undefined }}
+          onClick={(e) => {
+            if (moving) { setMoving(null); return; }
+            // Add Point tool anchors to whichever spline is under the cursor: pool, deck, fence, screen or turf.
+            if (view.addMode && !drawing) { const hit = nearest(toWorld(e, false)); if (hit) { insertPoint(hit.id, hit.seg, hit.at); setSelected(hit.id); setEditId(hit.id); } return; }
+            onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => { if (drawing) setHover(toWorld(e)); else if (view.addMode) setHover(nearest(toWorld(e, false))?.at ?? null); }}>
           <defs>
             {TURFS.map((g) => (
               <pattern key={g.id} id={`turf-${g.id}`} width={scale * 4} height={scale * 4} patternUnits="userSpaceOnUse">
@@ -313,6 +329,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                 {hover && <text x={hover.x + 8} y={hover.y - 8} fontSize={12 / view.zoom} fill="hsl(var(--foreground))">{(Math.hypot(hover.x - draft[draft.length - 1].x, hover.y - draft[draft.length - 1].y) / scale).toFixed(1)} ft</text>}
               </>
             )}
+            {view.addMode && !drawing && hover && <circle cx={hover.x} cy={hover.y} r={6 / (view.zoom || 1)} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2 / (view.zoom || 1)} />}
             {editId && (() => { const pts = getPts(editId); const z = view.zoom || 1; const open = isOpen(editId); return (
               <g style={{ pointerEvents: "auto" }}>
                 {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={4 / z} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
@@ -324,7 +341,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
       {/* Spline menu — right-click or double-click any spline */}
       {menu && (
-        <div className="absolute z-[40] w-52 border border-border bg-background/95 p-1 text-[12px] shadow-sm backdrop-blur" style={{ left: menu.x, top: menu.y }} onMouseLeave={() => setMenu(null)}>
+        <div data-spline-menu className="absolute z-[40] w-52 border border-border bg-background/95 p-1 text-[12px] shadow-sm backdrop-blur" style={{ left: menu.x, top: menu.y }} onMouseLeave={() => setMenu(null)}>
           <p className="px-2 py-1 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{menu.id === "__pool" ? "Pool" : menu.id === "__deck" ? "Pool deck" : `${KIND_LABEL[menuItem!.kind]} · ${menuItem!.label}`}</p>
           {!menu.sub ? (<>
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { setEditId(menu.id); setMenu(null); }}>Edit spline</button>
@@ -400,13 +417,22 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         )}
 
         {tab === "deck" && (
-          <Step n={1} label="Paver — then draw (any number of decks)">
-            {DECK_PAVERS.map((d) => (
-              <button key={d.id} onClick={() => { setDraft([]); setChoice(deckChoice(d.id)); }} className="w-[31%] border border-border text-left text-[10px] hover:border-foreground">
-                <img src={d.image} alt={d.label} loading="lazy" className="aspect-square w-full object-cover" /><span className="block p-1">{d.label} · ${d.rate}/sqft</span>
-              </button>
+          <div className="mt-3">
+            <p className="mb-1.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">1. Paver — then draw (any number of decks)</p>
+            {DECK_FAMILIES.map(([fam, list]) => (
+              <div key={fam} className="mt-2">
+                <p className="mb-1 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">{fam}</p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {list.map((d) => (
+                    <button key={d.id} onClick={() => { setDraft([]); setChoice(deckChoice(d.id)); }} className="flex flex-col border border-border text-left text-[10px] hover:border-foreground">
+                      <img src={d.image} alt={d.label} loading="lazy" className="aspect-square w-full object-cover" />
+                      <span className="block min-h-[2.5rem] p-1 leading-tight">{d.label.replace(fam, "").trim() || d.label}<br /><span className="text-muted-foreground">${d.rate}/sqft</span></span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
-          </Step>
+          </div>
         )}
 
         {/* Erase / edit — everything on the board, pool and deck included */}

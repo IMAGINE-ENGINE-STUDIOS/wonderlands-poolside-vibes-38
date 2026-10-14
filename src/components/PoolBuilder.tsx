@@ -24,7 +24,6 @@ import { SplineDrawTutorial } from './poolBuilder/SplineDrawTutorial';
 import { snapToGridRelative, calculateProjectCost, getDeckPricePerSqFt, getCopingPricePerSqFt, FEATURE_COSTS as CENTRALIZED_FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { ShapeRepository } from './ShapeRepository';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.webp';
-import poolTextureSapphire from '@/assets/textures/pool-texture-sapphire.webp';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';
@@ -143,7 +142,7 @@ interface PoolBuilderProps {
     };
   }) => void;
   /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
-  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void }) => React.ReactNode;
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void }) => React.ReactNode;
 }
 
 // Helper function to shade colors
@@ -157,6 +156,14 @@ const shadeColor = (color: string, percent: number) => {
 };
 import { buildFinishTextures } from '@/data/textureLibrary';
 // Same finish catalogue the 3D viewer offers, so 2D and 3D show identical choices.
+/** Pattern scaled to real feet so 2D textures match the 3D Studio's 1 ft UV (Imagine Engine Studios Corp). */
+const scaledPattern = (ctx: CanvasRenderingContext2D, img: CanvasImageSource & { width: number; height: number }, tilePx: number) => {
+  const pat = ctx.createPattern(img, 'repeat');
+  if (pat && img.width && img.height && typeof DOMMatrix !== 'undefined') pat.setTransform(new DOMMatrix().scale(tilePx / img.width, tilePx / img.height));
+  return pat;
+};
+/** Pool finish photo covers 4 ft, coping/paver photo covers 1 ft — same as the 3D viewer. */
+const FINISH_TILE_FT = 4;
 const CATALOG_FINISHES_2D = buildFinishTextures().map(t => ({ id: `cat-${t.id}`, name: t.name, image: t.url as string }));
 
 export function PoolBuilder({
@@ -410,7 +417,7 @@ export function PoolBuilder({
   const [isDraggingRoof, setIsDraggingRoof] = useState(false);
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
   const [selectedCopingId, setSelectedCopingId] = useState('appian-adobe');
-  const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
+  const [selectedFinishId, setSelectedFinishId] = useState(() => CATALOG_FINISHES_2D.find(f => /tahoe/i.test(f.name))?.id ?? 'aquamarine');
   const [paverSize] = useState(24); // Larger paver size for better visibility (24 inches / 2 feet)
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('freeform');
   const [copingThickness, setCopingThickness] = useState(10); // Adjusted for new scale
@@ -2072,7 +2079,7 @@ export function PoolBuilder({
             }
             if (copingTexture) {
               ctx.lineWidth = paverSizeInPixels;
-              const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+              const copingPattern = scaledPattern(ctx, copingTexture, scale);
               if (copingPattern) {
                 ctx.strokeStyle = copingPattern;
                 ctx.stroke();
@@ -2129,7 +2136,7 @@ export function PoolBuilder({
         ctx.lineWidth = paverSizeInPixels; // Use same size as deck pavers
 
         // Create pattern from coping texture
-        const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+        const copingPattern = scaledPattern(ctx, copingTexture, scale);
         if (copingPattern) {
           ctx.strokeStyle = copingPattern;
           ctx.stroke();
@@ -2154,10 +2161,9 @@ export function PoolBuilder({
       ctx.clip();
 
       // Load and use sapphire blue pool texture
-      const poolTextureImg = new Image();
-      poolTextureImg.src = poolTextureSapphire;
-      if (poolTextureImg.complete) {
-        const pattern = ctx.createPattern(poolTextureImg, 'repeat');
+      const poolTextureImg = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+      if (poolTextureImg) {
+        const pattern = scaledPattern(ctx, poolTextureImg, scale * FINISH_TILE_FT);
         if (pattern) {
           ctx.fillStyle = pattern;
           ctx.fill();
@@ -2166,7 +2172,7 @@ export function PoolBuilder({
         // Fallback while loading
         const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
         if (linerTexture) {
-          const pattern = ctx.createPattern(linerTexture, 'repeat');
+          const pattern = scaledPattern(ctx, linerTexture, scale * FINISH_TILE_FT);
           if (pattern) {
             ctx.fillStyle = pattern;
             ctx.fill();
@@ -4297,7 +4303,7 @@ export function PoolBuilder({
             }
             if (copingTexture) {
               ctx.lineWidth = paverSizeInPixels;
-              const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+              const copingPattern = scaledPattern(ctx, copingTexture, scale);
               if (copingPattern) {
                 ctx.strokeStyle = copingPattern;
                 ctx.stroke();
@@ -4344,7 +4350,7 @@ export function PoolBuilder({
         if (copingTexture) {
           ctx.save();
           ctx.lineWidth = paverSizeInPixels;
-          const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+          const copingPattern = scaledPattern(ctx, copingTexture, scale);
           if (copingPattern) {
             ctx.strokeStyle = copingPattern;
             ctx.stroke();
@@ -4471,10 +4477,9 @@ export function PoolBuilder({
       }
       ctx.closePath();
       ctx.clip();
-      const poolTextureImg = new Image();
-      poolTextureImg.src = poolTextureSapphire;
-      if (poolTextureImg.complete) {
-        const pattern = ctx.createPattern(poolTextureImg, 'repeat');
+      const poolTextureImg = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+      if (poolTextureImg) {
+        const pattern = scaledPattern(ctx, poolTextureImg, scale * FINISH_TILE_FT);
         if (pattern) {
           ctx.fillStyle = pattern;
           ctx.fill();
@@ -4482,7 +4487,7 @@ export function PoolBuilder({
       } else {
         const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
         if (linerTexture) {
-          const pattern = ctx.createPattern(linerTexture, 'repeat');
+          const pattern = scaledPattern(ctx, linerTexture, scale * FINISH_TILE_FT);
           if (pattern) {
             ctx.fillStyle = pattern;
             ctx.fill();
@@ -5857,7 +5862,7 @@ export function PoolBuilder({
       <div className="flex-1 overflow-hidden relative">
         {/* Site layer (fences/screens/turf) drawn with this canvas's own pan/zoom. */}
         {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale,
-          poolPts: points, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck',
+          poolPts: points, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck', addMode: activeTool === 'add',
           /* Hand-drawn deck boundary (overlay draws it, same board transform) — Imagine Engine Studios Corp. */
           setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${Date.now().toString(36)}${i}` }))),
           setPool: (pts) => setPoints(pts as Point[]),
