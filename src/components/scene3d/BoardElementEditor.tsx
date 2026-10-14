@@ -103,12 +103,12 @@ export const BoardElementEditor: React.FC = () => {
   } else return null;
 
   return (
-    <div className="absolute right-20 top-20 z-50 w-80 space-y-4 border border-border bg-background/95 p-4 text-foreground shadow-2xl backdrop-blur-md">
-      <div className="flex items-center justify-between">
-        <p className="font-serif text-lg leading-none">{title}</p>
-        <button aria-label="Close" onClick={() => setSel(null)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+    <div {...dragPanel.panelProps} className="fixed right-4 top-1/2 -translate-y-1/2 w-80 glass-panel rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-right duration-300 pointer-events-auto">
+      <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
+        <h3 className="font-semibold text-base">{title} Settings</h3>
+        <button aria-label="Close" onClick={() => setSel(null)} className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-muted"><X className="h-4 w-4" /></button>
       </div>
-      {body}
+      <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">{body}</div>
     </div>
   );
 };
