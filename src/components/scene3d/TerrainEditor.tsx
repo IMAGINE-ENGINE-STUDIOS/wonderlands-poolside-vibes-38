@@ -307,7 +307,7 @@ export function TerrainEditor({
       <Button
         variant="outline"
         size="icon"
-        className="fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full bg-white border-slate-200/80 text-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.06)] hover:bg-slate-50"
+        className="absolute top-36 right-4 z-40 h-12 w-12 rounded-full bg-white border-slate-200/80 text-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.06)] hover:bg-slate-50"
         onClick={() => setIsOpen(true)}
       >
         <div className="relative">
@@ -319,7 +319,7 @@ export function TerrainEditor({
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 glass-panel rounded-xl overflow-hidden">
+    <div className="absolute top-20 right-20 lg:right-[26rem] z-50 w-80 max-h-[calc(100%-11rem)] overflow-y-auto glass-panel rounded-xl overflow-hidden">
       <input
         type="file"
         ref={fileInputRef}
