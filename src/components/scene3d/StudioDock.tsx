@@ -8,7 +8,6 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Wand2, FolderOpen, Music2, VolumeX, Loader2, Save, Trash2, X } from 'lucide-react';
