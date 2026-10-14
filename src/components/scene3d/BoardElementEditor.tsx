@@ -10,6 +10,8 @@
 import * as React from "react";
 import { X } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { useDraggablePanel } from "./useDraggablePanel";
 import { updateBoard3D, loadBoard3D, BOARD_3D_EVENT, type Board3D } from "@/lib/design/board3D";
 import { BOARD_SELECT_EVENT, type BoardSelection } from "./BoardElements3D";
 
@@ -20,12 +22,13 @@ const COPINGS = [{ n: "Travertine", c: "#e2d3b8" }, { n: "Coralina", c: "#d8d2c8
 
 const Swatches: React.FC<{ label: string; list: { n: string; c: string }[]; value: string; onPick: (c: string) => void }> = ({ label, list, value, onPick }) => (
   <div className="space-y-1.5">
-    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
-    <div className="flex flex-wrap gap-1.5">
+    <Label className="text-xs">{label}</Label>
+    <div className="grid grid-cols-4 gap-2">
       {list.map((o) => (
         <button key={o.c} onClick={() => onPick(o.c)} title={o.n}
-          className={`flex items-center gap-1.5 border px-2 py-1 text-[10px] uppercase tracking-[0.12em] ${value === o.c ? "border-foreground bg-foreground text-background" : "border-border hover:bg-muted/50"}`}>
-          <span className="h-3 w-3 border border-border" style={{ background: o.c }} />{o.n}
+          className={`relative h-12 rounded-lg overflow-hidden border-2 transition-all ${value === o.c ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
+          style={{ background: o.c }}>
+          <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1 pb-0.5 text-[9px] font-medium text-white truncate">{o.n}</span>
         </button>
       ))}
     </div>
@@ -33,7 +36,7 @@ const Swatches: React.FC<{ label: string; list: { n: string; c: string }[]; valu
 );
 const Range: React.FC<{ label: string; v: number; min: number; max: number; step: number; unit?: string; on: (n: number) => void }> = ({ label, v, min, max, step, unit = "ft", on }) => (
   <div className="space-y-1.5">
-    <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-muted-foreground"><span>{label}</span><span className="text-foreground">{Math.round(v * 10) / 10} {unit}</span></div>
+    <Label className="text-xs">{label}: {Math.round(v * 10) / 10} {unit}</Label>
     <Slider value={[v]} min={min} max={max} step={step} onValueChange={([n]) => on(n)} />
   </div>
 );
@@ -51,6 +54,7 @@ const dims = (pts: { x: number; z: number }[]) => {
 };
 
 export const BoardElementEditor: React.FC = () => {
+  const dragPanel = useDraggablePanel("board-piece");
   const [sel, setSel] = React.useState<BoardSelection>(null);
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
   React.useEffect(() => {
@@ -77,10 +81,10 @@ export const BoardElementEditor: React.FC = () => {
       <Swatches label="Frame color" list={METALS} value={s.color} onPick={(c) => edit((d) => { d.screens[sel.i].color = c; })} />
       <Range label="Wall height" v={s.height} min={8} max={20} step={0.5} on={(n) => edit((d) => { d.screens[sel.i].height = n; })} />
       <div className="space-y-1.5">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Roof</p>
+        <Label className="text-xs">Roof</Label>
         <div className="flex gap-1.5">{(["mansard", "flat"] as const).map((r) => (
           <button key={r} onClick={() => edit((d) => { d.screens[sel.i].roof = r; })}
-            className={`border px-3 py-1 text-[10px] uppercase tracking-[0.15em] ${(s.roof ?? "mansard") === r ? "border-foreground bg-foreground text-background" : "border-border hover:bg-muted/50"}`}>{r}</button>
+            className={`glass-btn h-8 flex-1 rounded-lg text-xs capitalize ${(s.roof ?? "mansard") === r ? "ring-2 ring-primary" : ""}`}>{r}</button>
         ))}</div>
       </div>
     </>;
