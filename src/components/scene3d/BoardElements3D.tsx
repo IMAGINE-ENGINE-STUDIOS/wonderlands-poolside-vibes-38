@@ -7,7 +7,7 @@
  */
 import * as React from "react";
 import * as THREE from "three";
-import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D } from "@/lib/design/board3D";
+import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D, waterDepthAt } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
@@ -157,10 +157,10 @@ function Water({ w, i }: { w: Water3D; i: number }) {
   const water = React.useMemo(() => new THREE.MeshPhysicalMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.05, transmission: 0.4 }), []);
   return (
     <group name={`board-${w.kind}`} onClick={select({ type: "water", i })}>
-      <mesh geometry={floor} material={fin} position={[0, -w.depth, 0]} receiveShadow />
+      <mesh geometry={floor} material={fin} receiveShadow />
       <mesh geometry={walls} material={fin} />
       <mesh geometry={band} material={tile} />
-      <mesh geometry={floor} material={water} position={[0, -0.25, 0]} />
+      <mesh geometry={flatFloor} material={water} position={[0, -0.25, 0]} />
       <mesh geometry={coping} material={cop} position={[0, 0.02, 0]} castShadow receiveShadow />
     </group>
   );
@@ -195,7 +195,7 @@ export function BoardElements3D() {
       {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} />)}
       {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} i={i} />)}
-      {(data.waters ?? []).map((w, i) => <Water key={`w${i}`} w={w} i={i} />)}
+      {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} />)}
     </group>
   );
 }
