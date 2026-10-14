@@ -22,7 +22,8 @@ import { gilmerPools } from '@/data/gilmerPools';
 import { cn } from '@/lib/utils';
 import productImages from '@/data/productImages';
 import { matchPlatformTools, SEARCH_PROMPTS } from '@/lib/genius/platformTools';
-import { answerPriceQuestion } from '@/lib/geniusKnowledge';
+import { answerIntent, toEnglishIntent } from '@/lib/geniusKnowledge';
+import { detectLanguage, languageName, translateText } from '@/lib/genius/geniusLanguage';
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder';
 
 // Import Wonderlands pool images for search
@@ -135,7 +136,8 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
     const query = searchQuery.trim() || interimTranscript;
     if (query) {
       setLastQuery(query);
-      await askAI(`I'm looking for: ${query}`);
+      const lang = detectLanguage(query);
+      await askAI(`I'm looking for: ${query}${lang.startsWith('en') ? '' : ` (Answer in ${languageName(lang)}.)`}`);
     }
     setIsFocused(false);
     setShowSectionMenu(false);
@@ -572,11 +574,21 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
   const shouldShowSectionMenu = isFocused && !searchQuery && !showResults;
 
   // Genius layer: platform tools + instant local price answers (free, no network)
-  const toolHits = React.useMemo(() => matchPlatformTools(searchQuery), [searchQuery]);
-  const geniusLine = React.useMemo(
-    () => (searchQuery.trim().length > 3 ? answerPriceQuestion(searchQuery) : null),
+  const toolHits = React.useMemo(() => matchPlatformTools(toEnglishIntent(searchQuery)), [searchQuery]);
+  const englishLine = React.useMemo(
+    () => (searchQuery.trim().length > 3 ? answerIntent(searchQuery) : null),
     [searchQuery],
   );
+  /* Answer in the guest's own language (debounced, cached). */
+  const [geniusLine, setGeniusLine] = React.useState<string | null>(null);
+  useEffect(() => {
+    setGeniusLine(englishLine);
+    const lang = detectLanguage(searchQuery);
+    if (!englishLine || lang.startsWith('en')) return;
+    let live = true;
+    const id = setTimeout(() => void translateText(englishLine, lang).then((t) => live && setGeniusLine(t)), 400);
+    return () => { live = false; clearTimeout(id); };
+  }, [englishLine, searchQuery]);
   const resultsOpen = !!searchQuery.trim() && (showResults || toolHits.length > 0 || !!geniusLine);
   const typed = useTypewriterPlaceholder(SEARCH_PROMPTS, !isSlim && !isFocused && !searchQuery);
 
@@ -691,18 +703,18 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
       </div>
 
       {/* AI Response Summary - Hidden for now */}
-      {false && (aiLoading || aiResponse) && (
+      {(aiLoading || aiResponse) && (
         <div className="mt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-background/95 backdrop-blur-md rounded-xl p-3 border border-border shadow-lg">
           {/* Summary Line */}
-          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
             {aiLoading ? (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Sarah is thinking...</span>
+                <span className="text-sm">Genius is thinking…</span>
               </div>
             ) : aiResponse && (
               <>
-                <Sparkles className="h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-primary flex-shrink-0">Genius</span>
                 <p className="text-sm text-foreground flex-1">{aiResponse.summary}</p>
                 <Button
                   variant="ghost"
