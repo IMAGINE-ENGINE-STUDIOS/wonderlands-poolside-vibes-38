@@ -59,6 +59,13 @@ export interface SiteElement {
 type Choice = Omit<SiteElement, "id" | "pts" | "kind"> & { kind: SiteKind };
 /** Drawn decks use the main page paver list (photo + rate per sq ft). */
 export const DECK_PAVERS = paverTypes.filter((x) => x.category === "paver").map((x) => ({ id: x.id, label: x.name, rate: x.basePrice, image: x.image }));
+/** Pavers grouped by family (Appian, Catalina Grana, …) for a symmetrical picker. */
+const DECK_FAMILIES: [string, typeof DECK_PAVERS][] = (() => {
+  const fams = ["Catalina Grana", "Gloca Mirage", "Appian", "Catalina", "Coralina", "Travertine"];
+  const m = new Map<string, typeof DECK_PAVERS>();
+  for (const d of DECK_PAVERS) { const f = fams.find((x) => d.label.startsWith(x)) ?? "Other"; m.set(f, [...(m.get(f) ?? []), d]); }
+  return [...m.entries()];
+})();
 const deckChoice = (id?: string): Choice => { const d = DECK_PAVERS.find((x) => x.id === id) ?? DECK_PAVERS[0]; return { kind: "deck", label: d?.label ?? "Deck", detail: "Paver deck", color: "#c9b79c", style: d?.id, rate: d?.rate ?? 0, unit: "sqft" }; };
 const DECK_CHOICE: Choice = deckChoice();
 /** Pool outline exactly as the canvas draws it (curves sampled) so cuts follow curves. */
