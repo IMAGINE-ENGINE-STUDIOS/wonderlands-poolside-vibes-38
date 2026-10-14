@@ -12,7 +12,9 @@ import { X } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useDraggablePanel } from "./useDraggablePanel";
-import { updateBoard3D, loadBoard3D, BOARD_3D_EVENT, type Board3D } from "@/lib/design/board3D";
+import { updateBoard3D, loadBoard3D, BOARD_3D_EVENT, type Board3D, waterAxis, waterCenter } from "@/lib/design/board3D";
+import { DepthProfileEditor } from "./DepthProfileEditor";
+import { createDefaultLinearAnchors, getZeroEntry, applyZeroEntry, removeZeroEntry } from "./depthUtils";
 import { BOARD_SELECT_EVENT, type BoardSelection } from "./BoardElements3D";
 
 const METALS = [{ n: "Black", c: "#1f1f1f" }, { n: "Bronze", c: "#6b4a2b" }, { n: "White", c: "#f4f4f2" }, { n: "Silver", c: "#b8bcc2" }];
@@ -57,6 +59,8 @@ export const BoardElementEditor: React.FC = () => {
   const dragPanel = useDraggablePanel("board-piece");
   const [sel, setSel] = React.useState<BoardSelection>(null);
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
+  const [profileOpen, setProfileOpen] = React.useState(false);
+  const [anchorSel, setAnchorSel] = React.useState<string | null>(null);
   React.useEffect(() => {
     const onSel = (e: Event) => setSel((e as CustomEvent<BoardSelection>).detail);
     const onData = () => setData(loadBoard3D());
@@ -96,7 +100,28 @@ export const BoardElementEditor: React.FC = () => {
       <Swatches label="Waterline tile" list={TILES} value={w.waterline} onPick={(c) => edit((d) => { d.waters![sel.i].waterline = c; })} />
       <Swatches label="Coping" list={COPINGS} value={w.coping} onPick={(c) => edit((d) => { d.waters![sel.i].coping = c; })} />
       <Range label="Coping width" v={w.copingWidth} min={0.5} max={2} step={0.1} on={(n) => edit((d) => { d.waters![sel.i].copingWidth = n; })} />
-      <Range label="Depth" v={w.depth} min={2} max={9} step={0.25} on={(n) => edit((d) => { d.waters![sel.i].depth = n; })} />
+      {(() => {
+        // Each pool/spa owns its profile; editing it never touches the others.
+        const anchors = w.anchors ?? createDefaultLinearAnchors(w.kind === "spa" ? 3 : 3.5, w.kind === "spa" ? 3 : Math.max(w.depth, 5));
+        const shallow = Math.min(...anchors.map((a) => a.depth)), deep = Math.max(...anchors.map((a) => a.depth));
+        const ze = getZeroEntry(anchors);
+        const setA = (a: typeof anchors) => edit((d) => { d.waters![sel.i].anchors = a; });
+        return <>
+          <Range label="Shallow end" v={shallow} min={0} max={8} step={0.25} on={(n) => setA(createDefaultLinearAnchors(n, Math.max(n, deep)))} />
+          <Range label="Deep end" v={deep} min={1} max={12} step={0.25} on={(n) => setA(createDefaultLinearAnchors(Math.min(shallow, n), n))} />
+          <div className="flex gap-1.5">
+            <button onClick={() => setA(ze ? removeZeroEntry(anchors) : applyZeroEntry(anchors, 6, Math.max(L, W)))} className={`glass-btn h-8 flex-1 rounded-lg text-xs ${ze ? "ring-2 ring-primary" : ""}`}>{ze ? "Remove zero entry" : "Add zero entry"}</button>
+            <button onClick={() => setProfileOpen(true)} className="glass-btn h-8 flex-1 rounded-lg text-xs">Depth profile</button>
+          </div>
+          {profileOpen && (() => {
+            const c = waterCenter(w.pts);
+            return <DepthProfileEditor isOpen onClose={() => setProfileOpen(false)} linearDepthAnchors={anchors} onLinearDepthAnchorsChange={setA}
+              selectedAnchorId={anchorSel} onSelectAnchor={setAnchorSel}
+              poolPoints={w.pts.map((p) => ({ x: p.x - c.x, y: p.z - c.z })) as any} poolDimensions={{ length: L, width: W }}
+              depthAxis={waterAxis(w)} onDepthAxisChange={(a) => edit((d) => { d.waters![sel.i].axis = a; })} />;
+          })()}
+        </>;
+      })()}
       <Range label="Length" v={L} min={4} max={60} step={0.5} on={(n) => edit((d) => { d.waters![sel.i].pts = resize(w.pts, n, W); })} />
       <Range label="Width" v={W} min={4} max={30} step={0.5} on={(n) => edit((d) => { d.waters![sel.i].pts = resize(w.pts, L, n); })} />
     </>;
