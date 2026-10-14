@@ -341,23 +341,29 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
           float godRayMask = depthRatio * 0.8 + 0.2;
           colorWithCaustics += godRayPattern * godRayIntensity * godRayMask * vec3(0.9, 0.95, 1.0);
           
-          // Sky reflection
-          vec3 skyColor = vec3(0.5, 0.7, 0.9);
-          vec3 finalColor = mix(colorWithCaustics, skyColor, fresnelValue * reflectionStrength);
-          
+          // Sky reflection: Schlick Fresnel (water F0 ≈ 0.02) against a sky gradient
+          vec3 refl = reflect(-viewDir, vNormal);
+          vec3 skyColor = mix(vec3(0.72, 0.84, 0.95), vec3(0.32, 0.55, 0.85), clamp(refl.y, 0.0, 1.0));
+          float schlick = 0.02 + 0.98 * pow(1.0 - clamp(dot(vNormal, viewDir), 0.0, 1.0), 5.0);
+          float fres = clamp(max(schlick, fresnelValue * 0.6) * reflectionStrength * 1.4, 0.0, 0.85);
+          vec3 finalColor = mix(colorWithCaustics, skyColor, fres);
+
           // Add foam/highlights at wave peaks
           float foamAmount = smoothstep(0.04, 0.06, abs(vWaveHeight));
           finalColor = mix(finalColor, foamColor, foamAmount * 0.25);
-          
+
           // Sparkles/highlights
           float sparkle = caustic(vPosition.xz * 2.5, time * 2.0);
           sparkle = pow(sparkle, 10.0) * fresnelValue;
           finalColor += sparkle * vec3(1.0, 1.0, 0.98) * 0.4;
-          
-          // Lighting
+
+          // Lighting + sun glints (Blinn-Phong specular on the wave normals)
           vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
           float diffuse = max(dot(vNormal, lightDir), 0.0) * 0.3 + 0.7;
           finalColor *= diffuse;
+          vec3 halfV = normalize(lightDir + viewDir);
+          float spec = pow(max(dot(vNormal, halfV), 0.0), 220.0);
+          finalColor += vec3(1.0, 0.98, 0.92) * spec * 1.6;
           
           gl_FragColor = vec4(finalColor, transparency);
         }
