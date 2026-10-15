@@ -112,9 +112,11 @@ const SiteGenius: React.FC<{
         if (!doc) throw new Error('Genius could not draft pages. Add more detail about your business.');
         onBuild(doc, r?.theme); setLog((l) => [...l, { who: 'genius', text: `Drafted ${doc.pages.length} pages. Review, then publish.` }]);
       } else {
-        const ctx = { page: page.name, sections: page.sections.map((s) => ({ id: s.id, type: s.type, props: Object.fromEntries(Object.entries(s.props).map(([k, v]) => [k, typeof v === 'string' ? (v.startsWith('data:') ? '[photo]' : v.slice(0, 120)) : Array.isArray(v) ? `${v.length} items` : v])) })) };
-        const r = await askSiteGenius('command', ask + extra, ctx);
-        onOps(fillPhotos(r?.ops ?? [], files)); setLog((l) => [...l, { who: 'genius', text: r?.summary || 'Done.' }]);
+        // Agent mode: Genius sees the whole project (all pages, theme) plus the chat so far.
+        const r = await askSiteGenius('agent', ask + extra, siteContext(doc, theme, page.id), log);
+        const ops = Array.isArray(r?.ops) ? r.ops : [];
+        if (ops.length) onOps(fillPhotos(ops, files));
+        setLog((l) => [...l, { who: 'genius', text: r?.reply || r?.summary || (ops.length ? 'Done.' : 'Could you tell me a bit more?') }]);
       }
       setText(''); setFiles([]);
     } catch (e) { setLog((l) => [...l, { who: 'genius', text: (e as Error).message }]); }
