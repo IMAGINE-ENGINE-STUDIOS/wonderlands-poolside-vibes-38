@@ -23,7 +23,8 @@ import { TRADE_OPTIONS, tradeTemplate, sectionFrom, type Trade } from '@/lib/sit
 import SiteGenius, { applyGeniusOps, askSiteGenius } from './SiteGenius';
 import { collectImages } from './siteBuilderUtils';
 import SiteTextEditor from './SiteTextEditor';
-import SiteSettingsPanel from './SiteSettingsPanel';
+import SiteDomainCard from './SiteDomainCard';
+import { apexOf } from '@/lib/siteBuilder/dnsCheck';
 import { hydrateDocProducts, starterCard } from '@/lib/siteBuilder/catalogCards';
 import { BLOCKS, FONTS, GRADIENTS, DEFAULT_THEME, blankDoc, compressImage, newSection, uid, type BlockType, type Field, type Page, type Section, type SiteDoc, type SiteTheme, type SiteVersion } from '@/lib/siteBuilder/model';
 
@@ -32,6 +33,17 @@ const GROUPS = ['Layout', 'Content', 'Media', 'Commerce', 'Technology'];
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 
 interface SiteRow { id: string; slug: string; title: string; is_published: boolean; custom_domain?: string | null }
+
+/** Collapsible card used by the Site tab. */
+const SettingsGroup: React.FC<{ title: string; note?: string; open?: boolean; children: React.ReactNode }> = ({ title, note, open, children }) => (
+  <details open={open} className="group rounded-xl border border-border bg-background [&_summary::-webkit-details-marker]:hidden">
+    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5">
+      <span className="min-w-0"><span className="block text-sm font-semibold">{title}</span>{note && <span className="block truncate text-[11px] text-muted-foreground">{note}</span>}</span>
+      <span className="text-muted-foreground transition-transform group-open:rotate-90">›</span>
+    </summary>
+    <div className="space-y-3 border-t border-border px-3 py-3">{children}</div>
+  </details>
+);
 
 /** Pages of the site being edited, so link fields can offer "go to page". */
 const PagesCtx = React.createContext<Page[]>([]);
@@ -358,8 +370,8 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
               {page !== doc.pages[0] && <Button size="sm" variant="outline" onClick={() => { commit(d => { d.pages = d.pages.filter(p => p.id !== page.id); return d; }); setPageId(doc.pages[0].id); }}>Delete page</Button>}</div>}
             </SettingsGroup>
             {history.length > 0 && <SettingsGroup title="Published versions" note={`${history.length} saved`}>
-            {history.length > 0 && <div className="space-y-2">
-              {history.map((v, i) => <div key={v.at} className="flex items-center justify-between gap-2 text-sm"><span className="text-muted-foreground">{i === 0 ? 'Live · ' : ''}{new Date(v.at).toLocaleString()}</span>{!readOnly && <Button size="sm" variant="ghost" onClick={() => restoreVersion(v)}>Restore</Button>}</div>)}</div>}
+            <div className="space-y-2">
+              {history.map((v, i) => <div key={v.at} className="flex items-center justify-between gap-2 text-sm"><span className="text-muted-foreground">{i === 0 ? 'Live · ' : ''}{new Date(v.at).toLocaleString()}</span>{!readOnly && <Button size="sm" variant="ghost" onClick={() => restoreVersion(v)}>Restore</Button>}</div>)}</div>
             </SettingsGroup>}
           </div>
           : !section ? <p className="text-sm text-muted-foreground">Click a section on the page to edit it, or open Site for colours, fonts and logo.</p>
@@ -387,6 +399,13 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         </aside>
       </div>
     </div>
+    {textEdit && (() => { const s = page.sections.find(x => x.id === textEdit.sid); if (!s) return null;
+      const keys = textEdit.path.split('.'); const get = (o: any) => keys.reduce((a, k) => a?.[k], o);
+      const put = (o: any, v: any) => { let t = o; for (const k of keys.slice(0, -1)) t = t[k] ??= {}; t[keys[keys.length - 1]] = v; };
+      return <SiteTextEditor rect={textEdit.rect} value={String(get(s.props) ?? '')} look={s.props.__text?.[textEdit.path] ?? {}}
+        onChange={v => editSection(s.id, x => put(x.props, v))}
+        onLook={l => editSection(s.id, x => { x.props.__text = { ...x.props.__text, [textEdit.path]: l }; })}
+        onClose={() => setTextEdit(null)} />; })()}
     </MediaCtx.Provider></PagesCtx.Provider>
   );
 };
