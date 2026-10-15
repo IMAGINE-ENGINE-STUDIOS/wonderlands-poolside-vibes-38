@@ -17,6 +17,7 @@ import { WaterlineMesh } from "@/components/WaterlineMesh";
 import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
 import { applyHoleCut } from "./holeCutShader";
+import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
 export const BOARD_SELECT_EVENT = "studio3d:boardSelect";
@@ -95,7 +96,8 @@ function Fence({ f, i }: { f: Fence3D; i: number }) {
     <group name="board-fence" onClick={select({ type: "fence", i })}>
       {posts.map((p, i) => <mesh key={i} material={metal} position={[p.x, H / 2, p.z]} castShadow><boxGeometry args={vinyl ? [0.42, H + 0.25, 0.42] : [0.2, H + 0.15, 0.2]} /></mesh>)}
       {vinyl && posts.map((p, i) => <mesh key={`c${i}`} material={metal} position={[p.x, H + 0.18, p.z]}><boxGeometry args={[0.5, 0.12, 0.5]} /></mesh>)}
-      {segs(f.pts, false).map(([a, b], i) => f.style === "alu"
+      {/* Vinyl: one textured panel between each pair of posts so the photo keeps its real scale. */}
+      {(vinyl ? posts.slice(1).map((b, k) => [posts[k], b] as [XZ, XZ]) : segs(f.pts, false)).map(([a, b], i) => f.style === "alu"
         ? <React.Fragment key={i}><Beam a={a} b={b} y={H - 0.1} h={0.1} t={0.08} mat={metal} /><Beam a={a} b={b} y={0.35} h={0.1} t={0.08} mat={metal} /></React.Fragment>
         : <Beam key={i} a={a} b={b} y={H / 2} h={H - 0.1} t={f.style === "glass" ? 0.04 : 0.1} mat={panel} />)}
       {pickets.map((p, i) => <mesh key={`p${i}`} material={metal} position={[p.x, H / 2, p.z]}><boxGeometry args={[0.06, H - 0.1, 0.06]} /></mesh>)}
