@@ -184,7 +184,8 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     else editPage(p => { const from = p.sections.findIndex(s => s.id === drag.id); if (from < 0) return; const [m] = p.sections.splice(from, 1); p.sections.splice(from < index ? index - 1 : index, 0, m); });
     setDrag(null); setDropAt(null);
   };
-  const addBlock = (type: BlockType) => { const s = newSection(type); const i = section ? page.sections.indexOf(section) + 1 : page.sections.length; editPage(p => { p.sections.splice(i, 0, s); }); setSel(s.id); setPanel('content'); };
+  const addBlock = (type: BlockType) => { const s = newSection(type); const i = section ? page.sections.indexOf(section) + 1 : page.sections.length; editPage(p => { p.sections.splice(i, 0, s); }); setSel(s.id); setPanel('content');
+    if (type === 'configurator') import('@/lib/siteBuilder/configuratorPresets').then(m => m.configuratorProps(s.props)).then(props => editPage(p => { const t = p.sections.find(x => x.id === s.id); if (t) t.props = props; })); };
 
   const persist = async (publish: boolean, silent = false) => {
     if (readOnly) return;
