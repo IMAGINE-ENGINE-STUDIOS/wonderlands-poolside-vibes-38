@@ -44,11 +44,14 @@ const PublicCompanySite: React.FC<{ domainSlug?: string }> = ({ domainSlug }) =>
 
   useEffect(() => {
     if (!site || !page) return;
-    document.title = page === pages[0] ? brand : `${page.name} | ${brand}`;
+    document.title = page.seo?.title || (page === pages[0] ? brand : `${page.name} | ${brand}`);
     let m = document.querySelector('meta[name="description"]');
     if (!m) { m = document.createElement('meta'); m.setAttribute('name', 'description'); document.head.appendChild(m); }
     const hero = page.sections.find(s => s.type === 'hero');
-    m.setAttribute('content', String(hero?.props.subtitle || `${brand}${site.company.city ? ` · ${site.company.city}` : ''}`).slice(0, 158));
+    m.setAttribute('content', String(page.seo?.description || hero?.props.subtitle || `${brand}${site.company.city ? ` · ${site.company.city}` : ''}`).slice(0, 158));
+    // V2 sharing tags from page SEO (Imagine Engine Studios Corp.).
+    const og = (k: string, v?: string) => { if (!v) return; let t = document.querySelector(`meta[property="${k}"]`); if (!t) { t = document.createElement('meta'); t.setAttribute('property', k); document.head.appendChild(t); } t.setAttribute('content', v); };
+    og('og:title', document.title); og('og:description', m.getAttribute('content') || undefined); if (page.seo?.image && /^https?:/.test(page.seo.image)) og('og:image', page.seo.image);
     setMenu(false); window.scrollTo(0, 0);
   }, [site, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
