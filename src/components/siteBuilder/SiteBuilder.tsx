@@ -22,6 +22,9 @@ import { wonderlandsTemplate } from '@/lib/siteBuilder/wonderlandsTemplate';
 import { TRADE_OPTIONS, tradeTemplate, sectionFrom, type Trade } from '@/lib/siteBuilder/tradeTemplates';
 import SiteGenius, { applyGeniusOps, askSiteGenius } from './SiteGenius';
 import { collectImages } from './siteBuilderUtils';
+import SiteTextEditor from './SiteTextEditor';
+import SiteSettingsPanel from './SiteSettingsPanel';
+import { hydrateDocProducts, starterCard } from '@/lib/siteBuilder/catalogCards';
 import { BLOCKS, FONTS, GRADIENTS, DEFAULT_THEME, blankDoc, compressImage, newSection, uid, type BlockType, type Field, type Page, type Section, type SiteDoc, type SiteTheme, type SiteVersion } from '@/lib/siteBuilder/model';
 
 const DEVICES = { desktop: { w: 1280, icon: Monitor }, tablet: { w: 820, icon: Tablet }, mobile: { w: 390, icon: Smartphone } } as const;
@@ -121,6 +124,8 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [flips, setFlips] = useState<{ slug: string; title: string }[]>([]);
   const [catalog, setCatalog] = useState<any[] | null>(null);
+  /** Text being edited on the canvas (double-click): section id, prop path like 'title' or 'items.2.name'. */
+  const [textEdit, setTextEdit] = useState<{ sid: string; path: string; rect: DOMRect } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -213,7 +218,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   // Product cards: catalogue items keep their real photo; absolute URL so published/custom-domain sites load it too.
   const absImg = (u?: string | null) => !u ? '' : /^(https?:|data:|blob:)/.test(u) ? u : `${window.location.origin}${u.startsWith('/') ? '' : '/'}${u}`;
   const toCard = (p: any) => ({ name: p.name, price: p.price ? `$${Number(p.price).toLocaleString()}` : '', description: p.description ?? '', image: absImg(p.image_url), badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' });
-  const blankCard = () => ({ name: 'New product', price: '', description: '', image: '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' });
+  const blankCard = () => starterCard((section?.props.items?.length || 0) + 1);
   const bulkAdd = () => {
     if (!section) return;
     const txt = prompt('One product per line:\nName | Price | Description | Image link (price, description and image are optional)');
@@ -235,10 +240,11 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
       onClick={e => { e.preventDefault(); setSel(s.id); if (panel !== 'style') setPanel('content'); }}
       draggable={!readOnly} onDragStart={e => { e.stopPropagation(); setDrag({ kind: 'move', id: s.id }); }} onDragEnd={() => { setDrag(null); setDropAt(null); }}
       onDragOver={e => { if (!drag) return; e.preventDefault(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setDropAt(e.clientY < r.top + r.height / 2 ? i : i + 1); }}
-      onDrop={e => { e.preventDefault(); if (dropAt !== null) insertAt(dropAt); }}>
+      onDrop={e => { e.preventDefault(); if (dropAt !== null) insertAt(dropAt); }}
+      onDoubleClick={e => { if (readOnly) return; const el = (e.target as HTMLElement).closest('[data-edit]') as HTMLElement | null; if (!el) return; e.preventDefault(); setSel(s.id); setTextEdit({ sid: s.id, path: el.dataset.edit!, rect: el.getBoundingClientRect() }); }}>
       {dropAt === i && drag && <div className="absolute -top-1 inset-x-0 h-1.5 bg-teal z-20 rounded" />}
       <span className="absolute top-2 left-2 z-20 hidden group-hover:block rounded bg-foreground px-2 py-0.5 text-[11px] text-background">{BLOCKS[s.type].label}</span>
-      <div className="pointer-events-none [&_iframe]:pointer-events-none">{node}</div>
+      <div className="[&_iframe]:pointer-events-none [&_a]:cursor-default [&_[data-edit]]:cursor-text" onSubmitCapture={e => e.preventDefault()}>{node}</div>
       {dropAt === i + 1 && drag && i === page.sections.length - 1 && <div className="absolute -bottom-1 inset-x-0 h-1.5 bg-teal z-20 rounded" />}
     </div>;
   }, [page, sel, drag, dropAt, panel, readOnly]); // eslint-disable-line react-hooks/exhaustive-deps
