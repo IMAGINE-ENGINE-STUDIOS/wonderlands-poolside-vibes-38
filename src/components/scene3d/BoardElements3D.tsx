@@ -225,17 +225,17 @@ function holeMaterial(color: string, rough: number, holes: XZ[][]) {
  * Phong paver material (shininess 40, DoubleSide) loaded through textureCache,
  * with the same hole-cut shader. Credits: Imagine Engine Studios Corp.
  */
-function DrawnDeck({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
+function DrawnDeck({ s, holes, holesKey, scale }: { s: Surface3D; holes: XZ[][]; holesKey: string; scale: number }) {
   const [tex, setTex] = React.useState<THREE.Texture | null>(null);
   React.useEffect(() => {
     if (!s.image || !isUrl(s.image)) { setTex(null); return; }
     let off = false;
-    textureCache.loadTexture(s.image, { x: 1, y: 1 }).then((t) => {
+    textureCache.loadTexture(s.image, { x: 1 / scale, y: 1 / scale }).then((t) => {
       if (off) return;
       t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; setTex(t);
     }).catch(() => {});
     return () => { off = true; };
-  }, [s.image]);
+  }, [s.image, scale]);
   const geo = React.useMemo(() => {
     const parts = s.regions.filter((r) => r[0]?.length >= 3).map((r) =>
       buildSlabGeometry({ subject: r[0], holes: r.slice(1), topY: 0, bottomY: -DECK_SLAB_FT }));
@@ -252,8 +252,8 @@ function DrawnDeck({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesK
     </mesh>
   );
 }
-function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
-  if (s.kind === "deck") return <DrawnDeck s={s} holes={holes} holesKey={holesKey} />;
+function Surface({ s, holes, holesKey, scale }: { s: Surface3D; holes: XZ[][]; holesKey: string; scale: number }) {
+  if (s.kind === "deck") return <DrawnDeck s={s} holes={holes} holesKey={holesKey} scale={scale} />;
   return <TurfSurface s={s} holes={holes} holesKey={holesKey} />;
 }
 function TurfSurface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
@@ -283,12 +283,12 @@ function TurfSurface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; hole
 /** Deck slab thickness (3 in), same as the pool's own deck border. */
 const DECK_SLAB_FT = 0.25;
 
-export function BoardElements3D({ holes = [] }: { holes?: XZ[][] }) {
+export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES }: { holes?: XZ[][]; scales?: SceneScales }) {
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
   const invalidate = useThree((st) => st.invalidate);
   // The studio renders on demand: redraw as soon as a widget edits a piece.
   React.useEffect(() => { invalidate(); }, [data, invalidate]);
-  const allHoles = React.useMemo(() => [...holes, ...(data?.waters ?? []).filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(w.pts, (w.copingWidth || 1) + 0.05).offset)], [holes, data?.waters]);
+  const allHoles = React.useMemo(() => [...holes, ...(data?.waters ?? []).filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(denseRing(w.pts.map((p) => ({ x: p.x, y: p.z }))).map((p) => ({ x: p.x, z: p.y })), Math.max(0.1, (w.copingWidth || 1) - 0.02)).offset)], [holes, data?.waters]);
   const holesKey = React.useMemo(() => allHoles.map((h) => h.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join("|")).join("#"), [allHoles]);
   React.useEffect(() => {
     const on = () => setData(loadBoard3D());
@@ -299,10 +299,10 @@ export function BoardElements3D({ holes = [] }: { holes?: XZ[][] }) {
   if (!data) return null;
   return (
     <group name="global-design-board">
-      {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} />)}
+      {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={scales.paver} />)}
       {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} i={i} />)}
-      {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} />)}
+      {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} />)}
     </group>
   );
 }
