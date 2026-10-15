@@ -11,7 +11,8 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 const BLOCK_HELP = `Block types and their props:
 hero{eyebrow,title,subtitle,ctaLabel,ctaHref,cta2Label,cta2Href}; text{title,body}; services{title,items:[{title,body}]};
-products{title,columns,items:[{name,price,description,buttonLabel,buttonHref}]}; testimonials{title,items:[{quote,name}]};
+products{title,columns,items:[{name,price,description,buttonLabel,buttonHref}]};
+configurator{title,name,price,badge,description,size,depth,installation,warranty,included,quoteLabel,options:[{group,name,detail,price,unit,pick}]} = the full configurable product card (photo, specs, option groups such as Pool Finishes / Pool Liner / Deck Pavers / Automatic Cover / Pool Heater / Additional Features, live total, Instant Quote + checkout). Use it whenever the user asks for a customizable or configurable product, product builder, configurator, products with all the options, build-your-own, upgrades/add-ons or any synonym; one section per product. Leave options [] and the builder fills real Wonderlands photos, finishes and prices; just give the product name. testimonials{title,items:[{quote,name}]};
 cta{title,body,ctaLabel,ctaHref}; form{title,body,buttonLabel,anchor,thanks}; faq{title,items:[{q,a}]};
 pricing{title,items:[{name,price,period,features,ctaLabel,ctaHref,featured}]} (features = one per line);
 team{title,items:[{name,role,bio}]}; stats{title,items:[{value,label}]}; logos{title,items:[{name}]};

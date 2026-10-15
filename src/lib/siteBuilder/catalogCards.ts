@@ -79,9 +79,9 @@ export async function hydrateProductOps<T>(value: T, hint: string): Promise<T> {
 /** Fills products sections already in the doc that have empty/imageless cards (for 'update' ops). */
 export async function hydrateDocProducts<D extends { pages: { sections: { type: string; props: any }[] }[] }>(d: D, hint: string): Promise<D> {
   const bad = d.pages.some((p) => p.sections.some((s) => s.type === 'products' && (!s.props.items?.length || s.props.items.some((c: any) => !c?.image))));
-  if (!bad) return d;
+  if (!bad) return (await import('./configuratorPresets')).hydrateConfigurators(d, hint);
   const list = await loadWonderlandsCatalog();
   const n = structuredClone(d);
   n.pages.forEach((p) => p.sections.forEach((s) => { if (s.type === 'products') s.props.items = hydrateItems(s.props.items, list, `${hint} ${s.props.title ?? ''}`); }));
-  return n;
+  return (await import('./configuratorPresets')).hydrateConfigurators(n, hint);
 }
