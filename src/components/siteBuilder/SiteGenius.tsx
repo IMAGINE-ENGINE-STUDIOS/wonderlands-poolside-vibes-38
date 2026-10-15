@@ -75,7 +75,7 @@ const SiteGenius: React.FC<{
   disabled?: boolean; brand: string; page: Page; doc: SiteDoc; theme: SiteTheme;
   onBuild: (doc: SiteDoc, theme?: Partial<SiteTheme>) => void;
   onOps: (ops: any[]) => void;
-}> = ({ disabled, brand, page, onBuild, onOps }) => {
+}> = ({ disabled, brand, page, doc, theme, onBuild, onOps }) => {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState<'' | 'build' | 'command'>('');
   const [files, setFiles] = useState<Attachment[]>([]);
