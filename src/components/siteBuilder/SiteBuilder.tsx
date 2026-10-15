@@ -335,27 +335,32 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
             </li>)}</ul></div>
           </div>
           : panel === 'theme' ? <div className="space-y-3">
+            {/* Site tab V2: web address first, then business, brand, this page, versions. */}
+            <SettingsGroup title="Web address" note={site?.custom_domain ? apexOf(site.custom_domain) : 'Free address + your own domain'} open>
+              <SiteDomainCard slug={site?.slug} published={!!site?.is_published} saved={site?.custom_domain} domain={domain} readOnly={readOnly} setDomain={setDomain} onSave={saveDomain} onSlug={changeSlug} />
+            </SettingsGroup>
+            <SettingsGroup title="Business details" note="Name, phone, email, WhatsApp">
             {([['brand', 'Business name', 'text'], ['phone', 'Phone', 'text'], ['email', 'Email', 'text'], ['whatsapp', 'WhatsApp number', 'text']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'text' }} value={(theme as any)[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
+            </SettingsGroup>
+            <SettingsGroup title="Brand look" note="Logo, colours, fonts, corners">
             <FieldEditor disabled={readOnly} f={{ key: 'logo', label: 'Logo', kind: 'image' }} value={theme.logo} onChange={v => { setTheme({ ...theme, logo: v }); setDirty(true); }} />
             {([['primary', 'Brand colour'], ['background', 'Page background'], ['text', 'Text colour']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'color' }} value={theme[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
             {([['headingFont', 'Heading font'], ['bodyFont', 'Body font']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'select', options: FONTS.map(f => ({ value: f, label: f })) }} value={theme[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
             <FieldEditor disabled={readOnly} f={{ key: 'radius', label: 'Corner roundness (px)', kind: 'number' }} value={theme.radius} onChange={v => { setTheme({ ...theme, radius: v }); setDirty(true); }} />
-            <div className="pt-3 border-t border-border space-y-2">
-              <p className="text-sm font-semibold">Your own domain</p>
-              <div className="flex gap-2"><Input disabled={readOnly} placeholder="www.mybusiness.com" value={domain} onChange={e => setDomain(e.target.value)} /><Button size="sm" disabled={readOnly} onClick={saveDomain}>Save</Button></div>
-              <p className="text-xs text-muted-foreground">At your domain company, add these records, then email Wonderlands to switch it on (SSL is automatic):</p>
-              <div className="rounded-md bg-muted p-2 font-mono text-[11px] leading-5">A · @ · 185.158.133.1<br />A · www · 185.158.133.1</div>
-              <p className="text-xs text-muted-foreground">Visitors on that address see your published site. Changes appear after you press Publish.</p>
-            </div>
-            {!readOnly && <div className="pt-2 border-t border-border space-y-2"><FieldEditor f={{ key: 'pn', label: 'This page name', kind: 'text' }} value={page.name} onChange={v => editPage(p => { p.name = v; p.slug = page === doc.pages[0] ? '' : slugify(v); })} />
-              <p className="text-sm font-semibold pt-2">Search & sharing (this page)</p>
+            </SettingsGroup>
+            <SettingsGroup title="This page" note={page.name}>
+            {!readOnly && <div className="space-y-2"><FieldEditor f={{ key: 'pn', label: 'This page name', kind: 'text' }} value={page.name} onChange={v => editPage(p => { p.name = v; p.slug = page === doc.pages[0] ? '' : slugify(v); })} />
+              <p className="text-xs font-medium text-muted-foreground pt-1">Search & sharing</p>
               <FieldEditor f={{ key: 'st', label: 'Search title', kind: 'text' }} value={page.seo?.title} onChange={v => editPage(p => { p.seo = { ...p.seo, title: v }; })} />
               <FieldEditor f={{ key: 'sd', label: 'Search description', kind: 'textarea' }} value={page.seo?.description} onChange={v => editPage(p => { p.seo = { ...p.seo, description: v }; })} />
               <FieldEditor f={{ key: 'si', label: 'Sharing photo', kind: 'image' }} value={page.seo?.image} onChange={v => editPage(p => { p.seo = { ...p.seo, image: v }; })} />
               <Button size="sm" variant="outline" onClick={async () => { try { const r = await askSiteGenius('seo', `Business: ${theme.brand || companyName}. Page: ${page.name}.`, { sections: page.sections.map(x => ({ type: x.type, title: x.props.title, text: String(x.props.subtitle || x.props.body || '').slice(0, 200) })) }); editPage(p => { p.seo = { ...p.seo, title: String(r?.title || '').slice(0, 70), description: String(r?.description || '').slice(0, 170) }; }); } catch (e) { toast({ title: 'Genius', description: (e as Error).message }); } }}>Suggest with Genius</Button>
               {page !== doc.pages[0] && <Button size="sm" variant="outline" onClick={() => { commit(d => { d.pages = d.pages.filter(p => p.id !== page.id); return d; }); setPageId(doc.pages[0].id); }}>Delete page</Button>}</div>}
-            {history.length > 0 && <div className="pt-3 border-t border-border space-y-2"><p className="text-sm font-semibold">Published versions</p>
+            </SettingsGroup>
+            {history.length > 0 && <SettingsGroup title="Published versions" note={`${history.length} saved`}>
+            {history.length > 0 && <div className="space-y-2">
               {history.map((v, i) => <div key={v.at} className="flex items-center justify-between gap-2 text-sm"><span className="text-muted-foreground">{i === 0 ? 'Live · ' : ''}{new Date(v.at).toLocaleString()}</span>{!readOnly && <Button size="sm" variant="ghost" onClick={() => restoreVersion(v)}>Restore</Button>}</div>)}</div>}
+            </SettingsGroup>}
           </div>
           : !section ? <p className="text-sm text-muted-foreground">Click a section on the page to edit it, or open Site for colours, fonts and logo.</p>
           : panel === 'content' ? <div className="space-y-3">
