@@ -5,11 +5,11 @@
  * Every change lands in the draft and can be undone; nothing publishes itself.
  * Imagine Engine Studios Corp.
  */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { uid, type Page, type SiteDoc, type SiteTheme } from '@/lib/siteBuilder/model';
+import { compressImage, uid, type Page, type SiteDoc, type SiteTheme } from '@/lib/siteBuilder/model';
 import { isBlock, sectionFrom } from '@/lib/siteBuilder/tradeTemplates';
 import { slugifyPage } from './siteBuilderUtils';
 
@@ -41,6 +41,19 @@ export function docFromGenius(r: any): SiteDoc | null {
   return pages.length ? { pages } : null;
 }
 
+type Attachment = { id: string; name: string; kind: 'photo' | 'text' | 'file'; token?: string; data?: string; text?: string };
+const TEXT_RE = /\.(txt|md|csv|json|html?|css|scss|js|jsx|ts|tsx|py|php|rb|go|java|xml|ya?ml|svg|sql|sh|env\.example)$/i;
+const SUGGESTIONS = ['Add a FAQ about financing', 'Make the hero darker and more elegant', 'Add a team section', 'Rewrite the headline for a luxury pool builder'];
+
+/** Swaps {{photoN}} tokens Genius used for the real uploaded photos, everywhere in the value. */
+const fillPhotos = <T,>(v: T, files: Attachment[]): T => {
+  const photos = files.filter((f) => f.kind === 'photo');
+  if (!photos.length) return v;
+  const walk = (x: any): any => typeof x === 'string' ? photos.reduce((acc, f) => acc.split(f.token!).join(f.data!), x)
+    : Array.isArray(x) ? x.map(walk) : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).map(([k, y]) => [k, walk(y)])) : x;
+  return walk(v);
+};
+
 const SiteGenius: React.FC<{
   disabled?: boolean; brand: string; page: Page;
   onBuild: (doc: SiteDoc, theme?: Partial<SiteTheme>) => void;
@@ -48,34 +61,76 @@ const SiteGenius: React.FC<{
 }> = ({ disabled, brand, page, onBuild, onOps }) => {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState<'' | 'build' | 'command'>('');
-  const [note, setNote] = useState('');
+  const [files, setFiles] = useState<Attachment[]>([]);
+  const [log, setLog] = useState<{ who: 'you' | 'genius'; text: string }[]>([]);
+  const [over, setOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const addFiles = async (list: FileList | File[]) => {
+    const next: Attachment[] = [];
+    for (const f of Array.from(list).slice(0, 10)) {
+      const id = uid();
+      if (f.type.startsWith('image/') && !/svg/.test(f.type)) {
+        try { const n = files.filter((x) => x.kind === 'photo').length + next.filter((x) => x.kind === 'photo').length + 1; next.push({ id, name: f.name, kind: 'photo', token: `{{photo${n}}}`, data: await compressImage(f) }); } catch { next.push({ id, name: f.name, kind: 'file' }); }
+      } else if (f.type.startsWith('text/') || TEXT_RE.test(f.name) || /json|javascript|xml/.test(f.type)) {
+        next.push({ id, name: f.name, kind: 'text', text: (await f.text()).slice(0, 6000) });
+      } else next.push({ id, name: f.name, kind: 'file' });
+    }
+    setFiles((cur) => [...cur, ...next]);
+  };
+
+  const context = () => files.map((f) => f.kind === 'photo' ? `Uploaded photo "${f.name}" — to use it, put exactly ${f.token} as an image/src/photo value.`
+    : f.kind === 'text' ? `File "${f.name}":\n${f.text}` : `Attached file "${f.name}" (contents not readable, use only its name).`).join('\n\n');
+
   const run = async (mode: 'build' | 'command') => {
-    if (!text.trim() || busy) return;
-    setBusy(mode); setNote('');
+    if ((!text.trim() && !files.length) || busy) return;
+    setBusy(mode); const ask = text.trim() || 'Use the attached files.';
+    setLog((l) => [...l, { who: 'you', text: ask + (files.length ? ` · ${files.length} file${files.length > 1 ? 's' : ''}` : '') }]);
+    const extra = files.length ? `\n\nAttachments:\n${context()}` : '';
     try {
       if (mode === 'build') {
         if (!confirm('Genius will replace every page of your draft. You can undo. Continue?')) { setBusy(''); return; }
-        const r = await askSiteGenius('build', `Business: ${brand}. ${text}`);
-        const doc = docFromGenius(r);
+        const r = await askSiteGenius('build', `Business: ${brand}. ${ask}${extra}`);
+        const doc = docFromGenius(fillPhotos(r, files));
         if (!doc) throw new Error('Genius could not draft pages. Add more detail about your business.');
-        onBuild(doc, r?.theme); setNote(`Drafted ${doc.pages.length} pages. Review, then publish.`);
+        onBuild(doc, r?.theme); setLog((l) => [...l, { who: 'genius', text: `Drafted ${doc.pages.length} pages. Review, then publish.` }]);
       } else {
-        const ctx = { page: page.name, sections: page.sections.map((s) => ({ id: s.id, type: s.type, props: Object.fromEntries(Object.entries(s.props).map(([k, v]) => [k, typeof v === 'string' ? v.slice(0, 120) : Array.isArray(v) ? `${v.length} items` : v])) })) };
-        const r = await askSiteGenius('command', text, ctx);
-        onOps(r?.ops ?? []); setNote(r?.summary || 'Done.');
+        const ctx = { page: page.name, sections: page.sections.map((s) => ({ id: s.id, type: s.type, props: Object.fromEntries(Object.entries(s.props).map(([k, v]) => [k, typeof v === 'string' ? (v.startsWith('data:') ? '[photo]' : v.slice(0, 120)) : Array.isArray(v) ? `${v.length} items` : v])) })) };
+        const r = await askSiteGenius('command', ask + extra, ctx);
+        onOps(fillPhotos(r?.ops ?? [], files)); setLog((l) => [...l, { who: 'genius', text: r?.summary || 'Done.' }]);
       }
-      setText('');
-    } catch (e) { setNote((e as Error).message); }
+      setText(''); setFiles([]);
+    } catch (e) { setLog((l) => [...l, { who: 'genius', text: (e as Error).message }]); }
     setBusy('');
   };
-  return <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
-    <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold">Genius</p>
-    <Textarea disabled={disabled} rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder="“Add a FAQ about financing” or describe your business to draft a whole site" />
-    <div className="flex gap-2">
-      <Button size="sm" className="flex-1" disabled={disabled || !!busy || !text.trim()} onClick={() => run('command')}>{busy === 'command' ? 'Working…' : 'Edit this page'}</Button>
-      <Button size="sm" variant="outline" className="flex-1" disabled={disabled || !!busy || !text.trim()} onClick={() => run('build')}>{busy === 'build' ? 'Drafting…' : 'Draft whole site'}</Button>
+
+  return <div className={`flex h-full min-h-[420px] flex-col ${over ? 'bg-muted/40' : ''}`}
+    onDragOver={(e) => { if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); setOver(true); } }} onDragLeave={() => setOver(false)}
+    onDrop={(e) => { if (e.dataTransfer.files.length) { e.preventDefault(); setOver(false); if (!disabled) addFiles(e.dataTransfer.files); } }}>
+    <div className="border-b border-border px-4 py-3">
+      <p className="font-display text-xl leading-none">Genius</p>
+      <p className="mt-1 text-xs text-muted-foreground">Tell me what to change, or drop photos, documents or code.</p>
     </div>
-    {note && <p className="text-xs text-muted-foreground">{note}</p>}
+    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+      {!log.length && <div className="space-y-1.5">{SUGGESTIONS.map((q) => <button key={q} disabled={disabled} onClick={() => setText(q)} className="block w-full rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal transition-colors">{q}</button>)}</div>}
+      {log.map((m, i) => <div key={i} className={m.who === 'you' ? 'ml-6 rounded-xl bg-foreground px-3 py-2 text-sm text-background' : 'mr-6 text-sm text-foreground'}>{m.text}</div>)}
+      {busy && <p className="text-xs text-muted-foreground">{busy === 'build' ? 'Drafting your site…' : 'Working on this page…'}</p>}
+    </div>
+    <div className="border-t border-border p-3 space-y-2">
+      {files.length > 0 && <div className="flex flex-wrap gap-1.5">{files.map((f) => <span key={f.id} className="flex items-center gap-1.5 rounded-md border border-border bg-background px-1.5 py-1 text-xs">
+        {f.kind === 'photo' ? <img src={f.data} alt="" className="h-6 w-6 rounded object-cover" /> : <span className="font-mono text-[10px] text-muted-foreground">{f.name.split('.').pop()?.toUpperCase().slice(0, 4)}</span>}
+        <span className="max-w-[120px] truncate">{f.name}</span>
+        <button aria-label="Remove" onClick={() => setFiles((c) => c.filter((x) => x.id !== f.id))} className="text-muted-foreground hover:text-foreground">×</button></span>)}</div>}
+      <Textarea disabled={disabled} rows={3} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); run('command'); } }}
+        onPaste={(e) => { if (e.clipboardData.files.length) { e.preventDefault(); addFiles(e.clipboardData.files); } }}
+        placeholder="“Add a FAQ about financing” or describe your business to draft a whole site" />
+      <input ref={inputRef} type="file" multiple hidden onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }} />
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" disabled={disabled} onClick={() => inputRef.current?.click()}>Attach</Button>
+        <Button size="sm" className="flex-1" disabled={disabled || !!busy || (!text.trim() && !files.length)} onClick={() => run('command')}>Edit this page</Button>
+        <Button size="sm" variant="outline" disabled={disabled || !!busy || (!text.trim() && !files.length)} onClick={() => run('build')}>Draft site</Button>
+      </div>
+    </div>
   </div>;
 };
 export default SiteGenius;
