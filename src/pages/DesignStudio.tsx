@@ -377,21 +377,18 @@ const DesignStudio = () => {
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
-      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? []));
+      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? [], (poolBuilderData as any)?.additionalDecks ?? {}));
     } catch { /* ignore */ }
     setActiveView('3d');
-    // Auto-enter fullscreen when switching to 3D Studio
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.();
-      setIsFullscreen(true);
-    }
+    // Stay in the page (not browser fullscreen) so the header with "Back to 2D" stays visible.
     if (customPoolShape && customPoolShape.length > 0) {
       toast({
         title: "Custom Shape Loaded",
         description: `Your custom pool design with ${customPoolShape.length} points is now in 3D!`
       });
     }
-  }, [customPoolShape, poolBuilderData?.scale, searchParams, toast]);
+    // Depend on the whole 2D design so every extra pool and deck is sent (no stale copy).
+  }, [customPoolShape, poolBuilderData, searchParams, toast]);
   const handleSwitch2D = useCallback(() => {
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     setIsFullscreen(false);

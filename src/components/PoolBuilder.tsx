@@ -4721,6 +4721,8 @@ export function PoolBuilder({
         deckArea: calculateHardscapeArea(),
         hardscapePoints,
         additionalPools,
+        // Each extra pool's own attached deck (same logic as the main deck) so 3D draws it exactly.
+        additionalDecks: Object.fromEntries(additionalPools.filter((p) => !p.isPerimeterSnapped && p.points.length >= 3).map((p) => [p.id, additionalDeckPoints[p.id] || generateHardscapeFromPool(p.points, deckOffsetsById[p.id] ?? deckOffset)])),
         totalCost: cost.total,
         breakdown: cost,
         // Shape + materials travel with the design so 3D draws the same curves
@@ -4734,7 +4736,7 @@ export function PoolBuilder({
       } as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools, poolShape, selectedPaverId, selectedCopingId, selectedFinishId, notifyTick]);
+  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools, additionalDeckPoints, deckOffsetsById, poolShape, selectedPaverId, selectedCopingId, selectedFinishId, notifyTick]);
 
   // Convert screen (mouse) coordinates to world (canvas) coordinates, accounting for pan+zoom
   const screenToWorld = useCallback((screenX: number, screenY: number): { x: number; y: number } => {
