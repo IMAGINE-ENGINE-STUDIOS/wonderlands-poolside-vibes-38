@@ -81,7 +81,10 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => null);
     const mode = typeof body?.mode === 'string' && SYSTEMS[body.mode] ? body.mode : '';
     const prompt = typeof body?.prompt === 'string' ? body.prompt.trim().slice(0, 14000) : '';
-    const context = body?.context ? JSON.stringify(body.context).slice(0, 6000) : '';
+    const context = body?.context ? JSON.stringify(body.context).slice(0, mode === 'agent' ? 40000 : 6000) : '';
+    const history = mode === 'agent' && Array.isArray(body?.history)
+      ? body.history.slice(-10).filter((m: any) => typeof m?.text === 'string').map((m: any) => ({ role: m.who === 'you' ? 'user' : 'assistant', content: m.text.slice(0, 1500) }))
+      : [];
     if (!mode) return json({ error: 'Unknown request.' }, 400);
     if (prompt.length < 2) return json({ error: 'Tell Genius what you need.' }, 400);
     const key = Deno.env.get('GROQ_API_KEY');
@@ -95,7 +98,8 @@ Deno.serve(async (req) => {
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEMS[mode] },
-          ...(context ? [{ role: 'user', content: `Context: ${context}` }] : []),
+          ...history,
+          ...(context ? [{ role: 'user', content: `Site JSON: ${context}` }] : []),
           { role: 'user', content: prompt },
         ],
       }),
