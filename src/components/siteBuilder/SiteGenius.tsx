@@ -72,7 +72,7 @@ const fillPhotos = <T,>(v: T, files: Attachment[]): T => {
 };
 
 const SiteGenius: React.FC<{
-  disabled?: boolean; brand: string; page: Page;
+  disabled?: boolean; brand: string; page: Page; doc: SiteDoc; theme: SiteTheme;
   onBuild: (doc: SiteDoc, theme?: Partial<SiteTheme>) => void;
   onOps: (ops: any[]) => void;
 }> = ({ disabled, brand, page, onBuild, onOps }) => {
