@@ -16,13 +16,19 @@ export interface SectionStyle {
   bg?: string; color?: string; bgImage?: string; bgVideo?: string; overlay?: number;
   padY?: number; align?: 'left' | 'center' | 'right'; width?: 'narrow' | 'normal' | 'wide' | 'full';
   font?: string; titleSize?: number; hidden?: boolean;
+  /** V2: hide this section on one device size only. */
+  hideOn?: { mobile?: boolean; tablet?: boolean; desktop?: boolean };
   /** Gradient background (overrides bg when both colours are set). */
   gradFrom?: string; gradTo?: string; gradAngle?: number; gradType?: 'linear' | 'radial';
 }
 export interface Section { id: string; type: BlockType; props: Record<string, any>; style: SectionStyle }
-export interface Page { id: string; name: string; slug: string; sections: Section[] }
+/** V2: per-page search & sharing info (optional, V1 pages keep working). */
+export interface PageSeo { title?: string; description?: string; image?: string }
+export interface Page { id: string; name: string; slug: string; sections: Section[]; seo?: PageSeo }
 export interface SiteTheme { headingFont: string; bodyFont: string; primary: string; background: string; text: string; radius: number; logo?: string; brand?: string; phone?: string; email?: string; whatsapp?: string }
 export interface SiteDoc { pages: Page[] }
+/** V2: one published snapshot kept for version history (stored in layout.history). */
+export interface SiteVersion { at: string; doc: SiteDoc; theme?: SiteTheme }
 
 export const FONTS = ['Sora', 'Manrope', 'Cormorant Garamond', 'Playfair Display', 'DM Serif Display', 'Libre Baskerville', 'Lora', 'Work Sans', 'Outfit', 'Plus Jakarta Sans', 'Space Grotesk', 'Bebas Neue', 'Archivo', 'Karla', 'Fira Sans', 'Montserrat'];
 
@@ -58,10 +64,32 @@ export const BLOCKS = {
     fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Quotes', kind: 'items', blank: { quote: '', name: '' }, fields: [item('textarea', 'quote', 'Quote'), item('text', 'name', 'Name')] }] },
   cta: { label: 'Call to action', group: 'Content', props: { title: 'Ready to start?', body: 'Book a free consultation.', ctaLabel: 'Contact us', ctaHref: '#contact' },
     fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('text', 'ctaLabel', 'Button text'), item('url', 'ctaHref', 'Button link')] },
-  form: { label: 'Lead form', group: 'Commerce', props: { title: 'Request a quote', body: 'We reply within one business day.', buttonLabel: 'Send', anchor: 'contact' },
-    fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('text', 'buttonLabel', 'Button text'), item('text', 'anchor', 'Link name (#)')] },
+  form: { label: 'Lead form', group: 'Commerce', props: { title: 'Request a quote', body: 'We reply within one business day.', buttonLabel: 'Send', anchor: 'contact', thanks: "Thank you — we'll be in touch shortly.", redirect: '', extra: [] },
+    fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('text', 'buttonLabel', 'Button text'), item('text', 'anchor', 'Link name (#)'), item('text', 'thanks', 'Thank-you message'), item('url', 'redirect', 'After sending, go to (optional)'),
+      { key: 'extra', label: 'Extra questions', kind: 'items', blank: { label: 'Question', type: 'text', options: '', required: 'no' }, fields: [item('text', 'label', 'Question'), { key: 'type', label: 'Answer type', kind: 'select', options: [{ value: 'text', label: 'Short answer' }, { value: 'select', label: 'Pick one' }, { value: 'date', label: 'Date' }] }, item('text', 'options', 'Choices (comma separated)'), { key: 'required', label: 'Required', kind: 'select', options: [{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }] }] }] },
   tech: { label: 'Wonderlands tool', group: 'Technology', props: { tool: 'studio', flipSlug: '', title: '', height: 760 },
     fields: [{ key: 'tool', label: 'Tool', kind: 'select', options: TECH_TOOLS.map(t => ({ value: t.value, label: t.label })) }, item('text', 'flipSlug', 'FLIP book'), item('text', 'title', 'Title'), item('number', 'height', 'Height (px)')] },
+  header: { label: 'Header & menu', group: 'Layout', props: { links: [{ label: 'Home', href: 'page:' }, { label: 'Contact', href: '#contact' }], ctaLabel: 'Get a quote', ctaHref: '#contact', sticky: 'yes' },
+    fields: [{ key: 'links', label: 'Menu links', kind: 'items', blank: { label: 'Link', href: '' }, fields: [item('text', 'label', 'Text'), item('url', 'href', 'Goes to')] }, item('text', 'ctaLabel', 'Button text'), item('url', 'ctaHref', 'Button link'), { key: 'sticky', label: 'Stay on top when scrolling', kind: 'select', options: [{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }] }] },
+  footer: { label: 'Footer', group: 'Layout', props: { text: '', links: [] }, fields: [item('textarea', 'text', 'Footer text'), { key: 'links', label: 'Links', kind: 'items', blank: { label: 'Link', href: '' }, fields: [item('text', 'label', 'Text'), item('url', 'href', 'Goes to')] }] },
+  columns: { label: 'Columns', group: 'Layout', props: { title: '', columns: 3, items: [{ title: 'Column', body: 'Text', image: '' }] },
+    fields: [item('text', 'title', 'Title'), { key: 'columns', label: 'Columns', kind: 'select', options: [2, 3, 4].map(n => ({ value: String(n), label: String(n) })) }, { key: 'items', label: 'Columns', kind: 'items', blank: { title: 'Column', body: '', image: '' }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('image', 'image', 'Photo')] }] },
+  faq: { label: 'FAQ', group: 'Content', props: { title: 'Questions & answers', items: [{ q: 'How long does a project take?', a: 'Tell visitors your usual timeline.' }] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Questions', kind: 'items', blank: { q: '', a: '' }, fields: [item('text', 'q', 'Question'), item('textarea', 'a', 'Answer')] }] },
+  pricing: { label: 'Pricing table', group: 'Commerce', props: { title: 'Packages', items: [{ name: 'Package', price: '', period: '', features: 'What is included', ctaLabel: 'Get a quote', ctaHref: '#contact', featured: 'no' }] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Packages', kind: 'items', blank: { name: 'Package', price: '', period: '', features: '', ctaLabel: 'Get a quote', ctaHref: '#contact', featured: 'no' }, fields: [item('text', 'name', 'Name'), item('text', 'price', 'Price'), item('text', 'period', 'Per (e.g. project)'), item('textarea', 'features', 'Included (one per line)'), item('text', 'ctaLabel', 'Button text'), item('url', 'ctaHref', 'Button link'), { key: 'featured', label: 'Highlight', kind: 'select', options: [{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }] }] }] },
+  team: { label: 'Team', group: 'Content', props: { title: 'Meet the team', items: [] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'People', kind: 'items', blank: { name: '', role: '', bio: '', photo: '' }, fields: [item('text', 'name', 'Name'), item('text', 'role', 'Role'), item('textarea', 'bio', 'Short bio'), item('image', 'photo', 'Photo')] }] },
+  stats: { label: 'Numbers', group: 'Content', props: { title: '', items: [{ value: '', label: 'Projects completed' }] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Numbers', kind: 'items', blank: { value: '', label: '' }, fields: [item('text', 'value', 'Number'), item('text', 'label', 'Label')] }] },
+  logos: { label: 'Logo strip', group: 'Content', props: { title: 'Brands we install', items: [] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Logos', kind: 'items', blank: { name: '', logo: '', link: '' }, fields: [item('text', 'name', 'Name'), item('image', 'logo', 'Logo'), item('url', 'link', 'Link')] }] },
+  posts: { label: 'Blog / news', group: 'Content', props: { title: 'Latest news', items: [] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Posts', kind: 'items', blank: { title: 'Post', date: '', excerpt: '', image: '', link: '' }, fields: [item('text', 'title', 'Title'), item('text', 'date', 'Date'), item('textarea', 'excerpt', 'Summary'), item('image', 'image', 'Photo'), item('url', 'link', 'Read more link')] }] },
+  beforeafter: { label: 'Before / after', group: 'Media', props: { title: 'The transformation', before: '', after: '', height: 480 }, fields: [item('text', 'title', 'Title'), item('image', 'before', 'Before photo'), item('image', 'after', 'After photo'), item('number', 'height', 'Height (px)')] },
+  map: { label: 'Map', group: 'Media', props: { title: 'Find us', address: '', height: 380 }, fields: [item('text', 'title', 'Title'), item('text', 'address', 'Address or city'), item('number', 'height', 'Height (px)')] },
+  booking: { label: 'Booking', group: 'Commerce', props: { title: 'Book a consultation', body: '', url: '', height: 700 }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('url', 'url', 'Calendly or booking link'), item('number', 'height', 'Height (px)')] },
+  embed: { label: 'Embed', group: 'Technology', props: { url: '', height: 500, title: '' }, fields: [item('text', 'title', 'Title'), item('url', 'url', 'Page to embed (https://…)'), item('number', 'height', 'Height (px)')] },
   spacer: { label: 'Spacer', group: 'Layout', props: { height: 64 }, fields: [item('number', 'height', 'Height (px)')] },
 } satisfies Record<string, { label: string; group: string; props: Record<string, any>; fields: Field[] }>;
 export type BlockType = keyof typeof BLOCKS;
