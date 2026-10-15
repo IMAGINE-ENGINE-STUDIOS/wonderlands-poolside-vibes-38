@@ -75,17 +75,26 @@ function Beam({ a, b, y, h, t, mat }: { a: XZ; b: XZ; y: number; h: number; t: n
   );
 }
 
+/** Vinyl panel photo: one 6 ft panel per texture tile, tinted by the panel color. */
+const vinylTex = (() => { let t: THREE.Texture | null = null; return () => { if (!t) { t = new THREE.TextureLoader().load((vinylFenceAsset as { url: string }).url); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; } return t; }; })();
+const isVinyl = (s: string) => s === "vinyl";
 function Fence({ f, i }: { f: Fence3D; i: number }) {
-  const metal = React.useMemo(() => metalMat(f.color), [f.color]);
+  const vinyl = isVinyl(f.style);
+  const metal = React.useMemo(() => vinyl
+    ? new THREE.MeshStandardMaterial({ color: f.postColor ?? "#ffffff", roughness: 0.45 })
+    : metalMat(f.color), [f.color, f.postColor, vinyl]);
   const panel = React.useMemo(() => f.style === "glass"
     ? new THREE.MeshPhysicalMaterial({ color: "#cfe9ef", transparent: true, opacity: 0.3, roughness: 0.05 })
-    : f.style === "alu" ? metalMat(f.color) : new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.7 }), [f.style, f.color]);
+    : f.style === "alu" ? metalMat(f.color)
+    : vinyl ? new THREE.MeshStandardMaterial({ map: vinylTex(), color: f.color || "#ffffff", roughness: 0.5 })
+    : new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.7 }), [f.style, f.color, vinyl]);
   const H = f.height;
   const posts = along(f.pts, 6, false);
   const pickets = f.style === "alu" ? along(f.pts, 0.33, false) : [];
   return (
     <group name="board-fence" onClick={select({ type: "fence", i })}>
-      {posts.map((p, i) => <mesh key={i} material={metal} position={[p.x, H / 2, p.z]} castShadow><boxGeometry args={[0.2, H + 0.15, 0.2]} /></mesh>)}
+      {posts.map((p, i) => <mesh key={i} material={metal} position={[p.x, H / 2, p.z]} castShadow><boxGeometry args={vinyl ? [0.42, H + 0.25, 0.42] : [0.2, H + 0.15, 0.2]} /></mesh>)}
+      {vinyl && posts.map((p, i) => <mesh key={`c${i}`} material={metal} position={[p.x, H + 0.18, p.z]}><boxGeometry args={[0.5, 0.12, 0.5]} /></mesh>)}
       {segs(f.pts, false).map(([a, b], i) => f.style === "alu"
         ? <React.Fragment key={i}><Beam a={a} b={b} y={H - 0.1} h={0.1} t={0.08} mat={metal} /><Beam a={a} b={b} y={0.35} h={0.1} t={0.08} mat={metal} /></React.Fragment>
         : <Beam key={i} a={a} b={b} y={H / 2} h={H - 0.1} t={f.style === "glass" ? 0.04 : 0.1} mat={panel} />)}
