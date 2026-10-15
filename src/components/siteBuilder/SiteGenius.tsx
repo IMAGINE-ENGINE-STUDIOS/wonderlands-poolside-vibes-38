@@ -13,24 +13,41 @@ import { compressImage, uid, type Page, type SiteDoc, type SiteTheme } from '@/l
 import { isBlock, sectionFrom } from '@/lib/siteBuilder/tradeTemplates';
 import { slugifyPage } from './siteBuilderUtils';
 
-export async function askSiteGenius(mode: 'build' | 'command' | 'rewrite' | 'seo', prompt: string, context?: unknown): Promise<any> {
-  const { data, error } = await supabase.functions.invoke('site-genius', { body: { mode, prompt, context } });
+export async function askSiteGenius(mode: 'build' | 'command' | 'rewrite' | 'seo' | 'agent', prompt: string, context?: unknown, history?: { who: string; text: string }[]): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('site-genius', { body: { mode, prompt, context, history } });
   if (error || data?.error) throw new Error(data?.error || 'Genius is unavailable right now.');
   return data.result;
 }
 
 const toSections = (list: any[]) => (Array.isArray(list) ? list : []).filter((s) => isBlock(s?.type)).map((s) => sectionFrom({ type: s.type, props: s.props, style: s.style }));
+const THEME_KEYS = ['primary', 'background', 'text', 'headingFont', 'bodyFont', 'radius', 'brand', 'phone', 'email', 'whatsapp'];
 
-/** Applies a Genius command result to a cloned doc (unknown ops/types are ignored). */
-export function applyGeniusOps(d: SiteDoc, pageId: string, ops: any[], setTheme: (fn: (t: SiteTheme) => SiteTheme) => void): SiteDoc {
-  const page = d.pages.find((p) => p.id === pageId); if (!page) return d;
+/** Compact whole-site snapshot for Genius: photos become "[photo]", long text is trimmed. */
+export function siteContext(d: SiteDoc, theme: SiteTheme, openPageId: string) {
+  const slim = (v: any): any => typeof v === 'string' ? (v.startsWith('data:') ? '[photo]' : v.slice(0, 300))
+    : Array.isArray(v) ? v.slice(0, 30).map(slim) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, slim(x)])) : v;
+  const { logo, ...t } = theme;
+  return { openPage: openPageId, theme: { ...t, logo: logo ? '[logo set]' : '' },
+    pages: d.pages.map((p) => ({ id: p.id, name: p.name, slug: p.slug, seo: p.seo, sections: p.sections.map((s) => ({ id: s.id, type: s.type, props: slim(s.props), style: slim(s.style) })) })) };
+}
+
+/** Applies Genius ops to a cloned doc across any page (unknown ops/types are ignored). */
+export function applyGeniusOps(d: SiteDoc, pageId: string, ops: any[], setTheme: (fn: (t: SiteTheme) => SiteTheme) => void, onOpen?: (id: string) => void): SiteDoc {
+  const find = (id?: string) => d.pages.find((p) => p.id === (id || pageId)) || d.pages.find((p) => p.id === pageId);
+  const locate = (sid: string) => { for (const p of d.pages) { const i = p.sections.findIndex((x) => x.id === sid); if (i >= 0) return { p, i }; } return null; };
   for (const o of Array.isArray(ops) ? ops : []) {
+    const page = find(o?.page); if (!page) continue;
     if (o?.op === 'add' && isBlock(o.type)) { const s = sectionFrom(o); const i = o.after ? page.sections.findIndex((x) => x.id === o.after) + 1 : page.sections.length; page.sections.splice(i > 0 ? i : page.sections.length, 0, s); }
-    else if (o?.op === 'update') { const s = page.sections.find((x) => x.id === o.id); if (s) { if (o.props && typeof o.props === 'object') Object.assign(s.props, o.props); if (o.style && typeof o.style === 'object') Object.assign(s.style, o.style); } }
-    else if (o?.op === 'remove') page.sections = page.sections.filter((x) => x.id !== o.id);
-    else if (o?.op === 'move') { const from = page.sections.findIndex((x) => x.id === o.id); if (from >= 0) { const [m] = page.sections.splice(from, 1); page.sections.splice(Math.max(0, Math.min(page.sections.length, Number(o.to) || 0)), 0, m); } }
-    else if (o?.op === 'theme' && o.theme) { const t = o.theme; setTheme((cur) => ({ ...cur, ...Object.fromEntries(Object.entries(t).filter(([k]) => ['primary', 'background', 'text', 'headingFont', 'bodyFont', 'radius'].includes(k))) })); }
-    else if (o?.op === 'addPage' && o.name) d.pages.push({ id: uid(), name: String(o.name).slice(0, 40), slug: slugifyPage(String(o.name)), sections: toSections(o.sections) });
+    else if (o?.op === 'update') { const h = locate(o.id); if (h) { const s = h.p.sections[h.i]; if (o.props && typeof o.props === 'object') Object.assign(s.props, o.props); if (o.style && typeof o.style === 'object') Object.assign(s.style, o.style); } }
+    else if (o?.op === 'remove') { const h = locate(o.id); if (h) h.p.sections.splice(h.i, 1); }
+    else if (o?.op === 'duplicate') { const h = locate(o.id); if (h) h.p.sections.splice(h.i + 1, 0, { ...structuredClone(h.p.sections[h.i]), id: uid() }); }
+    else if (o?.op === 'move') { const h = locate(o.id); if (h) { const [m] = h.p.sections.splice(h.i, 1); h.p.sections.splice(Math.max(0, Math.min(h.p.sections.length, Number(o.to) || 0)), 0, m); } }
+    else if (o?.op === 'theme' && o.theme) { const t = o.theme; setTheme((cur) => ({ ...cur, ...Object.fromEntries(Object.entries(t).filter(([k, v]) => THEME_KEYS.includes(k) && v !== undefined && v !== null)) })); }
+    else if (o?.op === 'addPage' && o.name) { const np: Page = { id: uid(), name: String(o.name).slice(0, 40), slug: slugifyPage(String(o.name)), sections: toSections(o.sections), seo: o.seo && typeof o.seo === 'object' ? { title: String(o.seo.title || ''), description: String(o.seo.description || '') } : undefined }; d.pages.push(np); }
+    else if (o?.op === 'renamePage' && o.name) { page.name = String(o.name).slice(0, 40); if (page !== d.pages[0]) page.slug = slugifyPage(page.name); }
+    else if (o?.op === 'removePage' && page !== d.pages[0]) d.pages = d.pages.filter((p) => p.id !== page.id);
+    else if (o?.op === 'seo' && o.seo) page.seo = { ...page.seo, title: String(o.seo.title ?? page.seo?.title ?? '').slice(0, 70), description: String(o.seo.description ?? page.seo?.description ?? '').slice(0, 170) };
+    else if (o?.op === 'open' && onOpen) onOpen(page.id);
   }
   return d;
 }
@@ -55,10 +72,10 @@ const fillPhotos = <T,>(v: T, files: Attachment[]): T => {
 };
 
 const SiteGenius: React.FC<{
-  disabled?: boolean; brand: string; page: Page;
+  disabled?: boolean; brand: string; page: Page; doc: SiteDoc; theme: SiteTheme;
   onBuild: (doc: SiteDoc, theme?: Partial<SiteTheme>) => void;
   onOps: (ops: any[]) => void;
-}> = ({ disabled, brand, page, onBuild, onOps }) => {
+}> = ({ disabled, brand, page, doc, theme, onBuild, onOps }) => {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState<'' | 'build' | 'command'>('');
   const [files, setFiles] = useState<Attachment[]>([]);
@@ -95,9 +112,11 @@ const SiteGenius: React.FC<{
         if (!doc) throw new Error('Genius could not draft pages. Add more detail about your business.');
         onBuild(doc, r?.theme); setLog((l) => [...l, { who: 'genius', text: `Drafted ${doc.pages.length} pages. Review, then publish.` }]);
       } else {
-        const ctx = { page: page.name, sections: page.sections.map((s) => ({ id: s.id, type: s.type, props: Object.fromEntries(Object.entries(s.props).map(([k, v]) => [k, typeof v === 'string' ? (v.startsWith('data:') ? '[photo]' : v.slice(0, 120)) : Array.isArray(v) ? `${v.length} items` : v])) })) };
-        const r = await askSiteGenius('command', ask + extra, ctx);
-        onOps(fillPhotos(r?.ops ?? [], files)); setLog((l) => [...l, { who: 'genius', text: r?.summary || 'Done.' }]);
+        // Agent mode: Genius sees the whole project (all pages, theme) plus the chat so far.
+        const r = await askSiteGenius('agent', ask + extra, siteContext(doc, theme, page.id), log);
+        const ops = Array.isArray(r?.ops) ? r.ops : [];
+        if (ops.length) onOps(fillPhotos(ops, files));
+        setLog((l) => [...l, { who: 'genius', text: r?.reply || r?.summary || (ops.length ? 'Done.' : 'Could you tell me a bit more?') }]);
       }
       setText(''); setFiles([]);
     } catch (e) { setLog((l) => [...l, { who: 'genius', text: (e as Error).message }]); }

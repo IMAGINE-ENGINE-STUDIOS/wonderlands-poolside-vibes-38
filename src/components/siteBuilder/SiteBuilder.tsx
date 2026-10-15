@@ -290,9 +290,9 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
       <div className={`grid lg:grid-cols-[340px_minmax(0,1fr)_340px] ${full ? "h-[calc(100vh-53px)]" : "min-h-[calc(100vh-220px)]"}`}>
         {/* Genius — the whole left side */}
         <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-hidden flex flex-col min-h-0">
-          <SiteGenius disabled={readOnly} brand={theme.brand || companyName} page={page}
+          <SiteGenius disabled={readOnly} brand={theme.brand || companyName} page={page} doc={doc} theme={theme}
             onBuild={(d, t) => { commit(() => d); if (t) setTheme(cur => ({ ...cur, ...Object.fromEntries(Object.entries(t).filter(([k, v]) => ['primary', 'headingFont', 'bodyFont'].includes(k) && typeof v === 'string')) })); setPageId(d.pages[0].id); setSel(null); }}
-            onOps={ops => commit(d => applyGeniusOps(d, page.id, ops, fn => { setTheme(fn); setDirty(true); }))} />
+            onOps={ops => { let open = ""; commit(d => applyGeniusOps(d, page.id, ops, fn => { setTheme(fn); setDirty(true); }, id => { open = id; })); if (open) { setPageId(open); setSel(null); } }} />
         </aside>
 
         {/* Canvas */}
