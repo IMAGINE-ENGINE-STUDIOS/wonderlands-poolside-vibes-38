@@ -292,7 +292,9 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-hidden flex flex-col min-h-0">
           <SiteGenius disabled={readOnly} brand={theme.brand || companyName} page={page} doc={doc} theme={theme}
             onBuild={(d, t) => { commit(() => d); if (t) setTheme(cur => ({ ...cur, ...Object.fromEntries(Object.entries(t).filter(([k, v]) => ['primary', 'headingFont', 'bodyFont'].includes(k) && typeof v === 'string')) })); setPageId(d.pages[0].id); setSel(null); }}
-            onOps={ops => { let open = ""; commit(d => applyGeniusOps(d, page.id, ops, fn => { setTheme(fn); setDirty(true); }, id => { open = id; })); if (open) { setPageId(open); setSel(null); } }} />
+            onOps={async ops => { let open = ""; const next = applyGeniusOps(structuredClone(doc), page.id, ops, fn => { setTheme(fn); setDirty(true); }, id => { open = id; });
+              // Genius product sections get real Wonderlands catalogue cards (photo, name, price, description).
+              const filled = await hydrateDocProducts(next, JSON.stringify(ops).slice(0, 400)); commit(() => filled); if (open) { setPageId(open); setSel(null); } }} />
         </aside>
 
         {/* Canvas */}
