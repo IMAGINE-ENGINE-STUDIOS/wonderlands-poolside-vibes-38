@@ -5,6 +5,7 @@
  * (user content), so inline styles are intentional here.
  */
 import React, { useState } from 'react';
+import SiteConfigurator from './SiteConfigurator';
 import type { Page, Section, SiteTheme } from '@/lib/siteBuilder/model';
 import { TECH_TOOLS, loadFonts, resolveLink } from '@/lib/siteBuilder/model';
 
