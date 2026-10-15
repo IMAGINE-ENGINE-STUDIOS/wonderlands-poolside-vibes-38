@@ -474,15 +474,16 @@ import { mitredOffsetRing } from "@/utils/polygonGeometry";
  * centres the pool the same way). Pools cut the turf. No extra waters are sent:
  * the Design Studio's extra pools/spas already travel inside its own scene.
  */
-export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string }> = []): Board3D {
+export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string }> = [], extraDeckPts: Record<string, Pt[]> = {}): Board3D {
   const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
   const pool = poolRing(poolPts).map(f);
   let c = { x: 0, y: 0 };
   if (pool.length >= 3) { const xs = pool.map((p) => p.x), ys = pool.map((p) => p.y); c = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; }
   const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
-  // Every extra pool/spa from the 2D designer (feet), plus its own auto deck ring.
+  // Every extra pool/spa from the 2D designer (feet), plus its own attached deck —
+  // the exact outline PoolBuilder draws (same logic as the main pool deck).
   const extras = extraPools.filter((p) => p.points?.length >= 3).map((p) => ({ ...p, ring: densifyPoolOutline(p.points as never, p.shape ?? "freeform").map(f) }));
-  const extraDecks = extras.map((p) => ({ id: `__deck_${p.id}`, kind: "deck", pts: mitredOffsetRing(p.ring.map((q) => ({ x: q.x, z: q.y })), EXTRA_DECK_FT).offset.map((q) => ({ x: q.x, y: q.z })) }));
+  const extraDecks = extras.map((p) => ({ id: `__deck_${p.id}`, kind: "deck", pts: (extraDeckPts[p.id]?.length ?? 0) >= 3 ? extraDeckPts[p.id].map(f) : mitredOffsetRing(p.ring.map((q) => ({ x: q.x, z: q.y })), EXTRA_DECK_FT).offset.map((q) => ({ x: q.x, y: q.z })) }));
   // Order matters: a later deck cuts an earlier one, so the pool's own deck sits
   // last and drawn decks never cover it (one continuous slab, no overlap).
   const net = [
@@ -493,7 +494,9 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
     ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []),
   ];
   const regionsOf = (id: string) => netRegions(net, net.find((n) => n.id === id)!).map((poly) => poly.map((r) => r.map(to)));
-  const prev = new Map((loadBoard3D()?.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w]));
+  const last = loadBoard3D();
+  const prev = new Map((last?.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w]));
+  const prevF = new Map((last?.fences ?? []).filter((x) => x.itemId).map((x) => [x.itemId!, x]));
   const out: Board3D = { origin: c, fences: [], screens: [], surfaces: [], waters: [] };
   const paver0 = DECK_PAVERS[0]?.image;
   for (const p of extras) {
@@ -503,7 +506,12 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
   }
   for (const e of items) {
     const pts = e.pts.map(f);
-    if (e.kind === "fence") out.fences.push({ itemId: e.id, pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: e.color });
+    if (e.kind === "fence") {
+      const old = prevF.get(e.id);
+      // Vinyl panels and posts default to white; 3D picks are kept on re-open.
+      const vinyl = e.style === "vinyl";
+      out.fences.push({ itemId: e.id, pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: vinyl ? (old?.color ?? "#ffffff") : e.color, ...(vinyl ? { postColor: old?.postColor ?? "#ffffff" } : {}) });
+    }
     else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, pts: pts.map(to), height: e.height ?? 10, color: e.color });
     else if (e.kind === "deck") out.surfaces.push({ itemId: e.id, kind: "deck", color: "#ffffff", image: (DECK_PAVERS.find((d) => d.id === e.style) ?? DECK_PAVERS[0])?.image, regions: regionsOf(e.id) });
     else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.texture, regions: regionsOf(e.id) });

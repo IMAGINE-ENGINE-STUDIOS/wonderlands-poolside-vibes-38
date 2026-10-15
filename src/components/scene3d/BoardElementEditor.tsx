@@ -19,6 +19,8 @@ import { buildFinishTextures, buildWaterlineTextures, buildPaverTextures } from 
 import { BOARD_SELECT_EVENT, type BoardSelection } from "./BoardElements3D";
 
 const METALS = [{ n: "Black", c: "#1f1f1f" }, { n: "Bronze", c: "#6b4a2b" }, { n: "White", c: "#f4f4f2" }, { n: "Silver", c: "#b8bcc2" }];
+/** Vinyl fence tints (panels and posts are picked separately). */
+const VINYLS = [{ n: "White", c: "#ffffff" }, { n: "Almond", c: "#e8dcc4" }, { n: "Tan", c: "#c8b28c" }, { n: "Clay", c: "#a89a86" }, { n: "Grey", c: "#8d9093" }, { n: "Black", c: "#2a2a2a" }];
 /** Same catalog photos the main pool widgets use (finish, waterline, coping). */
 let photoLists: { f: { n: string; c: string }[]; t: { n: string; c: string }[]; k: { n: string; c: string }[] } | null = null;
 const photos = () => photoLists ??= {
@@ -81,7 +83,11 @@ export const BoardElementEditor: React.FC = () => {
     const f = data.fences[sel.i];
     title = "Fence";
     body = <>
-      <Swatches label="Metal color" list={METALS} value={f.color} onPick={(c) => edit((d) => { d.fences[sel.i].color = c; })} />
+      {f.style === "vinyl" ? <>
+        {/* Vinyl: panels and posts are colored separately (both white by default). */}
+        <Swatches label="Panel color" list={VINYLS} value={f.color} onPick={(c) => edit((d) => { d.fences[sel.i].color = c; })} />
+        <Swatches label="Post color" list={VINYLS} value={f.postColor ?? "#ffffff"} onPick={(c) => edit((d) => { d.fences[sel.i].postColor = c; })} />
+      </> : <Swatches label="Metal color" list={METALS} value={f.color} onPick={(c) => edit((d) => { d.fences[sel.i].color = c; })} />}
       <Range label="Height" v={f.height} min={3} max={8} step={0.5} on={(n) => edit((d) => { d.fences[sel.i].height = n; })} />
     </>;
   } else if (sel.type === "screen" && data.screens[sel.i]) {

@@ -377,21 +377,18 @@ const DesignStudio = () => {
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
-      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? []));
+      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? [], (poolBuilderData as any)?.additionalDecks ?? {}));
     } catch { /* ignore */ }
     setActiveView('3d');
-    // Auto-enter fullscreen when switching to 3D Studio
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.();
-      setIsFullscreen(true);
-    }
+    // Stay in the page (not browser fullscreen) so the header with "Back to 2D" stays visible.
     if (customPoolShape && customPoolShape.length > 0) {
       toast({
         title: "Custom Shape Loaded",
         description: `Your custom pool design with ${customPoolShape.length} points is now in 3D!`
       });
     }
-  }, [customPoolShape, poolBuilderData?.scale, searchParams, toast]);
+    // Depend on the whole 2D design so every extra pool and deck is sent (no stale copy).
+  }, [customPoolShape, poolBuilderData, searchParams, toast]);
   const handleSwitch2D = useCallback(() => {
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     setIsFullscreen(false);
@@ -450,7 +447,7 @@ const DesignStudio = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-background flex flex-col select-none">
+  return <div className={`${activeView === '3d' ? 'h-screen' : 'min-h-screen'} bg-background flex flex-col select-none`}>
       {/* Category Toolbar with integrated header elements */}
       {activeView === '2d' ? <>
           <CategoryToolbar hideCategories activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-4">
@@ -519,7 +516,7 @@ const DesignStudio = () => {
             {/* Return to the 2D designer — same white header pill style. */}
             <Button variant="outline" size="sm" onClick={handleSwitch2D} className="gap-1.5 h-9 rounded-full bg-background text-foreground" title="Back to the 2D designer — your shape, finishes and 3D settings are kept">
               <Layers className="h-3.5 w-3.5" />
-              Edit in 2D
+              Back to 2D
             </Button>
           </div>
           
@@ -576,7 +573,7 @@ const DesignStudio = () => {
             {/* Genius draws a full pool + depth + deck from a sentence (same brief as 3D). */}
             <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} />
           </div> : <div className="w-full h-full">
-            <UnifiedPoolVisualizer scene={buildPersistedScene()} textureLibrary={studioTextureLibrary} onSceneChange={handle3DSceneChange} />
+            <UnifiedPoolVisualizer embedded scene={buildPersistedScene()} textureLibrary={studioTextureLibrary} onSceneChange={handle3DSceneChange} />
             
           </div>}
       </main>
