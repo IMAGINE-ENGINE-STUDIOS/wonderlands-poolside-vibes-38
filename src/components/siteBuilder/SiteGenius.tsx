@@ -108,7 +108,7 @@ const SiteGenius: React.FC<{
     onDragOver={(e) => { if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); setOver(true); } }} onDragLeave={() => setOver(false)}
     onDrop={(e) => { if (e.dataTransfer.files.length) { e.preventDefault(); setOver(false); if (!disabled) addFiles(e.dataTransfer.files); } }}>
     <div className="border-b border-border px-4 py-3">
-      <p className="font-display text-xl leading-none">Genius</p>
+      <p className="text-xl font-semibold leading-none">Genius</p>
       <p className="mt-1 text-xs text-muted-foreground">Tell me what to change, or drop photos, documents or code.</p>
     </div>
     <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
