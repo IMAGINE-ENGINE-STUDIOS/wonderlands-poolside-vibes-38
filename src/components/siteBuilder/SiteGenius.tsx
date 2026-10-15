@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { compressImage, uid, type Page, type SiteDoc, type SiteTheme } from '@/lib/siteBuilder/model';
 import { isBlock, sectionFrom } from '@/lib/siteBuilder/tradeTemplates';
 import { slugifyPage } from './siteBuilderUtils';
+import { hydrateDocProducts } from '@/lib/siteBuilder/catalogCards';
 
 export async function askSiteGenius(mode: 'build' | 'command' | 'rewrite' | 'seo' | 'agent', prompt: string, context?: unknown, history?: { who: string; text: string }[]): Promise<any> {
   const { data, error } = await supabase.functions.invoke('site-genius', { body: { mode, prompt, context, history } });
@@ -108,7 +109,9 @@ const SiteGenius: React.FC<{
       if (mode === 'build') {
         if (!confirm('Genius will replace every page of your draft. You can undo. Continue?')) { setBusy(''); return; }
         const r = await askSiteGenius('build', `Business: ${brand}. ${ask}${extra}`);
-        const doc = docFromGenius(fillPhotos(r, files));
+        const raw = docFromGenius(fillPhotos(r, files));
+        // Product cards arrive with real Wonderlands photos/details instead of empty shells.
+        const doc = raw ? await hydrateDocProducts(raw, ask) : null;
         if (!doc) throw new Error('Genius could not draft pages. Add more detail about your business.');
         onBuild(doc, r?.theme); setLog((l) => [...l, { who: 'genius', text: `Drafted ${doc.pages.length} pages. Review, then publish.` }]);
       } else {
