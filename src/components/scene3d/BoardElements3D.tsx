@@ -8,7 +8,9 @@
 import * as React from "react";
 import * as THREE from "three";
 import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D, waterDepthAt, waterCenter, updateBoard3D } from "@/lib/design/board3D";
-import { mitredOffsetRing } from "@/utils/polygonGeometry";
+import { mitredOffsetRing, buildSlabGeometry } from "@/utils/polygonGeometry";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { textureCache } from "@/utils/textureCache";
 import { smoothCurvedRing } from "@/utils/deckSurface";
 import { generateCurvedPoolPoints } from "@/utils/curveUtils";
 import { PoolMesh } from "@/components/Pool3DScene";
@@ -202,7 +204,44 @@ function Water({ w, i }: { w: Water3D; i: number }) {
 function holeMaterial(color: string, rough: number, holes: XZ[][]) {
   return applyHoleCut(new THREE.MeshStandardMaterial({ color, roughness: rough, polygonOffset: true, polygonOffsetFactor: -2 }), holes);
 }
+/**
+ * Drawn deck = the pool deck's own technology (DeckBorderGeometry): solid slab
+ * from buildSlabGeometry (top/bottom faces + vertical skirts, 1×1 ft world UVs),
+ * Phong paver material (shininess 40, DoubleSide) loaded through textureCache,
+ * with the same hole-cut shader. Credits: Imagine Engine Studios Corp.
+ */
+function DrawnDeck({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
+  const [tex, setTex] = React.useState<THREE.Texture | null>(null);
+  React.useEffect(() => {
+    if (!s.image || !isUrl(s.image)) { setTex(null); return; }
+    let off = false;
+    textureCache.loadTexture(s.image, { x: 1, y: 1 }).then((t) => {
+      if (off) return;
+      t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; setTex(t);
+    }).catch(() => {});
+    return () => { off = true; };
+  }, [s.image]);
+  const geo = React.useMemo(() => {
+    const parts = s.regions.filter((r) => r[0]?.length >= 3).map((r) =>
+      buildSlabGeometry({ subject: r[0], holes: r.slice(1), topY: 0, bottomY: -DECK_SLAB_FT }));
+    if (!parts.length) return null;
+    return parts.length === 1 ? parts[0] : mergeGeometries(parts) ?? parts[0];
+  }, [s.regions]);
+  if (!geo) return null;
+  return (
+    <mesh key={tex?.uuid || "no-deck-texture"} geometry={geo} castShadow receiveShadow>
+      <meshPhongMaterial
+        ref={(m: THREE.MeshPhongMaterial | null) => { if (m && m.userData.cutKey !== holesKey) { m.userData.cutKey = holesKey; applyHoleCut(m, holes); } }}
+        map={tex} color={tex ? "#ffffff" : s.color || "#d9d4cc"} shininess={40} side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
 function Surface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
+  if (s.kind === "deck") return <DrawnDeck s={s} holes={holes} holesKey={holesKey} />;
+  return <TurfSurface s={s} holes={holes} holesKey={holesKey} />;
+}
+function TurfSurface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; holesKey: string }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const mat = React.useMemo(() => {
     /* Turf regions arrive pre-clipped (netRegions) — a second shader cut caused triangular voids. */
