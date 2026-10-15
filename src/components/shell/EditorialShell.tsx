@@ -65,7 +65,7 @@ const EditorialShell: React.FC<Props> = ({ tone = 'light', eyebrow, title, subti
       <header className="relative overflow-hidden border-b border-border">
         <div className="pointer-events-none absolute -top-32 -left-24 h-80 w-80 rounded-full bg-teal/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 right-0 h-80 w-96 rounded-full bg-coral/15 blur-3xl" />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-8 py-8 sm:py-12">
+        <div className="relative w-full px-4 sm:px-6 py-8 sm:py-12">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <Link to="/" className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-[Sora]">Wonderlands</Link>
@@ -82,7 +82,7 @@ const EditorialShell: React.FC<Props> = ({ tone = 'light', eyebrow, title, subti
       </header>
       {banner}
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-8 py-8 flex gap-8">
+      <div className="w-full px-3 sm:px-4 py-6 flex gap-6">
         <aside className="hidden lg:block w-60 shrink-0">
           <div className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pr-2">{rail}</div>
         </aside>
