@@ -22,6 +22,10 @@ import { wonderlandsTemplate } from '@/lib/siteBuilder/wonderlandsTemplate';
 import { TRADE_OPTIONS, tradeTemplate, sectionFrom, type Trade } from '@/lib/siteBuilder/tradeTemplates';
 import SiteGenius, { applyGeniusOps, askSiteGenius } from './SiteGenius';
 import { collectImages } from './siteBuilderUtils';
+import SiteTextEditor from './SiteTextEditor';
+import SiteDomainCard from './SiteDomainCard';
+import { apexOf } from '@/lib/siteBuilder/dnsCheck';
+import { hydrateDocProducts, starterCard } from '@/lib/siteBuilder/catalogCards';
 import { BLOCKS, FONTS, GRADIENTS, DEFAULT_THEME, blankDoc, compressImage, newSection, uid, type BlockType, type Field, type Page, type Section, type SiteDoc, type SiteTheme, type SiteVersion } from '@/lib/siteBuilder/model';
 
 const DEVICES = { desktop: { w: 1280, icon: Monitor }, tablet: { w: 820, icon: Tablet }, mobile: { w: 390, icon: Smartphone } } as const;
@@ -29,6 +33,17 @@ const GROUPS = ['Layout', 'Content', 'Media', 'Commerce', 'Technology'];
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 
 interface SiteRow { id: string; slug: string; title: string; is_published: boolean; custom_domain?: string | null }
+
+/** Collapsible card used by the Site tab. */
+const SettingsGroup: React.FC<{ title: string; note?: string; open?: boolean; children: React.ReactNode }> = ({ title, note, open, children }) => (
+  <details open={open} className="group rounded-xl border border-border bg-background [&_summary::-webkit-details-marker]:hidden">
+    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5">
+      <span className="min-w-0"><span className="block text-sm font-semibold">{title}</span>{note && <span className="block truncate text-[11px] text-muted-foreground">{note}</span>}</span>
+      <span className="text-muted-foreground transition-transform group-open:rotate-90">›</span>
+    </summary>
+    <div className="space-y-3 border-t border-border px-3 py-3">{children}</div>
+  </details>
+);
 
 /** Pages of the site being edited, so link fields can offer "go to page". */
 const PagesCtx = React.createContext<Page[]>([]);
@@ -121,6 +136,8 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [flips, setFlips] = useState<{ slug: string; title: string }[]>([]);
   const [catalog, setCatalog] = useState<any[] | null>(null);
+  /** Text being edited on the canvas (double-click): section id, prop path like 'title' or 'items.2.name'. */
+  const [textEdit, setTextEdit] = useState<{ sid: string; path: string; rect: DOMRect } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -213,7 +230,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   // Product cards: catalogue items keep their real photo; absolute URL so published/custom-domain sites load it too.
   const absImg = (u?: string | null) => !u ? '' : /^(https?:|data:|blob:)/.test(u) ? u : `${window.location.origin}${u.startsWith('/') ? '' : '/'}${u}`;
   const toCard = (p: any) => ({ name: p.name, price: p.price ? `$${Number(p.price).toLocaleString()}` : '', description: p.description ?? '', image: absImg(p.image_url), badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' });
-  const blankCard = () => ({ name: 'New product', price: '', description: '', image: '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' });
+  const blankCard = () => starterCard((section?.props.items?.length || 0) + 1);
   const bulkAdd = () => {
     if (!section) return;
     const txt = prompt('One product per line:\nName | Price | Description | Image link (price, description and image are optional)');
@@ -235,10 +252,11 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
       onClick={e => { e.preventDefault(); setSel(s.id); if (panel !== 'style') setPanel('content'); }}
       draggable={!readOnly} onDragStart={e => { e.stopPropagation(); setDrag({ kind: 'move', id: s.id }); }} onDragEnd={() => { setDrag(null); setDropAt(null); }}
       onDragOver={e => { if (!drag) return; e.preventDefault(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setDropAt(e.clientY < r.top + r.height / 2 ? i : i + 1); }}
-      onDrop={e => { e.preventDefault(); if (dropAt !== null) insertAt(dropAt); }}>
+      onDrop={e => { e.preventDefault(); if (dropAt !== null) insertAt(dropAt); }}
+      onDoubleClick={e => { if (readOnly) return; const el = (e.target as HTMLElement).closest('[data-edit]') as HTMLElement | null; if (!el) return; e.preventDefault(); setSel(s.id); setTextEdit({ sid: s.id, path: el.dataset.edit!, rect: el.getBoundingClientRect() }); }}>
       {dropAt === i && drag && <div className="absolute -top-1 inset-x-0 h-1.5 bg-teal z-20 rounded" />}
       <span className="absolute top-2 left-2 z-20 hidden group-hover:block rounded bg-foreground px-2 py-0.5 text-[11px] text-background">{BLOCKS[s.type].label}</span>
-      <div className="pointer-events-none [&_iframe]:pointer-events-none">{node}</div>
+      <div className="[&_iframe]:pointer-events-none [&_a]:cursor-default [&_[data-edit]]:cursor-text" onSubmitCapture={e => e.preventDefault()}>{node}</div>
       {dropAt === i + 1 && drag && i === page.sections.length - 1 && <div className="absolute -bottom-1 inset-x-0 h-1.5 bg-teal z-20 rounded" />}
     </div>;
   }, [page, sel, drag, dropAt, panel, readOnly]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -292,7 +310,9 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-hidden flex flex-col min-h-0">
           <SiteGenius disabled={readOnly} brand={theme.brand || companyName} page={page} doc={doc} theme={theme}
             onBuild={(d, t) => { commit(() => d); if (t) setTheme(cur => ({ ...cur, ...Object.fromEntries(Object.entries(t).filter(([k, v]) => ['primary', 'headingFont', 'bodyFont'].includes(k) && typeof v === 'string')) })); setPageId(d.pages[0].id); setSel(null); }}
-            onOps={ops => { let open = ""; commit(d => applyGeniusOps(d, page.id, ops, fn => { setTheme(fn); setDirty(true); }, id => { open = id; })); if (open) { setPageId(open); setSel(null); } }} />
+            onOps={async ops => { let open = ""; const next = applyGeniusOps(structuredClone(doc), page.id, ops, fn => { setTheme(fn); setDirty(true); }, id => { open = id; });
+              // Genius product sections get real Wonderlands catalogue cards (photo, name, price, description).
+              const filled = await hydrateDocProducts(next, JSON.stringify(ops).slice(0, 400)); commit(() => filled); if (open) { setPageId(open); setSel(null); } }} />
         </aside>
 
         {/* Canvas */}
@@ -327,27 +347,32 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
             </li>)}</ul></div>
           </div>
           : panel === 'theme' ? <div className="space-y-3">
+            {/* Site tab V2: web address first, then business, brand, this page, versions. */}
+            <SettingsGroup title="Web address" note={site?.custom_domain ? apexOf(site.custom_domain) : 'Free address + your own domain'} open>
+              <SiteDomainCard slug={site?.slug} published={!!site?.is_published} saved={site?.custom_domain} domain={domain} readOnly={readOnly} setDomain={setDomain} onSave={saveDomain} onSlug={changeSlug} />
+            </SettingsGroup>
+            <SettingsGroup title="Business details" note="Name, phone, email, WhatsApp">
             {([['brand', 'Business name', 'text'], ['phone', 'Phone', 'text'], ['email', 'Email', 'text'], ['whatsapp', 'WhatsApp number', 'text']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'text' }} value={(theme as any)[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
+            </SettingsGroup>
+            <SettingsGroup title="Brand look" note="Logo, colours, fonts, corners">
             <FieldEditor disabled={readOnly} f={{ key: 'logo', label: 'Logo', kind: 'image' }} value={theme.logo} onChange={v => { setTheme({ ...theme, logo: v }); setDirty(true); }} />
             {([['primary', 'Brand colour'], ['background', 'Page background'], ['text', 'Text colour']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'color' }} value={theme[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
             {([['headingFont', 'Heading font'], ['bodyFont', 'Body font']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'select', options: FONTS.map(f => ({ value: f, label: f })) }} value={theme[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
             <FieldEditor disabled={readOnly} f={{ key: 'radius', label: 'Corner roundness (px)', kind: 'number' }} value={theme.radius} onChange={v => { setTheme({ ...theme, radius: v }); setDirty(true); }} />
-            <div className="pt-3 border-t border-border space-y-2">
-              <p className="text-sm font-semibold">Your own domain</p>
-              <div className="flex gap-2"><Input disabled={readOnly} placeholder="www.mybusiness.com" value={domain} onChange={e => setDomain(e.target.value)} /><Button size="sm" disabled={readOnly} onClick={saveDomain}>Save</Button></div>
-              <p className="text-xs text-muted-foreground">At your domain company, add these records, then email Wonderlands to switch it on (SSL is automatic):</p>
-              <div className="rounded-md bg-muted p-2 font-mono text-[11px] leading-5">A · @ · 185.158.133.1<br />A · www · 185.158.133.1</div>
-              <p className="text-xs text-muted-foreground">Visitors on that address see your published site. Changes appear after you press Publish.</p>
-            </div>
-            {!readOnly && <div className="pt-2 border-t border-border space-y-2"><FieldEditor f={{ key: 'pn', label: 'This page name', kind: 'text' }} value={page.name} onChange={v => editPage(p => { p.name = v; p.slug = page === doc.pages[0] ? '' : slugify(v); })} />
-              <p className="text-sm font-semibold pt-2">Search & sharing (this page)</p>
+            </SettingsGroup>
+            <SettingsGroup title="This page" note={page.name}>
+            {!readOnly && <div className="space-y-2"><FieldEditor f={{ key: 'pn', label: 'This page name', kind: 'text' }} value={page.name} onChange={v => editPage(p => { p.name = v; p.slug = page === doc.pages[0] ? '' : slugify(v); })} />
+              <p className="text-xs font-medium text-muted-foreground pt-1">Search & sharing</p>
               <FieldEditor f={{ key: 'st', label: 'Search title', kind: 'text' }} value={page.seo?.title} onChange={v => editPage(p => { p.seo = { ...p.seo, title: v }; })} />
               <FieldEditor f={{ key: 'sd', label: 'Search description', kind: 'textarea' }} value={page.seo?.description} onChange={v => editPage(p => { p.seo = { ...p.seo, description: v }; })} />
               <FieldEditor f={{ key: 'si', label: 'Sharing photo', kind: 'image' }} value={page.seo?.image} onChange={v => editPage(p => { p.seo = { ...p.seo, image: v }; })} />
               <Button size="sm" variant="outline" onClick={async () => { try { const r = await askSiteGenius('seo', `Business: ${theme.brand || companyName}. Page: ${page.name}.`, { sections: page.sections.map(x => ({ type: x.type, title: x.props.title, text: String(x.props.subtitle || x.props.body || '').slice(0, 200) })) }); editPage(p => { p.seo = { ...p.seo, title: String(r?.title || '').slice(0, 70), description: String(r?.description || '').slice(0, 170) }; }); } catch (e) { toast({ title: 'Genius', description: (e as Error).message }); } }}>Suggest with Genius</Button>
               {page !== doc.pages[0] && <Button size="sm" variant="outline" onClick={() => { commit(d => { d.pages = d.pages.filter(p => p.id !== page.id); return d; }); setPageId(doc.pages[0].id); }}>Delete page</Button>}</div>}
-            {history.length > 0 && <div className="pt-3 border-t border-border space-y-2"><p className="text-sm font-semibold">Published versions</p>
-              {history.map((v, i) => <div key={v.at} className="flex items-center justify-between gap-2 text-sm"><span className="text-muted-foreground">{i === 0 ? 'Live · ' : ''}{new Date(v.at).toLocaleString()}</span>{!readOnly && <Button size="sm" variant="ghost" onClick={() => restoreVersion(v)}>Restore</Button>}</div>)}</div>}
+            </SettingsGroup>
+            {history.length > 0 && <SettingsGroup title="Published versions" note={`${history.length} saved`}>
+            <div className="space-y-2">
+              {history.map((v, i) => <div key={v.at} className="flex items-center justify-between gap-2 text-sm"><span className="text-muted-foreground">{i === 0 ? 'Live · ' : ''}{new Date(v.at).toLocaleString()}</span>{!readOnly && <Button size="sm" variant="ghost" onClick={() => restoreVersion(v)}>Restore</Button>}</div>)}</div>
+            </SettingsGroup>}
           </div>
           : !section ? <p className="text-sm text-muted-foreground">Click a section on the page to edit it, or open Site for colours, fonts and logo.</p>
           : panel === 'content' ? <div className="space-y-3">
@@ -374,6 +399,13 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         </aside>
       </div>
     </div>
+    {textEdit && (() => { const s = page.sections.find(x => x.id === textEdit.sid); if (!s) return null;
+      const keys = textEdit.path.split('.'); const get = (o: any) => keys.reduce((a, k) => a?.[k], o);
+      const put = (o: any, v: any) => { let t = o; for (const k of keys.slice(0, -1)) t = t[k] ??= {}; t[keys[keys.length - 1]] = v; };
+      return <SiteTextEditor rect={textEdit.rect} value={String(get(s.props) ?? '')} look={s.props.__text?.[textEdit.path] ?? {}}
+        onChange={v => editSection(s.id, x => put(x.props, v))}
+        onLook={l => editSection(s.id, x => { x.props.__text = { ...x.props.__text, [textEdit.path]: l }; })}
+        onClose={() => setTextEdit(null)} />; })()}
     </MediaCtx.Provider></PagesCtx.Provider>
   );
 };
