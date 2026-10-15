@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => null);
     const mode = typeof body?.mode === 'string' && SYSTEMS[body.mode] ? body.mode : '';
-    const prompt = typeof body?.prompt === 'string' ? body.prompt.trim().slice(0, 2000) : '';
+    const prompt = typeof body?.prompt === 'string' ? body.prompt.trim().slice(0, 14000) : '';
     const context = body?.context ? JSON.stringify(body.context).slice(0, 6000) : '';
     if (!mode) return json({ error: 'Unknown request.' }, 400);
     if (prompt.length < 2) return json({ error: 'Tell Genius what you need.' }, 400);

@@ -108,7 +108,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const [future, setFuture] = useState<SiteDoc[]>([]);
   const [pageId, setPageId] = useState('');
   const [sel, setSel] = useState<string | null>(null);
-  const [panel, setPanel] = useState<'content' | 'style' | 'theme'>('content');
+  const [panel, setPanel] = useState<'blocks' | 'layers' | 'content' | 'style' | 'theme'>('blocks');
   const [device, setDevice] = useState<keyof typeof DEVICES>('desktop');
   const [drag, setDrag] = useState<{ kind: 'new'; type: BlockType } | { kind: 'move'; id: string } | null>(null);
   const [dropAt, setDropAt] = useState<number | null>(null);
@@ -232,7 +232,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const wrap = useCallback((s: Section, node: React.ReactNode) => {
     const i = page.sections.indexOf(s);
     return <div className={`relative group ${sel === s.id ? 'outline outline-2 outline-teal -outline-offset-2' : 'hover:outline hover:outline-1 hover:outline-teal/60 -outline-offset-1'}`}
-      onClick={e => { e.preventDefault(); setSel(s.id); if (panel === 'theme') setPanel('content'); }}
+      onClick={e => { e.preventDefault(); setSel(s.id); if (panel !== 'style') setPanel('content'); }}
       draggable={!readOnly} onDragStart={e => { e.stopPropagation(); setDrag({ kind: 'move', id: s.id }); }} onDragEnd={() => { setDrag(null); setDropAt(null); }}
       onDragOver={e => { if (!drag) return; e.preventDefault(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setDropAt(e.clientY < r.top + r.height / 2 ? i : i + 1); }}
       onDrop={e => { e.preventDefault(); if (dropAt !== null) insertAt(dropAt); }}>
@@ -287,28 +287,12 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         </div>
       </div>
 
-      <div className={`grid lg:grid-cols-[260px_minmax(0,1fr)_320px] ${full ? "h-[calc(100vh-53px)]" : "min-h-[calc(100vh-220px)]"}`}>
-        {/* Library + layers */}
-        <aside className="border-b lg:border-b-0 lg:border-r border-border p-3 space-y-5 overflow-y-auto">
+      <div className={`grid lg:grid-cols-[340px_minmax(0,1fr)_340px] ${full ? "h-[calc(100vh-53px)]" : "min-h-[calc(100vh-220px)]"}`}>
+        {/* Genius — the whole left side */}
+        <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-hidden flex flex-col min-h-0">
           <SiteGenius disabled={readOnly} brand={theme.brand || companyName} page={page}
             onBuild={(d, t) => { commit(() => d); if (t) setTheme(cur => ({ ...cur, ...Object.fromEntries(Object.entries(t).filter(([k, v]) => ['primary', 'headingFont', 'bodyFont'].includes(k) && typeof v === 'string')) })); setPageId(d.pages[0].id); setSel(null); }}
             onOps={ops => commit(d => applyGeniusOps(d, page.id, ops, fn => { setTheme(fn); setDirty(true); }))} />
-          {saved.length > 0 && <div><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Saved sections</p>
-            <div className="grid gap-1.5">{saved.map((x, i) => <div key={i} className="flex items-center gap-1"><button disabled={readOnly} onClick={() => { const c = { ...structuredClone(x), id: uid() }; editPage(p => { p.sections.push(c); }); setSel(c.id); }} className="flex-1 truncate rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal">{x.props.title || BLOCKS[x.type]?.label}</button>
-              <button aria-label="Forget" onClick={() => { const n = saved.filter((_, j) => j !== i); setSaved(n); localStorage.setItem(`sb.saved.${companyId}`, JSON.stringify(n)); }}><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div></div>}
-          {GROUPS.map(g => <div key={g}><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">{g}</p>
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5">{(Object.keys(BLOCKS) as BlockType[]).filter(k => BLOCKS[k].group === g).map(k =>
-              <button key={k} disabled={readOnly} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'new', type: k })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onClick={() => addBlock(k)}
-                className="rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal transition-colors cursor-grab">{BLOCKS[k].label}</button>)}</div></div>)}
-          <div><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Layers</p>
-            <ul className="space-y-1">{page.sections.map((s, i) => <li key={s.id} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'move', id: s.id })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onDragOver={e => e.preventDefault()} onDrop={() => { setDropAt(i); insertAt(i); }}
-              className={`flex items-center gap-1 rounded-md px-1.5 py-1 text-sm ${sel === s.id ? 'bg-muted' : 'hover:bg-muted/50'}`}>
-              <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <button className="flex-1 truncate text-left" onClick={() => { setSel(s.id); setPanel('content'); }}>{BLOCKS[s.type].label}</button>
-              {!readOnly && <><button aria-label="Hide" onClick={() => editSection(s.id, x => { x.style.hidden = !x.style.hidden; })}>{s.style.hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button>
-                <button aria-label="Duplicate" onClick={() => editPage(p => { p.sections.splice(i + 1, 0, { ...structuredClone(s), id: uid() }); })}><Copy className="h-3.5 w-3.5" /></button>
-                <button aria-label="Delete" onClick={() => { editPage(p => { p.sections = p.sections.filter(x => x.id !== s.id); }); if (sel === s.id) setSel(null); }}><Trash2 className="h-3.5 w-3.5" /></button></>}
-            </li>)}</ul></div>
         </aside>
 
         {/* Canvas */}
@@ -321,8 +305,28 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
 
         {/* Inspector */}
         <aside className="border-t lg:border-t-0 lg:border-l border-border p-3 overflow-y-auto">
-          <div className="flex rounded-md border border-border mb-4 text-sm">{(['content', 'style', 'theme'] as const).map(k => <button key={k} onClick={() => setPanel(k)} className={`flex-1 py-1.5 capitalize ${panel === k ? 'bg-muted font-semibold' : ''}`}>{k === 'theme' ? 'Site' : k}</button>)}</div>
-          {panel === 'theme' ? <div className="space-y-3">
+          <div className="flex rounded-md border border-border mb-4 text-xs">{(['blocks', 'layers', 'content', 'style', 'theme'] as const).map(k => <button key={k} onClick={() => setPanel(k)} className={`flex-1 py-1.5 capitalize ${panel === k ? 'bg-muted font-semibold' : ''}`}>{k === 'theme' ? 'Site' : k === 'content' ? 'Section' : k}</button>)}</div>
+          {panel === 'blocks' ? <div className="space-y-5">
+          {saved.length > 0 && <div><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Saved sections</p>
+            <div className="grid gap-1.5">{saved.map((x, i) => <div key={i} className="flex items-center gap-1"><button disabled={readOnly} onClick={() => { const c = { ...structuredClone(x), id: uid() }; editPage(p => { p.sections.push(c); }); setSel(c.id); }} className="flex-1 truncate rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal">{x.props.title || BLOCKS[x.type]?.label}</button>
+              <button aria-label="Forget" onClick={() => { const n = saved.filter((_, j) => j !== i); setSaved(n); localStorage.setItem(`sb.saved.${companyId}`, JSON.stringify(n)); }}><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div></div>}
+          {GROUPS.map(g => <div key={g}><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">{g}</p>
+            <div className="grid grid-cols-2  gap-1.5">{(Object.keys(BLOCKS) as BlockType[]).filter(k => BLOCKS[k].group === g).map(k =>
+              <button key={k} disabled={readOnly} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'new', type: k })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onClick={() => addBlock(k)}
+                className="rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal transition-colors cursor-grab">{BLOCKS[k].label}</button>)}</div></div>)}
+          </div>
+          : panel === 'layers' ? <div>
+          <div><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Layers</p>
+            <ul className="space-y-1">{page.sections.map((s, i) => <li key={s.id} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'move', id: s.id })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onDragOver={e => e.preventDefault()} onDrop={() => { setDropAt(i); insertAt(i); }}
+              className={`flex items-center gap-1 rounded-md px-1.5 py-1 text-sm ${sel === s.id ? 'bg-muted' : 'hover:bg-muted/50'}`}>
+              <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <button className="flex-1 truncate text-left" onClick={() => { setSel(s.id); setPanel('content'); }}>{BLOCKS[s.type].label}</button>
+              {!readOnly && <><button aria-label="Hide" onClick={() => editSection(s.id, x => { x.style.hidden = !x.style.hidden; })}>{s.style.hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button>
+                <button aria-label="Duplicate" onClick={() => editPage(p => { p.sections.splice(i + 1, 0, { ...structuredClone(s), id: uid() }); })}><Copy className="h-3.5 w-3.5" /></button>
+                <button aria-label="Delete" onClick={() => { editPage(p => { p.sections = p.sections.filter(x => x.id !== s.id); }); if (sel === s.id) setSel(null); }}><Trash2 className="h-3.5 w-3.5" /></button></>}
+            </li>)}</ul></div>
+          </div>
+          : panel === 'theme' ? <div className="space-y-3">
             {([['brand', 'Business name', 'text'], ['phone', 'Phone', 'text'], ['email', 'Email', 'text'], ['whatsapp', 'WhatsApp number', 'text']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'text' }} value={(theme as any)[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}
             <FieldEditor disabled={readOnly} f={{ key: 'logo', label: 'Logo', kind: 'image' }} value={theme.logo} onChange={v => { setTheme({ ...theme, logo: v }); setDirty(true); }} />
             {([['primary', 'Brand colour'], ['background', 'Page background'], ['text', 'Text colour']] as const).map(([k, l]) => <FieldEditor key={k} disabled={readOnly} f={{ key: k, label: l, kind: 'color' }} value={theme[k]} onChange={v => { setTheme({ ...theme, [k]: v }); setDirty(true); }} />)}

@@ -34,13 +34,21 @@ export const FONTS = ['Sora', 'Manrope', 'Cormorant Garamond', 'Playfair Display
 
 export const DEFAULT_THEME: SiteTheme = { headingFont: 'Cormorant Garamond', bodyFont: 'Manrope', primary: '#0891b2', background: '#ffffff', text: '#0a0a0a', radius: 14 };
 
+/** Wonderlands tools a company can embed. Values are stored in saved sites — never rename one;
+ *  'studio' and 'design' keep their ids but now open the current 3D Studio and Global Design Board V2. */
 export const TECH_TOOLS = [
-  { value: 'studio', label: '3D Pool & Spa Studio', path: '/wonderlands-studio' },
+  { value: 'design2d', label: 'Design Studio (2D)', path: '/design-studio' },
+  { value: 'studio', label: '3D Studio', path: '/studio-3d' },
+  { value: 'design', label: 'Global Design Board V2', path: '/global-design-board-v2' },
+  { value: 'landscaping', label: 'Landscaping studio', path: '/landscaping' },
+  { value: 'solarboard', label: 'Solar drawing board', path: '/solar-board' },
+  { value: 'enclosures', label: 'Screen enclosure, lanai & fencing board', path: '/suites/enclosures' },
+  { value: 'poolspa', label: 'Pool & Spa Suites', path: '/suites/pools-and-spas' },
+  { value: 'blueprint', label: 'Blueprint builder', path: '/blueprint-builder' },
   { value: 'solar', label: 'Solar Genius', path: '/solar-genius' },
   { value: 'quote', label: 'Quote Atelier', path: '/quote' },
   { value: 'calculator', label: 'Pool cost calculator', path: '/pool-calculator' },
-  { value: 'design', label: 'Design board', path: '/global-design-board' },
-  { value: 'landscaping', label: 'Landscaping studio', path: '/landscaping' },
+  { value: 'showroom', label: 'Studio showroom', path: '/studio-showroom' },
   { value: 'flip', label: 'FLIP book (pick below)', path: '/flip/' },
 ];
 
