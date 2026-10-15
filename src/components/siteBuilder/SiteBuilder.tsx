@@ -232,7 +232,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const wrap = useCallback((s: Section, node: React.ReactNode) => {
     const i = page.sections.indexOf(s);
     return <div className={`relative group ${sel === s.id ? 'outline outline-2 outline-teal -outline-offset-2' : 'hover:outline hover:outline-1 hover:outline-teal/60 -outline-offset-1'}`}
-      onClick={e => { e.preventDefault(); setSel(s.id); if (panel === 'theme') setPanel('content'); }}
+      onClick={e => { e.preventDefault(); setSel(s.id); if (panel !== 'style') setPanel('content'); }}
       draggable={!readOnly} onDragStart={e => { e.stopPropagation(); setDrag({ kind: 'move', id: s.id }); }} onDragEnd={() => { setDrag(null); setDropAt(null); }}
       onDragOver={e => { if (!drag) return; e.preventDefault(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setDropAt(e.clientY < r.top + r.height / 2 ? i : i + 1); }}
       onDrop={e => { e.preventDefault(); if (dropAt !== null) insertAt(dropAt); }}>
