@@ -20,6 +20,9 @@ import {
   Route, LayoutList, AlignHorizontalDistributeCenter
 } from 'lucide-react';
 import { paverTypes } from '@/data/paverData';
+import { gilmerPools } from '@/data/gilmerPools';
+import { pools as catalogPools } from '@/components/PoolCatalog';
+import { DECK_PAVERS, FENCE_MATERIALS, FENCE_COLORS, SCREEN_STYLES, SCREEN_COLORS, TURFS } from '@/components/designStudio/SiteElementsLayer';
 import { TextureBuilder, type TextureConfig } from '../TextureBuilder';
 
 interface DesignerToolPanelProps {
@@ -96,6 +99,28 @@ interface DesignerToolPanelProps {
   pendingPlacement?: string | null;
   /** Main pool outline in feet — feeds the 3D Studio depth editor's axis. */
   poolPointsFt?: Array<{ x: number; y: number }>;
+  /** Places an inventory pool (width × length in feet) on the board. */
+  onPickPool?: (widthFt: number, lengthFt: number) => void;
+}
+
+/* Inventory pools (main-site catalogs, same order, own photos) with measurements parsed to feet. */
+const parseFt = (s: string) => { const m = s.match(/(\d+(?:\.\d+)?)\s*'?\s*(?:(\d+)\s*")?/); return m ? parseFloat(m[1]) + (m[2] ? parseInt(m[2]) / 12 : 0) : 0; };
+const INVENTORY_POOLS = [...catalogPools, ...gilmerPools]
+  .filter(p => p.image && p.dimensions)
+  .map(p => { const [a, b] = String(p.dimensions).split(/\s*[x×]\s*/i); const w = parseFt(a ?? ''), l = parseFt(b ?? ''); return { model: p.model, image: p.image as string, dims: String(p.dimensions), w: Math.min(w, l), l: Math.max(w, l) }; })
+  .filter(p => p.w > 0 && p.l > 0);
+
+function ColorChips({ colors, value, onPick }: { colors: { id: string; hex: string }[]; value?: string; onPick: (hex: string) => void }) {
+  return (
+    <div className="flex gap-1.5">
+      {colors.map(c => (
+        <button key={c.id} onClick={() => onPick(c.hex)}
+          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-semibold capitalize text-foreground ${value === c.hex ? 'border-foreground' : 'border-border'}`}>
+          <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: c.hex }} />{c.id}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'pool-features' | 'landscape' | 'water-features' | 'depth' | 'cost' | 'textures' | null;
@@ -103,6 +128,16 @@ type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'pool-features' |
 export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const [expandedSection, setExpandedSection] = useState<PanelSection>(null);
   const [depthAnchorId, setDepthAnchorId] = useState<string | null>(null);
+  // Board selection (broadcast by SiteElementsLayer) drives the Materials panel.
+  const [boardSel, setBoardSel] = useState<{ id: string | null; kind: string | null; color?: string; style?: string } | null>(null);
+  React.useEffect(() => {
+    const h = (e: Event) => setBoardSel((e as CustomEvent).detail);
+    window.addEventListener('design-studio:selection', h);
+    return () => window.removeEventListener('design-studio:selection', h);
+  }, []);
+  const restyle = (patch: Record<string, unknown>) => {
+    if (boardSel?.id) window.dispatchEvent(new CustomEvent('design-studio:site-restyle', { detail: { id: boardSel.id, patch } }));
+  };
 
   const toggleSection = (section: PanelSection) => {
     setExpandedSection(prev => {
