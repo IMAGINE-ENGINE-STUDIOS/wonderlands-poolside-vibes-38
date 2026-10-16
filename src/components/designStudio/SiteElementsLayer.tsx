@@ -59,6 +59,13 @@ export interface SiteElement {
 type Choice = Omit<SiteElement, "id" | "pts" | "kind"> & { kind: SiteKind };
 /** Drawn decks use the main page paver list (photo + rate per sq ft). */
 export const DECK_PAVERS = paverTypes.filter((x) => x.category === "paver").map((x) => ({ id: x.id, label: x.name, rate: x.basePrice, image: x.image }));
+/** Catalog photo of the exact product a site element was drawn with (quotes use it; never a random image). */
+export function siteElementImage(e: SiteElement): string | undefined {
+  if (e.kind === "fence") return FENCE_MATERIALS.find((m) => m.id === e.style)?.image;
+  if (e.kind === "enclosure") return SCREEN_STYLES.find((m) => m.id === e.style)?.image;
+  if (e.kind === "deck") return DECK_PAVERS.find((m) => m.id === e.style)?.image;
+  return TURFS.find((m) => m.label === e.label)?.image;
+}
 /** Pavers grouped by family (Appian, Catalina Grana, …) for a symmetrical picker. */
 const DECK_FAMILIES: [string, typeof DECK_PAVERS][] = (() => {
   const fams = ["Catalina Grana", "Gloca Mirage", "Appian", "Catalina", "Coralina", "Travertine"];
