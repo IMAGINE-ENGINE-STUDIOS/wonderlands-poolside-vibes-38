@@ -18,6 +18,9 @@ import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower
 import { ShapePanel } from './poolBuilder/ShapePanel';
 import { DesignerToolPanel } from './poolBuilder/DesignerToolPanel';
 import { ProjectManager, setAutoSave, getAutoSave } from './poolBuilder/ProjectManager';
+import { useSiteElements } from './designStudio/SiteElementsLayer';
+import { useBoardHistory, useBoardCommands, publishBoardStatus } from './designStudio/boardCommands';
+import { toast } from '@/hooks/use-toast';
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
 import { SplineDrawingToolbar } from './poolBuilder/SplineDrawingToolbar';
 import { PointCoordinateEditor } from './poolBuilder/PointCoordinateEditor';
@@ -143,7 +146,9 @@ interface PoolBuilderProps {
     };
   }) => void;
   /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
-  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void }) => React.ReactNode;
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void;
+    extraPools?: { id: string; type?: string; points: { x: number; y: number }[] }[]; extraDecks?: Record<string, { x: number; y: number }[]>;
+    setExtraPool?: (id: string, pts: { x: number; y: number }[]) => void; setExtraDeck?: (id: string, pts: { x: number; y: number }[]) => void; eraseExtraPool?: (id: string) => void }) => React.ReactNode;
 }
 
 // Helper function to shade colors
@@ -555,6 +560,39 @@ export function PoolBuilder({
     features, depthPoints, poolShape, selectedPaverId, selectedCopingId, selectedFinishId,
     deckOffset, additionalPools, fencePoints, fenceDoors, fenceHeight, smoothFence,
     scale, zoomLevel, gridSnap, snapSize, customTextures]);
+
+  // ─── 2D board history + header commands (undo/redo/save/projects) — Imagine Engine Studios Corp ───
+  const [siteItems, setSiteItems] = useSiteElements();
+  const boardSnap = useMemo(() => ({ points, hardscapePoints, additionalPools, additionalDeckPoints, features, site: siteItems }),
+    [points, hardscapePoints, additionalPools, additionalDeckPoints, features, siteItems]);
+  const applyBoardSnap = useCallback((s: typeof boardSnap) => {
+    setPoints(s.points); setHardscapePoints(s.hardscapePoints); setAdditionalPools(s.additionalPools);
+    setAdditionalDeckPoints(s.additionalDeckPoints); setFeatures(s.features); setSiteItems(s.site);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setSiteItems]);
+  const boardHistory = useBoardHistory(boardSnap, applyBoardSnap);
+  const saveNow = useCallback(() => {
+    setAutoSave(getSerializableState());
+    setLastAutoSaved(new Date().toISOString());
+    toast({ title: 'Project saved', description: 'Your design is saved on this device.' });
+  }, [getSerializableState]);
+  useBoardCommands((c) => {
+    if (c === 'undo') boardHistory.undo(); else if (c === 'redo') boardHistory.redo();
+    else if (c === 'save') saveNow(); else setShowProjectManager(true);
+  });
+  useEffect(() => { publishBoardStatus({ canUndo: boardHistory.canUndo, canRedo: boardHistory.canRedo, lastSaved: lastAutoSaved }); },
+    [boardHistory.canUndo, boardHistory.canRedo, lastAutoSaved]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (/input|textarea|select/i.test((e.target as HTMLElement)?.tagName ?? '') || document.querySelector('[data-site-drawing="1"]')) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); boardHistory.undo(); }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); boardHistory.redo(); }
+      else if (k === 's') { e.preventDefault(); saveNow(); }
+    };
+    window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey);
+  }, [boardHistory, saveNow]);
 
   // Handle external updates from 3D viewer (bidirectional sync)
   const isExternalUpdateRef = useRef(false);
@@ -1180,26 +1218,32 @@ export function PoolBuilder({
       // Check if pool extends outside existing deck and prompt for deck
       checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
     } else {
-      // Spillover spa or tanning ledge - enter perimeter anchor mode
-      // Calculate initial position based on where the drawn shape was
-      const centerX = pendingPoolData.points.reduce((sum, p) => sum + p.x, 0) / pendingPoolData.points.length;
-      const centerY = pendingPoolData.points.reduce((sum, p) => sum + p.y, 0) / pendingPoolData.points.length;
-      const initialPerimeterPos = getPerimeterPositionFromPoint(centerX, centerY);
-      setPerimeterAnchorMode({
-        isActive: true,
+      // Spillover spa or tanning ledge — keep the exact shape the user just drew
+      // (merged with the main pool; no coping at the join). Imagine Engine Studios Corp.
+      const newPoolId = Date.now().toString();
+      const drawn = pendingPoolData.points;
+      setAdditionalPools(prev => [...prev, {
+        id: newPoolId,
+        type: featureType === 'spillover-spa' ? 'spa' : 'pool',
+        points: drawn,
+        shape: 'freeform',
         featureType,
-        perimeterPosition: initialPerimeterPos,
-        isFixed: false
-      });
+        intersectsWith: pendingPoolData.intersectsWith,
+        isMerged: true
+      }]);
+      if (featureType === 'spillover-spa') {
+        setAdditionalDeckPoints(prev => ({ ...prev, [newPoolId]: generateHardscapeFromPool(drawn, 3) }));
+        setDeckOffsetsById(prev => ({ ...prev, [newPoolId]: 3 }));
+      }
       setPendingPoolData(null);
       setShowPoolTypeDialog(false);
-      // Clear the previous spline drawing - user will draw new shape from anchor
       setSplineDrawing({
         isActive: false,
         points: [],
         currentCurveType: 'linear'
       });
       setActiveTool(null);
+      checkAndPromptForOutsideDeck(newPoolId, drawn);
     }
   }, [pendingPoolData, getPerimeterPositionFromPoint, checkAndPromptForOutsideDeck]);
 
@@ -5874,7 +5918,13 @@ export function PoolBuilder({
           setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${Date.now().toString(36)}${i}` }))),
           setPool: (pts) => setPoints(pts as Point[]),
           endDeckMode: () => setActiveTool('select'),
-          erasePool: () => { setPoints([]); setHardscapePoints([]); setFeatures([]); } })}
+          erasePool: () => { setPoints([]); setHardscapePoints([]); setFeatures([]); },
+          /* Extra pools/spas + their attached decks — listed, editable and erasable from the overlay. */
+          extraPools: additionalPools.map((p) => ({ id: p.id, type: p.featureType === 'tanning-ledge' ? 'tanning-ledge' : p.type, points: p.points })),
+          extraDecks: Object.fromEntries(additionalPools.filter((p) => !p.isPerimeterSnapped && p.points.length >= 3).map((p) => [p.id, additionalDeckPoints[p.id] || generateHardscapeFromPool(p.points, deckOffsetsById[p.id] ?? deckOffset)])),
+          setExtraPool: (id, pts) => setAdditionalPools((prev) => prev.map((p) => p.id === id ? { ...p, points: pts as Point[] } : p)),
+          setExtraDeck: (id, pts) => setAdditionalDeckPoints((prev) => ({ ...prev, [id]: pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${id}${i}` })) as HardscapePoint[] })),
+          eraseExtraPool: (id) => { setAdditionalPools((prev) => prev.filter((p) => p.id !== id)); setAdditionalDeckPoints((prev) => { const n = { ...prev }; delete n[id]; return n; }); } })}
         {/* Main Canvas - fills viewport */}
         <div className="w-full h-full">
             <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={(e) => {
@@ -6292,8 +6342,8 @@ export function PoolBuilder({
           pendingPlacement={pendingLandscapePlacement || pendingPoolFeaturePlacement || null}
         />
 
-        {/* Project Manager Button - Top Left */}
-        <div className="absolute top-8 left-8 z-20 flex items-center gap-2">
+        {/* Project Manager Button - Top Left (Design Studio shows Save/Projects in its header instead) */}
+        <div className={`absolute top-8 left-8 z-20 flex items-center gap-2 ${renderOverlay ? 'hidden' : ''}`}>
           <Button
             size="sm"
             variant="outline"
