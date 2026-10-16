@@ -401,7 +401,7 @@ const StudioShowroom = () => {
       <AutoMount fit title="the 3D Studio" note="A rectangular pool, live in 3D. Orbit, change finishes and lights, and walk the deck.">
         <ShowroomStudio3D height={680} />
         <div className="mt-4 flex justify-end">
-          <Link to="/studio-3d" className="text-[10px] uppercase tracking-[0.28em] underline-offset-4 hover:underline">Open the 3D Studio full screen</Link>
+          <Link to="/design-studio?view=3d" className="text-[10px] uppercase tracking-[0.28em] underline-offset-4 hover:underline">Open the 3D Studio full screen</Link>
         </div>
       </AutoMount>
     ),

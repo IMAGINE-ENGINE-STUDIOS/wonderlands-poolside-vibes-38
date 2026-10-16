@@ -13,7 +13,7 @@ export interface PlatformTool {
 }
 
 export const PLATFORM_TOOLS: PlatformTool[] = [
-  { id: 'studio-3d', label: '3D Pool Studio', description: 'Design your pool and backyard in 3D', route: '/studio-3d', keywords: ['3d', 'three d', 'render', 'visualize', 'studio', 'design pool'] },
+  { id: 'studio-3d', label: '3D Pool Studio', description: 'Design your pool and backyard in 3D', route: '/design-studio?view=3d', keywords: ['3d', 'three d', 'render', 'visualize', 'studio', 'design pool'] },
   { id: 'design-studio', label: '2D Design Studio', description: 'Draw your pool shape to scale', route: '/design-studio', keywords: ['2d', 'draw', 'drawing', 'sketch', 'shape', 'designer'] },
   { id: 'global-board', label: 'Global Design Board', description: 'Pools, decks, turf, fences and screens on one board', route: '/global-design-board-v2', keywords: ['board', 'backyard', 'layout', 'plan', 'site plan', 'whole yard'] },
   { id: 'showroom', label: 'Studio Showroom', description: 'Every tool in one showroom', route: '/studio-showroom', keywords: ['showroom', 'tools', 'widgets'] },

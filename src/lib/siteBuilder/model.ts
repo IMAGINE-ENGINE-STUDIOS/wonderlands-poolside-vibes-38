@@ -38,7 +38,7 @@ export const DEFAULT_THEME: SiteTheme = { headingFont: 'Cormorant Garamond', bod
  *  'studio' and 'design' keep their ids but now open the current 3D Studio and Global Design Board V2. */
 export const TECH_TOOLS = [
   { value: 'design2d', label: 'Design Studio (2D)', path: '/design-studio' },
-  { value: 'studio', label: '3D Studio', path: '/studio-3d' },
+  { value: 'studio', label: '3D Studio', path: '/design-studio?view=3d' },
   { value: 'design', label: 'Global Design Board V2', path: '/global-design-board-v2' },
   { value: 'landscaping', label: 'Landscaping studio', path: '/landscaping' },
   { value: 'solarboard', label: 'Solar drawing board', path: '/solar-board' },

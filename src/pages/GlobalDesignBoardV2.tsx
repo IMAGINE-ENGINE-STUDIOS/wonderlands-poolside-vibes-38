@@ -522,7 +522,7 @@ const GlobalDesignBoardV2: React.FC<{ embedded?: boolean }> = ({ embedded }) => 
   const sumNet = (k: Kind) => Math.round(items.filter((i) => i.kind === k).reduce((s, i) => s + netOf(i), 0));
   const open3D = () => {
     saveBoard3D(boardTo3D(items, (id) => byId.get(id), (it) => (it as BoardItem).productId, (it) => { const b = it as BoardItem; const pr = byId.get(b.productId); return (finishesFor(pr?.brand).find((f) => f.id === b.finish) ?? defaultFinishFor(pr?.brand))?.image; }));
-    navigate("/studio-3d?from=board");
+    navigate("/design-studio?view=3d");
   };
   const selItem = items.find((i) => i.id === selected);
   const selBox = selItem ? bbox(selItem.pts) : null;

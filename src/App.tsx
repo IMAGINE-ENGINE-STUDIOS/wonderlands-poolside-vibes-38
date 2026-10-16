@@ -58,7 +58,6 @@ const SalesRepDashboard = lazy(() => import("./pages/SalesRepDashboard"));
 const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
 const DesignStudio = lazy(() => import("./pages/DesignStudio"));
 const StudioShowroom = lazy(() => import("./pages/StudioShowroom"));
-const Studio3DPage = lazy(() => import("./pages/Studio3DPage"));
 const StudioLanding = lazy(() => import("./pages/StudioLanding"));
 const JobsPage = lazy(() => import("./pages/JobsPage"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
@@ -243,7 +242,7 @@ const App = () => {
             <Route path="/blueprint-builder" element={<BlueprintBuilder />} />
             <Route path="/global-design-board" element={<GlobalDesignBoard />} />
             <Route path="/studio-showroom" element={<StudioShowroom />} />
-            <Route path="/studio-3d" element={<Studio3DPage />} />
+            <Route path="/studio-3d" element={<Navigate to="/design-studio?view=3d" replace />} />
             <Route path="/studio" element={<StudioLanding />} />
             <Route path="/tools" element={<ToolsGallery />} />
             <Route path="/tools2" element={<ToolsGallery2 />} />
