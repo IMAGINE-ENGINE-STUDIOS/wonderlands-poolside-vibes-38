@@ -43,6 +43,7 @@ import { textureCache } from '@/utils/textureCache';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { LandscapePlants3D } from './scene3d/LandscapePlants3D';
 import { BoardElements3D } from './scene3d/BoardElements3D';
+import { GradientSky } from './scene3d/GradientSky';
 import { loadBoard3D, BOARD_3D_EVENT, updateBoard3D, waterAxis, waterCenter } from '@/lib/design/board3D';
 import { BOARD_SELECT_EVENT, type BoardSelection } from './scene3d/BoardElements3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
