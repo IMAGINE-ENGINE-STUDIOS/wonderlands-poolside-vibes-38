@@ -687,7 +687,7 @@ export function PoolBuilder({
       const sy = (e.clientY - rect.top) * (canvasSize.height / rect.height) - canvasSize.height / 2;
       const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
       const z = zoomRef.current;
-      const next = Math.min(6, Math.max(0.1, z * Math.exp(-dy * 0.0015)));
+      const next = Math.min(6, Math.max(0.25, z * Math.exp(-dy * 0.0015)));
       if (next === z) return;
       const k = next / z;
       const pan = panRef.current;
