@@ -198,7 +198,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   /* ---------- spline editing: any spline (pool, decks, fences, screens, turf) ---------- */
   const [menu, setMenu] = React.useState<{ x: number; y: number; id: string; at: Pt; seg: number; sub?: boolean } | null>(null);
   const [editId, setEditId] = React.useState<string | null>(null);
-  const [moving, setMoving] = React.useState<{ id: string; start: Pt; orig: Pt[]; deck?: Pt[] } | null>(null);
+  const [moving, setMoving] = React.useState<{ id: string; start: Pt; orig: Pt[]; deck?: Pt[]; deckId?: string } | null>(null);
   const dragRef = React.useRef<{ id: string; i: number } | null>(null);
   /* Ids: "__pool"/"__deck" = main pool + deck, "__xp:<id>"/"__xd:<id>" = extra pool/spa + its deck. */
   const extras = React.useMemo(() => (view?.extraPools ?? []).filter((p) => p.points?.length >= 3), [view?.extraPools]);
@@ -279,7 +279,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   React.useEffect(() => {
     const mv = (e: MouseEvent) => {
       if (dragRef.current) { const w = toWorld(e); const { id, i } = dragRef.current; const pts = getPts(id); setPts(id, pts.map((p, k) => k === i ? { ...p, x: w.x, y: w.y } : p)); }
-      else if (moving) { const w = toWorld(e); const dx = w.x - moving.start.x, dy = w.y - moving.start.y; setPts(moving.id, moving.orig.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); if (moving.deck) view?.setDeck?.(moving.deck.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); }
+      else if (moving) { const w = toWorld(e); const dx = w.x - moving.start.x, dy = w.y - moving.start.y; setPts(moving.id, moving.orig.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); if (moving.deck) setPts(moving.deckId ?? "__deck", moving.deck.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); }
     };
     const up = () => { dragRef.current = null; };
     window.addEventListener("mousemove", mv); window.addEventListener("mouseup", up);
@@ -321,7 +321,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     <>
       {/* Drawing overlay — same transform as the PoolBuilder canvas */}
       {view && (
-        <svg ref={svgRef} className="absolute inset-0 z-[5]" width={view.width} height={view.height}
+        <svg ref={svgRef} data-site-drawing={drawing ? "1" : "0"} className="absolute inset-0 z-[5]" width={view.width} height={view.height}
           style={{ pointerEvents: drawing || moving || view.addMode ? "auto" : "none", cursor: drawing || view.addMode ? "crosshair" : moving ? "move" : undefined }}
           onClick={(e) => {
             if (moving) { setMoving(null); return; }
@@ -346,6 +346,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               {(view.deckPts?.length ?? 0) >= 3 && <polygon points={view.deckPts!.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
               {items.filter((x) => x.kind === "deck").map((d) => <polygon key={d.id} points={d.pts.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />)}
               {(view.poolPts?.length ?? 0) >= 3 && <polygon points={poolRing(view.poolPts!).map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
+              {extras.map((x) => <polygon key={`xp${x.id}`} points={poolRing(x.points).map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />)}
+              {extras.map((x) => (view.extraDecks?.[x.id]?.length ?? 0) >= 3 && <polygon key={`xd${x.id}`} points={view.extraDecks![x.id].map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />)}
             </mask>
             <pattern id="screen-mesh" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0 L4 4 M4 0 L0 4" stroke="#000" strokeOpacity=".12" strokeWidth=".4" /></pattern>
           </defs>
@@ -372,6 +374,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               </>
             )}
             {view.addMode && !drawing && hover && <circle cx={hover.x} cy={hover.y} r={6 / (view.zoom || 1)} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2 / (view.zoom || 1)} />}
+            {selected && (selected.startsWith("__xp:") || selected.startsWith("__xd:") || selected === "__pool" || selected === "__deck") && getPts(selected).length >= 3 && <polygon points={(isPoolId(selected) ? poolRing(getPts(selected)) : getPts(selected)).map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2.5 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
             {editId && (() => { const pts = getPts(editId); const z = view.zoom || 1; const open = isOpen(editId); return (
               <g style={{ pointerEvents: "auto" }}>
                 {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={4 / z} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
@@ -487,6 +490,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
           <ul className="mt-2 space-y-1 text-[12px]">
             {(view?.poolPts?.length ?? 0) >= 3 && <Row id="__pool" label="Pool" />}
             {(view?.deckPts?.length ?? 0) >= 3 && <Row id="__deck" label={`Pool deck · ${Math.round(poolTotals?.deckArea ?? 0)} sqft`} />}
+            {extras.map((x) => <React.Fragment key={x.id}><Row id={`__xp:${x.id}`} label={`${extraLabel(x.id)} · ${Math.round(areaFt(x.points, scale))} sqft`} />{(view?.extraDecks?.[x.id]?.length ?? 0) >= 3 && <Row id={`__xd:${x.id}`} label={`${extraLabel(x.id)} deck · ${Math.round(Math.max(0, areaFt(view!.extraDecks![x.id], scale) - areaFt(x.points, scale)))} sqft`} />}</React.Fragment>)}
             {items.map((e) => <Row key={e.id} id={e.id} label={`${KIND_LABEL[e.kind]} · ${e.label} · ${Math.round(e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, view?.poolPts ?? [], view?.deckPts ?? [], scale) : elementQty(e, scale))} ${e.unit}`} />)}
           </ul>
           {sel && (sel.kind === "fence" || sel.kind === "enclosure") && (
