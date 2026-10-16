@@ -250,8 +250,8 @@ export function PoolDesignerHeader({
     </div>
   );
   const Stat = ({ label, value, unit }: { label: string; value: string; unit: string }) => (
-    <div className="px-4 py-3 flex flex-col gap-0.5">
-      <span className="text-[10px] font-semibold tracking-[0.07em] uppercase text-slate-400 leading-none">{label}</span>
+    <div className="px-3 py-3 flex flex-col gap-0.5 min-w-0 overflow-hidden">
+      <span className="text-[10px] font-semibold tracking-[0.07em] uppercase text-slate-400 leading-none whitespace-nowrap truncate">{label}</span>
       <span className="text-[13.5px] font-semibold tracking-tight text-slate-900 tabular-nums mt-1 truncate">{value} <span className="font-normal text-slate-500">{unit}</span></span>
     </div>
   );
