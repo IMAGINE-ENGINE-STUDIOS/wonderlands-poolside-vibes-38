@@ -38,6 +38,8 @@ interface PoolAssetManagerProps {
   onSelectObject?: (id: string | null) => void;
   gizmoMode?: GizmoMode;
   onGizmoModeChange?: (m: GizmoMode) => void;
+  /** Which pool/spa these controls edit (shown in the panel header). */
+  targetLabel?: string;
 }
 export function PoolAssetManager({
   isOpen,
@@ -61,7 +63,8 @@ export function PoolAssetManager({
   selectedObjectId,
   onSelectObject,
   gizmoMode,
-  onGizmoModeChange
+  onGizmoModeChange,
+  targetLabel = 'Main pool'
 }: PoolAssetManagerProps) {
   const [activeTab, setActiveTab] = useState('objects');
   const [showTextureSync, setShowTextureSync] = useState(false);
@@ -154,52 +157,33 @@ export function PoolAssetManager({
     onSelectAsset(newStair.id);
   }, [stairs, onStairsChange, onSelectAsset, poolFinishTexture]);
 
-  // Add new chair/bench - uses pool finish texture by default
-  const handleAddChair = useCallback((preset: 'lounge' | 'bench' | 'corner' | 'barstool') => {
+  // Add seating. Lounge / bench / corner / sun bench are procedural: swept along
+  // the wall (ContourSeating), so they bend round corners and curves and can be
+  // stretched up to 360° with the "Length around pool" bar. Bar stools stay discrete.
+  const handleAddChair = useCallback((preset: 'lounge' | 'bench' | 'corner' | 'barstool' | 'sunbench') => {
     if (preset === 'barstool') {
       const stool: PoolChairConfig = { id: `chair-${Date.now()}`, wallPosition: 0.3, textureUrl: poolFinishTexture, ...BAR_STOOL_PRESET };
       onChairsChange([...chairs, stool]);
       onSelectAsset(stool.id);
       return;
     }
+    // width = into the pool (ft), height = top surface below water (ft), span = share of perimeter.
     const presets = {
-      lounge: {
-        width: 2.5,
-        depth: 6,
-        height: 1.5,
-        name: 'Tanning Ledge'
-      },
-      bench: {
-        width: 6,
-        depth: 1.5,
-        height: 1.0,
-        name: 'Pool Bench'
-      },
-      corner: {
-        width: 2,
-        depth: 2,
-        height: 1.0,
-        name: 'Corner Seat'
-      } // 1 foot below water
-    };
+      sunbench: { width: 4.5, height: 0.75, span: 0.12, softEdge: 0.25 },
+      lounge: { width: 3, height: 1.25, span: 0.1, softEdge: 0.2 },
+      bench: { width: 1.5, height: 1.5, span: 0.15, softEdge: 0.15 },
+      corner: { width: 2, height: 1.5, span: 0.06, softEdge: 0.15 },
+    } as const;
     const p = presets[preset];
-    const newChair: PoolChairConfig = {
-      id: `chair-${Date.now()}`,
-      wallPosition: 0.3 + Math.random() * 0.2,
-      width: p.width,
-      depth: p.depth,
-      height: p.height,
-      // This is depth below water for top surface
-      cornerRadius: 0.3,
-      textureUrl: poolFinishTexture,
-      // Use pool finish texture
-      snapToWall: true,
-      followFloor: true,
-      name: p.name
+    // Next free stretch of wall so new seats never stack on old ones.
+    const start = contourSeating.reduce((m, s) => Math.max(m, s.endPosition % 1), 0.05) + 0.02;
+    const seat: ContourSeatingConfig = {
+      id: `contour-${Date.now()}`, kind: preset, startPosition: start % 1, endPosition: (start % 1) + p.span,
+      width: p.width, height: p.height, softEdge: p.softEdge, textureUrl: poolFinishTexture,
     };
-    onChairsChange([...chairs, newChair]);
-    onSelectAsset(newChair.id);
-  }, [chairs, onChairsChange, onSelectAsset, poolFinishTexture]);
+    onContourSeatingChange([...contourSeating, seat]);
+    onSelectAsset(seat.id);
+  }, [chairs, onChairsChange, contourSeating, onContourSeatingChange, onSelectAsset, poolFinishTexture]);
 
   // Add new light - default to gradient color mode
   const handleAddLight = useCallback(() => {
@@ -295,6 +279,7 @@ export function PoolAssetManager({
         <h3 className="font-semibold text-sm flex items-center gap-2">
           <Footprints className="h-4 w-4 text-primary" />
           Pool Assets
+          <span className="text-[10px] font-normal text-muted-foreground">· {targetLabel}</span>
         </h3>
         <Button variant="ghost" size="sm" onClick={onToggle} className="h-7 w-7 p-0 hover:bg-primary/10">
           <ChevronUp className="h-4 w-4" />
@@ -418,6 +403,10 @@ export function PoolAssetManager({
             <div className="space-y-3 pr-2">
               {/* Add Chair Buttons */}
               <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleAddChair('sunbench')} className="text-xs flex-col h-auto py-2 col-span-2 border-primary/40">
+                  <Armchair className="h-4 w-4 mb-1" />
+                  Sun bench
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => handleAddChair('lounge')} className="text-xs flex-col h-auto py-2">
                   <Armchair className="h-4 w-4 mb-1" />
                   Lounge
@@ -447,7 +436,7 @@ export function PoolAssetManager({
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium flex items-center gap-1">
                           <Spline className="h-3 w-3" />
-                          Contour #{idx + 1}
+                          {({ sunbench: 'Sun bench', lounge: 'Lounge', bench: 'Bench', corner: 'Corner seat', contour: 'Contour' } as const)[seating.kind ?? 'contour']} #{idx + 1}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {seating.width}ft wide
@@ -459,7 +448,7 @@ export function PoolAssetManager({
               {/* Selected Contour Controls */}
               {selectedContour && <div className="space-y-3 p-3 bg-muted/30 rounded-lg mt-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium">Edit Contour Seating</Label>
+                    <Label className="text-xs font-medium">Edit {selectedContour.kind === 'sunbench' ? 'Sun Bench' : 'Seating'}</Label>
                     <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -482,7 +471,7 @@ export function PoolAssetManager({
                     <Label className="text-xs">Width: {selectedContour.width.toFixed(1)} ft into pool</Label>
                     <Slider value={[selectedContour.width]} onValueChange={([v]) => updateContour(selectedContour.id, {
                   width: v
-                })} min={1} max={4} step={0.25} />
+                })} min={1} max={8} step={0.25} />
                   </div>
 
                   <div className="space-y-2">

@@ -45,8 +45,8 @@ import { BoardElements3D } from './scene3d/BoardElements3D';
 import { loadBoard3D, BOARD_3D_EVENT, updateBoard3D, waterAxis, waterCenter } from '@/lib/design/board3D';
 import { BOARD_SELECT_EVENT, type BoardSelection } from './scene3d/BoardElements3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
-import { board3DTakeoff } from '@/lib/design/board3DTakeoff';
-import { useSiteElements } from './designStudio/SiteElementsLayer';
+import { board3DTakeoff, seatingLines } from '@/lib/design/board3DTakeoff';
+import { useSiteElements, siteElementImage } from './designStudio/SiteElementsLayer';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -565,11 +565,13 @@ export function UnifiedPoolVisualizer({
    * into that water body only. Imagine Engine Studios Corp.
    */
   const [activeWater, setActiveWater] = useState<number | null>(null);
+  /** Glides the camera onto extra pool/spa k (set below once the board waters are known). */
+  const focusWaterRef = useRef<((k: number) => void) | null>(null);
   useEffect(() => {
     const on = (e: Event) => {
       const d = (e as CustomEvent<BoardSelection>).detail;
       // Only a pool/spa click changes the target; closing widgets or picking a fence/deck keeps it.
-      if (d?.type === 'water') { setActiveWater(d.i); setSelectedComponent((d.part ?? 'pool') as any); setShowPoolAssetManager(false); }
+      if (d?.type === 'water') { setActiveWater(d.i); setSelectedComponent((d.part ?? 'pool') as any); setShowPoolAssetManager(false); focusWaterRef.current?.(d.i); }
     };
     window.addEventListener(BOARD_SELECT_EVENT, on);
     return () => window.removeEventListener(BOARD_SELECT_EVENT, on);
@@ -609,17 +611,24 @@ export function UnifiedPoolVisualizer({
   }, [activeWater, activeW]);
   /** Whole-scene take-off: extra pools/spas, copings, every deck, turf, fences, screens. */
   const [siteItems] = useSiteElements();
-  const sceneTakeoff = useMemo(() => board3DTakeoff(boardData, siteItems, POOL_SHELL_PRICE_PER_SQFT), [boardData, siteItems]);
+  const ratedItems = useMemo(() => siteItems.map((e) => ({ ...e, image: siteElementImage(e) })), [siteItems]);
+  const sceneTakeoff = useMemo(() => board3DTakeoff(boardData, ratedItems, POOL_SHELL_PRICE_PER_SQFT), [boardData, ratedItems]);
+  /** Main pool: $250/sq ft shell until seats/sun benches are added; their footprint moves to the ledge rate. */
+  const mainSeatLines = useMemo(() => seatingLines('Main pool', contourSeating, scene.pool.points.map((p) => ({ x: p.x, z: p.y })), POOL_SHELL_PRICE_PER_SQFT), [contourSeating, scene.pool.points]);
   const headerBodies = useMemo(() => (boardData?.waters?.length ? sceneTakeoff.bodies : designerBodyLines), [boardData, sceneTakeoff, designerBodyLines]);
-  const headerFeatures = useMemo(() => [...designerQuoteFeatureLines, ...sceneTakeoff.lines], [designerQuoteFeatureLines, sceneTakeoff]);
+  const headerFeatures = useMemo(() => [...designerQuoteFeatureLines, ...mainSeatLines, ...sceneTakeoff.lines], [designerQuoteFeatureLines, mainSeatLines, sceneTakeoff]);
   /** Point every header control at a pool: null = main pool, k = extra pool/spa k. Glides the camera to it. */
   const targetWater = useCallback((k: number | null) => {
     if (k == null) { setActiveWater(null); window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: null })); setSelectedComponent('pool' as any); focusOnPoolAsset(); return; }
-    const w = boardWaters[k]; if (!w) return;
+    if (!boardWaters[k]) return;
+    // The select event also centres the camera (same path as clicking the pool in 3D).
     window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: { type: 'water', i: k, part: 'pool' } }));
+  }, [boardWaters, focusOnPoolAsset]);
+  focusWaterRef.current = (k: number) => {
+    const w = boardWaters[k]; if (!w || w.pts.length < 3) return;
     const c = waterCenter(w.pts); const xs = w.pts.map((p) => p.x), zs = w.pts.map((p) => p.z);
     setAutoRotate(false); focusOn([c.x, -1, c.z], Math.max(14, Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) * 1.3));
-  }, [boardWaters, focusOn, focusOnPoolAsset]);
+  };
   /** Per-body tile size (finish, coping, waterline, deck). Imagine Engine Studios Corp. */
   const [showTileSize, setShowTileSize] = useState(false);
   const mainScales = { finish: scene.pool.finish.scale || 1.8, coping: scene.deck.coping.scale || 1.8, waterline: scene.deck.waterline?.scale || 1.8, deck: scene.deck.paver.scale || 1.8 };
@@ -638,12 +647,15 @@ export function UnifiedPoolVisualizer({
       return { ...d, waters: d.waters!.map((x, k) => (k === activeWater ? { ...x, [key]: v } : x)) };
     });
   }, [activeWater]);
+  /** Stable reference so extra pools don't rebuild on every render. */
+  const boardScales = useMemo(() => ({ finish: mainScales.finish, coping: mainScales.coping, waterline: mainScales.waterline, paver: mainScales.deck }), [mainScales.finish, mainScales.coping, mainScales.waterline, mainScales.deck]);
   const waterVisible = activeWater != null ? !activeW?.waterOff : showWater;
   const toggleWater = useCallback(() => {
     if (activeWater == null) { setShowWater((v) => !v); return; }
     updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => (k === activeWater ? { ...w, waterOff: !w.waterOff } : w)) }));
   }, [activeWater]);
   const setWaterStairs = useCallback((u: any) => { if (activeWater == null) return; updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => k === activeWater ? { ...w, stairs: typeof u === 'function' ? u(w.stairs ?? []) : u } : w) })); }, [activeWater]);
+  const setWaterChairs = useCallback((u: any) => { if (activeWater == null) return; updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => k === activeWater ? { ...w, chairs: typeof u === 'function' ? u(w.chairs ?? []) : u } : w) })); }, [activeWater]);
   const setWaterSeating = useCallback((u: any) => { if (activeWater == null) return; updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => k === activeWater ? { ...w, seating: typeof u === 'function' ? u(w.seating ?? []) : u } : w) })); }, [activeWater]);
   const terrainSiteRef = useMemo(() => {
     const deckWidth = Number((scene.deck as any)?.width ?? (scene.deck as any)?.deckWidth) || 6;
@@ -1707,8 +1719,9 @@ export function UnifiedPoolVisualizer({
             onToggle={() => setShowPoolAssetManager(!showPoolAssetManager)}
             stairs={activeW ? (activeW.stairs ?? []) : poolStairs}
             onStairsChange={activeW ? setWaterStairs : setPoolStairs}
-            chairs={poolChairs}
-            onChairsChange={setPoolChairs}
+            chairs={activeW ? (activeW.chairs ?? []) : poolChairs}
+            onChairsChange={activeW ? setWaterChairs : setPoolChairs}
+            targetLabel={activeW ? (activeW.kind === 'spa' ? 'Spa' : 'Pool') + ' ' + ((activeWater ?? 0) + 2) : 'Main pool'}
             contourSeating={activeW ? (activeW.seating ?? []) : contourSeating}
             onContourSeatingChange={activeW ? setWaterSeating : setContourSeating}
             lights={poolLights}
@@ -1906,7 +1919,7 @@ export function UnifiedPoolVisualizer({
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
           <BoardElements3D holes={"outline" in terrainSiteRef && terrainSiteRef.outline ? [terrainSiteRef.outline] : []}
-            scales={{ finish: scene.pool.finish.scale || 1.8, coping: scene.deck.coping.scale || 1.8, waterline: scene.deck.waterline?.scale || 1.8, paver: scene.deck.paver.scale || 1.8 }} />
+            scales={boardScales} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}

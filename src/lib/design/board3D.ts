@@ -15,7 +15,7 @@
  */
 import { netRegions, type NetItem } from "@/lib/design/boardNetArea";
 import type { DepthAxis, LinearDepthAnchor } from "@/components/scene3d/types";
-import type { PoolStairConfig, ContourSeatingConfig } from "@/components/scene3d/poolAssetTypes";
+import type { PoolStairConfig, ContourSeatingConfig, PoolChairConfig } from "@/components/scene3d/poolAssetTypes";
 
 export const BOARD_3D_KEY = "studio3d.globalDesign.v1";
 export const BOARD_3D_EVENT = "studio3d:globalDesign";
@@ -37,7 +37,7 @@ export interface Water3D {
   /** Catalog photo URLs (same library as the main pool); hex kept for legacy saves. */
   finish: string; coping: string; waterline: string; copingWidth: number; copingHeight?: number;
   /** Own stairs / contour seats, same configs the main pool's asset manager edits. */
-  stairs?: PoolStairConfig[]; seating?: ContourSeatingConfig[];
+  stairs?: PoolStairConfig[]; seating?: ContourSeatingConfig[]; chairs?: PoolChairConfig[];
   /** Water surface hidden for this body only (header water button while it is selected). */
   waterOff?: boolean;
   /** Per-body texture scales; when unset they follow the main pool's scales. */

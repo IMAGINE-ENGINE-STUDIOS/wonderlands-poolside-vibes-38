@@ -177,7 +177,7 @@ export function PoolDesignerHeader({
       breakdown.push({
         name: f.name,
         price: Math.round(rateOverrides[`feature-${f.name}`] ?? f.price),
-        image: ''
+        image: (f as { image?: string }).image || ''
       })
     );
     const enriched = enrichQuoteLines(breakdown);

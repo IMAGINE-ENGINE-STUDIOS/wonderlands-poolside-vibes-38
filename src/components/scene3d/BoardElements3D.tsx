@@ -176,7 +176,15 @@ function denseRing(pts: { x: number; y: number }[]): { x: number; y: number }[] 
   pts.forEach((a, k) => { const b = pts[(k + 1) % pts.length]; for (let s = 0; s < per; s++) out.push({ x: a.x + ((b.x - a.x) * s) / per, y: a.y + ((b.y - a.y) * s) / per }); });
   return out;
 }
-function Water({ w, i, scales }: { w: Water3D; i: number; scales: SceneScales }) {
+/** One water material for every extra body (fewer shader programs / draw state changes). */
+let waterMat: THREE.MeshPhysicalMaterial | null = null;
+const sharedWater = () => (waterMat ??= new THREE.MeshPhysicalMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.05, transmission: 0.4 }));
+/**
+ * Board reloads re-parse every body from storage, so compare by content:
+ * only the pool that actually changed rebuilds its shell/coping/waterline.
+ */
+const Water = React.memo(WaterBody, (a, b) => a.i === b.i && a.scales === b.scales && JSON.stringify(a.w) === JSON.stringify(b.w));
+function WaterBody({ w, i, scales }: { w: Water3D; i: number; scales: SceneScales }) {
   const c = React.useMemo(() => waterCenter(w.pts), [w.pts]);
   const local = React.useMemo(() => denseRing(w.pts.map((p) => ({ x: p.x - c.x, y: p.z - c.z }))).map((p, k) => ({ ...p, id: `${w.itemId ?? i}-p${k}` })), [w.pts, c, w.itemId, i]);
   const curve = React.useMemo(() => local.map((p) => ({ x: p.x, z: p.y })), [local]);
@@ -185,7 +193,6 @@ function Water({ w, i, scales }: { w: Water3D; i: number; scales: SceneScales })
   const deep = React.useMemo(() => Math.max(...perimeter.map((p) => p.depth), w.depth), [perimeter, w.depth]);
   const dims = React.useMemo(() => { const xs = local.map((p) => p.x), ys = local.map((p) => p.y); return { length: Math.max(...ys) - Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), depth: deep }; }, [local, deep]);
   const waterGeo = React.useMemo(() => { const g = new THREE.ShapeGeometry(new THREE.Shape(curve.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g; }, [curve]);
-  const water = React.useMemo(() => new THREE.MeshPhysicalMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.05, transmission: 0.4 }), []);
   const copingH = w.copingHeight ?? 2 / 12;
   const pick = (part: WaterPart) => (e: any) => { if (e.delta > 4) return; select({ type: "water", i, part })(e); };
   const setAssets = (patch: Partial<Water3D>) => updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((x, k) => (k === i ? { ...x, ...patch } : x)) }));
@@ -201,10 +208,10 @@ function Water({ w, i, scales }: { w: Water3D; i: number; scales: SceneScales })
       <group onClick={pick("waterline")}>
         <WaterlineMesh poolPoints={local as any} wallCurve={curve} waterlineTextureUrl={urlOr(w.waterline)} waterlineTextureScale={w.waterlineScale ?? scales.waterline} copingHeight={copingH} />
       </group>
-      {!w.waterOff && <mesh geometry={waterGeo} material={water} position={[0, -0.25, 0]} />}
+      {!w.waterOff && <mesh geometry={waterGeo} material={sharedWater()} position={[0, -0.25, 0]} />}
       <PoolAssetsRenderer poolPoints={local as any} poolDepth={deep} getFloorDepthAt={depthAt}
         stairs={w.stairs ?? []} onStairsChange={(stairs) => setAssets({ stairs })}
-        chairs={[]} onChairsChange={() => {}}
+        chairs={w.chairs ?? []} onChairsChange={(chairs) => setAssets({ chairs })}
         contourSeating={w.seating ?? []} onContourSeatingChange={(seating) => setAssets({ seating })}
         selectedAssetId={null} onSelectAsset={() => {}} />
     </group>

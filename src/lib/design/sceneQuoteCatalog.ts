@@ -34,7 +34,8 @@ function build(): CatalogHit[] {
 export function resolveCatalog(lineName: string, hint?: string): CatalogHit | undefined {
   index ??= build();
   const hay = ` ${norm(`${hint ?? ""} ${lineName}`)} `;
-  return index.find((h) => hay.includes(` ${norm(h.name)} `));
+  // Short/generic names ("Pool", "Fence") never match, so a line can't pick up an unrelated photo.
+  return index.find((h) => { const n = norm(h.name); return n.length >= 6 && n.includes(" ") && hay.includes(` ${n} `); });
 }
 
 /** Adds image + description to quote lines, keeping any image already set. */
