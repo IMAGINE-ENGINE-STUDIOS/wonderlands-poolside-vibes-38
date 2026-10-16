@@ -938,7 +938,6 @@ const SurveyQuoteTool = ({
       toast({
         title: "Missing Information",
         description: "Please fill in your name and email before generating an invoice.",
-        variant: "destructive",
       });
       return;
     }
@@ -994,9 +993,14 @@ const SurveyQuoteTool = ({
       const invoiceNumber = invoiceNumberData || `INV-${Date.now()}`;
       
       // Create invoice in database
-      const { data: invoice, error } = await supabase
+      // Pre-generated id: visitors can insert but not read back, so we never
+      // rely on .select() after insert. paid_amount 0 is required by RLS.
+      const invoiceId = crypto.randomUUID();
+      const { error } = await supabase
         .from('invoices')
         .insert([{
+          id: invoiceId,
+          paid_amount: 0,
           invoice_number: invoiceNumber,
           customer_name: surveyData.name,
           customer_email: surveyData.email,
@@ -1017,11 +1021,10 @@ const SurveyQuoteTool = ({
           terms_conditions: 'Payment is due within 30 days of invoice date. A 50% deposit is required to begin work. Final payment is due upon completion and inspection.',
           created_by: user?.id || null,
           user_id: user?.id || null
-        }])
-        .select()
-        .single();
+        }] as any);
       
       if (error) throw error;
+      const invoice = { id: invoiceId, invoice_number: invoiceNumber };
       
       toast({
         title: "Invoice Generated!",
@@ -1035,9 +1038,8 @@ const SurveyQuoteTool = ({
     } catch (error: any) {
       console.error('Error generating invoice:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to generate invoice. Please try again.",
-        variant: "destructive",
+        title: "Invoice not created",
+        description: "We couldn't create the invoice just now. Please try again in a moment.",
       });
     } finally {
       setIsGeneratingInvoice(false);

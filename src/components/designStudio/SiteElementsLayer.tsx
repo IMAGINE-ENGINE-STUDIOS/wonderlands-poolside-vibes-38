@@ -18,7 +18,8 @@ import * as React from "react";
 import { Fence, Grid2x2, Layers, MousePointer2, Trash2, Undo2, Check, X, LayoutList } from "lucide-react";
 import usePersistentState from "@/hooks/usePersistentState";
 import { cn } from "@/lib/utils";
-import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator";
+import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS, FENCE_GATES } from "@/data/fenceConfigurator";
+import { ENCLOSURE_DOORS } from "@/data/screenEnclosureConfigurator";
 import { SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
 import { artificialGrassOptions, getGrassPricePerSqFt } from "@/data/artificialGrassData";
 import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
@@ -56,7 +57,18 @@ type Pt = { x: number; y: number };
 export interface SiteElement {
   id: string; kind: SiteKind; pts: Pt[]; label: string; detail: string;
   color: string; height?: number; style?: string; rate: number; unit: "lf" | "sqft";
+  /** Fence gates / screen doors from the original drawing boards: segment index, position 0-1 along it, catalog model. */
+  gates?: Array<{ seg: number; t: number; typeId: string }>;
 }
+/** Gate (fence) or door (screen) catalog option for an element — same catalogs as the original drawing boards. */
+export const gateOptionsFor = (kind: SiteKind) => (kind === "fence" ? FENCE_GATES : kind === "enclosure" ? ENCLOSURE_DOORS : []);
+export const gateOption = (kind: SiteKind, id: string) => gateOptionsFor(kind).find((g) => g.id === id) as { id: string; label: string; widthFt: number; price: number } | undefined;
+/** Gate/door take-off lines for one element. */
+export const gateLines = (e: SiteElement) => {
+  const m = new Map<string, number>();
+  (e.gates ?? []).forEach((g) => m.set(g.typeId, (m.get(g.typeId) ?? 0) + 1));
+  return [...m].map(([id, n]) => { const o = gateOption(e.kind, id); return o ? { name: `${e.kind === "fence" ? "Gate" : "Door"} · ${o.label}${n > 1 ? ` × ${n}` : ""}`, price: o.price * n, n, label: o.label } : null; }).filter(Boolean) as Array<{ name: string; price: number; n: number; label: string }>;
+};
 type Choice = Omit<SiteElement, "id" | "pts" | "kind"> & { kind: SiteKind };
 /** Drawn decks use the main page paver list (photo + rate per sq ft). */
 export const DECK_PAVERS = paverTypes.filter((x) => x.category === "paver").map((x) => ({ id: x.id, label: x.name, rate: x.basePrice, image: x.image }));
@@ -176,13 +188,15 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     return snap ? { x: Math.round(x / scale) * scale, y: Math.round(y / scale) * scale } : { x, y };
   }, [view, scale]);
 
-  const finish = React.useCallback(() => {
+  const finish = React.useCallback((close = false) => {
     if (!choice) return;
     const min = choice.kind === "fence" ? 2 : 3;
     if (choice.kind === "deck") view?.endDeckMode?.();
     if (draft.length >= min) {
       const id = `${choice.kind}-${Date.now().toString(36)}`;
-      setItems((prev) => [...prev, { ...(choice as Omit<SiteElement, "id" | "pts">), id, pts: draft }]);
+      // A fence closed on its first post becomes a full loop (last post = first post).
+      const pts = close && choice.kind === "fence" ? [...draft, { ...draft[0] }] : draft;
+      setItems((prev) => [...prev, { ...(choice as Omit<SiteElement, "id" | "pts">), id, pts }]);
       setSelected(id);
     }
     setDraft([]); setChoice(null);
@@ -203,7 +217,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       const typing = /input|textarea|select/i.test((e.target as HTMLElement)?.tagName ?? "");
       if (!drawing && !typing && selected && (e.key === "Delete" || e.key === "Backspace")) { e.preventDefault(); removeSelected(); return; }
       if (!drawing) return;
-      if (e.key === "Enter") finish();
+      if (e.key === "Enter") finish(false);
       if (e.key === "Escape") { setDraft([]); setChoice(null); }
       if ((e.metaKey || e.ctrlKey) && e.key === "z") { e.preventDefault(); setDraft((d) => d.slice(0, -1)); }
     };
@@ -212,12 +226,12 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   }, [drawing, finish, selected, removeSelected]);
 
   /** Magnetic first point: within ~18 screen px (or 1.5 ft) the cursor locks onto it. */
-  const nearFirst = (raw: Pt) => !!view && choice?.kind !== "fence" && draft.length >= 3 &&
+  const nearFirst = (raw: Pt) => !!view && draft.length >= 3 &&
     Math.hypot(raw.x - draft[0].x, raw.y - draft[0].y) < Math.max(scale * 2, 36 / view.zoom);
   const onClick = (e: React.MouseEvent) => {
     if (!view || !choice) return;
     const p = toWorld(e);
-    if (nearFirst(p) || nearFirst(toWorld(e, false))) { finish(); return; }
+    if (nearFirst(p) || nearFirst(toWorld(e, false))) { finish(true); return; }
     setDraft((d) => [...d, p]);
   };
   const drawHover = (e: React.MouseEvent): Pt => {
@@ -409,7 +423,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             if (moving) { setMoving(null); return; }
             // Add Point tool anchors to whichever spline is under the cursor: pool, deck, fence, screen or turf.
             if (view.addMode && !drawing) { const hit = nearest(toWorld(e, false)); if (hit) { insertPoint(hit.id, hit.seg, hit.at); setSelected(hit.id); setEditId(hit.id); } return; }
-            onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => { if (drawing) setHover(drawHover(e)); else if (view.addMode) setHover(nearest(toWorld(e, false))?.at ?? null); }}>
+            onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(false); }} onMouseMove={(e) => { if (drawing) setHover(drawHover(e)); else if (view.addMode) setHover(nearest(toWorld(e, false))?.at ?? null); }}>
           <defs>
             {TURFS.map((g) => (
               <pattern key={g.id} id={`turf-${g.id}`} width={scale * 4} height={scale * 4} patternUnits="userSpaceOnUse">
@@ -447,6 +461,18 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                   {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={Math.max(3 / (view.zoom || 1), scale * 0.3)} strokeLinejoin="miter" />}
                   {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={Math.max(2 / (view.zoom || 1), scale * 0.4)} strokeLinejoin="round" strokeLinecap="round" />}
                   {e.kind === "fence" && fencePosts(e.pts, scale * 6).map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={Math.max(2 / (view.zoom || 1), scale * 0.3)} fill={e.color} stroke="rgba(0,0,0,0.35)" strokeWidth={0.5 / (view.zoom || 1)} />)}
+                  {(e.gates ?? []).map((g, gi) => {
+                    const a = e.pts[g.seg], b = e.pts[(g.seg + 1) % e.pts.length]; const o = gateOption(e.kind, g.typeId);
+                    if (!a || !b || !o) return null;
+                    const L = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (b.x - a.x) / L, uy = (b.y - a.y) / L, half = Math.min(L / 2, (o.widthFt * scale) / 2);
+                    const cx = a.x + (b.x - a.x) * g.t, cy = a.y + (b.y - a.y) * g.t, sw = Math.max(3 / (view.zoom || 1), scale * 0.5);
+                    const x1 = cx - ux * half, y1 = cy - uy * half, x2 = cx + ux * half, y2 = cy + uy * half;
+                    return <g key={gi} style={{ pointerEvents: "none" }}>
+                      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--background))" strokeWidth={sw * 1.6} />
+                      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--foreground))" strokeWidth={sw * 0.5} strokeDasharray={`${sw} ${sw * 0.6}`} />
+                      <path d={`M ${x1} ${y1} L ${x1 - uy * half * 2} ${y1 + ux * half * 2} A ${half * 2} ${half * 2} 0 0 0 ${x2} ${y2}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={1 / (view.zoom || 1)} strokeDasharray="3 3" />
+                    </g>;
+                  })}
                   {sel && (e.kind === "fence" || e.kind === "enclosure") && <polyline points={e.kind === "fence" ? pts : `${pts} ${e.pts[0].x},${e.pts[0].y}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
                 </g>
               );
@@ -481,6 +507,15 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { insertPoint(menu.id, menu.seg, menu.at); setEditId(menu.id); setMenu(null); }}>Add point here</button>
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => startMove(menu.id, menu.at)}>Move</button>
             {textureOptions.length > 0 && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => setMenu({ ...menu, sub: true })}>{menuItem!.kind === "fence" || menuItem!.kind === "enclosure" ? "Change color" : "Change texture"}</button>}
+            {menuItem && (menuItem.kind === "fence" || menuItem.kind === "enclosure") && gateOptionsFor(menuItem.kind).map((o) => (
+              <button key={o.id} className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => {
+                const a = menuItem.pts[menu.seg], b = menuItem.pts[(menu.seg + 1) % menuItem.pts.length];
+                const L2 = a && b ? (b.x - a.x) ** 2 + (b.y - a.y) ** 2 : 0;
+                const t = L2 ? Math.min(0.95, Math.max(0.05, ((menu.at.x - a.x) * (b.x - a.x) + (menu.at.y - a.y) * (b.y - a.y)) / L2)) : 0.5;
+                setItems((p) => p.map((x) => x.id === menuItem.id ? { ...x, gates: [...(x.gates ?? []), { seg: menu.seg, t, typeId: o.id }] } : x)); setMenu(null);
+              }}>Add {menuItem.kind === "fence" ? "gate" : "door"} · {o.label} (${o.price.toLocaleString()})</button>
+            ))}
+            {menuItem && (menuItem.gates?.length ?? 0) > 0 && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { setItems((p) => p.map((x) => x.id === menuItem.id ? { ...x, gates: [] } : x)); setMenu(null); }}>Remove {menuItem.kind === "fence" ? "gates" : "doors"}</button>}
             {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const pts = getPts(menu.id) as Array<Pt & { curveFlip?: boolean }>; const j = (menu.seg + 1) % pts.length; setPts(menu.id, pts.map((q, k) => k === j ? { ...q, curveFlip: !q.curveFlip } : q)); setMenu(null); }}>Flip curve (outward / inward)</button>}
             {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id === "__pool" ? "__deck" : `__xd:${menu.id.slice(5)}`); setMenu(null); }}>Remove deck (no deck)</button>}
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id); setMenu(null); }}>Erase</button>
@@ -499,7 +534,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         <div className="absolute left-1/2 top-3 z-[30] flex -translate-x-1/2 items-center gap-3 border border-border bg-background/95 px-4 py-2 text-xs shadow-sm backdrop-blur">
           <span><b>{choice!.label}</b> · {choice!.kind === "fence" ? "click each post" : "click each corner, click the first point to close"} · Enter to finish</span>
           <button onClick={() => setDraft((d) => d.slice(0, -1))} title="Undo last point" className="hover:text-foreground text-muted-foreground"><Undo2 className="h-3.5 w-3.5" /></button>
-          <button onClick={finish} title="Finish" className="hover:text-foreground text-muted-foreground"><Check className="h-3.5 w-3.5" /></button>
+          <button onClick={() => finish(false)} title="Finish" className="hover:text-foreground text-muted-foreground"><Check className="h-3.5 w-3.5" /></button>
           <button onClick={() => { setDraft([]); setChoice(null); }} title="Cancel" className="hover:text-foreground text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
         </div>
       )}
@@ -674,7 +709,7 @@ export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: 
   const feet = React.useMemo(() => poolPts.map((p) => ({ x: p.x / scale, y: p.y / scale })), [poolPts, scale]);
   // Every element on the board: site pieces, placed features and extra water bodies.
   const extras = React.useMemo(() => {
-    const site = items.filter((e) => e.kind !== "deck").map((e) => { const q = e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { name: `${KIND_LABEL[e.kind]} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }; });
+    const site = items.filter((e) => e.kind !== "deck").map((e) => { const q = e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return [{ name: `${KIND_LABEL[e.kind]} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }, ...gateLines(e)]; }).flat();
     const counts = new Map<string, { n: number; cost: number }>();
     featuresList.forEach((f) => { const c = counts.get(f.type) ?? { n: 0, cost: 0 }; c.n++; c.cost += f.cost; counts.set(f.type, c); });
     const feats = [...counts].map(([t, c]) => ({ name: `${t.replace(/-/g, " ").replace(/^./, (m) => m.toUpperCase())}${c.n > 1 ? ` × ${c.n}` : ""}`, price: c.cost }));

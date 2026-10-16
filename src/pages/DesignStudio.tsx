@@ -37,6 +37,7 @@ import { buildCatalogTextureLibrary } from "@/data/textureLibrary";
 import { useToast } from "@/hooks/use-toast";
 import { CategoryToolbar } from "@/components/designStudio/CategoryToolbar";
 import { BoardHeaderControls } from "@/components/designStudio/BoardHeaderControls";
+import { BoardReportButton } from "@/components/designStudio/BoardReportButton";
 import { useBoardCommands, sendBoardCommand } from "@/components/designStudio/boardCommands";
 import { toast as boardToast } from "sonner";
 import { SubToolbar } from "@/components/designStudio/SubToolbar";
@@ -401,6 +402,13 @@ const DesignStudio = () => {
     }
     // Depend on the whole 2D design so every extra pool and deck is sent (no stale copy).
   }, [customPoolShape, poolBuilderData, searchParams, toast]);
+
+  /* /studio-3d now lands here with ?view=3d: open the 3D Studio once a pool is on the board. */
+  const autoOpened3D = useRef(false);
+  useEffect(() => {
+    if (autoOpened3D.current || searchParams.get('view') !== '3d') return;
+    if ((customPoolShape && customPoolShape.length >= 3) || searchParams.get('model')) { autoOpened3D.current = true; handleSwitch3D(); }
+  }, [customPoolShape, searchParams, handleSwitch3D]);
   const handleSwitch2D = useCallback(() => {
     // Anything reshaped in 3D (extra pools/spas, fences, screens) is written back to the 2D board.
     try {
@@ -496,6 +504,7 @@ const DesignStudio = () => {
                 </Button>
                 <BoardHeaderControls />
               </div>} headerRight={<div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <BoardReportButton scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} additionalPools={poolBuilderData?.additionalPools} additionalDecks={(poolBuilderData as any)?.additionalDecks} />
                 <div className="hidden sm:block min-w-0"><SiteTakeoffMenu additionalDecks={(poolBuilderData as any)?.additionalDecks} paver={(poolBuilderData as any)?.materials?.paver} scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")} deckAreaSqFt={poolBuilderData?.deckArea} featuresList={poolBuilderData?.breakdown?.featuresList} additionalPools={poolBuilderData?.additionalPools}
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
                   totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} /></div>
