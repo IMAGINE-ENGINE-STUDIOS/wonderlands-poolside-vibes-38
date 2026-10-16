@@ -462,8 +462,8 @@ const DesignStudio = () => {
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
                   totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} /></div>
                 <div id="board-header-slot" className="flex items-center gap-1.5" />
-                <Button size="sm" onClick={handleSwitch3D} className="h-9 gap-1.5 rounded-full bg-foreground px-3 sm:px-4 text-xs shrink-0 font-semibold uppercase tracking-[0.15em] text-background hover:bg-foreground/90">
-                  <Box className="h-3.5 w-3.5" />3D Mode
+                <Button size="sm" onClick={handleSwitch3D} className="h-9 gap-1.5 rounded-full bg-foreground px-3 sm:px-4 text-xs shrink-0 font-semibold uppercase tracking-[0.08em] sm:tracking-[0.15em] text-background hover:bg-foreground/90">
+                  <Box className="h-3.5 w-3.5" />3D<span className="hidden sm:inline"> Mode</span>
                 </Button>
                 
                 <div className="h-6 w-px bg-border hidden sm:block" />
