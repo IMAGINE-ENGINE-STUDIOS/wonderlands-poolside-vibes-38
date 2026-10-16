@@ -1501,6 +1501,7 @@ export function PoolBuilder({
   // Track if tutorial has been dismissed
   const [showDrawTutorial, setShowDrawTutorial] = useState(false);
   const tutorialDismissedRef = useRef(false);
+  const defaultPoolPlacedRef = useRef(false);
 
   // Initialize pool and hardscape centered with actual product dimensions if provided
   useEffect(() => {
@@ -1531,6 +1532,10 @@ export function PoolBuilder({
         }]);
         return; // Don't create default pool — user will draw it
       }
+      // Board starts empty (and stays empty after Reset/Erase) unless a specific product
+      // was opened; that product pool is placed once only. — Imagine Engine Studios Corp
+      if (!initialDimensions || defaultPoolPlacedRef.current) return;
+      defaultPoolPlacedRef.current = true;
 
       let poolWidth = 15; // Default width in feet
       let poolLength = 35; // Default length in feet
