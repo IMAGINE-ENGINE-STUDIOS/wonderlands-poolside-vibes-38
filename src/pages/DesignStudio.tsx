@@ -525,9 +525,9 @@ const DesignStudio = () => {
             
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-destructive hover:text-destructive">
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-destructive hover:text-destructive px-2 sm:px-3">
                   <RotateCcw className="h-3.5 w-3.5" />
-                  Reset
+                  <span className="hidden sm:inline">Reset</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -545,6 +545,10 @@ const DesignStudio = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            {/* Home sits in the header beside Reset (floating rail is hidden on this page). */}
+            <Button onClick={() => navigate("/")} title="Home" className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
+              <Home className="h-4 w-4" />
+            </Button>
           </div>
         </header>}
 
