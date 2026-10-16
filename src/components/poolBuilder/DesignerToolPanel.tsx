@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import DepthProfileEditor from '@/components/poolBuilder/DepthProfileEditor';
+import { DepthProfileEditor as DepthProfileEditor3D } from '@/components/scene3d/DepthProfileEditor';
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -93,12 +93,15 @@ interface DesignerToolPanelProps {
   onUpdateFeature?: (updates: Record<string, any>) => void;
   scale?: number;
   pendingPlacement?: string | null;
+  /** Main pool outline in feet — feeds the 3D Studio depth editor's axis. */
+  poolPointsFt?: Array<{ x: number; y: number }>;
 }
 
 type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'pool-features' | 'landscape' | 'water-features' | 'depth' | 'cost' | 'textures' | null;
 
 export function DesignerToolPanel(props: DesignerToolPanelProps) {
-  const [expandedSection, setExpandedSection] = useState<PanelSection>('tools');
+  const [expandedSection, setExpandedSection] = useState<PanelSection>(null);
+  const [depthAnchorId, setDepthAnchorId] = useState<string | null>(null);
 
   const toggleSection = (section: PanelSection) => {
     setExpandedSection(prev => prev === section ? null : section);
@@ -110,12 +113,13 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const scaleVal = props.scale || 10;
 
   return (
-    <div className="absolute top-6 right-6 z-20 w-80 max-h-[calc(100%-3rem)] flex flex-col">
-      {/* Same visual language as the 3D component panel (glass card, bold header). */}
-      <div className="border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0 max-h-full">
-        {/* Header */}
+    <div className="absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none">
+      {/* Section flyout (opens left of the rail); depth uses the 3D Studio editor instead. */}
+      {expandedSection && expandedSection !== 'depth' && (
+      <div className="pointer-events-auto mt-4 mr-2 w-72 self-start max-h-[calc(100%-2rem)] border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0">
         <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">2D Designer</span>
+          <span className="text-sm font-bold uppercase tracking-[0.2em] text-foreground">{RAIL.find(r => r.id === expandedSection)?.label}</span>
+          <button onClick={() => setExpandedSection(null)} aria-label="Close" className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
         </div>
 
         <ScrollArea className="flex-1 min-h-0">
@@ -387,44 +391,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             )}
             </>)}
 
-            {/* ═══ DEPTH ═══ */}
-            <SectionHeader
-              label="Depth Profile"
-              icon={<Ruler className="w-3.5 h-3.5" />}
-              expanded={expandedSection === 'depth'}
-              onToggle={() => toggleSection('depth')}
-            />
-            {expandedSection === 'depth' && (
-              <div className="px-2 pb-2 space-y-2">
-                <div className="flex gap-1">
-                  {[...props.depthPoints].sort((a, b) => a.position - b.position).map(dp => (
-                    <div key={dp.id} className="flex-1 space-y-0.5">
-                      <span className="text-[9px] text-muted-foreground block text-center">
-                        {(dp.position * 100).toFixed(0)}%
-                      </span>
-                      <Input
-                        type="number"
-                        value={dp.depth.toFixed(1)}
-                        onChange={e => {
-                          const v = Math.max(1, Math.min(12, parseFloat(e.target.value) || 1));
-                          props.setDepthPoints((prev: any[]) => prev.map((d: any) =>
-                            d.id === dp.id ? { ...d, depth: v } : d
-                          ));
-                        }}
-                        className="h-6 text-[10px] px-1 text-center"
-                        min="1" max="12" step="0.1"
-                      />
-                      <span className="text-[8px] text-muted-foreground block text-center">ft</span>
-                    </div>
-                  ))}
-                </div>
-                <DepthProfileEditor
-                  depthPoints={props.depthPoints}
-                  setDepthPoints={props.setDepthPoints}
-                />
-
-              </div>
-            )}
+            {/* Depth Profile = the exact 3D Studio editor (same anchors shape). */}
 
             {/* Cost estimate lives only in the header take-off dropdown. */}
 
@@ -444,9 +411,46 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
           </div>
         </ScrollArea>
       </div>
+      )}
+
+      {/* Vertical controller rail — right edge of the board. Credit: Imagine Engine Studios Corp. */}
+      <nav aria-label="2D Designer tools" className="pointer-events-auto flex w-16 shrink-0 flex-col border-l border-border bg-background/95 backdrop-blur">
+        <span className="border-b border-border py-2 text-center text-[8px] uppercase tracking-[0.25em] text-muted-foreground">2D</span>
+        {RAIL.map(r => (
+          <button
+            key={r.id}
+            onClick={() => toggleSection(r.id)}
+            aria-pressed={expandedSection === r.id}
+            className={`flex flex-col items-center gap-1 border-b border-border px-1 py-3 text-[8.5px] uppercase tracking-[0.12em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-muted/40'}`}
+          >
+            {r.icon}
+            <span className="leading-tight text-center">{r.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      <DepthProfileEditor3D
+        isOpen={expandedSection === 'depth'}
+        onClose={() => setExpandedSection(null)}
+        linearDepthAnchors={props.depthPoints}
+        onLinearDepthAnchorsChange={(a) => props.setDepthPoints(() => a)}
+        selectedAnchorId={depthAnchorId}
+        onSelectAnchor={setDepthAnchorId}
+        poolPoints={props.poolPointsFt as any}
+        poolDimensions={props.poolLength && props.poolWidth ? { length: props.poolLength, width: props.poolWidth } : undefined}
+      />
     </div>
   );
 }
+
+const RAIL: Array<{ id: Exclude<PanelSection, null>; label: string; icon: React.ReactNode }> = [
+  { id: 'tools', label: 'Tools', icon: <MousePointer2 className="h-4 w-4" /> },
+  { id: 'shape', label: 'Shape', icon: <Shapes className="h-4 w-4" /> },
+  { id: 'materials', label: 'Materials', icon: <Palette className="h-4 w-4" /> },
+  { id: 'deck', label: 'Deck', icon: <Grid3X3 className="h-4 w-4" /> },
+  { id: 'depth', label: 'Depth', icon: <Ruler className="h-4 w-4" /> },
+  { id: 'textures', label: 'Textures', icon: <Layers className="h-4 w-4" /> },
+];
 
 /* ─── Sub-components ─── */
 
@@ -457,6 +461,9 @@ function SectionHeader({ label, icon, expanded, onToggle, badge }: {
   onToggle: () => void;
   badge?: string;
 }) {
+  // Section headers now live in the vertical rail; kept for call-site compatibility.
+  void label; void icon; void expanded; void onToggle; void badge;
+  return null;
   return (
     <button
       onClick={onToggle}
