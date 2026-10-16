@@ -173,7 +173,8 @@ function geniusTargets(text: string): Targets | null {
 function applyToBoard(plan: GeniusPlan, tg: Targets, lib: Props['textureLibrary']): string {
   const d = loadBoard3D(); if (!d?.waters?.length) return '';
   const names: string[] = []; let poolNo = 1;
-  const pick = (list: TextureConfig[] | undefined, hint?: string) => (hint && list?.length ? pickTexture(list, hint, list[0]).url : undefined);
+  const NONE = { url: '' } as TextureConfig;
+  const pick = (list: TextureConfig[] | undefined, hint?: string) => { if (!hint || !list?.length) return undefined; const r = pickTexture(list, hint, NONE); return r === NONE ? undefined : r.url; };
   const finish = pick(lib.finishes, plan.finishHint), coping = pick(lib.coping, plan.copingHint), waterline = pick(lib.waterlines, plan.waterlineHint);
   const prof = plan.pool?.depthProfile;
   const anchors = Array.isArray(prof) && prof.length >= 2 ? prof.slice(0, 8).map((a, i) => ({ id: `ga-${i}`, position: clamp(a.position, 0, 1, i), depth: clamp(a.depth, 0, 12, 5) })).sort((a, b) => a.position - b.position) : undefined;
