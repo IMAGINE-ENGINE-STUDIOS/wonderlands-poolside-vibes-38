@@ -27,6 +27,23 @@ export function Genius2DBar({ onScene }: { onScene: (scene: any) => void }) {
 
   const run = async () => {
     if (prompt.trim().length < 3 || busy) return;
+    // Scope guard — Imagine Engine Studios Corp: Genius only changes what was asked.
+    const q = prompt.toLowerCase();
+    const gateKind = /\b(screen|cage|enclosure)\b/.test(q) ? 'enclosure' : /\bfence\b/.test(q) ? 'fence' : /\bgate\b/.test(q) ? 'fence' : null;
+    if (/\b(door|doors|gate|gates)\b/.test(q)) {
+      if (!gateKind) { setNote('Add the door to the screen or the fence? Say "door on the screen" or "gate on the fence".'); return; }
+      const count = Number(q.match(/\b(\d)\b/)?.[1] ?? (/\btwo\b/.test(q) ? 2 : /\bthree\b/.test(q) ? 3 : 1));
+      const done = new Promise<boolean>((res) => { const h = (e: Event) => { window.removeEventListener('design-studio:gate-result', h); res(!!(e as CustomEvent).detail?.ok); }; window.addEventListener('design-studio:gate-result', h); setTimeout(() => res(false), 800); });
+      window.dispatchEvent(new CustomEvent('design-studio:add-gate', { detail: { kind: gateKind, count, double: /double/.test(q) } }));
+      const ok = await done;
+      setNote(ok ? `Added ${count} ${gateKind === 'fence' ? 'gate' : 'door'}${count > 1 ? 's' : ''}. Nothing else changed.` : `Draw a ${gateKind === 'fence' ? 'fence' : 'screen'} first, then ask again.`);
+      if (ok) setPrompt('');
+      return;
+    }
+    if (!/\b(pool|spa|kidney|oval|rectangle|roman|freeform|l-shape|deep|depth|shallow|deck)\b|\d+\s*[x×]\s*\d+/.test(q)) {
+      setNote('Genius here draws or resizes the pool, adds doors to screens and gates to fences. Nothing was changed.');
+      return;
+    }
     setBusy(true); setNote('Designing…');
     try {
       const { data, error } = await supabase.functions.invoke('scene-genius', { body: { prompt, current: { mode: '2d' } } });
