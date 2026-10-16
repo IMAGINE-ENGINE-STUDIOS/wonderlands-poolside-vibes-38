@@ -5214,8 +5214,11 @@ export function PoolBuilder({
       // Check if clicking near first point to close the shape
       if (splineDrawing.points.length >= 3) {
         const firstPoint = splineDrawing.points[0];
-        const distToFirst = Math.sqrt(Math.pow(x - firstPoint.x, 2) + Math.pow(y - firstPoint.y, 2));
-        if (distToFirst < 15) {
+        const distToFirst = Math.min(
+          Math.hypot(x - firstPoint.x, y - firstPoint.y),
+          Math.hypot(world.x - firstPoint.x, world.y - firstPoint.y),
+        );
+        if (distToFirst < Math.max(15, 18 / zoomLevel)) {
           // Close the shape - update first point's curveType to current selection for closing segment
           const newPoolPoints = splineDrawing.points.map((sp, i) => ({
             x: sp.x,
@@ -5525,6 +5528,11 @@ export function PoolBuilder({
         y = locked.y;
       }
 
+      // Magnetic close: near the first point the cursor locks onto it (screen-space radius)
+      if (splineDrawing.points.length >= 3 && !draggingDrawPointId) {
+        const f = splineDrawing.points[0];
+        if (Math.hypot(x - f.x, y - f.y) < 18 / zoomLevel) { x = f.x; y = f.y; }
+      }
       setCursorPos({
         x,
         y
@@ -6310,11 +6318,28 @@ export function PoolBuilder({
             setFeatures([]);
           }}
           onPickPool={(wFt, lFt) => {
-            const cx = canvasSize.width / 2, cy = canvasSize.height / 2, w = wFt * scale, l = lFt * scale;
+            // Drop at the centre of what the user currently sees (pan/zoom aware).
+            const w = wFt * scale, l = lFt * scale;
+            let cx = canvasSize.width / 2 - panOffset.x / zoomLevel, cy = canvasSize.height / 2 - panOffset.y / zoomLevel;
+            // A main pool already exists → the inventory pool becomes an extra pool beside it,
+            // using exactly the same extra-pool rules as a drawn one (own 3 ft deck, editable spline).
+            if (points.length >= 3) {
+              const xs = points.map(p => p.x);
+              cx = Math.max(...xs) + (deckOffset + 3) * scale + w / 2;
+              cy = points.reduce((t, p) => t + p.y, 0) / points.length;
+            }
             const pts = [
               { x: cx - w / 2, y: cy - l / 2, id: '1' }, { x: cx + w / 2, y: cy - l / 2, id: '2' },
               { x: cx + w / 2, y: cy + l / 2, id: '3' }, { x: cx - w / 2, y: cy + l / 2, id: '4' },
             ].map(p => ({ ...p, curveType: 'linear' as const }));
+            if (points.length >= 3) {
+              const id = Date.now().toString();
+              setAdditionalPools(prev => [...prev, { id, type: 'pool', points: pts, shape: 'freeform', featureType: 'regular' }]);
+              setAdditionalDeckPoints(prev => ({ ...prev, [id]: generateHardscapeFromPool(pts, 3) }));
+              setDeckOffsetsById(prev => ({ ...prev, [id]: 3 }));
+              toast({ title: `${wFt}' × ${lFt}' pool added`, description: 'Placed beside your main pool — drag or edit it like any pool.' });
+              return;
+            }
             setPoolShape('rectangle');
             setPoints(pts);
             setHardscapePoints(generateHardscapeFromPool(pts, deckOffset));

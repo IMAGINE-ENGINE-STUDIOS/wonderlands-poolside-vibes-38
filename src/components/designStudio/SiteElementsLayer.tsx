@@ -201,12 +201,18 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     return () => window.removeEventListener("keydown", onKey);
   }, [drawing, finish, selected, removeSelected]);
 
+  /** Magnetic first point: within ~18 screen px (or 1.5 ft) the cursor locks onto it. */
+  const nearFirst = (raw: Pt) => !!view && choice?.kind !== "fence" && draft.length >= 3 &&
+    Math.hypot(raw.x - draft[0].x, raw.y - draft[0].y) < Math.max(scale * 1.5, 18 / view.zoom);
   const onClick = (e: React.MouseEvent) => {
     if (!view || !choice) return;
     const p = toWorld(e);
-    // Auto-close: clicking near the first point finishes closed shapes.
-    if (choice.kind !== "fence" && draft.length >= 3 && Math.hypot(p.x - draft[0].x, p.y - draft[0].y) < scale * 1.5) { finish(); return; }
+    if (nearFirst(p) || nearFirst(toWorld(e, false))) { finish(); return; }
     setDraft((d) => [...d, p]);
+  };
+  const drawHover = (e: React.MouseEvent): Pt => {
+    const raw = toWorld(e, false);
+    return nearFirst(raw) ? draft[0] : toWorld(e);
   };
 
   const t = view ? `translate(${view.width / 2 + view.pan.x} ${view.height / 2 + view.pan.y}) scale(${view.zoom}) translate(${-view.width / 2} ${-view.height / 2})` : undefined;
@@ -351,7 +357,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             if (moving) { setMoving(null); return; }
             // Add Point tool anchors to whichever spline is under the cursor: pool, deck, fence, screen or turf.
             if (view.addMode && !drawing) { const hit = nearest(toWorld(e, false)); if (hit) { insertPoint(hit.id, hit.seg, hit.at); setSelected(hit.id); setEditId(hit.id); } return; }
-            onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => { if (drawing) setHover(toWorld(e)); else if (view.addMode) setHover(nearest(toWorld(e, false))?.at ?? null); }}>
+            onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => { if (drawing) setHover(drawHover(e)); else if (view.addMode) setHover(nearest(toWorld(e, false))?.at ?? null); }}>
           <defs>
             {TURFS.map((g) => (
               <pattern key={g.id} id={`turf-${g.id}`} width={scale * 4} height={scale * 4} patternUnits="userSpaceOnUse">

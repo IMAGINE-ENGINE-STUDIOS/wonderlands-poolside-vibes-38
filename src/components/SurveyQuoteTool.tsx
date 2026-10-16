@@ -22,6 +22,9 @@ import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSn
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
+import { quoteLineImage, CUSTOM_POOL_IMAGE } from "@/lib/design/sceneQuoteCatalog";
+/** Pool-type products (case-insensitive: studios send "pool"). */
+const isPoolType = (t?: string) => ["pool", "spa", "tanning ledge"].includes(String(t || "").toLowerCase());
 import { DEFAULT_SOLAR_INPUTS, linesTotal, lineTotal, type SolarQuoteInputs, type SolarQuoteLine } from "@/lib/solar/solarQuote";
 import SolarQuoteSection from "./quote/SolarQuoteSection";
 
@@ -521,14 +524,14 @@ const SurveyQuoteTool = ({
     }
   };
   const getInstallationTimeText = () => {
-    const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+    const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
     
     if (!isPoolProduct) {
       const deliveryDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
       return `Arrives ${deliveryDate} • Installation same day`;
     }
     
-    if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral") {
+    if ((extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral") {
       return "18+ weeks";
     }
     
@@ -556,7 +559,7 @@ const SurveyQuoteTool = ({
         'total-title': prev['total-title'] || 'Total Investment',
         'paver-deck-title': prev['paver-deck-title'] || 'Paver Deck',
         'paver-deck-description': prev['paver-deck-description'] || "Custom paver selection with full area pricing",
-        'installation-time-title': prev['installation-time-title'] || (pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct?.type || '')) ? 'Estimated Build Time' : 'Installation Time'),
+        'installation-time-title': prev['installation-time-title'] || (pool || (customProduct && isPoolType(customProduct?.type)) ? 'Estimated Build Time' : 'Installation Time'),
         'installation-time-text': prev['installation-time-text'] || getInstallationTimeText(),
         ...prev
       }));
@@ -1558,7 +1561,7 @@ const SurveyQuoteTool = ({
                   </button>
                 )}
                 {(() => {
-                  const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
@@ -1896,7 +1899,7 @@ const SurveyQuoteTool = ({
                           <div className="mb-4">
                             <ImageUploadOverlay imageKey="main-product" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                               <ImageCard 
-                                src={imageOverrides['main-product'] || pool?.image || customProduct?.image || fenceQuoteImage} 
+                                src={imageOverrides['main-product'] || pool?.image || customProduct?.image || (isPoolType(customProduct?.type) ? CUSTOM_POOL_IMAGE : discipline === 'fencing' ? fenceQuoteImage : (quoteLineImage(customProduct?.name || '') || fenceQuoteImage))} 
                                 alt={pool?.model || customProduct?.name || 'Product'}
                                 className="w-full h-48 rounded-lg border border-orange-200" 
                                 objectFit="cover" 
@@ -2072,9 +2075,11 @@ const SurveyQuoteTool = ({
                                </div>;
                     }
 
-                    // Fallback to type-based image mapping
-                    let itemImage = null;
-                    if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
+                    // Catalog product photo first (same as main-page cards), then type mapping
+                    let itemImage: string | null = quoteLineImage(item.name) || null;
+                    if (itemImage) {
+                      // exact catalog / same-kind photo
+                    } else if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
                       itemImage = poolHeaterImg;
                     } else if (item.name.includes('Cover')) {
                       const coverImages = {
@@ -2165,7 +2170,7 @@ const SurveyQuoteTool = ({
                       
                       itemImage = grassImages[color] || grassLightGreen;
                     } else {
-                      itemImage = '/media/579d34e1-ef64-4134-bf8b-dff4980bb17a.webp';
+                      itemImage = null; // no unrelated photo
                     }
                     return itemImage ? <div className="mb-3">
                                  <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
@@ -2374,7 +2379,7 @@ const SurveyQuoteTool = ({
 
                 {/* Items Included - For pool products OR lanai with included features */}
                 {!hiddenSections.has('included-items') && (() => {
-                  const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   const lanaiIncludedFeatures = extras?.includedFeatures || [];
@@ -2440,7 +2445,7 @@ const SurveyQuoteTool = ({
 
                 {/* Pool Construction Details - Only for pool products, NOT lanai */}
                 {!hiddenSections.has('construction-details') && (() => {
-                  const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
@@ -2486,7 +2491,7 @@ const SurveyQuoteTool = ({
 
                 {/* Warranty Information - Only for pool products, NOT lanai */}
                 {!hiddenSections.has('warranty') && (() => {
-                  const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
@@ -2534,7 +2539,7 @@ const SurveyQuoteTool = ({
                       )}
                       <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
                         <div className="text-sm space-y-2">
-                          {extras?.concreteConstruction ? <div>
+                          {(extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) ? <div>
                               <p className="font-semibold">Concrete Pool Construction:</p>
                               <p className="text-sm"><span className="text-amber-600 font-semibold">15 Years Structural Integrity</span></p>
                               <p className="text-sm"><span className="text-amber-600 font-semibold">5 Years Finishing</span></p>
@@ -2577,7 +2582,7 @@ const SurveyQuoteTool = ({
                     ) : (
                       <h4 className="font-bold text-lg mb-2 text-blue-600">
                         {editableTexts['installation-time-title'] || (() => {
-                          const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                          const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
                           return isPoolProduct ? 'Estimated Build Time' : 'Installation Time';
                         })()}
                       </h4>
@@ -2594,11 +2599,11 @@ const SurveyQuoteTool = ({
                       </p>
                     )}
                     {(() => {
-                      const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                      const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
                       
                       if (!isPoolProduct) return null;
                       
-                      if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral") {
+                      if ((extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral") {
                         return (
                           <p className="text-xs mt-1 text-muted-foreground">
                             Extended timeline due to custom concrete construction and engineering requirements
