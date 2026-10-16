@@ -384,13 +384,13 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       {/* Spline menu — right-click or double-click any spline */}
       {menu && (
         <div data-spline-menu className="absolute z-[40] w-52 border border-border bg-background/95 p-1 text-[12px] shadow-sm backdrop-blur" style={{ left: menu.x, top: menu.y }} onMouseLeave={() => setMenu(null)}>
-          <p className="px-2 py-1 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{menu.id === "__pool" ? "Pool" : menu.id === "__deck" ? "Pool deck" : `${KIND_LABEL[menuItem!.kind]} · ${menuItem!.label}`}</p>
+          <p className="px-2 py-1 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{labelOf(menu.id)}</p>
           {!menu.sub ? (<>
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { setEditId(menu.id); setMenu(null); }}>Edit spline</button>
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { insertPoint(menu.id, menu.seg, menu.at); setEditId(menu.id); setMenu(null); }}>Add point here</button>
-            <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { setMoving({ id: menu.id, start: menu.at, orig: getPts(menu.id), deck: menu.id === "__pool" ? view?.deckPts : undefined }); setMenu(null); }}>Move</button>
+            <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const xp = menu.id.startsWith("__xp:") ? menu.id.slice(5) : null; setMoving({ id: menu.id, start: menu.at, orig: getPts(menu.id), deck: menu.id === "__pool" ? view?.deckPts : xp ? view?.extraDecks?.[xp] : undefined, deckId: xp ? `__xd:${xp}` : "__deck" }); setMenu(null); }}>Move</button>
             {textureOptions.length > 0 && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => setMenu({ ...menu, sub: true })}>{menuItem!.kind === "fence" || menuItem!.kind === "enclosure" ? "Change color" : "Change texture"}</button>}
-            {menu.id === "__pool" && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const pts = getPts(menu.id) as Array<Pt & { curveFlip?: boolean }>; const j = (menu.seg + 1) % pts.length; setPts(menu.id, pts.map((q, k) => k === j ? { ...q, curveFlip: !q.curveFlip } : q)); setMenu(null); }}>Flip curve (outward / inward)</button>}
+            {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const pts = getPts(menu.id) as Array<Pt & { curveFlip?: boolean }>; const j = (menu.seg + 1) % pts.length; setPts(menu.id, pts.map((q, k) => k === j ? { ...q, curveFlip: !q.curveFlip } : q)); setMenu(null); }}>Flip curve (outward / inward)</button>}
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id); setMenu(null); }}>Erase</button>
           </>) : textureOptions.map((o) => <button key={o.key} className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { retexture(menu.id, o.apply); setMenu(null); }}>{o.label}</button>)}
         </div>
