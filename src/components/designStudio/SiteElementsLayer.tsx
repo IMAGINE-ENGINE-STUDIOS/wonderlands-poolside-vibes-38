@@ -434,9 +434,11 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                   {e.kind === "turf" && <polygon points={pts} mask="url(#turf-cut)" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
                   {e.kind === "deck" && <polygon points={pts} fill={`url(#paver-${e.style ?? DECK_PAVERS[0]?.id})`} stroke={sel ? "hsl(var(--foreground))" : "#8a7a62"} strokeWidth={(sel ? 2.5 : 1.5) / (view.zoom || 1)} />}
                   {/* Placed fences/screens keep the exact drawing-board look: solid round-joined line + ringed post handles. */}
-                  {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke="hsl(var(--foreground))" strokeWidth={(sel ? 3.5 : 2.5) / (view.zoom || 1)} strokeLinejoin="round" />}
-                  {e.kind === "fence" && <polyline points={pts} fill="none" stroke="hsl(var(--foreground))" strokeWidth={(sel ? 3.5 : 2.5) / (view.zoom || 1)} strokeLinejoin="round" />}
-                  {(e.kind === "fence" || e.kind === "enclosure") && e.pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={5 / (view.zoom || 1)} fill={i === 0 ? "hsl(var(--primary))" : "hsl(var(--background))"} stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} />)}
+                  {/* Global Design Board V1 look: screens = frame-color outline over mesh; fences = run in the fence color with posts every 6 ft. */}
+                  {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={Math.max(3 / (view.zoom || 1), scale * 0.3)} strokeLinejoin="miter" />}
+                  {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={Math.max(2 / (view.zoom || 1), scale * 0.4)} strokeLinejoin="round" strokeLinecap="round" />}
+                  {e.kind === "fence" && fencePosts(e.pts, scale * 6).map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={Math.max(2 / (view.zoom || 1), scale * 0.3)} fill={e.color} stroke="rgba(0,0,0,0.35)" strokeWidth={0.5 / (view.zoom || 1)} />)}
+                  {sel && <polyline points={e.kind === "fence" ? pts : `${pts} ${e.pts[0].x},${e.pts[0].y}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
                 </g>
               );
             })}
