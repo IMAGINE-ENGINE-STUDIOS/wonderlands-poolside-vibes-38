@@ -91,6 +91,9 @@ export interface BoardView {
   /** Main pool + its deck (PoolBuilder state) — turf is cut around both. */
   poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean;
   setDeck?: (pts: Pt[]) => void; setPool?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
+  /** Extra pools/spas and their attached decks (PoolBuilder state). */
+  extraPools?: { id: string; type?: string; points: Pt[] }[]; extraDecks?: Record<string, Pt[]>;
+  setExtraPool?: (id: string, pts: Pt[]) => void; setExtraDeck?: (id: string, pts: Pt[]) => void; eraseExtraPool?: (id: string) => void;
 }
 
 export const SITE_ELEMENTS_KEY = "design_studio_site_elements_v1";
