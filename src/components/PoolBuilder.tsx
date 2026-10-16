@@ -674,10 +674,14 @@ export function PoolBuilder({
 
     // Wheel / trackpad-pinch zoom anchored under the cursor (pan adjusted so the point stays put).
     // Listens on the board wrapper so the drawn-element overlay never swallows zoom; menus/panels keep their own scroll.
-    const host = canvas.parentElement ?? canvas;
+    // Window-level listener: works no matter which overlay (SVG layer, tutorial, labels) sits on top of the board.
+    // Only zooms when the cursor is over the board and not over a floating menu/panel that scrolls itself.
     const handleNativeWheel = (e: WheelEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
       const t = e.target as HTMLElement | null;
-      if (t && t !== canvas && t.closest?.('aside,nav,[role=dialog],[data-radix-scroll-area-viewport],.overflow-y-auto,.overflow-auto')) return;
+      const ui = t?.closest?.('aside,nav,header,[role=dialog],[role=menu],[role=listbox],[data-radix-scroll-area-viewport],[data-no-board-zoom],.overflow-y-auto,.overflow-auto');
+      if (ui && !ui.contains(canvas)) return;
       e.preventDefault();
       e.stopPropagation();
       const rect = canvas.getBoundingClientRect();
@@ -695,8 +699,8 @@ export function PoolBuilder({
       setPanOffset(panRef.current);
     };
 
-    host.addEventListener('wheel', handleNativeWheel, { passive: false });
-    return () => host.removeEventListener('wheel', handleNativeWheel);
+    window.addEventListener('wheel', handleNativeWheel, { passive: false, capture: true });
+    return () => window.removeEventListener('wheel', handleNativeWheel, { capture: true } as EventListenerOptions);
   }, [canvasSize]);
 
   // ─── Load auto-save on mount ───
