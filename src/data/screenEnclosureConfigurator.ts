@@ -108,12 +108,12 @@ export const ENCLOSURE_SCREENS: EnclosureScreenOption[] = [
 ];
 
 export const ENCLOSURE_DOORS: EnclosureDoorOption[] = [
-  { id: 'single-36-sl', label: 'Self-Latching Single Swing Door 36"', widthFt: 3, price: 760, barrierEligible: true, selfLatching: true, description: 'Code-ready barrier door: self-closing hinges, self-latching release at 54" AFG, outward swing.' },
-  { id: 'double-72-sl', label: 'Self-Latching Double Swing Door 6 ft', widthFt: 6, price: 1495, barrierEligible: true, selfLatching: true, description: 'Two self-closing leaves with drop rod and self-latching hardware for equipment access.' },
-  { id: 'single-42-sl', label: 'Self-Latching Wide Door 42" (ADA-friendly)', widthFt: 3.5, price: 940, barrierEligible: true, selfLatching: true, description: 'Wider clear opening with self-closing hinges, self-latching lever and key lock.' },
-  { id: 'single-36', label: 'Single Swing Door 36" (standard hinge)', widthFt: 3, price: 585, barrierEligible: true, description: 'Standard swing door — requires the self-closing / self-latching kit to serve as the barrier.' },
-  { id: 'double-72', label: 'Double Swing Door 6 ft (standard hinge)', widthFt: 6, price: 1180, barrierEligible: true, description: 'Two leaves with drop rod; add the self-latching kit for barrier compliance.' },
-  { id: 'sliding-72', label: 'Sliding Screen Door 6 ft', widthFt: 6, price: 890, barrierEligible: false, description: 'Sliding panel — cannot be used as the pool-barrier access point.' },
+  { id: 'single-36-sl', label: 'Self-Latching Single Swing Door 36"', widthFt: 3, price: 1500, barrierEligible: true, selfLatching: true, description: 'Code-ready barrier door: self-closing hinges, self-latching release at 54" AFG, outward swing.' },
+  { id: 'double-72-sl', label: 'Self-Latching Double Swing Door 6 ft', widthFt: 6, price: 1500, barrierEligible: true, selfLatching: true, description: 'Two self-closing leaves with drop rod and self-latching hardware for equipment access.' },
+  { id: 'single-42-sl', label: 'Self-Latching Wide Door 42" (ADA-friendly)', widthFt: 3.5, price: 1500, barrierEligible: true, selfLatching: true, description: 'Wider clear opening with self-closing hinges, self-latching lever and key lock.' },
+  { id: 'single-36', label: 'Single Swing Door 36" (standard hinge)', widthFt: 3, price: 1500, barrierEligible: true, description: 'Standard swing door — requires the self-closing / self-latching kit to serve as the barrier.' },
+  { id: 'double-72', label: 'Double Swing Door 6 ft (standard hinge)', widthFt: 6, price: 1500, barrierEligible: true, description: 'Two leaves with drop rod; add the self-latching kit for barrier compliance.' },
+  { id: 'sliding-72', label: 'Sliding Screen Door 6 ft', widthFt: 6, price: 1500, barrierEligible: false, description: 'Sliding panel — cannot be used as the pool-barrier access point.' },
   { id: 'pet-door', label: 'Pet Door Panel', widthFt: 1, price: 320, barrierEligible: false, description: 'Framed pet panel with lockable flap. Not permitted in a barrier wall.' },
 ];
 

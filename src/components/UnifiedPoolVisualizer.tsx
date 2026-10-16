@@ -49,7 +49,7 @@ import { loadBoard3D, BOARD_3D_EVENT, updateBoard3D, waterAxis, waterCenter } fr
 import { BOARD_SELECT_EVENT, type BoardSelection } from './scene3d/BoardElements3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
 import { board3DTakeoff, seatingLines } from '@/lib/design/board3DTakeoff';
-import { useSiteElements, siteElementImage } from './designStudio/SiteElementsLayer';
+import { useSiteElements, siteElementImage, gateLines } from './designStudio/SiteElementsLayer';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -618,7 +618,7 @@ export function UnifiedPoolVisualizer({
   }, [activeWater, activeW]);
   /** Whole-scene take-off: extra pools/spas, copings, every deck, turf, fences, screens. */
   const [siteItems] = useSiteElements();
-  const ratedItems = useMemo(() => siteItems.map((e) => ({ ...e, image: siteElementImage(e) })), [siteItems]);
+  const ratedItems = useMemo(() => siteItems.map((e) => ({ ...e, image: siteElementImage(e), doorLines: gateLines(e) })), [siteItems]);
   const sceneTakeoff = useMemo(() => board3DTakeoff(boardData, ratedItems, POOL_SHELL_PRICE_PER_SQFT), [boardData, ratedItems]);
   /** Main pool: $250/sq ft shell until seats/sun benches are added; their footprint moves to the ledge rate. */
   const mainSeatLines = useMemo(() => seatingLines('Main pool', contourSeating, scene.pool.points.map((p) => ({ x: p.x, z: p.y })), POOL_SHELL_PRICE_PER_SQFT), [contourSeating, scene.pool.points]);

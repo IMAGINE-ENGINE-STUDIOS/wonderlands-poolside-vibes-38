@@ -15,6 +15,13 @@ import "./styles/animations.css";
 import "./styles/print.css";
 import { initializePerformanceMonitoring } from "@/utils/performanceMonitor";
 
+// ResizeObserver loop notices are benign browser timing messages (canvas/3D resizes); never surface them as errors.
+if (typeof window !== "undefined") {
+  window.addEventListener("error", (e) => {
+    if (typeof e.message === "string" && e.message.includes("ResizeObserver loop")) { e.stopImmediatePropagation(); e.preventDefault(); }
+  }, true);
+}
+
 // Defensive DOM patch: browser page-translation (Chrome/Google Translate) and
 // some extensions rewrite text nodes inside React-managed DOM. React then
 // crashes with "Failed to execute 'removeChild' on 'Node'" because the node

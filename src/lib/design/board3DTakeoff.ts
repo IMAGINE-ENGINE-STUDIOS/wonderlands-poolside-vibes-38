@@ -22,7 +22,7 @@ type XZ = { x: number; z: number };
 export interface TakeoffLine { name: string; price: number; image?: string }
 export interface BodyLine { name: string; areaSqFt: number; multiplierLabel?: string; price: number }
 /** Minimal shape of a 2D site element (rate + unit + its own catalog photo). */
-export interface RatedItem { id: string; label: string; rate: number; unit: "lf" | "sqft"; image?: string }
+export interface RatedItem { id: string; label: string; rate: number; unit: "lf" | "sqft"; image?: string; /** Fence/screen door lines (name + price). */ doorLines?: Array<{ name: string; price: number }> }
 
 const area = (r: XZ[]) => Math.abs(r.reduce((s, p, i) => { const q = r[(i + 1) % r.length]; return s + p.x * q.z - q.x * p.z; }, 0) / 2);
 const length = (r: XZ[], closed: boolean) => r.reduce((s, p, i) => (i === 0 && !closed ? s : s + Math.hypot(p.x - r[(i - 1 + r.length) % r.length].x, p.z - r[(i - 1 + r.length) % r.length].z)), 0);
@@ -82,11 +82,13 @@ export function board3DTakeoff(data: Board3D | null, items: RatedItem[], shellRa
   for (const f of data.fences) {
     const item = f.itemId ? byId.get(f.itemId) : undefined; if (!item) continue;
     const q = length(f.pts, false); lines.push({ name: `Fence · ${item.label} (${Math.round(q)} lf)`, price: q * item.rate, image: item.image });
+    item.doorLines?.forEach((d) => lines.push({ ...d, image: item.image }));
   }
   for (const s of data.screens) {
     const item = s.itemId ? byId.get(s.itemId) : undefined; if (!item) continue;
     const q = item.unit === "lf" ? length(s.pts, true) : area(s.pts);
     lines.push({ name: `Screen · ${item.label} (${Math.round(q)} ${item.unit})`, price: q * item.rate, image: item.image });
+    item.doorLines?.forEach((d) => lines.push({ ...d, image: item.image }));
   }
   return { bodies, lines: lines.filter((l) => l.price > 0) };
 }
