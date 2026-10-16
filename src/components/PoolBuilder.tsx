@@ -672,15 +672,13 @@ export function PoolBuilder({
   // flushes the pending save instead of dropping the last 2s of changes —
   // that dropped save made materials snap back to older picks on return.
   const latestStateRef = useRef<any>(null);
-  latestStateRef.current = points.length > 0 ? getSerializableState() : null;
+  latestStateRef.current = getSerializableState(); // empty boards are saved too, so removed pools never come back
   useEffect(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
       autoSaveTimerRef.current = null;
-      if (points.length > 0) {
-        setAutoSave(getSerializableState());
-        setLastAutoSaved(new Date().toISOString());
-      }
+      setAutoSave(getSerializableState());
+      setLastAutoSaved(new Date().toISOString());
     }, 2000);
   }, [getSerializableState, points]);
   useEffect(() => () => {
@@ -748,6 +746,14 @@ export function PoolBuilder({
   // ─── Load auto-save on mount ───
   const loadProjectState = useCallback((data: any) => {
     if (!data) return;
+    // A saved project replaces the whole board (nothing from the previous design lingers).
+    if (Array.isArray(data.site)) {
+      setSiteItems(data.site);
+      setAdditionalPools(data.additionalPools ?? []); setAdditionalDeckPoints(data.additionalDeckPoints ?? {});
+      setFeatures(data.features ?? []); setHardscapePoints(data.hardscapePoints ?? []);
+      try { Object.keys(localStorage).filter(k => k.startsWith('design-studio.scene3d.')).forEach(k => localStorage.removeItem(k)); } catch { /* ignore */ }
+      window.dispatchEvent(new CustomEvent('design-studio:project-loaded'));
+    }
     if (data.points) setPoints(data.points);
     if (data.hardscapePoints) setHardscapePoints(data.hardscapePoints);
     if (data.additionalDeckPoints) setAdditionalDeckPoints(data.additionalDeckPoints);
@@ -771,7 +777,7 @@ export function PoolBuilder({
     if (data.gridSnap != null) setGridSnap(data.gridSnap);
     if (data.snapSize) setSnapSize(data.snapSize);
     if (data.customTextures) setCustomTextures(data.customTextures);
-  }, []);
+  }, [setSiteItems]);
 
   useEffect(() => {
     const saved = getAutoSave();
@@ -6554,7 +6560,7 @@ export function PoolBuilder({
         <ProjectManager
           isOpen={showProjectManager}
           onOpenChange={setShowProjectManager}
-          onSaveProject={getSerializableState}
+          onSaveProject={getProjectState}
           onLoadProject={loadProjectState}
           lastSaved={lastAutoSaved}
         />
