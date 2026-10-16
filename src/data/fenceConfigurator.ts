@@ -115,10 +115,10 @@ export const FENCE_COLORS: FenceColorOption[] = [
 ];
 
 export const FENCE_GATES: FenceGateOption[] = [
-  { id: 'walk-36', label: 'Walk Gate 36"', widthFt: 3, price: 650, description: 'Single leaf pedestrian gate with self-closing hinges and self-latching hardware.' },
-  { id: 'walk-48', label: 'Walk Gate 48"', widthFt: 4, price: 780, description: 'Wide single leaf — ADA-friendly clear opening.' },
-  { id: 'double-72', label: 'Double Gate 6 ft', widthFt: 6, price: 1450, description: 'Two leaves with drop rod — equipment access.' },
-  { id: 'double-120', label: 'Double Gate 10 ft', widthFt: 10, price: 1950, description: 'Wide double gate for vehicle or heavy equipment access.' },
+  { id: 'walk-36', label: 'Walk Gate 36"', widthFt: 3, price: 850, description: 'Single leaf pedestrian gate with self-closing hinges and self-latching hardware.' },
+  { id: 'walk-48', label: 'Walk Gate 48"', widthFt: 4, price: 850, description: 'Wide single leaf — ADA-friendly clear opening.' },
+  { id: 'double-72', label: 'Double Gate 6 ft', widthFt: 6, price: 1700, description: 'Two leaves with drop rod — equipment access.' },
+  { id: 'double-120', label: 'Double Gate 10 ft', widthFt: 10, price: 1700, description: 'Wide double gate for vehicle or heavy equipment access.' },
 ];
 
 export const FENCE_ADDONS: FenceAddOnOption[] = [

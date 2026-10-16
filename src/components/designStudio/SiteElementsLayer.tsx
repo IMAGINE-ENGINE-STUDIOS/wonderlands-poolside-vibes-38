@@ -67,7 +67,7 @@ export const gateOption = (kind: SiteKind, id: string) => gateOptionsFor(kind).f
 export const gateLines = (e: SiteElement) => {
   const m = new Map<string, number>();
   (e.gates ?? []).forEach((g) => m.set(g.typeId, (m.get(g.typeId) ?? 0) + 1));
-  return [...m].map(([id, n]) => { const o = gateOption(e.kind, id); return o ? { name: `${e.kind === "fence" ? "Gate" : "Door"} · ${o.label}${n > 1 ? ` × ${n}` : ""}`, price: o.price * n, n, label: o.label } : null; }).filter(Boolean) as Array<{ name: string; price: number; n: number; label: string }>;
+  return [...m].map(([id, n]) => { const o = gateOption(e.kind, id); return o ? { name: `${e.kind === "fence" ? "Fence door" : "Screen door"} · ${o.label}${n > 1 ? ` × ${n}` : ""}`, price: o.price * n, n, label: o.label } : null; }).filter(Boolean) as Array<{ name: string; price: number; n: number; label: string }>;
 };
 type Choice = Omit<SiteElement, "id" | "pts" | "kind"> & { kind: SiteKind };
 /** Drawn decks use the main page paver list (photo + rate per sq ft). */
@@ -685,9 +685,9 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
       const old = prevF.get(e.id);
       // Vinyl panels and posts default to white; 3D picks are kept on re-open.
       const vinyl = e.style === "vinyl";
-      out.fences.push({ itemId: e.id, pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: vinyl ? (old?.color ?? "#ffffff") : e.color, ...(vinyl ? { postColor: old?.postColor ?? "#ffffff" } : {}) });
+      out.fences.push({ itemId: e.id, gates: (e.gates ?? []).map((g) => ({ ...g, widthFt: gateOption(e.kind, g.typeId)?.widthFt ?? 3 })), pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: vinyl ? (old?.color ?? "#ffffff") : e.color, ...(vinyl ? { postColor: old?.postColor ?? "#ffffff" } : {}) });
     }
-    else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, pts: pts.map(to), height: e.height ?? 10, color: e.color });
+    else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, gates: (e.gates ?? []).map((g) => ({ ...g, widthFt: gateOption(e.kind, g.typeId)?.widthFt ?? 3 })), pts: pts.map(to), height: e.height ?? 10, color: e.color });
     else if (e.kind === "deck") out.surfaces.push({ itemId: e.id, kind: "deck", color: "#ffffff", image: (DECK_PAVERS.find((d) => d.id === e.style) ?? DECK_PAVERS[0])?.image, regions: regionsOf(e.id) });
     else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.texture, regions: regionsOf(e.id) });
   }
