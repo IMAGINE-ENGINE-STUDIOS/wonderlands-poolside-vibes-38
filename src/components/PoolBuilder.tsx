@@ -115,6 +115,7 @@ interface PoolBuilderProps {
     hardscapePoints?: Array<{ x: number; y: number; id: string }>;
     features?: Array<{ type: string; x: number; y: number; id: string; angle?: number }>;
     additionalPools?: any[];
+    materials?: { finish?: string; paver?: string; coping?: string };
   } | null; // External state changes from 3D viewer
   onPoolDataChange?: (data: {
     points: Point[];
@@ -602,6 +603,18 @@ export function PoolBuilder({
   const isExternalUpdateRef = useRef(false);
   const lastExternalUpdateRef = useRef<string | null>(null);
   
+  // 3D material picks (product names) → 2D ids, so both studios show the same products.
+  const applyExternalMaterials = (m?: { finish?: string; paver?: string; coping?: string }) => {
+    if (!m) return;
+    const n = (x?: string) => (x || '').toLowerCase().trim();
+    const f = m.finish && CATALOG_FINISHES_2D.find(t => n(t.name) === n(m.finish));
+    if (f) setSelectedFinishId(f.id);
+    const pv = m.paver && paverTypes.find(t => n(t.name) === n(m.paver));
+    if (pv) setSelectedPaverId(pv.id);
+    const cp = m.coping && paverTypes.find(t => n(t.name) === n(m.coping));
+    if (cp) setSelectedCopingId(cp.id);
+  };
+
   useEffect(() => {
     if (!onExternalUpdate) return;
     
@@ -623,6 +636,7 @@ export function PoolBuilder({
     }
     const xp = (onExternalUpdate as { additionalPools?: PoolShape[] }).additionalPools;
     if (Array.isArray(xp) && xp.length) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
+    applyExternalMaterials(onExternalUpdate.materials);
     
     // Clear flag after a frame to allow normal updates
     requestAnimationFrame(() => {
@@ -751,6 +765,7 @@ export function PoolBuilder({
         const xp = (ext as { additionalPools?: PoolShape[] }).additionalPools!;
         if (xp.length) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
       }
+      applyExternalMaterials(ext.materials);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

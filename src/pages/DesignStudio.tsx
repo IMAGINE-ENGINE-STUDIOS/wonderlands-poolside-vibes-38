@@ -365,7 +365,8 @@ const DesignStudio = () => {
       depthPoints: converted.depthPoints,
       hardscapePoints: converted.hardscapePoints,
       features: converted.features,
-      additionalPools: converted.additionalPools
+      additionalPools: converted.additionalPools,
+      materials: converted.materials
     };
   }, [poolBuilderData?.scale, sceneMemoryKey]);
 
