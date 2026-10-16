@@ -9,7 +9,7 @@ const {
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Layers, Box, RotateCcw } from "lucide-react";
+import { ArrowLeft, Layers, Box, RotateCcw, Home } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
