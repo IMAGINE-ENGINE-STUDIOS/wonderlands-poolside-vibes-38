@@ -294,8 +294,6 @@ export function PoolDesignerHeader({
       <div className={`absolute left-0 right-0 ${dropUp ? "bottom-full -mb-px" : "top-full -mt-px"} z-50 grid transition-[grid-template-rows] duration-300 ease-out ${isExpanded ? '' : 'pointer-events-none'}`} style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}>
           <div className={`overflow-hidden bg-white ${dropUp ? "rounded-t-[20px]" : "rounded-b-[20px]"} ${isExpanded ? (dropUp ? "border border-b-0 border-slate-200/80 shadow-[0_-12px_32px_rgba(0,0,0,0.12)]" : "border border-t-0 border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.12)]") : ""}`}>
             <div className={`${dropUp ? "max-h-[calc(100vh-16rem)]" : "max-h-[calc(100vh-7rem)]"} overflow-y-auto`}>
-            <div className="hidden border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.12)]' : ''}`}>
-            <div className="max-h-[calc(100vh-7rem)] overflow-y-auto">
               <div className="grid grid-cols-2 md:grid-cols-4 border-b border-slate-100 divide-x divide-slate-100 bg-white">
                 <Stat label="Pool Area" value={measurements.poolArea.toFixed(0)} unit="sq ft" />
                 <Stat label="Perimeter" value={measurements.perimeter.toFixed(1)} unit="ft" />
