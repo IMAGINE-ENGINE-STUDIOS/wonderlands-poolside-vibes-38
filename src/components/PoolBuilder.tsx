@@ -673,7 +673,11 @@ export function PoolBuilder({
     if (!canvas) return;
 
     // Wheel / trackpad-pinch zoom anchored under the cursor (pan adjusted so the point stays put).
+    // Listens on the board wrapper so the drawn-element overlay never swallows zoom; menus/panels keep their own scroll.
+    const host = canvas.parentElement ?? canvas;
     const handleNativeWheel = (e: WheelEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && t !== canvas && t.closest?.('aside,nav,[role=dialog],[data-radix-scroll-area-viewport],.overflow-y-auto,.overflow-auto')) return;
       e.preventDefault();
       e.stopPropagation();
       const rect = canvas.getBoundingClientRect();
@@ -681,7 +685,7 @@ export function PoolBuilder({
       const sy = (e.clientY - rect.top) * (canvas.height / rect.height) - canvas.height / 2;
       const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
       const z = zoomRef.current;
-      const next = Math.min(6, Math.max(0.2, z * Math.exp(-dy * 0.0015)));
+      const next = Math.min(6, Math.max(0.1, z * Math.exp(-dy * 0.0015)));
       if (next === z) return;
       const k = next / z;
       const pan = panRef.current;
@@ -691,8 +695,8 @@ export function PoolBuilder({
       setPanOffset(panRef.current);
     };
 
-    canvas.addEventListener('wheel', handleNativeWheel, { passive: false });
-    return () => canvas.removeEventListener('wheel', handleNativeWheel);
+    host.addEventListener('wheel', handleNativeWheel, { passive: false });
+    return () => host.removeEventListener('wheel', handleNativeWheel);
   }, [canvasSize]);
 
   // ─── Load auto-save on mount ───
@@ -6272,6 +6276,18 @@ export function PoolBuilder({
             const newPoolPoints = getShapePoints(shape).map(p => ({ ...p, curveType: 'linear' as const }));
             setPoints(newPoolPoints);
             setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+            setDeckOffsetsById(prev => ({ ...prev, main: deckOffset }));
+            setFeatures([]);
+          }}
+          onPickPool={(wFt, lFt) => {
+            const cx = canvasSize.width / 2, cy = canvasSize.height / 2, w = wFt * scale, l = lFt * scale;
+            const pts = [
+              { x: cx - w / 2, y: cy - l / 2, id: '1' }, { x: cx + w / 2, y: cy - l / 2, id: '2' },
+              { x: cx + w / 2, y: cy + l / 2, id: '3' }, { x: cx - w / 2, y: cy + l / 2, id: '4' },
+            ].map(p => ({ ...p, curveType: 'linear' as const }));
+            setPoolShape('rectangle');
+            setPoints(pts);
+            setHardscapePoints(generateHardscapeFromPool(pts, deckOffset));
             setDeckOffsetsById(prev => ({ ...prev, main: deckOffset }));
             setFeatures([]);
           }}

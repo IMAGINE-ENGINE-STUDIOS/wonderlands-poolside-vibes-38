@@ -288,8 +288,16 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       if (e.type === "dblclick") { setEditId(hit.id); setMenu(null); return; }
       setMenu({ x: e.clientX - r.left, y: e.clientY - r.top, id: hit.id, seg: hit.seg, at: hit.at });
     };
-    window.addEventListener("contextmenu", open, true); window.addEventListener("dblclick", open, true);
-    return () => { window.removeEventListener("contextmenu", open, true); window.removeEventListener("dblclick", open, true); };
+    // Single click only selects (never blocks the canvas) so the Materials panel can follow it.
+    const pick = (e: MouseEvent) => {
+      const host = svgRef.current?.parentElement; if (!host || drawing) return;
+      const r = host.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+      if ((e.target as HTMLElement)?.closest?.("aside,button,nav,[data-spline-menu],[role=dialog]")) return;
+      const hit = nearest(toWorld(e, false)); if (hit) setSelected(hit.id);
+    };
+    window.addEventListener("contextmenu", open, true); window.addEventListener("dblclick", open, true); window.addEventListener("click", pick, true);
+    return () => { window.removeEventListener("contextmenu", open, true); window.removeEventListener("dblclick", open, true); window.removeEventListener("click", pick, true); };
   }, [view, drawing, nearest, toWorld]);
   /* Vertex dragging + whole-shape move. */
   React.useEffect(() => {
