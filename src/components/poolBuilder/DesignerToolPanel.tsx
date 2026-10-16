@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 const { useState } = React;
 const SHOW_EXTRA_FEATURE_SECTIONS = false;
 import { Button } from '@/components/ui/button';
@@ -104,8 +105,22 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const [depthAnchorId, setDepthAnchorId] = useState<string | null>(null);
 
   const toggleSection = (section: PanelSection) => {
-    setExpandedSection(prev => prev === section ? null : section);
+    setExpandedSection(prev => {
+      const next = prev === section ? null : section;
+      if (next) window.dispatchEvent(new CustomEvent('studio-rail:open', { detail: 'tools' }));
+      return next;
+    });
   };
+  // Rail buttons render inside the shared left floating menu (SiteElementsLayer slot) when present.
+  const [railSlot, setRailSlot] = useState<HTMLElement | null>(null);
+  React.useEffect(() => {
+    let raf = 0;
+    const find = () => { const el = document.getElementById('studio-rail-slot'); if (el) setRailSlot(el); else raf = requestAnimationFrame(find); };
+    find();
+    const h = (e: Event) => { if ((e as CustomEvent).detail !== 'tools') setExpandedSection(null); };
+    window.addEventListener('studio-rail:open', h);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('studio-rail:open', h); };
+  }, []);
 
   const formatCurrency = (val: number) => 
     val >= 1000 ? `$${(val / 1000).toFixed(1)}k` : `$${val.toFixed(0)}`;
@@ -113,10 +128,10 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const scaleVal = props.scale || 10;
 
   return (
-    <div className="absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none">
+    <div className={railSlot ? "absolute left-[4.75rem] top-16 z-[30] bottom-0 flex pointer-events-none" : "absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none"}>
       {/* Section flyout (opens left of the rail); depth uses the 3D Studio editor instead. */}
       {expandedSection && expandedSection !== 'depth' && (
-      <div className="pointer-events-auto mt-4 mr-2 w-72 self-start max-h-[calc(100%-2rem)] border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0">
+      <div className="pointer-events-auto w-72 self-start max-h-[calc(100%-5rem)] rounded-2xl border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0">
         <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
           <span className="text-sm font-bold uppercase tracking-[0.2em] text-foreground">{RAIL.find(r => r.id === expandedSection)?.label}</span>
           <button onClick={() => setExpandedSection(null)} aria-label="Close" className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
@@ -413,21 +428,27 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
       </div>
       )}
 
-      {/* Vertical controller rail — right edge of the board. Credit: Imagine Engine Studios Corp. */}
+      {railSlot ? createPortal(RAIL.map(r => (
+        <button
+          key={r.id}
+          title={r.label}
+          onClick={() => toggleSection(r.id)}
+          aria-pressed={expandedSection === r.id}
+          className={`pointer-events-auto flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] uppercase tracking-[0.12em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
+        >
+          {r.icon}
+          <span className="leading-none">{r.label}</span>
+        </button>
+      )), railSlot) : (
       <nav aria-label="2D Designer tools" className="pointer-events-auto flex w-16 shrink-0 flex-col border-l border-border bg-background/95 backdrop-blur">
-        <span className="border-b border-border py-2 text-center text-[8px] uppercase tracking-[0.25em] text-muted-foreground">2D</span>
         {RAIL.map(r => (
-          <button
-            key={r.id}
-            onClick={() => toggleSection(r.id)}
-            aria-pressed={expandedSection === r.id}
-            className={`flex flex-col items-center gap-1 border-b border-border px-1 py-3 text-[8.5px] uppercase tracking-[0.12em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-muted/40'}`}
-          >
-            {r.icon}
-            <span className="leading-tight text-center">{r.label}</span>
+          <button key={r.id} onClick={() => toggleSection(r.id)} aria-pressed={expandedSection === r.id}
+            className={`flex flex-col items-center gap-1 border-b border-border px-1 py-3 text-[8.5px] uppercase tracking-[0.12em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}>
+            {r.icon}<span className="leading-tight text-center">{r.label}</span>
           </button>
         ))}
       </nav>
+      )}
 
       <DepthProfileEditor3D
         isOpen={expandedSection === 'depth'}

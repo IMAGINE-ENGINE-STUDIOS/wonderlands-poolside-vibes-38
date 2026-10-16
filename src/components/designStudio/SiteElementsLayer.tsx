@@ -15,7 +15,7 @@
  * Elements persist per browser and are handed to the 3D Studio by `siteElementsTo3D`.
  */
 import * as React from "react";
-import { Fence, Grid2x2, Layers, MousePointer2, Trash2, Undo2, Check, X } from "lucide-react";
+import { Fence, Grid2x2, Layers, MousePointer2, Trash2, Undo2, Check, X, LayoutList } from "lucide-react";
 import usePersistentState from "@/hooks/usePersistentState";
 import { cn } from "@/lib/utils";
 import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator";
@@ -127,7 +127,11 @@ interface Props {
 
 export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const [items, setItems] = useSiteElements();
-  const [tab, setTab] = React.useState<SiteKind | null>(null);
+  const [tab, setTabRaw] = React.useState<SiteKind | null>(null);
+  const [boardOpen, setBoardOpen] = React.useState(false);
+  // One floating rail: opening a site panel closes the 2D tool flyout and vice-versa.
+  const setTab = React.useCallback((t: SiteKind | null) => { setTabRaw(t); if (t) window.dispatchEvent(new CustomEvent("studio-rail:open", { detail: "site" })); }, []);
+  React.useEffect(() => { const h = (e: Event) => { if ((e as CustomEvent).detail !== "site") { setTabRaw(null); setBoardOpen(false); } }; window.addEventListener("studio-rail:open", h); return () => window.removeEventListener("studio-rail:open", h); }, []);
   const [choice, setChoice] = React.useState<Choice | null>(null);
   const [draft, setDraft] = React.useState<Pt[]>([]);
   const [hover, setHover] = React.useState<Pt | null>(null);
@@ -417,16 +421,22 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       )}
 
       {/* Site catalog + take-off */}
-      <aside className="absolute left-3 top-16 z-[30] w-72 max-h-[calc(100%-9rem)] overflow-y-auto border border-border bg-background/95 p-4 text-sm shadow-sm backdrop-blur">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Whole property</p>
-        <div className="mt-2 grid grid-cols-4 gap-1">
-          {([["fence", "Fences", Fence], ["enclosure", "Screens", Layers], ["turf", "Turf", Grid2x2], ["deck", "Decks", Layers]] as const).map(([k, l, Icon]) => (
-            <button key={k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex flex-col items-center gap-1 border py-2 text-[11px]", tab === k ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground")}>
-              <Icon className="h-4 w-4" />{l}
-            </button>
-          ))}
-        </div>
+      {/* Unified floating rail (flip-book style pill): site elements + 2D tools. Credit: Imagine Engine Studios Corp. */}
+      <nav aria-label="Studio menu" className="absolute left-3 top-16 z-[31] flex flex-col items-center gap-1 rounded-full border border-border/50 bg-background/70 px-1.5 py-2 shadow-[0_16px_44px_-34px_rgba(8,12,24,0.6)] backdrop-blur-xl">
+        {([["fence", "Fences", Fence], ["enclosure", "Screens", Layers], ["turf", "Turf", Grid2x2], ["deck", "Decks", Layers]] as const).map(([k, l, Icon]) => (
+          <button key={k} title={l} aria-pressed={tab === k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] uppercase tracking-[0.12em] transition-colors", tab === k ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
+            <Icon className="h-4 w-4" />{l}
+          </button>
+        ))}
+        <button title="On the board" aria-pressed={boardOpen} onClick={() => { const v = !boardOpen; setBoardOpen(v); if (v) window.dispatchEvent(new CustomEvent("studio-rail:open", { detail: "site" })); }} className={cn("flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] uppercase tracking-[0.12em] transition-colors", boardOpen ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
+          <LayoutList className="h-4 w-4" />Board
+        </button>
+        <span className="my-1 h-px w-8 bg-border" />
+        <div id="studio-rail-slot" className="flex flex-col items-center gap-1" />
+      </nav>
 
+      {(tab || boardOpen) && (
+      <aside className="absolute left-[4.75rem] top-16 z-[30] w-72 max-h-[calc(100%-9rem)] overflow-y-auto rounded-2xl border border-border/50 bg-background/95 p-4 text-sm shadow-[0_16px_44px_-34px_rgba(8,12,24,0.6)] backdrop-blur-xl">
         {tab === "fence" && (
           <>
             <Step n={1} label="Material">
@@ -503,6 +513,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
           {!items.length && <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground"><MousePointer2 className="h-3 w-3" />Pick fences, screens or turf above, then draw on the board.</p>}
         </div>
       </aside>
+      )}
     </>
   );
 };
