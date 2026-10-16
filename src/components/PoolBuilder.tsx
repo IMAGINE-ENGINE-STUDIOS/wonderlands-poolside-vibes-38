@@ -576,11 +576,35 @@ export function PoolBuilder({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setSiteItems]);
   const boardHistory = useBoardHistory(boardSnap, applyBoardSnap);
+  /** Full project = pool board + fences/screens/turf/drawn decks, so Projects reopen everything. */
+  const getProjectState = useCallback(() => ({ ...getSerializableState(), site: siteItems }), [getSerializableState, siteItems]);
   const saveNow = useCallback(() => {
-    setAutoSave(getSerializableState());
+    setAutoSave(getProjectState());
     setLastAutoSaved(new Date().toISOString());
     toast({ title: 'Project saved', description: 'Your design is saved on this device.' });
-  }, [getSerializableState]);
+  }, [getProjectState]);
+
+  /* Pool drawn on top of turf or an existing deck gets no auto deck: on turf the grass
+     runs up to the pool's own shape, on a deck the drawn deck already surrounds it. */
+  const seenPoolIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const ids = new Set<string>([...(points.length >= 3 ? ['main'] : []), ...additionalPools.filter(p => p.points.length >= 3).map(p => p.id)]);
+    if (seenPoolIdsRef.current === null) { seenPoolIdsRef.current = ids; return; } // existing designs keep their decks
+    const fresh = [...ids].filter(id => !seenPoolIdsRef.current!.has(id));
+    seenPoolIdsRef.current = ids;
+    if (!fresh.length) return;
+    const covers = (pts: Point[]) => {
+      const c = { x: pts.reduce((s, p) => s + p.x, 0) / pts.length, y: pts.reduce((s, p) => s + p.y, 0) / pts.length };
+      return siteItems.some(e => (e.kind === 'turf' || e.kind === 'deck') && e.pts.length >= 3 && isPointInPolygon(c.x, c.y, e.pts as Point[]));
+    };
+    const omit: Record<string, HardscapePoint[]> = {};
+    for (const id of fresh) {
+      const pts = id === 'main' ? points : additionalPools.find(p => p.id === id)?.points;
+      if (pts && covers(pts)) { if (id === 'main') setTimeout(() => setHardscapePoints([]), 0); else omit[id] = []; }
+    }
+    if (Object.keys(omit).length) setTimeout(() => setAdditionalDeckPoints(prev => ({ ...prev, ...omit })), 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [points.length >= 3, additionalPools.length]);
   useBoardCommands((c) => {
     if (c === 'undo') boardHistory.undo(); else if (c === 'redo') boardHistory.redo();
     else if (c === 'save') saveNow(); else setShowProjectManager(true);
