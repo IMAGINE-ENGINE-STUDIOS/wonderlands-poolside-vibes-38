@@ -733,3 +733,30 @@ export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: 
   }, [paver, deckAreaSqFt, additionalPools, additionalDecks, items, poolPts, deckPts, scale]);
   return <PoolDesignerHeader deckLines={deckLines} paverName={paver?.name} poolPoints={feet as never} poolDepth={poolDepth} deckWidth={deckWidth} copingWidth={copingWidth} poolPrice={poolPrice} deckAreaSqFt={deckAreaSqFt} additionalFeatures={extras} additionalBodies={bodies} />;
 };
+
+/**
+ * 2D roof plan of a pool cage (matches the 3D framing): dashed ridge frame,
+ * hip rafters from every corner, posts every 8 ft.
+ * © Imagine Engine Studios Corp.
+ */
+function CageRoofPlan({ pts, scale, heightFt, color, zoom }: { pts: { x: number; y: number }[]; scale: number; heightFt: number; color: string; zoom: number }) {
+  const plan = React.useMemo(() => {
+    if (pts.length < 3) return null;
+    const ring = mitredOffsetRing(pts.map((p) => ({ x: p.x, z: p.y })), -Math.min(5, heightFt * 0.35) * scale);
+    const posts: { x: number; y: number }[] = [];
+    pts.forEach((a, k) => {
+      const b = pts[(k + 1) % pts.length], n = Math.max(1, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / (8 * scale)));
+      for (let i = 0; i < n; i++) posts.push({ x: a.x + ((b.x - a.x) * i) / n, y: a.y + ((b.y - a.y) * i) / n });
+    });
+    return { base: ring.base, top: ring.offset, posts };
+  }, [pts, scale, heightFt]);
+  if (!plan) return null;
+  const w = 1 / zoom;
+  return (
+    <g style={{ pointerEvents: "none" }} stroke={color} strokeOpacity={0.55} fill="none">
+      <polygon points={plan.top.map((p) => `${p.x},${p.z}`).join(" ")} strokeWidth={1.2 * w} strokeDasharray={`${5 * w} ${3 * w}`} />
+      {plan.base.map((b, k) => <line key={k} x1={b.x} y1={b.z} x2={plan.top[k].x} y2={plan.top[k].z} strokeWidth={1.2 * w} strokeDasharray={`${5 * w} ${3 * w}`} />)}
+      {plan.posts.map((p, k) => <rect key={`p${k}`} x={p.x - 2.5 * w} y={p.y - 2.5 * w} width={5 * w} height={5 * w} fill={color} stroke="none" />)}
+    </g>
+  );
+}
