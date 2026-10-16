@@ -28,6 +28,7 @@ import grassTexture from "@/assets/turf/grass-texture.avif";
 import { paverTypes } from "@/data/paverData";
 import { densifyPoolOutline } from "@/utils/curveUtils";
 import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from "@/components/scene3d/PoolDesignerHeader";
+import { getDeckPricePerSqFt } from "@/utils/poolBuilderPricing";
 import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
 
 /* ---------- catalog (same lists as the Global Design Board) ---------- */
@@ -309,7 +310,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   );
   const Step = ({ n, label, children }: { n: number; label: string; children: React.ReactNode }) => (
     <div className="mt-3">
-      <p className="mb-1.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{n}. {label}</p>
+      <p className="mb-1.5 text-sm font-bold uppercase tracking-[0.15em] text-foreground">{n}. {label}</p>
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
   );
@@ -464,10 +465,10 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
         {tab === "deck" && (
           <div className="mt-3">
-            <p className="mb-1.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{"\n"}</p>
+            <button onClick={() => { setDraft([]); setChoice(DECK_CHOICE); }} className="w-full bg-foreground py-2.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-background hover:opacity-90">Draw deck</button>
             {DECK_FAMILIES.map(([fam, list]) => (
               <div key={fam} className="mt-2">
-                <p className="mb-1 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">{fam}</p>
+                <p className="mb-1.5 text-base font-bold uppercase tracking-[0.15em] text-foreground">{fam}</p>
                 <div className="grid grid-cols-3 gap-1.5">
                   {list.map((d) => (
                     <button key={d.id} onClick={() => { setDraft([]); setChoice(deckChoice(d.id)); }} className="flex flex-col border border-border text-left text-[10px] hover:border-foreground">
@@ -484,8 +485,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         {/* Erase / edit — everything on the board, pool and deck included */}
         <div className="mt-4 border-t border-border pt-3">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">On the board</p>
-            <button onClick={() => { setDraft([]); setChoice(DECK_CHOICE); }} className="border border-border px-2 py-1 text-[10px] hover:border-foreground">Draw deck</button>
+            <p className="text-sm font-bold uppercase tracking-[0.15em] text-foreground">On the board</p>
           </div>
           <ul className="mt-2 space-y-1 text-[12px]">
             {(view?.poolPts?.length ?? 0) >= 3 && <Row id="__pool" label="Pool" />}
@@ -573,12 +573,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
  * (PoolDesignerHeader), fed the same pool geometry in feet, plus fences,
  * screens and turf as extra lines. Credit: Imagine Engine Studios Corp.
  */
-export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: Pt[]; poolDepth?: number; deckWidth?: number; copingWidth?: number; poolPrice?: number; stats?: unknown; totals?: unknown; deckAreaSqFt?: number; featuresList?: Array<{ type: string; cost: number }>; additionalPools?: Array<{ id: string; type?: string; points: Pt[] }> }> = ({ scale, poolPts, deckPts, poolDepth = 6, deckWidth = 4, copingWidth = 1, poolPrice = 0, deckAreaSqFt, featuresList = [], additionalPools = [] }) => {
+export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: Pt[]; poolDepth?: number; deckWidth?: number; copingWidth?: number; poolPrice?: number; stats?: unknown; totals?: unknown; deckAreaSqFt?: number; featuresList?: Array<{ type: string; cost: number }>; additionalPools?: Array<{ id: string; type?: string; points: Pt[] }>; additionalDecks?: Record<string, Pt[]>; paver?: { id: string; name: string } }> = ({ scale, poolPts, deckPts, poolDepth = 6, deckWidth = 4, copingWidth = 1, poolPrice = 0, deckAreaSqFt, featuresList = [], additionalPools = [], additionalDecks = {}, paver }) => {
   const [items] = useSiteElements();
   const feet = React.useMemo(() => poolPts.map((p) => ({ x: p.x / scale, y: p.y / scale })), [poolPts, scale]);
   // Every element on the board: site pieces, placed features and extra water bodies.
   const extras = React.useMemo(() => {
-    const site = items.map((e) => { const q = e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { name: `${KIND_LABEL[e.kind]} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }; });
+    const site = items.filter((e) => e.kind !== "deck").map((e) => { const q = e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return { name: `${KIND_LABEL[e.kind]} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }; });
     const counts = new Map<string, { n: number; cost: number }>();
     featuresList.forEach((f) => { const c = counts.get(f.type) ?? { n: 0, cost: 0 }; c.n++; c.cost += f.cost; counts.set(f.type, c); });
     const feats = [...counts].map(([t, c]) => ({ name: `${t.replace(/-/g, " ").replace(/^./, (m) => m.toUpperCase())}${c.n > 1 ? ` × ${c.n}` : ""}`, price: c.cost }));
@@ -589,5 +589,15 @@ export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: 
     const label = p.type === "spa" ? "Spa" : p.type === "tanning-ledge" ? "Tanning ledge" : "Pool";
     return { name: `${label} ${i + 1}`, areaSqFt: a, price: a * POOL_SHELL_PRICE_PER_SQFT };
   }), [additionalPools, scale]);
-  return <PoolDesignerHeader poolPoints={feet as never} poolDepth={poolDepth} deckWidth={deckWidth} copingWidth={copingWidth} poolPrice={poolPrice} deckAreaSqFt={deckAreaSqFt} additionalFeatures={extras} additionalBodies={bodies} />;
+  // Every paved deck (pool deck, extra pool/spa decks, drawn decks) grouped by paver at its own rate.
+  const deckLines = React.useMemo(() => {
+    const g = new Map<string, { name: string; areaSqFt: number; rate: number }>();
+    const add = (name: string, rate: number, a: number) => { if (a <= 0) return; const k = `${name}|${rate}`; const c = g.get(k) ?? { name, areaSqFt: 0, rate }; c.areaSqFt += a; g.set(k, c); };
+    const mainName = paver?.name ?? "Concrete deck"; const mainRate = getDeckPricePerSqFt(paver?.id ?? "concrete-deck");
+    add(mainName, mainRate, deckAreaSqFt ?? 0);
+    additionalPools.forEach((p) => { const d = additionalDecks[p.id]; if (d?.length >= 3 && p.points?.length >= 3) add(mainName, mainRate, Math.max(0, areaFt(d, scale) - areaFt(p.points, scale))); });
+    items.filter((e) => e.kind === "deck").forEach((e) => add(e.label, e.rate, turfNetSqft(e, items, poolPts, deckPts, scale)));
+    return [...g.values()];
+  }, [paver, deckAreaSqFt, additionalPools, additionalDecks, items, poolPts, deckPts, scale]);
+  return <PoolDesignerHeader deckLines={deckLines} paverName={paver?.name} poolPoints={feet as never} poolDepth={poolDepth} deckWidth={deckWidth} copingWidth={copingWidth} poolPrice={poolPrice} deckAreaSqFt={deckAreaSqFt} additionalFeatures={extras} additionalBodies={bodies} />;
 };

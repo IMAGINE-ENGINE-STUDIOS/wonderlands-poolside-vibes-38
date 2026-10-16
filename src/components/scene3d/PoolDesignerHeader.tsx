@@ -32,6 +32,8 @@ interface PoolDesignerHeaderProps {
   additionalBodies?: Array<{ name: string; areaSqFt: number; multiplierLabel?: string; price: number }>;
   /** Exact drawn deck area (sq ft); when given it replaces the perimeter estimate */
   deckAreaSqFt?: number;
+  /** Every paved deck on the board grouped by paver; when given, the deck line totals them all. */
+  deckLines?: Array<{ name: string; areaSqFt: number; rate: number }>;
 }
 
 // Calculate pool area from points
@@ -89,7 +91,8 @@ export function PoolDesignerHeader({
   copingPricePerSqft,
   additionalFeatures = [],
   additionalBodies = [],
-  deckAreaSqFt
+  deckAreaSqFt,
+  deckLines
 }: PoolDesignerHeaderProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
@@ -106,7 +109,7 @@ export function PoolDesignerHeader({
     const { width, length } = calculateDimensions(poolPoints);
 
     // Deck area approximation (perimeter * deckWidth + corners)
-    const deckArea = deckAreaSqFt ?? (perimeter * deckWidth + Math.PI * deckWidth * deckWidth);
+    const deckArea = deckLines?.length ? deckLines.reduce((t, l) => t + l.areaSqFt, 0) : deckAreaSqFt ?? (perimeter * deckWidth + Math.PI * deckWidth * deckWidth);
 
     // Coping area (perimeter * copingWidth)
     const copingArea = perimeter * copingWidth;
@@ -125,7 +128,7 @@ export function PoolDesignerHeader({
       waterVolume,
       gallons
     };
-  }, [poolPoints, poolDepth, deckWidth, copingWidth, deckAreaSqFt]);
+  }, [poolPoints, poolDepth, deckWidth, copingWidth, deckAreaSqFt, deckLines]);
 
   // Store rates — derived from the actual products the user selected
   const rates = useMemo(() => {
@@ -137,7 +140,7 @@ export function PoolDesignerHeader({
 
   const costs = useMemo(() => {
     const pool = measurements.poolArea * rates.shell;
-    const deckCost = measurements.deckArea * rates.deck;
+    const deckCost = deckLines?.length ? deckLines.reduce((t, l) => t + l.areaSqFt * l.rate, 0) : measurements.deckArea * rates.deck;
     const copingCost = measurements.copingArea * rates.coping;
     const bodiesCost = additionalBodies.reduce((sum, b) => sum + (rateOverrides[`body-${b.name}`] ?? b.price), 0);
     const featuresCost = additionalFeatures.reduce(
@@ -149,12 +152,13 @@ export function PoolDesignerHeader({
     const total = pool + deckCost + copingCost + featuresCost + bodiesCost + waterline;
 
     return { pool, deck: deckCost, coping: copingCost, features: featuresCost, bodies: bodiesCost, waterline, total };
-  }, [measurements, rates, additionalFeatures, additionalBodies, rateOverrides, waterlineName]);
+  }, [measurements, rates, additionalFeatures, additionalBodies, rateOverrides, waterlineName, deckLines]);
 
   // Full itemization used for the quote document
   const quoteExtras = useMemo(() => {
     const breakdown: Array<{ name: string; price: number; image: string }> = [];
-    breakdown.push({
+    if (deckLines?.length) deckLines.forEach(l => breakdown.push({ name: `${l.name} — ${Math.round(l.areaSqFt)} sq ft × $${l.rate}/sq ft`, price: Math.round(l.areaSqFt * l.rate), image: '' }));
+    else breakdown.push({
       name: `${paverName || 'Deck'} — ${Math.round(measurements.deckArea)} sq ft × $${rates.deck}/sq ft`,
       price: Math.round(costs.deck),
       image: ''
@@ -314,9 +318,29 @@ export function PoolDesignerHeader({
                   <Line title="Pool Shell" sub={finishName || undefined}
                     detail={<>{measurements.poolArea.toFixed(0)} sq ft × $<EditableRate id="shell" value={rates.shell} />/sq ft</>}
                     amount={money(costs.pool)} />
+                  {deckLines?.length ? (
+                    <div className="py-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="text-[13px] font-medium tracking-tight text-slate-900 leading-tight">Total Deck</span>
+                          <span className="text-[11.5px] text-slate-500 mt-0.5 tabular-nums leading-tight">{measurements.deckArea.toFixed(0)} sq ft total paved area</span>
+                        </div>
+                        <div className="shrink-0 text-right text-[13px] font-semibold tracking-tight text-slate-900 tabular-nums">{money(costs.deck)}</div>
+                      </div>
+                      <ul className="mt-1.5 space-y-0.5 pl-2 border-l border-slate-200">
+                        {deckLines.map(l => (
+                          <li key={l.name} className="flex justify-between gap-2 text-[11.5px] text-slate-500 tabular-nums">
+                            <span className="truncate">{l.name} · {Math.round(l.areaSqFt)} sq ft × ${l.rate}/sq ft</span>
+                            <span className="text-slate-700">{money(l.areaSqFt * l.rate)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
                   <Line title={paverName || 'Deck'}
                     detail={<>{measurements.deckArea.toFixed(0)} sq ft × $<EditableRate id="deck" value={rates.deck} />/sq ft</>}
                     amount={money(costs.deck)} />
+                  )}
                   <Line title={copingName || 'Coping'}
                     detail={<>{measurements.copingArea.toFixed(0)} sq ft × $<EditableRate id="coping" value={rates.coping} />/sq ft</>}
                     amount={money(costs.coping)} />
