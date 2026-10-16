@@ -113,7 +113,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const scaleVal = props.scale || 10;
 
   return (
-    <div className="absolute top-0 right-0 bottom-0 z-20 flex flex-row-reverse items-stretch pointer-events-none" style={{ flexDirection: 'row' }}>
+    <div className="absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none">
       {/* Section flyout (opens left of the rail); depth uses the 3D Studio editor instead. */}
       {expandedSection && expandedSection !== 'depth' && (
       <div className="pointer-events-auto mt-4 mr-2 w-72 self-start max-h-[calc(100%-2rem)] border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0">
@@ -468,6 +468,9 @@ function SectionHeader({ label, icon, expanded, onToggle, badge }: {
   onToggle: () => void;
   badge?: string;
 }) {
+  // Section headers now live in the vertical rail; kept for call-site compatibility.
+  void label; void icon; void expanded; void onToggle; void badge;
+  return null;
   return (
     <button
       onClick={onToggle}

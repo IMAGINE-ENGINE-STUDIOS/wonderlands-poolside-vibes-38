@@ -6247,6 +6247,7 @@ export function PoolBuilder({
 
         {/* Floating Designer Tool Panel */}
         <DesignerToolPanel
+          poolPointsFt={points.map(p => ({ x: p.x / scale, y: p.y / scale }))}
           activeTool={activeTool}
           setActiveTool={setActiveTool}
           poolShape={poolShape}
