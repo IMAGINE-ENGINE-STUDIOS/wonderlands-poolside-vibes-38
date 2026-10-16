@@ -204,7 +204,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
   /** Magnetic first point: within ~18 screen px (or 1.5 ft) the cursor locks onto it. */
   const nearFirst = (raw: Pt) => !!view && choice?.kind !== "fence" && draft.length >= 3 &&
-    Math.hypot(raw.x - draft[0].x, raw.y - draft[0].y) < Math.max(scale * 2, 28 / view.zoom);
+    Math.hypot(raw.x - draft[0].x, raw.y - draft[0].y) < Math.max(scale * 2, 36 / view.zoom);
   const onClick = (e: React.MouseEvent) => {
     if (!view || !choice) return;
     const p = toWorld(e);
