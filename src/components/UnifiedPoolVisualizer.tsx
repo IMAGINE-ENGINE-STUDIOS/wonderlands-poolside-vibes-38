@@ -43,6 +43,7 @@ import { textureCache } from '@/utils/textureCache';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { LandscapePlants3D } from './scene3d/LandscapePlants3D';
 import { BoardElements3D } from './scene3d/BoardElements3D';
+import { GradientSky } from './scene3d/GradientSky';
 import { loadBoard3D, BOARD_3D_EVENT, updateBoard3D, waterAxis, waterCenter } from '@/lib/design/board3D';
 import { BOARD_SELECT_EVENT, type BoardSelection } from './scene3d/BoardElements3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
@@ -1803,14 +1804,7 @@ export function UnifiedPoolVisualizer({
           
           {/* Realistic vivid-blue daytime sky (low haze, clear Rayleigh blue, crisp sun disc) — Imagine Engine Studios Corp */}
           {!isNightMode ? (
-            <Sky 
-              distance={450000}
-              sunPosition={sunPosition}
-              turbidity={2.2}
-              rayleigh={2.6}
-              mieCoefficient={0.004}
-              mieDirectionalG={0.86}
-            />
+            <GradientSky sunPosition={sunPosition} />
           ) : (
             // Night sky - dark background
             <color attach="background" args={['#0a1628']} />
@@ -1910,7 +1904,7 @@ export function UnifiedPoolVisualizer({
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
           <BoardElements3D holes={"outline" in terrainSiteRef && terrainSiteRef.outline ? [terrainSiteRef.outline] : []}
-            scales={boardScales} />
+            scales={boardScales} mainCoping={scene.deck.coping?.url} mainWaterline={scene.deck.waterline?.url ?? scene.deck.coping?.url} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}
