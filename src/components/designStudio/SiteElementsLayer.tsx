@@ -464,7 +464,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
         {tab === "deck" && (
           <div className="mt-3">
-            <p className="mb-1.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">1. Paver — then draw (any number of decks)</p>
+            <p className="mb-1.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{"\n"}</p>
             {DECK_FAMILIES.map(([fam, list]) => (
               <div key={fam} className="mt-2">
                 <p className="mb-1 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">{fam}</p>
