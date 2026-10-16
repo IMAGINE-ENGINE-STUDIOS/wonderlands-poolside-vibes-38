@@ -196,6 +196,22 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             />
             {expandedSection === 'shape' && (
               <div className="px-2 pb-2 space-y-2">
+                <button onClick={() => { props.onStartDrawPool(); setExpandedSection(null); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-background hover:opacity-90">
+                  <PenTool className="h-4 w-4" />Draw a pool
+                </button>
+                {props.onPickPool && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {INVENTORY_POOLS.map(p => (
+                      <button key={p.model} onClick={() => props.onPickPool!(p.w, p.l)} title={p.model}
+                        className="overflow-hidden rounded-lg border border-border bg-background text-left hover:border-foreground">
+                        <img src={p.image} alt={p.model} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                        <span className="block px-1.5 py-1 text-[11px] font-bold text-foreground">{p.dims}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Basic shapes</p>
                 <div className="grid grid-cols-3 gap-1">
                   {(['rectangle', 'kidney', 'freeform'] as const).map(shape => (
                     <button
@@ -238,24 +254,41 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             />
             {expandedSection === 'materials' && (
               <div className="px-2 pb-2 space-y-2">
-                <MaterialSelect
-                  label="Pool Finish"
-                  value={props.selectedFinishId}
-                  onChange={props.setSelectedFinishId}
-                  options={props.finishes.map(f => ({ id: f.id, name: f.name, image: f.image }))}
-                />
-                <MaterialSelect
-                  label="Coping"
-                  value={props.selectedCopingId}
-                  onChange={props.setSelectedCopingId}
-                  options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))}
-                />
-                <MaterialSelect
-                  label="Deck Pavers"
-                  value={props.selectedPaverId}
-                  onChange={props.setSelectedPaverId}
-                  options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))}
-                />
+                {!boardSel?.kind && (
+                  <p className="rounded-lg border border-border bg-muted/30 px-3 py-3 text-xs font-semibold text-foreground">
+                    Select an element on the board — a pool, deck, fence, screen or turf — to see its materials.
+                  </p>
+                )}
+                {boardSel?.kind === 'pool' && (<>
+                  <MaterialSelect label="Pool Finish" value={props.selectedFinishId} onChange={props.setSelectedFinishId}
+                    options={props.finishes.map(f => ({ id: f.id, name: f.name, image: f.image }))} />
+                  <MaterialSelect label="Coping" value={props.selectedCopingId} onChange={props.setSelectedCopingId}
+                    options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))} />
+                </>)}
+                {boardSel?.kind === 'deck' && (
+                  <MaterialSelect label="Deck Pavers"
+                    value={boardSel.id?.startsWith('deck-') ? (boardSel.style ?? '') : props.selectedPaverId}
+                    onChange={(id) => {
+                      if (boardSel.id?.startsWith('deck-')) { const d = DECK_PAVERS.find(x => x.id === id); if (d) restyle({ style: d.id, label: d.label, rate: d.rate }); }
+                      else props.setSelectedPaverId(id);
+                    }}
+                    options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))} />
+                )}
+                {boardSel?.kind === 'fence' && (<>
+                  <MaterialSelect label="Fence" value={boardSel.style ?? ''} onChange={(id) => { const m = FENCE_MATERIALS.find(x => x.id === id); if (m) restyle({ style: m.id, label: m.label }); }}
+                    options={FENCE_MATERIALS.map(m => ({ id: m.id, name: m.label, image: m.image }))} />
+                  <ColorChips colors={FENCE_COLORS} value={boardSel.color} onPick={(c) => restyle({ color: c })} />
+                </>)}
+                {boardSel?.kind === 'enclosure' && (<>
+                  <MaterialSelect label="Screen" value={boardSel.style ?? ''} onChange={(id) => { const s = SCREEN_STYLES.find(x => x.id === id); if (s) restyle({ style: s.id, label: s.label, rate: s.rate }); }}
+                    options={SCREEN_STYLES.map(s => ({ id: s.id, name: s.label, image: s.image }))} />
+                  <ColorChips colors={SCREEN_COLORS} value={boardSel.color} onPick={(c) => restyle({ color: c })} />
+                </>)}
+                {boardSel?.kind === 'turf' && (
+                  <MaterialSelect label="Turf" value={TURFS.find(t => t.color === boardSel.color)?.id ?? ''}
+                    onChange={(id) => { const t = TURFS.find(x => x.id === id); if (t) restyle({ color: t.color, label: t.label, rate: t.rate }); }}
+                    options={TURFS.map(t => ({ id: t.id, name: t.label, image: t.image }))} />
+                )}
               </div>
             )}
 
