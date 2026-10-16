@@ -78,6 +78,15 @@ const deckChoice = (id?: string): Choice => { const d = DECK_PAVERS.find((x) => 
 const DECK_CHOICE: Choice = deckChoice();
 /** Pool outline exactly as the canvas draws it (curves sampled) so cuts follow curves. */
 const poolRing = (pts: Pt[]) => (pts.length >= 3 ? densifyPoolOutline(pts as never, "freeform") : pts);
+/** Fence posts: every corner plus one every `step` px along each run (GDB V1 look). */
+const fencePosts = (pts: Pt[], step: number): Pt[] => {
+  const out: Pt[] = pts.length ? [pts[0]] : [];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], L = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.round(L / (step || 1)));
+    for (let k = 1; k <= n; k++) out.push({ x: a.x + (b.x - a.x) * (k / n), y: a.y + (b.y - a.y) * (k / n) });
+  }
+  return out;
+};
 const KIND_LABEL: Record<SiteKind, string> = { fence: "Fence", enclosure: "Screen", turf: "Turf", deck: "Deck" };
 
 /** Net turf area: turf never sits under the pool or the deck. */
@@ -204,7 +213,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
   /** Magnetic first point: within ~18 screen px (or 1.5 ft) the cursor locks onto it. */
   const nearFirst = (raw: Pt) => !!view && choice?.kind !== "fence" && draft.length >= 3 &&
-    Math.hypot(raw.x - draft[0].x, raw.y - draft[0].y) < Math.max(scale * 2, 28 / view.zoom);
+    Math.hypot(raw.x - draft[0].x, raw.y - draft[0].y) < Math.max(scale * 2, 36 / view.zoom);
   const onClick = (e: React.MouseEvent) => {
     if (!view || !choice) return;
     const p = toWorld(e);
@@ -341,6 +350,23 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     window.addEventListener("mousedown", down, true); window.addEventListener("mousemove", mv, true); window.addEventListener("mouseup", cancel, true);
     return () => { cancel(); window.removeEventListener("mousedown", down, true); window.removeEventListener("mousemove", mv, true); window.removeEventListener("mouseup", cancel, true); };
   }, [view, drawing, moving, editId, nearest, toWorld, startMove]);
+  /* While an element rides the cursor, the next click anywhere on the board drops it.
+     Window capture so the canvas underneath can't swallow it; the release of the
+     pick-up hold is ignored. — Imagine Engine Studios Corp */
+  React.useEffect(() => {
+    if (!moving) return;
+    let armed = false;
+    const arm = window.setTimeout(() => { armed = true; }, 120);
+    const swallow = (e: MouseEvent) => { if (armed) { e.preventDefault(); e.stopPropagation(); } };
+    const drop = (e: MouseEvent) => {
+      if (!armed || e.button !== 0) return;
+      e.preventDefault(); e.stopPropagation();
+      setMoving(null);
+    };
+    window.addEventListener("mousedown", drop, true);
+    window.addEventListener("click", swallow, true);
+    return () => { window.clearTimeout(arm); window.removeEventListener("mousedown", drop, true); window.removeEventListener("click", swallow, true); };
+  }, [moving]);
   const retexture = (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
   const menuItem = items.find((x) => x.id === menu?.id);
   const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))
@@ -417,9 +443,11 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                   {e.kind === "turf" && <polygon points={pts} mask="url(#turf-cut)" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
                   {e.kind === "deck" && <polygon points={pts} fill={`url(#paver-${e.style ?? DECK_PAVERS[0]?.id})`} stroke={sel ? "hsl(var(--foreground))" : "#8a7a62"} strokeWidth={(sel ? 2.5 : 1.5) / (view.zoom || 1)} />}
                   {/* Placed fences/screens keep the exact drawing-board look: solid round-joined line + ringed post handles. */}
-                  {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke="hsl(var(--foreground))" strokeWidth={(sel ? 3.5 : 2.5) / (view.zoom || 1)} strokeLinejoin="round" />}
-                  {e.kind === "fence" && <polyline points={pts} fill="none" stroke="hsl(var(--foreground))" strokeWidth={(sel ? 3.5 : 2.5) / (view.zoom || 1)} strokeLinejoin="round" />}
-                  {(e.kind === "fence" || e.kind === "enclosure") && e.pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={5 / (view.zoom || 1)} fill={i === 0 ? "hsl(var(--primary))" : "hsl(var(--background))"} stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} />)}
+                  {/* Global Design Board V1 look: screens = frame-color outline over mesh; fences = run in the fence color with posts every 6 ft. */}
+                  {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={Math.max(3 / (view.zoom || 1), scale * 0.3)} strokeLinejoin="miter" />}
+                  {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={Math.max(2 / (view.zoom || 1), scale * 0.4)} strokeLinejoin="round" strokeLinecap="round" />}
+                  {e.kind === "fence" && fencePosts(e.pts, scale * 6).map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={Math.max(2 / (view.zoom || 1), scale * 0.3)} fill={e.color} stroke="rgba(0,0,0,0.35)" strokeWidth={0.5 / (view.zoom || 1)} />)}
+                  {sel && (e.kind === "fence" || e.kind === "enclosure") && <polyline points={e.kind === "fence" ? pts : `${pts} ${e.pts[0].x},${e.pts[0].y}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
                 </g>
               );
             })}
