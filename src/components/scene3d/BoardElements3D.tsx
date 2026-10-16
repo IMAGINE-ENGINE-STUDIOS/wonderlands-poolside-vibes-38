@@ -299,7 +299,7 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES }: { holes
   if (!data) return null;
   return (
     <group name="global-design-board">
-      {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={scales.paver} />)}
+      {data.surfaces.map((s, i) => <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={s.scale ?? scales.paver} />)}
       {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} i={i} />)}
       {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} />)}

@@ -620,6 +620,24 @@ export function UnifiedPoolVisualizer({
     const c = waterCenter(w.pts); const xs = w.pts.map((p) => p.x), zs = w.pts.map((p) => p.z);
     setAutoRotate(false); focusOn([c.x, -1, c.z], Math.max(14, Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) * 1.3));
   }, [boardWaters, focusOn, focusOnPoolAsset]);
+  /** Per-body tile size (finish, coping, waterline, deck). Imagine Engine Studios Corp. */
+  const [showTileSize, setShowTileSize] = useState(false);
+  const mainScales = { finish: scene.pool.finish.scale || 1.8, coping: scene.deck.coping.scale || 1.8, waterline: scene.deck.waterline?.scale || 1.8, deck: scene.deck.paver.scale || 1.8 };
+  const activeDeck = activeW ? boardData?.surfaces.find((s) => s.kind === 'deck' && s.itemId === `__deck_${activeW.itemId}`) : undefined;
+  const tileRows = activeW ? ([
+    { key: 'finishScale', label: 'Finish', own: activeW.finishScale, main: mainScales.finish },
+    { key: 'copingScale', label: 'Coping', own: activeW.copingScale, main: mainScales.coping },
+    { key: 'waterlineScale', label: 'Waterline', own: activeW.waterlineScale, main: mainScales.waterline },
+    { key: 'deck', label: 'Deck pavers', own: activeDeck?.scale, main: mainScales.deck },
+  ] as const).map((r) => ({ key: r.key, label: r.label, own: r.own != null, value: r.own ?? r.main })) : [];
+  const setTileScale = useCallback((key: string, v: number | undefined) => {
+    if (activeWater == null) return;
+    updateBoard3D((d) => {
+      const w = d.waters?.[activeWater]; if (!w) return d;
+      if (key === 'deck') return { ...d, surfaces: d.surfaces.map((s) => (s.kind === 'deck' && s.itemId === `__deck_${w.itemId}` ? { ...s, scale: v } : s)) };
+      return { ...d, waters: d.waters!.map((x, k) => (k === activeWater ? { ...x, [key]: v } : x)) };
+    });
+  }, [activeWater]);
   const waterVisible = activeWater != null ? !activeW?.waterOff : showWater;
   const toggleWater = useCallback(() => {
     if (activeWater == null) { setShowWater((v) => !v); return; }
@@ -1423,6 +1441,30 @@ export function UnifiedPoolVisualizer({
                   </button>
                 );
               })}
+            </div>
+          )}
+          {activeW && (
+            /* Tile size for the selected pool/spa only; unset parts follow the main pool. */
+            <div className="relative">
+              <button type="button" onClick={() => setShowTileSize((v) => !v)} title={`Tile size · ${activeW.label}`}
+                className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${showTileSize ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}>
+                <Ruler className="w-4 h-4" strokeWidth={1.8} />
+              </button>
+              {showTileSize && (
+                <div className="absolute right-0 top-12 z-40 w-64 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_12px_40px_rgba(15,23,42,0.12)]">
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-900">Tile size · {activeW.label}</p>
+                  {tileRows.map((r) => (
+                    <div key={r.key} className="mb-3">
+                      <div className="mb-1 flex items-center justify-between text-xs text-slate-700">
+                        <span>{r.label}</span>
+                        <span className="tabular-nums">{r.value.toFixed(1)} ft{r.own ? '' : ' · main'}</span>
+                      </div>
+                      <input type="range" min={0.5} max={6} step={0.1} value={r.value} onChange={(e) => setTileScale(r.key, Number(e.target.value))} className="w-full accent-slate-900" />
+                      {r.own && <button type="button" onClick={() => setTileScale(r.key, undefined)} className="text-[11px] text-slate-500 underline hover:text-slate-900">Match main pool</button>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           <button
