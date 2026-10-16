@@ -579,9 +579,11 @@ export function PoolBuilder({
   /** Full project = pool board + fences/screens/turf/drawn decks, so Projects reopen everything. */
   const getProjectState = useCallback(() => ({ ...getSerializableState(), site: siteItems }), [getSerializableState, siteItems]);
   const saveNow = useCallback(() => {
-    setAutoSave(getProjectState());
+    const data = getProjectState();
+    setAutoSave(data);
+    const p = saveProjectToLibrary(data);
     setLastAutoSaved(new Date().toISOString());
-    toast({ title: 'Project saved', description: 'Your design is saved on this device.' });
+    toast({ title: 'Project saved', description: `"${p.name}" is in your Projects library.` });
   }, [getProjectState]);
 
   /* Pool drawn on top of turf or an existing deck gets no auto deck: on turf the grass
