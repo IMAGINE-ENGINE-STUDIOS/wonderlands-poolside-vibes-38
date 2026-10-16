@@ -59,6 +59,8 @@ export interface SeatingSplinePoint {
 
 export interface ContourSeatingConfig {
   id: string;
+  /** Procedural preset: every seat is swept along the wall so it bends round corners and can wrap 360°. */
+  kind?: 'contour' | 'sunbench' | 'lounge' | 'bench' | 'corner';
   startPosition: number;    // 0-1 position along pool perimeter (start)
   endPosition: number;      // end along perimeter; may exceed 1 (wraps the seam, up to start + 1 = full 360°)
   width: number;            // Width extending into pool (default 1.5 ft)
