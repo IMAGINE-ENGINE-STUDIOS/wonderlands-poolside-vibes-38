@@ -200,34 +200,62 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const [editId, setEditId] = React.useState<string | null>(null);
   const [moving, setMoving] = React.useState<{ id: string; start: Pt; orig: Pt[]; deck?: Pt[] } | null>(null);
   const dragRef = React.useRef<{ id: string; i: number } | null>(null);
-  const getPts = React.useCallback((id: string): Pt[] => id === "__pool" ? view?.poolPts ?? [] : id === "__deck" ? view?.deckPts ?? [] : items.find((x) => x.id === id)?.pts ?? [], [view, items]);
+  /* Ids: "__pool"/"__deck" = main pool + deck, "__xp:<id>"/"__xd:<id>" = extra pool/spa + its deck. */
+  const extras = React.useMemo(() => (view?.extraPools ?? []).filter((p) => p.points?.length >= 3), [view?.extraPools]);
+  const getPts = React.useCallback((id: string): Pt[] => {
+    if (id === "__pool") return view?.poolPts ?? [];
+    if (id === "__deck") return view?.deckPts ?? [];
+    if (id.startsWith("__xp:")) return extras.find((p) => p.id === id.slice(5))?.points ?? [];
+    if (id.startsWith("__xd:")) return view?.extraDecks?.[id.slice(5)] ?? [];
+    return items.find((x) => x.id === id)?.pts ?? [];
+  }, [view, items, extras]);
   const setPts = React.useCallback((id: string, pts: Pt[]) => {
     if (id === "__pool") view?.setPool?.(pts); else if (id === "__deck") view?.setDeck?.(pts);
+    else if (id.startsWith("__xp:")) view?.setExtraPool?.(id.slice(5), pts);
+    else if (id.startsWith("__xd:")) view?.setExtraDeck?.(id.slice(5), pts);
     else setItems((p) => p.map((x) => x.id === id ? { ...x, pts } : x));
   }, [view, setItems]);
   const isOpen = (id: string) => items.find((x) => x.id === id)?.kind === "fence";
-  /** Nearest spline segment to a world point — the anchor for "Add point". */
+  const isPoolId = (id: string) => id === "__pool" || id.startsWith("__xp:");
+  /** Spline under the cursor: nearest edge, or — if none is close — the smallest shape the cursor is inside. */
   const nearest = React.useCallback((w: Pt) => {
-    const ids = [...items.map((x) => x.id).reverse(), ...((view?.deckPts?.length ?? 0) >= 3 ? ["__deck"] : []), ...((view?.poolPts?.length ?? 0) >= 3 ? ["__pool"] : [])];
+    const ids = [...items.map((x) => x.id).reverse(), ...extras.map((p) => `__xp:${p.id}`), ...extras.filter((p) => (view?.extraDecks?.[p.id]?.length ?? 0) >= 3).map((p) => `__xd:${p.id}`), ...((view?.deckPts?.length ?? 0) >= 3 ? ["__deck"] : []), ...((view?.poolPts?.length ?? 0) >= 3 ? ["__pool"] : [])];
     let best: { id: string; seg: number; d: number; at: Pt } | null = null;
+    let inside: { id: string; seg: number; d: number; at: Pt; area: number } | null = null;
     for (const id of ids) {
       const pts = getPts(id); const n = isOpen(id) ? pts.length - 1 : pts.length;
+      let own: { id: string; seg: number; d: number; at: Pt } | null = null;
       for (let i = 0; i < n; i++) {
         const a = pts[i], b = pts[(i + 1) % pts.length]; const dx = b.x - a.x, dy = b.y - a.y; const L = dx * dx + dy * dy || 1;
         const t = Math.max(0, Math.min(1, ((w.x - a.x) * dx + (w.y - a.y) * dy) / L)); const at = { x: a.x + dx * t, y: a.y + dy * t };
-        const d = Math.hypot(w.x - at.x, w.y - at.y); if (!best || d < best.d) best = { id, seg: i, d, at };
+        const d = Math.hypot(w.x - at.x, w.y - at.y); if (!own || d < own.d) own = { id, seg: i, d, at };
+      }
+      if (!own) continue;
+      if (!best || own.d < best.d) best = own;
+      if (!isOpen(id) && pts.length >= 3) {
+        let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const a = pts[i], b = pts[j]; if ((a.y > w.y) !== (b.y > w.y) && w.x < ((b.x - a.x) * (w.y - a.y)) / (b.y - a.y) + a.x) c = !c; }
+        const area = Math.abs(pts.reduce((s, p, i) => { const q = pts[(i + 1) % pts.length]; return s + p.x * q.y - q.x * p.y; }, 0));
+        if (c && (!inside || area < inside.area)) inside = { ...own, area };
       }
     }
-    return best && best.d < 24 / (view?.zoom || 1) ? best : null;
+    if (best && best.d < 24 / (view?.zoom || 1)) return best;
+    return inside;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, view, getPts]);
+  }, [items, view, getPts, extras]);
   const insertPoint = (id: string, seg: number, at: Pt) => {
     const pts = getPts(id);
-    const np = id === "__pool" ? { ...at, id: String(Math.max(0, ...pts.map((p) => parseInt((p as { id?: string }).id ?? "0") || 0)) + 1), curveType: "linear" } : id === "__deck" ? { ...at, id: `h${Date.now().toString(36)}` } : at;
+    const np = isPoolId(id) ? { ...at, id: String(Math.max(0, ...pts.map((p) => parseInt((p as { id?: string }).id ?? "0") || 0)) + 1), curveType: "linear" } : id === "__deck" || id.startsWith("__xd:") ? { ...at, id: `h${Date.now().toString(36)}` } : at;
     setPts(id, [...pts.slice(0, seg + 1), np as Pt, ...pts.slice(seg + 1)]);
   };
-  const eraseId = (id: string) => { if (id === "__pool") view?.erasePool?.(); else if (id === "__deck") view?.setDeck?.([]); else setItems((p) => p.filter((x) => x.id !== id)); setSelected(null); setEditId(null); };
-  /* Right-click or double-click on any spline opens its menu (canvas keeps every other click). */
+  const eraseId = (id: string) => {
+    if (id === "__pool") view?.erasePool?.(); else if (id === "__deck") view?.setDeck?.([]);
+    else if (id.startsWith("__xp:")) view?.eraseExtraPool?.(id.slice(5)); else if (id.startsWith("__xd:")) view?.setExtraDeck?.(id.slice(5), []);
+    else setItems((p) => p.filter((x) => x.id !== id));
+    setSelected(null); setEditId(null);
+  };
+  const extraLabel = (pid: string) => { const i = extras.findIndex((p) => p.id === pid); const p = extras[i]; return `${p?.type === "spa" ? "Spa" : p?.type === "tanning-ledge" ? "Tanning ledge" : "Pool"} ${i + 2}`; };
+  const labelOf = (id: string) => id === "__pool" ? "Pool" : id === "__deck" ? "Pool deck" : id.startsWith("__xp:") ? extraLabel(id.slice(5)) : id.startsWith("__xd:") ? `${extraLabel(id.slice(5))} deck` : (() => { const it = items.find((x) => x.id === id); return it ? `${KIND_LABEL[it.kind]} · ${it.label}` : ""; })();
+  /* Right-click opens the spline menu; double-click goes straight into editing. Works on every element. */
   React.useEffect(() => {
     if (!view) return;
     // Window-level capture so the canvas underneath can never swallow the gesture.
@@ -235,12 +263,14 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       const host = svgRef.current?.parentElement; if (!host || drawing) return;
       const r = host.getBoundingClientRect();
       if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
-      if ((e.target as HTMLElement)?.closest?.("aside,button,[data-spline-menu]")) return;
+      if ((e.target as HTMLElement)?.closest?.("aside,button,[data-spline-menu],[role=dialog]")) return;
       const hit = nearest(toWorld(e, false));
       // Double-click on empty board = stop editing any spline, design freely.
       if (!hit) { if (e.type === "dblclick") { setEditId(null); setMoving(null); setMenu(null); setSelected(null); } return; }
       e.preventDefault(); e.stopPropagation();
-      setSelected(hit.id); setMenu({ x: e.clientX - r.left, y: e.clientY - r.top, id: hit.id, seg: hit.seg, at: hit.at });
+      setSelected(hit.id);
+      if (e.type === "dblclick") { setEditId(hit.id); setMenu(null); return; }
+      setMenu({ x: e.clientX - r.left, y: e.clientY - r.top, id: hit.id, seg: hit.seg, at: hit.at });
     };
     window.addEventListener("contextmenu", open, true); window.addEventListener("dblclick", open, true);
     return () => { window.removeEventListener("contextmenu", open, true); window.removeEventListener("dblclick", open, true); };
