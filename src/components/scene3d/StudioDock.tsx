@@ -23,6 +23,7 @@ import type { TerrainAsset } from './TerrainEditor';
 import { BAR_STOOL_PRESET } from './AssetEditorExtras';
 import { ambientMusic } from './ambientMusic';
 import { applyZeroEntry } from './depthUtils';
+import { loadBoard3D, updateBoard3D } from '@/lib/design/board3D';
 
 export interface DockSnapshot {
   scene: Scene3D;
@@ -149,6 +150,48 @@ export function roundCorners(pts: { x: number; y: number }[], radius: number, sa
   return out;
 }
 
+/**
+ * Which water bodies a request names: "spa", "pool 2", "second pool",
+ * "other/extra pools", "all pools / everything". main = the studio's main pool.
+ */
+type Targets = { main: boolean; spas: boolean; pools: number[] | 'all' };
+const ORD: Record<string, number> = { second: 2, third: 3, fourth: 4, fifth: 5, '2nd': 2, '3rd': 3, '4th': 4, '5th': 5 };
+function geniusTargets(text: string): Targets | null {
+  const t = text.toLowerCase();
+  if (!loadBoard3D()?.waters?.length) return null;
+  const all = /\b(all|every|everything|each|whole scene)\b/.test(t);
+  if (all) return { main: true, spas: true, pools: 'all' };
+  const spas = /\b(spas?|hot ?tubs?|jacuzzi)\b/.test(t);
+  const nums: number[] = [];
+  for (const m of t.matchAll(/\bpool\s*#?\s*(\d)\b/g)) nums.push(Number(m[1]));
+  for (const [w, n] of Object.entries(ORD)) if (new RegExp(`\\b${w}\\s+pool`).test(t)) nums.push(n);
+  const others = /\b(other|extra|additional|secondary)\s+pools?\b/.test(t);
+  const main = /\bmain pool\b|\bpool\s*#?\s*1\b|\bfirst pool\b/.test(t);
+  if (!spas && !nums.length && !others) return null;
+  return { main, spas, pools: others ? 'all' : nums.filter((n) => n >= 2) };
+}
+function applyToBoard(plan: GeniusPlan, tg: Targets, lib: Props['textureLibrary']): string {
+  const d = loadBoard3D(); if (!d?.waters?.length) return '';
+  const names: string[] = []; let poolNo = 1;
+  const pick = (list: TextureConfig[] | undefined, hint?: string) => (hint && list?.length ? pickTexture(list, hint, list[0]).url : undefined);
+  const finish = pick(lib.finishes, plan.finishHint), coping = pick(lib.coping, plan.copingHint), waterline = pick(lib.waterlines, plan.waterlineHint);
+  const prof = plan.pool?.depthProfile;
+  const anchors = Array.isArray(prof) && prof.length >= 2 ? prof.slice(0, 8).map((a, i) => ({ id: `ga-${i}`, position: clamp(a.position, 0, 1, i), depth: clamp(a.depth, 0, 12, 5) })).sort((a, b) => a.position - b.position) : undefined;
+  const waters = d.waters.map((w) => {
+    const n = w.kind === 'pool' ? ++poolNo : 0;
+    const hit = w.kind === 'spa' ? tg.spas : tg.pools === 'all' || tg.pools.includes(n);
+    if (!hit) return w;
+    names.push(w.kind === 'spa' ? 'spa' : `pool ${n}`);
+    return { ...w, ...(finish ? { finish } : {}), ...(coping ? { coping } : {}), ...(waterline ? { waterline } : {}),
+      ...(plan.deck?.copingWidth ? { copingWidth: clamp(plan.deck.copingWidth, 0.5, 2, w.copingWidth) } : {}),
+      ...(anchors ? { anchors, depth: Math.max(...anchors.map((a) => a.depth)) } : {}) };
+  });
+  const paver = pick(lib.pavers, plan.paverHint);
+  const surfaces = paver ? d.surfaces.map((s) => (s.kind === 'deck' && waters.some((w, k) => w !== d.waters![k] && s.itemId === `__deck_${w.itemId}`) ? { ...s, image: paver } : s)) : d.surfaces;
+  updateBoard3D(() => ({ ...d, waters, surfaces }));
+  return names.length ? `changed ${names.join(', ')}` : '';
+}
+
 /* ---------------- Genius ---------------- */
 function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
   const [prompt, setPrompt] = useState('');
@@ -175,6 +218,12 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
       });
       if (error || !data?.plan) { setNote(data?.error || 'Genius could not design that. Try again.'); return; }
       const plan = applyLocalIntent(prompt, data.plan as GeniusPlan);
+      // Extra pools / spas / decks: Genius edits whichever bodies the words name.
+      const targets = geniusTargets(prompt);
+      if (targets) {
+        const touched = applyToBoard(plan, targets, textureLibrary);
+        if (!targets.main) { setNote(touched ? `${plan.summary || 'Updated'} — ${touched}.` : 'There is no matching pool or spa in this scene.'); return; }
+      }
       const p = plan.pool || {};
       const changesOutline = p.shape !== undefined || p.width !== undefined || p.length !== undefined || p.cornerRadius !== undefined;
 
