@@ -402,6 +402,13 @@ const DesignStudio = () => {
     }
     // Depend on the whole 2D design so every extra pool and deck is sent (no stale copy).
   }, [customPoolShape, poolBuilderData, searchParams, toast]);
+
+  /* /studio-3d now lands here with ?view=3d: open the 3D Studio once a pool is on the board. */
+  const autoOpened3D = useRef(false);
+  useEffect(() => {
+    if (autoOpened3D.current || searchParams.get('view') !== '3d') return;
+    if ((customPoolShape && customPoolShape.length >= 3) || searchParams.get('model')) { autoOpened3D.current = true; handleSwitch3D(); }
+  }, [customPoolShape, searchParams, handleSwitch3D]);
   const handleSwitch2D = useCallback(() => {
     // Anything reshaped in 3D (extra pools/spas, fences, screens) is written back to the 2D board.
     try {
