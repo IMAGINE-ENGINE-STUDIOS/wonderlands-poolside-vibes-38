@@ -673,7 +673,6 @@ export function PoolBuilder({
     if (!canvas) return;
 
     // Wheel / trackpad-pinch zoom anchored under the cursor (pan adjusted so the point stays put).
-    // Listens on the board wrapper so the drawn-element overlay never swallows zoom; menus/panels keep their own scroll.
     // Window-level listener: works no matter which overlay (SVG layer, tutorial, labels) sits on top of the board.
     // Only zooms when the cursor is over the board and not over a floating menu/panel that scrolls itself.
     const handleNativeWheel = (e: WheelEvent) => {
@@ -684,9 +683,8 @@ export function PoolBuilder({
       if (ui && !ui.contains(canvas)) return;
       e.preventDefault();
       e.stopPropagation();
-      const rect = canvas.getBoundingClientRect();
-      const sx = (e.clientX - rect.left) * (canvas.width / rect.width) - canvas.width / 2;
-      const sy = (e.clientY - rect.top) * (canvas.height / rect.height) - canvas.height / 2;
+      const sx = (e.clientX - rect.left) * (canvasSize.width / rect.width) - canvasSize.width / 2;
+      const sy = (e.clientY - rect.top) * (canvasSize.height / rect.height) - canvasSize.height / 2;
       const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
       const z = zoomRef.current;
       const next = Math.min(6, Math.max(0.1, z * Math.exp(-dy * 0.0015)));
