@@ -5571,7 +5571,7 @@ export function PoolBuilder({
       // Magnetic close: near the first point the cursor locks onto it (screen-space radius)
       if (splineDrawing.points.length >= 3 && !draggingDrawPointId) {
         const f = splineDrawing.points[0];
-        if (Math.hypot(x - f.x, y - f.y) < 18 / zoomLevel) { x = f.x; y = f.y; }
+        if (Math.hypot(x - f.x, y - f.y) < 28 / zoomLevel) { x = f.x; y = f.y; }
       }
       setCursorPos({
         x,
