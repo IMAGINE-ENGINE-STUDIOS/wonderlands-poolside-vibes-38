@@ -357,7 +357,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             if (moving) { setMoving(null); return; }
             // Add Point tool anchors to whichever spline is under the cursor: pool, deck, fence, screen or turf.
             if (view.addMode && !drawing) { const hit = nearest(toWorld(e, false)); if (hit) { insertPoint(hit.id, hit.seg, hit.at); setSelected(hit.id); setEditId(hit.id); } return; }
-            onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => { if (drawing) setHover(toWorld(e)); else if (view.addMode) setHover(nearest(toWorld(e, false))?.at ?? null); }}>
+            onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(); }} onMouseMove={(e) => { if (drawing) setHover(drawHover(e)); else if (view.addMode) setHover(nearest(toWorld(e, false))?.at ?? null); }}>
           <defs>
             {TURFS.map((g) => (
               <pattern key={g.id} id={`turf-${g.id}`} width={scale * 4} height={scale * 4} patternUnits="userSpaceOnUse">
