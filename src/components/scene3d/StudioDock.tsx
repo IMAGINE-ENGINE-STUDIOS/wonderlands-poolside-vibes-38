@@ -212,6 +212,8 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
 
   const run = async () => {
     if (prompt.trim().length < 3 || busy) return;
+    // Doors/gates live on the 2D board; never let them reshape the pool here.
+    if (/\b(door|doors|gate|gates)\b/i.test(prompt)) { setNote('Doors and gates are added on the 2D board: switch to 2D and ask Genius there. Nothing was changed.'); return; }
     setBusy(true); setNote('Designing…');
     try {
       const s = snapshot.scene;
