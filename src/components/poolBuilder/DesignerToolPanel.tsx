@@ -190,10 +190,10 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   );
 
   return (
-    <div className={railSlot ? "absolute left-[5.25rem] top-16 z-[30] bottom-0 flex pointer-events-none" : "absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none"}>
+    <div className={railSlot ? "absolute left-[3.75rem] sm:left-[5.25rem] top-14 sm:top-16 z-[32] bottom-0 flex pointer-events-none" : "absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none"}>
       {/* Section flyout (opens left of the rail); depth uses the 3D Studio editor instead. */}
       {expandedSection && expandedSection !== 'depth' && (
-      <div className="pointer-events-auto w-72 self-start max-h-[calc(100%-5rem)] rounded-2xl border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0">
+      <div className="pointer-events-auto w-[calc(100vw-4.5rem)] sm:w-72 self-start max-h-[calc(100%-9rem)] rounded-2xl border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0">
         <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
           <span className="text-sm font-bold uppercase tracking-[0.2em] text-foreground">{RAIL.find(r => r.id === expandedSection)?.label}</span>
           <button onClick={() => setExpandedSection(null)} aria-label="Close" className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
@@ -507,7 +507,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
           title={r.label}
           onClick={() => toggleSection(r.id)}
           aria-pressed={expandedSection === r.id}
-          className={`pointer-events-auto flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
+          className={`pointer-events-auto flex h-10 w-10 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] sm:text-[9px] font-semibold uppercase tracking-[0.04em] sm:tracking-[0.06em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
         >
           {r.icon}
           <span className="leading-none">{r.label}</span>
