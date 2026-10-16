@@ -541,22 +541,22 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
       {/* Site catalog + take-off */}
       {/* Unified floating rail (flip-book style pill): site elements + 2D tools. Credit: Imagine Engine Studios Corp. */}
-      <nav aria-label="Studio menu" className="absolute left-3 top-16 z-[31] flex flex-col items-center gap-1 rounded-full border border-border/50 bg-background/95 px-1.5 py-2 shadow-[0_16px_44px_-24px_rgba(8,12,24,0.5)] backdrop-blur-xl">
+      <nav aria-label="Studio menu" className="absolute left-2 sm:left-3 top-14 sm:top-16 z-[31] flex max-h-[calc(100%-8rem)] overflow-y-auto [scrollbar-width:none] flex-col items-center gap-0.5 sm:gap-1 rounded-[28px] sm:rounded-full border border-border/50 bg-background/95 px-1.5 py-2 shadow-[0_16px_44px_-24px_rgba(8,12,24,0.5)] backdrop-blur-xl">
         <div id="studio-rail-slot" className="flex flex-col items-center gap-1" />
         <div id="studio-rail-slot-pools" className="flex flex-col items-center gap-1" />
         {([["deck", "Decks", Layers], ["fence", "Fences", Fence], ["turf", "Turf", Grid2x2], ["enclosure", "Screens", Layers]] as const).map(([k, l, Icon]) => (
-          <button key={k} title={l} aria-pressed={tab === k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors", tab === k ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
+          <button key={k} title={l} aria-pressed={tab === k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex h-10 w-10 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] sm:text-[9px] font-semibold uppercase tracking-[0.04em] sm:tracking-[0.06em] transition-colors", tab === k ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
             <Icon className="h-4 w-4" />{l}
           </button>
         ))}
-        <button title="On the board" aria-pressed={boardOpen} onClick={() => { const v = !boardOpen; setBoardOpen(v); if (v) window.dispatchEvent(new CustomEvent("studio-rail:open", { detail: "site" })); }} className={cn("flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors", boardOpen ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
+        <button title="On the board" aria-pressed={boardOpen} onClick={() => { const v = !boardOpen; setBoardOpen(v); if (v) window.dispatchEvent(new CustomEvent("studio-rail:open", { detail: "site" })); }} className={cn("flex h-10 w-10 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] sm:text-[9px] font-semibold uppercase tracking-[0.04em] sm:tracking-[0.06em] transition-colors", boardOpen ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
           <LayoutList className="h-4 w-4" />Board
         </button>
         <div id="studio-rail-slot-end" className="flex flex-col items-center gap-1" />
       </nav>
 
       {(tab || boardOpen) && (
-      <aside className="absolute left-[5.25rem] top-16 z-[30] w-72 max-h-[calc(100%-9rem)] overflow-y-auto rounded-2xl border border-border/50 bg-background/95 p-4 text-sm shadow-[0_16px_44px_-34px_rgba(8,12,24,0.6)] backdrop-blur-xl">
+      <aside className="absolute left-[3.75rem] sm:left-[5.25rem] top-14 sm:top-16 z-[32] w-[calc(100vw-4.5rem)] sm:w-72 max-h-[calc(100%-9rem)] overflow-y-auto rounded-2xl border border-border/50 bg-background/95 p-4 text-sm shadow-[0_16px_44px_-34px_rgba(8,12,24,0.6)] backdrop-blur-xl">
         {tab === "fence" && (
           <>
             <Step n={1} label="Material">

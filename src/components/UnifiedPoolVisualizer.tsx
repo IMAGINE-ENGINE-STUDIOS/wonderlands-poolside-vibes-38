@@ -1390,7 +1390,7 @@ export function UnifiedPoolVisualizer({
         {/* Undo/Redo & Reset View Controls */}
         {/* In the Design Studio these controls live in the white header (slot #studio3d-header-slot) — Imagine Engine Studios Corp */}
         <HeaderSlotPortal>
-        <div className="flex flex-wrap items-center gap-1 md:gap-1.5">
+        <div className="flex flex-nowrap items-center gap-1 md:gap-1.5 [&_button]:shrink-0">
           <button
             onClick={undo}
             disabled={!canUndo}
@@ -1527,6 +1527,7 @@ export function UnifiedPoolVisualizer({
             waterlineName={scene.deck.waterline?.name}
             additionalFeatures={headerFeatures}
             additionalBodies={headerBodies}
+            dropUp
           />
         </div>
 

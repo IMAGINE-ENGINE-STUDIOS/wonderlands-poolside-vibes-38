@@ -550,17 +550,17 @@ const DesignStudio = () => {
         totalCost: poolBuilderData.breakdown?.total || poolBuilderData.totalCost || 0
       } : null} />
         </> : <header className="relative z-[60] flex items-center justify-between gap-1 px-1.5 sm:px-4 py-1.5 bg-muted/50 border-b shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
             {/* Back always returns to the 2D designer — your shape, finishes and 3D settings are kept. */}
             <Button variant="ghost" size="sm" onClick={handleSwitch2D} className="gap-2 px-2 sm:px-3" title="Back to the 2D designer">
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back</span>
             </Button>
             <BoardHeaderControls hideHistory />
-            <div id="studio3d-header-slot" className="flex items-center min-w-0" />
+            <div id="studio3d-header-slot" className="flex items-center min-w-0 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" />
           </div>
           
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <div className="min-w-0 hidden sm:block">
             <SiteTakeoffMenu additionalDecks={(poolBuilderData as any)?.additionalDecks} paver={(poolBuilderData as any)?.materials?.paver} scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")} deckAreaSqFt={poolBuilderData?.deckArea} featuresList={poolBuilderData?.breakdown?.featuresList} additionalPools={poolBuilderData?.additionalPools}
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
