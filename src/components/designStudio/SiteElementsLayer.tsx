@@ -459,6 +459,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                   {/* Placed fences/screens keep the exact drawing-board look: solid round-joined line + ringed post handles. */}
                   {/* Global Design Board V1 look: screens = frame-color outline over mesh; fences = run in the fence color with posts every 6 ft. */}
                   {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={Math.max(3 / (view.zoom || 1), scale * 0.3)} strokeLinejoin="miter" />}
+                  {e.kind === "enclosure" && <CageRoofPlan pts={e.pts} scale={scale} heightFt={e.height ?? 10} color={e.color} zoom={view.zoom || 1} />}
                   {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={Math.max(2 / (view.zoom || 1), scale * 0.4)} strokeLinejoin="round" strokeLinecap="round" />}
                   {e.kind === "fence" && fencePosts(e.pts, scale * 6).map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={Math.max(2 / (view.zoom || 1), scale * 0.3)} fill={e.color} stroke="rgba(0,0,0,0.35)" strokeWidth={0.5 / (view.zoom || 1)} />)}
                   {(e.gates ?? []).map((g, gi) => {
