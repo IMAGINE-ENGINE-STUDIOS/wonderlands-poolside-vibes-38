@@ -23,6 +23,7 @@ import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './scene3
 import { WalkthroughController } from './scene3d/WalkthroughController';
 import { CameraFocusController, FocusRequest } from './scene3d/CameraFocusController';
 import { OrbitKeyboardControls } from './scene3d/OrbitKeyboardControls';
+import { createPortal } from 'react-dom';
 import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from './scene3d/PoolDesignerHeader';
 import { FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
@@ -1381,7 +1382,9 @@ export function UnifiedPoolVisualizer({
 
 
         {/* Undo/Redo & Reset View Controls */}
-        <div className="absolute top-4 left-4 z-20 flex flex-wrap items-start gap-1 md:gap-2 max-w-[calc(100%-200px)]">
+        {/* In the Design Studio these controls live in the white header (slot #studio3d-header-slot) — Imagine Engine Studios Corp */}
+        <HeaderSlotPortal>
+        <div className="flex flex-wrap items-center gap-1 md:gap-1.5">
           <button
             onClick={undo}
             disabled={!canUndo}
@@ -1501,25 +1504,9 @@ export function UnifiedPoolVisualizer({
             <ArrowUpDown className="w-4 h-4" strokeWidth={1.8} />
           </button>
           {/* 3D Spline Editor deprecated — deck & coping now live in the Deck/Coping settings panel. */}
-          {/* Cost card sits in the same row so it never covers header buttons. */}
-          <div className="relative z-20 hidden sm:block">
-          <PoolDesignerHeader
-            poolPoints={scene.pool.points}
-            poolDepth={poolDepth}
-            deckWidth={deckWidth}
-            copingWidth={scene.deck.copingWidth || 1}
-            poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
-            paverName={scene.deck.paver?.name}
-            copingName={scene.deck.coping?.name}
-            finishName={scene.pool.finish?.name}
-            waterlineName={scene.deck.waterline?.name}
-            additionalFeatures={headerFeatures}
-            additionalBodies={headerBodies}
-          />
-          </div>
         </div>
+        </HeaderSlotPortal>
 
-        
         {/* Mobile estimates - bottom bar */}
         <div className="absolute bottom-16 left-4 right-4 z-20 sm:hidden">
           <PoolDesignerHeader
@@ -2230,4 +2217,13 @@ export function UnifiedPoolVisualizer({
       </div>
     </div>
   );
+}
+
+
+/** Renders children into the studio header slot when present, otherwise as a floating top-left row. */
+function HeaderSlotPortal({ children }: { children: import("react").ReactNode }) {
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => { setSlot(document.getElementById('studio3d-header-slot')); }, []);
+  if (slot) return createPortal(children, slot);
+  return <div className="absolute top-4 left-4 z-20 max-w-[calc(100%-200px)]">{children}</div>;
 }

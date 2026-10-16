@@ -502,13 +502,14 @@ const DesignStudio = () => {
         deckArea: poolBuilderData.deckArea || 0,
         totalCost: poolBuilderData.breakdown?.total || poolBuilderData.totalCost || 0
       } : null} />
-        </> : <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between gap-2 px-2 sm:px-4 shrink-0 z-50">
-          <div className="flex items-center gap-2 shrink-0">
+        </> : <header className="relative z-[60] flex items-center justify-between gap-1 px-1.5 sm:px-4 py-1.5 bg-muted/50 border-b shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
             {/* Back always returns to the 2D designer — your shape, finishes and 3D settings are kept. */}
             <Button variant="ghost" size="sm" onClick={handleSwitch2D} className="gap-2 px-2 sm:px-3" title="Back to the 2D designer">
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back</span>
             </Button>
+            <div id="studio3d-header-slot" className="flex items-center min-w-0" />
           </div>
           
           <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">

@@ -30,7 +30,7 @@ const categories: { id: DesignCategory; name: string; icon: React.ReactNode }[] 
 export function CategoryToolbar({ activeCategory, onCategoryChange, headerLeft, headerRight, hideCategories }: CategoryToolbarProps) {
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="relative z-[60] flex items-center justify-between gap-1 px-1.5 sm:px-4 py-1.5 overflow-hidden bg-muted/50 border-b">
+      <div className="relative z-[60] flex items-center justify-between gap-1 px-1.5 sm:px-4 py-1.5 bg-muted/50 border-b">
         {/* Left section: header content + categories */}
         <div className="flex items-center gap-1 sm:gap-4 shrink-0">
           {headerLeft}
