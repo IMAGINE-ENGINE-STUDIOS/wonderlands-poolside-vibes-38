@@ -136,6 +136,17 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const [draft, setDraft] = React.useState<Pt[]>([]);
   const [hover, setHover] = React.useState<Pt | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
+  /* Materials panel (DesignerToolPanel) listens to the board selection and restyles it here. */
+  React.useEffect(() => {
+    const kind = !selected ? null : selected === "__pool" || selected.startsWith("__xp:") ? "pool" : selected === "__deck" || selected.startsWith("__xd:") ? "deck" : items.find((x) => x.id === selected)?.kind ?? null;
+    window.dispatchEvent(new CustomEvent("design-studio:selection", { detail: { id: kind ? selected : null, kind, color: items.find((x) => x.id === selected)?.color, style: items.find((x) => x.id === selected)?.style } }));
+  }, [selected, items]);
+  React.useEffect(() => {
+    const onSel = (e: Event) => setSelected((e as CustomEvent<string | null>).detail);
+    const onStyle = (e: Event) => { const d = (e as CustomEvent<{ id: string; patch: Partial<SiteElement> }>).detail; setItems((p) => p.map((x) => x.id === d.id ? { ...x, ...d.patch } : x)); };
+    window.addEventListener("design-studio:select", onSel); window.addEventListener("design-studio:site-restyle", onStyle);
+    return () => { window.removeEventListener("design-studio:select", onSel); window.removeEventListener("design-studio:site-restyle", onStyle); };
+  }, [setItems]);
   // Product-first selection steps
   const [fMat, setFMat] = React.useState<string | null>(null);
   const [fH, setFH] = React.useState<number | null>(null);
