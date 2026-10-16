@@ -117,7 +117,8 @@ export function useSiteElements(): [SiteElement[], React.Dispatch<React.SetState
   }, [setV]);
   return [v, set];
 }
-const SITE_EVENT = "design-studio:site-elements";
+export const SITE_ELEMENTS_EVENT = "design-studio:site-elements";
+const SITE_EVENT = SITE_ELEMENTS_EVENT;
 
 interface Props {
   view: BoardView | null;
@@ -203,7 +204,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
   /** Magnetic first point: within ~18 screen px (or 1.5 ft) the cursor locks onto it. */
   const nearFirst = (raw: Pt) => !!view && choice?.kind !== "fence" && draft.length >= 3 &&
-    Math.hypot(raw.x - draft[0].x, raw.y - draft[0].y) < Math.max(scale * 1.5, 18 / view.zoom);
+    Math.hypot(raw.x - draft[0].x, raw.y - draft[0].y) < Math.max(scale * 2, 28 / view.zoom);
   const onClick = (e: React.MouseEvent) => {
     if (!view || !choice) return;
     const p = toWorld(e);
@@ -315,6 +316,31 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     window.addEventListener("mousemove", mv); window.addEventListener("mouseup", up);
     return () => { window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
   }, [moving, toWorld, getPts, setPts, view]);
+  /** Anchor any element (pool moves with its deck) to the cursor; the next click drops it. */
+  const startMove = React.useCallback((id: string, at: Pt) => {
+    const xp = id.startsWith("__xp:") ? id.slice(5) : null;
+    setMoving({ id, start: at, orig: getPts(id), deck: id === "__pool" ? view?.deckPts : xp ? view?.extraDecks?.[xp] : undefined, deckId: xp ? `__xd:${xp}` : "__deck" });
+    setSelected(id); setMenu(null);
+  }, [getPts, view]);
+  /* Press and hold (~350 ms, without moving) on any pool, deck, fence, screen or turf to pick it up. */
+  React.useEffect(() => {
+    if (!view || drawing || moving || view.addMode) return;
+    let timer = 0; let sx = 0, sy = 0;
+    const cancel = () => { if (timer) { window.clearTimeout(timer); timer = 0; } };
+    const down = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      const host = svgRef.current?.parentElement; if (!host) return;
+      const r = host.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+      if ((e.target as HTMLElement)?.closest?.("aside,button,nav,[data-spline-menu],[role=dialog]")) return;
+      const at = toWorld(e, false); const hit = nearest(at); if (!hit || editId === hit.id) return;
+      sx = e.clientX; sy = e.clientY; cancel();
+      timer = window.setTimeout(() => { timer = 0; startMove(hit.id, at); }, 350);
+    };
+    const mv = (e: MouseEvent) => { if (timer && Math.hypot(e.clientX - sx, e.clientY - sy) > 4) cancel(); };
+    window.addEventListener("mousedown", down, true); window.addEventListener("mousemove", mv, true); window.addEventListener("mouseup", cancel, true);
+    return () => { cancel(); window.removeEventListener("mousedown", down, true); window.removeEventListener("mousemove", mv, true); window.removeEventListener("mouseup", cancel, true); };
+  }, [view, drawing, moving, editId, nearest, toWorld, startMove]);
   const retexture = (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
   const menuItem = items.find((x) => x.id === menu?.id);
   const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))
@@ -390,9 +416,10 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                 <g key={e.id} style={{ pointerEvents: "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
                   {e.kind === "turf" && <polygon points={pts} mask="url(#turf-cut)" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
                   {e.kind === "deck" && <polygon points={pts} fill={`url(#paver-${e.style ?? DECK_PAVERS[0]?.id})`} stroke={sel ? "hsl(var(--foreground))" : "#8a7a62"} strokeWidth={(sel ? 2.5 : 1.5) / (view.zoom || 1)} />}
-                  {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={(sel ? 4 : 2.5) / (view.zoom || 1)} />}
-                  {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={(sel ? 5 : 3) / (view.zoom || 1)} strokeDasharray={e.style === "glass" ? "2 2" : undefined} />}
-                  {e.kind === "fence" && e.pts.map((p, i) => <rect key={i} x={p.x - 2} y={p.y - 2} width={4} height={4} fill={e.color} />)}
+                  {/* Placed fences/screens keep the exact drawing-board look: solid round-joined line + ringed post handles. */}
+                  {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke="hsl(var(--foreground))" strokeWidth={(sel ? 3.5 : 2.5) / (view.zoom || 1)} strokeLinejoin="round" />}
+                  {e.kind === "fence" && <polyline points={pts} fill="none" stroke="hsl(var(--foreground))" strokeWidth={(sel ? 3.5 : 2.5) / (view.zoom || 1)} strokeLinejoin="round" />}
+                  {(e.kind === "fence" || e.kind === "enclosure") && e.pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={5 / (view.zoom || 1)} fill={i === 0 ? "hsl(var(--primary))" : "hsl(var(--background))"} stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} />)}
                 </g>
               );
             })}
@@ -424,7 +451,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
           {!menu.sub ? (<>
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { setEditId(menu.id); setMenu(null); }}>Edit spline</button>
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { insertPoint(menu.id, menu.seg, menu.at); setEditId(menu.id); setMenu(null); }}>Add point here</button>
-            <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const xp = menu.id.startsWith("__xp:") ? menu.id.slice(5) : null; setMoving({ id: menu.id, start: menu.at, orig: getPts(menu.id), deck: menu.id === "__pool" ? view?.deckPts : xp ? view?.extraDecks?.[xp] : undefined, deckId: xp ? `__xd:${xp}` : "__deck" }); setMenu(null); }}>Move</button>
+            <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => startMove(menu.id, menu.at)}>Move</button>
             {textureOptions.length > 0 && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => setMenu({ ...menu, sub: true })}>{menuItem!.kind === "fence" || menuItem!.kind === "enclosure" ? "Change color" : "Change texture"}</button>}
             {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const pts = getPts(menu.id) as Array<Pt & { curveFlip?: boolean }>; const j = (menu.seg + 1) % pts.length; setPts(menu.id, pts.map((q, k) => k === j ? { ...q, curveFlip: !q.curveFlip } : q)); setMenu(null); }}>Flip curve (outward / inward)</button>}
             {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id === "__pool" ? "__deck" : `__xd:${menu.id.slice(5)}`); setMenu(null); }}>Remove deck (no deck)</button>}

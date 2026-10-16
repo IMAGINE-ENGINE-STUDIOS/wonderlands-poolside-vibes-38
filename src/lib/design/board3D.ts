@@ -119,6 +119,11 @@ export function saveBoard3D(data: Board3D) {
   try { localStorage.setItem(BOARD_3D_KEY, JSON.stringify(data)); } catch { /* quota */ }
   window.dispatchEvent(new Event(BOARD_3D_EVENT));
 }
+/** Wipes the saved 3D board (Reset). */
+export function clearBoard3D() {
+  try { localStorage.removeItem(BOARD_3D_KEY); } catch { /* ignore */ }
+  window.dispatchEvent(new Event(BOARD_3D_EVENT));
+}
 export function loadBoard3D(): Board3D | null {
   try { const raw = localStorage.getItem(BOARD_3D_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
