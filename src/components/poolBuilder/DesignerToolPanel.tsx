@@ -173,13 +173,13 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                     }`}
                   >
                     <Magnet className="w-3 h-3" />
-                    Snap {props.gridSnap ? 'ON' : 'OFF'}
+                    <span className="hidden sm:inline">Snap {props.gridSnap ? 'ON' : 'OFF'}</span>
                   </button>
                   {props.gridSnap && (
                     <select
                       value={props.snapSize}
                       onChange={e => props.setSnapSize(parseInt(e.target.value))}
-                      className="h-6 text-[10px] bg-muted/30 border border-border/50 rounded px-1"
+                      className="hidden sm:block h-6 text-[10px] bg-muted/30 border border-border/50 rounded px-1"
                     >
                       <option value="1">1"</option>
                       <option value="6">6"</option>
