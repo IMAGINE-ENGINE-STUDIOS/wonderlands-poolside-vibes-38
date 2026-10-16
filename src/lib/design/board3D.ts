@@ -25,7 +25,7 @@ type XZ = { x: number; z: number };
 /** Fence doors / screen doors: segment, 0-1 position, catalog id, opening width (ft). */
 export type Gate3D = { seg: number; t: number; typeId: string; widthFt: number };
 export interface Fence3D { gates?: Gate3D[]; pts: XZ[]; style: string; height: number; color: string; postColor?: string; itemId?: string }
-export interface Screen3D { gates?: Gate3D[]; pts: XZ[]; height: number; color: string; roof?: "mansard" | "flat"; itemId?: string }
+export interface Screen3D { gates?: Gate3D[]; pts: XZ[]; height: number; color: string; roof?: "mansard" | "flat"; itemId?: string; /** Optional 2 ft solid kick plate (modern cages omit it). */ kickplate?: boolean }
 export interface Surface3D { kind: "turf" | "deck"; color: string; /** Catalog photo for turf (real texture in 3D). */ image?: string; regions: XZ[][][]; itemId?: string; /** Own paver tile size; unset = main pool's. */ scale?: number }
 /** Extra water bodies (every pool/spa after the first, which is the studio's main pool). */
 export interface Water3D {

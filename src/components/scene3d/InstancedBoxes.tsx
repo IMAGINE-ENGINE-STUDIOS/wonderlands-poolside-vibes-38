@@ -9,7 +9,8 @@
 import * as React from "react";
 import * as THREE from "three";
 
-export interface BoxInstance { x: number; y: number; z: number; sx: number; sy: number; sz: number; ry?: number }
+/** ry = yaw, rz = pitch (sloped rafters/braces), applied Y then Z. */
+export interface BoxInstance { x: number; y: number; z: number; sx: number; sy: number; sz: number; ry?: number; rz?: number }
 
 /** One shared unit cube for every instanced box in the app. */
 const UNIT_BOX = new THREE.BoxGeometry(1, 1, 1);
@@ -28,7 +29,7 @@ export function InstancedBoxes({ boxes, material, castShadow = false }: { boxes:
     const m = ref.current; if (!m) return;
     boxes.forEach((b, i) => {
       tmp.position.set(b.x, b.y, b.z);
-      tmp.rotation.set(0, b.ry ?? 0, 0);
+      tmp.rotation.set(0, b.ry ?? 0, b.rz ?? 0, "YZX");
       tmp.scale.set(b.sx, b.sy, b.sz);
       tmp.updateMatrix();
       m.setMatrixAt(i, tmp.matrix);
