@@ -22,8 +22,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PoolBuilder } from "@/components/PoolBuilder";
-import { SiteElementsLayer, SiteTakeoffMenu, siteElementsTo3D, SITE_ELEMENTS_KEY } from "@/components/designStudio/SiteElementsLayer";
-import { saveBoard3D, loadBoard3D } from "@/lib/design/board3D";
+import { SiteElementsLayer, SiteTakeoffMenu, siteElementsTo3D, SITE_ELEMENTS_KEY, SITE_ELEMENTS_EVENT } from "@/components/designStudio/SiteElementsLayer";
+import { saveBoard3D, loadBoard3D, clearBoard3D } from "@/lib/design/board3D";
 import { cacheRead, cacheWrite } from "@/lib/uiCache";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene, scene3DToPoolBuilder } from "@/components/scene3d/SceneConverter";
@@ -141,6 +141,11 @@ const DesignStudio = () => {
     // Clear all state first (including the 2D ⇄ 3D scene memory)
     lastScene3DRef.current = null;
     try { localStorage.removeItem(sceneMemoryKey); } catch { /* ignore */ }
+    // Every board element goes: fences, screens, turf, drawn decks, extra pools/spas and the saved 3D board.
+    cacheWrite(SITE_ELEMENTS_KEY, []);
+    window.dispatchEvent(new CustomEvent(SITE_ELEMENTS_EVENT, { detail: [] }));
+    clearBoard3D();
+    sentBoardRef.current = null;
     setPoolBuilderData(null);
     setCustomPoolShape(null);
     setActiveTool(null);
@@ -510,9 +515,9 @@ const DesignStudio = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Reset Scene</AlertDialogTitle>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will clear the entire project and reset to a blank canvas. This action cannot be undone.
+                        All items will be eliminated — every pool, spa, deck, fence, screen, turf and feature on the board will be removed and the board cleaned out. This cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -570,9 +575,9 @@ const DesignStudio = () => {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Reset Scene</AlertDialogTitle>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will clear the entire project and reset to a blank canvas. This action cannot be undone.
+                    All items will be eliminated — every pool, spa, deck, fence, screen, turf and feature on the board will be removed and the board cleaned out. This cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
