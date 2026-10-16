@@ -334,6 +334,9 @@ const DesignStudio = () => {
     if (updateSourceRef.current === '2d') {
       return;
     }
+    // The first scene the 3D Studio reports is just what it loaded — only real 3D edits flow back to 2D,
+    // so an older remembered scene can never replace the board when you return.
+    if (skipFirst3DRef.current) { skipFirst3DRef.current = false; return; }
     
     // Store latest 3D scene (deep copy — panels mutate nested objects) so
     // textures, deck/coping settings, depth profile and lights persist across 2D ⇄ 3D.
@@ -378,6 +381,12 @@ const DesignStudio = () => {
 
   // Handle switching to 3D view
   const sentBoardRef = useRef<any>(null);
+  const skipFirst3DRef = useRef(false);
+  /* Opening a saved project drops the remembered 3D scene of the previous design. */
+  useEffect(() => {
+    const on = () => { lastScene3DRef.current = null; externalUpdateRef.current = null; clearBoard3D(); };
+    window.addEventListener('design-studio:project-loaded', on); return () => window.removeEventListener('design-studio:project-loaded', on);
+  }, []);
   const handleSwitch3D = useCallback(() => {
     // Never show a pool that isn't on the 2D board: 3D only opens the pool drawn here
     // (or the catalog model the studio was opened with).
@@ -390,6 +399,7 @@ const DesignStudio = () => {
     try {
       const sent = siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? [], (poolBuilderData as any)?.additionalDecks ?? {});
       saveBoard3D(sent);
+      externalUpdateRef.current = null; skipFirst3DRef.current = true;
       sentBoardRef.current = JSON.parse(JSON.stringify(sent));
     } catch { /* ignore */ }
     setActiveView('3d');

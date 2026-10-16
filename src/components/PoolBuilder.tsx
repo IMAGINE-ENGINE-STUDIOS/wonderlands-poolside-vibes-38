@@ -576,11 +576,35 @@ export function PoolBuilder({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setSiteItems]);
   const boardHistory = useBoardHistory(boardSnap, applyBoardSnap);
+  /** Full project = pool board + fences/screens/turf/drawn decks, so Projects reopen everything. */
+  const getProjectState = useCallback(() => ({ ...getSerializableState(), site: siteItems }), [getSerializableState, siteItems]);
   const saveNow = useCallback(() => {
-    setAutoSave(getSerializableState());
+    setAutoSave(getProjectState());
     setLastAutoSaved(new Date().toISOString());
     toast({ title: 'Project saved', description: 'Your design is saved on this device.' });
-  }, [getSerializableState]);
+  }, [getProjectState]);
+
+  /* Pool drawn on top of turf or an existing deck gets no auto deck: on turf the grass
+     runs up to the pool's own shape, on a deck the drawn deck already surrounds it. */
+  const seenPoolIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const ids = new Set<string>([...(points.length >= 3 ? ['main'] : []), ...additionalPools.filter(p => p.points.length >= 3).map(p => p.id)]);
+    if (seenPoolIdsRef.current === null) { seenPoolIdsRef.current = ids; return; } // existing designs keep their decks
+    const fresh = [...ids].filter(id => !seenPoolIdsRef.current!.has(id));
+    seenPoolIdsRef.current = ids;
+    if (!fresh.length) return;
+    const covers = (pts: Point[]) => {
+      const c = { x: pts.reduce((s, p) => s + p.x, 0) / pts.length, y: pts.reduce((s, p) => s + p.y, 0) / pts.length };
+      return siteItems.some(e => (e.kind === 'turf' || e.kind === 'deck') && e.pts.length >= 3 && isPointInPolygon(c.x, c.y, e.pts as Point[]));
+    };
+    const omit: Record<string, HardscapePoint[]> = {};
+    for (const id of fresh) {
+      const pts = id === 'main' ? points : additionalPools.find(p => p.id === id)?.points;
+      if (pts && covers(pts)) { if (id === 'main') setTimeout(() => setHardscapePoints([]), 0); else omit[id] = []; }
+    }
+    if (Object.keys(omit).length) setTimeout(() => setAdditionalDeckPoints(prev => ({ ...prev, ...omit })), 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [points.length >= 3, additionalPools.length]);
   useBoardCommands((c) => {
     if (c === 'undo') boardHistory.undo(); else if (c === 'redo') boardHistory.redo();
     else if (c === 'save') saveNow(); else setShowProjectManager(true);
@@ -648,15 +672,13 @@ export function PoolBuilder({
   // flushes the pending save instead of dropping the last 2s of changes —
   // that dropped save made materials snap back to older picks on return.
   const latestStateRef = useRef<any>(null);
-  latestStateRef.current = points.length > 0 ? getSerializableState() : null;
+  latestStateRef.current = getSerializableState(); // empty boards are saved too, so removed pools never come back
   useEffect(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
       autoSaveTimerRef.current = null;
-      if (points.length > 0) {
-        setAutoSave(getSerializableState());
-        setLastAutoSaved(new Date().toISOString());
-      }
+      setAutoSave(getSerializableState());
+      setLastAutoSaved(new Date().toISOString());
     }, 2000);
   }, [getSerializableState, points]);
   useEffect(() => () => {
@@ -724,6 +746,14 @@ export function PoolBuilder({
   // ─── Load auto-save on mount ───
   const loadProjectState = useCallback((data: any) => {
     if (!data) return;
+    // A saved project replaces the whole board (nothing from the previous design lingers).
+    if (Array.isArray(data.site)) {
+      setSiteItems(data.site);
+      setAdditionalPools(data.additionalPools ?? []); setAdditionalDeckPoints(data.additionalDeckPoints ?? {});
+      setFeatures(data.features ?? []); setHardscapePoints(data.hardscapePoints ?? []);
+      try { Object.keys(localStorage).filter(k => k.startsWith('design-studio.scene3d.')).forEach(k => localStorage.removeItem(k)); } catch { /* ignore */ }
+      window.dispatchEvent(new CustomEvent('design-studio:project-loaded'));
+    }
     if (data.points) setPoints(data.points);
     if (data.hardscapePoints) setHardscapePoints(data.hardscapePoints);
     if (data.additionalDeckPoints) setAdditionalDeckPoints(data.additionalDeckPoints);
@@ -747,7 +777,7 @@ export function PoolBuilder({
     if (data.gridSnap != null) setGridSnap(data.gridSnap);
     if (data.snapSize) setSnapSize(data.snapSize);
     if (data.customTextures) setCustomTextures(data.customTextures);
-  }, []);
+  }, [setSiteItems]);
 
   useEffect(() => {
     const saved = getAutoSave();
@@ -6530,7 +6560,7 @@ export function PoolBuilder({
         <ProjectManager
           isOpen={showProjectManager}
           onOpenChange={setShowProjectManager}
-          onSaveProject={getSerializableState}
+          onSaveProject={getProjectState}
           onLoadProject={loadProjectState}
           lastSaved={lastAutoSaved}
         />
