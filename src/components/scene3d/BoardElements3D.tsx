@@ -15,6 +15,7 @@ import { smoothCurvedRing } from "@/utils/deckSurface";
 import { generateCurvedPoolPoints } from "@/utils/curveUtils";
 import { PoolMesh } from "@/components/Pool3DScene";
 import { CopingGeometry } from "./CopingGeometry";
+import { InstancedBoxes, beamBox, type BoxInstance } from "./InstancedBoxes";
 import { WaterlineMesh } from "@/components/WaterlineMesh";
 import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
@@ -92,17 +93,28 @@ function Fence({ f, i }: { f: Fence3D; i: number }) {
     : vinyl ? new THREE.MeshStandardMaterial({ map: vinylTex(), color: f.color || "#ffffff", roughness: 0.5 })
     : new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.7 }), [f.style, f.color, vinyl]);
   const H = f.height;
-  const posts = along(f.pts, 6, false);
-  const pickets = f.style === "alu" ? along(f.pts, 0.33, false) : [];
+  // Instanced: every box of one material is a single draw call (same sizes/positions as before).
+  const parts = React.useMemo(() => {
+    const posts = along(f.pts, 6, false);
+    const pw = vinyl ? 0.42 : 0.2, ph = vinyl ? H + 0.25 : H + 0.15;
+    const postBoxes: BoxInstance[] = posts.map((p) => ({ x: p.x, y: H / 2, z: p.z, sx: pw, sy: ph, sz: pw }));
+    const detail: BoxInstance[] = [];
+    if (vinyl) posts.forEach((p) => detail.push({ x: p.x, y: H + 0.18, z: p.z, sx: 0.5, sy: 0.12, sz: 0.5 }));
+    if (f.style === "alu") along(f.pts, 0.33, false).forEach((p) => detail.push({ x: p.x, y: H / 2, z: p.z, sx: 0.06, sy: H - 0.1, sz: 0.06 }));
+    const rails: BoxInstance[] = [], panels: BoxInstance[] = [];
+    const spans = vinyl ? posts.slice(1).map((b, k) => [posts[k], b] as [XZ, XZ]) : segs(f.pts, false);
+    for (const [a, b] of spans) {
+      if (f.style === "alu") { rails.push(beamBox(a, b, H - 0.1, 0.1, 0.08), beamBox(a, b, 0.35, 0.1, 0.08)); }
+      else panels.push(beamBox(a, b, H / 2, H - 0.1, f.style === "glass" ? 0.04 : 0.1));
+    }
+    return { postBoxes, detail, rails, panels };
+  }, [f.pts, f.style, H, vinyl]);
   return (
     <group name="board-fence" onClick={select({ type: "fence", i })}>
-      {posts.map((p, i) => <mesh key={i} material={metal} position={[p.x, H / 2, p.z]} castShadow><boxGeometry args={vinyl ? [0.42, H + 0.25, 0.42] : [0.2, H + 0.15, 0.2]} /></mesh>)}
-      {vinyl && posts.map((p, i) => <mesh key={`c${i}`} material={metal} position={[p.x, H + 0.18, p.z]}><boxGeometry args={[0.5, 0.12, 0.5]} /></mesh>)}
-      {/* Vinyl: one textured panel between each pair of posts so the photo keeps its real scale. */}
-      {(vinyl ? posts.slice(1).map((b, k) => [posts[k], b] as [XZ, XZ]) : segs(f.pts, false)).map(([a, b], i) => f.style === "alu"
-        ? <React.Fragment key={i}><Beam a={a} b={b} y={H - 0.1} h={0.1} t={0.08} mat={metal} /><Beam a={a} b={b} y={0.35} h={0.1} t={0.08} mat={metal} /></React.Fragment>
-        : <Beam key={i} a={a} b={b} y={H / 2} h={H - 0.1} t={f.style === "glass" ? 0.04 : 0.1} mat={panel} />)}
-      {pickets.map((p, i) => <mesh key={`p${i}`} material={metal} position={[p.x, H / 2, p.z]}><boxGeometry args={[0.06, H - 0.1, 0.06]} /></mesh>)}
+      <InstancedBoxes boxes={parts.postBoxes} material={metal} castShadow />
+      <InstancedBoxes boxes={parts.detail} material={metal} />
+      <InstancedBoxes boxes={parts.rails} material={metal} castShadow />
+      <InstancedBoxes boxes={parts.panels} material={panel} castShadow />
     </group>
   );
 }
@@ -133,22 +145,29 @@ function Screen({ s, i }: { s: Screen3D; i: number }) {
     if (top.length < 3) return null;
     const g = new THREE.ShapeGeometry(new THREE.Shape(top.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g;
   }, [top]);
+  // Instanced cage parts grouped by material (posts/purlins/beams → 3 draw calls).
+  const cage = React.useMemo(() => {
+    const posts: BoxInstance[] = along(s.pts, 6, true).map((p) => ({ x: p.x, y: H / 2, z: p.z, sx: 0.25, sy: H, sz: 0.25 }));
+    const thin: BoxInstance[] = along(s.pts, 3, true).map((p) => ({ x: p.x, y: H / 2, z: p.z, sx: 0.08, sy: H, sz: 0.08 }));
+    if (top.length >= 3) along(top, 4, true).forEach((p) => thin.push({ x: p.x, y: H + RISE + 0.1, z: p.z, sx: 0.12, sy: 0.2, sz: 0.12 }));
+    const beams: BoxInstance[] = [], kicks: BoxInstance[] = [], walls: BoxInstance[] = [];
+    for (const [a, b] of segs(s.pts, true)) {
+      beams.push(beamBox(a, b, H, 0.4, 0.25), beamBox(a, b, 3, 0.15, 0.15));
+      kicks.push(beamBox(a, b, 1, 2, 0.05));
+      walls.push(beamBox(a, b, H / 2, H, 0.02));
+    }
+    if (mansard) for (const [a, b] of segs(top, true)) beams.push(beamBox(a, b, H + RISE, 0.25, 0.2));
+    return { posts, thin, beams, kicks, walls };
+  }, [s.pts, top, H, RISE, mansard]);
   return (
     <group name="board-screen" onClick={select({ type: "screen", i })}>
-      {along(s.pts, 6, true).map((p, k) => <mesh key={k} material={frame} position={[p.x, H / 2, p.z]} castShadow><boxGeometry args={[0.25, H, 0.25]} /></mesh>)}
-      {along(s.pts, 3, true).map((p, k) => <mesh key={`m${k}`} material={frame} position={[p.x, H / 2, p.z]}><boxGeometry args={[0.08, H, 0.08]} /></mesh>)}
-      {segs(s.pts, true).map(([a, b], k) => (
-        <React.Fragment key={k}>
-          <Beam a={a} b={b} y={H} h={0.4} t={0.25} mat={frame} />
-          <Beam a={a} b={b} y={1} h={2} t={0.05} mat={kick} />
-          <Beam a={a} b={b} y={3} h={0.15} t={0.15} mat={frame} />
-          <Beam a={a} b={b} y={H / 2} h={H} t={0.02} mat={mesh} />
-        </React.Fragment>
-      ))}
-      {mansard && segs(top, true).map(([a, b], k) => <Beam key={`t${k}`} a={a} b={b} y={H + RISE} h={0.25} t={0.2} mat={frame} />)}
+      <InstancedBoxes boxes={cage.posts} material={frame} castShadow />
+      <InstancedBoxes boxes={cage.thin} material={frame} />
+      <InstancedBoxes boxes={cage.beams} material={frame} castShadow />
+      <InstancedBoxes boxes={cage.kicks} material={kick} castShadow />
+      <InstancedBoxes boxes={cage.walls} material={mesh} castShadow />
       {geo && <mesh geometry={geo} material={mesh} />}
       {lid && <mesh geometry={lid} material={mesh} position={[0, H + RISE, 0]} />}
-      {top.length >= 3 && along(top, 4, true).map((p, k) => <mesh key={`r${k}`} material={frame} position={[p.x, H + RISE + 0.1, p.z]}><boxGeometry args={[0.12, 0.2, 0.12]} /></mesh>)}
     </group>
   );
 }
