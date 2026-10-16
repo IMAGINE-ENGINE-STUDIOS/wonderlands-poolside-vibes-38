@@ -20,6 +20,9 @@ import {
   Route, LayoutList, AlignHorizontalDistributeCenter
 } from 'lucide-react';
 import { paverTypes } from '@/data/paverData';
+import { gilmerPools } from '@/data/gilmerPools';
+import { pools as catalogPools } from '@/components/PoolCatalog';
+import { DECK_PAVERS, FENCE_MATERIALS, FENCE_COLORS, SCREEN_STYLES, SCREEN_COLORS, TURFS } from '@/components/designStudio/SiteElementsLayer';
 import { TextureBuilder, type TextureConfig } from '../TextureBuilder';
 
 interface DesignerToolPanelProps {
@@ -96,6 +99,28 @@ interface DesignerToolPanelProps {
   pendingPlacement?: string | null;
   /** Main pool outline in feet — feeds the 3D Studio depth editor's axis. */
   poolPointsFt?: Array<{ x: number; y: number }>;
+  /** Places an inventory pool (width × length in feet) on the board. */
+  onPickPool?: (widthFt: number, lengthFt: number) => void;
+}
+
+/* Inventory pools (main-site catalogs, same order, own photos) with measurements parsed to feet. */
+const parseFt = (s: string) => { const m = s.match(/(\d+(?:\.\d+)?)\s*'?\s*(?:(\d+)\s*")?/); return m ? parseFloat(m[1]) + (m[2] ? parseInt(m[2]) / 12 : 0) : 0; };
+const INVENTORY_POOLS = [...catalogPools, ...gilmerPools]
+  .filter(p => p.image && p.dimensions)
+  .map(p => { const [a, b] = String(p.dimensions).split(/\s*[x×]\s*/i); const w = parseFt(a ?? ''), l = parseFt(b ?? ''); return { model: p.model, image: p.image as string, dims: String(p.dimensions), w: Math.min(w, l), l: Math.max(w, l) }; })
+  .filter(p => p.w > 0 && p.l > 0);
+
+function ColorChips({ colors, value, onPick }: { colors: { id: string; hex: string }[]; value?: string; onPick: (hex: string) => void }) {
+  return (
+    <div className="flex gap-1.5">
+      {colors.map(c => (
+        <button key={c.id} onClick={() => onPick(c.hex)}
+          className={`flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-semibold capitalize text-foreground ${value === c.hex ? 'border-foreground' : 'border-border'}`}>
+          <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: c.hex }} />{c.id}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'pool-features' | 'landscape' | 'water-features' | 'depth' | 'cost' | 'textures' | null;
@@ -103,6 +128,16 @@ type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'pool-features' |
 export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const [expandedSection, setExpandedSection] = useState<PanelSection>(null);
   const [depthAnchorId, setDepthAnchorId] = useState<string | null>(null);
+  // Board selection (broadcast by SiteElementsLayer) drives the Materials panel.
+  const [boardSel, setBoardSel] = useState<{ id: string | null; kind: string | null; color?: string; style?: string } | null>(null);
+  React.useEffect(() => {
+    const h = (e: Event) => setBoardSel((e as CustomEvent).detail);
+    window.addEventListener('design-studio:selection', h);
+    return () => window.removeEventListener('design-studio:selection', h);
+  }, []);
+  const restyle = (patch: Record<string, unknown>) => {
+    if (boardSel?.id) window.dispatchEvent(new CustomEvent('design-studio:site-restyle', { detail: { id: boardSel.id, patch } }));
+  };
 
   const toggleSection = (section: PanelSection) => {
     setExpandedSection(prev => {
@@ -196,6 +231,22 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             />
             {expandedSection === 'shape' && (
               <div className="px-2 pb-2 space-y-2">
+                <button onClick={() => { props.onStartDrawPool(); setExpandedSection(null); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-background hover:opacity-90">
+                  <PenTool className="h-4 w-4" />Draw a pool
+                </button>
+                {props.onPickPool && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {INVENTORY_POOLS.map(p => (
+                      <button key={p.model} onClick={() => props.onPickPool!(p.w, p.l)} title={p.model}
+                        className="overflow-hidden rounded-lg border border-border bg-background text-left hover:border-foreground">
+                        <img src={p.image} alt={p.model} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                        <span className="block px-1.5 py-1 text-[11px] font-bold text-foreground">{p.dims}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Basic shapes</p>
                 <div className="grid grid-cols-3 gap-1">
                   {(['rectangle', 'kidney', 'freeform'] as const).map(shape => (
                     <button
@@ -238,24 +289,41 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             />
             {expandedSection === 'materials' && (
               <div className="px-2 pb-2 space-y-2">
-                <MaterialSelect
-                  label="Pool Finish"
-                  value={props.selectedFinishId}
-                  onChange={props.setSelectedFinishId}
-                  options={props.finishes.map(f => ({ id: f.id, name: f.name, image: f.image }))}
-                />
-                <MaterialSelect
-                  label="Coping"
-                  value={props.selectedCopingId}
-                  onChange={props.setSelectedCopingId}
-                  options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))}
-                />
-                <MaterialSelect
-                  label="Deck Pavers"
-                  value={props.selectedPaverId}
-                  onChange={props.setSelectedPaverId}
-                  options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))}
-                />
+                {!boardSel?.kind && (
+                  <p className="rounded-lg border border-border bg-muted/30 px-3 py-3 text-xs font-semibold text-foreground">
+                    Select an element on the board — a pool, deck, fence, screen or turf — to see its materials.
+                  </p>
+                )}
+                {boardSel?.kind === 'pool' && (<>
+                  <MaterialSelect label="Pool Finish" value={props.selectedFinishId} onChange={props.setSelectedFinishId}
+                    options={props.finishes.map(f => ({ id: f.id, name: f.name, image: f.image }))} />
+                  <MaterialSelect label="Coping" value={props.selectedCopingId} onChange={props.setSelectedCopingId}
+                    options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))} />
+                </>)}
+                {boardSel?.kind === 'deck' && (
+                  <MaterialSelect label="Deck Pavers"
+                    value={boardSel.id?.startsWith('deck-') ? (boardSel.style ?? '') : props.selectedPaverId}
+                    onChange={(id) => {
+                      if (boardSel.id?.startsWith('deck-')) { const d = DECK_PAVERS.find(x => x.id === id); if (d) restyle({ style: d.id, label: d.label, rate: d.rate }); }
+                      else props.setSelectedPaverId(id);
+                    }}
+                    options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))} />
+                )}
+                {boardSel?.kind === 'fence' && (<>
+                  <MaterialSelect label="Fence" value={boardSel.style ?? ''} onChange={(id) => { const m = FENCE_MATERIALS.find(x => x.id === id); if (m) restyle({ style: m.id, label: m.label }); }}
+                    options={FENCE_MATERIALS.map(m => ({ id: m.id, name: m.label, image: m.image }))} />
+                  <ColorChips colors={FENCE_COLORS} value={boardSel.color} onPick={(c) => restyle({ color: c })} />
+                </>)}
+                {boardSel?.kind === 'enclosure' && (<>
+                  <MaterialSelect label="Screen" value={boardSel.style ?? ''} onChange={(id) => { const s = SCREEN_STYLES.find(x => x.id === id); if (s) restyle({ style: s.id, label: s.label, rate: s.rate }); }}
+                    options={SCREEN_STYLES.map(s => ({ id: s.id, name: s.label, image: s.image }))} />
+                  <ColorChips colors={SCREEN_COLORS} value={boardSel.color} onPick={(c) => restyle({ color: c })} />
+                </>)}
+                {boardSel?.kind === 'turf' && (
+                  <MaterialSelect label="Turf" value={TURFS.find(t => t.color === boardSel.color)?.id ?? ''}
+                    onChange={(id) => { const t = TURFS.find(x => x.id === id); if (t) restyle({ color: t.color, label: t.label, rate: t.rate }); }}
+                    options={TURFS.map(t => ({ id: t.id, name: t.label, image: t.image }))} />
+                )}
               </div>
             )}
 
@@ -455,16 +523,22 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
       </nav>
       )}
 
-      <DepthProfileEditor3D
-        isOpen={expandedSection === 'depth'}
-        onClose={() => setExpandedSection(null)}
-        linearDepthAnchors={props.depthPoints}
-        onLinearDepthAnchorsChange={(a) => props.setDepthPoints(() => a)}
-        selectedAnchorId={depthAnchorId}
-        onSelectAnchor={setDepthAnchorId}
-        poolPoints={props.poolPointsFt as any}
-        poolDimensions={props.poolLength && props.poolWidth ? { length: props.poolLength, width: props.poolWidth } : undefined}
-      />
+      {/* Depth editor is portalled to the page so the narrow click-through rail can't clip it off-screen. */}
+      {expandedSection === 'depth' && createPortal(
+        <div className="fixed inset-x-0 top-20 z-[100] flex justify-center pointer-events-none">
+          <div className="relative w-[460px] max-w-[calc(100vw-2rem)] pointer-events-auto [&>div]:!static [&>div]:!translate-x-0 [&>div]:!left-auto [&>div]:!top-auto [&>div]:![translate:none]">
+            <DepthProfileEditor3D
+              isOpen
+              onClose={() => setExpandedSection(null)}
+              linearDepthAnchors={props.depthPoints}
+              onLinearDepthAnchorsChange={(a) => props.setDepthPoints(() => a)}
+              selectedAnchorId={depthAnchorId}
+              onSelectAnchor={setDepthAnchorId}
+              poolPoints={props.poolPointsFt as any}
+              poolDimensions={props.poolLength && props.poolWidth ? { length: props.poolLength, width: props.poolWidth } : undefined}
+            />
+          </div>
+        </div>, document.body)}
     </div>
   );
 }
