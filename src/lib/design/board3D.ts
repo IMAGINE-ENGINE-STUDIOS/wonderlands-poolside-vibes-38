@@ -38,6 +38,10 @@ export interface Water3D {
   finish: string; coping: string; waterline: string; copingWidth: number; copingHeight?: number;
   /** Own stairs / contour seats, same configs the main pool's asset manager edits. */
   stairs?: PoolStairConfig[]; seating?: ContourSeatingConfig[];
+  /** Water surface hidden for this body only (header water button while it is selected). */
+  waterOff?: boolean;
+  /** Per-body texture scales; when unset they follow the main pool's scales. */
+  finishScale?: number; copingScale?: number; waterlineScale?: number;
 }
 export interface Board3D {
   pool?: { w: number; l: number };

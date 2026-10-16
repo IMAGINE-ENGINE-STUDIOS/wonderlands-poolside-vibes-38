@@ -45,6 +45,8 @@ import { BoardElements3D } from './scene3d/BoardElements3D';
 import { loadBoard3D, BOARD_3D_EVENT, updateBoard3D, waterAxis, waterCenter } from '@/lib/design/board3D';
 import { BOARD_SELECT_EVENT, type BoardSelection } from './scene3d/BoardElements3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
+import { board3DTakeoff } from '@/lib/design/board3DTakeoff';
+import { useSiteElements } from './designStudio/SiteElementsLayer';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -550,8 +552,9 @@ export function UnifiedPoolVisualizer({
   // Terrain cutout footprint: exact pool outline offset by the deck, world XZ.
   // Extra pools/spas from the Global Design Board: each cuts its own hole.
   const [boardWaters, setBoardWaters] = useState(() => loadBoard3D()?.waters ?? []);
+  const [boardData, setBoardData] = useState(() => loadBoard3D());
   useEffect(() => {
-    const on = () => setBoardWaters(loadBoard3D()?.waters ?? []);
+    const on = () => { const d = loadBoard3D(); setBoardWaters(d?.waters ?? []); setBoardData(d); };
     window.addEventListener(BOARD_3D_EVENT, on);
     return () => window.removeEventListener(BOARD_3D_EVENT, on);
   }, []);
@@ -604,6 +607,24 @@ export function UnifiedPoolVisualizer({
       pts: next.pool.points?.length >= 3 ? next.pool.points.map((p) => ({ x: p.x + c.x, z: p.y + c.z })) : w.pts,
     }) }));
   }, [activeWater, activeW]);
+  /** Whole-scene take-off: extra pools/spas, copings, every deck, turf, fences, screens. */
+  const [siteItems] = useSiteElements();
+  const sceneTakeoff = useMemo(() => board3DTakeoff(boardData, siteItems, POOL_SHELL_PRICE_PER_SQFT), [boardData, siteItems]);
+  const headerBodies = useMemo(() => (boardData?.waters?.length ? sceneTakeoff.bodies : designerBodyLines), [boardData, sceneTakeoff, designerBodyLines]);
+  const headerFeatures = useMemo(() => [...designerQuoteFeatureLines, ...sceneTakeoff.lines], [designerQuoteFeatureLines, sceneTakeoff]);
+  /** Point every header control at a pool: null = main pool, k = extra pool/spa k. Glides the camera to it. */
+  const targetWater = useCallback((k: number | null) => {
+    if (k == null) { window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: null })); setSelectedComponent('pool' as any); focusOnPoolAsset(); return; }
+    const w = boardWaters[k]; if (!w) return;
+    window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: { type: 'water', i: k, part: 'pool' } }));
+    const c = waterCenter(w.pts); const xs = w.pts.map((p) => p.x), zs = w.pts.map((p) => p.z);
+    setAutoRotate(false); focusOn([c.x, -1, c.z], Math.max(14, Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) * 1.3));
+  }, [boardWaters, focusOn, focusOnPoolAsset]);
+  const waterVisible = activeWater != null ? !activeW?.waterOff : showWater;
+  const toggleWater = useCallback(() => {
+    if (activeWater == null) { setShowWater((v) => !v); return; }
+    updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => (k === activeWater ? { ...w, waterOff: !w.waterOff } : w)) }));
+  }, [activeWater]);
   const setWaterStairs = useCallback((u: any) => { if (activeWater == null) return; updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => k === activeWater ? { ...w, stairs: typeof u === 'function' ? u(w.stairs ?? []) : u } : w) })); }, [activeWater]);
   const setWaterSeating = useCallback((u: any) => { if (activeWater == null) return; updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => k === activeWater ? { ...w, seating: typeof u === 'function' ? u(w.seating ?? []) : u } : w) })); }, [activeWater]);
   const terrainSiteRef = useMemo(() => {
@@ -1382,12 +1403,28 @@ export function UnifiedPoolVisualizer({
             <Grid3x3 className="w-4 h-4" strokeWidth={1.8} />
           </button>
           <button
-            onClick={() => setShowWater(!showWater)}
-            className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${showWater ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
-            title={showWater ? "Hide Water" : "Show Water"}
+            onClick={toggleWater}
+            className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${waterVisible ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
+            title={`${waterVisible ? 'Hide' : 'Show'} water · ${activeW ? activeW.label : 'Main pool'}`}
           >
             <Waves className="w-4 h-4" strokeWidth={1.8} />
           </button>
+          {boardWaters.length > 0 && (
+            /* Pool picker: every header control and widget works on the chosen pool/spa. */
+            <div className="flex h-9 md:h-10 items-center gap-1 rounded-full border border-slate-200/80 bg-white px-1 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+              {[null, ...boardWaters.map((_, k) => k)].map((k) => {
+                const on = (k ?? null) === activeWater;
+                const w = k == null ? null : boardWaters[k];
+                const label = k == null ? 'Main pool' : `${w!.kind === 'spa' ? 'Spa' : 'Pool'} ${boardWaters.slice(0, k + 1).filter((x) => x.kind === w!.kind).length + (w!.kind === 'spa' ? 0 : 1)}`;
+                return (
+                  <button key={k ?? 'main'} type="button" onClick={() => targetWater(k)} title={`Edit and center on ${label}`}
+                    className={`h-7 md:h-8 rounded-full px-3 text-xs font-medium transition-colors ${on ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'}`}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <button
             onClick={() => setShowClimateController(!showClimateController)}
             className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${isNightMode ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
@@ -1424,8 +1461,8 @@ export function UnifiedPoolVisualizer({
             copingName={scene.deck.coping?.name}
             finishName={scene.pool.finish?.name}
             waterlineName={scene.deck.waterline?.name}
-            additionalFeatures={designerQuoteFeatureLines}
-            additionalBodies={designerBodyLines}
+            additionalFeatures={headerFeatures}
+            additionalBodies={headerBodies}
           />
         </div>
         
@@ -1441,8 +1478,8 @@ export function UnifiedPoolVisualizer({
             copingName={scene.deck.coping?.name}
             finishName={scene.pool.finish?.name}
             waterlineName={scene.deck.waterline?.name}
-            additionalFeatures={designerQuoteFeatureLines}
-            additionalBodies={designerBodyLines}
+            additionalFeatures={headerFeatures}
+            additionalBodies={headerBodies}
           />
         </div>
 
@@ -1827,7 +1864,8 @@ export function UnifiedPoolVisualizer({
           
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
-          <BoardElements3D holes={"outline" in terrainSiteRef && terrainSiteRef.outline ? [terrainSiteRef.outline] : []} />
+          <BoardElements3D holes={"outline" in terrainSiteRef && terrainSiteRef.outline ? [terrainSiteRef.outline] : []}
+            scales={{ finish: scene.pool.finish.scale || 1.8, coping: scene.deck.coping.scale || 1.8, waterline: scene.deck.waterline?.scale || 1.8, paver: scene.deck.paver.scale || 1.8 }} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}
