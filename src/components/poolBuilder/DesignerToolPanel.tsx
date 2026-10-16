@@ -526,7 +526,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
       {/* Depth editor is portalled to the page so the narrow click-through rail can't clip it off-screen. */}
       {expandedSection === 'depth' && createPortal(
         <div className="fixed inset-x-0 top-20 z-[100] flex justify-center pointer-events-none">
-          <div className="relative w-[460px] max-w-[calc(100vw-2rem)] pointer-events-auto [&>div]:!static [&>div]:!translate-x-0 [&>div]:!left-auto [&>div]:!top-auto [&>div]:![translate:none]">
+          <div className="relative w-[460px] max-w-[calc(100vw-6rem)] pointer-events-auto [&>div]:!static [&>div]:!translate-x-0 [&>div]:!left-auto [&>div]:!top-auto [&>div]:![translate:none]">
             <DepthProfileEditor3D
               isOpen
               onClose={() => setExpandedSection(null)}
