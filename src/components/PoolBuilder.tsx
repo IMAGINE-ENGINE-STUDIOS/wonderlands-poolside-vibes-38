@@ -18,6 +18,9 @@ import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower
 import { ShapePanel } from './poolBuilder/ShapePanel';
 import { DesignerToolPanel } from './poolBuilder/DesignerToolPanel';
 import { ProjectManager, setAutoSave, getAutoSave } from './poolBuilder/ProjectManager';
+import { useSiteElements } from './designStudio/SiteElementsLayer';
+import { useBoardHistory, useBoardCommands, publishBoardStatus } from './designStudio/boardCommands';
+import { toast } from '@/hooks/use-toast';
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
 import { SplineDrawingToolbar } from './poolBuilder/SplineDrawingToolbar';
 import { PointCoordinateEditor } from './poolBuilder/PointCoordinateEditor';
@@ -143,7 +146,9 @@ interface PoolBuilderProps {
     };
   }) => void;
   /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
-  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void }) => React.ReactNode;
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void;
+    extraPools?: { id: string; type?: string; points: { x: number; y: number }[] }[]; extraDecks?: Record<string, { x: number; y: number }[]>;
+    setExtraPool?: (id: string, pts: { x: number; y: number }[]) => void; setExtraDeck?: (id: string, pts: { x: number; y: number }[]) => void; eraseExtraPool?: (id: string) => void }) => React.ReactNode;
 }
 
 // Helper function to shade colors
@@ -1213,26 +1218,32 @@ export function PoolBuilder({
       // Check if pool extends outside existing deck and prompt for deck
       checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
     } else {
-      // Spillover spa or tanning ledge - enter perimeter anchor mode
-      // Calculate initial position based on where the drawn shape was
-      const centerX = pendingPoolData.points.reduce((sum, p) => sum + p.x, 0) / pendingPoolData.points.length;
-      const centerY = pendingPoolData.points.reduce((sum, p) => sum + p.y, 0) / pendingPoolData.points.length;
-      const initialPerimeterPos = getPerimeterPositionFromPoint(centerX, centerY);
-      setPerimeterAnchorMode({
-        isActive: true,
+      // Spillover spa or tanning ledge — keep the exact shape the user just drew
+      // (merged with the main pool; no coping at the join). Imagine Engine Studios Corp.
+      const newPoolId = Date.now().toString();
+      const drawn = pendingPoolData.points;
+      setAdditionalPools(prev => [...prev, {
+        id: newPoolId,
+        type: featureType === 'spillover-spa' ? 'spa' : 'pool',
+        points: drawn,
+        shape: 'freeform',
         featureType,
-        perimeterPosition: initialPerimeterPos,
-        isFixed: false
-      });
+        intersectsWith: pendingPoolData.intersectsWith,
+        isMerged: true
+      }]);
+      if (featureType === 'spillover-spa') {
+        setAdditionalDeckPoints(prev => ({ ...prev, [newPoolId]: generateHardscapeFromPool(drawn, 3) }));
+        setDeckOffsetsById(prev => ({ ...prev, [newPoolId]: 3 }));
+      }
       setPendingPoolData(null);
       setShowPoolTypeDialog(false);
-      // Clear the previous spline drawing - user will draw new shape from anchor
       setSplineDrawing({
         isActive: false,
         points: [],
         currentCurveType: 'linear'
       });
       setActiveTool(null);
+      checkAndPromptForOutsideDeck(newPoolId, drawn);
     }
   }, [pendingPoolData, getPerimeterPositionFromPoint, checkAndPromptForOutsideDeck]);
 
@@ -5907,7 +5918,13 @@ export function PoolBuilder({
           setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${Date.now().toString(36)}${i}` }))),
           setPool: (pts) => setPoints(pts as Point[]),
           endDeckMode: () => setActiveTool('select'),
-          erasePool: () => { setPoints([]); setHardscapePoints([]); setFeatures([]); } })}
+          erasePool: () => { setPoints([]); setHardscapePoints([]); setFeatures([]); },
+          /* Extra pools/spas + their attached decks — listed, editable and erasable from the overlay. */
+          extraPools: additionalPools.map((p) => ({ id: p.id, type: p.featureType === 'tanning-ledge' ? 'tanning-ledge' : p.type, points: p.points })),
+          extraDecks: Object.fromEntries(additionalPools.filter((p) => !p.isPerimeterSnapped && p.points.length >= 3).map((p) => [p.id, additionalDeckPoints[p.id] || generateHardscapeFromPool(p.points, deckOffsetsById[p.id] ?? deckOffset)])),
+          setExtraPool: (id, pts) => setAdditionalPools((prev) => prev.map((p) => p.id === id ? { ...p, points: pts as Point[] } : p)),
+          setExtraDeck: (id, pts) => setAdditionalDeckPoints((prev) => ({ ...prev, [id]: pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${id}${i}` })) as HardscapePoint[] })),
+          eraseExtraPool: (id) => { setAdditionalPools((prev) => prev.filter((p) => p.id !== id)); setAdditionalDeckPoints((prev) => { const n = { ...prev }; delete n[id]; return n; }); } })}
         {/* Main Canvas - fills viewport */}
         <div className="w-full h-full">
             <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={(e) => {
@@ -6325,8 +6342,8 @@ export function PoolBuilder({
           pendingPlacement={pendingLandscapePlacement || pendingPoolFeaturePlacement || null}
         />
 
-        {/* Project Manager Button - Top Left */}
-        <div className="absolute top-8 left-8 z-20 flex items-center gap-2">
+        {/* Project Manager Button - Top Left (Design Studio shows Save/Projects in its header instead) */}
+        <div className={`absolute top-8 left-8 z-20 flex items-center gap-2 ${renderOverlay ? 'hidden' : ''}`}>
           <Button
             size="sm"
             variant="outline"
