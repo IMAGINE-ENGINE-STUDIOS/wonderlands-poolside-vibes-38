@@ -1903,6 +1903,14 @@ export function PoolBuilder({
     });
     if (!ctx) return;
 
+    // Start every frame from a clean state: an unbalanced save()/restore() or a
+    // clip left by a previous frame would otherwise compound the zoom transform
+    // and leave stray lines / shrinking pools after wheel zoom.
+    (ctx as CanvasRenderingContext2D & { reset?: () => void }).reset?.();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+
     // Clear canvas
     ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
 
