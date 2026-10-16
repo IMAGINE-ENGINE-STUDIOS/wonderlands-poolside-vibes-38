@@ -507,7 +507,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
           title={r.label}
           onClick={() => toggleSection(r.id)}
           aria-pressed={expandedSection === r.id}
-          className={`pointer-events-auto flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
+          className={`pointer-events-auto flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
         >
           {r.icon}
           <span className="leading-none">{r.label}</span>
