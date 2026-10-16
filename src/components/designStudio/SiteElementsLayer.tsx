@@ -564,8 +564,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             {selected && (selected.startsWith("__xp:") || selected.startsWith("__xd:") || selected === "__pool" || selected === "__deck") && getPts(selected).length >= 3 && <polygon points={(isPoolId(selected) ? poolRing(getPts(selected)) : getPts(selected)).map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2.5 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
             {editId && (() => { const pts = getPts(editId); const z = view.zoom || 1; const open = isOpen(editId); return (
               <g style={{ pointerEvents: "auto" }}>
-                {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={4 / z} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
-                {pts.map((p, i) => <rect key={`v${i}`} x={p.x - 5 / z} y={p.y - 5 / z} width={10 / z} height={10 / z} fill="hsl(var(--foreground))" style={{ cursor: "grab" }} onMouseDown={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onContextMenu={(ev) => { ev.preventDefault(); ev.stopPropagation(); if (pts.length > (open ? 2 : 3)) setPts(editId, pts.filter((_, k) => k !== i)); }} />)}
+                {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={4 / z} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} onTouchStart={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
+                {pts.map((p, i) => <rect key={`v${i}`} x={p.x - 5 / z} y={p.y - 5 / z} width={10 / z} height={10 / z} fill="hsl(var(--foreground))" style={{ cursor: "grab" }} onMouseDown={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onTouchStart={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onContextMenu={(ev) => { ev.preventDefault(); ev.stopPropagation(); if (pts.length > (open ? 2 : 3)) setPts(editId, pts.filter((_, k) => k !== i)); }} />)}
               </g>); })()}
           </g>
         </svg>
@@ -702,7 +702,14 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               <div className="flex gap-1.5">{(sel.kind === "fence" ? FENCE_COLORS : SCREEN_COLORS).map((c) => <Chip key={c.id} on={sel.color === c.hex} onClick={() => recolor(c.hex, c.id)}><span className="mr-1 inline-block h-2.5 w-2.5 align-middle" style={{ background: c.hex }} />{c.id}</Chip>)}</div>
             </div>
           )}
-          {selected && <p className="mt-2 text-[10px] text-muted-foreground">Press Delete to erase. Right-click or double-click any line to edit, add a point, move, retexture or erase.</p>}
+          {sel && (sel.kind === "fence" || sel.kind === "enclosure") && (
+            <div className="mt-2">
+              <p className="mb-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{sel.kind === "fence" ? "Gates" : "Doors"}</p>
+              <div className="flex flex-wrap gap-1.5">{gateOptionsFor(sel.kind).map((o) => <Chip key={o.id} onClick={() => addGate(sel.id, o.id)}>+ {o.label} · ${o.price.toLocaleString()}</Chip>)}</div>
+              {(sel.gates?.length ?? 0) > 0 && <ul className="mt-1.5 space-y-0.5 text-[11px]">{sel.gates!.map((g, gi) => <li key={gi} className="flex items-center justify-between"><span>{gateOption(sel.kind, g.typeId)?.label ?? "Door"} · side {g.seg + 1}</span><button title="Remove" className="text-muted-foreground hover:text-foreground" onClick={() => setItems((p) => p.map((x) => x.id === sel.id ? { ...x, gates: x.gates!.filter((_, k) => k !== gi) } : x))}><X className="h-3 w-3" /></button></li>)}</ul>}
+            </div>
+          )}
+          {selected && <p className="mt-2 text-[10px] text-muted-foreground">Press Delete to erase. Right-click or double-click (phone: press and hold or double-tap) any line to edit, add a point, move, retexture or erase.</p>}
           {!items.length && <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground"><MousePointer2 className="h-3 w-3" />Pick fences, screens or turf above, then draw on the board.</p>}
         </div>
       </aside>
