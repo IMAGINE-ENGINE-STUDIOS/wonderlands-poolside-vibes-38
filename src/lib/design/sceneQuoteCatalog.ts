@@ -56,9 +56,18 @@ function kindImage(name: string): string | undefined {
   return undefined;
 }
 
+/** Coping is cut from the deck pavers: show the chosen paver (named in the line) or the default deck paver. */
+function copingPaver(name: string, hint?: string): CatalogHit | undefined {
+  if (!/coping/i.test(name)) return undefined;
+  const hay = ` ${norm(`${hint ?? ""} ${name}`)} `;
+  const p = [...paverTypes].sort((a, b) => b.name.length - a.name.length).find((x) => hay.includes(` ${norm(x.name)} `))
+    ?? paverTypes.find((x) => x.id === "appian-adobe") ?? paverTypes[0];
+  return p ? { name: p.name, image: p.image, description: p.description ?? "" } : undefined;
+}
+
 /** Photo for a single quote line: catalog product → same-kind photo → none. */
 export function quoteLineImage(name: string, hint?: string): string | undefined {
-  return resolveCatalog(name, hint)?.image ?? kindImage(name);
+  return copingPaver(name, hint)?.image ?? resolveCatalog(name, hint)?.image ?? kindImage(name);
 }
 
 /** Main photo for a custom-designed (drawn) pool — a Wonderlands concrete pool. */
@@ -67,7 +76,7 @@ export const CUSTOM_POOL_IMAGE = customPoolImg;
 /** Adds image + description to quote lines; a catalog match replaces texture URLs. */
 export function enrichQuoteLines<T extends { name: string; image?: string }>(lines: T[], hints: Record<number, string | undefined> = {}) {
   return lines.map((l, i) => {
-    const hit = resolveCatalog(l.name, hints[i]);
+    const hit = copingPaver(l.name, hints[i]) ?? resolveCatalog(l.name, hints[i]);
     if (hit) return { ...l, image: hit.image, description: hit.description };
     const kind = kindImage(l.name);
     return kind ? { ...l, image: kind } : l;
