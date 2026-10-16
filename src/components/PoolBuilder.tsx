@@ -6,6 +6,7 @@ const {
   useMemo,
   useCallback
 } = React;
+import { curvedSegmentControls } from '@/utils/curveUtils';
 import { outwardBulgeSign } from '@/utils/curveUtils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -1037,6 +1038,29 @@ export function PoolBuilder({
     return null;
   }, [points, hardscapePoints, additionalPools, additionalDeckPoints, deckOffsetsById, isPointInPolygon, deckOffset]);
 
+  /* Auto-expand decks: every pool keeps at least its Tools deck width (min 3 ft) on all sides.
+     An empty deck ([]) means the user chose "No deck" and is left alone. Imagine Engine Studios Corp. */
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const tooTight = (pool: Point[], deck: Point[], off: number) =>
+        generateHardscapeFromPool(pool, Math.max(0.1, off - 0.15)).some((q) => !isPointInPolygon(q.x, q.y, deck));
+      if (points.length >= 3 && hardscapePoints.length >= 3) {
+        const off = Math.max(3, deckOffsetsById.main ?? deckOffset);
+        if (tooTight(points, hardscapePoints, off)) setHardscapePoints(generateHardscapeFromPool(points, off));
+      }
+      const fixes: Record<string, HardscapePoint[]> = {};
+      for (const p of additionalPools) {
+        const d = additionalDeckPoints[p.id];
+        if (p.isPerimeterSnapped || p.points.length < 3 || !d || d.length < 3) continue;
+        const off = Math.max(3, deckOffsetsById[p.id] ?? deckOffset);
+        if (tooTight(p.points, d, off)) fixes[p.id] = generateHardscapeFromPool(p.points, off);
+      }
+      if (Object.keys(fixes).length) setAdditionalDeckPoints((prev) => ({ ...prev, ...fixes }));
+    }, 450);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [points, additionalPools, deckOffset, deckOffsetsById]);
+
   // Generate deck points for portions of a new pool that extend OUTSIDE existing deck/water areas
   // Returns null if no portion extends outside, otherwise returns deck points only for outside area
   const generateDeckForOutsideArea = useCallback((newPoolPoints: Point[], deckDistanceFeet: number = 3): HardscapePoint[] | null => {
@@ -2029,6 +2053,7 @@ export function PoolBuilder({
       if (curveType === 'linear') {
         ctx.lineTo(p2.x, p2.y);
       } else if (curveType === 'curve') {
+        { const _i = (points as any[]).indexOf(p2); if (_i >= 0) { const _j = (_i - 1 + points.length) % points.length; const { cp1, cp2 } = curvedSegmentControls(points as any, _j); ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y); return; } }
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
         const dx = p2.x - p1.x;
@@ -2038,6 +2063,7 @@ export function PoolBuilder({
         const perpY = dx * 0.25 * bs;
         ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
       } else if (curveType === 'arc') {
+        { const _i = (points as any[]).indexOf(p2); if (_i >= 0) { const _j = (_i - 1 + points.length) % points.length; const { cp1, cp2 } = curvedSegmentControls(points as any, _j); ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y); return; } }
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
         const dx = p2.x - p1.x;
@@ -3797,6 +3823,7 @@ export function PoolBuilder({
       if (curveType === 'linear') {
         ctx.lineTo(p2.x, p2.y);
       } else if (curveType === 'curve') {
+        { const _i = (points as any[]).indexOf(p2); if (_i >= 0) { const _j = (_i - 1 + points.length) % points.length; const { cp1, cp2 } = curvedSegmentControls(points as any, _j); ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y); return; } }
         // Smooth bezier curve
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
@@ -3807,6 +3834,7 @@ export function PoolBuilder({
         const perpY = dx * 0.25 * bs;
         ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
       } else if (curveType === 'arc') {
+        { const _i = (points as any[]).indexOf(p2); if (_i >= 0) { const _j = (_i - 1 + points.length) % points.length; const { cp1, cp2 } = curvedSegmentControls(points as any, _j); ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y); return; } }
         // Circular arc
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;

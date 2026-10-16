@@ -31,6 +31,36 @@ export function outwardBulgeSign(points: Array<{ x: number; y: number }> | undef
   return (a > 0 ? -1 : 1) * (p2?.curveFlip ? -1 : 1);
 }
 
+/**
+ * Professional curve controls for segment points[i]→points[i+1] (curve/arc types).
+ * Isolated curves keep the outward bulge; where neighbouring segments are also curved the
+ * tangent is shared (Catmull-Rom style) so chains flow smoothly with no kinks at the corners.
+ * Shared by the 2D canvas and 3D densify so both always match. Imagine Engine Studios Corp.
+ */
+export function curvedSegmentControls(
+  points: Array<{ x: number; y: number; curveType?: string; curveFlip?: boolean }>, i: number,
+): { cp1: { x: number; y: number }; cp2: { x: number; y: number } } {
+  const n = points.length;
+  const p0 = points[(i - 1 + n) % n], p1 = points[i], p2 = points[(i + 1) % n], p3 = points[(i + 2) % n];
+  const type = p2.curveType || 'curve';
+  const k = type === 'arc' ? 0.35 : 0.25;
+  const dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.hypot(dx, dy) || 1;
+  const bs = outwardBulgeSign(points, p2);
+  const q = { x: (p1.x + p2.x) / 2 - dy * k * bs, y: (p1.y + p2.y) / 2 + dx * k * bs };
+  let cp1 = { x: p1.x + (2 / 3) * (q.x - p1.x), y: p1.y + (2 / 3) * (q.y - p1.y) };
+  let cp2 = { x: p2.x + (2 / 3) * (q.x - p2.x), y: p2.y + (2 / 3) * (q.y - p2.y) };
+  const curved = (t?: string) => !!t && t !== 'linear';
+  if (curved(p1.curveType)) {
+    const tx = p2.x - p0.x, ty = p2.y - p0.y, tl = Math.hypot(tx, ty) || 1;
+    cp1 = { x: p1.x + (tx / tl) * len / 3 * 1.1, y: p1.y + (ty / tl) * len / 3 * 1.1 };
+  }
+  if (curved(p3.curveType)) {
+    const tx = p3.x - p1.x, ty = p3.y - p1.y, tl = Math.hypot(tx, ty) || 1;
+    cp2 = { x: p2.x - (tx / tl) * len / 3 * 1.1, y: p2.y - (ty / tl) * len / 3 * 1.1 };
+  }
+  return { cp1, cp2 };
+}
+
 export function densifyPoolOutline<T extends Point2D & { curveType?: OutlineCurveType }>(
   points: T[],
   shape: 'rectangle' | 'kidney' | 'freeform' | string | undefined
@@ -57,12 +87,7 @@ export function densifyPoolOutline<T extends Point2D & { curveType?: OutlineCurv
       cp1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
       cp2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
     } else if (type === 'curve' || type === 'arc') {
-      // Quadratic (canvas quadraticCurveTo) expressed as a cubic.
-      const k = type === 'curve' ? 0.25 : 0.35;
-      const bs = outwardBulgeSign(points, p2 as { curveFlip?: boolean });
-      const q = { x: (p1.x + p2.x) / 2 - dy * k * bs, y: (p1.y + p2.y) / 2 + dx * k * bs };
-      cp1 = { x: p1.x + (2 / 3) * (q.x - p1.x), y: p1.y + (2 / 3) * (q.y - p1.y) };
-      cp2 = { x: p2.x + (2 / 3) * (q.x - p2.x), y: p2.y + (2 / 3) * (q.y - p2.y) };
+      ({ cp1, cp2 } = curvedSegmentControls(points as any, i));
     } else {
       const px = -dy * 0.15, py = dx * 0.15;
       cp1 = { x: p1.x + dx * 0.3 + px * 0.5, y: p1.y + dy * 0.3 + py * 0.5 };

@@ -392,8 +392,11 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             })}
             {drawing && draft.length > 0 && (
               <>
-                <polyline points={[...draft, ...(hover ? [hover] : [])].map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke={choice!.color} strokeWidth={2 / view.zoom} strokeDasharray="5 4" />
-                {draft.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={4 / view.zoom} fill={i === 0 ? "hsl(var(--primary))" : choice!.color} />)}
+                {/* Same look as main-pool spline drawing: solid placed edges, dashed live edge + closing guide, ringed handles. */}
+                <polyline points={draft.map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2.5 / view.zoom} strokeLinejoin="round" />
+                {hover && <line x1={draft[draft.length - 1].x} y1={draft[draft.length - 1].y} x2={hover.x} y2={hover.y} stroke="hsl(var(--foreground))" strokeWidth={2 / view.zoom} strokeDasharray="6 4" />}
+                {hover && draft.length >= 2 && <line x1={hover.x} y1={hover.y} x2={draft[0].x} y2={draft[0].y} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5 / view.zoom} strokeDasharray="3 5" />}
+                {draft.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={(i === 0 ? 7 : 5) / view.zoom} fill={i === 0 ? "hsl(var(--primary))" : "hsl(var(--background))"} stroke="hsl(var(--foreground))" strokeWidth={2 / view.zoom} />)}
                 {hover && <text x={hover.x + 8} y={hover.y - 8} fontSize={12 / view.zoom} fill="hsl(var(--foreground))">{(Math.hypot(hover.x - draft[draft.length - 1].x, hover.y - draft[draft.length - 1].y) / scale).toFixed(1)} ft</text>}
               </>
             )}
@@ -418,6 +421,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const xp = menu.id.startsWith("__xp:") ? menu.id.slice(5) : null; setMoving({ id: menu.id, start: menu.at, orig: getPts(menu.id), deck: menu.id === "__pool" ? view?.deckPts : xp ? view?.extraDecks?.[xp] : undefined, deckId: xp ? `__xd:${xp}` : "__deck" }); setMenu(null); }}>Move</button>
             {textureOptions.length > 0 && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => setMenu({ ...menu, sub: true })}>{menuItem!.kind === "fence" || menuItem!.kind === "enclosure" ? "Change color" : "Change texture"}</button>}
             {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const pts = getPts(menu.id) as Array<Pt & { curveFlip?: boolean }>; const j = (menu.seg + 1) % pts.length; setPts(menu.id, pts.map((q, k) => k === j ? { ...q, curveFlip: !q.curveFlip } : q)); setMenu(null); }}>Flip curve (outward / inward)</button>}
+            {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id === "__pool" ? "__deck" : `__xd:${menu.id.slice(5)}`); setMenu(null); }}>Remove deck (no deck)</button>}
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id); setMenu(null); }}>Erase</button>
           </>) : textureOptions.map((o) => <button key={o.key} className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { retexture(menu.id, o.apply); setMenu(null); }}>{o.label}</button>)}
         </div>
