@@ -534,7 +534,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         <div className="absolute left-1/2 top-3 z-[30] flex -translate-x-1/2 items-center gap-3 border border-border bg-background/95 px-4 py-2 text-xs shadow-sm backdrop-blur">
           <span><b>{choice!.label}</b> · {choice!.kind === "fence" ? "click each post" : "click each corner, click the first point to close"} · Enter to finish</span>
           <button onClick={() => setDraft((d) => d.slice(0, -1))} title="Undo last point" className="hover:text-foreground text-muted-foreground"><Undo2 className="h-3.5 w-3.5" /></button>
-          <button onClick={finish} title="Finish" className="hover:text-foreground text-muted-foreground"><Check className="h-3.5 w-3.5" /></button>
+          <button onClick={() => finish(false)} title="Finish" className="hover:text-foreground text-muted-foreground"><Check className="h-3.5 w-3.5" /></button>
           <button onClick={() => { setDraft([]); setChoice(null); }} title="Cancel" className="hover:text-foreground text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
         </div>
       )}
