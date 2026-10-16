@@ -37,6 +37,8 @@ import { buildCatalogTextureLibrary } from "@/data/textureLibrary";
 import { useToast } from "@/hooks/use-toast";
 import { CategoryToolbar } from "@/components/designStudio/CategoryToolbar";
 import { BoardHeaderControls } from "@/components/designStudio/BoardHeaderControls";
+import { useBoardCommands, sendBoardCommand } from "@/components/designStudio/boardCommands";
+import { toast as boardToast } from "sonner";
 import { SubToolbar } from "@/components/designStudio/SubToolbar";
 import { Genius2DBar } from "@/components/designStudio/Genius2DBar";
 import type { DesignCategory, ToolDefinition } from "@/components/designStudio/featureTypes";
@@ -395,6 +397,12 @@ const DesignStudio = () => {
     setIsFullscreen(false);
     setActiveView('2d');
   }, []);
+  // In 3D the scene is saved on every change; Projects reopens the 2D board's project list.
+  useBoardCommands((c) => {
+    if (activeView !== '3d') return;
+    if (c === 'save') boardToast.success('Project saved');
+    else if (c === 'projects') { handleSwitch2D(); window.setTimeout(() => sendBoardCommand('projects'), 600); }
+  });
   /**
    * 3D scene with memory: geometry comes from the current 2D design, while
    * everything chosen in 3D (finish, pavers, coping, waterline, deck/coping
