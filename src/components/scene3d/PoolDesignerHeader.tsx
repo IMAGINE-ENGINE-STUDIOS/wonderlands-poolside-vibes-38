@@ -257,21 +257,25 @@ export function PoolDesignerHeader({
   );
 
   return (
-    <div className="relative w-[340px] max-w-[calc(100vw-2rem)]">
-      <div className="w-full bg-white rounded-[20px] border border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden">
+    <div className="relative w-auto min-w-[260px] max-w-[calc(100vw-2rem)]">
+      <div className="w-full bg-white rounded-full border border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           aria-expanded={isExpanded}
-          className="w-full h-14 px-3.5 flex items-center justify-between bg-white hover:bg-slate-50/50 transition-colors duration-200 group text-left"
+          className="w-full h-10 px-2.5 flex items-center justify-between bg-white hover:bg-slate-50/50 transition-colors duration-200 group text-left"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
+            <div className="w-6 h-6 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
               <Waves className="w-3.5 h-3.5 text-slate-700" strokeWidth={1.8} />
             </div>
             <span className="text-[13.5px] font-semibold tracking-tight text-slate-900 tabular-nums whitespace-nowrap">
               {measurements.width.toFixed(0)}' × {measurements.length.toFixed(0)}'
               <span className="text-slate-300 mx-1">·</span>
               {measurements.poolArea.toFixed(0)} sqft
+              {/* Extra figures appear only when the screen has room — Imagine Engine Studios Corp */}
+              <span className="hidden xl:inline"><span className="text-slate-300 mx-1">·</span>{measurements.perimeter.toFixed(0)} ft perim.</span>
+              <span className="hidden xl:inline"><span className="text-slate-300 mx-1">·</span>{measurements.deckArea.toFixed(0)} sqft deck</span>
+              <span className="hidden 2xl:inline"><span className="text-slate-300 mx-1">·</span>{Math.round(measurements.gallons).toLocaleString()} gal</span>
             </span>
           </div>
           <div className="flex items-center gap-2.5 shrink-0 pl-3">
@@ -284,7 +288,7 @@ export function PoolDesignerHeader({
       </div>
 
       {/* Breakdown drops down over the drawing board, never upward — Imagine Engine Studios Corp */}
-      <div className={`absolute right-0 top-full mt-2 z-50 w-full grid transition-[grid-template-rows] duration-300 ease-out ${isExpanded ? '' : 'pointer-events-none'}`} style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}>
+      <div className={`absolute right-0 top-full mt-2 z-50 w-[340px] max-w-[calc(100vw-1rem)] grid transition-[grid-template-rows] duration-300 ease-out ${isExpanded ? '' : 'pointer-events-none'}`} style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}>
           <div className={`overflow-hidden bg-white rounded-[20px] ${isExpanded ? 'border border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : ''}`}>
             <div className="max-h-[calc(100vh-7rem)] overflow-y-auto">
               <div className="grid grid-cols-2 border-b border-slate-100 divide-x divide-y divide-slate-100 bg-white">

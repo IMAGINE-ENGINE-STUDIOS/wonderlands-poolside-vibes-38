@@ -173,13 +173,13 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                     }`}
                   >
                     <Magnet className="w-3 h-3" />
-                    Snap {props.gridSnap ? 'ON' : 'OFF'}
+                    <span className="hidden sm:inline">Snap {props.gridSnap ? 'ON' : 'OFF'}</span>
                   </button>
                   {props.gridSnap && (
                     <select
                       value={props.snapSize}
                       onChange={e => props.setSnapSize(parseInt(e.target.value))}
-                      className="h-6 text-[10px] bg-muted/30 border border-border/50 rounded px-1"
+                      className="hidden sm:block h-6 text-[10px] bg-muted/30 border border-border/50 rounded px-1"
                     >
                       <option value="1">1"</option>
                       <option value="6">6"</option>
@@ -507,7 +507,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
           title={r.label}
           onClick={() => toggleSection(r.id)}
           aria-pressed={expandedSection === r.id}
-          className={`pointer-events-auto flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
+          className={`pointer-events-auto flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
         >
           {r.icon}
           <span className="leading-none">{r.label}</span>
@@ -526,7 +526,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
       {/* Depth editor is portalled to the page so the narrow click-through rail can't clip it off-screen. */}
       {expandedSection === 'depth' && createPortal(
         <div className="fixed inset-x-0 top-20 z-[100] flex justify-center pointer-events-none">
-          <div className="relative w-[460px] max-w-[calc(100vw-2rem)] pointer-events-auto [&>div]:!static [&>div]:!translate-x-0 [&>div]:!left-auto [&>div]:!top-auto [&>div]:![translate:none]">
+          <div className="relative w-[460px] max-w-[calc(100vw-6rem)] pointer-events-auto [&>div]:!static [&>div]:!translate-x-0 [&>div]:!left-auto [&>div]:!top-auto [&>div]:![translate:none]">
             <DepthProfileEditor3D
               isOpen
               onClose={() => setExpandedSection(null)}

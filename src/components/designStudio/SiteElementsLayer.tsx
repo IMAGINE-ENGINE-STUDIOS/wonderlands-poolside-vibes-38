@@ -445,11 +445,11 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         <div id="studio-rail-slot" className="flex flex-col items-center gap-1" />
         <div id="studio-rail-slot-pools" className="flex flex-col items-center gap-1" />
         {([["deck", "Decks", Layers], ["fence", "Fences", Fence], ["turf", "Turf", Grid2x2], ["enclosure", "Screens", Layers]] as const).map(([k, l, Icon]) => (
-          <button key={k} title={l} aria-pressed={tab === k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors", tab === k ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
+          <button key={k} title={l} aria-pressed={tab === k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors", tab === k ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
             <Icon className="h-4 w-4" />{l}
           </button>
         ))}
-        <button title="On the board" aria-pressed={boardOpen} onClick={() => { const v = !boardOpen; setBoardOpen(v); if (v) window.dispatchEvent(new CustomEvent("studio-rail:open", { detail: "site" })); }} className={cn("flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors", boardOpen ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
+        <button title="On the board" aria-pressed={boardOpen} onClick={() => { const v = !boardOpen; setBoardOpen(v); if (v) window.dispatchEvent(new CustomEvent("studio-rail:open", { detail: "site" })); }} className={cn("flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors", boardOpen ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
           <LayoutList className="h-4 w-4" />Board
         </button>
         <div id="studio-rail-slot-end" className="flex flex-col items-center gap-1" />

@@ -1814,26 +1814,30 @@ export function UnifiedPoolVisualizer({
             onIncline={() => { setPerfDpr(d => Math.min(1.5, +(d + 0.25).toFixed(2))); if (!sceneHeavy) setShadowRes(2048); }}
           />
           
-          {/* Dynamic Sky with Clouds - Day/Night modes */}
+          {/* Realistic vivid-blue daytime sky (low haze, clear Rayleigh blue, crisp sun disc) — Imagine Engine Studios Corp */}
           {!isNightMode ? (
             <Sky 
               distance={450000}
               sunPosition={sunPosition}
-              inclination={0.6}
-              azimuth={0.25}
+              turbidity={2.2}
+              rayleigh={2.6}
+              mieCoefficient={0.004}
+              mieDirectionalG={0.86}
             />
           ) : (
             // Night sky - dark background
             <color attach="background" args={['#0a1628']} />
           )}
           
-          {/* Day lighting */}
+          {/* Day lighting: warm sun key light + blue sky / ground bounce fill */}
           {!isNightMode && (
             <>
-              <ambientLight intensity={0.4} />
+              <ambientLight intensity={0.28} />
+              <hemisphereLight args={['#5fb4ff', '#6b5a43', 0.55]} />
               <directionalLight
                 position={sunPosition}
-                intensity={1.2}
+                color="#fff4e2"
+                intensity={1.6}
                 castShadow
                 shadow-mapSize-width={shadowRes}
                 shadow-mapSize-height={shadowRes}
