@@ -7,7 +7,7 @@
  */
 import * as React from "react";
 import * as THREE from "three";
-import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D, waterDepthAt, waterCenter, updateBoard3D } from "@/lib/design/board3D";
+import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D, type Surface3D, type Water3D, type Gate3D, waterDepthAt, waterCenter, updateBoard3D } from "@/lib/design/board3D";
 import { mitredOffsetRing, buildSlabGeometry } from "@/utils/polygonGeometry";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { textureCache } from "@/utils/textureCache";
@@ -79,6 +79,29 @@ function Beam({ a, b, y, h, t, mat }: { a: XZ; b: XZ; y: number; h: number; t: n
   );
 }
 
+
+/** Fence doors / screen doors in 3D: hinge + latch posts, leaf frame, mid rail, latch at 54". */
+function Doors({ gates, pts, closed, H, mat }: { gates?: Gate3D[]; pts: XZ[]; closed: boolean; H: number; mat: THREE.Material }) {
+  const boxes = React.useMemo(() => {
+    const out: BoxInstance[] = [];
+    for (const g of gates ?? []) {
+      const a = pts[g.seg], b = pts[closed ? (g.seg + 1) % pts.length : g.seg + 1]; if (!a || !b) continue;
+      const L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L, half = Math.min(L / 2, g.widthFt / 2);
+      const c = { x: a.x + (b.x - a.x) * g.t, z: a.z + (b.z - a.z) * g.t };
+      const p1 = { x: c.x - ux * half, z: c.z - uz * half }, p2 = { x: c.x + ux * half, z: c.z + uz * half };
+      const dh = Math.min(H, 7); const nx = -uz * 0.08, nz = ux * 0.08;
+      [p1, p2].forEach((p) => out.push({ x: p.x, y: H / 2, z: p.z, sx: 0.3, sy: H + 0.2, sz: 0.3 }));
+      const q1 = { x: p1.x + nx, z: p1.z + nz }, q2 = { x: p2.x + nx, z: p2.z + nz };
+      out.push(beamBox(q1, q2, dh - 0.1, 0.14, 0.1), beamBox(q1, q2, 0.25, 0.14, 0.1), beamBox(q1, q2, dh / 2, 0.1, 0.08));
+      const double = g.widthFt >= 6; const mid = { x: (q1.x + q2.x) / 2, z: (q1.z + q2.z) / 2 };
+      if (double) out.push({ x: mid.x, y: dh / 2, z: mid.z, sx: 0.12, sy: dh, sz: 0.12 });
+      const latch = double ? mid : q2; out.push({ x: latch.x - ux * 0.25 + nx, y: 4.5, z: latch.z - uz * 0.25 + nz, sx: 0.25, sy: 0.35, sz: 0.15 });
+    }
+    return out;
+  }, [gates, pts, closed, H]);
+  return <InstancedBoxes boxes={boxes} material={mat} castShadow />;
+}
+
 /** Vinyl panel photo: one 6 ft panel per texture tile, tinted by the panel color. */
 const vinylTex = (() => { let t: THREE.Texture | null = null; return () => { if (!t) { t = new THREE.TextureLoader().load((vinylFenceAsset as { url: string }).url); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; } return t; }; })();
 const isVinyl = (s: string) => s === "vinyl";
@@ -115,6 +138,7 @@ function Fence({ f, i }: { f: Fence3D; i: number }) {
       <InstancedBoxes boxes={parts.detail} material={metal} />
       <InstancedBoxes boxes={parts.rails} material={metal} castShadow />
       <InstancedBoxes boxes={parts.panels} material={panel} castShadow />
+      <Doors gates={f.gates} pts={f.pts} closed={false} H={H} mat={metal} />
     </group>
   );
 }
@@ -166,6 +190,7 @@ function Screen({ s, i }: { s: Screen3D; i: number }) {
       <InstancedBoxes boxes={cage.beams} material={frame} castShadow />
       <InstancedBoxes boxes={cage.kicks} material={kick} castShadow />
       <InstancedBoxes boxes={cage.walls} material={mesh} castShadow />
+      <Doors gates={s.gates} pts={s.pts} closed H={H} mat={frame} />
       {geo && <mesh geometry={geo} material={mesh} />}
       {lid && <mesh geometry={lid} material={mesh} position={[0, H + RISE, 0]} />}
     </group>

@@ -49,7 +49,7 @@ import { loadBoard3D, BOARD_3D_EVENT, updateBoard3D, waterAxis, waterCenter } fr
 import { BOARD_SELECT_EVENT, type BoardSelection } from './scene3d/BoardElements3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
 import { board3DTakeoff, seatingLines } from '@/lib/design/board3DTakeoff';
-import { useSiteElements, siteElementImage } from './designStudio/SiteElementsLayer';
+import { useSiteElements, siteElementImage, gateLines } from './designStudio/SiteElementsLayer';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
