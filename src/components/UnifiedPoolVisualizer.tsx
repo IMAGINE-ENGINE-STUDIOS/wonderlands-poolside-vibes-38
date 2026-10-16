@@ -34,6 +34,7 @@ import { TerrainAssetsRenderer, DEFAULT_GIZMO_SNAP, type GizmoMode, type GizmoSn
 import { SceneObjectsPanel, SceneObjectGroup, sceneObjectIcons } from './scene3d/SceneObjectsPanel';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3, ArrowUpDown } from 'lucide-react';
+import { useBoardCommands, publishBoardStatus } from '@/components/designStudio/boardCommands';
 import { useSceneHistory, SceneSnapshot } from '@/hooks/useSceneHistory';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -191,6 +192,10 @@ export function UnifiedPoolVisualizer({
     futureLength,
   } = useSceneHistory(initialSnapshot);
   
+  // Header Undo/Redo/Save icons (shared with the 2D board) drive the 3D history too. Imagine Engine Studios Corp.
+  useBoardCommands((c) => { if (c === 'undo') undo(); else if (c === 'redo') redo(); });
+  useEffect(() => { publishBoardStatus({ canUndo, canRedo, lastSaved: new Date().toISOString() }); }, [canUndo, canRedo, snapshot]);
+
   // Extract state from snapshot
   const scene = snapshot.scene;
   const terrainAssets = snapshot.terrainAssets;

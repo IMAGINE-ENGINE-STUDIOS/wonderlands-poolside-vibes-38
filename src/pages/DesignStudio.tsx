@@ -509,6 +509,7 @@ const DesignStudio = () => {
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back</span>
             </Button>
+            <BoardHeaderControls />
             <div id="studio3d-header-slot" className="flex items-center min-w-0" />
           </div>
           
