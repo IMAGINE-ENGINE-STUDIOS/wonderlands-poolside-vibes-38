@@ -556,6 +556,39 @@ export function PoolBuilder({
     deckOffset, additionalPools, fencePoints, fenceDoors, fenceHeight, smoothFence,
     scale, zoomLevel, gridSnap, snapSize, customTextures]);
 
+  // ─── 2D board history + header commands (undo/redo/save/projects) — Imagine Engine Studios Corp ───
+  const [siteItems, setSiteItems] = useSiteElements();
+  const boardSnap = useMemo(() => ({ points, hardscapePoints, additionalPools, additionalDeckPoints, features, site: siteItems }),
+    [points, hardscapePoints, additionalPools, additionalDeckPoints, features, siteItems]);
+  const applyBoardSnap = useCallback((s: typeof boardSnap) => {
+    setPoints(s.points); setHardscapePoints(s.hardscapePoints); setAdditionalPools(s.additionalPools);
+    setAdditionalDeckPoints(s.additionalDeckPoints); setFeatures(s.features); setSiteItems(s.site);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setSiteItems]);
+  const boardHistory = useBoardHistory(boardSnap, applyBoardSnap);
+  const saveNow = useCallback(() => {
+    setAutoSave(getSerializableState());
+    setLastAutoSaved(new Date().toISOString());
+    toast({ title: 'Project saved', description: 'Your design is saved on this device.' });
+  }, [getSerializableState]);
+  useBoardCommands((c) => {
+    if (c === 'undo') boardHistory.undo(); else if (c === 'redo') boardHistory.redo();
+    else if (c === 'save') saveNow(); else setShowProjectManager(true);
+  });
+  useEffect(() => { publishBoardStatus({ canUndo: boardHistory.canUndo, canRedo: boardHistory.canRedo, lastSaved: lastAutoSaved }); },
+    [boardHistory.canUndo, boardHistory.canRedo, lastAutoSaved]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (/input|textarea|select/i.test((e.target as HTMLElement)?.tagName ?? '') || document.querySelector('[data-site-drawing="1"]')) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); boardHistory.undo(); }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); boardHistory.redo(); }
+      else if (k === 's') { e.preventDefault(); saveNow(); }
+    };
+    window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey);
+  }, [boardHistory, saveNow]);
+
   // Handle external updates from 3D viewer (bidirectional sync)
   const isExternalUpdateRef = useRef(false);
   const lastExternalUpdateRef = useRef<string | null>(null);
