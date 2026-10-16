@@ -455,16 +455,22 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
       </nav>
       )}
 
-      <DepthProfileEditor3D
-        isOpen={expandedSection === 'depth'}
-        onClose={() => setExpandedSection(null)}
-        linearDepthAnchors={props.depthPoints}
-        onLinearDepthAnchorsChange={(a) => props.setDepthPoints(() => a)}
-        selectedAnchorId={depthAnchorId}
-        onSelectAnchor={setDepthAnchorId}
-        poolPoints={props.poolPointsFt as any}
-        poolDimensions={props.poolLength && props.poolWidth ? { length: props.poolLength, width: props.poolWidth } : undefined}
-      />
+      {/* Depth editor is portalled to the page so the narrow click-through rail can't clip it off-screen. */}
+      {expandedSection === 'depth' && createPortal(
+        <div className="fixed inset-x-0 top-20 z-[100] flex justify-center pointer-events-none">
+          <div className="relative w-[460px] max-w-[calc(100vw-2rem)] pointer-events-auto [&>div]:!static [&>div]:!translate-x-0 [&>div]:!left-auto [&>div]:!top-auto">
+            <DepthProfileEditor3D
+              isOpen
+              onClose={() => setExpandedSection(null)}
+              linearDepthAnchors={props.depthPoints}
+              onLinearDepthAnchorsChange={(a) => props.setDepthPoints(() => a)}
+              selectedAnchorId={depthAnchorId}
+              onSelectAnchor={setDepthAnchorId}
+              poolPoints={props.poolPointsFt as any}
+              poolDimensions={props.poolLength && props.poolWidth ? { length: props.poolLength, width: props.poolWidth } : undefined}
+            />
+          </div>
+        </div>, document.body)}
     </div>
   );
 }
