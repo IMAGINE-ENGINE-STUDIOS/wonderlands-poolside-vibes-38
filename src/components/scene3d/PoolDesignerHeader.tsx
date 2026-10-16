@@ -2,6 +2,8 @@ import { useState, useMemo, lazy, Suspense } from 'react';
 import { Point } from './types';
 import { ChevronDown, Lock, Unlock, Waves } from 'lucide-react';
 import { getPaverPricePerSqFt, getCopingPricePerSqFtByName } from '@/utils/paverPricing';
+import { WATERLINE_FLAT_PER_BODY } from '@/lib/design/board3DTakeoff';
+import { enrichQuoteLines } from '@/lib/design/sceneQuoteCatalog';
 
 const SurveyQuoteTool = lazy(() => import('@/components/SurveyQuoteTool'));
 
@@ -142,10 +144,12 @@ export function PoolDesignerHeader({
       (sum, f) => sum + (rateOverrides[`feature-${f.name}`] ?? f.price),
       0
     );
-    const total = pool + deckCost + copingCost + featuresCost + bodiesCost;
+    // Main pool waterline: flat rate per pool/spa (extra bodies come in as feature lines).
+    const waterline = waterlineName ? (rateOverrides.waterline ?? WATERLINE_FLAT_PER_BODY) : 0;
+    const total = pool + deckCost + copingCost + featuresCost + bodiesCost + waterline;
 
-    return { pool, deck: deckCost, coping: copingCost, features: featuresCost, bodies: bodiesCost, total };
-  }, [measurements, rates, additionalFeatures, additionalBodies, rateOverrides]);
+    return { pool, deck: deckCost, coping: copingCost, features: featuresCost, bodies: bodiesCost, waterline, total };
+  }, [measurements, rates, additionalFeatures, additionalBodies, rateOverrides, waterlineName]);
 
   // Full itemization used for the quote document
   const quoteExtras = useMemo(() => {
@@ -161,7 +165,7 @@ export function PoolDesignerHeader({
       image: ''
     });
     if (finishName) breakdown.push({ name: `Interior Finish — ${finishName}`, price: 0, image: '' });
-    if (waterlineName) breakdown.push({ name: `Waterline Tile — ${waterlineName}`, price: 0, image: '' });
+    if (waterlineName) breakdown.push({ name: `Waterline Tile — ${waterlineName}`, price: Math.round(costs.waterline), image: '' });
     additionalBodies.forEach(b =>
       breakdown.push({
         name: `${b.name} — ${Math.round(b.areaSqFt)} sq ft${b.multiplierLabel ? ` (${b.multiplierLabel})` : ''}`,
@@ -176,8 +180,9 @@ export function PoolDesignerHeader({
         image: ''
       })
     );
+    const enriched = enrichQuoteLines(breakdown);
     return {
-      extrasBreakdown: breakdown,
+      extrasBreakdown: enriched,
       extrasTotal: breakdown.reduce((s, l) => s + l.price, 0),
       squareFootage: Math.round(measurements.poolArea),
       pricePerSqFt: rates.shell
@@ -316,8 +321,8 @@ export function PoolDesignerHeader({
                     detail={<>{measurements.copingArea.toFixed(0)} sq ft × $<EditableRate id="coping" value={rates.coping} />/sq ft</>}
                     amount={money(costs.coping)} />
                   {waterlineName && (
-                    <Line title="Waterline Tile" sub={waterlineName} detail="Perimeter trim"
-                      amount={<span className="text-[12px] font-normal text-slate-400">Included</span>} />
+                    <Line title="Waterline Tile" sub={waterlineName} detail="Whole pool waterline · flat rate"
+                      amount={<EditableAmount id="waterline" value={costs.waterline} />} />
                   )}
                   {additionalBodies.map(body => (
                     <Line key={body.name} title={body.name}
