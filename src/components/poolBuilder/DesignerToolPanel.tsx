@@ -155,7 +155,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   );
 
   return (
-    <div className={railSlot ? "absolute left-[4.75rem] top-16 z-[30] bottom-0 flex pointer-events-none" : "absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none"}>
+    <div className={railSlot ? "absolute left-[5.25rem] top-16 z-[30] bottom-0 flex pointer-events-none" : "absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none"}>
       {/* Section flyout (opens left of the rail); depth uses the 3D Studio editor instead. */}
       {expandedSection && expandedSection !== 'depth' && (
       <div className="pointer-events-auto w-72 self-start max-h-[calc(100%-5rem)] rounded-2xl border border-border bg-background/95 shadow-sm backdrop-blur overflow-hidden flex flex-col min-h-0">
@@ -439,7 +439,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
           title={r.label}
           onClick={() => toggleSection(r.id)}
           aria-pressed={expandedSection === r.id}
-          className={`pointer-events-auto flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] uppercase tracking-[0.12em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
+          className={`pointer-events-auto flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors ${expandedSection === r.id ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground/10'}`}
         >
           {r.icon}
           <span className="leading-none">{r.label}</span>

@@ -448,7 +448,7 @@ const DesignStudio = () => {
         </div>
       </div>;
   }
-  return <div className={`${activeView === '3d' ? 'h-screen' : 'min-h-screen'} bg-background flex flex-col select-none`}>
+  return <div className={`h-screen overflow-hidden bg-background flex flex-col select-none`}>
       {/* Category Toolbar with integrated header elements */}
       {activeView === '2d' ? <>
           <CategoryToolbar hideCategories activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-4">

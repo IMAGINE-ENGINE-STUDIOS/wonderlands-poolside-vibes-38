@@ -665,15 +665,30 @@ export function PoolBuilder({
     };
   }, []);
 
+  const zoomRef = useRef(zoomLevel); zoomRef.current = zoomLevel;
+  const panRef = useRef(panOffset); panRef.current = panOffset;
   // Native wheel listener for passive:false (React onWheel can't preventDefault reliably)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Wheel / trackpad-pinch zoom anchored under the cursor (pan adjusted so the point stays put).
     const handleNativeWheel = (e: WheelEvent) => {
-      // Manual zoom only: block wheel/trackpad/pinch zoom on canvas
       e.preventDefault();
       e.stopPropagation();
+      const rect = canvas.getBoundingClientRect();
+      const sx = (e.clientX - rect.left) * (canvas.width / rect.width) - canvas.width / 2;
+      const sy = (e.clientY - rect.top) * (canvas.height / rect.height) - canvas.height / 2;
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      const z = zoomRef.current;
+      const next = Math.min(6, Math.max(0.2, z * Math.exp(-dy * 0.0015)));
+      if (next === z) return;
+      const k = next / z;
+      const pan = panRef.current;
+      zoomRef.current = next;
+      panRef.current = { x: sx - (sx - pan.x) * k, y: sy - (sy - pan.y) * k };
+      setZoomLevel(next);
+      setPanOffset(panRef.current);
     };
 
     canvas.addEventListener('wheel', handleNativeWheel, { passive: false });
@@ -2326,8 +2341,8 @@ export function PoolBuilder({
     }
 
     // Draw hardscape dimension lines and labels
-    ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.9)';
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.6)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.lineWidth = 1;
     ctx.font = '12px Arial';
     ctx.textAlign = 'center';
@@ -2353,7 +2368,7 @@ export function PoolBuilder({
       const label = `${distance.toFixed(1)}' deck`;
       const metrics = ctx.measureText(label);
       const padding = 4;
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.95)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
       ctx.fillRect(midX + offsetX - metrics.width / 2 - padding, midY + offsetY - 8, metrics.width + padding * 2, 16);
       ctx.fillStyle = '#ffffff';
       ctx.fillText(label, midX + offsetX, midY + offsetY);
@@ -2527,7 +2542,7 @@ export function PoolBuilder({
     // Draw deck spline edges with dashed orange lines
     if (hardscapePoints.length > 1) {
       ctx.save();
-      ctx.strokeStyle = '#F59E0B';
+      ctx.strokeStyle = '#0F172A';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 4]);
       ctx.globalAlpha = 0.6;
@@ -2548,7 +2563,7 @@ export function PoolBuilder({
         const dist = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2) / scale;
         const mx = (p1.x + p2.x) / 2;
         const my = (p1.y + p2.y) / 2;
-        ctx.fillStyle = '#D97706';
+        ctx.fillStyle = '#334155';
         ctx.font = '9px Arial';
         ctx.textAlign = 'center';
         ctx.fillText(`${dist.toFixed(1)}'`, mx, my - 6);
@@ -2560,8 +2575,8 @@ export function PoolBuilder({
     hardscapePoints.forEach(point => {
       const size = 10;
       const isSelected = selectedHardscapePoint === point.id && selectedDeckId === 'main';
-      ctx.fillStyle = isSelected ? '#F59E0B' : '#ffffff';
-      ctx.strokeStyle = isSelected ? '#D97706' : '#F59E0B';
+      ctx.fillStyle = isSelected ? '#0F172A' : '#ffffff';
+      ctx.strokeStyle = isSelected ? '#334155' : '#0F172A';
       ctx.lineWidth = 2;
       ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
       ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
@@ -2574,7 +2589,7 @@ export function PoolBuilder({
 
       // dashed deck outline
       ctx.save();
-      ctx.strokeStyle = selectedDeckId === pool.id ? '#F59E0B' : 'rgba(245, 158, 11, 0.55)';
+      ctx.strokeStyle = selectedDeckId === pool.id ? '#0F172A' : 'rgba(15, 23, 42, 0.55)';
       ctx.lineWidth = selectedDeckId === pool.id ? 2 : 1.25;
       ctx.setLineDash([5, 4]);
       ctx.beginPath();
@@ -2588,8 +2603,8 @@ export function PoolBuilder({
       poolDeck.forEach(point => {
         const size = 9;
         const isSelected = selectedHardscapePoint === point.id && selectedDeckId === pool.id;
-        ctx.fillStyle = isSelected ? '#F59E0B' : '#ffffff';
-        ctx.strokeStyle = isSelected ? '#D97706' : '#F59E0B';
+        ctx.fillStyle = isSelected ? '#0F172A' : '#ffffff';
+        ctx.strokeStyle = isSelected ? '#334155' : '#0F172A';
         ctx.lineWidth = 2;
         ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
         ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
@@ -2677,8 +2692,8 @@ export function PoolBuilder({
         const y = 10 + dp.depth / 10 * (editorHeight - 40);
         const size = 8;
         const isSelected = selectedDepthPoint === dp.id;
-        ctx.fillStyle = isSelected ? '#F59E0B' : '#ffffff';
-        ctx.strokeStyle = isSelected ? '#D97706' : '#2E86AB';
+        ctx.fillStyle = isSelected ? '#0F172A' : '#ffffff';
+        ctx.strokeStyle = isSelected ? '#334155' : '#2E86AB';
         ctx.lineWidth = 2;
         ctx.fillRect(x - size / 2, y - size / 2, size, size);
         ctx.strokeRect(x - size / 2, y - size / 2, size, size);
@@ -6537,17 +6552,7 @@ export function PoolBuilder({
               Clear All
             </Button>
           </div> : (/* Pool Design Add/Remove Corner Buttons */
-      <div className="absolute bottom-8 left-8 flex gap-2 z-20">
-            <Button size="sm" onClick={() => {
-          setActiveTool(activeTool === 'add' ? null : 'add');
-          setSnapPoint(null);
-        }} variant="outline" className={`h-9 w-9 p-0 bg-background/95 shadow-lg ${activeTool === 'add' ? 'bg-primary text-primary-foreground' : ''}`} title="Add Point - Click on pool perimeter">
-              <Plus className="h-4 w-4" />
-            </Button>
-            <Button size="sm" onClick={removePoint} variant="outline" disabled={!selectedPoint || points.length <= 3} className="h-9 w-9 p-0 bg-background/95 shadow-lg">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>)}
+      null /* corner +/- buttons removed: use Tools › Add Point or right-click on the board */)}
       
       {/* Pool Type Selection Dialog - Shows when new pool intersects existing */}
       <Dialog open={showPoolTypeDialog} onOpenChange={setShowPoolTypeDialog}>
