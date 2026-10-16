@@ -1803,14 +1803,7 @@ export function UnifiedPoolVisualizer({
           
           {/* Realistic vivid-blue daytime sky (low haze, clear Rayleigh blue, crisp sun disc) — Imagine Engine Studios Corp */}
           {!isNightMode ? (
-            <Sky 
-              distance={450000}
-              sunPosition={sunPosition}
-              turbidity={2.2}
-              rayleigh={2.6}
-              mieCoefficient={0.004}
-              mieDirectionalG={0.86}
-            />
+            <GradientSky sunPosition={sunPosition} />
           ) : (
             // Night sky - dark background
             <color attach="background" args={['#0a1628']} />
