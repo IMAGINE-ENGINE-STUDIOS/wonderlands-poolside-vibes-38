@@ -381,7 +381,79 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     window.addEventListener("click", swallow, true);
     return () => { window.clearTimeout(arm); window.removeEventListener("mousedown", drop, true); window.removeEventListener("click", swallow, true); };
   }, [moving]);
-  const retexture = (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
+  /* Finger input (phones/tablets) — Imagine Engine Studios Corp.
+     Long-press = right-click menu, double-tap = edit spline, drag a square = move a point,
+     while an element rides the finger it follows the drag and drops on release. */
+  React.useEffect(() => {
+    if (!view || drawing) return;
+    let timer = 0, sx = 0, sy = 0, lastTap = 0, lx = 0, ly = 0, moved = false;
+    const inside = (t: Touch, target: EventTarget | null) => {
+      const host = svgRef.current?.parentElement; if (!host) return null;
+      const r = host.getBoundingClientRect();
+      if (t.clientX < r.left || t.clientX > r.right || t.clientY < r.top || t.clientY > r.bottom) return null;
+      if ((target as HTMLElement)?.closest?.("aside,button,nav,[data-spline-menu],[role=dialog]")) return null;
+      return r;
+    };
+    const cancel = () => { if (timer) { window.clearTimeout(timer); timer = 0; } };
+    const start = (e: TouchEvent) => {
+      if (e.touches.length !== 1) { cancel(); return; }
+      const t = e.touches[0]; const r = inside(t, e.target); if (!r) return;
+      sx = t.clientX; sy = t.clientY; moved = false; cancel();
+      if (dragRef.current || moving) return;
+      timer = window.setTimeout(() => {
+        timer = 0; const at = toWorld(t, false); const hit = nearest(at); if (!hit) return;
+        setSelected(hit.id); setMenu({ x: sx - r.left, y: sy - r.top, id: hit.id, seg: hit.seg, at: hit.at });
+      }, 450);
+    };
+    const move = (e: TouchEvent) => {
+      const t = e.touches[0]; if (!t) return;
+      if (Math.hypot(t.clientX - sx, t.clientY - sy) > 8) { moved = true; cancel(); }
+      if (dragRef.current) { e.preventDefault(); const w = toWorld(t); const { id, i } = dragRef.current; setPts(id, getPts(id).map((p, k) => k === i ? { ...p, x: w.x, y: w.y } : p)); }
+      else if (moving) { e.preventDefault(); const w = toWorld(t); const dx = w.x - moving.start.x, dy = w.y - moving.start.y; setPts(moving.id, moving.orig.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); if (moving.deck) setPts(moving.deckId ?? "__deck", moving.deck.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); }
+    };
+    const end = (e: TouchEvent) => {
+      cancel();
+      if (dragRef.current) { dragRef.current = null; return; }
+      if (moving && moved) { setMoving(null); return; }
+      const t = e.changedTouches[0]; if (!t || moved || !inside(t, e.target)) return;
+      const now = Date.now();
+      if (now - lastTap < 320 && Math.hypot(t.clientX - lx, t.clientY - ly) < 30) {
+        lastTap = 0; const hit = nearest(toWorld(t, false));
+        if (hit) { setSelected(hit.id); setEditId(hit.id); setMenu(null); } else { setEditId(null); setMenu(null); setSelected(null); }
+      } else { lastTap = now; lx = t.clientX; ly = t.clientY; }
+    };
+    window.addEventListener("touchstart", start, { capture: true, passive: true });
+    window.addEventListener("touchmove", move, { capture: true, passive: false });
+    window.addEventListener("touchend", end, true); window.addEventListener("touchcancel", cancel, true);
+    return () => { cancel(); window.removeEventListener("touchstart", start, true); window.removeEventListener("touchmove", move, true); window.removeEventListener("touchend", end, true); window.removeEventListener("touchcancel", cancel, true); };
+  }, [view, drawing, moving, nearest, toWorld, getPts, setPts]);
+  /** Adds a door/gate on the longest free side (or a given side) of a fence/screen. */
+  const addGate = React.useCallback((id: string, typeId: string) => {
+    setItems((p) => p.map((x) => {
+      if (x.id !== id || x.pts.length < 2) return x;
+      const n = x.kind === "fence" ? x.pts.length - 1 : x.pts.length;
+      let seg = 0, best = -1;
+      for (let i = 0; i < n; i++) { const a = x.pts[i], b = x.pts[(i + 1) % x.pts.length]; const L = Math.hypot(b.x - a.x, b.y - a.y) / (1 + (x.gates ?? []).filter((g) => g.seg === i).length); if (L > best) { best = L; seg = i; } }
+      const k = (x.gates ?? []).filter((g) => g.seg === seg).length;
+      return { ...x, gates: [...(x.gates ?? []), { seg, t: (k + 1) / (k + 2), typeId }] };
+    }));
+  }, [setItems]);
+  /* Genius asks for a door/gate: add it to the selected (or first) fence/screen only. */
+  React.useEffect(() => {
+    const on = (ev: Event) => {
+      const { kind, count = 1, double } = (ev as CustomEvent).detail || {};
+      const target = items.find((x) => x.id === selected && x.kind === kind) ?? items.find((x) => x.kind === kind);
+      const reply = (ok: boolean) => window.dispatchEvent(new CustomEvent("design-studio:gate-result", { detail: { ok, kind } }));
+      if (!target) return reply(false);
+      const opts = gateOptionsFor(kind); const o = (double ? opts.find((g) => /double/i.test(g.label)) : null) ?? opts[0];
+      if (!o) return reply(false);
+      for (let i = 0; i < Math.min(6, count); i++) addGate(target.id, o.id);
+      setSelected(target.id); reply(true);
+    };
+    window.addEventListener("design-studio:add-gate", on);
+    return () => window.removeEventListener("design-studio:add-gate", on);
+  }, [items, selected, addGate]);
+  const retexture =  (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
   const menuItem = items.find((x) => x.id === menu?.id);
   const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))
     : menuItem.kind === "deck" ? DECK_PAVERS.map((d) => ({ key: d.id, label: `${d.label} · $${d.rate}/sqft`, apply: { style: d.id, label: d.label, rate: d.rate } }))
