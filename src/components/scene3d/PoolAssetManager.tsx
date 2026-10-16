@@ -154,52 +154,33 @@ export function PoolAssetManager({
     onSelectAsset(newStair.id);
   }, [stairs, onStairsChange, onSelectAsset, poolFinishTexture]);
 
-  // Add new chair/bench - uses pool finish texture by default
-  const handleAddChair = useCallback((preset: 'lounge' | 'bench' | 'corner' | 'barstool') => {
+  // Add seating. Lounge / bench / corner / sun bench are procedural: swept along
+  // the wall (ContourSeating), so they bend round corners and curves and can be
+  // stretched up to 360° with the "Length around pool" bar. Bar stools stay discrete.
+  const handleAddChair = useCallback((preset: 'lounge' | 'bench' | 'corner' | 'barstool' | 'sunbench') => {
     if (preset === 'barstool') {
       const stool: PoolChairConfig = { id: `chair-${Date.now()}`, wallPosition: 0.3, textureUrl: poolFinishTexture, ...BAR_STOOL_PRESET };
       onChairsChange([...chairs, stool]);
       onSelectAsset(stool.id);
       return;
     }
+    // width = into the pool (ft), height = top surface below water (ft), span = share of perimeter.
     const presets = {
-      lounge: {
-        width: 2.5,
-        depth: 6,
-        height: 1.5,
-        name: 'Tanning Ledge'
-      },
-      bench: {
-        width: 6,
-        depth: 1.5,
-        height: 1.0,
-        name: 'Pool Bench'
-      },
-      corner: {
-        width: 2,
-        depth: 2,
-        height: 1.0,
-        name: 'Corner Seat'
-      } // 1 foot below water
-    };
+      sunbench: { width: 4.5, height: 0.75, span: 0.12, softEdge: 0.25 },
+      lounge: { width: 3, height: 1.25, span: 0.1, softEdge: 0.2 },
+      bench: { width: 1.5, height: 1.5, span: 0.15, softEdge: 0.15 },
+      corner: { width: 2, height: 1.5, span: 0.06, softEdge: 0.15 },
+    } as const;
     const p = presets[preset];
-    const newChair: PoolChairConfig = {
-      id: `chair-${Date.now()}`,
-      wallPosition: 0.3 + Math.random() * 0.2,
-      width: p.width,
-      depth: p.depth,
-      height: p.height,
-      // This is depth below water for top surface
-      cornerRadius: 0.3,
-      textureUrl: poolFinishTexture,
-      // Use pool finish texture
-      snapToWall: true,
-      followFloor: true,
-      name: p.name
+    // Next free stretch of wall so new seats never stack on old ones.
+    const start = contourSeating.reduce((m, s) => Math.max(m, s.endPosition % 1), 0.05) + 0.02;
+    const seat: ContourSeatingConfig = {
+      id: `contour-${Date.now()}`, kind: preset, startPosition: start % 1, endPosition: (start % 1) + p.span,
+      width: p.width, height: p.height, softEdge: p.softEdge, textureUrl: poolFinishTexture,
     };
-    onChairsChange([...chairs, newChair]);
-    onSelectAsset(newChair.id);
-  }, [chairs, onChairsChange, onSelectAsset, poolFinishTexture]);
+    onContourSeatingChange([...contourSeating, seat]);
+    onSelectAsset(seat.id);
+  }, [chairs, onChairsChange, contourSeating, onContourSeatingChange, onSelectAsset, poolFinishTexture]);
 
   // Add new light - default to gradient color mode
   const handleAddLight = useCallback(() => {
