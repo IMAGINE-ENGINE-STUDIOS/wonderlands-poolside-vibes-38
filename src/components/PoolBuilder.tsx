@@ -1037,6 +1037,29 @@ export function PoolBuilder({
     return null;
   }, [points, hardscapePoints, additionalPools, additionalDeckPoints, deckOffsetsById, isPointInPolygon, deckOffset]);
 
+  /* Auto-expand decks: every pool keeps at least its Tools deck width (min 3 ft) on all sides.
+     An empty deck ([]) means the user chose "No deck" and is left alone. Imagine Engine Studios Corp. */
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const tooTight = (pool: Point[], deck: Point[], off: number) =>
+        generateHardscapeFromPool(pool, Math.max(0.1, off - 0.15)).some((q) => !isPointInPolygon(q.x, q.y, deck));
+      if (points.length >= 3 && hardscapePoints.length >= 3) {
+        const off = Math.max(3, deckOffsetsById.main ?? deckOffset);
+        if (tooTight(points, hardscapePoints, off)) setHardscapePoints(generateHardscapeFromPool(points, off));
+      }
+      const fixes: Record<string, HardscapePoint[]> = {};
+      for (const p of additionalPools) {
+        const d = additionalDeckPoints[p.id];
+        if (p.isPerimeterSnapped || p.points.length < 3 || !d || d.length < 3) continue;
+        const off = Math.max(3, deckOffsetsById[p.id] ?? deckOffset);
+        if (tooTight(p.points, d, off)) fixes[p.id] = generateHardscapeFromPool(p.points, off);
+      }
+      if (Object.keys(fixes).length) setAdditionalDeckPoints((prev) => ({ ...prev, ...fixes }));
+    }, 450);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [points, additionalPools, deckOffset, deckOffsetsById]);
+
   // Generate deck points for portions of a new pool that extend OUTSIDE existing deck/water areas
   // Returns null if no portion extends outside, otherwise returns deck points only for outside area
   const generateDeckForOutsideArea = useCallback((newPoolPoints: Point[], deckDistanceFeet: number = 3): HardscapePoint[] | null => {
