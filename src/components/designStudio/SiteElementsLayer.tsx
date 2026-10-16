@@ -78,6 +78,15 @@ const deckChoice = (id?: string): Choice => { const d = DECK_PAVERS.find((x) => 
 const DECK_CHOICE: Choice = deckChoice();
 /** Pool outline exactly as the canvas draws it (curves sampled) so cuts follow curves. */
 const poolRing = (pts: Pt[]) => (pts.length >= 3 ? densifyPoolOutline(pts as never, "freeform") : pts);
+/** Fence posts: every corner plus one every `step` px along each run (GDB V1 look). */
+const fencePosts = (pts: Pt[], step: number): Pt[] => {
+  const out: Pt[] = pts.length ? [pts[0]] : [];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], L = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.round(L / (step || 1)));
+    for (let k = 1; k <= n; k++) out.push({ x: a.x + (b.x - a.x) * (k / n), y: a.y + (b.y - a.y) * (k / n) });
+  }
+  return out;
+};
 const KIND_LABEL: Record<SiteKind, string> = { fence: "Fence", enclosure: "Screen", turf: "Turf", deck: "Deck" };
 
 /** Net turf area: turf never sits under the pool or the deck. */
