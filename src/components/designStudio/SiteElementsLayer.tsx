@@ -438,7 +438,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                   {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={Math.max(3 / (view.zoom || 1), scale * 0.3)} strokeLinejoin="miter" />}
                   {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={Math.max(2 / (view.zoom || 1), scale * 0.4)} strokeLinejoin="round" strokeLinecap="round" />}
                   {e.kind === "fence" && fencePosts(e.pts, scale * 6).map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={Math.max(2 / (view.zoom || 1), scale * 0.3)} fill={e.color} stroke="rgba(0,0,0,0.35)" strokeWidth={0.5 / (view.zoom || 1)} />)}
-                  {sel && <polyline points={e.kind === "fence" ? pts : `${pts} ${e.pts[0].x},${e.pts[0].y}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
+                  {sel && (e.kind === "fence" || e.kind === "enclosure") && <polyline points={e.kind === "fence" ? pts : `${pts} ${e.pts[0].x},${e.pts[0].y}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
                 </g>
               );
             })}
