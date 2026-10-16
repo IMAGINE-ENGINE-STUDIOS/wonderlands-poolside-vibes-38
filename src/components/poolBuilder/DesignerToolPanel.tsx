@@ -113,9 +113,10 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   };
   // Rail buttons render inside the shared left floating menu (SiteElementsLayer slot) when present.
   const [railSlot, setRailSlot] = useState<HTMLElement | null>(null);
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   React.useEffect(() => {
     let raf = 0;
-    const find = () => { const el = document.getElementById('studio-rail-slot'); if (el) setRailSlot(el); else raf = requestAnimationFrame(find); };
+    const find = () => { const el = document.getElementById('studio-rail-slot'); setHeaderSlot(document.getElementById('board-header-slot')); if (el) setRailSlot(el); else raf = requestAnimationFrame(find); };
     find();
     const h = (e: Event) => { if ((e as CustomEvent).detail !== 'tools') setExpandedSection(null); };
     window.addEventListener('studio-rail:open', h);
@@ -126,6 +127,32 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
     val >= 1000 ? `$${(val / 1000).toFixed(1)}k` : `$${val.toFixed(0)}`;
 
   const scaleVal = props.scale || 10;
+  const snapControls = (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => props.setGridSnap(!props.gridSnap)}
+                    className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${
+                      props.gridSnap
+                        ? 'bg-primary/15 text-primary border border-primary/30'
+                        : 'bg-muted/30 text-muted-foreground border border-transparent hover:bg-muted/50'
+                    }`}
+                  >
+                    <Magnet className="w-3 h-3" />
+                    Snap {props.gridSnap ? 'ON' : 'OFF'}
+                  </button>
+                  {props.gridSnap && (
+                    <select
+                      value={props.snapSize}
+                      onChange={e => props.setSnapSize(parseInt(e.target.value))}
+                      className="h-6 text-[10px] bg-muted/30 border border-border/50 rounded px-1"
+                    >
+                      <option value="1">1"</option>
+                      <option value="6">6"</option>
+                      <option value="12">1ft</option>
+                    </select>
+                  )}
+                </div>
+  );
 
   return (
     <div className={railSlot ? "absolute left-[4.75rem] top-16 z-[30] bottom-0 flex pointer-events-none" : "absolute top-0 right-0 bottom-0 z-20 flex flex-row items-stretch pointer-events-none"}>
@@ -155,30 +182,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                   <ToolButton icon={<Layers className="w-4 h-4" />} label="Draw Deck" active={props.activeTool === 'draw-deck'} onClick={props.onStartDrawDeck} />
                   <ToolButton icon={<Plus className="w-4 h-4" />} label="Add Point" active={props.activeTool === 'add'} onClick={() => props.setActiveTool(props.activeTool === 'add' ? 'select' : 'add')} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => props.setGridSnap(!props.gridSnap)}
-                    className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${
-                      props.gridSnap
-                        ? 'bg-primary/15 text-primary border border-primary/30'
-                        : 'bg-muted/30 text-muted-foreground border border-transparent hover:bg-muted/50'
-                    }`}
-                  >
-                    <Magnet className="w-3 h-3" />
-                    Snap {props.gridSnap ? 'ON' : 'OFF'}
-                  </button>
-                  {props.gridSnap && (
-                    <select
-                      value={props.snapSize}
-                      onChange={e => props.setSnapSize(parseInt(e.target.value))}
-                      className="h-6 text-[10px] bg-muted/30 border border-border/50 rounded px-1"
-                    >
-                      <option value="1">1"</option>
-                      <option value="6">6"</option>
-                      <option value="12">1ft</option>
-                    </select>
-                  )}
-                </div>
+                {!headerSlot && snapControls}
               </div>
             )}
 
@@ -263,7 +267,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
               onToggle={() => toggleSection('deck')}
               badge={`${props.deckOffset}ft offset`}
             />
-            {expandedSection === 'deck' && (
+            {(expandedSection === 'deck' || expandedSection === 'tools') && (
               <div className="px-2 pb-2 space-y-2">
                 <div className="flex items-center gap-2">
                   <Label className="text-[10px] text-muted-foreground w-14">Offset</Label>
@@ -428,7 +432,8 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
       </div>
       )}
 
-      {railSlot ? createPortal(RAIL.map(r => (
+      {headerSlot && createPortal(snapControls, headerSlot)}
+      {railSlot ? (['studio-rail-slot', 'studio-rail-slot-pools', 'studio-rail-slot-end'] as const).map(slotId => { const el = slotId === 'studio-rail-slot' ? railSlot : document.getElementById(slotId); return el ? <React.Fragment key={slotId}>{createPortal(RAIL.filter(r => r.slot === slotId).map(r => (
         <button
           key={r.id}
           title={r.label}
@@ -439,7 +444,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
           {r.icon}
           <span className="leading-none">{r.label}</span>
         </button>
-      )), railSlot) : (
+      )), el)}</React.Fragment> : null; }) : (
       <nav aria-label="2D Designer tools" className="pointer-events-auto flex w-16 shrink-0 flex-col border-l border-border bg-background/95 backdrop-blur">
         {RAIL.map(r => (
           <button key={r.id} onClick={() => toggleSection(r.id)} aria-pressed={expandedSection === r.id}
@@ -464,13 +469,13 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
   );
 }
 
-const RAIL: Array<{ id: Exclude<PanelSection, null>; label: string; icon: React.ReactNode }> = [
-  { id: 'tools', label: 'Tools', icon: <MousePointer2 className="h-4 w-4" /> },
-  { id: 'shape', label: 'Shape', icon: <Shapes className="h-4 w-4" /> },
-  { id: 'materials', label: 'Materials', icon: <Palette className="h-4 w-4" /> },
-  { id: 'deck', label: 'Deck', icon: <Grid3X3 className="h-4 w-4" /> },
-  { id: 'depth', label: 'Depth', icon: <Ruler className="h-4 w-4" /> },
-  { id: 'textures', label: 'Textures', icon: <Layers className="h-4 w-4" /> },
+// Unified left rail order: Tools, Materials, Depth | Pools | (site: Decks, Fences, Turf, Screens, Board) | Textures.
+const RAIL: Array<{ id: Exclude<PanelSection, null>; label: string; icon: React.ReactNode; slot: 'studio-rail-slot' | 'studio-rail-slot-pools' | 'studio-rail-slot-end' }> = [
+  { id: 'tools', label: 'Tools', icon: <MousePointer2 className="h-4 w-4" />, slot: 'studio-rail-slot' },
+  { id: 'materials', label: 'Materials', icon: <Palette className="h-4 w-4" />, slot: 'studio-rail-slot' },
+  { id: 'depth', label: 'Depth', icon: <Ruler className="h-4 w-4" />, slot: 'studio-rail-slot' },
+  { id: 'shape', label: 'Pools', icon: <Waves className="h-4 w-4" />, slot: 'studio-rail-slot-pools' },
+  { id: 'textures', label: 'Textures', icon: <Layers className="h-4 w-4" />, slot: 'studio-rail-slot-end' },
 ];
 
 /* ─── Sub-components ─── */

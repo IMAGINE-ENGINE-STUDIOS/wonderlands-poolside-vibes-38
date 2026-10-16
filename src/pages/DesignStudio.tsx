@@ -461,20 +461,10 @@ const DesignStudio = () => {
                 <SiteTakeoffMenu additionalDecks={(poolBuilderData as any)?.additionalDecks} paver={(poolBuilderData as any)?.materials?.paver} scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")} deckAreaSqFt={poolBuilderData?.deckArea} featuresList={poolBuilderData?.breakdown?.featuresList} additionalPools={poolBuilderData?.additionalPools}
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
                   totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} />
-                <Tabs value={activeView} onValueChange={v => {
-          if (v === '3d') handleSwitch3D();else handleSwitch2D();
-        }}>
-                  <TabsList className="h-9">
-                    <TabsTrigger value="2d" className="gap-1.5 text-xs px-3">
-                      <Layers className="h-3.5 w-3.5" />
-                      2D Designer
-                    </TabsTrigger>
-                    <TabsTrigger value="3d" className="gap-1.5 text-xs px-3">
-                      <Box className="h-3.5 w-3.5" />
-                      3D Studio
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <div id="board-header-slot" className="flex items-center gap-1.5" />
+                <Button size="sm" onClick={handleSwitch3D} className="h-9 gap-1.5 rounded-full bg-foreground px-4 text-xs font-semibold uppercase tracking-[0.15em] text-background hover:bg-foreground/90">
+                  <Box className="h-3.5 w-3.5" />3D Mode
+                </Button>
                 
                 <div className="h-6 w-px bg-border" />
                 

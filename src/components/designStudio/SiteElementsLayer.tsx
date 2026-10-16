@@ -423,7 +423,9 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       {/* Site catalog + take-off */}
       {/* Unified floating rail (flip-book style pill): site elements + 2D tools. Credit: Imagine Engine Studios Corp. */}
       <nav aria-label="Studio menu" className="absolute left-3 top-16 z-[31] flex flex-col items-center gap-1 rounded-full border border-border/50 bg-background/70 px-1.5 py-2 shadow-[0_16px_44px_-34px_rgba(8,12,24,0.6)] backdrop-blur-xl">
-        {([["fence", "Fences", Fence], ["enclosure", "Screens", Layers], ["turf", "Turf", Grid2x2], ["deck", "Decks", Layers]] as const).map(([k, l, Icon]) => (
+        <div id="studio-rail-slot" className="flex flex-col items-center gap-1" />
+        <div id="studio-rail-slot-pools" className="flex flex-col items-center gap-1" />
+        {([["deck", "Decks", Layers], ["fence", "Fences", Fence], ["turf", "Turf", Grid2x2], ["enclosure", "Screens", Layers]] as const).map(([k, l, Icon]) => (
           <button key={k} title={l} aria-pressed={tab === k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] uppercase tracking-[0.12em] transition-colors", tab === k ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
             <Icon className="h-4 w-4" />{l}
           </button>
@@ -431,8 +433,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         <button title="On the board" aria-pressed={boardOpen} onClick={() => { const v = !boardOpen; setBoardOpen(v); if (v) window.dispatchEvent(new CustomEvent("studio-rail:open", { detail: "site" })); }} className={cn("flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] uppercase tracking-[0.12em] transition-colors", boardOpen ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
           <LayoutList className="h-4 w-4" />Board
         </button>
-        <span className="my-1 h-px w-8 bg-border" />
-        <div id="studio-rail-slot" className="flex flex-col items-center gap-1" />
+        <div id="studio-rail-slot-end" className="flex flex-col items-center gap-1" />
       </nav>
 
       {(tab || boardOpen) && (
