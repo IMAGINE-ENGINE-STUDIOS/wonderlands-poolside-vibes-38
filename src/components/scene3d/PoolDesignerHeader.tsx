@@ -250,9 +250,9 @@ export function PoolDesignerHeader({
     </div>
   );
   const Stat = ({ label, value, unit }: { label: string; value: string; unit: string }) => (
-    <div className="px-4 py-3 flex flex-col gap-0.5">
-      <span className="text-[10px] font-semibold tracking-[0.07em] uppercase text-slate-400 leading-none">{label}</span>
-      <span className="text-[13.5px] font-semibold tracking-tight text-slate-900 tabular-nums mt-1">{value} <span className="font-normal text-slate-500">{unit}</span></span>
+    <div className="px-3 py-3 flex flex-col gap-0.5 min-w-0 overflow-hidden">
+      <span className="text-[10px] font-semibold tracking-[0.07em] uppercase text-slate-400 leading-none whitespace-nowrap truncate">{label}</span>
+      <span className="text-[13.5px] font-semibold tracking-tight text-slate-900 tabular-nums mt-1 truncate">{value} <span className="font-normal text-slate-500">{unit}</span></span>
     </div>
   );
 
@@ -264,11 +264,11 @@ export function PoolDesignerHeader({
           aria-expanded={isExpanded}
           className="w-full h-10 px-2.5 flex items-center justify-between bg-white hover:bg-slate-50/50 transition-colors duration-200 group text-left"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
             <div className="w-6 h-6 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors">
               <Waves className="w-3.5 h-3.5 text-slate-700" strokeWidth={1.8} />
             </div>
-            <span className="text-[13.5px] font-semibold tracking-tight text-slate-900 tabular-nums whitespace-nowrap">
+            <span className="text-[13.5px] font-semibold tracking-tight text-slate-900 tabular-nums whitespace-nowrap truncate min-w-0">
               {measurements.width.toFixed(0)}' × {measurements.length.toFixed(0)}'
               <span className="text-slate-300 mx-1">·</span>
               {measurements.poolArea.toFixed(0)} sqft
