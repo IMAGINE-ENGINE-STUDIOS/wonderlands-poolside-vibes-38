@@ -36,6 +36,7 @@ import { poolFinishes as poolFinishesData } from "@/data/consolidatedProducts";
 import { buildCatalogTextureLibrary } from "@/data/textureLibrary";
 import { useToast } from "@/hooks/use-toast";
 import { CategoryToolbar } from "@/components/designStudio/CategoryToolbar";
+import { BoardHeaderControls } from "@/components/designStudio/BoardHeaderControls";
 import { SubToolbar } from "@/components/designStudio/SubToolbar";
 import { Genius2DBar } from "@/components/designStudio/Genius2DBar";
 import type { DesignCategory, ToolDefinition } from "@/components/designStudio/featureTypes";
@@ -455,6 +456,7 @@ const DesignStudio = () => {
                   <ArrowLeft className="w-4 h-4" />
                   Back
                 </Button>
+                <BoardHeaderControls />
               </div>} headerRight={<div className="flex items-center gap-2">
                 <SiteTakeoffMenu scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")} deckAreaSqFt={poolBuilderData?.deckArea} featuresList={poolBuilderData?.breakdown?.featuresList} additionalPools={poolBuilderData?.additionalPools}
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
