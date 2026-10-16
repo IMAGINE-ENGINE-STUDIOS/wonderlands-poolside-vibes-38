@@ -28,6 +28,8 @@ const photos = () => photoLists ??= {
   t: buildWaterlineTextures().map((x) => ({ n: x.name, c: x.url })),
   k: buildPaverTextures("coping").map((x) => ({ n: x.name, c: x.url })),
 };
+let paverList: { n: string; c: string }[] | null = null;
+const pavers = () => paverList ??= buildPaverTextures("paver").map((x) => ({ n: x.name, c: x.url }));
 
 const Swatches: React.FC<{ label: string; list: { n: string; c: string }[]; value: string; onPick: (c: string) => void }> = ({ label, list, value, onPick }) => (
   <div className="space-y-1.5">
@@ -103,6 +105,15 @@ export const BoardElementEditor: React.FC = () => {
             className={`glass-btn h-8 flex-1 rounded-lg text-xs capitalize ${(s.roof ?? "mansard") === r ? "ring-2 ring-primary" : ""}`}>{r}</button>
         ))}</div>
       </div>
+    </>;
+  } else if (sel.type === "deck" && data.surfaces[sel.i]?.kind === "deck") {
+    /* Any deck: extra pool/spa decks and freely drawn decks. */
+    const s = data.surfaces[sel.i];
+    title = s.itemId?.startsWith("__deck_") ? "Pool deck" : "Deck";
+    body = <>
+      <Swatches label="Pavers" list={pavers()} value={s.image ?? ""} onPick={(c) => edit((d) => { d.surfaces[sel.i].image = c; })} />
+      <Range label="Paver tile size" v={s.scale ?? 1.8} min={0.5} max={6} step={0.1} on={(n) => edit((d) => { d.surfaces[sel.i].scale = n; })} />
+      <button onClick={() => edit((d) => { delete d.surfaces[sel.i].scale; })} className="text-xs text-muted-foreground underline">Match main pool tile size</button>
     </>;
   } else return null;
 
