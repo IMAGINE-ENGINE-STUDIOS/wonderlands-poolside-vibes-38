@@ -16,6 +16,7 @@ import { generateCurvedPoolPoints } from "@/utils/curveUtils";
 import { PoolMesh } from "@/components/Pool3DScene";
 import { CopingGeometry } from "./CopingGeometry";
 import { InstancedBoxes, beamBox, type BoxInstance } from "./InstancedBoxes";
+import { buildScreenFrame } from "@/utils/screenStructureGeometry";
 import { WaterlineMesh } from "@/components/WaterlineMesh";
 import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
@@ -143,56 +144,44 @@ function Fence({ f, i }: { f: Fence3D; i: number }) {
   );
 }
 
-/** Florida-style pool cage: kick plate, chair rail, purlins every 3 ft, mansard roof. */
+/**
+ * Modern architectural pool cage (black powder-coat): 3"x3" corner posts,
+ * 2"x4" posts every 8 ft, base channel, chair rail, 2"x7" eave header, corner
+ * knee braces, hip rafters to a ridge frame, common rafters, purlin grid and
+ * charcoal 18x14 screen mesh. Framing math: utils/screenStructureGeometry.
+ */
+let screenMeshMat: THREE.MeshPhysicalMaterial | null = null;
+const sharedScreenMesh = () => (screenMeshMat ??= new THREE.MeshPhysicalMaterial({ color: "#121212", transparent: true, opacity: 0.28, roughness: 0.15, side: THREE.DoubleSide, depthWrite: false }));
 function Screen({ s, i }: { s: Screen3D; i: number }) {
-  const frame = React.useMemo(() => metalMat(s.color), [s.color]);
-  const kick = React.useMemo(() => new THREE.MeshStandardMaterial({ color: s.color, roughness: 0.35, metalness: 0.8 }), [s.color]);
-  const mesh = React.useMemo(() => new THREE.MeshStandardMaterial({ color: "#1c1c1c", transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false }), []);
+  const frame = React.useMemo(() => new THREE.MeshStandardMaterial({ color: s.color || "#141414", roughness: 0.32, metalness: 0.85, envMapIntensity: 1.2 }), [s.color]);
+  const mesh = sharedScreenMesh();
   const H = s.height;
   const mansard = (s.roof ?? "mansard") === "mansard" && s.pts.length >= 3;
-  const RISE = mansard ? Math.min(4, H * 0.3) : 0;
-  const top = React.useMemo(() => (mansard ? mitredOffsetRing(s.pts, -Math.min(4, H * 0.35)).offset : s.pts), [s.pts, mansard, H]);
+  const f = React.useMemo(() => buildScreenFrame(s.pts, H, mansard, s.kickplate), [s.pts, H, mansard, s.kickplate]);
   const geo = React.useMemo(() => {
-    if (s.pts.length < 3) return null;
-    const pos: number[] = [];
-    if (mansard) {
-      const base = mitredOffsetRing(s.pts, -Math.min(4, H * 0.35)).base;
-      for (let k = 0; k < base.length; k++) {
-        const a = base[k], b = base[(k + 1) % base.length], c = top[(k + 1) % top.length], d = top[k];
-        pos.push(a.x, H, a.z, b.x, H, b.z, c.x, H + RISE, c.z, a.x, H, a.z, c.x, H + RISE, c.z, d.x, H + RISE, d.z);
-      }
+    if (!mansard) return null;
+    const pos: number[] = []; const { base, top, rise } = f;
+    for (let k = 0; k < base.length; k++) {
+      const a = base[k], b = base[(k + 1) % base.length], c = top[(k + 1) % top.length], d = top[k];
+      pos.push(a.x, H, a.z, b.x, H, b.z, c.x, H + rise, c.z, a.x, H, a.z, c.x, H + rise, c.z, d.x, H + rise, d.z);
     }
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
     return g;
-  }, [s.pts, top, mansard, H, RISE]);
+  }, [f, mansard, H]);
   const lid = React.useMemo(() => {
-    if (top.length < 3) return null;
-    const g = new THREE.ShapeGeometry(new THREE.Shape(top.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g;
-  }, [top]);
-  // Instanced cage parts grouped by material (posts/purlins/beams → 3 draw calls).
-  const cage = React.useMemo(() => {
-    const posts: BoxInstance[] = along(s.pts, 6, true).map((p) => ({ x: p.x, y: H / 2, z: p.z, sx: 0.25, sy: H, sz: 0.25 }));
-    const thin: BoxInstance[] = along(s.pts, 3, true).map((p) => ({ x: p.x, y: H / 2, z: p.z, sx: 0.08, sy: H, sz: 0.08 }));
-    if (top.length >= 3) along(top, 4, true).forEach((p) => thin.push({ x: p.x, y: H + RISE + 0.1, z: p.z, sx: 0.12, sy: 0.2, sz: 0.12 }));
-    const beams: BoxInstance[] = [], kicks: BoxInstance[] = [], walls: BoxInstance[] = [];
-    for (const [a, b] of segs(s.pts, true)) {
-      beams.push(beamBox(a, b, H, 0.4, 0.25), beamBox(a, b, 3, 0.15, 0.15));
-      kicks.push(beamBox(a, b, 1, 2, 0.05));
-      walls.push(beamBox(a, b, H / 2, H, 0.02));
-    }
-    if (mansard) for (const [a, b] of segs(top, true)) beams.push(beamBox(a, b, H + RISE, 0.25, 0.2));
-    return { posts, thin, beams, kicks, walls };
-  }, [s.pts, top, H, RISE, mansard]);
+    if (f.top.length < 3) return null;
+    const g = new THREE.ShapeGeometry(new THREE.Shape(f.top.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g;
+  }, [f]);
   return (
     <group name="board-screen" onClick={select({ type: "screen", i })}>
-      <InstancedBoxes boxes={cage.posts} material={frame} castShadow />
-      <InstancedBoxes boxes={cage.thin} material={frame} />
-      <InstancedBoxes boxes={cage.beams} material={frame} castShadow />
-      <InstancedBoxes boxes={cage.kicks} material={kick} castShadow />
-      <InstancedBoxes boxes={cage.walls} material={mesh} castShadow />
+      <InstancedBoxes boxes={f.posts} material={frame} castShadow />
+      <InstancedBoxes boxes={f.beams} material={frame} castShadow />
+      <InstancedBoxes boxes={f.rafters} material={frame} castShadow />
+      <InstancedBoxes boxes={f.purlins} material={frame} />
+      <InstancedBoxes boxes={f.walls} material={mesh} />
       <Doors gates={s.gates} pts={s.pts} closed H={H} mat={frame} />
       {geo && <mesh geometry={geo} material={mesh} />}
-      {lid && <mesh geometry={lid} material={mesh} position={[0, H + RISE, 0]} />}
+      {lid && <mesh geometry={lid} material={mesh} position={[0, H + f.rise, 0]} />}
     </group>
   );
 }
