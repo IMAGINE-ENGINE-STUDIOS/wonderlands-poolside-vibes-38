@@ -568,8 +568,8 @@ export function UnifiedPoolVisualizer({
   useEffect(() => {
     const on = (e: Event) => {
       const d = (e as CustomEvent<BoardSelection>).detail;
+      // Only a pool/spa click changes the target; closing widgets or picking a fence/deck keeps it.
       if (d?.type === 'water') { setActiveWater(d.i); setSelectedComponent((d.part ?? 'pool') as any); setShowPoolAssetManager(false); }
-      else setActiveWater(null);
     };
     window.addEventListener(BOARD_SELECT_EVENT, on);
     return () => window.removeEventListener(BOARD_SELECT_EVENT, on);
@@ -614,7 +614,7 @@ export function UnifiedPoolVisualizer({
   const headerFeatures = useMemo(() => [...designerQuoteFeatureLines, ...sceneTakeoff.lines], [designerQuoteFeatureLines, sceneTakeoff]);
   /** Point every header control at a pool: null = main pool, k = extra pool/spa k. Glides the camera to it. */
   const targetWater = useCallback((k: number | null) => {
-    if (k == null) { window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: null })); setSelectedComponent('pool' as any); focusOnPoolAsset(); return; }
+    if (k == null) { setActiveWater(null); window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: null })); setSelectedComponent('pool' as any); focusOnPoolAsset(); return; }
     const w = boardWaters[k]; if (!w) return;
     window.dispatchEvent(new CustomEvent(BOARD_SELECT_EVENT, { detail: { type: 'water', i: k, part: 'pool' } }));
     const c = waterCenter(w.pts); const xs = w.pts.map((p) => p.x), zs = w.pts.map((p) => p.z);
@@ -1369,7 +1369,7 @@ export function UnifiedPoolVisualizer({
 
 
         {/* Undo/Redo & Reset View Controls */}
-        <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-1 md:gap-2 max-w-[calc(100%-80px)] md:max-w-none">
+        <div className="absolute top-4 left-4 z-20 flex flex-wrap items-start gap-1 md:gap-2 max-w-[calc(100%-200px)]">
           <button
             onClick={undo}
             disabled={!canUndo}
@@ -1484,15 +1484,13 @@ export function UnifiedPoolVisualizer({
           <button
             onClick={() => setShowDepthProfileEditor(!showDepthProfileEditor)}
             className={`hidden md:flex w-9 h-9 md:w-10 md:h-10 items-center justify-center rounded-full border shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.96] ${showDepthProfileEditor ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50'}`}
-            title="Depth Profile Editor"
+            title={`Depth Profile Editor · ${activeW ? activeW.label : 'Main pool'}`}
           >
             <ArrowUpDown className="w-4 h-4" strokeWidth={1.8} />
           </button>
           {/* 3D Spline Editor deprecated — deck & coping now live in the Deck/Coping settings panel. */}
-        </div>
-
-        {/* Pool Designer Header with Measurements & Cost - positioned in header bar after buttons */}
-        <div className="absolute top-4 left-[320px] md:left-[400px] z-20 hidden sm:block">
+          {/* Cost card sits in the same row so it never covers header buttons. */}
+          <div className="relative z-20 hidden sm:block">
           <PoolDesignerHeader
             poolPoints={scene.pool.points}
             poolDepth={poolDepth}
@@ -1506,7 +1504,9 @@ export function UnifiedPoolVisualizer({
             additionalFeatures={headerFeatures}
             additionalBodies={headerBodies}
           />
+          </div>
         </div>
+
         
         {/* Mobile estimates - bottom bar */}
         <div className="absolute bottom-16 left-4 right-4 z-20 sm:hidden">
@@ -1603,7 +1603,6 @@ export function UnifiedPoolVisualizer({
               onClose={() => {
                 setSelectedComponent(null);
                 setSelectedCategory(null);
-                setActiveWater(null);
               }}
               onSceneChange={waterScene ? onWaterSceneChange : setScene}
               onSelectComponent={setSelectedComponent}
@@ -1670,17 +1669,17 @@ export function UnifiedPoolVisualizer({
           <DepthProfileEditor
             isOpen={showDepthProfileEditor && !isSplineEditMode}
             onClose={() => setShowDepthProfileEditor(false)}
-            linearDepthAnchors={linearDepthAnchors}
-            onLinearDepthAnchorsChange={handleLinearDepthAnchorsChange}
+            linearDepthAnchors={waterScene ? waterScene.pool.linearDepthAnchors! : linearDepthAnchors}
+            onLinearDepthAnchorsChange={waterScene ? ((a: any) => onWaterSceneChange({ ...waterScene, pool: { ...waterScene.pool, linearDepthAnchors: a } } as any)) : handleLinearDepthAnchorsChange}
             selectedAnchorId={selectedSplinePointId}
             onSelectAnchor={setSelectedSplinePointId}
             poolShallowDepth={poolShallowDepth}
             poolDeepDepth={poolDeepDepth}
-            poolPoints={scene.pool.points}
-            poolDimensions={scene.pool.dimensions}
-            depthAxis={depthAxis}
-            onDepthAxisChange={handleDepthAxisChange}
-            perimeterDepthPoints={resolvedPerimeterDepthPoints || []}
+            poolPoints={waterScene ? waterScene.pool.points : scene.pool.points}
+            poolDimensions={waterScene ? waterScene.pool.dimensions : scene.pool.dimensions}
+            depthAxis={waterScene ? (waterScene.pool.depthAxis as any) : depthAxis}
+            onDepthAxisChange={waterScene ? ((ax: any) => onWaterSceneChange({ ...waterScene, pool: { ...waterScene.pool, depthAxis: ax } } as any)) : handleDepthAxisChange}
+            perimeterDepthPoints={waterScene ? [] : (resolvedPerimeterDepthPoints || [])}
             onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
             shapeEditEnabled={enablePoolSplineEdit}
             onShapeEditToggle={() => setEnablePoolSplineEdit(v => !v)}
