@@ -38,6 +38,8 @@ interface PoolAssetManagerProps {
   onSelectObject?: (id: string | null) => void;
   gizmoMode?: GizmoMode;
   onGizmoModeChange?: (m: GizmoMode) => void;
+  /** Which pool/spa these controls edit (shown in the panel header). */
+  targetLabel?: string;
 }
 export function PoolAssetManager({
   isOpen,
@@ -61,7 +63,8 @@ export function PoolAssetManager({
   selectedObjectId,
   onSelectObject,
   gizmoMode,
-  onGizmoModeChange
+  onGizmoModeChange,
+  targetLabel = 'Main pool'
 }: PoolAssetManagerProps) {
   const [activeTab, setActiveTab] = useState('objects');
   const [showTextureSync, setShowTextureSync] = useState(false);
@@ -276,6 +279,7 @@ export function PoolAssetManager({
         <h3 className="font-semibold text-sm flex items-center gap-2">
           <Footprints className="h-4 w-4 text-primary" />
           Pool Assets
+          <span className="text-[10px] font-normal text-muted-foreground">· {targetLabel}</span>
         </h3>
         <Button variant="ghost" size="sm" onClick={onToggle} className="h-7 w-7 p-0 hover:bg-primary/10">
           <ChevronUp className="h-4 w-4" />
@@ -399,6 +403,10 @@ export function PoolAssetManager({
             <div className="space-y-3 pr-2">
               {/* Add Chair Buttons */}
               <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleAddChair('sunbench')} className="text-xs flex-col h-auto py-2 col-span-2 border-primary/40">
+                  <Armchair className="h-4 w-4 mb-1" />
+                  Sun bench
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => handleAddChair('lounge')} className="text-xs flex-col h-auto py-2">
                   <Armchair className="h-4 w-4 mb-1" />
                   Lounge
@@ -428,7 +436,7 @@ export function PoolAssetManager({
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium flex items-center gap-1">
                           <Spline className="h-3 w-3" />
-                          Contour #{idx + 1}
+                          {({ sunbench: 'Sun bench', lounge: 'Lounge', bench: 'Bench', corner: 'Corner seat', contour: 'Contour' } as const)[seating.kind ?? 'contour']} #{idx + 1}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {seating.width}ft wide
@@ -440,7 +448,7 @@ export function PoolAssetManager({
               {/* Selected Contour Controls */}
               {selectedContour && <div className="space-y-3 p-3 bg-muted/30 rounded-lg mt-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium">Edit Contour Seating</Label>
+                    <Label className="text-xs font-medium">Edit {selectedContour.kind === 'sunbench' ? 'Sun Bench' : 'Seating'}</Label>
                     <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -463,7 +471,7 @@ export function PoolAssetManager({
                     <Label className="text-xs">Width: {selectedContour.width.toFixed(1)} ft into pool</Label>
                     <Slider value={[selectedContour.width]} onValueChange={([v]) => updateContour(selectedContour.id, {
                   width: v
-                })} min={1} max={4} step={0.25} />
+                })} min={1} max={8} step={0.25} />
                   </div>
 
                   <div className="space-y-2">
