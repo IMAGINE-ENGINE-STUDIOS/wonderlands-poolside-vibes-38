@@ -466,9 +466,6 @@ export function StudioDock(props: Props) {
       <div className={`flex items-center gap-2 rounded-full py-1 pl-4 pr-1.5 ${glass}`}>
         <GeniusPanel {...props} />
         <span className="h-5 w-px shrink-0 bg-foreground/10" aria-hidden />
-        <button type="button" onClick={() => toggle('projects')} title="Projects" className={pill(tab === 'projects')}>
-          <FolderOpen className="h-3.5 w-3.5" /><span className="hidden md:inline">Projects</span>
-        </button>
         <button type="button" onClick={() => toggle('music')} title="Music" className={pill(tab === 'music')}>
           {musicOn ? <Music2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}<span className="hidden md:inline">Music</span>
         </button>

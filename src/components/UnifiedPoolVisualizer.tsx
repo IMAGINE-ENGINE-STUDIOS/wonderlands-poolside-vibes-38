@@ -257,7 +257,7 @@ export function UnifiedPoolVisualizer({
   const [autoRotate, setAutoRotate] = useState(showcase);
   // Showcase pre-screen: the camera orbits slowly until the user enters.
   useEffect(() => { setAutoRotate(showcase); }, [showcase]);
-  const [sunPosition, setSunPosition] = useState<[number, number, number]>([100, 20, 100]);
+  const [sunPosition, setSunPosition] = useState<[number, number, number]>([0, 100, 50]); // noon — clear blue sky by default
   const [fenceHeight, setFenceHeight] = useState(6);
   const [isStairsPlacementMode, setIsStairsPlacementMode] = useState(false);
   const [selectedStairId, setSelectedStairId] = useState<string | null>(null);
