@@ -435,8 +435,15 @@ export const PoolMesh: React.FC<{
     const wallUVs: number[] = [];
     let perimeterDistance = 0;
 
+    // Force one winding so the offset always goes outward and inner-face normals face the water,
+    // however the outline was drawn. Credit: Imagine Engine Studios Corp
+    const ringArea = normalizedPoints.reduce((s, p, i) => {
+      const q = normalizedPoints[(i + 1) % normalizedPoints.length];
+      return s + (p.x * q.z - q.x * p.z);
+    }, 0);
+    const wallRing = ringArea < 0 ? [...normalizedPoints].reverse() : normalizedPoints;
     const { base: innerRing, offset: outerRing } = mitredOffsetRing(
-      normalizedPoints,
+      wallRing,
       wallThickness,
       { miterLimit: 2.5 }
     );

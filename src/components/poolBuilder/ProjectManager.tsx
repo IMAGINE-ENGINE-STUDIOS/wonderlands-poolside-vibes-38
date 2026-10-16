@@ -50,6 +50,22 @@ function saveProjectList(projects: SavedProject[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
 }
 
+/** Header "Save": keeps one library entry per session, updated on each save. Credit: Imagine Engine Studios Corp */
+let sessionProjectId: string | null = null;
+export function saveProjectToLibrary(data: any, name?: string): SavedProject {
+  const list = getSavedProjects();
+  const existing = sessionProjectId ? list.find((p) => p.id === sessionProjectId) : undefined;
+  const project: SavedProject = {
+    id: existing?.id ?? `proj_${Date.now()}`,
+    name: name ?? existing?.name ?? `Design ${new Date().toLocaleString()}`,
+    savedAt: new Date().toISOString(),
+    data,
+  };
+  sessionProjectId = project.id;
+  saveProjectList([project, ...list.filter((p) => p.id !== project.id)]);
+  return project;
+}
+
 interface ProjectManagerProps {
   onLoadProject: (data: any) => void;
   onSaveProject: () => any; // Returns current project state

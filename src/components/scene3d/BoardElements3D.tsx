@@ -16,7 +16,7 @@ import { generateCurvedPoolPoints } from "@/utils/curveUtils";
 import { PoolMesh } from "@/components/Pool3DScene";
 import { CopingGeometry } from "./CopingGeometry";
 import { InstancedBoxes, beamBox, type BoxInstance } from "./InstancedBoxes";
-import { buildScreenFrame } from "@/utils/screenStructureGeometry";
+import { buildScreenFrame, strut } from "@/utils/screenStructureGeometry";
 import { WaterlineMesh } from "@/components/WaterlineMesh";
 import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
@@ -90,13 +90,28 @@ function Doors({ gates, pts, closed, H, mat }: { gates?: Gate3D[]; pts: XZ[]; cl
       const L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L, half = Math.min(L / 2, g.widthFt / 2);
       const c = { x: a.x + (b.x - a.x) * g.t, z: a.z + (b.z - a.z) * g.t };
       const p1 = { x: c.x - ux * half, z: c.z - uz * half }, p2 = { x: c.x + ux * half, z: c.z + uz * half };
-      const dh = Math.min(H, 7); const nx = -uz * 0.08, nz = ux * 0.08;
-      [p1, p2].forEach((p) => out.push({ x: p.x, y: H / 2, z: p.z, sx: 0.3, sy: H + 0.2, sz: 0.3 }));
-      const q1 = { x: p1.x + nx, z: p1.z + nz }, q2 = { x: p2.x + nx, z: p2.z + nz };
-      out.push(beamBox(q1, q2, dh - 0.1, 0.14, 0.1), beamBox(q1, q2, 0.25, 0.14, 0.1), beamBox(q1, q2, dh / 2, 0.1, 0.08));
-      const double = g.widthFt >= 6; const mid = { x: (q1.x + q2.x) / 2, z: (q1.z + q2.z) / 2 };
-      if (double) out.push({ x: mid.x, y: dh / 2, z: mid.z, sx: 0.12, sy: dh, sz: 0.12 });
-      const latch = double ? mid : q2; out.push({ x: latch.x - ux * 0.25 + nx, y: 4.5, z: latch.z - uz * 0.25 + nz, sx: 0.25, sy: 0.35, sz: 0.15 });
+      const dh = Math.min(H, 6.9); const nx = -uz * 0.08, nz = ux * 0.08;
+      // Jambs (2"x4") full height to the eave, transom header over the leaf, transom mid-strut.
+      [p1, p2].forEach((p) => out.push({ x: p.x, y: H / 2, z: p.z, sx: 0.22, sy: H, sz: 0.34 }));
+      out.push(beamBox(p1, p2, dh + 0.1, 0.33, 0.2));
+      const c0 = { x: (p1.x + p2.x) / 2, z: (p1.z + p2.z) / 2 };
+      if (H - dh > 1) out.push({ x: c0.x, y: (dh + H) / 2, z: c0.z, sx: 0.14, sy: H - dh, sz: 0.2 });
+      // Leaf: stiles, top/bottom rails, kick rail, mid crossbar at chair-rail height, diagonal tie.
+      const double = g.widthFt >= 6, leaves: [XZ, XZ][] = double ? [[p1, c0], [c0, p2]] : [[p1, p2]];
+      for (const [s0, s1] of leaves) {
+        const q1 = { x: s0.x + ux * 0.12 + nx, z: s0.z + uz * 0.12 + nz }, q2 = { x: s1.x - ux * 0.12 + nx, z: s1.z - uz * 0.12 + nz };
+        [q1, q2].forEach((q) => out.push({ x: q.x, y: dh / 2, z: q.z, sx: 0.14, sy: dh - 0.1, sz: 0.1 }));
+        out.push(beamBox(q1, q2, dh - 0.1, 0.16, 0.1), beamBox(q1, q2, 0.12, 0.2, 0.1), beamBox(q1, q2, 0.75, 0.1, 0.08), beamBox(q1, q2, 3.2, 0.2, 0.1));
+        out.push(strut({ x: q1.x, y: 0.2, z: q1.z }, { x: q2.x, y: 3.1, z: q2.z }, 0.08, 0.08));
+        // Closer arm at the top hinge corner.
+        out.push({ x: q1.x + ux * 0.6 + nx, y: dh - 0.35, z: q1.z + uz * 0.6 + nz, sx: 0.9, sy: 0.12, sz: 0.1, ry: -Math.atan2(uz, ux) });
+      }
+      // Lever latch at 54": backplate + lever + pull handle on the latch stile.
+      const lt = double ? c0 : p2, sgn = double ? 1 : 1;
+      const lx = lt.x - ux * 0.35 * sgn, lz = lt.z - uz * 0.35 * sgn, ry = -Math.atan2(uz, ux);
+      out.push({ x: lx + nx * 1.6, y: 4.5, z: lz + nz * 1.6, sx: 0.12, sy: 0.6, sz: 0.06, ry });
+      out.push({ x: lx - ux * 0.15 + nx * 2.4, y: 4.6, z: lz - uz * 0.15 + nz * 2.4, sx: 0.4, sy: 0.06, sz: 0.06, ry });
+      out.push({ x: lx + nx * 2.6, y: 4.1, z: lz + nz * 2.6, sx: 0.05, sy: 0.7, sz: 0.05, ry });
     }
     return out;
   }, [gates, pts, closed, H]);
@@ -114,7 +129,7 @@ function Fence({ f, i }: { f: Fence3D; i: number }) {
   const panel = React.useMemo(() => f.style === "glass"
     ? new THREE.MeshPhysicalMaterial({ color: "#cfe9ef", transparent: true, opacity: 0.3, roughness: 0.05 })
     : f.style === "alu" ? metalMat(f.color)
-    : vinyl ? new THREE.MeshStandardMaterial({ map: vinylTex(), color: f.color || "#ffffff", roughness: 0.5 })
+    : vinyl ? new THREE.MeshStandardMaterial({ map: vinylTex(), color: f.color || "#ffffff", roughness: 0.5, transparent: true, alphaTest: 0.25, side: THREE.DoubleSide })
     : new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.7 }), [f.style, f.color, vinyl]);
   const H = f.height;
   // Instanced: every box of one material is a single draw call (same sizes/positions as before).
