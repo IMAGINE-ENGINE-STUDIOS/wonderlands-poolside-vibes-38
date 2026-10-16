@@ -6318,11 +6318,28 @@ export function PoolBuilder({
             setFeatures([]);
           }}
           onPickPool={(wFt, lFt) => {
-            const cx = canvasSize.width / 2, cy = canvasSize.height / 2, w = wFt * scale, l = lFt * scale;
+            // Drop at the centre of what the user currently sees (pan/zoom aware).
+            const w = wFt * scale, l = lFt * scale;
+            let cx = canvasSize.width / 2 - panOffset.x / zoomLevel, cy = canvasSize.height / 2 - panOffset.y / zoomLevel;
+            // A main pool already exists → the inventory pool becomes an extra pool beside it,
+            // using exactly the same extra-pool rules as a drawn one (own 3 ft deck, editable spline).
+            if (points.length >= 3) {
+              const xs = points.map(p => p.x);
+              cx = Math.max(...xs) + (deckOffset + 3) * scale + w / 2;
+              cy = points.reduce((t, p) => t + p.y, 0) / points.length;
+            }
             const pts = [
               { x: cx - w / 2, y: cy - l / 2, id: '1' }, { x: cx + w / 2, y: cy - l / 2, id: '2' },
               { x: cx + w / 2, y: cy + l / 2, id: '3' }, { x: cx - w / 2, y: cy + l / 2, id: '4' },
             ].map(p => ({ ...p, curveType: 'linear' as const }));
+            if (points.length >= 3) {
+              const id = Date.now().toString();
+              setAdditionalPools(prev => [...prev, { id, type: 'pool', points: pts, shape: 'freeform', featureType: 'regular' }]);
+              setAdditionalDeckPoints(prev => ({ ...prev, [id]: generateHardscapeFromPool(pts, 3) }));
+              setDeckOffsetsById(prev => ({ ...prev, [id]: 3 }));
+              toast({ title: `${wFt}' × ${lFt}' pool added`, description: 'Placed beside your main pool — drag or edit it like any pool.' });
+              return;
+            }
             setPoolShape('rectangle');
             setPoints(pts);
             setHardscapePoints(generateHardscapeFromPool(pts, deckOffset));
