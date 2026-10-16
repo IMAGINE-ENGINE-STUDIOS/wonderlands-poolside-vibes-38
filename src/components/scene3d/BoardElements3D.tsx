@@ -16,7 +16,7 @@ import { generateCurvedPoolPoints } from "@/utils/curveUtils";
 import { PoolMesh } from "@/components/Pool3DScene";
 import { CopingGeometry } from "./CopingGeometry";
 import { InstancedBoxes, beamBox, type BoxInstance } from "./InstancedBoxes";
-import { buildScreenFrame } from "@/utils/screenStructureGeometry";
+import { buildScreenFrame, strut } from "@/utils/screenStructureGeometry";
 import { WaterlineMesh } from "@/components/WaterlineMesh";
 import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
