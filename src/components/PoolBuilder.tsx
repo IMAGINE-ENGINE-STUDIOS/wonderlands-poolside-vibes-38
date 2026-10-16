@@ -621,6 +621,8 @@ export function PoolBuilder({
     if (onExternalUpdate.hardscapePoints && onExternalUpdate.hardscapePoints.length >= 3) {
       setHardscapePoints(onExternalUpdate.hardscapePoints);
     }
+    const xp = (onExternalUpdate as { additionalPools?: PoolShape[] }).additionalPools;
+    if (Array.isArray(xp) && xp.length) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
     
     // Clear flag after a frame to allow normal updates
     requestAnimationFrame(() => {
@@ -737,6 +739,18 @@ export function PoolBuilder({
     const saved = getAutoSave();
     if (saved?.data && saved.data.points?.length > 0) {
       loadProjectState(saved.data);
+    }
+    // Coming back from the 3D Studio: its edits must win over the older 2D auto-save
+    // (this effect runs after the external-update effect, so re-apply them here).
+    const ext = onExternalUpdate;
+    if (ext) {
+      if (ext.points && ext.points.length >= 3) setPoints(ext.points);
+      if (ext.depthPoints && ext.depthPoints.length >= 2) setDepthPoints(ext.depthPoints);
+      if (ext.hardscapePoints && ext.hardscapePoints.length >= 3) setHardscapePoints(ext.hardscapePoints);
+      if (Array.isArray((ext as { additionalPools?: PoolShape[] }).additionalPools)) {
+        const xp = (ext as { additionalPools?: PoolShape[] }).additionalPools!;
+        if (xp.length) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
