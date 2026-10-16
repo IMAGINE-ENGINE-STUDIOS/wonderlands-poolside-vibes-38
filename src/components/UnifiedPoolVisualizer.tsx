@@ -1910,7 +1910,7 @@ export function UnifiedPoolVisualizer({
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
           <BoardElements3D holes={"outline" in terrainSiteRef && terrainSiteRef.outline ? [terrainSiteRef.outline] : []}
-            scales={boardScales} />
+            scales={boardScales} mainCoping={scene.deck.coping?.url} mainWaterline={scene.deck.waterline?.url ?? scene.deck.coping?.url} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}

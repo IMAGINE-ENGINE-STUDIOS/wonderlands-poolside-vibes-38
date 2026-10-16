@@ -202,8 +202,8 @@ const sharedWater = () => (waterMat ??= new THREE.MeshPhysicalMaterial({ color: 
  * Board reloads re-parse every body from storage, so compare by content:
  * only the pool that actually changed rebuilds its shell/coping/waterline.
  */
-const Water = React.memo(WaterBody, (a, b) => a.i === b.i && a.scales === b.scales && JSON.stringify(a.w) === JSON.stringify(b.w));
-function WaterBody({ w, i, scales }: { w: Water3D; i: number; scales: SceneScales }) {
+const Water = React.memo(WaterBody, (a, b) => a.i === b.i && a.scales === b.scales && a.mainCoping === b.mainCoping && a.mainWaterline === b.mainWaterline && JSON.stringify(a.w) === JSON.stringify(b.w));
+function WaterBody({ w, i, scales, mainCoping, mainWaterline }: { w: Water3D; i: number; scales: SceneScales; mainCoping?: string; mainWaterline?: string }) {
   const c = React.useMemo(() => waterCenter(w.pts), [w.pts]);
   const local = React.useMemo(() => denseRing(w.pts.map((p) => ({ x: p.x - c.x, y: p.z - c.z }))).map((p, k) => ({ ...p, id: `${w.itemId ?? i}-p${k}` })), [w.pts, c, w.itemId, i]);
   const curve = React.useMemo(() => local.map((p) => ({ x: p.x, z: p.y })), [local]);
@@ -222,10 +222,10 @@ function WaterBody({ w, i, scales }: { w: Water3D; i: number; scales: SceneScale
           linerTextureUrl={urlOr(w.finish, BASE_FINISH)!} linerTextureScale={w.finishScale ?? scales.finish} poolDimensions={dims} copingHeight={copingH} />
       </group>
       <group onClick={pick("coping")}>
-        <CopingGeometry poolPoints={curve} copingWidth={w.copingWidth} copingHeight={copingH} textureUrl={urlOr(w.coping)} textureScale={w.copingScale ?? scales.coping} />
+        <CopingGeometry poolPoints={curve} copingWidth={w.copingWidth} copingHeight={copingH} textureUrl={urlOr(w.coping, mainCoping)} textureScale={w.copingScale ?? scales.coping} />
       </group>
       <group onClick={pick("waterline")}>
-        <WaterlineMesh poolPoints={local as any} wallCurve={curve} waterlineTextureUrl={urlOr(w.waterline)} waterlineTextureScale={w.waterlineScale ?? scales.waterline} copingHeight={copingH} />
+        <WaterlineMesh poolPoints={local as any} wallCurve={curve} waterlineTextureUrl={urlOr(w.waterline, mainWaterline)} waterlineTextureScale={w.waterlineScale ?? scales.waterline} copingHeight={copingH} />
       </group>
       {!w.waterOff && <mesh geometry={waterGeo} material={sharedWater()} position={[0, -0.25, 0]} />}
       <PoolAssetsRenderer poolPoints={local as any} poolDepth={deep} getFloorDepthAt={depthAt}
@@ -309,7 +309,8 @@ function TurfSurface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; hole
 /** Deck slab thickness (3 in), same as the pool's own deck border. */
 const DECK_SLAB_FT = 0.25;
 
-export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES }: { holes?: XZ[][]; scales?: SceneScales }) {
+/** mainCoping/mainWaterline: extra pools without their own chosen texture inherit the main pool's (never a plain white ring). */
+export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCoping, mainWaterline }: { holes?: XZ[][]; scales?: SceneScales; mainCoping?: string; mainWaterline?: string }) {
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
   const invalidate = useThree((st) => st.invalidate);
   // The studio renders on demand: redraw as soon as a widget edits a piece.
@@ -330,7 +331,7 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES }: { holes
         : <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={s.scale ?? scales.paver} />)}
       {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} i={i} />)}
-      {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} />)}
+      {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} />)}
     </group>
   );
 }
