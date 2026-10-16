@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PoolBuilder } from "@/components/PoolBuilder";
 import { SiteElementsLayer, SiteTakeoffMenu, siteElementsTo3D, SITE_ELEMENTS_KEY } from "@/components/designStudio/SiteElementsLayer";
-import { saveBoard3D } from "@/lib/design/board3D";
-import { cacheRead } from "@/lib/uiCache";
+import { saveBoard3D, loadBoard3D } from "@/lib/design/board3D";
+import { cacheRead, cacheWrite } from "@/lib/uiCache";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene, scene3DToPoolBuilder } from "@/components/scene3d/SceneConverter";
 import { pools, spas } from "@/components/PoolCatalog";
@@ -365,11 +365,13 @@ const DesignStudio = () => {
       depthPoints: converted.depthPoints,
       hardscapePoints: converted.hardscapePoints,
       features: converted.features,
-      additionalPools: converted.additionalPools
+      additionalPools: converted.additionalPools,
+      materials: converted.materials
     };
   }, [poolBuilderData?.scale, sceneMemoryKey]);
 
   // Handle switching to 3D view
+  const sentBoardRef = useRef<any>(null);
   const handleSwitch3D = useCallback(() => {
     // Never show a pool that isn't on the 2D board: 3D only opens the pool drawn here
     // (or the catalog model the studio was opened with).
@@ -380,7 +382,9 @@ const DesignStudio = () => {
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
-      saveBoard3D(siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? [], (poolBuilderData as any)?.additionalDecks ?? {}));
+      const sent = siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? [], (poolBuilderData as any)?.additionalDecks ?? {});
+      saveBoard3D(sent);
+      sentBoardRef.current = JSON.parse(JSON.stringify(sent));
     } catch { /* ignore */ }
     setActiveView('3d');
     // Stay in the page (not browser fullscreen) so the header with "Back to 2D" stays visible.
@@ -393,10 +397,31 @@ const DesignStudio = () => {
     // Depend on the whole 2D design so every extra pool and deck is sent (no stale copy).
   }, [customPoolShape, poolBuilderData, searchParams, toast]);
   const handleSwitch2D = useCallback(() => {
+    // Anything reshaped in 3D (extra pools/spas, fences, screens) is written back to the 2D board.
+    try {
+      const sent = sentBoardRef.current, now = loadBoard3D();
+      const scale = poolBuilderData?.scale || 10;
+      if (sent && now?.origin) {
+        const o = now.origin;
+        const key = (pts?: { x: number; z: number }[]) => JSON.stringify((pts ?? []).map(p => [Math.round(p.x * 100), Math.round(p.z * 100)]));
+        const toPx = (pts: { x: number; z: number }[]) => pts.map(p => ({ x: (p.x + o.x) * scale, y: (p.z + o.y) * scale }));
+        const changed = <T extends { itemId?: string; pts: { x: number; z: number }[] }>(a?: T[], b?: T[]) => {
+          const old = new Map((a ?? []).filter(x => x.itemId).map(x => [x.itemId!, key(x.pts)]));
+          return new Map((b ?? []).filter(x => x.itemId && old.has(x.itemId) && old.get(x.itemId) !== key(x.pts) && x.pts.length >= 2).map(x => [x.itemId!, toPx(x.pts)]));
+        };
+        const waters = changed(sent.waters as any, now.waters as any);
+        if (waters.size && poolBuilderData?.additionalPools?.length) {
+          const xp = poolBuilderData.additionalPools.map((p: any) => waters.has(p.id) ? { ...p, points: waters.get(p.id)!.map((q, i) => ({ ...q, id: `${p.id}-p${i + 1}` })) } : p);
+          externalUpdateRef.current = { ...(externalUpdateRef.current ?? {}), additionalPools: xp };
+        }
+        const lines = new Map([...changed(sent.fences as any, now.fences as any), ...changed(sent.screens as any, now.screens as any)]);
+        if (lines.size) cacheWrite(SITE_ELEMENTS_KEY, cacheRead<any[]>(SITE_ELEMENTS_KEY, []).map(e => lines.has(e.id) ? { ...e, pts: lines.get(e.id) } : e));
+      }
+    } catch { /* keep 2D as is */ }
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     setIsFullscreen(false);
     setActiveView('2d');
-  }, []);
+  }, [poolBuilderData]);
   // In 3D the scene is saved on every change; Projects reopens the 2D board's project list.
   useBoardCommands((c) => {
     if (activeView !== '3d') return;

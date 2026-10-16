@@ -546,6 +546,7 @@ export function scene3DToPoolBuilder(
   hardscapePoints: Array<{ x: number; y: number; id: string }>;
   features: Array<{ type: string; x: number; y: number; id: string; angle?: number; steps?: number; width?: number }>;
   additionalPools: any[];
+  materials: { finish?: string; paver?: string; coping?: string };
 } {
   // Convert pool points from feet to pixels
   // Scene3D points are in feet; PoolBuilder stores absolute pixel positions
@@ -597,5 +598,7 @@ export function scene3DToPoolBuilder(
     spilloverEdges: pool.spilloverEdges
   }));
 
-  return { points, depthPoints, hardscapePoints, features, additionalPools };
+  // Material picks made in 3D (by product name) so the 2D board shows the same finish/paver/coping.
+  const materials = { finish: scene.pool.finish?.name, paver: scene.deck.paver?.name, coping: scene.deck.coping?.name };
+  return { points, depthPoints, hardscapePoints, features, additionalPools, materials };
 }

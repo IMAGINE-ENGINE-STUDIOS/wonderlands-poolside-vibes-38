@@ -115,6 +115,7 @@ interface PoolBuilderProps {
     hardscapePoints?: Array<{ x: number; y: number; id: string }>;
     features?: Array<{ type: string; x: number; y: number; id: string; angle?: number }>;
     additionalPools?: any[];
+    materials?: { finish?: string; paver?: string; coping?: string };
   } | null; // External state changes from 3D viewer
   onPoolDataChange?: (data: {
     points: Point[];
@@ -381,6 +382,9 @@ export function PoolBuilder({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  // Click-and-hold on empty background pans the board; a drag suppresses the click that follows.
+  const bgPanRef = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
+  const suppressClickRef = useRef(false);
   // Zoom constants (single source of truth)
   const WHEEL_STEP = 0.06;
   const PINCH_STEP = 0.025;
@@ -599,6 +603,18 @@ export function PoolBuilder({
   const isExternalUpdateRef = useRef(false);
   const lastExternalUpdateRef = useRef<string | null>(null);
   
+  // 3D material picks (product names) → 2D ids, so both studios show the same products.
+  const applyExternalMaterials = (m?: { finish?: string; paver?: string; coping?: string }) => {
+    if (!m) return;
+    const n = (x?: string) => (x || '').toLowerCase().trim();
+    const f = m.finish && CATALOG_FINISHES_2D.find(t => n(t.name) === n(m.finish));
+    if (f) setSelectedFinishId(f.id);
+    const pv = m.paver && paverTypes.find(t => n(t.name) === n(m.paver));
+    if (pv) setSelectedPaverId(pv.id);
+    const cp = m.coping && paverTypes.find(t => n(t.name) === n(m.coping));
+    if (cp) setSelectedCopingId(cp.id);
+  };
+
   useEffect(() => {
     if (!onExternalUpdate) return;
     
@@ -618,6 +634,9 @@ export function PoolBuilder({
     if (onExternalUpdate.hardscapePoints && onExternalUpdate.hardscapePoints.length >= 3) {
       setHardscapePoints(onExternalUpdate.hardscapePoints);
     }
+    const xp = (onExternalUpdate as { additionalPools?: PoolShape[] }).additionalPools;
+    if (Array.isArray(xp) && xp.length) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
+    applyExternalMaterials(onExternalUpdate.materials);
     
     // Clear flag after a frame to allow normal updates
     requestAnimationFrame(() => {
@@ -734,6 +753,19 @@ export function PoolBuilder({
     const saved = getAutoSave();
     if (saved?.data && saved.data.points?.length > 0) {
       loadProjectState(saved.data);
+    }
+    // Coming back from the 3D Studio: its edits must win over the older 2D auto-save
+    // (this effect runs after the external-update effect, so re-apply them here).
+    const ext = onExternalUpdate;
+    if (ext) {
+      if (ext.points && ext.points.length >= 3) setPoints(ext.points);
+      if (ext.depthPoints && ext.depthPoints.length >= 2) setDepthPoints(ext.depthPoints);
+      if (ext.hardscapePoints && ext.hardscapePoints.length >= 3) setHardscapePoints(ext.hardscapePoints);
+      if (Array.isArray((ext as { additionalPools?: PoolShape[] }).additionalPools)) {
+        const xp = (ext as { additionalPools?: PoolShape[] }).additionalPools!;
+        if (xp.length) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
+      }
+      applyExternalMaterials(ext.materials);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1902,6 +1934,14 @@ export function PoolBuilder({
       alpha: false
     });
     if (!ctx) return;
+
+    // Start every frame from a clean state: an unbalanced save()/restore() or a
+    // clip left by a previous frame would otherwise compound the zoom transform
+    // and leave stray lines / shrinking pools after wheel zoom.
+    (ctx as CanvasRenderingContext2D & { reset?: () => void }).reset?.();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
 
     // Clear canvas
     ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
@@ -5984,7 +6024,7 @@ export function PoolBuilder({
           eraseExtraPool: (id) => { setAdditionalPools((prev) => prev.filter((p) => p.id !== id)); setAdditionalDeckPoints((prev) => { const n = { ...prev }; delete n[id]; return n; }); } })}
         {/* Main Canvas - fills viewport */}
         <div className="w-full h-full">
-            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={(e) => {
+            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={(e) => { if (suppressClickRef.current) { suppressClickRef.current = false; return; } handleCanvasClick(e); }} onMouseDown={(e) => {
               // Middle-click or space+click for panning
               if (e.button === 1) {
                 e.preventDefault();
@@ -5992,8 +6032,37 @@ export function PoolBuilder({
                 panStartRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y };
                 return;
               }
+              // Left-click + hold on empty green background drags the board around.
+              if (e.button === 0 && !splineDrawing.isActive && !pendingFeature && !pendingLandscapePlacement && !pendingPoolFeaturePlacement
+                && (activeTool == null || activeTool === 'select')) {
+                const r = e.currentTarget.getBoundingClientRect();
+                const w = screenToWorld(e.clientX - r.left, e.clientY - r.top);
+                const inside = (poly?: { x: number; y: number }[]) => {
+                  if (!poly || poly.length < 3) return false;
+                  let c = false;
+                  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+                    const a = poly[i], b = poly[j];
+                    if ((a.y > w.y) !== (b.y > w.y) && w.x < (b.x - a.x) * (w.y - a.y) / (b.y - a.y) + a.x) c = !c;
+                  }
+                  return c;
+                };
+                const near = (poly?: { x: number; y: number }[]) => !!poly?.some(q => Math.hypot(q.x - w.x, q.y - w.y) < 14 / zoomLevel);
+                const shapes = [points, hardscapePoints, ...additionalPools.map(a => a.points), ...Object.values(additionalDeckPoints)];
+                const onFeature = features.some(f => Math.hypot((f as { x?: number }).x! - w.x, (f as { y?: number }).y! - w.y) < 20 / zoomLevel);
+                if (!onFeature && !shapes.some(sh => inside(sh) || near(sh))) {
+                  bgPanRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y, moved: false };
+                  return;
+                }
+              }
               handleCanvasMouseDown(e);
             }} onMouseMove={(e) => {
+              const bg = bgPanRef.current;
+              if (bg) {
+                const dx = e.clientX - bg.x, dy = e.clientY - bg.y;
+                if (!bg.moved && Math.hypot(dx, dy) > 3) bg.moved = true;
+                if (bg.moved) { e.currentTarget.style.cursor = 'grabbing'; setPanOffset({ x: bg.panX + dx, y: bg.panY + dy }); }
+                return;
+              }
               if (isPanning) {
                 const dx = e.clientX - panStartRef.current.x;
                 const dy = e.clientY - panStartRef.current.y;
@@ -6011,9 +6080,14 @@ export function PoolBuilder({
                 }
               }
             }} onMouseUp={(e) => {
+              if (bgPanRef.current) {
+                const moved = bgPanRef.current.moved; bgPanRef.current = null; e.currentTarget.style.cursor = '';
+                if (moved) suppressClickRef.current = true;
+                return;
+              }
               if (isPanning) { setIsPanning(false); return; }
               handleCanvasMouseUp();
-            }} onMouseLeave={() => { setIsPanning(false); handleCanvasMouseUp(); }}
+            }} onMouseLeave={(e) => { if (bgPanRef.current) { bgPanRef.current = null; e.currentTarget.style.cursor = ''; } setIsPanning(false); handleCanvasMouseUp(); }}
             
             onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="block" style={{
             cursor: isPanning ? 'grabbing' : pendingLandscapePlacement || pendingPoolFeaturePlacement ? 'crosshair' : activeTool === 'draw-pool' ? 'crosshair' : fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'grab',
