@@ -589,7 +589,7 @@ export const PoolMesh: React.FC<{
           map={linerTexture}
           color="#ffffff"
           shininess={30}
-          side={THREE.FrontSide}
+          side={THREE.DoubleSide /* inner walls show whatever way the outline was drawn */}
           emissive={isSelected ? new THREE.Color(1, 0.55, 0.45) : new THREE.Color(0, 0, 0)}
           emissiveIntensity={Math.sin(pulseIntensity * Math.PI) * 0.08}
         />
