@@ -451,28 +451,28 @@ const DesignStudio = () => {
   return <div className={`h-screen overflow-hidden bg-background flex flex-col select-none`}>
       {/* Category Toolbar with integrated header elements */}
       {activeView === '2d' ? <>
-          <CategoryToolbar hideCategories activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+          <CategoryToolbar hideCategories activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-1 sm:gap-4">
+                <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2 px-2 sm:px-3">
                   <ArrowLeft className="w-4 h-4" />
-                  Back
+                  <span className="hidden sm:inline">Back</span>
                 </Button>
                 <BoardHeaderControls />
-              </div>} headerRight={<div className="flex items-center gap-2">
-                <SiteTakeoffMenu additionalDecks={(poolBuilderData as any)?.additionalDecks} paver={(poolBuilderData as any)?.materials?.paver} scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")} deckAreaSqFt={poolBuilderData?.deckArea} featuresList={poolBuilderData?.breakdown?.featuresList} additionalPools={poolBuilderData?.additionalPools}
+              </div>} headerRight={<div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <div className="hidden sm:block min-w-0"><SiteTakeoffMenu additionalDecks={(poolBuilderData as any)?.additionalDecks} paver={(poolBuilderData as any)?.materials?.paver} scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")} deckAreaSqFt={poolBuilderData?.deckArea} featuresList={poolBuilderData?.breakdown?.featuresList} additionalPools={poolBuilderData?.additionalPools}
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
-                  totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} />
+                  totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} /></div>
                 <div id="board-header-slot" className="flex items-center gap-1.5" />
-                <Button size="sm" onClick={handleSwitch3D} className="h-9 gap-1.5 rounded-full bg-foreground px-4 text-xs font-semibold uppercase tracking-[0.15em] text-background hover:bg-foreground/90">
+                <Button size="sm" onClick={handleSwitch3D} className="h-9 gap-1.5 rounded-full bg-foreground px-3 sm:px-4 text-xs shrink-0 font-semibold uppercase tracking-[0.15em] text-background hover:bg-foreground/90">
                   <Box className="h-3.5 w-3.5" />3D Mode
                 </Button>
                 
-                <div className="h-6 w-px bg-border" />
+                <div className="h-6 w-px bg-border hidden sm:block" />
                 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-destructive hover:text-destructive">
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-destructive hover:text-destructive px-2 sm:px-3">
                       <RotateCcw className="h-3.5 w-3.5" />
-                      Reset
+                      <span className="hidden sm:inline">Reset</span>
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -490,6 +490,9 @@ const DesignStudio = () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+                <Button onClick={() => navigate("/")} title="Home" className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
+                  <Home className="h-4 w-4" />
+                </Button>
               </div>} />
           <SubToolbar hideTools category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={false as boolean && poolBuilderData ? {
         perimeter: poolBuilderData.perimeter,
