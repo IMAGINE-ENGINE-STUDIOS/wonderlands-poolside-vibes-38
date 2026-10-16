@@ -212,6 +212,8 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
 
   const run = async () => {
     if (prompt.trim().length < 3 || busy) return;
+    // Doors/gates live on the 2D board; never let them reshape the pool here.
+    if (/\b(door|doors|gate|gates)\b/i.test(prompt)) { setNote('Doors and gates are added on the 2D board: switch to 2D and ask Genius there. Nothing was changed.'); return; }
     setBusy(true); setNote('Designing…');
     try {
       const s = snapshot.scene;
@@ -237,7 +239,9 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
         if (!targets.main) { setNote(touched ? `${plan.summary || 'Updated'} — ${touched}.` : 'There is no matching pool or spa in this scene.'); return; }
       }
       const p = plan.pool || {};
-      const changesOutline = p.shape !== undefined || p.width !== undefined || p.length !== undefined || p.cornerRadius !== undefined;
+      // Only reshape the pool when the request is about the pool itself (Imagine Engine Studios Corp).
+      const askPool = /\b(pool|spa|shape|kidney|oval|rectangle|roman|freeform|l-shape|corner|wider|longer|bigger|smaller|size)\b|\d+\s*[x×]\s*\d+/i.test(prompt);
+      const changesOutline = askPool && (p.shape !== undefined || p.width !== undefined || p.length !== undefined || p.cornerRadius !== undefined);
 
       // Unchanged keys keep the current design — Genius only edits what was asked.
       let scene: Scene3D = { ...s, pool: { ...s.pool }, deck: { ...s.deck } };

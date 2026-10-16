@@ -22,7 +22,7 @@ Reply with ONE JSON object only. Include ONLY the keys the user's request change
  "night": boolean,
  "models": [ { "query": string, "kind": "object"|"tree"|"terrain"|"skydome", "x": number, "z": number } ]
 }
-Rules: "models" ONLY when the user explicitly names objects, plants, trees, furniture, terrain or sky to add — the query must be exactly the thing they named. Never add palm trees or decor on your own. Keep x/z outside the pool and deck. No prose, no markdown.`;
+Rules: "models" ONLY when the user explicitly names objects, plants, trees, furniture, terrain or sky to add — the query must be exactly the thing they named. Never add palm trees or decor on your own. Keep x/z outside the pool and deck. NEVER change the pool shape, size, depth, deck or anything else the user did not name. If the request is about doors, gates, fences or screens, return only {"summary"}. No prose, no markdown.`;
 
 // Pick the best chat model this Groq account can use (cached per instance).
 const PREFERRED = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'llama-4-maverick', 'llama-4-scout', 'qwen', 'llama-3.1-70b', 'gpt-oss', 'llama'];

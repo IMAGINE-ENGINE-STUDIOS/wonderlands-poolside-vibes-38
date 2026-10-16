@@ -381,7 +381,79 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     window.addEventListener("click", swallow, true);
     return () => { window.clearTimeout(arm); window.removeEventListener("mousedown", drop, true); window.removeEventListener("click", swallow, true); };
   }, [moving]);
-  const retexture = (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
+  /* Finger input (phones/tablets) — Imagine Engine Studios Corp.
+     Long-press = right-click menu, double-tap = edit spline, drag a square = move a point,
+     while an element rides the finger it follows the drag and drops on release. */
+  React.useEffect(() => {
+    if (!view || drawing) return;
+    let timer = 0, sx = 0, sy = 0, lastTap = 0, lx = 0, ly = 0, moved = false;
+    const inside = (t: Touch, target: EventTarget | null) => {
+      const host = svgRef.current?.parentElement; if (!host) return null;
+      const r = host.getBoundingClientRect();
+      if (t.clientX < r.left || t.clientX > r.right || t.clientY < r.top || t.clientY > r.bottom) return null;
+      if ((target as HTMLElement)?.closest?.("aside,button,nav,[data-spline-menu],[role=dialog]")) return null;
+      return r;
+    };
+    const cancel = () => { if (timer) { window.clearTimeout(timer); timer = 0; } };
+    const start = (e: TouchEvent) => {
+      if (e.touches.length !== 1) { cancel(); return; }
+      const t = e.touches[0]; const r = inside(t, e.target); if (!r) return;
+      sx = t.clientX; sy = t.clientY; moved = false; cancel();
+      if (dragRef.current || moving) return;
+      timer = window.setTimeout(() => {
+        timer = 0; const at = toWorld(t, false); const hit = nearest(at); if (!hit) return;
+        setSelected(hit.id); setMenu({ x: sx - r.left, y: sy - r.top, id: hit.id, seg: hit.seg, at: hit.at });
+      }, 450);
+    };
+    const move = (e: TouchEvent) => {
+      const t = e.touches[0]; if (!t) return;
+      if (Math.hypot(t.clientX - sx, t.clientY - sy) > 8) { moved = true; cancel(); }
+      if (dragRef.current) { e.preventDefault(); const w = toWorld(t); const { id, i } = dragRef.current; setPts(id, getPts(id).map((p, k) => k === i ? { ...p, x: w.x, y: w.y } : p)); }
+      else if (moving) { e.preventDefault(); const w = toWorld(t); const dx = w.x - moving.start.x, dy = w.y - moving.start.y; setPts(moving.id, moving.orig.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); if (moving.deck) setPts(moving.deckId ?? "__deck", moving.deck.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }))); }
+    };
+    const end = (e: TouchEvent) => {
+      cancel();
+      if (dragRef.current) { dragRef.current = null; return; }
+      if (moving && moved) { setMoving(null); return; }
+      const t = e.changedTouches[0]; if (!t || moved || !inside(t, e.target)) return;
+      const now = Date.now();
+      if (now - lastTap < 320 && Math.hypot(t.clientX - lx, t.clientY - ly) < 30) {
+        lastTap = 0; const hit = nearest(toWorld(t, false));
+        if (hit) { setSelected(hit.id); setEditId(hit.id); setMenu(null); } else { setEditId(null); setMenu(null); setSelected(null); }
+      } else { lastTap = now; lx = t.clientX; ly = t.clientY; }
+    };
+    window.addEventListener("touchstart", start, { capture: true, passive: true });
+    window.addEventListener("touchmove", move, { capture: true, passive: false });
+    window.addEventListener("touchend", end, true); window.addEventListener("touchcancel", cancel, true);
+    return () => { cancel(); window.removeEventListener("touchstart", start, true); window.removeEventListener("touchmove", move, true); window.removeEventListener("touchend", end, true); window.removeEventListener("touchcancel", cancel, true); };
+  }, [view, drawing, moving, nearest, toWorld, getPts, setPts]);
+  /** Adds a door/gate on the longest free side (or a given side) of a fence/screen. */
+  const addGate = React.useCallback((id: string, typeId: string) => {
+    setItems((p) => p.map((x) => {
+      if (x.id !== id || x.pts.length < 2) return x;
+      const n = x.kind === "fence" ? x.pts.length - 1 : x.pts.length;
+      let seg = 0, best = -1;
+      for (let i = 0; i < n; i++) { const a = x.pts[i], b = x.pts[(i + 1) % x.pts.length]; const L = Math.hypot(b.x - a.x, b.y - a.y) / (1 + (x.gates ?? []).filter((g) => g.seg === i).length); if (L > best) { best = L; seg = i; } }
+      const k = (x.gates ?? []).filter((g) => g.seg === seg).length;
+      return { ...x, gates: [...(x.gates ?? []), { seg, t: (k + 1) / (k + 2), typeId }] };
+    }));
+  }, [setItems]);
+  /* Genius asks for a door/gate: add it to the selected (or first) fence/screen only. */
+  React.useEffect(() => {
+    const on = (ev: Event) => {
+      const { kind, count = 1, double } = (ev as CustomEvent).detail || {};
+      const target = items.find((x) => x.id === selected && x.kind === kind) ?? items.find((x) => x.kind === kind);
+      const reply = (ok: boolean) => window.dispatchEvent(new CustomEvent("design-studio:gate-result", { detail: { ok, kind } }));
+      if (!target) return reply(false);
+      const opts = gateOptionsFor(kind); const o = (double ? opts.find((g) => /double/i.test(g.label)) : null) ?? opts[0];
+      if (!o) return reply(false);
+      for (let i = 0; i < Math.min(6, count); i++) addGate(target.id, o.id);
+      setSelected(target.id); reply(true);
+    };
+    window.addEventListener("design-studio:add-gate", on);
+    return () => window.removeEventListener("design-studio:add-gate", on);
+  }, [items, selected, addGate]);
+  const retexture =  (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
   const menuItem = items.find((x) => x.id === menu?.id);
   const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))
     : menuItem.kind === "deck" ? DECK_PAVERS.map((d) => ({ key: d.id, label: `${d.label} · $${d.rate}/sqft`, apply: { style: d.id, label: d.label, rate: d.rate } }))
@@ -492,8 +564,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             {selected && (selected.startsWith("__xp:") || selected.startsWith("__xd:") || selected === "__pool" || selected === "__deck") && getPts(selected).length >= 3 && <polygon points={(isPoolId(selected) ? poolRing(getPts(selected)) : getPts(selected)).map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2.5 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
             {editId && (() => { const pts = getPts(editId); const z = view.zoom || 1; const open = isOpen(editId); return (
               <g style={{ pointerEvents: "auto" }}>
-                {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={4 / z} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
-                {pts.map((p, i) => <rect key={`v${i}`} x={p.x - 5 / z} y={p.y - 5 / z} width={10 / z} height={10 / z} fill="hsl(var(--foreground))" style={{ cursor: "grab" }} onMouseDown={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onContextMenu={(ev) => { ev.preventDefault(); ev.stopPropagation(); if (pts.length > (open ? 2 : 3)) setPts(editId, pts.filter((_, k) => k !== i)); }} />)}
+                {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={4 / z} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} onTouchStart={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
+                {pts.map((p, i) => <rect key={`v${i}`} x={p.x - 5 / z} y={p.y - 5 / z} width={10 / z} height={10 / z} fill="hsl(var(--foreground))" style={{ cursor: "grab" }} onMouseDown={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onTouchStart={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onContextMenu={(ev) => { ev.preventDefault(); ev.stopPropagation(); if (pts.length > (open ? 2 : 3)) setPts(editId, pts.filter((_, k) => k !== i)); }} />)}
               </g>); })()}
           </g>
         </svg>
@@ -630,7 +702,14 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               <div className="flex gap-1.5">{(sel.kind === "fence" ? FENCE_COLORS : SCREEN_COLORS).map((c) => <Chip key={c.id} on={sel.color === c.hex} onClick={() => recolor(c.hex, c.id)}><span className="mr-1 inline-block h-2.5 w-2.5 align-middle" style={{ background: c.hex }} />{c.id}</Chip>)}</div>
             </div>
           )}
-          {selected && <p className="mt-2 text-[10px] text-muted-foreground">Press Delete to erase. Right-click or double-click any line to edit, add a point, move, retexture or erase.</p>}
+          {sel && (sel.kind === "fence" || sel.kind === "enclosure") && (
+            <div className="mt-2">
+              <p className="mb-1 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{sel.kind === "fence" ? "Gates" : "Doors"}</p>
+              <div className="flex flex-wrap gap-1.5">{gateOptionsFor(sel.kind).map((o) => <Chip key={o.id} onClick={() => addGate(sel.id, o.id)}>+ {o.label} · ${o.price.toLocaleString()}</Chip>)}</div>
+              {(sel.gates?.length ?? 0) > 0 && <ul className="mt-1.5 space-y-0.5 text-[11px]">{sel.gates!.map((g, gi) => <li key={gi} className="flex items-center justify-between"><span>{gateOption(sel.kind, g.typeId)?.label ?? "Door"} · side {g.seg + 1}</span><button title="Remove" className="text-muted-foreground hover:text-foreground" onClick={() => setItems((p) => p.map((x) => x.id === sel.id ? { ...x, gates: x.gates!.filter((_, k) => k !== gi) } : x))}><X className="h-3 w-3" /></button></li>)}</ul>}
+            </div>
+          )}
+          {selected && <p className="mt-2 text-[10px] text-muted-foreground">Press Delete to erase. Right-click or double-click (phone: press and hold or double-tap) any line to edit, add a point, move, retexture or erase.</p>}
           {!items.length && <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground"><MousePointer2 className="h-3 w-3" />Pick fences, screens or turf above, then draw on the board.</p>}
         </div>
       </aside>
