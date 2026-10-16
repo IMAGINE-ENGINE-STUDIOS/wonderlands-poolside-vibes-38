@@ -5258,7 +5258,7 @@ export function PoolBuilder({
           Math.hypot(x - firstPoint.x, y - firstPoint.y),
           Math.hypot(world.x - firstPoint.x, world.y - firstPoint.y),
         );
-        if (distToFirst < Math.max(15, 18 / zoomLevel)) {
+        if (distToFirst < Math.max(15, 28 / zoomLevel)) {
           // Close the shape - update first point's curveType to current selection for closing segment
           const newPoolPoints = splineDrawing.points.map((sp, i) => ({
             x: sp.x,
