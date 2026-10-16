@@ -34,6 +34,8 @@ interface PoolDesignerHeaderProps {
   deckAreaSqFt?: number;
   /** Every paved deck on the board grouped by paver; when given, the deck line totals them all. */
   deckLines?: Array<{ name: string; areaSqFt: number; rate: number }>;
+  /** Open the breakdown upward (bottom-docked mobile bar) — Imagine Engine Studios Corp */
+  dropUp?: boolean;
 }
 
 // Calculate pool area from points
@@ -92,7 +94,8 @@ export function PoolDesignerHeader({
   additionalFeatures = [],
   additionalBodies = [],
   deckAreaSqFt,
-  deckLines
+  deckLines,
+  dropUp
 }: PoolDesignerHeaderProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
@@ -258,7 +261,7 @@ export function PoolDesignerHeader({
 
   return (
     <div className="relative w-auto min-w-[260px] max-w-[calc(100vw-2rem)]">
-      <div className={`w-full bg-white border border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden transition-[border-radius] ${isExpanded ? 'rounded-t-[20px] rounded-b-none border-b-slate-100' : 'rounded-full'}`}>
+      <div className={`w-full bg-white border border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden transition-[border-radius] ${isExpanded ? (dropUp ? "rounded-b-[20px] rounded-t-none border-t-slate-100" : "rounded-t-[20px] rounded-b-none border-b-slate-100") : "rounded-full"}`}>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           aria-expanded={isExpanded}
@@ -288,8 +291,10 @@ export function PoolDesignerHeader({
       </div>
 
       {/* Breakdown drops down over the drawing board, never upward — Imagine Engine Studios Corp */}
-      <div className={`absolute left-0 right-0 top-full -mt-px z-50 grid transition-[grid-template-rows] duration-300 ease-out ${isExpanded ? '' : 'pointer-events-none'}`} style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}>
-          <div className={`overflow-hidden bg-white rounded-b-[20px] ${isExpanded ? 'border border-t-0 border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.12)]' : ''}`}>
+      <div className={`absolute left-0 right-0 ${dropUp ? "bottom-full -mb-px" : "top-full -mt-px"} z-50 grid transition-[grid-template-rows] duration-300 ease-out ${isExpanded ? '' : 'pointer-events-none'}`} style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}>
+          <div className={`overflow-hidden bg-white ${dropUp ? "rounded-t-[20px]" : "rounded-b-[20px]"} ${isExpanded ? (dropUp ? "border border-b-0 border-slate-200/80 shadow-[0_-12px_32px_rgba(0,0,0,0.12)]" : "border border-t-0 border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.12)]") : ""}`}>
+            <div className={`${dropUp ? "max-h-[calc(100vh-16rem)]" : "max-h-[calc(100vh-7rem)]"} overflow-y-auto`}>
+            <div className="hidden border-slate-200/80 shadow-[0_12px_32px_rgba(0,0,0,0.12)]' : ''}`}>
             <div className="max-h-[calc(100vh-7rem)] overflow-y-auto">
               <div className="grid grid-cols-2 md:grid-cols-4 border-b border-slate-100 divide-x divide-slate-100 bg-white">
                 <Stat label="Pool Area" value={measurements.poolArea.toFixed(0)} unit="sq ft" />
