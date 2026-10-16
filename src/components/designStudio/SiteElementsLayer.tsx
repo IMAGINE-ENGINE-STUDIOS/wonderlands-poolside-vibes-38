@@ -341,6 +341,23 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     window.addEventListener("mousedown", down, true); window.addEventListener("mousemove", mv, true); window.addEventListener("mouseup", cancel, true);
     return () => { cancel(); window.removeEventListener("mousedown", down, true); window.removeEventListener("mousemove", mv, true); window.removeEventListener("mouseup", cancel, true); };
   }, [view, drawing, moving, editId, nearest, toWorld, startMove]);
+  /* While an element rides the cursor, the next click anywhere on the board drops it.
+     Window capture so the canvas underneath can't swallow it; the release of the
+     pick-up hold is ignored. — Imagine Engine Studios Corp */
+  React.useEffect(() => {
+    if (!moving) return;
+    let armed = false;
+    const arm = window.setTimeout(() => { armed = true; }, 120);
+    const swallow = (e: MouseEvent) => { if (armed) { e.preventDefault(); e.stopPropagation(); } };
+    const drop = (e: MouseEvent) => {
+      if (!armed || e.button !== 0) return;
+      e.preventDefault(); e.stopPropagation();
+      setMoving(null);
+    };
+    window.addEventListener("mousedown", drop, true);
+    window.addEventListener("click", swallow, true);
+    return () => { window.clearTimeout(arm); window.removeEventListener("mousedown", drop, true); window.removeEventListener("click", swallow, true); };
+  }, [moving]);
   const retexture = (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
   const menuItem = items.find((x) => x.id === menu?.id);
   const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))
