@@ -9,7 +9,10 @@
 import type { Board3D } from "@/lib/design/board3D";
 import { paverTypes } from "@/data/paverData";
 import { getCopingPricePerSqFtByName, DEFAULT_PAVER_PRICE_PER_SQFT } from "@/utils/paverPricing";
-import { buildPaverTextures } from "@/data/textureLibrary";
+import { buildPaverTextures, buildWaterlineTextures } from "@/data/textureLibrary";
+
+/** Waterline tile is a flat price for the whole waterline of each pool or spa. */
+export const WATERLINE_FLAT_PER_BODY = 4500;
 
 type XZ = { x: number; z: number };
 export interface TakeoffLine { name: string; price: number }
@@ -23,6 +26,9 @@ const regionsArea = (regions: XZ[][][]) => regions.reduce((s, poly) => s + poly.
 const paverByImage = (img?: string) => paverTypes.find((p) => p.image === img);
 let copingNames: Map<string, string> | null = null;
 const copingName = (url: string) => (copingNames ??= new Map(buildPaverTextures("coping").map((t) => [t.url, t.name]))).get(url);
+
+let wNames: Map<string, string> | null = null;
+const wName = (url: string) => (wNames ??= new Map(buildWaterlineTextures().map((t) => [t.url, t.name]))).get(url);
 
 export function board3DTakeoff(data: Board3D | null, items: RatedItem[], shellRate: number): { bodies: BodyLine[]; lines: TakeoffLine[] } {
   if (!data) return { bodies: [], lines: [] };
@@ -39,6 +45,7 @@ export function board3DTakeoff(data: Board3D | null, items: RatedItem[], shellRa
     const cName = copingName(w.coping);
     const cRate = getCopingPricePerSqFtByName(cName);
     if (cRate > 0) lines.push({ name: `${spa ? "Spa" : "Pool"} coping · ${cName} (${Math.round(per)} lf)`, price: per * (w.copingWidth || 1) * cRate });
+    if (w.waterline) lines.push({ name: `${bodies[bodies.length - 1].name} waterline tile${wName(w.waterline) ? ` · ${wName(w.waterline)}` : ""}`, price: WATERLINE_FLAT_PER_BODY });
   }
   for (const s of data.surfaces) {
     const q = regionsArea(s.regions); if (q <= 0) continue;

@@ -2176,6 +2176,7 @@ const SurveyQuoteTool = ({
                           <h5 className="font-semibold text-sm">{isEditMode ? (
                             <input type="text" value={editableTexts[`extra-name-${index}`] ?? displayName} onChange={(e) => setEditableTexts(prev => ({...prev, [`extra-name-${index}`]: e.target.value}))} className="w-full px-1 py-0.5 border rounded text-sm font-semibold" />
                           ) : (editableTexts[`extra-name-${index}`] ?? displayName)}</h5>
+                          {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
                           <div className="flex justify-between text-sm mt-2">
                             <span>Price:</span>
                             {isEditMode ? (

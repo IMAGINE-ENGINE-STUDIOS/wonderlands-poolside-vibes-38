@@ -170,7 +170,17 @@ function geniusTargets(text: string): Targets | null {
   if (!spas && !nums.length && !others) return null;
   return { main, spas, pools: others ? 'all' : nums.filter((n) => n >= 2) };
 }
-function applyToBoard(plan: GeniusPlan, tg: Targets, lib: Props['textureLibrary']): string {
+/** "bigger/smaller coping tiles" → per-body tile-size factor for the named parts (all parts when none named). */
+function tileScaleIntent(text: string): { f: number; parts: ('finishScale' | 'copingScale' | 'waterlineScale')[] } | null {
+  const t = text.toLowerCase();
+  if (!/\b(tiles?|texture|pattern|scale)\b/.test(t)) return null;
+  const f = /\b(bigger|larger|increase|enlarge)\b/.test(t) ? 1.5 : /\b(smaller|tighter|decrease|reduce)\b/.test(t) ? 1 / 1.5 : 0;
+  if (!f) return null;
+  const parts = ([['finish', 'finishScale'], ['coping', 'copingScale'], ['waterline', 'waterlineScale']] as const).filter(([k]) => t.includes(k)).map(([, v]) => v);
+  return { f, parts: parts.length ? [...parts] : ['finishScale', 'copingScale', 'waterlineScale'] };
+}
+function applyToBoard(plan: GeniusPlan, tg: Targets, lib: Props['textureLibrary'], text = '', base = 1.8): string {
+  const ts = tileScaleIntent(text);
   const d = loadBoard3D(); if (!d?.waters?.length) return '';
   const names: string[] = []; let poolNo = 1;
   const NONE = { url: '' } as TextureConfig;
@@ -185,7 +195,8 @@ function applyToBoard(plan: GeniusPlan, tg: Targets, lib: Props['textureLibrary'
     names.push(w.kind === 'spa' ? 'spa' : `pool ${n}`);
     return { ...w, ...(finish ? { finish } : {}), ...(coping ? { coping } : {}), ...(waterline ? { waterline } : {}),
       ...(plan.deck?.copingWidth ? { copingWidth: clamp(plan.deck.copingWidth, 0.5, 2, w.copingWidth) } : {}),
-      ...(anchors ? { anchors, depth: Math.max(...anchors.map((a) => a.depth)) } : {}) };
+      ...(anchors ? { anchors, depth: Math.max(...anchors.map((a) => a.depth)) } : {}),
+      ...(ts ? Object.fromEntries(ts.parts.map((k) => [k, +((w[k] ?? base) * ts.f).toFixed(2)])) : {}) };
   });
   const paver = pick(lib.pavers, plan.paverHint);
   const surfaces = paver ? d.surfaces.map((s) => (s.kind === 'deck' && waters.some((w, k) => w !== d.waters![k] && s.itemId === `__deck_${w.itemId}`) ? { ...s, image: paver } : s)) : d.surfaces;
@@ -222,7 +233,7 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
       // Extra pools / spas / decks: Genius edits whichever bodies the words name.
       const targets = geniusTargets(prompt);
       if (targets) {
-        const touched = applyToBoard(plan, targets, textureLibrary);
+        const touched = applyToBoard(plan, targets, textureLibrary, prompt);
         if (!targets.main) { setNote(touched ? `${plan.summary || 'Updated'} — ${touched}.` : 'There is no matching pool or spa in this scene.'); return; }
       }
       const p = plan.pool || {};
