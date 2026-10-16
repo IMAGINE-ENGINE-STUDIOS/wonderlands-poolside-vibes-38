@@ -6,6 +6,7 @@ const {
   useMemo,
   useCallback
 } = React;
+import { curvedSegmentControls } from '@/utils/curveUtils';
 import { outwardBulgeSign } from '@/utils/curveUtils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -2052,6 +2053,7 @@ export function PoolBuilder({
       if (curveType === 'linear') {
         ctx.lineTo(p2.x, p2.y);
       } else if (curveType === 'curve') {
+        { const _i = (points as any[]).indexOf(p2); if (_i >= 0) { const _j = (_i - 1 + points.length) % points.length; const { cp1, cp2 } = curvedSegmentControls(points as any, _j); ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y); return; } }
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
         const dx = p2.x - p1.x;
@@ -2061,6 +2063,7 @@ export function PoolBuilder({
         const perpY = dx * 0.25 * bs;
         ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
       } else if (curveType === 'arc') {
+        { const _i = (points as any[]).indexOf(p2); if (_i >= 0) { const _j = (_i - 1 + points.length) % points.length; const { cp1, cp2 } = curvedSegmentControls(points as any, _j); ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y); return; } }
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
         const dx = p2.x - p1.x;
@@ -3820,6 +3823,7 @@ export function PoolBuilder({
       if (curveType === 'linear') {
         ctx.lineTo(p2.x, p2.y);
       } else if (curveType === 'curve') {
+        { const _i = (points as any[]).indexOf(p2); if (_i >= 0) { const _j = (_i - 1 + points.length) % points.length; const { cp1, cp2 } = curvedSegmentControls(points as any, _j); ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y); return; } }
         // Smooth bezier curve
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
@@ -3830,6 +3834,7 @@ export function PoolBuilder({
         const perpY = dx * 0.25 * bs;
         ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
       } else if (curveType === 'arc') {
+        { const _i = (points as any[]).indexOf(p2); if (_i >= 0) { const _j = (_i - 1 + points.length) % points.length; const { cp1, cp2 } = curvedSegmentControls(points as any, _j); ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y); return; } }
         // Circular arc
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
