@@ -2221,9 +2221,9 @@ export function UnifiedPoolVisualizer({
 
 
 /** Renders children into the studio header slot when present, otherwise as a floating top-left row. */
-function HeaderSlotPortal({ children }: { children: React.ReactNode }) {
-  const [slot, setSlot] = React.useState<HTMLElement | null>(null);
-  React.useEffect(() => { setSlot(document.getElementById('studio3d-header-slot')); }, []);
+function HeaderSlotPortal({ children }: { children: import("react").ReactNode }) {
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => { setSlot(document.getElementById('studio3d-header-slot')); }, []);
   if (slot) return createPortal(children, slot);
   return <div className="absolute top-4 left-4 z-20 max-w-[calc(100%-200px)]">{children}</div>;
 }
