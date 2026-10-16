@@ -15,7 +15,7 @@
  */
 import { netRegions, type NetItem } from "@/lib/design/boardNetArea";
 import type { DepthAxis, LinearDepthAnchor } from "@/components/scene3d/types";
-import type { PoolStairConfig, ContourSeatingConfig } from "@/components/scene3d/poolAssetTypes";
+import type { PoolStairConfig, ContourSeatingConfig, PoolChairConfig } from "@/components/scene3d/poolAssetTypes";
 
 export const BOARD_3D_KEY = "studio3d.globalDesign.v1";
 export const BOARD_3D_EVENT = "studio3d:globalDesign";
