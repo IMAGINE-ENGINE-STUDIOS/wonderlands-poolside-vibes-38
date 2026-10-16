@@ -391,13 +391,6 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             )}
             </>)}
 
-            {/* ═══ DEPTH ═══ */}
-            <SectionHeader
-              label="Depth Profile"
-              icon={<Ruler className="w-3.5 h-3.5" />}
-              expanded={expandedSection === 'depth'}
-              onToggle={() => toggleSection('depth')}
-            />
             {/* Depth Profile = the exact 3D Studio editor (same anchors shape). */}
 
             {/* Cost estimate lives only in the header take-off dropdown. */}
