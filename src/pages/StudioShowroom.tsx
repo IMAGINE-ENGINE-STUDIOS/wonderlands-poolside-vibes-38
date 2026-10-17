@@ -194,7 +194,7 @@ const Frame = ({
 const ToolSession = React.createContext<{ active: string | null; setActive: (id: string | null) => void }>({ active: null, setActive: () => {} });
 const AutoMount = ({ title, note, children, fit }: { title: string; note: string; children: React.ReactNode; fit?: boolean }) => {
   const session = React.useContext(ToolSession);
-  const on = isShowroomToolActive(title, session.active);
+  const on = isShowroomToolActive(title, session.active); console.log("DBG", title, session.active);
   if (!on) return (
     <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
       <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{note}</p>
