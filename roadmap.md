@@ -1,5 +1,10 @@
 # Roadmap
 
+## Showroom (Oct 17)
+- [ ] Stop automatic launches and contain tools with close controls
+- [ ] Replace legacy global/2D/3D tools with the current Design Studio
+- [ ] Reduce simultaneous loading and verify showroom interactions
+
 - [x] 3D Studio panels, zero entry controls, exact terrain cut
 - [x] Global Design Board V2 uses the site's own price lists (fence, screens, turf, concrete, all pavers incl. Appian $15)
 - [x] Old photo links in saved products/pools/promotions point to the new folder
