@@ -1,5 +1,8 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, it as test } from 'node:test';
+import { strict as assert } from 'node:assert';
 import { isShowroomToolActive, showroomDesignView } from './showroomPolicy';
+
+const expect = (actual: unknown) => ({ toBe: (expected: unknown) => assert.equal(actual, expected) });
 
 describe('showroom launch rules', () => {
   test('no tool opens until explicitly selected', () => {
