@@ -68,7 +68,8 @@ const finishOptions = poolFinishesData.map(finish => ({
  * Built once at module scope — identical to the Wonderlands Studio catalog.
  */
 const studioTextureLibrary = buildCatalogTextureLibrary();
-const DesignStudio = () => {
+/** Copyright Imagine Engine Studios Corp. Embedded studios never navigate away from their host. */
+const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embedded?: boolean; initialView?: '2d' | '3d'; onClose?: () => void }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const {
@@ -270,6 +271,7 @@ const DesignStudio = () => {
 
   // Toggle fullscreen
   const toggleFullscreen = useCallback(() => {
+    if (embedded) return;
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen?.();
       setIsFullscreen(true);
@@ -277,7 +279,7 @@ const DesignStudio = () => {
       document.exitFullscreen?.();
       setIsFullscreen(false);
     }
-  }, []);
+  }, [embedded]);
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -416,9 +418,9 @@ const DesignStudio = () => {
   /* /studio-3d now lands here with ?view=3d: open the 3D Studio once a pool is on the board. */
   const autoOpened3D = useRef(false);
   useEffect(() => {
-    if (autoOpened3D.current || searchParams.get('view') !== '3d') return;
+    if (autoOpened3D.current || (embedded ? initialView !== '3d' : searchParams.get('view') !== '3d')) return;
     if ((customPoolShape && customPoolShape.length >= 3) || searchParams.get('model')) { autoOpened3D.current = true; handleSwitch3D(); }
-  }, [customPoolShape, searchParams, handleSwitch3D]);
+  }, [customPoolShape, searchParams, handleSwitch3D, embedded, initialView]);
   const handleSwitch2D = useCallback(() => {
     // Anything reshaped in 3D (extra pools/spas, fences, screens) is written back to the 2D board.
     try {
@@ -504,11 +506,11 @@ const DesignStudio = () => {
         </div>
       </div>;
   }
-  return <div className={`h-screen overflow-hidden bg-background flex flex-col select-none`}>
+  return <div className={`${embedded ? 'h-full min-h-0' : 'h-screen'} overflow-hidden bg-background flex flex-col select-none`}>
       {/* Category Toolbar with integrated header elements */}
       {activeView === '2d' ? <>
           <CategoryToolbar hideCategories activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-1 sm:gap-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2 px-2 sm:px-3">
+                <Button variant="ghost" size="sm" onClick={() => embedded ? onClose?.() : navigate(-1)} className="gap-2 px-2 sm:px-3">
                   <ArrowLeft className="w-4 h-4" />
                   <span className="hidden sm:inline">Back</span>
                 </Button>
@@ -547,7 +549,7 @@ const DesignStudio = () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-                <Button onClick={() => navigate("/")} title="Home" className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
+                <Button onClick={() => embedded ? onClose?.() : navigate("/")} title={embedded ? 'Close studio' : 'Home'} className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
                   <Home className="h-4 w-4" />
                 </Button>
               </div>} />
@@ -608,7 +610,7 @@ const DesignStudio = () => {
               </AlertDialogContent>
             </AlertDialog>
             {/* Home sits in the header beside Reset (floating rail is hidden on this page). */}
-            <Button onClick={() => navigate("/")} title="Home" className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
+            <Button onClick={() => embedded ? onClose?.() : navigate("/")} title={embedded ? 'Close studio' : 'Home'} className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
               <Home className="h-4 w-4" />
             </Button>
           </div>

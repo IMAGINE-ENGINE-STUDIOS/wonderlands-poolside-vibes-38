@@ -113,7 +113,7 @@ const FieldEditor: React.FC<{ f: Field; value: any; onChange: (v: any) => void; 
   </label>;
 };
 
-const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?: boolean }> = ({ companyId, companyName, readOnly }) => {
+const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?: boolean; embedded?: boolean }> = ({ companyId, companyName, readOnly, embedded = false }) => {
   const { toast } = useToast();
   const [site, setSite] = useState<SiteRow | null | undefined>(undefined);
   const [doc, setDoc] = useState<SiteDoc>(() => wonderlandsTemplate(companyName));
@@ -129,7 +129,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const [dropAt, setDropAt] = useState<number | null>(null);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [full, setFull] = useState(true);
+  const [full, setFull] = useState(!embedded);
   const [zoom, setZoom] = useState(100);
   const [history, setHistory] = useState<SiteVersion[]>([]);
   const [saved, setSaved] = useState<Section[]>(() => { try { return JSON.parse(localStorage.getItem(`sb.saved.${companyId}`) || '[]'); } catch { return []; } });
@@ -283,7 +283,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
 
   return (
     <PagesCtx.Provider value={doc.pages}><MediaCtx.Provider value={media}>
-    <div className={full ? "fixed inset-0 z-50 bg-card overflow-auto" : "rounded-2xl border border-border bg-card overflow-hidden"}>
+    <div className={!embedded && full ? "fixed inset-0 z-50 bg-card overflow-auto" : "rounded-2xl border border-border bg-card overflow-hidden"}>
       {/* Top bar */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
         <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={page.id} onChange={e => { setPageId(e.target.value); setSel(null); }}>{doc.pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
@@ -293,7 +293,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         {!readOnly && <select aria-label="Trade templates" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => e.target.value && applyTrade(e.target.value as Trade)}><option value="">Templates…</option>{TRADE_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select>}
         <select aria-label="Zoom" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={zoom} onChange={e => setZoom(Number(e.target.value))}>{[50, 75, 90, 100, 125, 150].map(z => <option key={z} value={z}>{z}%</option>)}</select>
         <div className="flex rounded-md border border-border">{(Object.keys(DEVICES) as (keyof typeof DEVICES)[]).map(k => { const I = DEVICES[k].icon; return <button key={k} aria-label={k} onClick={() => setDevice(k)} className={`px-2.5 py-1.5 ${device === k ? 'bg-muted' : ''}`}><I className="h-4 w-4" /></button>; })}</div>
-        <Button size="sm" variant="outline" onClick={() => setFull(f => !f)}>{full ? "Exit full screen" : "Full screen"}</Button>
+        {!embedded && <Button size="sm" variant="outline" onClick={() => setFull(f => !f)}>{full ? "Exit full screen" : "Full screen"}</Button>}
         <Button size="sm" variant="ghost" disabled={!past.length} onClick={undo} aria-label="Undo"><Undo2 className="h-4 w-4" /></Button>
         <Button size="sm" variant="ghost" disabled={!future.length} onClick={redo} aria-label="Redo"><Redo2 className="h-4 w-4" /></Button>
         <div className="ml-auto flex flex-wrap items-center gap-2 text-sm">

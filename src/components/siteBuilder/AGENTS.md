@@ -1,4 +1,5 @@
 # Website builder rules
+- SiteBuilder embedded mode disables fullscreen layout and its toggle — why: showroom tools must stay within their widget.
 - Company websites: one company_sites row per company; layout = { draft, published } SiteDoc (pages → sections) from `lib/siteBuilder/model.ts`, edited by `components/siteBuilder/SiteBuilder` (workspace chapter "Website builder") and drawn by `SiteRenderer`; public pages read `published` only — why: drafts never leak and editor/live site render identically.
 - Public sites at /sites/:slug read published snapshot via get_public_site RPC; site forms file leads via submit_site_lead RPC into clients + CRM — why: drafts never leak, anon visitors never touch tables directly.
 - Website builder V2: new sites start from `lib/siteBuilder/wonderlandsTemplate.ts`; links use `page:<slug>` resolved by `resolveLink`; product "pay" buttons are each company's own Stripe Payment Links; custom domains live in company_sites.custom_domain and non-Wonderlands hosts render `TenantDomainSite` via site_slug_for_domain — why: one model, companies get paid directly, one app serves every domain.
