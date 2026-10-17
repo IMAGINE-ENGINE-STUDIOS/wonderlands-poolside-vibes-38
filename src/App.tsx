@@ -105,6 +105,7 @@ const TenantDomainSite = lazy(() => import("./pages/TenantDomainSite"));
 /** Hosts that serve the Wonderlands app itself; any other host is a company's own domain. */
 const isOwnHost = (h: string) => h === 'localhost' || h === '127.0.0.1' || /(^|\.)wonderlandsworld\.com$/.test(h) || /\.lovable\.(app|dev)$/.test(h) || /\.lovableproject\.com$/.test(h);
 const NotFound = lazy(() => import("./pages/NotFound"));
+const WebsiteBuilderPage = lazy(() => import("./pages/WebsiteBuilder"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -137,6 +138,7 @@ const App = () => {
             <Route path="/admin/preview/:view" element={<ProtectedRoute requireAuth={true} requiredRoles={['main_admin']}><AdminPreview /></ProtectedRoute>} />
             {DevStaging && <Route path="/dev/command-center" element={<DevStaging />} />}
             {/* Licensed companies' public websites (published snapshot only) */}
+            <Route path="/website-builder" element={<WebsiteBuilderPage />} />
             <Route path="/sites/:slug" element={<PublicCompanySite />} />
             <Route path="/sites/:slug/:pageSlug" element={<PublicCompanySite />} />
             <Route path="/auth/reset-password" element={<ResetPasswordPage />} />

@@ -17,3 +17,4 @@
 - Subdirectories have their own AGENTS.md (e.g. components/socialite, components/designStudio, components/siteBuilder); read it before changing files there.
 - Website builder and public company sites rules live in src/components/siteBuilder/AGENTS.md — why: keeps root small.
 - Showroom page-scale tools launch explicitly, one at a time, inside contained widgets; global/2D/3D frames use embedded DesignStudio with an initial view and SiteBuilder uses embedded mode — why: prevents fullscreen escapes, competing board listeners and idle 3D workloads.
+- AuthProvider shows its blocking loader only for the first session check; later sign-ins (e.g. showroom demo session) never unmount the app — why: open tools kept losing state and looked unclickable. /website-builder is a standalone page that renders the same SiteBuilder component — why: one builder version everywhere.

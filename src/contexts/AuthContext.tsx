@@ -45,6 +45,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  // Only the very first session check blocks the app. Later sign-ins (e.g. the showroom
+  // demo session) must never unmount the page, or every open tool loses its state.
+  const [booted, setBooted] = useState(false);
+  useEffect(() => { if (!loading) setBooted(true); }, [loading]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -200,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshProfile,
   };
 
-  if (loading) {
+  if (loading && !booted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Loading application...</div>

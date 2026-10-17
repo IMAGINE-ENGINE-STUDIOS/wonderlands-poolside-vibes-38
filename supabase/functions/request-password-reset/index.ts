@@ -17,7 +17,11 @@ Deno.serve(async (req) => {
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email, options: { redirectTo: `${base}/auth/reset-password` } });
     // Same answer whether or not the account exists, so emails can't be probed.
-    if (error || !data?.properties?.action_link) return json({ ok: true });
+    if (error || !data?.properties?.action_link) {
+      // Logged server-side only (never returned) so failures are visible in function logs.
+      console.error(`generateLink failed for reset: ${error?.message ?? 'no action_link'}`);
+      return json({ ok: true });
+    }
 
     const link = data.properties.action_link;
     const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#f6f7f9;padding:24px;color:#0f172a">
@@ -34,6 +38,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({ from: "Wonderlands World <sales@wonderlandsworld.com>", to: [email], subject: "Reset your Wonderlands password", html }),
     });
     if (!r.ok) { const t = await r.text(); console.error(`Resend failed [${r.status}]: ${t}`); return json({ error: "Email failed", status: r.status, details: t }, 502); }
+    console.log(`Reset email sent via Resend: ${(await r.json().catch(() => ({})))?.id ?? 'ok'}`);
     return json({ ok: true });
   } catch (e) {
     console.error(e);
