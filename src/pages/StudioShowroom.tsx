@@ -51,7 +51,7 @@ import {
   SHOWROOM_TIERS,
   showroomTierOf,
 } from '@/lib/showroomBus';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { isShowroomToolActive, showroomDesignView } from '@/components/showroom/showroomPolicy';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SocialiteGate } from '@/components/socialite/SocialiteAuth';
@@ -62,7 +62,6 @@ const FlipBuilderV2 = React.lazy(() => import('@/components/flip/FlipBuilderV2')
 const SocialiteTool = React.lazy(() => import('@/pages/Socialite'));
 const SocialiteCloudSync = React.lazy(() => import('@/components/socialite/SocialiteCloudSync'));
 const SolarCalculatorBoard = React.lazy(() => import('@/components/solar/SolarCalculatorBoard'));
-const GlobalDesignBoardTool = React.lazy(() => import('@/pages/GlobalDesignBoardV2'));
 const WonderlandsStudioTool = React.lazy(() => import('@/pages/WonderlandsStudio'));
 
 const FenceDrawingBoard = React.lazy(() => import('@/components/fence/FenceDrawingBoard'));
@@ -71,9 +70,6 @@ const EnclosureDrawingBoard = React.lazy(() => import('@/components/enclosure/En
 const EnclosureConfigurator = React.lazy(() => import('@/components/enclosure/EnclosureConfigurator'));
 const SaunaSalesPricingDialog = React.lazy(() => import('@/components/sauna/SaunaSalesPricingDialog'));
 const SurveyQuoteTool = React.lazy(() => import('@/components/SurveyQuoteTool'));
-const StudioSitePlanner = React.lazy(() =>
-  import('@/components/studio/StudioSitePlanner').then((m) => ({ default: m.StudioSitePlanner })),
-);
 const GrassConfigurator = React.lazy(() => import('@/components/grass/GrassConfigurator'));
 const FlipSearch = React.lazy(() => import('@/components/flip/FlipSearch'));
 const SignaturePad = React.lazy(() =>
@@ -85,7 +81,6 @@ const BlueprintImportDialog = React.lazy(() =>
 const DepthProfileEditor = React.lazy(() =>
   import('@/components/scene3d/DepthProfileEditor').then((m) => ({ default: m.DepthProfileEditor })),
 );
-const ShowroomStudio3D = React.lazy(() => import('@/components/showroom/ShowroomStudio3D'));
 const ShowroomLandscape = React.lazy(() => import('@/components/showroom/ShowroomLandscape'));
 const ShowroomDemoSession = React.lazy(() => import('@/components/showroom/ShowroomDemoSession'));
 const SiteBuilderTool = React.lazy(() => import('@/components/siteBuilder/SiteBuilder'));
@@ -195,62 +190,56 @@ const Frame = ({
   );
 };
 
-/** Auto-mounts page-scale tools when their frame scrolls near, so every tool plays in place yet the page stays fast. */
+/** Copyright Imagine Engine Studios Corp. One explicit launch, never activated by scrolling. */
+const ToolSession = React.createContext<{ active: string | null; setActive: (id: string | null) => void }>({ active: null, setActive: () => {} });
 const AutoMount = ({ title, note, children, fit }: { title: string; note: string; children: React.ReactNode; fit?: boolean }) => {
-  const ref = React.useRef<HTMLDivElement>(null);
-  const [on, setOn] = React.useState(false);
-  React.useEffect(() => {
-    const el = ref.current;
-    if (!el || on) return;
-    const io = new IntersectionObserver((e) => { if (e[0]?.isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: '300px' });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [on]);
-  if (!on) {
-    return (
-      <div ref={ref} className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-        <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{note}</p>
-        <Button className="rounded-none px-7 text-[10px] uppercase tracking-[0.28em]" onClick={() => setOn(true)}>
-          <Play className="mr-2 h-3.5 w-3.5" /> Play {title}
+  const session = React.useContext(ToolSession);
+  const on = isShowroomToolActive(title, session.active);
+  if (!on) return (
+    <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{note}</p>
+      <Button className="rounded-none px-7 text-[10px] uppercase tracking-[0.28em]" onClick={() => session.setActive(title)}>
+        <Play className="mr-2 h-3.5 w-3.5" /> Play {title}
+      </Button>
+    </div>
+  );
+  return (
+    <div className="relative isolate overflow-hidden bg-background [transform:translateZ(0)]">
+      <div className="flex justify-end border-b border-border px-3 py-2">
+        <Button variant="outline" size="sm" onClick={() => session.setActive(null)} aria-label={`Close ${title}`}>
+          <ArrowLeft className="mr-2 h-3.5 w-3.5" /> Back to showroom
         </Button>
       </div>
-    );
-  }
-  return (
-    <div className={cn('relative bg-background', fit ? 'overflow-x-auto' : 'max-h-[85vh] overflow-auto')}>
-      <React.Suspense fallback={<Fallback />}>{children}</React.Suspense>
+      <div className={cn('relative overflow-auto', fit ? 'h-[760px] max-h-[80vh]' : 'max-h-[80vh]')}>
+        <React.Suspense fallback={<Fallback />}>{children}</React.Suspense>
+      </div>
     </div>
   );
 };
 
-/** 2D Design Studio in the showroom: a start screen, then the studio locked inside its frame
- *  (transform makes even fixed panels stay inside, so no tool spills off the widget). */
-const ShowroomDesignStudio = () => {
-  const [on, setOn] = React.useState(false);
-  if (!on) {
-    return (
-      <div className="relative flex min-h-[520px] items-end bg-gradient-to-t from-muted/60 to-background p-6 md:p-12">
-        <div className="max-w-xl border border-border/70 bg-background/80 p-6 backdrop-blur-md md:p-10">
-          <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Wonderlands · 2D Studio</p>
-          <h3 className="mt-3 font-serif text-3xl leading-tight md:text-5xl">Draw your pool to scale.</h3>
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            Sketch the outline point by point, set the deck, depth, finishes and features, then switch to 3D and back — nothing is lost.
-          </p>
-          <dl className="mt-6 grid grid-cols-3 gap-4 border-t border-border/70 pt-4 text-xs">
-            <div><dt className="uppercase tracking-[0.2em] text-muted-foreground">Scale</dt><dd className="mt-1 font-serif text-lg">1 ft grid</dd></div>
-            <div><dt className="uppercase tracking-[0.2em] text-muted-foreground">Views</dt><dd className="mt-1 font-serif text-lg">2D · 3D</dd></div>
-            <div><dt className="uppercase tracking-[0.2em] text-muted-foreground">Price</dt><dd className="mt-1 font-serif text-lg">Live</dd></div>
-          </dl>
-          <Button onClick={() => setOn(true)} className="mt-6 rounded-none px-8 text-[10px] uppercase tracking-[0.3em]">Enter the 2D Studio</Button>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="relative h-[760px] w-full overflow-hidden bg-background [&>div]:!min-h-0 [&>div]:h-full" style={{ transform: 'translateZ(0)' }}>
-      <React.Suspense fallback={<Fallback />}><DesignStudioTool /></React.Suspense>
+/** Lightweight widgets defer rendering until nearby; page-scale tools still require Play. */
+const NearbyWidget = ({ children }: { children: React.ReactNode }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { setVisible(true); observer.disconnect(); }
+    }, { rootMargin: '150px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return <div ref={ref} className="min-h-32">{visible ? children : null}</div>;
+};
+
+const ShowroomDesignStudio = ({ widgetId = 'design-studio', title = 'the 2D Studio' }: { widgetId?: string; title?: string }) => {
+  const session = React.useContext(ToolSession);
+  return <AutoMount fit title={title} note="Your project · 2D and 3D">
+    <div className="relative h-full min-h-0 overflow-hidden">
+      <DesignStudioTool embedded initialView={showroomDesignView(widgetId)} onClose={() => session.setActive(null)} />
     </div>
-  );
+  </AutoMount>;
 };
 
 /** Website builder bound to the signed-in user's company. */
@@ -268,7 +257,7 @@ const ShowroomSiteBuilder = () => {
   }, [user]);
   if (co === undefined) return <Fallback />;
   if (!co) return <p className="py-12 text-center text-sm text-muted-foreground">Sign in with a company account to build your website here.</p>;
-  return <SiteBuilderTool companyId={co.id} companyName={co.name} />;
+  return <SiteBuilderTool embedded companyId={co.id} companyName={co.name} />;
 };
 
 const DEMO_SCENE_GROUPS = [
@@ -289,12 +278,6 @@ const DEMO_SCENE_GROUPS = [
     ],
   },
 ];
-
-/** Warm the quote + signature tools so their buttons open instantly. */
-const preloadDocTools = () => {
-  void import('@/components/SurveyQuoteTool');
-  void import('@/components/blueprint/SignaturePad');
-};
 
 const EMPTY_PLAN: SitePlanData = { shapes: [], pxPerFt: DEFAULT_PX_PER_FT };
 
@@ -325,10 +308,11 @@ const StudioShowroom = () => {
   const [homeSection, setHomeSection] = React.useState('pools');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [activeWidget, setActiveWidget] = React.useState<string | null>(null);
-  const [planner3D, setPlanner3D] = React.useState<{ scene: any; lib: any } | null>(null);
+  // Active execution is intentionally ephemeral: restored scroll must never launch a tool.
+  const [runningTool, setRunningTool] = React.useState<string | null>(null);
+  const toolSession = React.useMemo(() => ({ active: runningTool, setActive: setRunningTool }), [runningTool]);
 
   const ActiveHomeSection = HOME_COMPONENTS[homeSection] ?? HOME_COMPONENTS.pools;
-  React.useEffect(() => { const t = window.setTimeout(preloadDocTools, 1500); return () => window.clearTimeout(t); }, []);
 
   /* Genius reads this screen and can operate every widget on it. */
   React.useEffect(() => {
@@ -397,14 +381,7 @@ const StudioShowroom = () => {
         <ShowroomLandscape />
       </AutoMount>
     ),
-    'studio-3d': (
-      <AutoMount fit title="the 3D Studio" note="A rectangular pool, live in 3D. Orbit, change finishes and lights, and walk the deck.">
-        <ShowroomStudio3D height={680} />
-        <div className="mt-4 flex justify-end">
-          <Link to="/design-studio?view=3d" className="text-[10px] uppercase tracking-[0.28em] underline-offset-4 hover:underline">Open the 3D Studio full screen</Link>
-        </div>
-      </AutoMount>
-    ),
+    'studio-3d': <ShowroomDesignStudio widgetId="studio-3d" title="the 3D Studio" />,
     'flip-v8': (
       <>
           <AutoMount title="FLIP V8" note="The magazine exactly as it opens on the home page. Turn pages with the arrows.">
@@ -439,13 +416,7 @@ const StudioShowroom = () => {
           </AutoMount>
       </>
     ),
-    'global-board': (
-      <>
-          <AutoMount fit title="the Global Board" note="Choose a product, then draw it: pools, spas, decks, turf, fences and screens on one board, priced as you draw.">
-            <GlobalDesignBoardTool embedded />
-          </AutoMount>
-      </>
-    ),
+    'global-board': <ShowroomDesignStudio widgetId="global-board" title="the Project Design Studio" />,
     'wonderlands-studio': (
       <>
           <AutoMount title="the Configuration Studio" note="Every category with one running total.">
@@ -542,13 +513,7 @@ const StudioShowroom = () => {
           <QuoteCalculators heading="FLIP Calculators" eyebrow="Every discipline" />
       </>
     ),
-    'site-planner': (
-      <>
-          <React.Suspense fallback={<Fallback />}>
-            <StudioSitePlanner modelName="Maxima" meta="16' × 40'" categoryId="pools" onViewIn3D={(scene, lib) => setPlanner3D({ scene, lib })} />
-          </React.Suspense>
-      </>
-    ),
+    'site-planner': <ShowroomDesignStudio widgetId="site-planner" title="the 2D Site Studio" />,
     'fence': (
       <>
           <React.Suspense fallback={<Fallback />}>
@@ -777,7 +742,7 @@ const StudioShowroom = () => {
       </>
     ),
     'website-builder': (
-      <AutoMount title="Website Builder" note="Opened on a demo company — edit, save and publish a real site without signing in.">
+      <AutoMount fit title="Website Builder" note="Opened on a demo company — edit, save and publish a real site without signing in.">
         <ShowroomDemoSession><ShowroomSiteBuilder /></ShowroomDemoSession>
       </AutoMount>
     ),
@@ -804,6 +769,7 @@ const StudioShowroom = () => {
   };
 
   return (
+    <ToolSession.Provider value={toolSession}>
     <div className="min-h-screen bg-background text-foreground">
       {/* Editorial masthead — same magazine language as the home page. */}
       <header className="relative border-b border-border/70">
@@ -884,7 +850,7 @@ const StudioShowroom = () => {
               <div className="space-y-20">
                 {items.map((w) => (
                   <Frame key={w.id} section={w} active={isActive(w.id)}>
-                    {renderers[w.id]}
+                    <NearbyWidget>{renderers[w.id]}</NearbyWidget>
                   </Frame>
                 ))}
               </div>
@@ -893,19 +859,11 @@ const StudioShowroom = () => {
         })}
       </main>
 
-      <Dialog open={!!planner3D} onOpenChange={(o) => !o && setPlanner3D(null)}>
-        <DialogContent className="max-w-[95vw] w-[95vw] p-0 overflow-hidden">
-          <DialogTitle className="sr-only">Site plan in 3D</DialogTitle>
-          <React.Suspense fallback={<Fallback />}>
-            {planner3D && <ShowroomStudio3D scene={planner3D.scene} textureLibrary={planner3D.lib} height="85vh" />}
-          </React.Suspense>
-        </DialogContent>
-      </Dialog>
-
       <footer className="border-t border-border/70 py-10 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
         Wonderlands World · The Showroom
       </footer>
     </div>
+    </ToolSession.Provider>
   );
 };
 
