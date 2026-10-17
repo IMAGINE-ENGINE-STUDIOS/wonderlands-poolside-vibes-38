@@ -21,26 +21,27 @@ const ResetPasswordPage = () => {
   const [isValidToken, setIsValidToken] = useState(false);
 
   useEffect(() => {
-    // Check if we have the necessary parameters from the email link
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    const type = searchParams.get('type');
+    // Tokens may arrive in the #hash (Supabase default) or ?query.
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const get = (k: string) => hash.get(k) || searchParams.get(k);
+    const accessToken = get('access_token');
+    const refreshToken = get('refresh_token');
+    const type = get('type');
 
     if (type === 'recovery' && accessToken && refreshToken) {
       setIsValidToken(true);
-      // Set the session using the tokens from the URL
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-    } else {
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      return;
+    }
+    // Session may already be set by the Supabase client from the hash.
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) { setIsValidToken(true); return; }
       toast({
         title: "Invalid Reset Link",
         description: "This password reset link is invalid or has expired.",
-        variant: "destructive",
       });
       navigate('/auth');
-    }
+    });
   }, [searchParams, navigate, toast]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {

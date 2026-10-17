@@ -23,8 +23,9 @@ const PasswordResetModal = ({ isOpen, onClose }: PasswordResetModalProps) => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      // Sent by our own Resend function from sales@wonderlandsworld.com
+      const { error } = await supabase.functions.invoke('request-password-reset', {
+        body: { email, origin: window.location.origin },
       });
 
       if (error) {
