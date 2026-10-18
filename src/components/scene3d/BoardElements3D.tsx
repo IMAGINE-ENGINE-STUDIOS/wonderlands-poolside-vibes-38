@@ -304,7 +304,8 @@ function DrawnDeck({ s, holes, holesKey, scale }: { s: Surface3D; holes: XZ[][];
   return (
     <mesh key={tex?.uuid || "no-deck-texture"} geometry={geo} castShadow receiveShadow>
       <meshPhongMaterial
-        ref={(m: THREE.MeshPhongMaterial | null) => { if (m && m.userData.cutKey !== holesKey) { m.userData.cutKey = holesKey; applyHoleCut(m, holes); } }}
+        // Regions are already clipped against the exact main/extra deck and
+        // coping outlines. A second approximate shader cut created grass gaps.
         map={tex} color={tex ? "#ffffff" : s.color || "#d9d4cc"} shininess={40} side={THREE.DoubleSide}
       />
     </mesh>

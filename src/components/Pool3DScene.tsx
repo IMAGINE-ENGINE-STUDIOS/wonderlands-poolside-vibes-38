@@ -1046,18 +1046,14 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     window.addEventListener(BOARD_3D_EVENT, on);
     return () => window.removeEventListener(BOARD_3D_EVENT, on);
   }, []);
-  const boardDeckCutouts = useMemo(() => boardDeckWaters.filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(w.pts, Math.max(0.05, (w.copingWidth || 1) - 0.1)).offset), [boardDeckWaters]);
+  const boardDeckCutouts = useMemo(() => boardDeckWaters.filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(w.pts, w.copingWidth ?? 1).offset), [boardDeckWaters]);
 
   // Calculate normalized pool curve for deck/coping geometry
   const poolCurve3D = useMemo(() => {
     if (points.length < 3) return [];
     
-    // Generate smooth curved pool boundary
-    const poolCurve2D = points.map(p => ({ x: p.x, y: p.y }));
-    const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
-    
-    // Smoothed once here → walls, coping, waterline and deck all share it.
-    return smoothCurvedRing(smoothPoolCurve.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y })));
+    // SceneConverter already samples the canonical outline; a second spline moves the shared boundary.
+    return points.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y }));
   }, [points, poolFrameCenter]);
   
   // Calculate normalized hardscape points for exact deck sync (same origin as the pool)
@@ -1301,8 +1297,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             </group>
           )}
 
-          {/* Deck Border - outer face around coping, 3" tall, min 3ft wide */}
-          <group onClick={(e) => {
+          {/* Explicit empty outline means no attached deck. */}
+          {(!hardscapePoints || hardscapePoints.length >= 3) && <group onClick={(e) => {
             e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
             onSelectCategory?.('deck');
@@ -1322,7 +1318,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
               textureRotation={paverTextureRotation}
               cutouts={boardDeckCutouts}
             />
-          </group>
+          </group>}
         </>
       )}
 

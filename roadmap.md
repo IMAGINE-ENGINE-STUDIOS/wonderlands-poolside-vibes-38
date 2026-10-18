@@ -1,5 +1,12 @@
 # Roadmap
 
+## Studio integrity (Oct 18)
+- [x] Deck/turf fill preserves pools, coping and existing surfaces with shared 2D/3D net geometry
+- [x] Isolate materials per pool/deck and synchronize both directions
+- [x] Save and reopen complete designs from either view
+- [x] Keep pool selector and summary accessible
+- [x] Run geometry/persistence tests and exercise studio flow
+
 ## Showroom (Oct 17)
 - [ ] Stop automatic launches and contain tools with close controls
 - [ ] Replace legacy global/2D/3D tools with the current Design Studio

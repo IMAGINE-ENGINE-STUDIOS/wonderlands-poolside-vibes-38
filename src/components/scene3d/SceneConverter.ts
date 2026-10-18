@@ -2,6 +2,8 @@
 
 import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint, AdditionalPool, PoolFeature, PoolStair, FeatureType, StairShape } from './types';
 import { generateCurvedPoolPoints, densifyPoolOutline } from '@/utils/curveUtils';
+import { paverTypes as catalogPavers } from '@/data/paverData';
+import { buildFinishTextures } from '@/data/textureLibrary';
 import { poolModelShapes, getPoolModelShape } from '@/data/poolModelShapes';
 
 // Parse dimensions from string like "14' x 28'" or "16 feet x 32 feet" or "16' × 40'"
@@ -465,7 +467,7 @@ export function productToScene(
       shape: 'rectangle',
       finish: {
         url: linerTextureUrl,
-        name: selectedExtras.finish || selectedExtras.linerOption || 'Default',
+        name: m2d?.finish?.name || selectedExtras.finish || selectedExtras.linerOption || 'Default',
         scale: 1.8,
         offset: [0, 0],
         roughness: 0.2,
@@ -476,10 +478,10 @@ export function productToScene(
       dimensions: { length, width, depth: deepDepth }
     },
     deck: {
-      points: deckPoints,
+      points: Array.isArray(selectedExtras.poolBuilderData?.hardscapePoints) && !selectedExtras.poolBuilderData.hardscapePoints.length ? [] : deckPoints,
       paver: {
         url: paverTextureUrl,
-        name: selectedExtras.paverOption || 'Default Paver',
+        name: m2d?.paver?.name || selectedExtras.paverOption || 'Default Paver',
         roughness: 0.8,
         metalness: 0.0,
         scale: 1.8,
@@ -487,7 +489,7 @@ export function productToScene(
       },
       coping: {
         url: copingTextureUrl,
-        name: selectedExtras.copingPaverOption || 'Default Coping',
+        name: m2d?.coping?.name || selectedExtras.copingPaverOption || 'Default Coping',
         roughness: 0.6,
         metalness: 0.0,
         scale: 1.8,
@@ -599,6 +601,7 @@ export function scene3DToPoolBuilder(
   }));
 
   // Material picks made in 3D (by product name) so the 2D board shows the same finish/paver/coping.
-  const materials = { finish: scene.pool.finish?.name, paver: scene.deck.paver?.name, coping: scene.deck.coping?.name };
+  const f = buildFinishTextures().find(f => f.url === scene.pool.finish?.url);
+  const materials = { finish: f ? `cat-${f.id}` : scene.pool.finish?.name, paver: catalogPavers.find(p => p.image === scene.deck.paver?.url)?.id ?? scene.deck.paver?.name, coping: catalogPavers.find(p => p.image === scene.deck.coping?.url)?.id ?? scene.deck.coping?.name };
   return { points, depthPoints, hardscapePoints, features, additionalPools, materials };
 }

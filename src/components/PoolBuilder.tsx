@@ -6,6 +6,8 @@ const {
   useMemo,
   useCallback
 } = React;
+import type { StudioMaterials } from '@/lib/design/studioMaterials';
+import { captureMaterials } from '@/lib/design/studioMaterials';
 import { curvedSegmentControls } from '@/utils/curveUtils';
 import { outwardBulgeSign } from '@/utils/curveUtils';
 import { Button } from '@/components/ui/button';
@@ -19,7 +21,8 @@ import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower
 import { ShapePanel } from './poolBuilder/ShapePanel';
 import { DesignerToolPanel } from './poolBuilder/DesignerToolPanel';
 import { ProjectManager, setAutoSave, getAutoSave, saveProjectToLibrary } from './poolBuilder/ProjectManager';
-import { useSiteElements } from './designStudio/SiteElementsLayer';
+import { netRegions, computeNetAreas } from '@/lib/design/boardNetArea';
+import { useSiteElements, studioNetItems } from './designStudio/SiteElementsLayer';
 import { useBoardHistory, useBoardCommands, publishBoardStatus } from './designStudio/boardCommands';
 import { toast } from '@/hooks/use-toast';
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
@@ -117,6 +120,8 @@ interface PoolBuilderProps {
     additionalPools?: any[];
     materials?: { finish?: string; paver?: string; coping?: string };
   } | null; // External state changes from 3D viewer
+  onProjectStateChange?: (data: any) => void;
+  managedProjects?: boolean;
   onPoolDataChange?: (data: {
     points: Point[];
     depthPoints: DepthPoint[];
@@ -184,7 +189,7 @@ export function PoolBuilder({
   onToolUsed,
   onExternalUpdate,
   onPoolDataChange,
-  renderOverlay
+  renderOverlay, onProjectStateChange, managedProjects = false
 }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -505,6 +510,9 @@ export function PoolBuilder({
     id: string;
   }
   interface PoolShape {
+    materials?: StudioMaterials;
+    details3D?: any;
+    renderRing3D?: any[];
     id: string;
     type: 'pool' | 'spa';
     points: Point[];
@@ -518,6 +526,23 @@ export function PoolBuilder({
     spilloverEdges?: number[]; // Edge indices that are spillover (water flows over, no coping)
   }
   const [additionalPools, setAdditionalPools] = useState<PoolShape[]>([]);
+  const [materialTarget, setMaterialTarget] = useState<string | null>(null);
+  useEffect(() => {
+    const on = (e: Event) => setMaterialTarget((e as CustomEvent).detail?.id ?? null);
+    window.addEventListener('design-studio:selection', on);
+    return () => window.removeEventListener('design-studio:selection', on);
+  }, []);
+  const defaults: StudioMaterials = { finishId: selectedFinishId, paverId: selectedPaverId, copingId: selectedCopingId };
+  const defaultsRef = useRef(defaults); defaultsRef.current = defaults;
+  useEffect(() => { setAdditionalPools(prev => prev.some(p => !p.materials) ? prev.map(p => p.materials ? p : { ...p, materials: captureMaterials(undefined, defaultsRef.current) }) : prev); }, [additionalPools]);
+  const targetBody = materialTarget?.startsWith('__xp:') || materialTarget?.startsWith('__xd:') ? additionalPools.find(p => p.id === materialTarget.slice(5)) : undefined;
+  const targetMaterials = targetBody?.materials ?? defaults;
+  const pickMaterial = (key: 'finishId' | 'copingId' | 'paverId', id: string) => {
+    if (targetBody) setAdditionalPools(prev => prev.map(p => p.id === targetBody.id ? { ...p, materials: { ...captureMaterials(p.materials, defaults), [key]: id, [key.replace('Id', 'Url')]: undefined } } : p));
+    else if (materialTarget === '__pool' || materialTarget === '__deck' || !materialTarget) {
+      if (key === 'finishId') setSelectedFinishId(id); else if (key === 'copingId') setSelectedCopingId(id); else setSelectedPaverId(id);
+    }
+  };
   const [selectedAdditionalPool, setSelectedAdditionalPool] = useState<string | null>(null);
   const [draggingAdditionalPool, setDraggingAdditionalPool] = useState(false);
   const [draggingAdditionalPoolPoint, setDraggingAdditionalPoolPoint] = useState<{
@@ -556,18 +581,18 @@ export function PoolBuilder({
   // ─── Auto-Save: persist every meaningful change ───
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [siteItems, setSiteItems] = useSiteElements();
   const getSerializableState = useCallback(() => ({
     points, hardscapePoints, additionalDeckPoints, selectedDeckId, deckOffsetsById,
     features, depthPoints, poolShape, selectedPaverId, selectedCopingId, selectedFinishId,
     deckOffset, additionalPools, fencePoints, fenceDoors, fenceHeight, smoothFence,
-    scale, zoomLevel, gridSnap, snapSize, customTextures,
+    scale, zoomLevel, gridSnap, snapSize, customTextures, site: siteItems,
   }), [points, hardscapePoints, additionalDeckPoints, selectedDeckId, deckOffsetsById,
     features, depthPoints, poolShape, selectedPaverId, selectedCopingId, selectedFinishId,
     deckOffset, additionalPools, fencePoints, fenceDoors, fenceHeight, smoothFence,
-    scale, zoomLevel, gridSnap, snapSize, customTextures]);
+    scale, zoomLevel, gridSnap, snapSize, customTextures, siteItems]);
 
   // ─── 2D board history + header commands (undo/redo/save/projects) — Imagine Engine Studios Corp ───
-  const [siteItems, setSiteItems] = useSiteElements();
   const boardSnap = useMemo(() => ({ points, hardscapePoints, additionalPools, additionalDeckPoints, features, site: siteItems }),
     [points, hardscapePoints, additionalPools, additionalDeckPoints, features, siteItems]);
   const applyBoardSnap = useCallback((s: typeof boardSnap) => {
@@ -609,7 +634,7 @@ export function PoolBuilder({
   }, [points.length >= 3, additionalPools.length]);
   useBoardCommands((c) => {
     if (c === 'undo') boardHistory.undo(); else if (c === 'redo') boardHistory.redo();
-    else if (c === 'save') saveNow(); else setShowProjectManager(true);
+    else if (!managedProjects) { if (c === 'save') saveNow(); else setShowProjectManager(true); }
   });
   useEffect(() => { publishBoardStatus({ canUndo: boardHistory.canUndo, canRedo: boardHistory.canRedo, lastSaved: lastAutoSaved }); },
     [boardHistory.canUndo, boardHistory.canRedo, lastAutoSaved]);
@@ -620,7 +645,7 @@ export function PoolBuilder({
       const k = e.key.toLowerCase();
       if (k === 'z' && !e.shiftKey) { e.preventDefault(); boardHistory.undo(); }
       else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); boardHistory.redo(); }
-      else if (k === 's') { e.preventDefault(); saveNow(); }
+      else if (k === 's') { e.preventDefault(); if (managedProjects) window.dispatchEvent(new CustomEvent('design-studio:board-command', { detail: 'save' })); else saveNow(); }
     };
     window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey);
   }, [boardHistory, saveNow]);
@@ -633,11 +658,11 @@ export function PoolBuilder({
   const applyExternalMaterials = (m?: { finish?: string; paver?: string; coping?: string }) => {
     if (!m) return;
     const n = (x?: string) => (x || '').toLowerCase().trim();
-    const f = m.finish && CATALOG_FINISHES_2D.find(t => n(t.name) === n(m.finish));
+    const f = m.finish && CATALOG_FINISHES_2D.find(t => (t.id === m.finish || n(t.name) === n(m.finish)));
     if (f) setSelectedFinishId(f.id);
-    const pv = m.paver && paverTypes.find(t => n(t.name) === n(m.paver));
+    const pv = m.paver && paverTypes.find(t => (t.id === m.paver || n(t.name) === n(m.paver)));
     if (pv) setSelectedPaverId(pv.id);
-    const cp = m.coping && paverTypes.find(t => n(t.name) === n(m.coping));
+    const cp = m.coping && paverTypes.find(t => (t.id === m.coping || n(t.name) === n(m.coping)));
     if (cp) setSelectedCopingId(cp.id);
   };
 
@@ -657,11 +682,11 @@ export function PoolBuilder({
     if (onExternalUpdate.depthPoints && onExternalUpdate.depthPoints.length >= 2) {
       setDepthPoints(onExternalUpdate.depthPoints);
     }
-    if (onExternalUpdate.hardscapePoints && onExternalUpdate.hardscapePoints.length >= 3) {
+    if (onExternalUpdate.hardscapePoints) {
       setHardscapePoints(onExternalUpdate.hardscapePoints);
     }
     const xp = (onExternalUpdate as { additionalPools?: PoolShape[] }).additionalPools;
-    if (Array.isArray(xp) && xp.length) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
+    if (Array.isArray(xp)) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
     applyExternalMaterials(onExternalUpdate.materials);
     
     // Clear flag after a frame to allow normal updates
@@ -674,19 +699,20 @@ export function PoolBuilder({
   // flushes the pending save instead of dropping the last 2s of changes —
   // that dropped save made materials snap back to older picks on return.
   const latestStateRef = useRef<any>(null);
-  latestStateRef.current = getSerializableState(); // empty boards are saved too, so removed pools never come back
+  latestStateRef.current = getProjectState(); // empty boards are saved too, so removed pools never come back
+  useEffect(() => { onProjectStateChange?.(getProjectState()); }, [getProjectState, onProjectStateChange]);
   useEffect(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
       autoSaveTimerRef.current = null;
-      setAutoSave(getSerializableState());
+      if (!managedProjects) setAutoSave(getProjectState());
       setLastAutoSaved(new Date().toISOString());
     }, 2000);
   }, [getSerializableState, points]);
   useEffect(() => () => {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
-      if (latestStateRef.current) setAutoSave(latestStateRef.current);
+      if (!managedProjects && latestStateRef.current) setAutoSave(latestStateRef.current);
     }
   }, []);
 
@@ -753,8 +779,7 @@ export function PoolBuilder({
       setSiteItems(data.site);
       setAdditionalPools(data.additionalPools ?? []); setAdditionalDeckPoints(data.additionalDeckPoints ?? {});
       setFeatures(data.features ?? []); setHardscapePoints(data.hardscapePoints ?? []);
-      try { Object.keys(localStorage).filter(k => k.startsWith('design-studio.scene3d.')).forEach(k => localStorage.removeItem(k)); } catch { /* ignore */ }
-      window.dispatchEvent(new CustomEvent('design-studio:project-loaded'));
+
     }
     if (data.points) setPoints(data.points);
     if (data.hardscapePoints) setHardscapePoints(data.hardscapePoints);
@@ -783,7 +808,7 @@ export function PoolBuilder({
 
   useEffect(() => {
     const saved = getAutoSave();
-    if (saved?.data && saved.data.points?.length > 0) {
+    if (saved?.data) {
       loadProjectState(saved.data);
     }
     // Coming back from the 3D Studio: its edits must win over the older 2D auto-save
@@ -792,10 +817,10 @@ export function PoolBuilder({
     if (ext) {
       if (ext.points && ext.points.length >= 3) setPoints(ext.points);
       if (ext.depthPoints && ext.depthPoints.length >= 2) setDepthPoints(ext.depthPoints);
-      if (ext.hardscapePoints && ext.hardscapePoints.length >= 3) setHardscapePoints(ext.hardscapePoints);
+      if (ext.hardscapePoints) setHardscapePoints(ext.hardscapePoints);
       if (Array.isArray((ext as { additionalPools?: PoolShape[] }).additionalPools)) {
         const xp = (ext as { additionalPools?: PoolShape[] }).additionalPools!;
-        if (xp.length) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
+        setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
       }
       applyExternalMaterials(ext.materials);
     }
@@ -1703,6 +1728,22 @@ export function PoolBuilder({
     return () => { cancelled = true; };
   }, [selectedPaverId, selectedCopingId, selectedFinishId]);
 
+  const entityImages = useRef(new Map<string, HTMLImageElement>());
+  const [entityTextureTick, setEntityTextureTick] = useState(0);
+  useEffect(() => {
+    for (const p of additionalPools) {
+      const m = p.materials;
+      const urls = [m?.paverUrl ?? paverTypes.find(x => x.id === m?.paverId)?.image, m?.copingUrl ?? paverTypes.find(x => x.id === m?.copingId)?.image, m?.finishUrl ?? finishes.find(x => x.id === m?.finishId)?.image];
+      for (const url of urls) if (url && !entityImages.current.has(url)) {
+        const image = new Image(); image.onload = () => setEntityTextureTick(t => t + 1); image.src = url; entityImages.current.set(url, image);
+      }
+    }
+  }, [additionalPools]);
+  const entityTexture = (m: StudioMaterials | undefined, key: 'paver' | 'coping' | 'finish') => {
+    const id = m?.[`${key}Id`]; const url = m?.[`${key}Url`] ?? (key === 'finish' ? finishes.find(x => x.id === id)?.image : paverTypes.find(x => x.id === id)?.image);
+    const image = url ? entityImages.current.get(url) : undefined;
+    return image?.complete && image.naturalWidth ? image : null;
+  };
   // Update canvas size to maximize screen space
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -1963,6 +2004,14 @@ export function PoolBuilder({
     return inside;
   };
 
+  // Geometry is memoized by design, never zoom: identical ownership in canvas, SVG and 3D.
+  const attachedDecks = useMemo(() => Object.fromEntries(additionalPools.filter(p => p.points.length >= 3).map(p => [p.id, additionalDeckPoints[p.id] ?? generateHardscapeFromPool(p.points, deckOffsetsById[p.id] ?? deckOffset)])), [additionalPools, additionalDeckPoints, deckOffsetsById, deckOffset]);
+  const surfaceNet = useMemo(() => studioNetItems(siteItems, points, hardscapePoints, scale, additionalPools, attachedDecks), [siteItems, points, hardscapePoints, scale, additionalPools, attachedDecks]);
+  const deckPaths = useMemo(() => new Map(surfaceNet.filter(n => n.kind === 'deck').map(n => {
+    const path = new Path2D();
+    for (const poly of netRegions(surfaceNet, n)) for (const ring of poly) { ring.forEach((p, i) => i ? path.lineTo(p.x * scale, p.y * scale) : path.moveTo(p.x * scale, p.y * scale)); path.closePath(); }
+    return [n.id, path];
+  })), [surfaceNet, scale]);
   // Draw the pool shape
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -2026,57 +2075,9 @@ export function PoolBuilder({
     if (paverTexture && hardscapePoints.length >= 3) {
       const img = paverTexture;
 
-      // Create hardscape path
       ctx.save();
-      ctx.beginPath();
-      if (smoothCorners) {
-        // Draw smooth curves between hardscape points
-        for (let i = 0; i < hardscapePoints.length; i++) {
-          const p0 = hardscapePoints[(i - 1 + hardscapePoints.length) % hardscapePoints.length];
-          const p1 = hardscapePoints[i];
-          const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
-          const p3 = hardscapePoints[(i + 2) % hardscapePoints.length];
-          if (i === 0) {
-            ctx.moveTo(p1.x, p1.y);
-          }
-
-          // Smooth spline control points
-          const tension = 0.3;
-          const cp1x = p1.x + (p2.x - p0.x) * tension;
-          const cp1y = p1.y + (p2.y - p0.y) * tension;
-          const cp2x = p2.x - (p3.x - p1.x) * tension;
-          const cp2y = p2.y - (p3.y - p1.y) * tension;
-          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
-        }
-      } else {
-        // Draw straight lines for squared corners
-        ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
-        for (let i = 1; i < hardscapePoints.length; i++) {
-          ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
-        }
-      }
-      ctx.closePath();
-
-      // Clip out main pool water area
-      if (points.length >= 3) {
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-          ctx.lineTo(points[i].x, points[i].y);
-        }
-        ctx.closePath();
-      }
-
-      // Clip out all additional pools' water areas (prevent deck on water)
-      additionalPools.forEach(pool => {
-        if (pool.points.length >= 3) {
-          ctx.moveTo(pool.points[0].x, pool.points[0].y);
-          for (let i = 1; i < pool.points.length; i++) {
-            ctx.lineTo(pool.points[i].x, pool.points[i].y);
-          }
-          ctx.closePath();
-        }
-      });
-      ctx.clip('evenodd');
+      const mainDeckPath = deckPaths.get('__deck');
+      if (mainDeckPath) ctx.clip(mainDeckPath, 'evenodd');
 
       // Find hardscape bounds
       const hsMinX = Math.min(...hardscapePoints.map(p => p.x));
@@ -4328,6 +4329,7 @@ export function PoolBuilder({
       const isIntegrated = pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge';
       const isSeparatePool = pool.featureType === 'regular' || !pool.featureType;
       const isSelected = selectedAdditionalPool === pool.id;
+      const paverTexture = entityTexture(pool.materials, 'paver');
 
       // Draw deck ONLY for separate/regular pools (not for integrated features like spas/tanning ledges)
       // Integrated features share the main pool's deck
@@ -4337,46 +4339,8 @@ export function PoolBuilder({
           const img = paverTexture;
           ctx.save();
 
-          // Build deck path with water cutouts using evenodd
-          ctx.beginPath();
-
-          // Outer deck boundary (clockwise)
-          ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
-          for (let i = 1; i < poolHardscapePoints.length; i++) {
-            ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
-          }
-          ctx.closePath();
-
-          // Cut out this pool's water area (counter-clockwise by reversing)
-          const reversedPoints = [...pool.points].reverse();
-          ctx.moveTo(reversedPoints[0].x, reversedPoints[0].y);
-          for (let i = 1; i < reversedPoints.length; i++) {
-            ctx.lineTo(reversedPoints[i].x, reversedPoints[i].y);
-          }
-          ctx.closePath();
-
-          // Cut out main pool water area
-          if (points.length >= 3) {
-            const reversedMain = [...points].reverse();
-            ctx.moveTo(reversedMain[0].x, reversedMain[0].y);
-            for (let i = 1; i < reversedMain.length; i++) {
-              ctx.lineTo(reversedMain[i].x, reversedMain[i].y);
-            }
-            ctx.closePath();
-          }
-
-          // Cut out all other additional pools' water areas
-          additionalPools.forEach((otherPool, otherIndex) => {
-            if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
-              const reversedOther = [...otherPool.points].reverse();
-              ctx.moveTo(reversedOther[0].x, reversedOther[0].y);
-              for (let i = 1; i < reversedOther.length; i++) {
-                ctx.lineTo(reversedOther[i].x, reversedOther[i].y);
-              }
-              ctx.closePath();
-            }
-          });
-          ctx.clip('evenodd');
+          const extraDeckPath = deckPaths.get(`__deck_${pool.id}`);
+          if (extraDeckPath) ctx.clip(extraDeckPath, 'evenodd');
 
           // Draw paver tiles
           const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
@@ -4384,7 +4348,7 @@ export function PoolBuilder({
           const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
           const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
           // One pattern fill instead of thousands of tiles (fast at any zoom). Imagine Engine Studios Corp
-          const pat = scaledPattern(ctx, img as any, paverSizeInPixels);
+          const pat = scaledPattern(ctx, img as any, scale * (pool.materials?.paverScale ?? 1));
           if (pat) { ctx.fillStyle = pat; ctx.fillRect(hsMinX, hsMinY, hsMaxX - hsMinX, hsMaxY - hsMinY); }
           ctx.restore();
         }
@@ -4436,7 +4400,7 @@ export function PoolBuilder({
       }
 
       // Draw coping - for integrated merged features, only on deck-facing edges (excluding spillover edges)
-      const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
+      const copingTexture = entityTexture(pool.materials, 'coping');
       const spilloverEdges = pool.spilloverEdges || [];
       if (isIntegrated && pool.isMerged !== false && edgesOutsideMainPool.length > 0) {
         // Draw coping only on edges that are OUTSIDE main pool AND not spillover edges
@@ -4457,7 +4421,7 @@ export function PoolBuilder({
             }
             if (copingTexture) {
               ctx.lineWidth = paverSizeInPixels;
-              const copingPattern = scaledPattern(ctx, copingTexture, scale);
+              const copingPattern = scaledPattern(ctx, copingTexture, scale * (pool.materials?.copingScale ?? 1));
               if (copingPattern) {
                 ctx.strokeStyle = copingPattern;
                 ctx.stroke();
@@ -4504,7 +4468,7 @@ export function PoolBuilder({
         if (copingTexture) {
           ctx.save();
           ctx.lineWidth = paverSizeInPixels;
-          const copingPattern = scaledPattern(ctx, copingTexture, scale);
+          const copingPattern = scaledPattern(ctx, copingTexture, scale * (pool.materials?.copingScale ?? 1));
           if (copingPattern) {
             ctx.strokeStyle = copingPattern;
             ctx.stroke();
@@ -4631,17 +4595,17 @@ export function PoolBuilder({
       }
       ctx.closePath();
       ctx.clip();
-      const poolTextureImg = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+      const poolTextureImg = entityTexture(pool.materials, 'finish');
       if (poolTextureImg) {
-        const pattern = scaledPattern(ctx, poolTextureImg, scale * FINISH_TILE_FT);
+        const pattern = scaledPattern(ctx, poolTextureImg, scale * (pool.materials?.finishScale ?? FINISH_TILE_FT));
         if (pattern) {
           ctx.fillStyle = pattern;
           ctx.fill();
         }
       } else {
-        const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+        const linerTexture = entityTexture(pool.materials, 'finish');
         if (linerTexture) {
-          const pattern = scaledPattern(ctx, linerTexture, scale * FINISH_TILE_FT);
+          const pattern = scaledPattern(ctx, linerTexture, scale * (pool.materials?.finishScale ?? FINISH_TILE_FT));
           if (pattern) {
             ctx.fillStyle = pattern;
             ctx.fill();
@@ -4798,7 +4762,7 @@ export function PoolBuilder({
     ctx.restore();
     // Close camera transform
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, selectedDrawPointId, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, selectedDrawPointId, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode, entityTextureTick, deckPaths]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -6033,7 +5997,7 @@ export function PoolBuilder({
           endDeckMode: () => setActiveTool('select'),
           erasePool: () => { setPoints([]); setHardscapePoints([]); setFeatures([]); },
           /* Extra pools/spas + their attached decks — listed, editable and erasable from the overlay. */
-          extraPools: additionalPools.map((p) => ({ id: p.id, type: p.featureType === 'tanning-ledge' ? 'tanning-ledge' : p.type, points: p.points })),
+          extraPools: additionalPools.map((p) => ({ id: p.id, type: p.featureType === 'tanning-ledge' ? 'tanning-ledge' : p.type, points: p.points, shape: p.shape })),
           extraDecks: Object.fromEntries(additionalPools.filter((p) => !p.isPerimeterSnapped && p.points.length >= 3).map((p) => [p.id, additionalDeckPoints[p.id] || generateHardscapeFromPool(p.points, deckOffsetsById[p.id] ?? deckOffset)])),
           setExtraPool: (id, pts) => setAdditionalPools((prev) => prev.map((p) => p.id === id ? { ...p, points: pts as Point[] } : p)),
           setExtraDeck: (id, pts) => setAdditionalDeckPoints((prev) => ({ ...prev, [id]: pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${id}${i}` })) as HardscapePoint[] })),
@@ -6436,12 +6400,12 @@ export function PoolBuilder({
             setDeckOffsetsById(prev => ({ ...prev, main: deckOffset }));
             setFeatures([]);
           }}
-          selectedFinishId={selectedFinishId}
-          setSelectedFinishId={setSelectedFinishId}
-          selectedCopingId={selectedCopingId}
-          setSelectedCopingId={setSelectedCopingId}
-          selectedPaverId={selectedPaverId}
-          setSelectedPaverId={setSelectedPaverId}
+          selectedFinishId={targetMaterials.finishId ?? ''}
+          setSelectedFinishId={(id) => pickMaterial('finishId', id)}
+          selectedCopingId={targetMaterials.copingId ?? ''}
+          setSelectedCopingId={(id) => pickMaterial('copingId', id)}
+          selectedPaverId={targetMaterials.paverId ?? ''}
+          setSelectedPaverId={(id) => pickMaterial('paverId', id)}
           finishes={finishes}
           deckOffset={selectedDeckId === 'main' ? (deckOffsetsById.main ?? deckOffset) : (deckOffsetsById[selectedDeckId] ?? 3)}
           setDeckOffset={(v) => {
@@ -6538,13 +6502,13 @@ export function PoolBuilder({
         </div>
 
         {/* Project Manager Dialog */}
-        <ProjectManager
+        {!managedProjects && <ProjectManager
           isOpen={showProjectManager}
           onOpenChange={setShowProjectManager}
           onSaveProject={getProjectState}
           onLoadProject={loadProjectState}
           lastSaved={lastAutoSaved}
-        />
+        />}
 
 
         {/* V2 Placement Mode Banner */}

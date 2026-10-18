@@ -304,7 +304,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                   <MaterialSelect label="Deck Pavers"
                     value={boardSel.id?.startsWith('deck-') ? (boardSel.style ?? '') : props.selectedPaverId}
                     onChange={(id) => {
-                      if (boardSel.id?.startsWith('deck-')) { const d = DECK_PAVERS.find(x => x.id === id); if (d) restyle({ style: d.id, label: d.label, rate: d.rate }); }
+                      if (boardSel.id?.startsWith('deck-')) { const d = DECK_PAVERS.find(x => x.id === id); if (d) restyle({ style: d.id, label: d.label, rate: d.rate, textureUrl: undefined }); }
                       else props.setSelectedPaverId(id);
                     }}
                     options={paverTypes.filter(p => p.category === 'paver').map(p => ({ id: p.id, name: p.name, image: p.image }))} />
