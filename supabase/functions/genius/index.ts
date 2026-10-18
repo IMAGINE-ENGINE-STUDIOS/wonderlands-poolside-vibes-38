@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { metaChat } from "../_shared/metaChat.ts";
 import { apiIdForModelKey } from "../_shared/metaModels.ts";
+import { effectiveModelKey } from "../_shared/modelRouter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,6 +29,10 @@ interface GeniusRequest {
   cart?: string;
   /** Catalog key of the Meta model the guest flipped to in FLIP (see _shared/metaModels.ts). Local-only keys resolve to null and the hosted chain answers. */
   model?: string;
+  /** What kind of request this is (see _shared/modelRouter.ts). Used only when no explicit model pick was sent. */
+  task?: string;
+  /** The request carries an image / photo / screenshot. */
+  hasImage?: boolean;
 }
 
 const SYSTEM = `You are Genius, the voice of Wonderlands World — a warm, cultured outdoor-living designer who guides a guest through the Wonderlands experience out loud.
@@ -89,6 +94,11 @@ serve(async (req) => {
     const body = (await req.json()) as GeniusRequest;
     const turns = (body.messages ?? []).slice(-12).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));
 
+    /* The guest's flipper pick wins; otherwise the router chooses by task. */
+    const modelKey = effectiveModelKey(
+      { explicit: body.model, task: body.task, hasImage: body.hasImage },
+      (key) => apiIdForModelKey(key) != null,
+    );
     const res = await metaChat(apiKey, ({
         temperature: 0.4,
         response_format: { type: "json_object" },
@@ -97,7 +107,7 @@ serve(async (req) => {
           { role: "system", content: buildContext(body) },
           ...turns,
         ],
-      }), apiIdForModelKey(body.model));
+      }), apiIdForModelKey(modelKey));
 
     if (!res.ok) {
       const details = await res.text().catch(() => "");
@@ -143,7 +153,7 @@ serve(async (req) => {
           }))
       : [];
 
-    return new Response(JSON.stringify({ reply, actions, model: body.model ?? null }), {
+    return new Response(JSON.stringify({ reply, actions, model: modelKey }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

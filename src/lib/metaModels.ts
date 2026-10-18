@@ -123,6 +123,19 @@ const listeners = new Set<(key: string) => void>();
 
 export const getFlipModelKey = () => current;
 
+/**
+ * The guest's explicit pick, or null when they never flipped — so the
+ * model router (not the default) decides those requests.
+ */
+export function getFlipModelPick(): string | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved && metaModelByKey(saved)?.apiId ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
 export const getFlipModel = (): MetaModel => metaModelByKey(current) ?? META_MODELS[3];
 
 export function setFlipModelKey(next: string) {

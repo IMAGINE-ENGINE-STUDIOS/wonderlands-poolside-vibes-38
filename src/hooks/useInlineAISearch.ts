@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { findProductInfo } from '@/data/poolProductLookup';
 import { supabase } from '@/integrations/supabase/client';
 import { answerPriceQuestion, answerIntent, buildKnowledgeDigest, intentProducts } from '@/lib/geniusKnowledge';
+import { classifyGeniusTask } from '@/lib/modelRouter';
 import { detectLanguage, translateText } from '@/lib/genius/geniusLanguage';
 import { PLATFORM_TOOLS, matchPlatformTools } from '@/lib/genius/platformTools';
 
@@ -31,29 +32,49 @@ export function useInlineAISearch() {
   const [aiResponse, setAIResponse] = useState<AIResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [navigatedProduct, setNavigatedProduct] = useState<{ name: string; category: string } | null>(null);
+  /* The open follow-up question, so a Yes/No answer continues the conversation
+     instead of re-asking the original question (the reported looping bug). */
+  const pendingRef = useRef<{ question: string; originalQuery: string; replyText: string } | null>(null);
 
-  const askAI = useCallback(async (query: string) => {
+  const askAI = useCallback(async (query: string, opts?: { followUpAnswer?: string }) => {
     if (!query.trim()) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      // Genius = one agent for the whole platform (Groq via the `genius` function).
+      // Genius = one agent for the whole platform (Meta models via the `genius` function).
       const clean = query.replace(/^I'm looking for:\s*/i, '').replace(/\s*\(Answer in [^)]+\.\)\s*$/, '');
       const lang = detectLanguage(clean);
-      const local = answerPriceQuestion(clean) ?? (lang.startsWith('en') ? null : answerIntent(clean));
+      const pending = opts?.followUpAnswer ? pendingRef.current : null;
+      const rootQuery = pending ? pending.originalQuery : clean;
+      /* Follow-up turns never take the local shortcut: it would answer the
+         original question again verbatim and loop the same Yes/No forever. */
+      const local = opts?.followUpAnswer ? null : answerPriceQuestion(clean) ?? (lang.startsWith('en') ? null : answerIntent(clean));
       let fullText = local ?? '';
       if (!local) {
         const tools = PLATFORM_TOOLS.map((t) => `${t.label} (${t.route}): ${t.description}`).join('\n');
         const { data, error } = await supabase.functions.invoke('genius', {
           body: {
-            messages: [{ role: 'user', content: clean }],
+            messages: pending
+              ? [
+                  { role: 'user', content: pending.originalQuery },
+                  { role: 'assistant', content: pending.replyText },
+                  { role: 'user', content: `My answer to your question "${pending.question}" is: ${opts!.followUpAnswer}. Continue from there — do not repeat your last answer or ask the same question again.` },
+                ]
+              : [{ role: 'user', content: clean }],
             context: { scope: 'site search', route: window.location.pathname },
             catalog: `${buildKnowledgeDigest()}\n\nPLATFORM TOOLS\n${tools}`,
+            task: classifyGeniusTask(clean, 'search'),
           },
         });
         if (error || !data?.reply) {
+          if (opts?.followUpAnswer) {
+            // A follow-up must never dead-end or loop: invite a fuller answer.
+            setAIResponse({ summary: 'Got it — tell me a little more about what you would like, and I will take it from there.', needsTextInput: true });
+            setIsLoading(false);
+            return;
+          }
           // Service down: the catalog still answers locally instead of failing.
           const fb = answerIntent(clean);
           if (!fb) throw new Error(data?.error || 'Genius is unavailable right now');
@@ -66,8 +87,14 @@ export function useInlineAISearch() {
       // Always answer in the guest's language (catalog answers are written in English).
       if (!lang.startsWith('en')) fullText = await translateText(fullText, lang);
       const parsedResponse = parseAIResponse(fullText);
+      /* Loop guard: a follow-up that re-asks the identical question loses its buttons. */
+      if (pending && parsedResponse.followUpQuestion && parsedResponse.followUpQuestion.trim().toLowerCase() === pending.question.trim().toLowerCase()) {
+        parsedResponse.followUpQuestion = undefined;
+        parsedResponse.options = undefined;
+        parsedResponse.needsTextInput = true;
+      }
       // Real product cards, ordered by price/size as asked (live main-page catalog).
-      const picks = intentProducts(clean);
+      const picks = intentProducts(rootQuery);
       if (picks.length) {
         parsedResponse.products = picks.map((p, i) => ({
           id: `${p.category}-${p.name}-${i}`,
@@ -79,8 +106,11 @@ export function useInlineAISearch() {
           depth: p.depth,
         }));
       }
+      pendingRef.current = parsedResponse.followUpQuestion
+        ? { question: parsedResponse.followUpQuestion, originalQuery: rootQuery, replyText: fullText }
+        : null;
       setAIResponse(parsedResponse);
-      
+
     } catch (err) {
       console.error('AI Search error:', err);
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -93,10 +123,32 @@ export function useInlineAISearch() {
     setAIResponse(null);
     setError(null);
     setNavigatedProduct(null);
+    pendingRef.current = null;
   }, []);
 
   const answerFollowUp = useCallback(async (answer: string, originalQuery: string) => {
-    await askAI(`${originalQuery}. My answer: ${answer}`);
+    const a = answer.trim();
+    /* "No" pivots instead of looping: offer the standing exits as actions. */
+    if (/^no$/i.test(a) && pendingRef.current) {
+      pendingRef.current = null;
+      setAIResponse({
+        summary: 'No problem — another way forward, then. Pick one, or just tell me what you are looking for.',
+        options: [
+          { label: 'Start a design', type: 'option' },
+          { label: 'Browse the FLIP book', type: 'option' },
+          { label: 'Calculate a cost', type: 'option' },
+        ],
+        needsTextInput: true,
+      });
+      return;
+    }
+    /* Pivot actions run as fresh asks so they produce real answers. */
+    if (a === 'Start a design') { await askAI('I want to start a design in the Design Studio'); return; }
+    if (a === 'Browse the FLIP book') { await askAI('Show me what is in the FLIP book catalog'); return; }
+    if (a === 'Calculate a cost') { await askAI('Calculate the cost of my project'); return; }
+    /* Everything else (Yes, choices, typed answers) continues the open
+       follow-up with full conversation context. */
+    await askAI(originalQuery, { followUpAnswer: a });
   }, [askAI]);
 
   // Set studio guidance when user navigates to a product

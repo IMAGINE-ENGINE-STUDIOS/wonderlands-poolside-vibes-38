@@ -5,7 +5,8 @@
  *
  * Built once per session (memoised) from the live data files — no invented
  * figures. Used by the local flip brain (superlatives: cheapest, most
- * expensive, under $X) and sent to the Groq `genius` function as CATALOG.
+ * expensive, under $X) and sent to the `genius` function as CATALOG
+ * (Meta models via OpenRouter — see knowledge/model-routing.md).
  */
 import { getAllProducts, type PoolProductInfo } from '@/data/poolProductLookup';
 import { gilmerSpas } from '@/data/gilmerSpas';
