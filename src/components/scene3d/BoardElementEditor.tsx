@@ -17,14 +17,24 @@ import { DepthProfileEditor } from "./DepthProfileEditor";
 import { createDefaultLinearAnchors, getZeroEntry, applyZeroEntry, removeZeroEntry } from "./depthUtils";
 import { buildFinishTextures, buildWaterlineTextures, buildPaverTextures } from "@/data/textureLibrary";
 import { BOARD_SELECT_EVENT, type BoardSelection } from "./BoardElements3D";
+import { VINYL_FINISHES, vinylFinishFor } from "@/lib/design/vinylFenceMaterials";
 
 const METALS = [{ n: "Black", c: "#1f1f1f" }, { n: "Bronze", c: "#6b4a2b" }, { n: "White", c: "#f4f4f2" }, { n: "Silver", c: "#b8bcc2" }];
-/** Vinyl fence tints (panels and posts are picked separately). */
-const VINYLS = [
-  { n: "White", c: "#ffffff" }, { n: "Tan", c: "#cdb894" }, { n: "Adobe", c: "#b9a184" }, { n: "Light Gray", c: "#c9cacb" },
-  { n: "Dark Gray", c: "#5d5a56" }, { n: "Mocha Walnut", c: "#6b4f3a" }, { n: "Green Teak", c: "#7d7a5e" },
-  { n: "Chai Gray", c: "#9a8f83" }, { n: "Aspen Latte", c: "#b49e83" },
-];
+/** Vinyl fence finishes from the AFC-373 texture manifest (value = finish hex, swatch = its photo). */
+const VINYLS = VINYL_FINISHES.map((f) => ({ n: f.name, c: f.hex, img: f.url }));
+const VinylSelector: React.FC<{ label: string; value: string; onPick: (c: string) => void }> = ({ label, value, onPick }) => {
+  const cur = vinylFinishFor(value);
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">{label} · <span className="text-muted-foreground">{cur.name}</span></Label>
+      <div className="grid grid-cols-7 gap-1.5">{VINYLS.map((v) => (
+        <button key={v.c} title={v.n} aria-label={v.n} onClick={() => onPick(v.c)}
+          className={`h-8 rounded-md border border-border bg-cover bg-center ${cur.hex === v.c ? "ring-2 ring-primary" : ""}`}
+          style={{ backgroundImage: `url(${v.img})` }} />
+      ))}</div>
+    </div>
+  );
+};
 /** Same catalog photos the main pool widgets use (finish, waterline, coping). */
 let photoLists: { f: { n: string; c: string }[]; t: { n: string; c: string }[]; k: { n: string; c: string }[] } | null = null;
 const photos = () => photoLists ??= {
@@ -91,8 +101,9 @@ export const BoardElementEditor: React.FC = () => {
     body = <>
       {f.style === "vinyl" ? <>
         {/* Vinyl: panels and posts are colored separately (both white by default). */}
-        <Swatches label="Panel color" list={VINYLS} value={f.color} onPick={(c) => edit((d) => { d.fences[sel.i].color = c; })} />
-        <Swatches label="Post color" list={VINYLS} value={f.postColor ?? "#ffffff"} onPick={(c) => edit((d) => { d.fences[sel.i].postColor = c; })} />
+        {/* Picking a panel finish also sets matching posts; posts can still be changed after. */}
+        <VinylSelector label="Panel material" value={f.color} onPick={(c) => edit((d) => { d.fences[sel.i].color = c; d.fences[sel.i].postColor = c; })} />
+        <VinylSelector label="Post material" value={f.postColor ?? f.color} onPick={(c) => edit((d) => { d.fences[sel.i].postColor = c; })} />
       </> : <Swatches label="Metal color" list={METALS} value={f.color} onPick={(c) => edit((d) => { d.fences[sel.i].color = c; })} />}
       <Range label="Height" v={f.height} min={3} max={8} step={0.5} on={(n) => edit((d) => { d.fences[sel.i].height = n; })} />
     </>;
