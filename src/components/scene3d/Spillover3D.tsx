@@ -73,8 +73,9 @@ export function Spillovers3D({ data, mainElevation = 0, deckLevel = 0, mainPts, 
     return (url?: string) => {
       const k = url || "";
       if (!cache.has(k)) {
-        const m = new THREE.MeshStandardMaterial({ color: url ? "#ffffff" : "#2f7fb8", roughness: 0.15, metalness: 0.15, side: THREE.DoubleSide });
-        if (url) new THREE.TextureLoader().load(url, (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; m.map = t; m.needsUpdate = true; });
+        const hex = !url || url.startsWith("#");
+        const m = new THREE.MeshStandardMaterial({ color: hex ? url || "#2f7fb8" : "#ffffff", roughness: 0.15, metalness: 0.15, side: THREE.DoubleSide });
+        if (!hex) new THREE.TextureLoader().load(url, (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; m.map = t; m.needsUpdate = true; });
         cache.set(k, m);
       }
       return cache.get(k)!;
