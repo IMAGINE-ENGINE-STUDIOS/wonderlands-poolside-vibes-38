@@ -26,6 +26,7 @@ import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, generateOffsetCurve } from '@/utils/curveUtils';
 import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
+import { RiserWall, AutoSteps, XrayShell } from './scene3d/SiteLevels3D';
 
 interface Point {
   x: number;
@@ -133,6 +134,12 @@ export interface Pool3DSceneProps {
   showRulers?: boolean;
   showDebugBoundaries?: boolean;
   onDebugBoundariesChange?: (show: boolean) => void;
+  /** Layer visibility: parts hidden from the view (still in the project/quote). */
+  hiddenParts?: { pool?: boolean; coping?: boolean; deck?: boolean; waterline?: boolean };
+  /** Pool rim height above grade (ft) — raised / semi-inground pools. */
+  poolElevation?: number;
+  /** Show the underground pool hull (ground turns see-through). */
+  xray?: boolean;
 }
 
 export const PoolMesh: React.FC<{
@@ -716,7 +723,10 @@ const GrassTerrainFallback: React.FC<{
   copingEnabled?: boolean;
   poolPosition?: [number, number, number];
   deckWidth?: number;
-}> = ({ poolCurve3D = [], hardscapeCurve3D, copingWidth = 1.0, copingEnabled = true, poolPosition = [0, 0, 0], deckWidth = 3 }) => {
+  /** Extra lawn opening (sunken deck pit). */
+  pitRing?: Array<{ x: number; z: number }>;
+  xray?: boolean;
+}> = ({ poolCurve3D = [], hardscapeCurve3D, copingWidth = 1.0, copingEnabled = true, poolPosition = [0, 0, 0], deckWidth = 3, pitRing, xray = false }) => {
   const texture = useTexture(grassTexture);
   // Extra pools/spas from the Global Design Board each cut their own opening.
   const [boardWaters, setBoardWaters] = React.useState(() => loadBoard3D()?.waters ?? []);
@@ -752,6 +762,7 @@ const GrassTerrainFallback: React.FC<{
         rings.push((ring.length >= 3 ? ring : pool).map(p => [p.x + poolPosition[0], -(p.z + poolPosition[2])] as [number, number]));
       }
       for (const w of boardWaters) if (w.pts && w.pts.length >= 3) rings.push(w.pts.map((p) => [p.x, -p.z] as [number, number]));
+      if (pitRing && pitRing.length >= 3) rings.push(pitRing.map((p) => [p.x + poolPosition[0], -(p.z + poolPosition[2])] as [number, number]));
       const merged = rings.length > 1 ? (polygonClipping.union as any)(...rings.map((r) => [[...r, r[0]]])) : rings.map((r) => [r]);
       for (const poly of merged as [number, number][][][]) {
         const outer = poly[0]; if (!outer || outer.length < 3) continue;
@@ -776,11 +787,11 @@ const GrassTerrainFallback: React.FC<{
       geometry.rotateX(-Math.PI / 2);
       return geometry;
     }
-  }, [texture, poolCurve3D, hardscapeCurve3D, copingWidth, copingEnabled, deckWidth, poolPosition, boardWaters]);
+  }, [texture, poolCurve3D, hardscapeCurve3D, copingWidth, copingEnabled, deckWidth, poolPosition, boardWaters, pitRing]);
 
   return (
     <mesh geometry={terrainGeometry} position={[0, -0.06, 0]} receiveShadow>
-      <meshStandardMaterial map={texture} color="#ffffff" side={THREE.DoubleSide} />
+      <meshStandardMaterial map={texture} color="#ffffff" side={THREE.DoubleSide} transparent={xray} opacity={xray ? 0.3 : 1} depthWrite={!xray} />
     </mesh>
   );
 };
@@ -985,7 +996,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   showRulers = false,
 
   showDebugBoundaries: externalShowDebugBoundaries = false,
-  onDebugBoundariesChange
+  onDebugBoundariesChange,
+  hiddenParts = {},
+  poolElevation = 0,
+  xray = false,
 }) => {
   // Remove local state - use parent's onSelectComponent callback instead
   const [copingEnabled, setCopingEnabled] = useState(true);
