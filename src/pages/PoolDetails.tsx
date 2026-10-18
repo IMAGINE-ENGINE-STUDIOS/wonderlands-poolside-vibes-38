@@ -981,7 +981,7 @@ const PoolDetails = () => {
           <div class="quote-container">
             <div class="header">
               <div class="header-content">
-                <div class="logo">🏊‍♂️ Wonderlands Pools</div>
+                <div class="logo">🏊‍♂️ Wonderlands World Experience LLC</div>
                 <h1 class="header-title">Premium Pool Configuration</h1>
                 <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 50px; display: inline-block; margin-top: 15px;">
                   <p class="quote-id">Quote ID: ${quoteId}</p>
@@ -1121,7 +1121,7 @@ const PoolDetails = () => {
             </div>
 
             <div class="footer">
-              <div class="footer-title">🏊‍♂️ Wonderlands Pools - Your Dream Pool Specialists</div>
+              <div class="footer-title">🏊‍♂️ Wonderlands World Experience LLC</div>
               <p><strong>This comprehensive quote is valid for 30 days</strong> from the generation date and includes:</p>
               <p>• Professional design consultation • Premium materials & equipment • Expert installation • Comprehensive warranty</p>
               <p>• Ongoing maintenance support • Financing options available</p>

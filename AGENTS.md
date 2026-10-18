@@ -1,7 +1,7 @@
 
 - SOCIALITE architecture rules live in src/components/socialite/AGENTS.md — why: keeps root small.
 - Every home discipline links to a suite (src/lib/suiteRoutes.ts); non-dedicated ones use /suites/:category (CategorySuite on ProductSuite); every suite lists all boards; FlipEditorBoard opens SurveyQuoteTool — why: one board+quote path for all trades.
-- Command Center and Contractor/Supplier hubs share `/admin` (AdminDashboard picks the workspace by role) and show only database-derived figures; never add sample rows or invented stats — why: one protected entry point, trustworthy numbers.
+
 
 - Multi-tenancy: business tables carry company_id (default current_company_id(), platform company for public visitors); RLS grants company members via is_company_member(); company roles live in company_members, never profiles — why: licensed companies must never see each other's data.
 - One sign-in: all users use /auth; business sign-up (account_type=business) creates a company + owner in handle_new_user; legacy login routes redirect — why: one secure gateway.
@@ -20,3 +20,5 @@
 - Website builder and public company sites rules live in src/components/siteBuilder/AGENTS.md — why: keeps root small.
 - Showroom page-scale tools launch explicitly, one at a time, inside contained widgets; global/2D/3D frames use embedded DesignStudio with an initial view and SiteBuilder uses embedded mode — why: prevents fullscreen escapes, competing board listeners and idle 3D workloads.
 - AuthProvider shows its blocking loader only for the first session check; later sign-ins (e.g. showroom demo session) never unmount the app — why: open tools kept losing state and looked unclickable. /website-builder is a standalone page that renders the same SiteBuilder component — why: one builder version everywhere.
+
+- FLIP back arrows share lib/flip/previousPage.ts; bypass the click guard synchronously only — why: portrait back turns fail otherwise.

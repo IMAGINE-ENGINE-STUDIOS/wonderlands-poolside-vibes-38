@@ -26,10 +26,9 @@ const StudioEditorial: React.FC = () => {
             See it. Configure it. Price it. Build it.
           </h2>
           <p className="mt-7 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-            Wonderlands Studio turns the traditional home-improvement process into a
-            digital experience: explore ideas, visualize the whole property, configure
-            products and options, understand pricing and move from concept toward
-            construction — all in one connected platform.
+            Pool and patio design software for homeowners and contractors. Draw
+            pools, spas and decks to scale, explore your backyard in 3D, compare
+            finishes and prepare an itemized quote in one connected studio.
           </p>
 
           <div className="mt-8 h-px w-24 bg-foreground/30" />

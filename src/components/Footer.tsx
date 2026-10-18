@@ -27,8 +27,8 @@ const Footer = () => {
               <div>
                 <dt className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground/70">Phone</dt>
                 <dd className="mt-1">
-                  <a href="tel:+14077604873" className="hover:text-foreground transition-colors" itemProp="telephone">
-                    +1 (407) 760-4873
+                  <a href="tel:+12392570637" className="hover:text-foreground transition-colors" itemProp="telephone">
+                    +1 (239) 257-0637
                   </a>
                 </dd>
               </div>
@@ -89,7 +89,7 @@ const Footer = () => {
         <Separator className="my-12" />
 
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-sm text-muted-foreground">© 2025 Wonderlands Worlds Entertainment. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Wonderlands World Experience LLC. All rights reserved.</p>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <span className="cursor-pointer transition-colors hover:text-foreground">Privacy Policy</span>
             <span className="cursor-pointer transition-colors hover:text-foreground">Terms of Service</span>

@@ -549,7 +549,7 @@ const SurveyQuoteTool = ({
       setEditableTexts(prev => ({
         'customer-info-title': prev['customer-info-title'] || 'Customer Information',
         'contact-info-title': prev['contact-info-title'] || 'Contact Information',
-        'contact-phone': prev['contact-phone'] || '(407) 760-4873',
+        'contact-phone': prev['contact-phone'] || '+1 (239) 257-0637',
         'contact-email': prev['contact-email'] || 'sales@wonderlandsworld.com',
         'business-hours': prev['business-hours'] || 'Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM',
         'product-title': prev['product-title'] || (extras?.productType === 'lanai' ? 'Lanai Specifications' : pool ? 'Pool Specifications' : 'Product Details'),
@@ -1017,7 +1017,7 @@ const SurveyQuoteTool = ({
           payment_status: 'unpaid',
           payment_terms: 'Net 30',
           status: 'draft',
-          notes: surveyData.specialRequests || 'Thank you for choosing Wonderlands Pools & Spas!',
+          notes: surveyData.specialRequests || 'Thank you for choosing Wonderlands World Experience LLC!',
           terms_conditions: 'Payment is due within 30 days of invoice date. A 50% deposit is required to begin work. Final payment is due upon completion and inspection.',
           created_by: user?.id || null,
           user_id: user?.id || null
@@ -1511,12 +1511,12 @@ const SurveyQuoteTool = ({
                           {isEditMode ? (
                             <input
                               type="text"
-                              value={editableTexts['contact-phone'] || '(407) 760-4873'}
+                              value={editableTexts['contact-phone'] || '+1 (239) 257-0637'}
                               onChange={(e) => setEditableTexts({...editableTexts, 'contact-phone': e.target.value})}
                               className="px-2 py-1 border rounded flex-1"
                             />
                           ) : (
-                            <span>{editableTexts['contact-phone'] || '(407) 760-4873'}</span>
+                            <span>{editableTexts['contact-phone'] || '+1 (239) 257-0637'}</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2">

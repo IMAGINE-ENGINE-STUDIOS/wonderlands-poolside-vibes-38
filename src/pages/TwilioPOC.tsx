@@ -60,7 +60,7 @@ const TwilioPOC = () => {
   const [submitted, setSubmitted] = useState(false);
 
   // Wonderlands World team notification number
-  const TEAM_PHONE = "+14077604873";
+  const TEAM_PHONE = "+12392570637";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

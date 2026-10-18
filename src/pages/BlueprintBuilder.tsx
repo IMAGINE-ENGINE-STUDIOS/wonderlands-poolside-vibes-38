@@ -55,7 +55,7 @@ const INITIAL: BlueprintProject = {
   },
   contractor: {
     tradeName: 'Wonderlands World',
-    legalName: 'WONDERLANDS WORLD LLC',
+    legalName: 'Wonderlands World Experience LLC',
     license: '',
     address: '',
     phone: '',

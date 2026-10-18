@@ -1,5 +1,11 @@
 # Roadmap
 
+## Book navigation, identity and software SEO (Oct 18)
+- [x] Fix homepage book previous-page arrow and verify desktop/mobile
+- [x] Replace full corporate names and company contact numbers consistently
+- [x] Improve existing public pages' pool/patio software search information
+- [x] Run regression checks and verify public page metadata
+
 ## Spline precision and curved pool repair (Oct 18)
 - [x] Unify Add Point controls; cancel to Select on outside clicks
 - [x] Small round zoom-aware pool/deck handles and reliable point dragging

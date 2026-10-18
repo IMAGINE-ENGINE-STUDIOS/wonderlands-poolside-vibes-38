@@ -9,6 +9,7 @@
 
 import * as React from "react";
 import HTMLFlipBook from "react-pageflip";
+import { flipPreviousPage } from "@/lib/flip/previousPage";
 import { ChevronLeft, ChevronRight, Volume2, Loader2, Share2, Maximize2, Pause } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { consumeNarratorCredits, loadPublishedBook } from "@/lib/flip/flipPublish";
@@ -356,19 +357,8 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
     [doc.pages],
   );
 
-  /* Mobile (portrait) books sometimes ignore flipPrev — if the page did not move,
-     step back directly so going back always works. Imagine Engine Studios Corp. */
-  const goPrev = () => {
-    const pf = bookRef.current?.pageFlip?.();
-    if (!pf) return;
-    const from = pf.getCurrentPageIndex?.() ?? 0;
-    if (from <= 0) return;
-    pf.flipPrev();
-    window.setTimeout(() => {
-      const now = pf.getCurrentPageIndex?.() ?? from;
-      if (now === from) { pf.turnToPage(Math.max(0, from - (portrait ? 1 : 2))); setPage(pf.getCurrentPageIndex?.() ?? from - 1); }
-    }, turnMs + 120);
-  };
+  /* Same portrait-safe arrow path as the main-page magazine. */
+  const goPrev = () => flipPreviousPage(bookRef.current?.pageFlip?.());
 
   return (
     <FlipActionContext.Provider value={act}>

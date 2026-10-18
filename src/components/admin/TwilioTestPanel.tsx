@@ -196,7 +196,7 @@ export const TwilioTestPanel = () => {
               type="email"
             />
             <Input
-              placeholder="Phone (e.g., +14077604873)"
+              placeholder="Phone (e.g., +12392570637)"
               value={testPhone}
               onChange={(e) => setTestPhone(e.target.value)}
             />

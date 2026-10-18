@@ -744,7 +744,7 @@ const LandscapingSection = ({ compact = false }: { compact?: boolean }) => {
                               ${custNotes ? `<div class="notes"><strong>Notes:</strong><br/>${custNotes.replace(/</g, "&lt;").replace(/\n/g, "<br/>")}</div>` : ""}
 
                               <div class="footer">
-                                Wonderlands World · sales@wonderlandsworld.com · (407) 760-4873<br/>
+                                Wonderlands World Experience LLC · sales@wonderlandsworld.com · +1 (239) 257-0637<br/>
                                 This estimate is valid for 30 days. Final pricing may vary based on site conditions.<br/>
                                 Schedule a consultation: calendly.com/wonderlandsworlds/30min
                               </div>
