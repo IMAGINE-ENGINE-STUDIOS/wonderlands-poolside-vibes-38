@@ -20,7 +20,11 @@ import { BOARD_SELECT_EVENT, type BoardSelection } from "./BoardElements3D";
 
 const METALS = [{ n: "Black", c: "#1f1f1f" }, { n: "Bronze", c: "#6b4a2b" }, { n: "White", c: "#f4f4f2" }, { n: "Silver", c: "#b8bcc2" }];
 /** Vinyl fence tints (panels and posts are picked separately). */
-const VINYLS = [{ n: "White", c: "#ffffff" }, { n: "Almond", c: "#e8dcc4" }, { n: "Tan", c: "#c8b28c" }, { n: "Clay", c: "#a89a86" }, { n: "Grey", c: "#8d9093" }, { n: "Black", c: "#2a2a2a" }];
+const VINYLS = [
+  { n: "White", c: "#ffffff" }, { n: "Tan", c: "#cdb894" }, { n: "Adobe", c: "#b9a184" }, { n: "Light Gray", c: "#c9cacb" },
+  { n: "Dark Gray", c: "#5d5a56" }, { n: "Mocha Walnut", c: "#6b4f3a" }, { n: "Green Teak", c: "#7d7a5e" },
+  { n: "Chai Gray", c: "#9a8f83" }, { n: "Aspen Latte", c: "#b49e83" },
+];
 /** Same catalog photos the main pool widgets use (finish, waterline, coping). */
 let photoLists: { f: { n: string; c: string }[]; t: { n: string; c: string }[]; k: { n: string; c: string }[] } | null = null;
 const photos = () => photoLists ??= {
