@@ -77,6 +77,16 @@ export const CopingGeometry = ({
     );
 
     if (copingInnerBoundary.length < 3) return new THREE.BufferGeometry();
+    // Tight inward curves make neighbouring offset points cross; pin folded
+    // ones to the previous point so the band never overlaps itself.
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 0; i < copingInnerBoundary.length; i++) {
+        const j = (i + 1) % copingInnerBoundary.length;
+        const bi = copingInnerBoundary[i], bj = copingInnerBoundary[j];
+        const oi = copingOuterBoundary[i], oj = copingOuterBoundary[j];
+        if ((bj.x - bi.x) * (oj.x - oi.x) + (bj.z - bi.z) * (oj.z - oi.z) < 0) copingOuterBoundary[j] = { ...oi };
+      }
+    }
 
     const vertices: number[] = [];
     const indices: number[] = [];
