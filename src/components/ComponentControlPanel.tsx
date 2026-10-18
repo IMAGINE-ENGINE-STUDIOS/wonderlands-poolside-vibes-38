@@ -191,7 +191,7 @@ export function ComponentControlPanel({
 
   const getComponentTitle = () => {
     switch (selectedComponent) {
-      case 'pool': return 'Pool Finish';
+      case 'pool': return 'Pool Shell & Finish';
       case 'deck': return 'Deck Pavers';
       case 'coping': return 'Coping';
       case 'waterline': return 'Waterline';
