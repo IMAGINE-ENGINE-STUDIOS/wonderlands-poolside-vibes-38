@@ -116,6 +116,7 @@ export function Spillovers3D({ data, mainElevation = 0, deckLevel = 0, mainPts, 
       <mesh geometry={s.parts.bed} material={s.tile} receiveShadow />
       <mesh geometry={s.parts.lip} material={s.tile} />
       <mesh geometry={s.parts.wall} material={s.tile} receiveShadow />
+      <mesh geometry={s.parts.sideB} material={s.tile} receiveShadow />
       <mesh geometry={s.g} material={mat} renderOrder={11} raycast={() => null} />
       <mesh geometry={s.foamGeo} material={foam} position={s.foamPos} rotation={[0, s.foamRot, 0]} renderOrder={12} raycast={() => null} />
     </group>))}</group>;
