@@ -2015,7 +2015,8 @@ export function PoolBuilder({
 
     // Draw hardscape/paver deck with custom shape
     // Apply zoom level to texture detail
-    const effectiveScale = scale * zoomLevel;
+    // Canvas is already zoomed by ctx.scale — tiles stay one fixed world size.
+    const effectiveScale = scale;
     const paverSizeInFeet = paverSize / 12;
     const paverSizeInPixels = paverSizeInFeet * effectiveScale;
 
@@ -2082,22 +2083,9 @@ export function PoolBuilder({
       const hsMaxX = Math.max(...hardscapePoints.map(p => p.x));
       const hsMinY = Math.min(...hardscapePoints.map(p => p.y));
       const hsMaxY = Math.max(...hardscapePoints.map(p => p.y));
-      const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
-      const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
-
-      // Draw pavers
-      for (let i = 0; i < numPaversX; i++) {
-        for (let j = 0; j < numPaversY; j++) {
-          const x = hsMinX + i * paverSizeInPixels;
-          const y = hsMinY + j * paverSizeInPixels;
-          ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
-
-          // Grout lines
-          ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
-        }
-      }
+      // One pattern fill instead of thousands of tiles (fast at any zoom). Imagine Engine Studios Corp
+      const pat = scaledPattern(ctx, img as any, paverSizeInPixels);
+      if (pat) { ctx.fillStyle = pat; ctx.fillRect(hsMinX, hsMinY, hsMaxX - hsMinX, hsMaxY - hsMinY); }
       ctx.restore();
     }
 
@@ -4395,18 +4383,9 @@ export function PoolBuilder({
           const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
           const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
           const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
-          const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
-          const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
-          for (let i = 0; i < numPaversX; i++) {
-            for (let j = 0; j < numPaversY; j++) {
-              const x = hsMinX + i * paverSizeInPixels;
-              const y = hsMinY + j * paverSizeInPixels;
-              ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
-              ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
-              ctx.lineWidth = 1;
-              ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
-            }
-          }
+          // One pattern fill instead of thousands of tiles (fast at any zoom). Imagine Engine Studios Corp
+          const pat = scaledPattern(ctx, img as any, paverSizeInPixels);
+          if (pat) { ctx.fillStyle = pat; ctx.fillRect(hsMinX, hsMinY, hsMaxX - hsMinX, hsMaxY - hsMinY); }
           ctx.restore();
         }
       }
