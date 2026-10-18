@@ -293,6 +293,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         if (c && (!inside || area < inside.area)) inside = { ...own, area };
       }
     }
+    // Inside a pool/spa: the pool wins over a nearby deck edge, so the pool widget opens.
+    if (inside && isPoolId(inside.id) && !(best && isPoolId(best.id) && best.d < 24 / (view?.zoom || 1))) return inside;
     if (best && best.d < 24 / (view?.zoom || 1)) return best;
     return inside;
   // eslint-disable-next-line react-hooks/exhaustive-deps
