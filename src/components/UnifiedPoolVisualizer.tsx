@@ -1988,7 +1988,7 @@ export function UnifiedPoolVisualizer({
               copingTextureUrl={copingTextureUrl}
               waterlineTextureUrl={waterlineTextureUrl}
               fenceTextureUrl="/fence-texture.webp"
-              features={scene.features.map(f => ({
+              features={scene.features.filter(f => !hid(f.id, "landscape")).map(f => ({
                 type: f.type as any,
                 x: f.position[0],
                 y: f.position[2],
