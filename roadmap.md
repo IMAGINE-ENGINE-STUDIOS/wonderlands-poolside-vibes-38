@@ -1,10 +1,10 @@
 # Roadmap
 
 ## Spline precision and curved pool repair (Oct 18)
-- [ ] Unify Add Point controls; cancel to Select on outside clicks
-- [ ] Small round zoom-aware pool/deck handles and reliable point dragging
-- [ ] Remove duplicate deck drafting lines and curved pool terrain bleed
-- [ ] Run focused tests and exercise drawing flow
+- [x] Unify Add Point controls; cancel to Select on outside clicks
+- [x] Small round zoom-aware pool/deck handles and reliable point dragging
+- [x] Remove duplicate deck drafting lines and curved pool terrain bleed
+- [x] Run focused tests and exercise drawing flow
 
 ## Studio integrity (Oct 18)
 - [x] Deck/turf fill preserves pools, coping and existing surfaces with shared 2D/3D net geometry

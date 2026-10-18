@@ -154,7 +154,7 @@ interface PoolBuilderProps {
     };
   }) => void;
   /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
-  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; poolDrawMode?: boolean; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void;
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; poolDrawMode?: boolean; addPoolPointAt?: (clientX: number, clientY: number) => void; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void;
     extraPools?: { id: string; type?: string; points: { x: number; y: number }[] }[]; extraDecks?: Record<string, { x: number; y: number }[]>;
     setExtraPool?: (id: string, pts: { x: number; y: number }[]) => void; setExtraDeck?: (id: string, pts: { x: number; y: number }[]) => void; eraseExtraPool?: (id: string) => void }) => React.ReactNode;
 }
@@ -2633,11 +2633,6 @@ export function PoolBuilder({
           ctx.fillText('D', doorX, doorY + 4);
         }
       });
-    }
-
-    // Draw deck spline edges with dashed orange lines
-    if (hardscapePoints.length > 1) {
-
     }
 
     // Draw hardscape anchor points (main deck)
