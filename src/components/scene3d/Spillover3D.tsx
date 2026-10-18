@@ -14,7 +14,8 @@ import { useFrame } from "@react-three/fiber";
 import type { Board3D } from "@/lib/design/board3D";
 
 type XZ = { x: number; z: number };
-const inside = (p: XZ, ring: XZ[]) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const a = ring[i], b = ring[j]; if ((a.z > p.z) !== (b.z > p.z) && p.x < ((b.x - a.x) * (p.z - a.z)) / (b.z - a.z) + a.x) c = !c; } return c; };
+const okXZ = (p: unknown): p is XZ => !!p && Number.isFinite((p as XZ).x) && Number.isFinite((p as XZ).z);
+const inside = (p: XZ, ring: XZ[]) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const a = ring[i], b = ring[j]; if (!a || !b) continue; if ((a.z > p.z) !== (b.z > p.z) && p.x < ((b.x - a.x) * (p.z - a.z)) / (b.z - a.z) + a.x) c = !c; } return c; };
 
 /** One shared streak texture; its offset scrolls every frame. */
 let streak: THREE.CanvasTexture | null = null;
@@ -52,15 +53,15 @@ export function Spillovers3D({ data, mainElevation = 0, mainPts }: { data: Board
   const mat = React.useMemo(() => new THREE.MeshStandardMaterial({ map: tex, transparent: true, opacity: 0.8, roughness: 0.05, metalness: 0.1, side: THREE.DoubleSide, depthWrite: false }), [tex]);
   const foam = React.useMemo(() => new THREE.MeshStandardMaterial({ color: "#ffffff", transparent: true, opacity: 0.55, depthWrite: false }), []);
   useFrame((_, dt) => { tex.offset.y -= dt * 1.4; });
-  const sheets = React.useMemo(() => (data.spills ?? []).map((sp) => {
+  const sheets = React.useMemo(() => (data.spills ?? []).filter((sp) => sp && okXZ(sp.a) && okXZ(sp.b) && okXZ(sp.center)).map((sp) => {
     const src = sp.waterId ? data.waters?.find((w) => w.itemId === sp.waterId) : undefined;
     const top = (sp.waterId ? src?.elevation ?? 0 : mainElevation) - 0.12;
     const mx = (sp.a.x + sp.b.x) / 2, mz = (sp.a.z + sp.b.z) / 2;
     let nx = mx - sp.center.x, nz = mz - sp.center.z; const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
     // Landing: inside another water body → its water line, else the ground/deck.
     const probe = { x: mx + nx * (0.6 + Math.tan((sp.pitch * Math.PI) / 180) * 1.5), z: mz + nz * (0.6 + Math.tan((sp.pitch * Math.PI) / 180) * 1.5) };
-    const bodies: Array<{ pts: XZ[]; elev: number; id?: string }> = [...(mainPts && mainPts.length >= 3 ? [{ pts: mainPts, elev: mainElevation }] : []), ...(data.waters ?? []).map((w) => ({ pts: w.pts, elev: w.elevation ?? 0, id: w.itemId }))];
-    const target = bodies.find((b) => b.id !== sp.waterId && !(b.id == null && sp.waterId == null) && inside(probe, b.pts));
+    const bodies: Array<{ pts: XZ[]; elev: number; id?: string }> = [...(mainPts && mainPts.length >= 3 ? [{ pts: mainPts, elev: mainElevation }] : []), ...(data.waters ?? []).map((w) => ({ pts: w?.pts ?? [], elev: w?.elevation ?? 0, id: w?.itemId }))];
+    const target = bodies.find((b) => b.id !== sp.waterId && !(b.id == null && sp.waterId == null) && b.pts.length >= 3 && inside(probe, b.pts));
     const bottom = target ? target.elev - 0.25 : 0.02;
     const n = { x: nx, z: nz };
     const { g, landOff } = sheetGeometry(sp.a, sp.b, n, top, Math.min(bottom, top - 0.3), sp.pitch);

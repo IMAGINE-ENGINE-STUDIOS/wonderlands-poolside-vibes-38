@@ -773,7 +773,8 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
   const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
   const net = studioNetItems(items, poolPts, deckPts, scale, extraPools, extraDeckPts);
   const regionsOf = (id: string) => { const n = net.find(n => n.id === id); return n ? netRegions(net, n).map(poly => poly.map(r => r.map(to))) : []; };
-  const out: Board3D = { origin: c, fences: [], screens: [], surfaces: [], waters: [] };
+  // primaryPts = main pool outline (3D ft, centred) so spill-overs can land in it.
+  const out: Board3D = { origin: c, primaryPts: pool.length >= 3 ? pool.map((p) => to(p)) : undefined, fences: [], screens: [], surfaces: [], waters: [] };
   const finishes = buildFinishTextures();
   for (const p of extraPools.filter(p => p.points.length >= 3)) {
     const m = p.materials;

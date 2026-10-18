@@ -122,7 +122,7 @@ export function applyBoard3DToItems<T extends { id: string; pts: { x: number; y:
 }
 
 export function saveBoard3D(data: Board3D) {
-  try { localStorage.setItem(BOARD_3D_KEY, JSON.stringify(data)); } catch { /* quota */ }
+  try { localStorage.setItem(BOARD_3D_KEY, JSON.stringify(sanitizeBoard3D(data) ?? data)); } catch { /* quota */ }
   window.dispatchEvent(new Event(BOARD_3D_EVENT));
 }
 /** Wipes the saved 3D board (Reset). */
