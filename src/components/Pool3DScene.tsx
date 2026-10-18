@@ -605,8 +605,11 @@ export const PoolMesh: React.FC<{
           side={THREE.DoubleSide /* inner walls show whatever way the outline was drawn */}
           emissive={isSelected ? new THREE.Color(1, 0.55, 0.45) : new THREE.Color(0, 0, 0)}
           emissiveIntensity={Math.sin(pulseIntensity * Math.PI) * 0.08}
+          onBeforeCompile={patchCutaway}
+          customProgramCacheKey={() => 'pool-wall-cutaway'}
         />
       </mesh>
+      <CutawayDriver geometry={wallsGeometry} uniforms={cutUniforms} enabled={cutaway} />
     </>
   );
 };

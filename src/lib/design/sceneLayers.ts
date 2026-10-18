@@ -76,6 +76,17 @@ export const sceneLayerActions = {
   moveObject(id: string, layerId: string) {
     write({ ...state, assign: { ...state.assign, [id]: layerId } });
   },
+  /** Drag-and-drop: move layer `fromId` to the position of `toId`. */
+  reorderLayer(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const list = [...state.layers];
+    const from = list.findIndex((l) => l.id === fromId);
+    const to = list.findIndex((l) => l.id === toId);
+    if (from < 0 || to < 0) return;
+    const [m] = list.splice(from, 1);
+    list.splice(to, 0, m);
+    write({ ...state, layers: list });
+  },
 };
 
 /** React hook: re-renders on every layer/visibility change. */
