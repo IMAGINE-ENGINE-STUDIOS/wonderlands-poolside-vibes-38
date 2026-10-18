@@ -1,4 +1,6 @@
-import { describe, expect, test } from 'bun:test';
+// Copyright Imagine Engine Studios Corp.
+import { describe, test } from 'node:test';
+import assert from 'node:assert/strict';
 import { flipPreviousPage } from './previousPage';
 describe('previous-page navigation', () => {
   test('allows portrait back arrows while retaining arrow-only interaction', () => {
@@ -6,19 +8,19 @@ describe('previous-page navigation', () => {
     let page = 3;
     flipPreviousPage({ getCurrentPageIndex: () => page, getSettings: () => settings,
       flipPrev: () => { if (!settings.disableFlipByClick) page -= 1; } });
-    expect(page).toBe(2);
-    expect(settings.disableFlipByClick).toBe(true);
+    assert.equal(page, 2);
+    assert.equal(settings.disableFlipByClick, true);
   });
   test('does not turn before the first page', () => {
     let turns = 0;
     flipPreviousPage({ getCurrentPageIndex: () => 0,
       getSettings: () => ({ disableFlipByClick: true }), flipPrev: () => { turns += 1; } });
-    expect(turns).toBe(0);
+    assert.equal(turns, 0);
   });
   test('restores click protection if the library throws', () => {
     const settings = { disableFlipByClick: true };
-    expect(() => flipPreviousPage({ getCurrentPageIndex: () => 2, getSettings: () => settings,
-      flipPrev: () => { throw new Error('turn failed'); } })).toThrow('turn failed');
-    expect(settings.disableFlipByClick).toBe(true);
+    assert.throws(() => flipPreviousPage({ getCurrentPageIndex: () => 2, getSettings: () => settings,
+      flipPrev: () => { throw new Error('turn failed'); } }), /turn failed/);
+    assert.equal(settings.disableFlipByClick, true);
   });
 });

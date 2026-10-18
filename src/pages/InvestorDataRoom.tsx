@@ -30,7 +30,7 @@ const DOCS = [
   { title: 'Investor Deck v6', meta: 'PDF · 12 pages', body: 'High-Value Studio — $50k/yr, $2.5M 2027.', url: deckDoc.url },
   { title: 'One Platform Mastery', meta: 'PDF · 16 pages', body: 'The full platform, module by module.', url: platformDoc.url },
   { title: 'Go-To-Market Strategy 2026', meta: 'PDF · 10 pages', body: 'Channels, launch sequence and targets.', url: gtmDoc.url },
-  { title: 'Business Plan', meta: 'PDF · 25 pages', body: 'Wonderlands Worlds Experience business plan.', url: planDoc.url },
+  { title: 'Business Plan', meta: 'PDF · 25 pages', body: 'Wonderlands World Experience LLC business plan.', url: planDoc.url },
 ];
 
 /** Cap table — from the uploaded "25% Each" sheet. */
@@ -108,7 +108,7 @@ const NDA_VERSION = 'v1-2026-10';
 const ACCESS_KEY = 'wl_investor_nda';
 
 const NDA_TEXT = [
-  ['Purpose', 'Wonderlands World ("Wonderlands") will share confidential business, financial, technical and product information ("Confidential Information") so that you can evaluate a possible investment.'],
+  ['Purpose', 'Wonderlands World Experience LLC ("Wonderlands") will share confidential business, financial, technical and product information ("Confidential Information") so that you can evaluate a possible investment.'],
   ['Confidentiality', 'You agree to keep Confidential Information strictly confidential, to use it only for that evaluation, and not to disclose it to anyone except your advisers who are bound by equal duties of confidentiality.'],
   ['No copying or reverse engineering', 'You will not copy, distribute, screenshot for distribution, or reverse engineer any software, design, pricing model or document made available in this data room.'],
   ['Exclusions', 'These duties do not apply to information that is public through no fault of yours, that you already lawfully held, or that you must disclose by law (with prompt notice to Wonderlands).'],
