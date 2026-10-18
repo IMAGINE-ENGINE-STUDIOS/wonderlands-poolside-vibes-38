@@ -21,7 +21,7 @@ import { WaterlineMesh } from "@/components/WaterlineMesh";
 import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
 import { applyHoleCut } from "./holeCutShader";
-import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
+import { buildVinylFence } from "./vinylFenceGeometry";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
 export const BOARD_SELECT_EVENT = "studio3d:boardSelect";
@@ -118,36 +118,53 @@ function Doors({ gates, pts, closed, H, mat }: { gates?: Gate3D[]; pts: XZ[]; cl
   return <InstancedBoxes boxes={boxes} material={mat} castShadow />;
 }
 
-/** Vinyl panel photo: one 6 ft panel per texture tile, tinted by the panel color. */
-const vinylTex = (() => { let t: THREE.Texture | null = null; return () => { if (!t) { t = new THREE.TextureLoader().load((vinylFenceAsset as { url: string }).url); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; } return t; }; })();
 const isVinyl = (s: string) => s === "vinyl";
+/** Pyramid cap: 4-sided cone rotated 45° so its faces line up with the square post. */
+const PYRAMID = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1).rotateY(Math.PI / 4);
+function VinylFence({ f, i }: { f: Fence3D; i: number }) {
+  const H = f.height;
+  const panelMat = React.useMemo(() => new THREE.MeshStandardMaterial({ color: f.color || "#ffffff", roughness: 0.42 }), [f.color]);
+  const postMat = React.useMemo(() => new THREE.MeshStandardMaterial({ color: f.postColor ?? "#ffffff", roughness: 0.4 }), [f.postColor]);
+  const parts = React.useMemo(() => buildVinylFence(f.pts, H), [f.pts, H]);
+  return (
+    <group name="board-fence" onClick={select({ type: "fence", i })}>
+      <InstancedBoxes boxes={parts.posts} material={postMat} castShadow />
+      <InstancedBoxes boxes={parts.rails} material={panelMat} castShadow />
+      <InstancedBoxes boxes={parts.pickets} material={panelMat} castShadow />
+      {parts.caps.map((c, k) => (
+        <group key={k} position={[c.x, c.y - c.sy / 2, c.z]}>
+          <mesh material={postMat} position={[0, 0.03, 0]}><boxGeometry args={[c.sx, 0.06, c.sz]} /></mesh>
+          <mesh geometry={PYRAMID} material={postMat} position={[0, 0.06 + (c.sy - 0.06) / 2, 0]} scale={[c.sx, c.sy - 0.06, c.sz]} />
+        </group>
+      ))}
+      <Doors gates={f.gates} pts={f.pts} closed={false} H={H} mat={postMat} />
+    </group>
+  );
+}
 function Fence({ f, i }: { f: Fence3D; i: number }) {
-  const vinyl = isVinyl(f.style);
-  const metal = React.useMemo(() => vinyl
-    ? new THREE.MeshStandardMaterial({ color: f.postColor ?? "#ffffff", roughness: 0.45 })
-    : metalMat(f.color), [f.color, f.postColor, vinyl]);
+  if (isVinyl(f.style)) return <VinylFence f={f} i={i} />;
+  return <StdFence f={f} i={i} />;
+}
+function StdFence({ f, i }: { f: Fence3D; i: number }) {
+  const metal = React.useMemo(() => metalMat(f.color), [f.color]);
   const panel = React.useMemo(() => f.style === "glass"
     ? new THREE.MeshPhysicalMaterial({ color: "#cfe9ef", transparent: true, opacity: 0.3, roughness: 0.05 })
     : f.style === "alu" ? metalMat(f.color)
-    : vinyl ? new THREE.MeshStandardMaterial({ map: vinylTex(), color: f.color || "#ffffff", roughness: 0.5, transparent: true, alphaTest: 0.25, side: THREE.DoubleSide })
-    : new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.7 }), [f.style, f.color, vinyl]);
+    : new THREE.MeshStandardMaterial({ color: f.color, roughness: 0.7 }), [f.style, f.color]);
   const H = f.height;
   // Instanced: every box of one material is a single draw call (same sizes/positions as before).
   const parts = React.useMemo(() => {
     const posts = along(f.pts, 6, false);
-    const pw = vinyl ? 0.42 : 0.2, ph = vinyl ? H + 0.25 : H + 0.15;
-    const postBoxes: BoxInstance[] = posts.map((p) => ({ x: p.x, y: H / 2, z: p.z, sx: pw, sy: ph, sz: pw }));
+    const postBoxes: BoxInstance[] = posts.map((p) => ({ x: p.x, y: H / 2, z: p.z, sx: 0.2, sy: H + 0.15, sz: 0.2 }));
     const detail: BoxInstance[] = [];
-    if (vinyl) posts.forEach((p) => detail.push({ x: p.x, y: H + 0.18, z: p.z, sx: 0.5, sy: 0.12, sz: 0.5 }));
     if (f.style === "alu") along(f.pts, 0.33, false).forEach((p) => detail.push({ x: p.x, y: H / 2, z: p.z, sx: 0.06, sy: H - 0.1, sz: 0.06 }));
     const rails: BoxInstance[] = [], panels: BoxInstance[] = [];
-    const spans = vinyl ? posts.slice(1).map((b, k) => [posts[k], b] as [XZ, XZ]) : segs(f.pts, false);
-    for (const [a, b] of spans) {
+    for (const [a, b] of segs(f.pts, false)) {
       if (f.style === "alu") { rails.push(beamBox(a, b, H - 0.1, 0.1, 0.08), beamBox(a, b, 0.35, 0.1, 0.08)); }
       else panels.push(beamBox(a, b, H / 2, H - 0.1, f.style === "glass" ? 0.04 : 0.1));
     }
     return { postBoxes, detail, rails, panels };
-  }, [f.pts, f.style, H, vinyl]);
+  }, [f.pts, f.style, H]);
   return (
     <group name="board-fence" onClick={select({ type: "fence", i })}>
       <InstancedBoxes boxes={parts.postBoxes} material={metal} castShadow />
