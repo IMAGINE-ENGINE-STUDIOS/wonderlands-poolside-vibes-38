@@ -21,7 +21,8 @@ import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower
 import { ShapePanel } from './poolBuilder/ShapePanel';
 import { DesignerToolPanel } from './poolBuilder/DesignerToolPanel';
 import { ProjectManager, setAutoSave, getAutoSave, saveProjectToLibrary } from './poolBuilder/ProjectManager';
-import { useSiteElements } from './designStudio/SiteElementsLayer';
+import { netRegions, computeNetAreas } from '@/lib/design/boardNetArea';
+import { useSiteElements, studioNetItems } from './designStudio/SiteElementsLayer';
 import { useBoardHistory, useBoardCommands, publishBoardStatus } from './designStudio/boardCommands';
 import { toast } from '@/hooks/use-toast';
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
@@ -2005,6 +2006,14 @@ export function PoolBuilder({
     return inside;
   };
 
+  // Geometry is memoized by design, never zoom: identical ownership in canvas, SVG and 3D.
+  const attachedDecks = useMemo(() => Object.fromEntries(additionalPools.filter(p => p.points.length >= 3).map(p => [p.id, additionalDeckPoints[p.id] ?? generateHardscapeFromPool(p.points, deckOffsetsById[p.id] ?? deckOffset)])), [additionalPools, additionalDeckPoints, deckOffsetsById, deckOffset]);
+  const surfaceNet = useMemo(() => studioNetItems(siteItems, points, hardscapePoints, scale, additionalPools, attachedDecks), [siteItems, points, hardscapePoints, scale, additionalPools, attachedDecks]);
+  const deckPaths = useMemo(() => new Map(surfaceNet.filter(n => n.kind === 'deck').map(n => {
+    const path = new Path2D();
+    for (const poly of netRegions(surfaceNet, n)) for (const ring of poly) { ring.forEach((p, i) => i ? path.lineTo(p.x * scale, p.y * scale) : path.moveTo(p.x * scale, p.y * scale)); path.closePath(); }
+    return [n.id, path];
+  })), [surfaceNet, scale]);
   // Draw the pool shape
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -2068,57 +2077,9 @@ export function PoolBuilder({
     if (paverTexture && hardscapePoints.length >= 3) {
       const img = paverTexture;
 
-      // Create hardscape path
       ctx.save();
-      ctx.beginPath();
-      if (smoothCorners) {
-        // Draw smooth curves between hardscape points
-        for (let i = 0; i < hardscapePoints.length; i++) {
-          const p0 = hardscapePoints[(i - 1 + hardscapePoints.length) % hardscapePoints.length];
-          const p1 = hardscapePoints[i];
-          const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
-          const p3 = hardscapePoints[(i + 2) % hardscapePoints.length];
-          if (i === 0) {
-            ctx.moveTo(p1.x, p1.y);
-          }
-
-          // Smooth spline control points
-          const tension = 0.3;
-          const cp1x = p1.x + (p2.x - p0.x) * tension;
-          const cp1y = p1.y + (p2.y - p0.y) * tension;
-          const cp2x = p2.x - (p3.x - p1.x) * tension;
-          const cp2y = p2.y - (p3.y - p1.y) * tension;
-          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
-        }
-      } else {
-        // Draw straight lines for squared corners
-        ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
-        for (let i = 1; i < hardscapePoints.length; i++) {
-          ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
-        }
-      }
-      ctx.closePath();
-
-      // Clip out main pool water area
-      if (points.length >= 3) {
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-          ctx.lineTo(points[i].x, points[i].y);
-        }
-        ctx.closePath();
-      }
-
-      // Clip out all additional pools' water areas (prevent deck on water)
-      additionalPools.forEach(pool => {
-        if (pool.points.length >= 3) {
-          ctx.moveTo(pool.points[0].x, pool.points[0].y);
-          for (let i = 1; i < pool.points.length; i++) {
-            ctx.lineTo(pool.points[i].x, pool.points[i].y);
-          }
-          ctx.closePath();
-        }
-      });
-      ctx.clip('evenodd');
+      const mainDeckPath = deckPaths.get('__deck');
+      if (mainDeckPath) ctx.clip(mainDeckPath, 'evenodd');
 
       // Find hardscape bounds
       const hsMinX = Math.min(...hardscapePoints.map(p => p.x));
@@ -4380,46 +4341,8 @@ export function PoolBuilder({
           const img = paverTexture;
           ctx.save();
 
-          // Build deck path with water cutouts using evenodd
-          ctx.beginPath();
-
-          // Outer deck boundary (clockwise)
-          ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
-          for (let i = 1; i < poolHardscapePoints.length; i++) {
-            ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
-          }
-          ctx.closePath();
-
-          // Cut out this pool's water area (counter-clockwise by reversing)
-          const reversedPoints = [...pool.points].reverse();
-          ctx.moveTo(reversedPoints[0].x, reversedPoints[0].y);
-          for (let i = 1; i < reversedPoints.length; i++) {
-            ctx.lineTo(reversedPoints[i].x, reversedPoints[i].y);
-          }
-          ctx.closePath();
-
-          // Cut out main pool water area
-          if (points.length >= 3) {
-            const reversedMain = [...points].reverse();
-            ctx.moveTo(reversedMain[0].x, reversedMain[0].y);
-            for (let i = 1; i < reversedMain.length; i++) {
-              ctx.lineTo(reversedMain[i].x, reversedMain[i].y);
-            }
-            ctx.closePath();
-          }
-
-          // Cut out all other additional pools' water areas
-          additionalPools.forEach((otherPool, otherIndex) => {
-            if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
-              const reversedOther = [...otherPool.points].reverse();
-              ctx.moveTo(reversedOther[0].x, reversedOther[0].y);
-              for (let i = 1; i < reversedOther.length; i++) {
-                ctx.lineTo(reversedOther[i].x, reversedOther[i].y);
-              }
-              ctx.closePath();
-            }
-          });
-          ctx.clip('evenodd');
+          const extraDeckPath = deckPaths.get(`__deck_${pool.id}`);
+          if (extraDeckPath) ctx.clip(extraDeckPath, 'evenodd');
 
           // Draw paver tiles
           const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
@@ -4427,7 +4350,7 @@ export function PoolBuilder({
           const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
           const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
           // One pattern fill instead of thousands of tiles (fast at any zoom). Imagine Engine Studios Corp
-          const pat = scaledPattern(ctx, img as any, paverSizeInPixels);
+          const pat = scaledPattern(ctx, img as any, scale * (pool.materials?.paverScale ?? 1));
           if (pat) { ctx.fillStyle = pat; ctx.fillRect(hsMinX, hsMinY, hsMaxX - hsMinX, hsMaxY - hsMinY); }
           ctx.restore();
         }
@@ -4500,7 +4423,7 @@ export function PoolBuilder({
             }
             if (copingTexture) {
               ctx.lineWidth = paverSizeInPixels;
-              const copingPattern = scaledPattern(ctx, copingTexture, scale);
+              const copingPattern = scaledPattern(ctx, copingTexture, scale * (pool.materials?.copingScale ?? 1));
               if (copingPattern) {
                 ctx.strokeStyle = copingPattern;
                 ctx.stroke();
@@ -4547,7 +4470,7 @@ export function PoolBuilder({
         if (copingTexture) {
           ctx.save();
           ctx.lineWidth = paverSizeInPixels;
-          const copingPattern = scaledPattern(ctx, copingTexture, scale);
+          const copingPattern = scaledPattern(ctx, copingTexture, scale * (pool.materials?.copingScale ?? 1));
           if (copingPattern) {
             ctx.strokeStyle = copingPattern;
             ctx.stroke();
@@ -4676,7 +4599,7 @@ export function PoolBuilder({
       ctx.clip();
       const poolTextureImg = entityTexture(pool.materials, 'finish');
       if (poolTextureImg) {
-        const pattern = scaledPattern(ctx, poolTextureImg, scale * FINISH_TILE_FT);
+        const pattern = scaledPattern(ctx, poolTextureImg, scale * (pool.materials?.finishScale ?? FINISH_TILE_FT));
         if (pattern) {
           ctx.fillStyle = pattern;
           ctx.fill();
@@ -4684,7 +4607,7 @@ export function PoolBuilder({
       } else {
         const linerTexture = entityTexture(pool.materials, 'finish');
         if (linerTexture) {
-          const pattern = scaledPattern(ctx, linerTexture, scale * FINISH_TILE_FT);
+          const pattern = scaledPattern(ctx, linerTexture, scale * (pool.materials?.finishScale ?? FINISH_TILE_FT));
           if (pattern) {
             ctx.fillStyle = pattern;
             ctx.fill();
@@ -4841,7 +4764,7 @@ export function PoolBuilder({
     ctx.restore();
     // Close camera transform
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, selectedDrawPointId, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode, entityTextureTick]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, selectedDrawPointId, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode, entityTextureTick, deckPaths]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
