@@ -556,12 +556,6 @@ export function PoolBuilder({
     pointId: string;
   } | null>(null);
 
-  // Pool type dialog state (for when new pool intersects deck)
-  const [pendingPoolData, setPendingPoolData] = useState<{
-    points: Point[];
-    intersectsWith: string;
-  } | null>(null);
-  const [showPoolTypeDialog, setShowPoolTypeDialog] = useState(false);
 
   // Deck dialog state (for asking about deck around new water body outside existing deck)
   const [showDeckDialog, setShowDeckDialog] = useState(false);
