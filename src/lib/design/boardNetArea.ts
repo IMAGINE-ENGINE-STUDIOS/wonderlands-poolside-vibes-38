@@ -4,8 +4,8 @@
  *
  * Rule (one place, used by the board's take-off, header and total):
  *  - Pools and spas are counted whole.
- *  - Deck = drawn deck MINUS every pool/spa it overlaps, MINUS any deck drawn later
- *    before it (existing surfaces keep their material where drawings overlap).
+ *  - Deck = drawn deck MINUS water/coping and decks drawn before it
+ *    (existing surfaces keep their material where drawings overlap).
  *  - Turf = drawn turf MINUS pools, spas, coping and decks, MINUS earlier turf.
  *  - Screens cover everything (gross footprint); fences are linear (untouched).
  * Uses polygon-clipping (already used by paverAreaLogic) for exact booleans.
@@ -29,7 +29,7 @@ const ringArea = (r: Ring) => {
 const multiArea = (m: Ring[][]) => m.reduce((s, poly) => s + poly.reduce((a, r, i) => a + (i ? -ringArea(r) : ringArea(r)), 0), 0);
 const gross = (pts: NetPt[]) => (pts.length < 3 ? 0 : ringArea(ring(pts)));
 
-/** What each surface kind is cut by (besides later items of the same kind). */
+/** What each surface kind is cut by (besides earlier items of the same kind). */
 const CUT_BY: Record<string, string[]> = { deck: ["pool", "spa", "coping"], turf: ["pool", "spa", "coping", "deck"] };
 
 /** Net sq ft per item id (only for area kinds). Fences are not included. */

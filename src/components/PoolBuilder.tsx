@@ -1731,15 +1731,13 @@ export function PoolBuilder({
   const entityImages = useRef(new Map<string, HTMLImageElement>());
   const [entityTextureTick, setEntityTextureTick] = useState(0);
   useEffect(() => {
-    let disposed = false;
     for (const p of additionalPools) {
       const m = p.materials;
       const urls = [m?.paverUrl ?? paverTypes.find(x => x.id === m?.paverId)?.image, m?.copingUrl ?? paverTypes.find(x => x.id === m?.copingId)?.image, m?.finishUrl ?? finishes.find(x => x.id === m?.finishId)?.image];
       for (const url of urls) if (url && !entityImages.current.has(url)) {
-        const image = new Image(); image.onload = () => { if (!disposed) setEntityTextureTick(t => t + 1); }; image.src = url; entityImages.current.set(url, image);
+        const image = new Image(); image.onload = () => setEntityTextureTick(t => t + 1); image.src = url; entityImages.current.set(url, image);
       }
     }
-    return () => { disposed = true; };
   }, [additionalPools]);
   const entityTexture = (m: StudioMaterials | undefined, key: 'paver' | 'coping' | 'finish') => {
     const id = m?.[`${key}Id`]; const url = m?.[`${key}Url`] ?? (key === 'finish' ? finishes.find(x => x.id === id)?.image : paverTypes.find(x => x.id === id)?.image);

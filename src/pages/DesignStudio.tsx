@@ -594,7 +594,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
         deckArea: poolBuilderData.deckArea || 0,
         totalCost: poolBuilderData.breakdown?.total || poolBuilderData.totalCost || 0
       } : null} />
-        </> : <header className="relative z-[60] flex items-center justify-between gap-1 px-1.5 sm:px-4 py-1.5 bg-muted/50 border-b shrink-0">
+        </> : <header className="relative z-[60] flex flex-wrap items-center justify-between gap-1 px-1.5 sm:px-4 py-1.5 bg-muted/50 border-b shrink-0">
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Back always returns to the 2D designer — your shape, finishes and 3D settings are kept. */}
             <Button variant="ghost" size="sm" onClick={handleSwitch2D} className="gap-2 px-2 sm:px-3" title="Back to the 2D designer">
@@ -603,10 +603,10 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
             </Button>
             <BoardHeaderControls hideHistory />
           </div>
-          <div id="studio3d-header-slot" className="relative z-[70] flex flex-1 items-center min-w-0 py-1" />
+          <div id="studio3d-header-slot" className="relative z-[70] order-last flex w-full min-w-0 flex-wrap items-center py-1" />
           
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <div className="min-w-0 hidden sm:block">
+            <div className="min-w-0 max-w-xs hidden sm:block overflow-hidden">
             <SiteTakeoffMenu additionalDecks={(poolBuilderData as any)?.additionalDecks} paver={(poolBuilderData as any)?.materials?.paver} scale={poolBuilderData?.scale || 10} poolPts={poolBuilderData?.points ?? []} deckPts={poolBuilderData?.hardscapePoints ?? []} poolDepth={lastScene3DRef.current?.pool?.depth?.deep ?? 6} deckWidth={lastScene3DRef.current?.deck?.width ?? 4} copingWidth={lastScene3DRef.current?.deck?.copingWidth ?? 1} poolPrice={parseFloat(searchParams.get("price") || "50000")} deckAreaSqFt={poolBuilderData?.deckArea} featuresList={poolBuilderData?.breakdown?.featuresList} additionalPools={poolBuilderData?.additionalPools}
                   stats={poolBuilderData ? { perimeter: poolBuilderData.perimeter || 0, area: poolBuilderData.area || 0, corners: poolBuilderData.points?.length || 0, features: poolBuilderData.features?.length || 0, deckArea: poolBuilderData.deckArea || 0 } : null}
                   totals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost || 0, deck: poolBuilderData.breakdown.deckCost || 0, coping: poolBuilderData.breakdown.copingCost || 0, features: poolBuilderData.breakdown.featuresCost || 0 } : null} />
