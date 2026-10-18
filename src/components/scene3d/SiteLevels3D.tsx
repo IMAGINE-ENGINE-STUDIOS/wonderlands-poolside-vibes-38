@@ -20,7 +20,11 @@ const RISER_FT = 7 / 12;
 const TREAD_FT = 1;
 const STEP_WIDTH_FT = 4;
 
-function bandGeometry(ring: XZ[], y0: number, y1: number) {
+/** Drops missing / NaN points so a stale outline can never crash the canvas. */
+const clean = (ring: XZ[] | undefined) => (ring ?? []).filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.z));
+
+function bandGeometry(raw: XZ[], y0: number, y1: number) {
+  const ring = clean(raw);
   const pos: number[] = [], uv: number[] = [], idx: number[] = [];
   let run = 0;
   for (let i = 0; i <= ring.length; i++) {
@@ -47,8 +51,9 @@ export function RiserWall({ ring, y0, y1, texture }: { ring: XZ[]; y0: number; y
 }
 
 /** Steps between `level` (deck top) and ground y=0 on the ring's camera-facing edge. */
-export function AutoSteps({ ring, level }: { ring: XZ[]; level: number }) {
+export function AutoSteps({ ring: raw, level }: { ring: XZ[]; level: number }) {
   const boxes = React.useMemo(() => {
+    const ring = clean(raw);
     if (ring.length < 3 || Math.abs(level) < 0.2) return [];
     const c = ring.reduce((a, p) => ({ x: a.x + p.x / ring.length, z: a.z + p.z / ring.length }), { x: 0, z: 0 });
     const k = ring.reduce((best, p, i) => (p.x + p.z > ring[best].x + ring[best].z ? i : best), 0);
