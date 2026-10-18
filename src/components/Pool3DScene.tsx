@@ -156,6 +156,8 @@ export const PoolMesh: React.FC<{
   linerTextureRotation?: number;
   copingHeight?: number;
   onSelectComponent?: (comp: 'pool' | 'deck' | 'coping' | 'waterline' | null) => void;
+  /** Hide the wall nearest the camera while the camera is below ground. */
+  cutaway?: boolean;
 }> = ({
   points, 
   depthPoints, 
@@ -168,11 +170,27 @@ export const PoolMesh: React.FC<{
   copingHeight = 2 / 12,
   onSelectComponent,
   perimeterDepthPoints: providedPerimeterDepthPoints,
-  floorDepthAt
+  floorDepthAt,
+  cutaway = true,
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
+  // Below-ground cutaway: near-side wall fragments are discarded (see CutawayDriver).
+  const cutUniforms = useMemo(() => ({
+    uCutOn: { value: 0 },
+    uCutCam: { value: new THREE.Vector2() },
+    uCutCenter: { value: new THREE.Vector2() },
+  }), []);
+  const patchCutaway = useCallback((shader: THREE.WebGLProgramParametersWithUniforms) => {
+    Object.assign(shader.uniforms, cutUniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vCutLocal;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCutLocal = position.xz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vCutLocal;\nuniform float uCutOn;\nuniform vec2 uCutCam;\nuniform vec2 uCutCenter;')
+      .replace('void main() {', 'void main() {\n  if (uCutOn > 0.5 && dot(vCutLocal - uCutCenter, uCutCam - uCutCenter) > 0.0) discard;');
+  }, [cutUniforms]);
 
   const poolDimensions = useMemo(() => {
     if (providedDimensions) return providedDimensions;
