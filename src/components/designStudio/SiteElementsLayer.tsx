@@ -759,7 +759,6 @@ import { loadBoard3D, type Board3D } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
 import { useSceneLayers, isObjectHidden, boardObjectId } from "@/lib/design/sceneLayers";
 import { useSpills, spillActions, spillEnds, loadSpills } from "@/lib/design/spillovers";
-import { loadBoard3D } from "@/lib/design/board3D";
 
 /**
  * Builds the 3D Studio hand-off from the Design Studio: fences, screens and turf
