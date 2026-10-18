@@ -27,6 +27,8 @@ import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
 /* Seamless full-bleed grass (catalog swatches carry white borders that tile as a grid). Credit: Imagine Engine Studios Corp */
 import grassTexture from "@/assets/turf/grass-texture.avif";
 import { paverTypes } from "@/data/paverData";
+import type { StudioMaterials } from '@/lib/design/studioMaterials';
+import { buildFinishTextures } from '@/data/textureLibrary';
 import { densifyPoolOutline } from "@/utils/curveUtils";
 import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from "@/components/scene3d/PoolDesignerHeader";
 import { getDeckPricePerSqFt } from "@/utils/poolBuilderPricing";
@@ -58,6 +60,7 @@ export interface SiteElement {
   id: string; kind: SiteKind; pts: Pt[]; label: string; detail: string;
   color: string; height?: number; style?: string; rate: number; unit: "lf" | "sqft";
   /** Fence gates / screen doors from the original drawing boards: segment index, position 0-1 along it, catalog model. */
+  textureUrl?: string; textureScale?: number; details3D?: any;
   gates?: Array<{ seg: number; t: number; typeId: string }>;
 }
 /** Gate (fence) or door (screen) catalog option for an element — same catalogs as the original drawing boards. */
@@ -101,12 +104,17 @@ const fencePosts = (pts: Pt[], step: number): Pt[] => {
 };
 const KIND_LABEL: Record<SiteKind, string> = { fence: "Fence", enclosure: "Screen", turf: "Turf", deck: "Deck" };
 
-/** Net turf area: turf never sits under the pool or the deck. */
-export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], deckPts: Pt[], scale: number) {
-  const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
-  const net = [...(poolPts.length >= 3 ? [{ id: "__pool", kind: "pool", pts: poolRing(poolPts).map(f) }] : []), ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []), ...all.map((x) => ({ id: x.id, kind: x.kind, pts: x.pts.map(f) }))];
-  const ringArea = (r: { x: number; y: number }[]) => Math.abs(r.reduce((s, p, i) => { const q = r[(i + 1) % r.length]; return s + p.x * q.y - q.x * p.y; }, 0) / 2);
-  return netRegions(net, net.find((n) => n.id === e.id)!).reduce((s, poly) => s + poly.reduce((a, r, k) => a + (k === 0 ? ringArea(r) : -ringArea(r)), 0), 0);
+/** Shared surface ownership in world feet: existing decks/turf win; water and coping are protected. */
+export function studioNetItems(all: SiteElement[], poolPts: Pt[], deckPts: Pt[], scale: number, extras: Array<{ id: string; type?: string; points: Pt[]; shape?: string; materials?: StudioMaterials; details3D?: any }> = [], extraDecks: Record<string, Pt[]> = {}) {
+  const f = (p: Pt) => ({ x: p.x / scale, y: p.y / scale });
+  const waters = [ ...(poolPts.length >= 3 ? [{ id: '__pool', kind: 'pool', pts: poolRing(poolPts).map(f), width: 1 }] : []), ...extras.filter(p => p.points.length >= 3).map(p => ({ id: p.id, kind: p.type === 'spa' ? 'spa' : 'pool', pts: densifyPoolOutline(p.points as never, p.shape ?? 'freeform').map(f), width: p.details3D?.copingWidth ?? 1 })) ];
+  const coping = waters.map(w => ({ id: `coping:${w.id}`, kind: 'coping', pts: mitredOffsetRing(w.pts.map(p => ({ x: p.x, z: p.y })), w.width, { miterLimit: 2.5 }).offset.map(p => ({ x: p.x, y: p.z })) }));
+  // Main attached deck, extra attached decks, then drawn surfaces in creation order.
+  return [...waters, ...coping, ...(deckPts.length >= 3 ? [{ id: '__deck', kind: 'deck', pts: deckPts.map(f) }] : []), ...extras.filter(p => (extraDecks[p.id]?.length ?? 0) >= 3).map(p => ({ id: `__deck_${p.id}`, kind: 'deck', pts: extraDecks[p.id].map(f) })), ...all.map(e => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) }))];
+}
+export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], deckPts: Pt[], scale: number, extras: Array<{ id: string; points: Pt[]; shape?: string }> = [], extraDecks: Record<string, Pt[]> = {}) {
+  const net = studioNetItems(all, poolPts, deckPts, scale, extras, extraDecks);
+  return computeNetAreas(net).get(e.id) ?? 0;
 }
 export interface BoardView {
   width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number;
@@ -114,7 +122,7 @@ export interface BoardView {
   poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean;
   setDeck?: (pts: Pt[]) => void; setPool?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
   /** Extra pools/spas and their attached decks (PoolBuilder state). */
-  extraPools?: { id: string; type?: string; points: Pt[] }[]; extraDecks?: Record<string, Pt[]>;
+  extraPools?: { id: string; type?: string; points: Pt[]; shape?: string }[]; extraDecks?: Record<string, Pt[]>;
   setExtraPool?: (id: string, pts: Pt[]) => void; setExtraDeck?: (id: string, pts: Pt[]) => void; eraseExtraPool?: (id: string) => void;
 }
 
@@ -165,7 +173,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   }, [selected, items]);
   React.useEffect(() => {
     const onSel = (e: Event) => setSelected((e as CustomEvent<string | null>).detail);
-    const onStyle = (e: Event) => { const d = (e as CustomEvent<{ id: string; patch: Partial<SiteElement> }>).detail; setItems((p) => p.map((x) => x.id === d.id ? { ...x, ...d.patch } : x)); };
+    const onStyle = (e: Event) => { const d = (e as CustomEvent<{ id: string; patch: Partial<SiteElement> }>).detail; setItems((p) => p.map((x) => x.id === d.id ? { ...x, ...d.patch, ...(d.patch.style ? { textureUrl: undefined } : {}) } : x)); };
     window.addEventListener("design-studio:select", onSel); window.addEventListener("design-studio:site-restyle", onStyle);
     return () => { window.removeEventListener("design-studio:select", onSel); window.removeEventListener("design-studio:site-restyle", onStyle); };
   }, [setItems]);
@@ -453,7 +461,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     window.addEventListener("design-studio:add-gate", on);
     return () => window.removeEventListener("design-studio:add-gate", on);
   }, [items, selected, addGate]);
-  const retexture =  (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt } : x));
+  const retexture =  (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt, ...(opt.style ? { textureUrl: undefined } : {}) } : x));
   const menuItem = items.find((x) => x.id === menu?.id);
   const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))
     : menuItem.kind === "deck" ? DECK_PAVERS.map((d) => ({ key: d.id, label: `${d.label} · $${d.rate}/sqft`, apply: { style: d.id, label: d.label, rate: d.rate } }))
@@ -485,6 +493,15 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     <button onClick={onClick} className={cn("border px-2.5 py-1.5 text-[11px] transition-colors", on ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground")}>{children}</button>
   );
 
+  const surfaceRegions = React.useMemo(() => {
+    if (!view) return new Map<string, Pt[][][]>();
+    const net = studioNetItems(items, view.poolPts ?? [], view.deckPts ?? [], scale, extras, view.extraDecks ?? {});
+    return new Map(items.filter(e => e.kind === 'deck' || e.kind === 'turf').map(e => {
+      const item = net.find(n => n.id === e.id);
+      return [e.id, item ? netRegions(net, item).map(poly => poly.map(r => r.map(p => ({ x: p.x * scale, y: p.y * scale })))) : []];
+    }));
+  }, [items, view?.poolPts, view?.deckPts, view?.extraDecks, extras, scale]);
+  const surfacePath = (id: string) => (surfaceRegions.get(id) ?? []).map(poly => poly.map(r => r.map((p, i) => `${i ? 'L' : 'M'} ${p.x} ${p.y}`).join(' ') + ' Z').join(' ')).join(' ');
   return (
     <>
       {/* Drawing overlay — same transform as the PoolBuilder canvas */}
@@ -503,20 +520,12 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                 <image href={g.texture} width={scale * 4} height={scale * 4} preserveAspectRatio="xMidYMid slice" style={{ mixBlendMode: "multiply" }} opacity={0.9} />
               </pattern>
             ))}
+            {items.filter(e => e.kind === "deck" && e.textureUrl).map(e => <pattern key={e.id} id={`own-${e.id}`} width={scale * (e.textureScale ?? 1)} height={scale * (e.textureScale ?? 1)} patternUnits="userSpaceOnUse"><image href={e.textureUrl} width={scale * (e.textureScale ?? 1)} height={scale * (e.textureScale ?? 1)} preserveAspectRatio="xMidYMid slice" /></pattern>)}
             {DECK_PAVERS.map((d) => (
               <pattern key={d.id} id={`paver-${d.id}`} width={scale * 2} height={scale * 2} patternUnits="userSpaceOnUse">
                 <image href={d.image} width={scale * 2} height={scale * 2} preserveAspectRatio="xMidYMid slice" />
               </pattern>
             ))}
-            {/* Turf cut-out: pool + deck are holes, turf never sits on top of them. */}
-            <mask id="turf-cut" maskUnits="userSpaceOnUse" x={-1e5} y={-1e5} width={2e5} height={2e5}>
-              <rect x={-1e5} y={-1e5} width={2e5} height={2e5} fill="#fff" />
-              {(view.deckPts?.length ?? 0) >= 3 && <polygon points={view.deckPts!.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
-              {items.filter((x) => x.kind === "deck").map((d) => <polygon key={d.id} points={d.pts.map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />)}
-              {(view.poolPts?.length ?? 0) >= 3 && <polygon points={poolRing(view.poolPts!).map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />}
-              {extras.map((x) => <polygon key={`xp${x.id}`} points={poolRing(x.points).map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />)}
-              {extras.map((x) => (view.extraDecks?.[x.id]?.length ?? 0) >= 3 && <polygon key={`xd${x.id}`} points={view.extraDecks![x.id].map((p) => `${p.x},${p.y}`).join(" ")} fill="#000" />)}
-            </mask>
             <pattern id="screen-mesh" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0 L4 4 M4 0 L0 4" stroke="#000" strokeOpacity=".12" strokeWidth=".4" /></pattern>
           </defs>
           <g transform={t}>
@@ -526,8 +535,8 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               const turf = TURFS.find((g) => g.color === e.color);
               return (
                 <g key={e.id} style={{ pointerEvents: "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
-                  {e.kind === "turf" && <polygon points={pts} mask="url(#turf-cut)" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
-                  {e.kind === "deck" && <polygon points={pts} fill={`url(#paver-${e.style ?? DECK_PAVERS[0]?.id})`} stroke={sel ? "hsl(var(--foreground))" : "#8a7a62"} strokeWidth={(sel ? 2.5 : 1.5) / (view.zoom || 1)} />}
+                  {e.kind === "turf" && <path d={surfacePath(e.id)} fillRule="evenodd" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
+                  {e.kind === "deck" && <path d={surfacePath(e.id)} fillRule="evenodd" fill={e.textureUrl ? `url(#own-${e.id})` : `url(#paver-${e.style ?? DECK_PAVERS[0]?.id})`} stroke={sel ? "hsl(var(--foreground))" : "#8a7a62"} strokeWidth={(sel ? 2.5 : 1.5) / (view.zoom || 1)} />}
                   {/* Placed fences/screens keep the exact drawing-board look: solid round-joined line + ringed post handles. */}
                   {/* Global Design Board V1 look: screens = frame-color outline over mesh; fences = run in the fence color with posts every 6 ft. */}
                   {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={Math.max(3 / (view.zoom || 1), scale * 0.3)} strokeLinejoin="miter" />}
@@ -694,7 +703,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             {(view?.poolPts?.length ?? 0) >= 3 && <Row id="__pool" label="Pool" />}
             {(view?.deckPts?.length ?? 0) >= 3 && <Row id="__deck" label={`Pool deck · ${Math.round(poolTotals?.deckArea ?? 0)} sqft`} />}
             {extras.map((x) => <React.Fragment key={x.id}><Row id={`__xp:${x.id}`} label={`${extraLabel(x.id)} · ${Math.round(areaFt(x.points, scale))} sqft`} />{(view?.extraDecks?.[x.id]?.length ?? 0) >= 3 && <Row id={`__xd:${x.id}`} label={`${extraLabel(x.id)} deck · ${Math.round(Math.max(0, areaFt(view!.extraDecks![x.id], scale) - areaFt(x.points, scale)))} sqft`} />}</React.Fragment>)}
-            {items.map((e) => <Row key={e.id} id={e.id} label={`${KIND_LABEL[e.kind]} · ${e.label} · ${Math.round(e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, view?.poolPts ?? [], view?.deckPts ?? [], scale) : elementQty(e, scale))} ${e.unit}`} />)}
+            {items.map((e) => <Row key={e.id} id={e.id} label={`${KIND_LABEL[e.kind]} · ${e.label} · ${Math.round(e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, view?.poolPts ?? [], view?.deckPts ?? [], scale, extras, view?.extraDecks ?? {}) : elementQty(e, scale))} ${e.unit}`} />)}
           </ul>
           {sel && (sel.kind === "fence" || sel.kind === "enclosure") && (
             <div className="mt-2">
@@ -719,7 +728,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 };
 
 /* ---------- 3D hand-off ---------- */
-import { netRegions } from "@/lib/design/boardNetArea";
+import { netRegions, computeNetAreas } from "@/lib/design/boardNetArea";
 import { loadBoard3D, type Board3D } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
 
@@ -729,47 +738,30 @@ import { mitredOffsetRing } from "@/utils/polygonGeometry";
  * centres the pool the same way). Pools cut the turf. No extra waters are sent:
  * the Design Studio's extra pools/spas already travel inside its own scene.
  */
-export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string }> = [], extraDeckPts: Record<string, Pt[]> = {}): Board3D {
-  const f = (p: Pt) => ({ x: ft(p.x, scale), y: ft(p.y, scale) });
+export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string; materials?: StudioMaterials; details3D?: any }> = [], extraDeckPts: Record<string, Pt[]> = {}): Board3D {
+  const f = (p: Pt) => ({ x: p.x / scale, y: p.y / scale });
   const pool = poolRing(poolPts).map(f);
-  let c = { x: 0, y: 0 };
-  if (pool.length >= 3) { const xs = pool.map((p) => p.x), ys = pool.map((p) => p.y); c = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; }
+  const c = pool.length >= 3 ? { x: (Math.min(...pool.map(p => p.x)) + Math.max(...pool.map(p => p.x))) / 2, y: (Math.min(...pool.map(p => p.y)) + Math.max(...pool.map(p => p.y))) / 2 } : { x: 0, y: 0 };
   const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
-  // Every extra pool/spa from the 2D designer (feet), plus its own attached deck —
-  // the exact outline PoolBuilder draws (same logic as the main pool deck).
-  const extras = extraPools.filter((p) => p.points?.length >= 3).map((p) => ({ ...p, ring: densifyPoolOutline(p.points as never, p.shape ?? "freeform").map(f) }));
-  const extraDecks = extras.map((p) => ({ id: `__deck_${p.id}`, kind: "deck", pts: (extraDeckPts[p.id]?.length ?? 0) >= 3 ? extraDeckPts[p.id].map(f) : mitredOffsetRing(p.ring.map((q) => ({ x: q.x, z: q.y })), EXTRA_DECK_FT).offset.map((q) => ({ x: q.x, y: q.z })) }));
-  // Order matters: a later deck cuts an earlier one, so the pool's own deck sits
-  // last and drawn decks never cover it (one continuous slab, no overlap).
-  const net = [
-    ...(pool.length >= 3 ? [{ id: "__pool", kind: "pool", pts: pool }] : []),
-    ...extras.map((p) => ({ id: p.id, kind: p.type === "spa" ? "spa" : "pool", pts: p.ring })),
-    ...items.map((e) => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) })),
-    ...extraDecks,
-    ...(deckPts.length >= 3 ? [{ id: "__deck", kind: "deck", pts: deckPts.map(f) }] : []),
-  ];
-  const regionsOf = (id: string) => netRegions(net, net.find((n) => n.id === id)!).map((poly) => poly.map((r) => r.map(to)));
-  const last = loadBoard3D();
-  const prev = new Map((last?.waters ?? []).filter((w) => w.itemId).map((w) => [w.itemId!, w]));
-  const prevF = new Map((last?.fences ?? []).filter((x) => x.itemId).map((x) => [x.itemId!, x]));
+  const net = studioNetItems(items, poolPts, deckPts, scale, extraPools, extraDeckPts);
+  const regionsOf = (id: string) => { const n = net.find(n => n.id === id); return n ? netRegions(net, n).map(poly => poly.map(r => r.map(to))) : []; };
   const out: Board3D = { origin: c, fences: [], screens: [], surfaces: [], waters: [] };
-  const paver0 = DECK_PAVERS[0]?.image;
-  for (const p of extras) {
-    const old = prev.get(p.id);
-    out.waters!.push({ depth: p.type === "spa" ? 3 : 5, finish: "#5fb7d4", coping: "#d8d2c8", waterline: "#2f6f8f", copingWidth: 1, ...old, itemId: p.id, kind: p.type === "spa" ? "spa" : "pool", label: p.type === "spa" ? "Spa" : "Pool", pts: p.ring.map(to) });
-    out.surfaces.push({ itemId: `__deck_${p.id}`, kind: "deck", color: "#ffffff", image: paver0, regions: regionsOf(`__deck_${p.id}`) });
+  const finishes = buildFinishTextures();
+  for (const p of extraPools.filter(p => p.points.length >= 3)) {
+    const m = p.materials;
+    const finish = m?.finishUrl ?? finishes.find(f => `cat-${f.id}` === m?.finishId)?.url;
+    const coping = m?.copingUrl ?? paverTypes.find(f => f.id === m?.copingId)?.image;
+    const image = m?.paverUrl ?? paverTypes.find(f => f.id === m?.paverId)?.image;
+    const pts = densifyPoolOutline(p.points as never, p.shape ?? 'freeform').map(f).map(to);
+    out.waters?.push({ depth: p.type === 'spa' ? 3 : 5, finish: finish ?? '#5fb7d4', coping: coping ?? '#d8d2c8', waterline: m?.waterlineUrl ?? '#2f6f8f', copingWidth: 1, ...p.details3D, ...(finish ? { finish } : {}), ...(coping ? { coping } : {}), ...(m?.waterlineUrl ? { waterline: m.waterlineUrl } : {}), finishScale: m?.finishScale, copingScale: m?.copingScale, waterlineScale: m?.waterlineScale, itemId: p.id, kind: p.type === 'spa' ? 'spa' : 'pool', label: p.type === 'spa' ? 'Spa' : 'Pool', pts });
+    if ((extraDeckPts[p.id]?.length ?? 0) >= 3) out.surfaces.push({ itemId: `__deck_${p.id}`, kind: 'deck', color: '#ffffff', image, scale: m?.paverScale, regions: regionsOf(`__deck_${p.id}`) });
   }
   for (const e of items) {
-    const pts = e.pts.map(f);
-    if (e.kind === "fence") {
-      const old = prevF.get(e.id);
-      // Vinyl panels and posts default to white; 3D picks are kept on re-open.
-      const vinyl = e.style === "vinyl";
-      out.fences.push({ itemId: e.id, gates: (e.gates ?? []).map((g) => ({ ...g, widthFt: gateOption(e.kind, g.typeId)?.widthFt ?? 3 })), pts: pts.map(to), style: e.style ?? "alu", height: e.height ?? 4, color: vinyl ? (old?.color ?? "#ffffff") : e.color, ...(vinyl ? { postColor: old?.postColor ?? "#ffffff" } : {}) });
-    }
-    else if (e.kind === "enclosure") out.screens.push({ itemId: e.id, gates: (e.gates ?? []).map((g) => ({ ...g, widthFt: gateOption(e.kind, g.typeId)?.widthFt ?? 3 })), pts: pts.map(to), height: e.height ?? 10, color: e.color });
-    else if (e.kind === "deck") out.surfaces.push({ itemId: e.id, kind: "deck", color: "#ffffff", image: (DECK_PAVERS.find((d) => d.id === e.style) ?? DECK_PAVERS[0])?.image, regions: regionsOf(e.id) });
-    else out.surfaces.push({ itemId: e.id, kind: "turf", color: e.color, image: TURFS.find((g) => g.color === e.color)?.texture, regions: regionsOf(e.id) });
+    const pts = e.pts.map(f).map(to);
+    const gates = (e.gates ?? []).map(g => ({ ...g, widthFt: gateOption(e.kind, g.typeId)?.widthFt ?? 3 }));
+    if (e.kind === 'fence') out.fences.push({ ...e.details3D, itemId: e.id, pts, gates, style: e.style ?? 'alu', height: e.height ?? 4, color: e.color, postColor: e.details3D?.postColor ?? (e.style === 'vinyl' ? '#ffffff' : undefined) });
+    else if (e.kind === 'enclosure') out.screens.push({ ...e.details3D, itemId: e.id, pts, gates, height: e.height ?? 10, color: e.color });
+    else out.surfaces.push({ itemId: e.id, kind: e.kind, color: e.kind === 'deck' ? '#ffffff' : e.color, image: e.textureUrl ?? (e.kind === 'deck' ? DECK_PAVERS.find(d => d.id === e.style)?.image : TURFS.find(g => g.color === e.color)?.texture), scale: e.textureScale, regions: regionsOf(e.id) });
   }
   return out;
 }
@@ -789,7 +781,7 @@ export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: 
   const feet = React.useMemo(() => poolPts.map((p) => ({ x: p.x / scale, y: p.y / scale })), [poolPts, scale]);
   // Every element on the board: site pieces, placed features and extra water bodies.
   const extras = React.useMemo(() => {
-    const site = items.filter((e) => e.kind !== "deck").map((e) => { const q = e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, poolPts, deckPts, scale) : elementQty(e, scale); return [{ name: `${KIND_LABEL[e.kind]} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }, ...gateLines(e)]; }).flat();
+    const site = items.filter((e) => e.kind !== "deck").map((e) => { const q = e.kind === "turf" || e.kind === "deck" ? turfNetSqft(e, items, poolPts, deckPts, scale, additionalPools, additionalDecks) : elementQty(e, scale); return [{ name: `${KIND_LABEL[e.kind]} · ${e.label} (${Math.round(q)} ${e.unit})`, price: q * e.rate }, ...gateLines(e)]; }).flat();
     const counts = new Map<string, { n: number; cost: number }>();
     featuresList.forEach((f) => { const c = counts.get(f.type) ?? { n: 0, cost: 0 }; c.n++; c.cost += f.cost; counts.set(f.type, c); });
     const feats = [...counts].map(([t, c]) => ({ name: `${t.replace(/-/g, " ").replace(/^./, (m) => m.toUpperCase())}${c.n > 1 ? ` × ${c.n}` : ""}`, price: c.cost }));
@@ -807,7 +799,7 @@ export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: 
     const mainName = paver?.name ?? "Concrete deck"; const mainRate = getDeckPricePerSqFt(paver?.id ?? "concrete-deck");
     add(mainName, mainRate, deckAreaSqFt ?? 0);
     additionalPools.forEach((p) => { const d = additionalDecks[p.id]; if (d?.length >= 3 && p.points?.length >= 3) add(mainName, mainRate, Math.max(0, areaFt(d, scale) - areaFt(p.points, scale))); });
-    items.filter((e) => e.kind === "deck").forEach((e) => add(e.label, e.rate, turfNetSqft(e, items, poolPts, deckPts, scale)));
+    items.filter((e) => e.kind === "deck").forEach((e) => add(e.label, e.rate, turfNetSqft(e, items, poolPts, deckPts, scale, additionalPools, additionalDecks)));
     return [...g.values()];
   }, [paver, deckAreaSqFt, additionalPools, additionalDecks, items, poolPts, deckPts, scale]);
   return <PoolDesignerHeader deckLines={deckLines} paverName={paver?.name} poolPoints={feet as never} poolDepth={poolDepth} deckWidth={deckWidth} copingWidth={copingWidth} poolPrice={poolPrice} deckAreaSqFt={deckAreaSqFt} additionalFeatures={extras} additionalBodies={bodies} />;
