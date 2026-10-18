@@ -99,7 +99,9 @@ export const DeckBorderGeometry = ({
     // Deck surface sits at deckElevation; the slab always extends down to (or below)
     // ground level so no sliver of untextured terrain can show through.
     const deckTopY = deckElevation;
-    const deckBottomY = Math.min(deckElevation - borderHeight, -0.05);
+    // Raised/sunken decks are a real 3" slab; the site RiserWall fills the
+    // height to grade, so the two never overlap (no z-fighting tears).
+    const deckBottomY = Math.abs(deckElevation) > 0.01 ? deckElevation - borderHeight : Math.min(deckElevation - borderHeight, -0.05);
 
     return buildDeckRingGeometry(boundaries.inner, boundaries.outer, deckTopY, deckBottomY, poolPoints);
   }, [poolPoints, outerPoints, deckWidth, copingWidth, borderHeight, borderWidth, deckElevation]);

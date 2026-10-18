@@ -707,9 +707,10 @@ export function UnifiedPoolVisualizer({
   const structureSignature = useMemo(
     () =>
       JSON.stringify({
-        p: (initialScene.pool.points || []).map((p: any) => [Math.round(p.x * 100), Math.round(p.y * 100)]),
+        // Half-unit rounding: 2D↔3D round-trip jitter must not reset history mid slider drag.
+        p: (initialScene.pool.points || []).map((p: any) => [Math.round(p.x * 2), Math.round(p.y * 2)]),
         dp: (initialScene.pool.depthPoints || []).map((d: any) => [d.position, d.depth]),
-        d: (initialScene.deck.points || []).map((p: any) => [Math.round(p.x * 100), Math.round(p.y * 100)]),
+        d: (initialScene.deck.points || []).map((p: any) => [Math.round(p.x * 2), Math.round(p.y * 2)]),
         dim: initialScene.pool.dimensions,
         f: (initialScene.features || []).map((f: any) => f.id),
       }),
@@ -731,7 +732,7 @@ export function UnifiedPoolVisualizer({
       ? incoming
       : {
           ...incoming,
-          pool: { ...incoming.pool, finish: current.pool.finish || incoming.pool.finish },
+          pool: { ...incoming.pool, finish: current.pool.finish || incoming.pool.finish, elevation: (current.pool as any).elevation ?? (incoming.pool as any).elevation } as any,
           deck: {
             ...incoming.deck,
             paver: current.deck.paver || incoming.deck.paver,

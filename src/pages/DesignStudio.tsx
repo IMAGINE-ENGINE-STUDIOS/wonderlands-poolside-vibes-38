@@ -344,6 +344,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
   }, []);
 
   // Handle 3D scene changes → sync back to 2D state
+  const sync3DTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handle3DSceneChange = useCallback((updatedScene: any) => {
     // Skip if this update was triggered by 2D sync
     if (updateSourceRef.current === '2d') {
@@ -352,7 +353,11 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
     // The first scene the 3D Studio reports is just what it loaded — only real 3D edits flow back to 2D,
     // so an older remembered scene can never replace the board when you return.
     if (skipFirst3DRef.current) { skipFirst3DRef.current = false; return; }
-    
+    // Slider drags fire every frame: sync back to 2D once the value settles so the
+    // round-trip never re-renders the 3D Studio mid-drag (the slider used to freeze).
+    if (sync3DTimer.current) clearTimeout(sync3DTimer.current);
+    sync3DTimer.current = setTimeout(() => {
+
     // Store latest 3D scene (deep copy — panels mutate nested objects) so
     // textures, deck/coping settings, depth profile and lights persist across 2D ⇄ 3D.
     materials2DDirtyRef.current = false;
@@ -395,6 +400,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
       additionalPools: converted.additionalPools,
       materials: converted.materials
     };
+    }, 150);
   }, [poolBuilderData?.scale, sceneMemoryKey]);
 
   // Handle switching to 3D view
