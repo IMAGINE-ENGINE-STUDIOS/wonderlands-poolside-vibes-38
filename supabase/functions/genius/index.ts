@@ -5,6 +5,7 @@
  * return when the self-hosted model VM (infra/model-server) goes live. */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { groqChat } from "../_shared/groqChat.ts";
+import { buildGrounding } from "../_shared/catalogGrounding.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -95,6 +96,9 @@ serve(async (req) => {
 
     const body = (await req.json()) as GeniusRequest;
     const turns = (body.messages ?? []).slice(-12).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));
+    /* Grounding: match the catalog rows that answer the guest's latest words
+     * and pin them — product facts come from matched rows, never invention. */
+    const grounding = buildGrounding(turns.filter((t) => t.role === "user").slice(-2).map((t) => t.content).join("\n"));
 
     const res = await groqChat(apiKey, {
         temperature: 0.4,
@@ -102,6 +106,7 @@ serve(async (req) => {
         messages: [
           { role: "system", content: SYSTEM },
           { role: "system", content: buildContext(body) },
+          ...(grounding ? [{ role: "system", content: grounding }] : []),
           ...turns,
         ],
       });
