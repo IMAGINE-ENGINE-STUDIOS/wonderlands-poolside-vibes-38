@@ -8,7 +8,6 @@ import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import StudioEditorial from "@/components/StudioEditorial";
 import SolarEditorial from "@/components/SolarEditorial";
-import PlatformOverview from "@/components/PlatformOverview";
 
 
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
@@ -104,8 +103,7 @@ const Index = () => {
       <Hero />
       <PlacedFlipBook slot="home:top" />
 
-      {/* One consolidated platform plate: statement, solutions, process */}
-      <PlatformOverview />
+      {/* Platform overview plate hidden on the home page (owner request). */}
       {/* The technology */}
       <StudioEditorial />
       <SolarEditorial />

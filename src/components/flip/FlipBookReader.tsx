@@ -204,7 +204,7 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
       const el = e.target as HTMLElement | null;
       if (el && (el.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(el.tagName))) return;
       if (e.key === "ArrowRight") bookRef.current?.pageFlip()?.flipNext();
-      if (e.key === "ArrowLeft") bookRef.current?.pageFlip()?.flipPrev();
+      if (e.key === "ArrowLeft") goPrev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -356,6 +356,20 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
     [doc.pages],
   );
 
+  /* Mobile (portrait) books sometimes ignore flipPrev — if the page did not move,
+     step back directly so going back always works. Imagine Engine Studios Corp. */
+  const goPrev = () => {
+    const pf = bookRef.current?.pageFlip?.();
+    if (!pf) return;
+    const from = pf.getCurrentPageIndex?.() ?? 0;
+    if (from <= 0) return;
+    pf.flipPrev();
+    window.setTimeout(() => {
+      const now = pf.getCurrentPageIndex?.() ?? from;
+      if (now === from) { pf.turnToPage(Math.max(0, from - (portrait ? 1 : 2))); setPage(pf.getCurrentPageIndex?.() ?? from - 1); }
+    }, turnMs + 120);
+  };
+
   return (
     <FlipActionContext.Provider value={act}>
     <div
@@ -400,13 +414,13 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
           </HTMLFlipBook>
           {kindle && (
             <>
-              <button onClick={() => bookRef.current?.pageFlip()?.flipPrev()} aria-label="Previous page (tap left)" className="absolute inset-y-0 left-0 z-10 w-1/3" />
+              <button onClick={() => goPrev()} aria-label="Previous page (tap left)" className="absolute inset-y-0 left-0 z-10 w-1/3" />
               <button onClick={() => bookRef.current?.pageFlip()?.flipNext()} aria-label="Next page (tap right)" className="absolute inset-y-0 right-0 z-10 w-1/3" />
             </>
           )}
           {t.sideArrows && !kindle && (
             <>
-              <button onClick={() => bookRef.current?.pageFlip()?.flipPrev()} aria-label="Previous page (side)" className="absolute left-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center border bg-background/70 backdrop-blur" style={{ borderColor: palette.muted, color: palette.ink }}><ChevronLeft className="h-5 w-5" /></button>
+              <button onClick={() => goPrev()} aria-label="Previous page (side)" className="absolute left-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center border bg-background/70 backdrop-blur" style={{ borderColor: palette.muted, color: palette.ink }}><ChevronLeft className="h-5 w-5" /></button>
               <button onClick={() => bookRef.current?.pageFlip()?.flipNext()} aria-label="Next page (side)" className="absolute right-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center border bg-background/70 backdrop-blur" style={{ borderColor: palette.muted, color: palette.ink }}><ChevronRight className="h-5 w-5" /></button>
             </>
           )}
@@ -415,7 +429,7 @@ const FlipBookReader: React.FC<Props> = ({ doc, bookId, shareUrl, className }) =
         {/* controls */}
         <div className="mx-auto mt-5 flex max-w-4xl flex-wrap items-center justify-center gap-2">
           {t.showArrows && <button
-            onClick={() => bookRef.current?.pageFlip()?.flipPrev()}
+            onClick={() => goPrev()}
             aria-label="Previous page"
             className="flex h-10 w-10 items-center justify-center border transition-transform hover:-translate-x-0.5"
             style={{ borderColor: palette.muted, color: palette.ink }}
