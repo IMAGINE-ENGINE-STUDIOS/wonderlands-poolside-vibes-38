@@ -611,7 +611,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
         deckArea: poolBuilderData.deckArea || 0,
         totalCost: poolBuilderData.breakdown?.total || poolBuilderData.totalCost || 0
       } : null} />
-        </> : <header className="relative z-[60] flex flex-wrap items-center justify-between gap-1 px-1.5 sm:px-4 py-1.5 bg-muted/50 border-b shrink-0">
+        </> : <header className="relative z-[60] flex flex-nowrap items-center justify-between gap-1 overflow-hidden px-1.5 sm:px-4 py-1.5 bg-muted/50 border-b shrink-0">
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Back always returns to the 2D designer — your shape, finishes and 3D settings are kept. */}
             <Button variant="ghost" size="sm" onClick={handleSwitch2D} className="gap-2 px-2 sm:px-3" title="Back to the 2D designer">
@@ -621,7 +621,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
             <BoardHeaderControls hideHistory />
           </div>
           {/* 3D controls sit inline in the top row (not a second row below). */}
-          <div id="studio3d-header-slot" className="relative z-[70] flex min-w-0 flex-1 items-center justify-center overflow-x-auto" />
+          <div id="studio3d-header-slot" className="relative z-[70] flex min-w-0 flex-1 items-center justify-start sm:justify-center overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&_*]:flex-nowrap" />
           
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <div className="min-w-0 max-w-xs hidden sm:block overflow-hidden">
