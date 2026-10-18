@@ -371,7 +371,7 @@ function TurfSurface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; hole
 const DECK_SLAB_FT = 0.25;
 
 /** mainCoping/mainWaterline: extra pools without their own chosen texture inherit the main pool's (never a plain white ring). */
-export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCoping, mainWaterline, mainElevation = 0 }: { holes?: XZ[][]; scales?: SceneScales; mainCoping?: string; mainWaterline?: string; mainElevation?: number }) {
+export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCoping, mainWaterline, mainElevation = 0, deckLevel = 0 }: { holes?: XZ[][]; scales?: SceneScales; mainCoping?: string; mainWaterline?: string; mainElevation?: number; deckLevel?: number }) {
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
   const invalidate = useThree((st) => st.invalidate);
   // The studio renders on demand: redraw as soon as a widget edits a piece.
@@ -397,7 +397,7 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
         : <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={s.scale ?? scales.paver} />)}
       {data.fences.map((f, i) => off("fence", f.itemId, i, "fences") ? null : <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => off("screen", s.itemId, i, "fences") ? null : <Screen key={`c${i}`} s={s} i={i} />)}
-      {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} mainPts={data.primaryPts} />}
+      {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} deckLevel={deckLevel} mainPts={data.primaryPts} />}
       {(data.waters ?? []).map((w, i) => !w || !Array.isArray(w.pts) || w.pts.length < 3 || off("water", w.itemId, i, "structure") ? null : <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} />)}
     </group>
   );

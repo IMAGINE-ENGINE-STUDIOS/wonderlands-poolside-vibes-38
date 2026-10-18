@@ -1976,7 +1976,7 @@ export function UnifiedPoolVisualizer({
           
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
-          <BoardElements3D holes={[]} mainElevation={poolElevation}
+          <BoardElements3D holes={[]} mainElevation={poolElevation} deckLevel={deckElevation}
             scales={boardScales} mainCoping={scene.deck.coping?.url} mainWaterline={scene.deck.waterline?.url ?? scene.deck.coping?.url} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}

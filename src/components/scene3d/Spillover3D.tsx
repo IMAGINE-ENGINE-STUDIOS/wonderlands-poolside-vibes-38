@@ -48,7 +48,7 @@ function sheetGeometry(a: XZ, b: XZ, n: XZ, top: number, bottom: number, pitch: 
   return { g, landOff: 0.06 + throwFt, L };
 }
 
-export function Spillovers3D({ data, mainElevation = 0, mainPts }: { data: Board3D; mainElevation?: number; mainPts?: XZ[] }) {
+export function Spillovers3D({ data, mainElevation = 0, deckLevel = 0, mainPts }: { data: Board3D; mainElevation?: number; deckLevel?: number; mainPts?: XZ[] }) {
   const tex = React.useMemo(streakTexture, []);
   const mat = React.useMemo(() => new THREE.MeshStandardMaterial({ map: tex, transparent: true, opacity: 0.8, roughness: 0.05, metalness: 0.1, side: THREE.DoubleSide, depthWrite: false }), [tex]);
   const foam = React.useMemo(() => new THREE.MeshStandardMaterial({ color: "#ffffff", transparent: true, opacity: 0.55, depthWrite: false }), []);
@@ -62,12 +62,13 @@ export function Spillovers3D({ data, mainElevation = 0, mainPts }: { data: Board
     const probe = { x: mx + nx * (0.6 + Math.tan((sp.pitch * Math.PI) / 180) * 1.5), z: mz + nz * (0.6 + Math.tan((sp.pitch * Math.PI) / 180) * 1.5) };
     const bodies: Array<{ pts: XZ[]; elev: number; id?: string }> = [...(mainPts && mainPts.length >= 3 ? [{ pts: mainPts, elev: mainElevation }] : []), ...(data.waters ?? []).map((w) => ({ pts: w?.pts ?? [], elev: w?.elevation ?? 0, id: w?.itemId }))];
     const target = bodies.find((b) => b.id !== sp.waterId && !(b.id == null && sp.waterId == null) && b.pts.length >= 3 && inside(probe, b.pts));
-    const bottom = target ? target.elev - 0.25 : 0.02;
+    // No water body below → the deck (raised or sunken) catches the sheet.
+    const bottom = target ? target.elev - 0.25 : deckLevel + 0.02;
     const n = { x: nx, z: nz };
     const { g, landOff } = sheetGeometry(sp.a, sp.b, n, top, Math.min(bottom, top - 0.3), sp.pitch);
     const foamGeo = new THREE.PlaneGeometry(Math.hypot(sp.b.x - sp.a.x, sp.b.z - sp.a.z), 0.5); foamGeo.rotateX(-Math.PI / 2);
     return { id: sp.id, g, foamGeo, foamPos: [mx + nx * landOff, Math.min(bottom, top - 0.3) + 0.03, mz + nz * landOff] as [number, number, number], foamRot: -Math.atan2(sp.b.z - sp.a.z, sp.b.x - sp.a.x) };
-  }), [data.spills, data.waters, mainElevation, mainPts]);
+  }), [data.spills, data.waters, mainElevation, deckLevel, mainPts]);
   return <group name="spillovers">{sheets.map((s) => (
     <group key={s.id}>
       <mesh geometry={s.g} material={mat} renderOrder={11} raycast={() => null} />
