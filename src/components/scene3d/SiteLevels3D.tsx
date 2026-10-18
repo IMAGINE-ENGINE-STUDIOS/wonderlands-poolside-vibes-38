@@ -44,7 +44,7 @@ function bandGeometry(raw: XZ[], y0: number, y1: number) {
 const wallMat = new THREE.MeshStandardMaterial({ color: "#d6cdbf", roughness: 0.85, side: THREE.DoubleSide });
 
 export function RiserWall({ ring, y0, y1, texture }: { ring: XZ[]; y0: number; y1: number; texture?: THREE.Texture | null }) {
-  const geo = React.useMemo(() => (ring.length >= 3 && Math.abs(y1 - y0) > 0.01 ? bandGeometry(ring, Math.min(y0, y1), Math.max(y0, y1)) : null), [ring, y0, y1]);
+  const geo = React.useMemo(() => (clean(ring).length >= 3 && Math.abs(y1 - y0) > 0.01 ? bandGeometry(ring, Math.min(y0, y1), Math.max(y0, y1)) : null), [ring, y0, y1]);
   const mat = React.useMemo(() => (texture ? new THREE.MeshStandardMaterial({ map: texture, roughness: 0.85, side: THREE.DoubleSide }) : wallMat), [texture]);
   if (!geo) return null;
   return <mesh geometry={geo} material={mat} castShadow receiveShadow />;
@@ -77,7 +77,7 @@ export function AutoSteps({ ring: raw, level }: { ring: XZ[]; level: number }) {
       }
     }
     return out;
-  }, [ring, level]);
+  }, [raw, level]);
   if (!boxes.length) return null;
   return <InstancedBoxes boxes={boxes} material={wallMat} castShadow />;
 }
