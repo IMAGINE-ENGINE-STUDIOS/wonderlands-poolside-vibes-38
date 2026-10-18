@@ -10,6 +10,7 @@ import type { StudioMaterials } from '@/lib/design/studioMaterials';
 import { captureMaterials } from '@/lib/design/studioMaterials';
 import { curvedSegmentControls } from '@/utils/curveUtils';
 import { outwardBulgeSign } from '@/utils/curveUtils';
+import { poolInsertionHit, splineHandleRadius, splineHitRadius } from '@/utils/studioSplineControls';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -388,6 +389,7 @@ export function PoolBuilder({
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const pointHitRadius = splineHitRadius(zoomLevel);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
@@ -2426,10 +2428,6 @@ export function PoolBuilder({
         const offset = 20;
         const offsetX = Math.cos(angle + Math.PI / 2) * offset;
         const offsetY = Math.sin(angle + Math.PI / 2) * offset;
-        ctx.beginPath();
-        ctx.moveTo(current.x + offsetX, current.y + offsetY);
-        ctx.lineTo(next.x + offsetX, next.y + offsetY);
-        ctx.stroke();
 
         // Draw dimension label with background
         const label = `${distance.toFixed(1)}'`;
@@ -2461,10 +2459,6 @@ export function PoolBuilder({
       const offset = 35;
       const offsetX = Math.cos(angle + Math.PI / 2) * offset;
       const offsetY = Math.sin(angle + Math.PI / 2) * offset;
-      ctx.beginPath();
-      ctx.moveTo(current.x + offsetX, current.y + offsetY);
-      ctx.lineTo(next.x + offsetX, next.y + offsetY);
-      ctx.stroke();
 
       // Draw dimension label with background
       const label = `${distance.toFixed(1)}' deck`;
@@ -2658,30 +2652,20 @@ export function PoolBuilder({
       ctx.setLineDash([]);
       ctx.globalAlpha = 1.0;
 
-      // Dimension labels on deck edges
-      for (let i = 0; i < hardscapePoints.length; i++) {
-        const p1 = hardscapePoints[i];
-        const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
-        const dist = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2) / scale;
-        const mx = (p1.x + p2.x) / 2;
-        const my = (p1.y + p2.y) / 2;
-        ctx.fillStyle = '#334155';
-        ctx.font = '9px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${dist.toFixed(1)}'`, mx, my - 6);
-      }
       ctx.restore();
     }
 
     // Draw hardscape anchor points (main deck)
     hardscapePoints.forEach(point => {
-      const size = 10;
+      const size = splineHandleRadius(zoomLevel) * 2;
       const isSelected = selectedHardscapePoint === point.id && selectedDeckId === 'main';
       ctx.fillStyle = isSelected ? '#0F172A' : '#ffffff';
       ctx.strokeStyle = isSelected ? '#334155' : '#0F172A';
-      ctx.lineWidth = 2;
-      ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
-      ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+      ctx.lineWidth = 1 / zoomLevel;
+      ctx.beginPath();
+        ctx.arc(point.x, point.y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
     });
 
     // Draw spline points for additional pool decks (visible + editable)
@@ -2703,26 +2687,30 @@ export function PoolBuilder({
       ctx.restore();
 
       poolDeck.forEach(point => {
-        const size = 9;
+        const size = splineHandleRadius(zoomLevel) * 2;
         const isSelected = selectedHardscapePoint === point.id && selectedDeckId === pool.id;
         ctx.fillStyle = isSelected ? '#0F172A' : '#ffffff';
         ctx.strokeStyle = isSelected ? '#334155' : '#0F172A';
-        ctx.lineWidth = 2;
-        ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
-        ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+        ctx.lineWidth = 1 / zoomLevel;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
       });
     });
 
     // Draw anchor points for pool
     points.forEach(point => {
-      const size = 10;
+      const size = splineHandleRadius(zoomLevel) * 2;
       const isSelected = selectedPoint === point.id;
       const isHovered = hoveredPoint === point.id;
       ctx.fillStyle = isSelected ? '#2E86AB' : isHovered ? '#4FB3D9' : '#ffffff';
       ctx.strokeStyle = isSelected ? '#1a4d6d' : '#2E86AB';
-      ctx.lineWidth = 2;
-      ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
-      ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+      ctx.lineWidth = 1 / zoomLevel;
+      ctx.beginPath();
+        ctx.arc(point.x, point.y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
     });
 
     // Draw snap point if in add mode
@@ -4624,13 +4612,15 @@ export function PoolBuilder({
 
       // Draw anchor points for additional pools (like main pool)
       pool.points.forEach(point => {
-        const size = 10;
+        const size = splineHandleRadius(zoomLevel) * 2;
         const isPointSelected = isSelected;
         ctx.fillStyle = isPointSelected ? '#10B981' : '#ffffff';
         ctx.strokeStyle = isPointSelected ? '#059669' : '#10B981';
-        ctx.lineWidth = 2;
-        ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
-        ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+        ctx.lineWidth = 1 / zoomLevel;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
       });
 
       // Draw measurements for additional pool edges (like main pool)
@@ -4878,23 +4868,24 @@ export function PoolBuilder({
       y = snapToGridRelative(y, cY, scale, snapSize);
     }
 
-    // Add-point mode wins over any pending placement (it used to fall through and drop grass).
-    // The point is projected onto the nearest pool edge at click time and inserted into that edge.
-    if (activeTool === 'add' && points.length >= 3) {
-      let best = { i: 0, x: world.x, y: world.y, d: Infinity };
-      for (let i = 0; i < points.length; i++) {
-        const a = points[i], b = points[(i + 1) % points.length];
-        const dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy || 1;
-        const t = Math.max(0, Math.min(1, ((world.x - a.x) * dx + (world.y - a.y) * dy) / L));
-        const px = a.x + t * dx, py = a.y + t * dy, d = Math.hypot(world.x - px, world.y - py);
-        if (d < best.d) best = { i, x: px, y: py, d };
-      }
-      const updated = [...points];
-      updated.splice(best.i + 1, 0, { x: best.x, y: best.y, id: Date.now().toString(), curveType: points[best.i].curveType });
-      setPoints(updated);
+    // One Add Point mode shared by both toolbars. Copyright Imagine Engine Studios Corp.
+    if (activeTool === 'add') {
+      const target = selectedSplinePoint?.poolId ? additionalPools.find(p => p.id === selectedSplinePoint.poolId) : undefined;
+      const source = target?.points ?? points;
+      const hit = poolInsertionHit(source, target?.shape ?? poolShape, world, zoomLevel);
       setPendingLandscapePlacement(null);
       setPendingPoolFeaturePlacement(null);
       setSnapPoint(null);
+      if (!hit) {
+        setActiveTool('select');
+        setSelectedSplinePoint(null);
+        return;
+      }
+      if (source.some(p => Math.hypot(p.x - hit.point.x, p.y - hit.point.y) < 0.01)) return;
+      const updated = [...source];
+      updated.splice(hit.index + 1, 0, { ...hit.point, id: crypto.randomUUID(), curveType: source[(hit.index + 1) % source.length].curveType });
+      if (target) setAdditionalPools(prev => prev.map(p => p.id === target.id ? { ...p, points: updated } : p));
+      else setPoints(updated);
       return;
     }
 
@@ -5021,7 +5012,7 @@ export function PoolBuilder({
       }
 
       // Check pool points
-      const clickedPoolPoint = pool.points.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+      const clickedPoolPoint = pool.points.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
       if (clickedPoolPoint) {
         setSelectedAdditionalPool(pool.id);
         setSelectedPoint(null);
@@ -5032,7 +5023,7 @@ export function PoolBuilder({
     }
 
     // Check if clicked on hardscape point (main deck)
-    const clickedHardscapePoint = hardscapePoints.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+    const clickedHardscapePoint = hardscapePoints.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
     if (clickedHardscapePoint) {
       setSelectedDeckId('main');
       setSelectedHardscapePoint(clickedHardscapePoint.id);
@@ -5047,7 +5038,7 @@ export function PoolBuilder({
     // Check if clicked on additional deck point (new decks editable)
     for (const pool of additionalPools) {
       const poolDeck = additionalDeckPoints[pool.id] || (pool.featureType === 'regular' ? generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset) : []);
-      const clickedPoolDeckPoint = poolDeck.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+      const clickedPoolDeckPoint = poolDeck.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
       if (clickedPoolDeckPoint) {
         setSelectedDeckId(pool.id);
         setSelectedHardscapePoint(clickedPoolDeckPoint.id);
@@ -5129,7 +5120,7 @@ export function PoolBuilder({
     }
 
     // Check if clicked on a point
-    const clickedPoint = points.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+    const clickedPoint = points.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
     if (clickedPoint) {
       setSelectedPoint(clickedPoint.id);
       setSelectedFeature(null);
@@ -5182,7 +5173,7 @@ export function PoolBuilder({
     handleCanvasMouseUp();
   };
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (pendingFeature || pendingLandscapePlacement || pendingPoolFeaturePlacement) return;
+    if (activeTool === 'add' || pendingFeature || pendingLandscapePlacement || pendingPoolFeaturePlacement) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -5323,8 +5314,10 @@ export function PoolBuilder({
       // If a spline point is already selected, clicking it again should start dragging it
       // (important for newly inserted anchors that start coincident with an existing point)
       if (selectedSplinePoint) {
-        const distToSelected = Math.sqrt(Math.pow(x - selectedSplinePoint.point.x, 2) + Math.pow(y - selectedSplinePoint.point.y, 2));
-        if (distToSelected < 12) {
+        const livePoints = selectedSplinePoint.poolId ? additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points : points;
+        const livePoint = livePoints?.find(p => p.id === selectedSplinePoint.point.id);
+        const distToSelected = livePoint ? Math.hypot(x - livePoint.x, y - livePoint.y) : Infinity;
+        if (distToSelected < pointHitRadius) {
           if (selectedSplinePoint.poolId) {
             setDraggingAdditionalPoolPoint({
               poolId: selectedSplinePoint.poolId,
@@ -5344,7 +5337,7 @@ export function PoolBuilder({
         for (let i = 0; i < points.length; i++) {
           const pt = points[i];
           const dist = Math.sqrt(Math.pow(x - pt.x, 2) + Math.pow(y - pt.y, 2));
-          if (dist < 12) {
+          if (dist < pointHitRadius) {
             // Found a point - create spline point data from it
             const splinePoint: SplinePoint = {
               x: pt.x,
@@ -5364,6 +5357,8 @@ export function PoolBuilder({
                 }
               });
             }
+            setSelectedPoint(pt.id);
+            setIsDragging(true);
             return;
           }
         }
@@ -5374,7 +5369,7 @@ export function PoolBuilder({
         for (let i = 0; i < pool.points.length; i++) {
           const pt = pool.points[i];
           const dist = Math.sqrt(Math.pow(x - pt.x, 2) + Math.pow(y - pt.y, 2));
-          if (dist < 12) {
+          if (dist < pointHitRadius) {
             const splinePoint: SplinePoint = {
               x: pt.x,
               y: pt.y,
@@ -5394,43 +5389,12 @@ export function PoolBuilder({
                 poolId: pool.id
               });
             }
+            setDraggingAdditionalPoolPoint({ poolId: pool.id, pointId: pt.id });
+            setSelectedAdditionalPool(pool.id);
             return;
           }
         }
       }
-    }
-
-    // If in add mode, add a new point at the snapped location
-    if (activeTool === 'add' && snapPoint) {
-      const newPoint = {
-        x: snapPoint.x,
-        y: snapPoint.y,
-        id: Date.now().toString()
-      };
-
-      // Find the closest edge to insert the point
-      let closestEdgeIndex = 0;
-      let minDistance = Infinity;
-      for (let i = 0; i < points.length; i++) {
-        const nextI = (i + 1) % points.length;
-        const edge = {
-          x1: points[i].x,
-          y1: points[i].y,
-          x2: points[nextI].x,
-          y2: points[nextI].y
-        };
-        const distance = Math.sqrt(Math.pow(snapPoint.x - (edge.x1 + edge.x2) / 2, 2) + Math.pow(snapPoint.y - (edge.y1 + edge.y2) / 2, 2));
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestEdgeIndex = i;
-        }
-      }
-      const updatedPoints = [...points];
-      updatedPoints.splice(closestEdgeIndex + 1, 0, newPoint);
-      setPoints(updatedPoints);
-      setActiveTool(null);
-      setSnapPoint(null);
-      return;
     }
 
     // Check for roof point drag (for selected house)
@@ -5470,7 +5434,7 @@ export function PoolBuilder({
 
     // Check for fence point drag
     if (showFenceEditor) {
-      const clickedFencePoint = fencePoints.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+      const clickedFencePoint = fencePoints.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
       if (clickedFencePoint) {
         setSelectedFencePoint(clickedFencePoint.id);
         setIsDraggingFence(true);
@@ -5497,7 +5461,7 @@ export function PoolBuilder({
     // Check for additional pool point drag (but not if we opened SplinePointEditor)
     if (!selectedSplinePoint) {
       for (const pool of additionalPools) {
-        const clickedPoolPoint = pool.points.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+        const clickedPoolPoint = pool.points.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
         if (clickedPoolPoint) {
           setDraggingAdditionalPoolPoint({
             poolId: pool.id,
@@ -5510,7 +5474,7 @@ export function PoolBuilder({
     }
 
     // Check for hardscape point drag (main + selected additional deck)
-    const clickedHardscapePoint = hardscapePoints.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+    const clickedHardscapePoint = hardscapePoints.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
     if (clickedHardscapePoint) {
       setSelectedDeckId('main');
       setSelectedHardscapePoint(clickedHardscapePoint.id);
@@ -5520,7 +5484,7 @@ export function PoolBuilder({
 
     for (const pool of additionalPools) {
       const poolDeck = additionalDeckPoints[pool.id] || (pool.featureType === 'regular' ? generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset) : []);
-      const clickedPoolDeckPoint = poolDeck.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+      const clickedPoolDeckPoint = poolDeck.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
       if (clickedPoolDeckPoint) {
         setSelectedDeckId(pool.id);
         setSelectedHardscapePoint(clickedPoolDeckPoint.id);
@@ -5537,7 +5501,7 @@ export function PoolBuilder({
       setDraggingFeature(true);
       return;
     }
-    const clickedPoint = points.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+    const clickedPoint = points.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
     if (clickedPoint) {
       setSelectedPoint(clickedPoint.id);
       setIsDragging(true);
@@ -5550,6 +5514,8 @@ export function PoolBuilder({
     const world = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
     let x = world.x;
     let y = world.y;
+
+    if (isDragging || isDraggingHardscape || draggingAdditionalPoolPoint) suppressClickRef.current = true;
 
     // Apply symmetry snapping during spline drawing
     if (activeTool === 'draw-pool' && splineDrawing.isActive) {
@@ -5592,40 +5558,11 @@ export function PoolBuilder({
       return;
     }
 
-    // If in add mode, calculate snap point on pool perimeter
     if (activeTool === 'add') {
-      let closestPoint = {
-        x,
-        y
-      };
-      let minDistance = Infinity;
-      for (let i = 0; i < points.length; i++) {
-        const nextI = (i + 1) % points.length;
-        const p1 = points[i];
-        const p2 = points[nextI];
-
-        // Calculate closest point on line segment
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const lengthSquared = dx * dx + dy * dy;
-        let t = ((x - p1.x) * dx + (y - p1.y) * dy) / lengthSquared;
-        t = Math.max(0, Math.min(1, t));
-        const projectedX = p1.x + t * dx;
-        const projectedY = p1.y + t * dy;
-        const distance = Math.sqrt(Math.pow(x - projectedX, 2) + Math.pow(y - projectedY, 2));
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestPoint = {
-            x: projectedX,
-            y: projectedY
-          };
-        }
-      }
-      setSnapPoint(closestPoint);
-      setCursorPos({
-        x,
-        y
-      });
+      const target = selectedSplinePoint?.poolId ? additionalPools.find(p => p.id === selectedSplinePoint.poolId) : undefined;
+      const hit = poolInsertionHit(target?.points ?? points, target?.shape ?? poolShape, world, zoomLevel);
+      setSnapPoint(hit?.point ?? null);
+      setCursorPos({ x, y });
       return;
     }
 
@@ -5707,8 +5644,8 @@ export function PoolBuilder({
         } : p));
       }
     } else if (isDraggingHardscape && selectedHardscapePoint) {
-      const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
-      const boundedY = Math.max(0, Math.min(canvasSize.height, snappedY));
+      const boundedX = snappedX;
+      const boundedY = snappedY;
       if (selectedDeckId === 'main') {
         setHardscapePoints(prev => prev.map(p => p.id === selectedHardscapePoint ? {
           ...p,
@@ -5777,8 +5714,8 @@ export function PoolBuilder({
         } : f));
       }
     } else if (isDragging && selectedPoint) {
-      const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
-      const boundedY = Math.max(0, Math.min(canvasSize.height, y));
+      const boundedX = snappedX;
+      const boundedY = snappedY;
       setPoints(prev => prev.map(p => p.id === selectedPoint ? {
         ...p,
         x: boundedX,
@@ -5786,12 +5723,12 @@ export function PoolBuilder({
       } : p));
     } else if (draggingAdditionalPoolPoint) {
       // Drag additional pool point
-      const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
-      const boundedY = Math.max(0, Math.min(canvasSize.height, y));
+      const boundedX = snappedX;
+      const boundedY = snappedY;
       updateAdditionalPoolPoint(draggingAdditionalPoolPoint.poolId, draggingAdditionalPoolPoint.pointId, boundedX, boundedY);
     } else {
       // Update hover state
-      const hoveredPointFound = points.find(p => Math.abs(p.x - x) < 10 && Math.abs(p.y - y) < 10);
+      const hoveredPointFound = points.find(p => Math.hypot(p.x - x, p.y - y) < pointHitRadius);
       setHoveredPoint(hoveredPointFound ? hoveredPointFound.id : null);
     }
   };
@@ -6043,7 +5980,7 @@ export function PoolBuilder({
                 };
                 const near = (poly?: { x: number; y: number }[]) => !!poly?.some(q => Math.hypot(q.x - w.x, q.y - w.y) < 14 / zoomLevel);
                 const shapes = [points, hardscapePoints, ...additionalPools.map(a => a.points), ...Object.values(additionalDeckPoints)];
-                const onFeature = features.some(f => Math.hypot((f as { x?: number }).x! - w.x, (f as { y?: number }).y! - w.y) < 20 / zoomLevel);
+                const onFeature = features.some(f => Math.hypot(f.x - w.x, f.y - w.y) < 20 / zoomLevel);
                 if (!onFeature && !shapes.some(sh => inside(sh) || near(sh))) {
                   bgPanRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y, moved: false };
                   return;
@@ -6119,86 +6056,10 @@ export function PoolBuilder({
               } : null);
             }
           }} onCancel={() => setSelectedSplinePoint(null)} onComplete={() => setSelectedSplinePoint(null)} canComplete={true} isEditMode={true} pointLabel={`Point ${selectedSplinePoint.index + 1}`} onAddPoint={() => {
-            // Add a new point after the selected one WITHOUT changing the shape immediately.
-            // We insert the new anchor coincident with the currently-selected point.
-            // The outline only changes once the user drags the new anchor.
-            const currentIndex = selectedSplinePoint.index;
-            const newPointId = Date.now().toString();
-            const newPointIndex = currentIndex + 1;
-            if (selectedSplinePoint.poolId) {
-              // Additional pool
-              const pool = additionalPools.find(p => p.id === selectedSplinePoint.poolId);
-              if (!pool) return;
-              const currentPt = pool.points[currentIndex];
-              const newPoint = {
-                x: currentPt.x,
-                y: currentPt.y,
-                id: newPointId,
-                curveType: 'linear' as const
-              };
-              setAdditionalPools(prev => prev.map(p => {
-                if (p.id !== selectedSplinePoint.poolId) return p;
-                const newPoints = [...p.points];
-                newPoints.splice(currentIndex + 1, 0, newPoint);
-                return {
-                  ...p,
-                  points: newPoints
-                };
-              }));
-              setSelectedAdditionalPool(selectedSplinePoint.poolId);
-              const canvas = canvasRef.current;
-              if (canvas) {
-                const rect = canvas.getBoundingClientRect();
-                setSelectedSplinePoint({
-                  point: {
-                    x: currentPt.x,
-                    y: currentPt.y,
-                    id: newPointId,
-                    curveType: 'linear'
-                  },
-                  index: newPointIndex,
-                  screenPosition: {
-                    x: rect.left + currentPt.x * zoomLevel,
-                    y: rect.top + currentPt.y * zoomLevel
-                  },
-                  poolId: selectedSplinePoint.poolId
-                });
-              }
-            } else {
-              // Main pool
-              const currentPt = points[currentIndex];
-              const newPoint = {
-                x: currentPt.x,
-                y: currentPt.y,
-                id: newPointId,
-                curveType: 'linear' as const
-              };
-              setPoints(prev => {
-                const newPoints = [...prev];
-                newPoints.splice(currentIndex + 1, 0, newPoint);
-                return newPoints;
-              });
-
-              // Keep it selected (but do NOT start dragging until the user clicks+drags)
-              setSelectedPoint(newPointId);
-              const canvas = canvasRef.current;
-              if (canvas) {
-                const rect = canvas.getBoundingClientRect();
-                setSelectedSplinePoint({
-                  point: {
-                    x: currentPt.x,
-                    y: currentPt.y,
-                    id: newPointId,
-                    curveType: 'linear'
-                  },
-                  index: newPointIndex,
-                  screenPosition: {
-                    x: rect.left + currentPt.x * zoomLevel,
-                    y: rect.top + currentPt.y * zoomLevel
-                  }
-                });
-              }
-            }
+            setActiveTool(prev => prev === 'add' ? 'select' : 'add');
+            setPendingLandscapePlacement(null);
+            setPendingPoolFeaturePlacement(null);
+            setSnapPoint(null);
           }} onDeletePoint={() => {
             const pointId = selectedSplinePoint.point.id;
             if (selectedSplinePoint.poolId) {
