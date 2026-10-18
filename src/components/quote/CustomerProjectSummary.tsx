@@ -29,8 +29,8 @@ import { SCHEDULE_LINK } from "@/lib/geniusBooking";
 const OFFICE_ADDRESS =
   "6900 Tavistock Lakes Boulevard Southeast, Suite 400, Lake Nona Center, Orlando, FL 32827";
 const OFFICE_MAP = `https://maps.google.com/?q=${encodeURIComponent(OFFICE_ADDRESS)}`;
-const PHONE = "+14077604873";
-const PHONE_LABEL = "+1 (407) 760-4873";
+const PHONE = "+12392570637";
+const PHONE_LABEL = "+1 (239) 257-0637";
 
 const FUNCTIONS_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;

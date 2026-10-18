@@ -199,7 +199,7 @@ const QuoteDetailPage = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-orange-500" />
-                    <span>(407) 760-4873</span>
+                    <span>+1 (239) 257-0637</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-teal-500" />

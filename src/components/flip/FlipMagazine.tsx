@@ -1,6 +1,7 @@
 import * as React from "react";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
+import { flipPreviousPage } from "@/lib/flip/previousPage";
 import { useNavigate } from "react-router-dom";
 import FlipPageTabs from "./FlipPageTabs";
 // NOTE: FlipCornerHint removed per user request — the page-curl hint in the corner was not looking good.
@@ -1937,7 +1938,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
     const pf = bookRef.current?.pageFlip();
     const current = pf?.getCurrentPageIndex?.() ?? page;
     if (current > 0) {
-      pf?.flipPrev();
+      flipPreviousPage(pf);
       return;
     }
     // At the very start of a book, the left arrow steps back through the edition hierarchy.
