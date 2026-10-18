@@ -26,6 +26,6 @@ export function reconcileStudioBoard<T extends { additionalPools?: any[]; site?:
   return { ...state, additionalPools, site };
 }
 
-export function completeStudioProject(board2D: Record<string, any>, scene3D: unknown, board3D: Board3D | null) {
+export function completeStudioProject(board2D: Record<string, any>, scene3D: unknown, board3D: Board3D | null): Record<string, any> {
   return { ...reconcileStudioBoard(board2D, board3D), studioVersion: 2, scene3D, board3D };
 }

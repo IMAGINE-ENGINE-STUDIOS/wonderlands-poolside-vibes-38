@@ -2234,7 +2234,7 @@ export function PoolBuilder({
       }
 
       // Draw coping border - skip edges that are inside merged integrated pools
-      const copingTexture = entityTexture(pool.materials, 'coping');
+      const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
 
       // Find which main pool edges are inside merged integrated pools
       const mergedPools = additionalPools.filter(p => (p.featureType === 'spillover-spa' || p.featureType === 'tanning-ledge') && p.isMerged !== false && p.points.length >= 3);

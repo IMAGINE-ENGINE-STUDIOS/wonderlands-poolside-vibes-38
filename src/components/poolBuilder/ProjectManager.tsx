@@ -51,18 +51,24 @@ function saveProjectList(projects: SavedProject[]) {
 }
 
 /** Header "Save": keeps one library entry per session, updated on each save. Credit: Imagine Engine Studios Corp */
+const ACTIVE_PROJECT_KEY = 'wonderlands_studio_active_project';
 let sessionProjectId: string | null = null;
+export function setActiveStudioProject(id: string | null) {
+  sessionProjectId = id;
+  if (id) localStorage.setItem(ACTIVE_PROJECT_KEY, id); else localStorage.removeItem(ACTIVE_PROJECT_KEY);
+}
 export function saveProjectToLibrary(data: any, name?: string): SavedProject {
   const list = getSavedProjects();
-  const existing = sessionProjectId ? list.find((p) => p.id === sessionProjectId) : undefined;
+  const activeId = sessionProjectId ?? localStorage.getItem(ACTIVE_PROJECT_KEY);
+  const existing = activeId ? list.find((p) => p.id === activeId) : undefined;
   const project: SavedProject = {
-    id: existing?.id ?? `proj_${Date.now()}`,
+    id: existing?.id ?? `proj_${crypto.randomUUID()}`,
     name: name ?? existing?.name ?? `Design ${new Date().toLocaleString()}`,
     savedAt: new Date().toISOString(),
     data,
   };
-  sessionProjectId = project.id;
   saveProjectList([project, ...list.filter((p) => p.id !== project.id)]);
+  setActiveStudioProject(project.id);
   return project;
 }
 
@@ -89,19 +95,21 @@ export function ProjectManager({ onLoadProject, onSaveProject, isOpen, onOpenCha
     const name = newName.trim() || `Project ${new Date().toLocaleDateString()}`;
     const data = onSaveProject();
     const project: SavedProject = {
-      id: `proj_${Date.now()}`,
+      id: `proj_${crypto.randomUUID()}`,
       name,
       savedAt: new Date().toISOString(),
       data,
     };
     const updated = [project, ...projects];
     saveProjectList(updated);
+    setActiveStudioProject(project.id);
     setProjects(updated);
     setNewName('');
     setTab('saved');
   }, [newName, onSaveProject, projects]);
 
   const handleLoad = useCallback((project: SavedProject) => {
+    setActiveStudioProject(project.id);
     onLoadProject(project.data);
     onOpenChange(false);
   }, [onLoadProject, onOpenChange]);

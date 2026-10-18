@@ -145,8 +145,12 @@ export function resolveDeckBoundaries(params: {
   }
 
   // Round off faceted curves on the outer edge (sharp design corners are kept).
-  const smoothed = smoothCurvedRing(outer);
-  if (smoothed.length >= 3 && polygonContainsPolygon(smoothed, inner)) outer = smoothed;
+  // A drawn outline is shared with the surface boolean engine. Moving it here
+  // would open grass seams between independently owned but adjacent decks.
+  if (!hardscapePoints?.length) {
+    const smoothed = smoothCurvedRing(outer);
+    if (smoothed.length >= 3 && polygonContainsPolygon(smoothed, inner)) outer = smoothed;
+  }
 
   return { inner, outer };
 }
