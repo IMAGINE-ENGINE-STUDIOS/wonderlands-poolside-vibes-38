@@ -398,7 +398,7 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
       {data.fences.map((f, i) => off("fence", f.itemId, i, "fences") ? null : <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => off("screen", s.itemId, i, "fences") ? null : <Screen key={`c${i}`} s={s} i={i} />)}
       {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} mainPts={data.primaryPts} />}
-      {(data.waters ?? []).map((w, i) => off("water", w.itemId, i, "structure") ? null : <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} />)}
+      {(data.waters ?? []).map((w, i) => !w || !Array.isArray(w.pts) || w.pts.length < 3 || off("water", w.itemId, i, "structure") ? null : <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} />)}
     </group>
   );
 }
