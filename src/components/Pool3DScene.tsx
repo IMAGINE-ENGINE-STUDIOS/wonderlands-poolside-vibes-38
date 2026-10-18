@@ -1107,8 +1107,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
 
   // Extra board pools/spas: the main deck tucks around each one (outline + its coping).
   const [boardDeckWaters, setBoardDeckWaters] = useState(() => loadBoard3D()?.waters ?? []);
+  // Main-pool spillways: the coping opens over each spill stretch (lib/design/spillovers).
+  const [mainSpillCuts, setMainSpillCuts] = useState(() => (loadBoard3D()?.spills ?? []).filter((s) => !s.waterId).map((s) => ({ a: s.a, b: s.b })));
   useEffect(() => {
-    const on = () => setBoardDeckWaters(loadBoard3D()?.waters ?? []);
+    const on = () => { setBoardDeckWaters(loadBoard3D()?.waters ?? []); setMainSpillCuts((loadBoard3D()?.spills ?? []).filter((s) => !s.waterId).map((s) => ({ a: s.a, b: s.b }))); };
     window.addEventListener(BOARD_3D_EVENT, on);
     return () => window.removeEventListener(BOARD_3D_EVENT, on);
   }, []);
@@ -1400,6 +1402,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
                 textureOffset={copingTextureOffset}
                 textureRotation={copingTextureRotation}
                 paverTextureUrl={normalizedPaverUrl}
+                cuts={mainSpillCuts}
               />
             </group>
           )}

@@ -15,6 +15,19 @@ interface CopingGeometryProps {
   /** Texture rotation in degrees */
   textureRotation?: number;
   paverTextureUrl?: string;
+  /** Spillway openings (same space as poolPoints): coping is removed over each stretch. */
+  cuts?: SpillCut[];
+}
+
+export type SpillCut = { a: { x: number; z: number }; b: { x: number; z: number } };
+/** True when (x,z) lies on the coping band over the spill chord a→b. */
+export function inSpillCut(x: number, z: number, c: SpillCut, width: number) {
+  const dx = c.b.x - c.a.x, dz = c.b.z - c.a.z, L2 = dx * dx + dz * dz;
+  if (L2 < 1e-6) return false;
+  const t = ((x - c.a.x) * dx + (z - c.a.z) * dz) / L2;
+  if (t < 0 || t > 1) return false;
+  const d = Math.abs((x - c.a.x) * dz - (z - c.a.z) * dx) / Math.sqrt(L2);
+  return d <= width + 0.35;
 }
 
 export const CopingGeometry = ({ 
@@ -25,8 +38,11 @@ export const CopingGeometry = ({
   textureScale = 1,
   textureOffset = [0, 0],
   textureRotation = 0,
-  paverTextureUrl
+  paverTextureUrl,
+  cuts
 }: CopingGeometryProps) => {
+  const cutKey = cuts?.map((c) => `${c.a.x.toFixed(2)},${c.a.z.toFixed(2)},${c.b.x.toFixed(2)},${c.b.z.toFixed(2)}`).join('|') ?? '';
+   
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   
@@ -224,14 +240,28 @@ export const CopingGeometry = ({
       indices.push(bottomIdx, nextBottomIdx, nextTopIdx);
     }
     
+    // Spillway notches: drop every coping triangle over a spill stretch so the
+    // water really leaves through an opening in the stone (lib/design/spillovers).
+    const kept = cuts && cuts.length
+      ? (() => {
+          const out: number[] = [];
+          for (let t = 0; t < indices.length; t += 3) {
+            const i0 = indices[t], i1 = indices[t + 1], i2 = indices[t + 2];
+            const cx = (vertices[i0 * 3] + vertices[i1 * 3] + vertices[i2 * 3]) / 3;
+            const cz = (vertices[i0 * 3 + 2] + vertices[i1 * 3 + 2] + vertices[i2 * 3 + 2]) / 3;
+            if (!cuts.some((c) => inSpillCut(cx, cz, c, copingWidth))) out.push(i0, i1, i2);
+          }
+          return out;
+        })()
+      : indices;
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geom.setIndex(indices);
+    geom.setIndex(kept);
     geom.computeVertexNormals();
     
     return geom;
-  }, [poolPoints, copingWidth, copingHeight]);
+  }, [poolPoints, copingWidth, copingHeight, cutKey]);
   
   return (
     <mesh key={texture?.uuid || 'no-coping-texture'} geometry={geometry} castShadow receiveShadow>
