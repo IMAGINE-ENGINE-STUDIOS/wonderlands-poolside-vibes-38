@@ -1,7 +1,7 @@
 import * as React from 'react';
-const { useState, useMemo, useEffect, useRef, Suspense } = React;
+const { useState, useMemo, useEffect, useRef, useCallback, Suspense } = React;
 import { PerspectiveCamera, Grid, useTexture, TransformControls, OrbitControls } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
+import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { useTextureInvalidation } from '@/hooks/useTextureInvalidation';
@@ -142,6 +142,34 @@ export interface Pool3DSceneProps {
   xray?: boolean;
 }
 
+/**
+ * Drives the below-ground cutaway each frame: when the camera dips under grade,
+ * the wall half facing the camera is discarded so you look INTO the pool.
+ * Works in the walls' local space, so parent group offsets don't matter.
+ * Credits: Imagine Engine Studios Corp.
+ */
+const CutawayDriver: React.FC<{
+  geometry: THREE.BufferGeometry;
+  uniforms: { uCutOn: { value: number }; uCutCam: { value: THREE.Vector2 }; uCutCenter: { value: THREE.Vector2 } };
+  enabled: boolean;
+}> = ({ geometry, uniforms, enabled }) => {
+  const ref = React.useRef<THREE.Group>(null);
+  const tmp = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ camera }) => {
+    const g = ref.current;
+    if (!g) return;
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    const bb = geometry.boundingBox!;
+    uniforms.uCutCenter.value.set((bb.min.x + bb.max.x) / 2, (bb.min.z + bb.max.z) / 2);
+    camera.getWorldPosition(tmp);
+    const below = tmp.y < 0;
+    g.worldToLocal(tmp);
+    uniforms.uCutCam.value.set(tmp.x, tmp.z);
+    uniforms.uCutOn.value = enabled && below ? 1 : 0;
+  });
+  return <group ref={ref} />;
+};
+
 export const PoolMesh: React.FC<{
   points: Point[];
   depthPoints: DepthPoint[];
@@ -156,6 +184,8 @@ export const PoolMesh: React.FC<{
   linerTextureRotation?: number;
   copingHeight?: number;
   onSelectComponent?: (comp: 'pool' | 'deck' | 'coping' | 'waterline' | null) => void;
+  /** Hide the wall nearest the camera while the camera is below ground. */
+  cutaway?: boolean;
 }> = ({
   points, 
   depthPoints, 
@@ -168,11 +198,27 @@ export const PoolMesh: React.FC<{
   copingHeight = 2 / 12,
   onSelectComponent,
   perimeterDepthPoints: providedPerimeterDepthPoints,
-  floorDepthAt
+  floorDepthAt,
+  cutaway = true,
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
+  // Below-ground cutaway: near-side wall fragments are discarded (see CutawayDriver).
+  const cutUniforms = useMemo(() => ({
+    uCutOn: { value: 0 },
+    uCutCam: { value: new THREE.Vector2() },
+    uCutCenter: { value: new THREE.Vector2() },
+  }), []);
+  const patchCutaway = useCallback((shader: THREE.WebGLProgramParametersWithUniforms) => {
+    Object.assign(shader.uniforms, cutUniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vCutLocal;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCutLocal = position.xz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vCutLocal;\nuniform float uCutOn;\nuniform vec2 uCutCam;\nuniform vec2 uCutCenter;')
+      .replace('void main() {', 'void main() {\n  if (uCutOn > 0.5 && dot(vCutLocal - uCutCenter, uCutCam - uCutCenter) > 0.0) discard;');
+  }, [cutUniforms]);
 
   const poolDimensions = useMemo(() => {
     if (providedDimensions) return providedDimensions;
@@ -605,8 +651,11 @@ export const PoolMesh: React.FC<{
           side={THREE.DoubleSide /* inner walls show whatever way the outline was drawn */}
           emissive={isSelected ? new THREE.Color(1, 0.55, 0.45) : new THREE.Color(0, 0, 0)}
           emissiveIntensity={Math.sin(pulseIntensity * Math.PI) * 0.08}
+          onBeforeCompile={patchCutaway}
+          customProgramCacheKey={() => 'pool-wall-cutaway'}
         />
       </mesh>
+      <CutawayDriver geometry={wallsGeometry} uniforms={cutUniforms} enabled={cutaway} />
     </>
   );
 };
@@ -1311,6 +1360,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           selectedCategory={selectedCategory}
           copingHeight={copingHeight}
           onSelectComponent={onSelectComponent}
+          cutaway={!xray}
         />
       </group>}
 

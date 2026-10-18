@@ -61,6 +61,7 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false, foot
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [byLayer, setByLayer] = useState(true);
   const [newLayer, setNewLayer] = useState('');
+  const [dropKey, setDropKey] = useState<string | null>(null);
   const layerState = useSceneLayers();
 
   const filtered = useMemo(() => {
@@ -160,8 +161,25 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false, foot
           const isCollapsed = collapsed[group.key];
           const layer = group.layerId ? layerState.layers.find(l => l.id === group.layerId) : undefined;
           return (
-            <div key={group.key} className="mb-1">
-              <div className="flex items-center gap-1 px-2">
+            <div
+              key={group.key}
+              className={cn('mb-1 rounded-md transition-colors', dropKey === group.key && 'bg-primary/10 ring-1 ring-primary/40')}
+              onDragOver={e => { if (!layer) return; e.preventDefault(); setDropKey(group.key); }}
+              onDragLeave={() => setDropKey(k => (k === group.key ? null : k))}
+              onDrop={e => {
+                e.preventDefault(); setDropKey(null);
+                if (!layer) return;
+                const obj = e.dataTransfer.getData('text/x-scene-object');
+                const lay = e.dataTransfer.getData('text/x-scene-layer');
+                if (obj) sceneLayerActions.moveObject(obj, layer.id);
+                else if (lay) sceneLayerActions.reorderLayer(lay, layer.id);
+              }}
+            >
+              <div
+                className="flex items-center gap-1 px-2"
+                draggable={!!layer}
+                onDragStart={e => { if (layer) e.dataTransfer.setData('text/x-scene-layer', layer.id); }}
+              >
                 <button
                   onClick={() => setCollapsed(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
                   className="flex-1 min-w-0 flex items-center gap-1.5 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
@@ -189,6 +207,8 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false, foot
                     return (
                     <li key={item.id}>
                       <div
+                        draggable
+                        onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData('text/x-scene-object', item.id); }}
                         className={cn(
                           'group flex items-center gap-2 pl-6 pr-2 py-1.5 text-xs cursor-pointer transition-colors',
                           item.selected ? 'bg-primary/15 text-foreground' : 'hover:bg-muted/60',
