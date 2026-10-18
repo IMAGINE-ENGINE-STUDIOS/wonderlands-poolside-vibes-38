@@ -304,6 +304,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
 
   // Handle pool builder data changes (from 2D)
   const materials2DDirtyRef = useRef(false);
+  const poolDataRef = useRef<any>(null);
   const lastMaterialsKeyRef = useRef<string | null>(null);
   const handlePoolDataChange = useCallback((data: any) => {
     // Skip if this update was triggered by 3D sync
@@ -320,6 +321,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
       materials2DDirtyRef.current = true; // 2D picked new textures → they win over 3D memory
     }
     lastMaterialsKeyRef.current = matKey;
+    poolDataRef.current = data;
     setPoolBuilderData(data);
     setCustomPoolShape(data.points);
     const jetCount = data.features?.filter((f: any) => f.type === 'jet').length || 0;
@@ -675,7 +677,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
             <div className="absolute top-4 right-16 md:right-[4.25rem] z-40"><BoardObjectsPanel /></div>
             <PoolBuilder managedProjects onProjectStateChange={capture2D} key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} renderOverlay={(view) => <SiteElementsLayer view={view} poolTotals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost, deck: poolBuilderData.breakdown.deckCost, coping: poolBuilderData.breakdown.copingCost, features: poolBuilderData.breakdown.featuresCost, deckArea: poolBuilderData.deckArea || 0, area: poolBuilderData.area || 0 } : null} />} />
             {/* Genius draws a full pool + depth + deck from a sentence (same brief as 3D). */}
-            <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} />
+            <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} getCurrent={() => poolDataRef.current} />
           </div> : <div className="w-full h-full">
             <UnifiedPoolVisualizer embedded scene={buildPersistedScene()} textureLibrary={studioTextureLibrary} onSceneChange={handle3DSceneChange} />
             

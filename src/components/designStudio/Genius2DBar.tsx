@@ -1,8 +1,14 @@
 /**
  * Genius for the 2D designer — same `scene-genius` brief as the 3D dock.
- * Turns a sentence ("14×30 kidney pool, 3.5–7 ft deep, 6 ft deck") into a
- * pool outline, depth profile and deck ring, handed to the parent as a
- * Scene3D so the existing 3D→2D sync path draws it on the 2D board.
+ *
+ * EDIT-IN-PLACE (founder rule): the bar sends the CURRENT pool (real outline
+ * size + depth anchors) with every request, and a returned plan is applied by
+ * TRANSFORMING the current outline — scaled about its own centre, points and
+ * curve types preserved — never by redrawing a fresh pool in the middle of
+ * the window. A fresh outline is generated only when no pool exists yet, when
+ * the plan changes the shape, or when the guest explicitly asks for a new
+ * design. Summary-only plans (fences, screens, turf and other site requests
+ * the function routes) are shown as the note and NEVER fabricate a pool.
  */
 import * as React from 'react';
 import { Loader2, Wand2 } from 'lucide-react';
@@ -19,8 +25,48 @@ const clamp = (v: unknown, lo: number, hi: number, d: number) => {
   return Math.min(hi, Math.max(lo, n));
 };
 const SHAPES: Shape[] = ['rectangle', 'oval', 'kidney', 'l-shape', 'freeform', 'roman'];
+const PX_PER_FT = 10;
 
-export function Genius2DBar({ onScene }: { onScene: (scene: any) => void }) {
+interface CurrentPool {
+  points: Array<{ x: number; y: number; id?: string; curveType?: string }>;
+  depthPoints: Array<{ position: number; depth: number }>;
+  lengthFt: number;
+  widthFt: number;
+}
+
+/** Snapshot of the pool as drawn right now (PoolBuilder points are board px). */
+function snapshotCurrent(raw: any): CurrentPool | null {
+  const points = Array.isArray(raw?.points) ? raw.points.filter((p: any) => typeof p?.x === 'number' && typeof p?.y === 'number') : [];
+  if (points.length < 3) return null;
+  const xs = points.map((p: any) => p.x), ys = points.map((p: any) => p.y);
+  const wFt = (Math.max(...xs) - Math.min(...xs)) / PX_PER_FT;
+  const hFt = (Math.max(...ys) - Math.min(...ys)) / PX_PER_FT;
+  const depthPoints = (Array.isArray(raw?.depthPoints) ? raw.depthPoints : [])
+    .filter((a: any) => typeof a?.position === 'number' && typeof a?.depth === 'number')
+    .map((a: any) => ({ position: a.position, depth: a.depth }));
+  return { points, depthPoints, lengthFt: Math.max(wFt, hFt), widthFt: Math.min(wFt, hFt) };
+}
+
+/** Scale the current outline to the target feet about its own centre.
+ *  Points, order, ids and curve types are preserved — the spline is edited,
+ *  not redrawn. */
+function transformOutline(points: CurrentPool['points'], lengthFt: number, widthFt: number) {
+  const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  const boxW = Math.max(1, maxX - minX), boxH = Math.max(1, maxY - minY);
+  const horizontalIsLong = boxW >= boxH;
+  const sx = ((horizontalIsLong ? lengthFt : widthFt) * PX_PER_FT) / boxW;
+  const sy = ((horizontalIsLong ? widthFt : lengthFt) * PX_PER_FT) / boxH;
+  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  return points.map((p, i) => ({
+    x: Math.round(cx + (p.x - cx) * sx),
+    y: Math.round(cy + (p.y - cy) * sy),
+    id: p.id ?? `p${i + 1}`,
+    ...(p.curveType ? { curveType: p.curveType as any } : {}),
+  }));
+}
+
+export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => void; getCurrent?: () => any }) {
   const [prompt, setPrompt] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [note, setNote] = React.useState<string | null>(null);
@@ -40,31 +86,63 @@ export function Genius2DBar({ onScene }: { onScene: (scene: any) => void }) {
       if (ok) setPrompt('');
       return;
     }
-    if (!/\b(pool|spa|kidney|oval|rectangle|roman|freeform|l-shape|deep|depth|shallow|deck)\b|\d+\s*[x×]\s*\d+/.test(q)) {
-      setNote('Genius here draws or resizes the pool, adds doors to screens and gates to fences. Nothing was changed.');
+    const poolish = /\b(pool|spa|kidney|oval|rectangle|roman|freeform|l-shape|deep|depth|shallow|deck)\b|\d+\s*[x×]\s*\d+/.test(q);
+    const finishish = /\b(finish|coping|waterline|tile|pavers?|shell|interior)\b/.test(q);
+    const siteish = /\b(fence|screen|enclosure|cage|turf|grass|landscap|garden|palm|tree|rock|boulder)\b/.test(q);
+    const editish = /\b(move|shift|slide|curve|curved|straighten|round|rounded|bigger|larger|smaller|wider|longer|deeper|shallower|reshape|remove|delete)\b/.test(q);
+    if (!poolish && !finishish && !siteish && !editish) {
+      setNote('Genius here designs and edits the pool, deck, finishes, fences, screens and site — ask for any of those. Nothing was changed.');
       return;
     }
     setBusy(true); setNote('Designing…');
     try {
-      const { data, error } = await supabase.functions.invoke('scene-genius', { body: { prompt, current: { mode: '2d' } } });
+      const current = snapshotCurrent(getCurrent?.());
+      const currentBody = current
+        ? { mode: '2d', pool: { length: Math.round(current.lengthFt), width: Math.round(current.widthFt), depthProfile: current.depthPoints.slice(0, 8), outlinePoints: current.points.length } }
+        : { mode: '2d' };
+      const { data, error } = await supabase.functions.invoke('scene-genius', { body: { prompt, current: currentBody } });
       if (error || !data?.plan) { setNote(data?.error || 'Genius could not design that. Try again.'); return; }
       const plan = data.plan as any;
-      const W = clamp(plan.pool?.width, 8, 30, 16);
-      const L = clamp(plan.pool?.length, 10, 60, 32);
+
+      /* Summary-only plan = a site request the function routes (fence, screen,
+       * turf…). Show exactly what was understood; draw nothing, claim nothing. */
+      if (!plan.pool && !plan.deck && !plan.finishHint && !plan.copingHint && !plan.waterlineHint && !plan.paverHint && !plan.stairs && !plan.seating && plan.lights === undefined && plan.night === undefined) {
+        setNote(plan.summary || 'Understood — nothing on the pool changed.');
+        setPrompt('');
+        return;
+      }
+
+      const explicitNew = /\b(new pool|start over|replace|scrap|different pool|another pool)\b/.test(q);
+      const shapeChanged = !!plan.pool?.shape && !!current;
+      const W = clamp(plan.pool?.width, 8, 30, current ? Math.round(current.widthFt) : 16);
+      const L = clamp(plan.pool?.length, 10, 60, current ? Math.round(current.lengthFt) : 32);
       const shape: Shape = SHAPES.includes(plan.pool?.shape) ? plan.pool.shape : 'rectangle';
       const raw: any[] = Array.isArray(plan.pool?.depthProfile) ? plan.pool.depthProfile.slice(0, 8) : [];
-      const anchors = (raw.length >= 2 ? raw : [{ position: 0, depth: 3.5 }, { position: 1, depth: 6 }])
-        .map((a, i) => ({ id: `ga-${i}`, position: clamp(a.position, 0, 1, i), depth: clamp(a.depth, 3, 10, 5) }))
+      const anchors = (raw.length >= 2 ? raw : current && current.depthPoints.length >= 2 ? current.depthPoints : [{ position: 0, depth: 3.5 }, { position: 1, depth: 6 }])
+        .map((a, i) => ({ id: `ga-${i}`, position: clamp(a.position, 0, 1, i), depth: clamp(a.depth, 0, 12, 5) }))
         .sort((a, b) => a.position - b.position);
       const minD = Math.min(...anchors.map((a) => a.depth)), maxD = Math.max(...anchors.map((a) => a.depth));
-      const pts = shapePoints(shape, W, L);
-      // Land the pool in the middle of the 2D board (PoolBuilder's canvas fills the window);
-      // straight shapes keep sharp corners in 2D and 3D alike.
-      const ox = Math.round(window.innerWidth / 2), oy = Math.round(window.innerHeight / 2);
-      const straight = shape === 'rectangle' || shape === 'l-shape';
+
+      /* The outline: EDIT the current one in place whenever a pool exists and
+       * the plan did not change its shape; regenerate only for a shape change,
+       * an explicit new design, or a first draw — and even then land it on the
+       * current pool's centre, not the window's. */
+      let outline: Array<{ x: number; y: number; id: string; curveType?: any }>;
+      let outlineShape: 'rectangle' | 'freeform';
+      if (current && !shapeChanged && !explicitNew) {
+        outline = transformOutline(current.points, L, W);
+        outlineShape = current.points.length === 4 ? 'rectangle' : 'freeform';
+      } else {
+        const pts = shapePoints(shape, W, L);
+        const cx = current ? Math.round(current.points.reduce((s, p) => s + p.x, 0) / current.points.length) : Math.round(window.innerWidth / 2);
+        const cy = current ? Math.round(current.points.reduce((s, p) => s + p.y, 0) / current.points.length) : Math.round(window.innerHeight / 2);
+        const straight = shape === 'rectangle' || shape === 'l-shape';
+        outline = pts.map((p, i) => ({ x: p.x * 10 + cx, y: p.y * 10 + cy, id: `p${i + 1}`, ...(straight ? { curveType: 'linear' as const } : {}) }));
+        outlineShape = straight ? 'rectangle' : 'freeform';
+      }
       const fresh: any = productToScene(
         { name: 'Genius design', model: 'Genius design', dimensions: `${W}' × ${L}'`, depth: `${minD}' - ${maxD}'`, price: 0, category: 'pool', type: 'pool' },
-        { customPoolShape: pts.map((p, i) => ({ x: p.x * 10 + ox, y: p.y * 10 + oy, id: `p${i + 1}`, ...(straight ? { curveType: 'linear' as const } : {}) })), poolBuilderData: { scale: 10, poolShape: shape === 'rectangle' || shape === 'l-shape' ? 'rectangle' : 'freeform' } },
+        { customPoolShape: outline, poolBuilderData: { scale: 10, poolShape: outlineShape } },
         paverTypes,
         poolFinishes.map((f: any) => ({ name: f.name, price: f.price, image: f.image, collection: f.collection || 'Standard', description: f.description })),
       );
@@ -77,7 +155,8 @@ export function Genius2DBar({ onScene }: { onScene: (scene: any) => void }) {
         pool: { ...fresh.pool, linearDepthAnchors: anchors, dimensions: { length: L, width: W, depth: maxD } },
         deck: { ...fresh.deck, copingWidth, points: outer.length >= 3 ? outer.map((p, i) => ({ x: p.x, y: p.z, id: `d${i}` })) : fresh.deck.points },
       });
-      setNote(plan.summary || `Drawn: ${W}′ × ${L}′ ${shape} pool.`);
+      setNote(plan.summary || (current && !shapeChanged && !explicitNew ? `Edited in place: ${W}′ × ${L}′ — your outline, resized.` : `Drawn: ${W}′ × ${L}′ ${shape} pool.`));
+      setPrompt('');
     } catch {
       setNote('Something went wrong. Try again.');
     } finally {
@@ -93,7 +172,7 @@ export function Genius2DBar({ onScene }: { onScene: (scene: any) => void }) {
         onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter') run(); }}
         aria-label="Describe your pool for Genius"
-        placeholder="Ask Genius: 14×30 kidney pool, 3.5–7 ft deep, 6 ft deck…"
+        placeholder="Ask Genius: make the pool 2 ft larger, draw a circular pool, change the finish…"
         className="h-9 min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/80 focus:outline-none"
       />
       {note && <span className="hidden max-w-[35%] truncate text-[11px] text-muted-foreground md:inline" title={note}>{note}</span>}
