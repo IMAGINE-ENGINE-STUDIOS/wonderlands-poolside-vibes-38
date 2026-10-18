@@ -1,4 +1,4 @@
-import { BoardObjectsPanel } from '@/components/designStudio/BoardObjectsPanel';
+import { BoardObjectsPanel, publishBoard2D } from '@/components/designStudio/BoardObjectsPanel';
 import * as React from "react";
 const {
   useState,
@@ -107,7 +107,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
   const [projectsOpen, setProjectsOpen] = useState(false);
   const project2DRef = useRef<any>(getAutoSave()?.data ?? {});
   const projectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const capture2D = useCallback((data: any) => { project2DRef.current = { ...project2DRef.current, ...data }; }, []);
+  const capture2D = useCallback((data: any) => { project2DRef.current = { ...project2DRef.current, ...data }; publishBoard2D(project2DRef.current); }, []);
 
   
   // Loop prevention for bidirectional sync
