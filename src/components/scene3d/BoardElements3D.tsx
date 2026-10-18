@@ -133,7 +133,7 @@ function VinylFence({ f, i }: { f: Fence3D; i: number }) {
   return (
     <group name="board-fence" onClick={select({ type: "fence", i })}>
       <InstancedBoxes boxes={parts.posts} material={postMat} castShadow />
-      <InstancedBoxes boxes={parts.rails} material={panelMat} castShadow />
+      <InstancedBoxes boxes={parts.rails} material={railMat} castShadow />
       <InstancedBoxes boxes={parts.pickets} material={panelMat} castShadow />
       {parts.caps.map((c, k) => (
         <group key={k} position={[c.x, c.y - c.sy / 2, c.z]}>
