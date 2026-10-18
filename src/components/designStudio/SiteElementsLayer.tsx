@@ -15,6 +15,7 @@
  * Elements persist per browser and are handed to the 3D Studio by `siteElementsTo3D`.
  */
 import * as React from "react";
+import { splineHandleRadius } from "@/utils/studioSplineControls";
 import { Fence, Grid2x2, Layers, MousePointer2, Trash2, Undo2, Check, X, LayoutList } from "lucide-react";
 import usePersistentState from "@/hooks/usePersistentState";
 import { cn } from "@/lib/utils";
@@ -119,7 +120,7 @@ export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], d
 export interface BoardView {
   width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number;
   /** Main pool + its deck (PoolBuilder state) — turf is cut around both. */
-  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean; poolDrawMode?: boolean;
+  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean; poolDrawMode?: boolean; addPoolPointAt?: (clientX: number, clientY: number) => void;
   setDeck?: (pts: Pt[]) => void; setPool?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
   /** Extra pools/spas and their attached decks (PoolBuilder state). */
   extraPools?: { id: string; type?: string; points: Pt[]; shape?: string }[]; extraDecks?: Record<string, Pt[]>;
@@ -517,7 +518,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
           onClick={(e) => {
             if (moving) { setMoving(null); return; }
             // Add Point tool anchors to whichever spline is under the cursor: pool, deck, fence, screen or turf.
-            if (view.addMode && !drawing) { const hit = nearest(toWorld(e, false)); if (hit) { insertPoint(hit.id, hit.seg, hit.at); setSelected(hit.id); setEditId(hit.id); } return; }
+            if (view.addMode && !drawing) { view.addPoolPointAt?.(e.clientX, e.clientY); return; }
             onClick(e); }} onDoubleClick={(e) => { e.preventDefault(); finish(false); }} onMouseMove={(e) => { if (drawing) setHover(drawHover(e)); else if (view.addMode) setHover(nearest(toWorld(e, false))?.at ?? null); }}>
           <defs>
             {TURFS.map((g) => (
@@ -540,7 +541,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               const sel = selected === e.id;
               const turf = TURFS.find((g) => g.color === e.color);
               return (
-                <g key={e.id} style={{ pointerEvents: view.poolDrawMode ? "none" : "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
+                <g key={e.id} style={{ pointerEvents: view.poolDrawMode || view.addMode ? "none" : "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
                   {e.kind === "turf" && <path d={surfacePath(e.id)} fillRule="evenodd" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
                   {e.kind === "deck" && <path d={surfacePath(e.id)} fillRule="evenodd" fill={e.textureUrl ? `url(#own-${e.id})` : `url(#paver-${e.style ?? DECK_PAVERS[0]?.id})`} stroke={sel ? "hsl(var(--foreground))" : "#8a7a62"} strokeWidth={(sel ? 2.5 : 1.5) / (view.zoom || 1)} />}
                   {/* Placed fences/screens keep the exact drawing-board look: solid round-joined line + ringed post handles. */}
@@ -566,7 +567,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               );
             })}
             {spills.map((sp) => { const pts = getPts(sp.poolId); const e = pts.length >= 3 ? spillEnds(pts, sp) : null; if (!e) return null; const z = view.zoom || 1; const on = spillSel === sp.id;
-              return <g key={sp.id} style={{ pointerEvents: view.poolDrawMode ? "none" : "auto", cursor: "pointer" }} onClick={(ev) => { ev.stopPropagation(); setSpillSel(sp.id); }}>
+              return <g key={sp.id} style={{ pointerEvents: view.poolDrawMode || view.addMode ? "none" : "auto", cursor: "pointer" }} onClick={(ev) => { ev.stopPropagation(); setSpillSel(sp.id); }}>
                 <line x1={e[0].x} y1={e[0].y} x2={e[1].x} y2={e[1].y} stroke="hsl(var(--background))" strokeWidth={Math.max(6 / z, scale * 0.9)} strokeLinecap="round" />
                 <line x1={e[0].x} y1={e[0].y} x2={e[1].x} y2={e[1].y} stroke="hsl(var(--primary))" strokeWidth={Math.max(4 / z, scale * 0.6)} strokeDasharray={`${scale * 0.6} ${scale * 0.3}`} strokeLinecap="round" opacity={on ? 1 : 0.8} />
               </g>; })}
@@ -583,9 +584,9 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             {view.addMode && !drawing && hover && <circle cx={hover.x} cy={hover.y} r={6 / (view.zoom || 1)} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2 / (view.zoom || 1)} />}
             {selected && (selected.startsWith("__xp:") || selected.startsWith("__xd:") || selected === "__pool" || selected === "__deck") && getPts(selected).length >= 3 && <polygon points={(isPoolId(selected) ? poolRing(getPts(selected)) : getPts(selected)).map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2.5 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
             {editId && (() => { const pts = getPts(editId); const z = view.zoom || 1; const open = isOpen(editId); return (
-              <g style={{ pointerEvents: "auto" }}>
-                {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={4 / z} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} onTouchStart={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
-                {pts.map((p, i) => <rect key={`v${i}`} x={p.x - 5 / z} y={p.y - 5 / z} width={10 / z} height={10 / z} fill="hsl(var(--foreground))" style={{ cursor: "grab" }} onMouseDown={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onTouchStart={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onContextMenu={(ev) => { ev.preventDefault(); ev.stopPropagation(); if (pts.length > (open ? 2 : 3)) setPts(editId, pts.filter((_, k) => k !== i)); }} />)}
+              <g style={{ pointerEvents: view.addMode ? "none" : "auto" }}>
+                {pts.map((a, i) => { if (open && i === pts.length - 1) return null; const b = pts[(i + 1) % pts.length]; return <circle key={`m${i}`} cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={splineHandleRadius(z) * 0.75} fill="hsl(var(--background))" stroke="hsl(var(--foreground))" strokeWidth={1 / z} style={{ cursor: "copy" }} onMouseDown={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} onTouchStart={(ev) => { ev.stopPropagation(); insertPoint(editId, i, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }); dragRef.current = { id: editId, i: i + 1 }; }} />; })}
+                {pts.map((p, i) => <circle key={`v${i}`} cx={p.x} cy={p.y} r={splineHandleRadius(z)} fill="hsl(var(--foreground))" style={{ cursor: "grab" }} onMouseDown={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onTouchStart={(ev) => { ev.stopPropagation(); dragRef.current = { id: editId, i }; }} onContextMenu={(ev) => { ev.preventDefault(); ev.stopPropagation(); if (pts.length > (open ? 2 : 3)) setPts(editId, pts.filter((_, k) => k !== i)); }} />)}
               </g>); })()}
           </g>
         </svg>
@@ -632,7 +633,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
         </div>); })()}
       {(editId || moving) && (
         <div className="absolute left-1/2 top-3 z-[30] flex -translate-x-1/2 items-center gap-3 border border-border bg-background/95 px-4 py-2 text-xs shadow-sm backdrop-blur">
-          <span>{moving ? "Move the mouse, click to drop" : "Drag squares to move points · click a circle to add a point · right-click a square to remove it"}</span>
+          <span>{moving ? "Move the mouse, click to drop" : "Drag points to move · click a midpoint to add · right-click to remove"}</span>
           <button onClick={() => { setEditId(null); setMoving(null); }} title="Done" className="text-muted-foreground hover:text-foreground"><Check className="h-3.5 w-3.5" /></button>
         </div>
       )}

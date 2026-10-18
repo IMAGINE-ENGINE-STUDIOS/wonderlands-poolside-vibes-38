@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Button } from '@/components/ui/button';
 import { CornerDownRight, Spline, Circle, PenTool, X, Check, Plus, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -13,6 +14,7 @@ interface SplineDrawingToolbarProps {
   isEditMode?: boolean;
   onDeletePoint?: () => void;
   onAddPoint?: () => void;
+  isAddingPoint?: boolean;
   canDelete?: boolean;
   canAddPoint?: boolean;
   pointLabel?: string;
@@ -28,6 +30,7 @@ export function SplineDrawingToolbar({
   isEditMode = false,
   onDeletePoint,
   onAddPoint,
+  isAddingPoint = false,
   canDelete = true,
   canAddPoint = true,
   pointLabel,
@@ -90,22 +93,24 @@ export function SplineDrawingToolbar({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button
+                  <Button variant="ghost" size="icon"
                     onClick={onAddPoint}
+                    aria-label="Add Point"
+                    aria-pressed={isAddingPoint}
                     disabled={!canAddPoint}
                     className={`
                       w-7 h-7 flex items-center justify-center rounded transition-all
                       ${canAddPoint 
-                        ? 'text-green-600 hover:bg-green-500/10' 
+                        ? isAddingPoint ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                         : 'text-muted-foreground/30 cursor-not-allowed'
                       }
                     `}
                   >
                     <Plus className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">
-                  Add point after this one
+                  Add Point
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

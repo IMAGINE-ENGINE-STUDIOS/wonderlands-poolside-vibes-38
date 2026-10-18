@@ -14,7 +14,8 @@
 - Landscaping Studio (`components/landscape/LandscapeStudio`) stores its plan in the shared FLIP board `landscaping__global-design`; looks/Genius edits go through `lib/landscape/landscapeOps.ts` and Genius uses the Groq `landscape-genius` function — why: one plan feeds the board, the section estimate and the global design board.
 - Genius language layer = src/lib/genius/geniusLanguage.ts (detectLanguage, translateTexts via Groq genius-translate, pickVoice native voices); intent parsing = geniusKnowledge.answerIntent (English-normalised) — why: one multilingual path for every search box and the narrator.
 - Board pools/spas (lib/design/board3D.ts): first = primaryId/primaryPts/primaryFinish, extras = Water3D keyed by item id with own depth/finishes and lawn cut; applyBoard3DToItems writes 3D edits back; drawn on the board itself with catalog finish photos — why: independent water bodies, two-way sync, one board.
-- Subdirectories have their own AGENTS.md (e.g. components/socialite, components/designStudio, components/siteBuilder); read it before changing files there.
+- Read subdirectory AGENTS.md before edits.
+- Point controls use utils/studioSplineControls; lawn holes use poolTerrainOpening outward booleans — why: no duplicate anchors or concave grass bleed.
 - Design Studio documents use lib/design/studioProject with ID-owned studioMaterials and shared boardNetArea clipping — why: complete saves and independent finishes survive view changes without surface overlap.
 - Website builder and public company sites rules live in src/components/siteBuilder/AGENTS.md — why: keeps root small.
 - Showroom page-scale tools launch explicitly, one at a time, inside contained widgets; global/2D/3D frames use embedded DesignStudio with an initial view and SiteBuilder uses embedded mode — why: prevents fullscreen escapes, competing board listeners and idle 3D workloads.

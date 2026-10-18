@@ -21,6 +21,7 @@ import grassTexture from '@/assets/turf/grass-texture.avif';
 import { loadBoard3D, BOARD_3D_EVENT } from '@/lib/design/board3D';
 import { resolveDeckBoundaries, sanitizeBoundary, smoothCurvedRing } from '@/utils/deckSurface';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
+import { poolTerrainOpening } from '@/utils/poolTerrainOpening';
 
 import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
@@ -807,8 +808,9 @@ const GrassTerrainFallback: React.FC<{
       const pool = sanitizeBoundary(poolCurve3D);
       if (pool.length >= 3) {
         const tuck = copingEnabled ? Math.min(0.4, Math.max(0.1, copingWidth * 0.5)) : 0.05;
-        const ring = sanitizeBoundary(generateOffsetCurve(pool, tuck));
-        rings.push((ring.length >= 3 ? ring : pool).map(p => [p.x + poolPosition[0], -(p.z + poolPosition[2])] as [number, number]));
+        for (const region of poolTerrainOpening(pool, tuck)) {
+          rings.push(region[0].map(p => [p.x + poolPosition[0], -(p.z + poolPosition[2])] as [number, number]));
+        }
       }
       for (const w of boardWaters) if (w.pts && w.pts.length >= 3) rings.push(w.pts.map((p) => [p.x, -p.z] as [number, number]));
       if (pitRing && pitRing.length >= 3) rings.push(pitRing.map((p) => [p.x + poolPosition[0], -(p.z + poolPosition[2])] as [number, number]));
@@ -1115,8 +1117,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   const poolCurve3D = useMemo(() => {
     if (points.length < 3) return [];
     
-    // SceneConverter already samples the canonical outline; a second spline moves the shared boundary.
-    return points.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y }));
+    // Same fallback and smoothing as PoolMesh; dense studio samples pass through unchanged.
+    return smoothCurvedRing(generateCurvedPoolPoints(points, 30, 0.3).map(p => ({
+      x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y,
+    })));
   }, [points, poolFrameCenter]);
   
   // Calculate normalized hardscape points for exact deck sync (same origin as the pool)
