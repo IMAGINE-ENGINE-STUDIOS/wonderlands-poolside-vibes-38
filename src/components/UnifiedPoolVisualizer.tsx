@@ -47,6 +47,9 @@ import { LandscapePlants3D } from './scene3d/LandscapePlants3D';
 import { BoardElements3D } from './scene3d/BoardElements3D';
 import { GradientSky } from './scene3d/GradientSky';
 import { loadBoard3D, BOARD_3D_EVENT, updateBoard3D, waterAxis, waterCenter } from '@/lib/design/board3D';
+import { useSceneLayers, isObjectHidden, boardObjectId } from '@/lib/design/sceneLayers';
+import { usePersistentState } from '@/hooks/usePersistentState';
+import { Slider } from './ui/slider';
 import { BOARD_SELECT_EVENT, type BoardSelection } from './scene3d/BoardElements3D';
 import { BoardElementEditor } from './scene3d/BoardElementEditor';
 import { board3DTakeoff, seatingLines } from '@/lib/design/board3DTakeoff';
@@ -766,6 +769,34 @@ export function UnifiedPoolVisualizer({
     });
   }, [scene, setScene]);
 
+  // ===== Layers & site levels (display-only hiding; quotes keep every item) =====
+  const layerState = useSceneLayers();
+  const hid = (id: string, layer = 'structure') => isObjectHidden(id, layer, layerState);
+  const [xray, setXray] = usePersistentState('studio3d.xray', false);
+  const poolElevation = Math.max(0, (scene.pool as any).elevation ?? 0);
+  const deckElevation = scene.deck.deckElevation ?? 0;
+  const setLevels = (patch: { pool?: number; deck?: number }) => setScene({
+    ...scene,
+    pool: patch.pool !== undefined ? { ...scene.pool, elevation: patch.pool } as any : scene.pool,
+    deck: patch.deck !== undefined ? { ...scene.deck, deckElevation: patch.deck } : scene.deck,
+  });
+  const [boardForList, setBoardForList] = useState(() => loadBoard3D());
+  useEffect(() => {
+    const on = () => setBoardForList(loadBoard3D());
+    window.addEventListener(BOARD_3D_EVENT, on);
+    return () => window.removeEventListener(BOARD_3D_EVENT, on);
+  }, []);
+  /* Hidden assets are filtered from the view; edits merge them back so nothing is lost. */
+  const keepHidden = <T extends { id: string }>(all: T[], layer: string) => {
+    const shown = all.filter(x => !hid(x.id, layer));
+    const hiddenOnes = all.filter(x => hid(x.id, layer));
+    return { shown, merge: (next: T[]) => [...next, ...hiddenOnes] };
+  };
+  const stairsV = keepHidden(poolStairs, 'structure');
+  const chairsV = keepHidden(poolChairs, 'structure');
+  const seatingV = keepHidden(contourSeating, 'structure');
+  const lightsV = keepHidden(poolLights, 'lighting');
+
   // ===== Scene Objects widget: flat inventory of everything in the 3D scene =====
   const sceneObjectGroups: SceneObjectGroup[] = useMemo(() => {
     const groups: SceneObjectGroup[] = [];
@@ -781,6 +812,7 @@ export function UnifiedPoolVisualizer({
       },
       {
         id: 'obj-deck',
+        layer: 'deck',
         label: 'Deck',
         detail: `${scene.deck.points?.length || 0} pts`,
         icon: sceneObjectIcons.deck,
@@ -789,6 +821,7 @@ export function UnifiedPoolVisualizer({
       },
       {
         id: 'obj-coping',
+        layer: 'deck',
         label: 'Coping',
         detail: `${((scene.deck.copingWidth || 1) * 12).toFixed(0)}"`,
         icon: sceneObjectIcons.coping,
@@ -869,6 +902,7 @@ export function UnifiedPoolVisualizer({
           label: `Light ${i + 1}`,
           detail: l.isOn ? 'on' : 'off',
           icon: sceneObjectIcons.light,
+          layer: 'lighting',
           selected: selectedLightId === l.id,
           onSelect: () => setSelectedLightId(l.id),
           onDelete: () => handlePoolLightsChange(poolLights.filter(x => x.id !== l.id)),
@@ -884,6 +918,7 @@ export function UnifiedPoolVisualizer({
           id: f.id,
           label: `${String(f.type).replace(/-/g, ' ')} ${i + 1}`,
           icon: sceneObjectIcons.terrain,
+          layer: 'landscape',
           onSelect: () => setSelectedObject(f.id),
           selected: selectedObject === f.id,
           onDelete: () =>
@@ -901,6 +936,7 @@ export function UnifiedPoolVisualizer({
           label: a.name,
           detail: a.type,
           icon: sceneObjectIcons.terrain,
+          layer: 'landscape',
           onDelete: () => setTerrainAssets(prev => prev.filter(x => x.id !== a.id)),
         })),
       });
@@ -922,8 +958,23 @@ export function UnifiedPoolVisualizer({
       });
     }
 
+    /* Board pieces drawn in 2D (fences, screens, turf, drawn decks, extra pools/spas). */
+    const b = boardForList;
+    if (b) {
+      const fences = [
+        ...b.fences.map((f, i) => ({ id: boardObjectId('fence', f.itemId, i), label: `${f.style} fence ${i + 1}`, detail: `${f.height} ft`, icon: sceneObjectIcons.fence, layer: 'fences' })),
+        ...b.screens.map((c, i) => ({ id: boardObjectId('screen', c.itemId, i), label: `Screen ${i + 1}`, detail: `${c.height} ft`, icon: sceneObjectIcons.fence, layer: 'fences' })),
+      ];
+      if (fences.length) groups.push({ key: 'fences', label: 'Fences & Screens', items: fences });
+      const surfaces = b.surfaces.map((x, i) => ({ id: boardObjectId('surface', x.itemId, i), label: `${x.kind === 'deck' ? 'Deck' : 'Turf'} ${i + 1}`, icon: x.kind === 'deck' ? sceneObjectIcons.deck : sceneObjectIcons.terrain, layer: x.kind === 'deck' ? 'deck' : 'landscape' }));
+      if (surfaces.length) groups.push({ key: 'surfaces', label: 'Decks & Turf', items: surfaces });
+      const waters = (b.waters ?? []).map((w, i) => ({ id: boardObjectId('water', w.itemId, i), label: (w as any).name || `Pool / spa ${i + 2}`, icon: sceneObjectIcons.pool, layer: 'structure' }));
+      if (waters.length) groups.push({ key: 'waters', label: 'Other Pools & Spas', items: waters });
+    }
+
     return groups;
   }, [
+    boardForList,
     scene,
     setScene,
     selectedComponent,
@@ -1383,7 +1434,23 @@ export function UnifiedPoolVisualizer({
 
         {/* Scene Objects Widget */}
         <div className="absolute top-4 right-16 md:right-[4.25rem] z-20">
-          <SceneObjectsPanel groups={sceneObjectGroups} />
+          <SceneObjectsPanel groups={sceneObjectGroups} footer={
+            <div className="space-y-2 text-xs">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Site levels</div>
+              <label className="block">
+                <span className="flex justify-between"><span>Pool height above ground</span><span>{poolElevation.toFixed(1)} ft</span></span>
+                <Slider min={0} max={5} step={0.25} value={[poolElevation]} onValueChange={([v]) => setLevels({ pool: v })} className="mt-1.5" />
+              </label>
+              <label className="block">
+                <span className="flex justify-between"><span>Deck level (− sunken / + raised)</span><span>{deckElevation >= 0 ? '+' : ''}{deckElevation.toFixed(1)} ft</span></span>
+                <Slider min={-4} max={4} step={0.25} value={[deckElevation]} onValueChange={([v]) => setLevels({ deck: v })} className="mt-1.5" />
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={!!xray} onCheckedChange={(v) => setXray(!!v)} />
+                <span>See pool walls below ground</span>
+              </label>
+            </div>
+          } />
         </div>
 
 
@@ -1974,12 +2041,15 @@ export function UnifiedPoolVisualizer({
 
               showDebugBoundaries={showDebugBoundaries}
               onDebugBoundariesChange={setShowDebugBoundaries}
+              hiddenParts={{ pool: hid('obj-pool'), deck: hid('obj-deck', 'deck'), coping: hid('obj-coping', 'deck'), waterline: hid('obj-waterline') }}
+              poolElevation={poolElevation}
+              xray={!!xray}
             />
           </group>
 
           {/* Water surface - follows actual pool shape */}
-          {showWater && (
-            <group position={[0, 0, 0]}>
+ {showWater && !hid('obj-water') && (
+            <group position={[0, poolElevation, 0]}>
               <WaterSurface 
                 poolPoints={scene.pool.points}
                 depthPoints={scene.pool.depthPoints}
