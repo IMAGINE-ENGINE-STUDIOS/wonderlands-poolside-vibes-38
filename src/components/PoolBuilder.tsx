@@ -2637,22 +2637,7 @@ export function PoolBuilder({
 
     // Draw deck spline edges with dashed orange lines
     if (hardscapePoints.length > 1) {
-      ctx.save();
-      ctx.strokeStyle = '#0F172A';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([6, 4]);
-      ctx.globalAlpha = 0.6;
-      ctx.beginPath();
-      ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
-      for (let i = 1; i < hardscapePoints.length; i++) {
-        ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
-      }
-      ctx.closePath();
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.globalAlpha = 1.0;
 
-      ctx.restore();
     }
 
     // Draw hardscape anchor points (main deck)
@@ -5173,7 +5158,8 @@ export function PoolBuilder({
     handleCanvasMouseUp();
   };
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (activeTool === 'add' || pendingFeature || pendingLandscapePlacement || pendingPoolFeaturePlacement) return;
+    if (activeTool === 'add') { suppressClickRef.current = false; return; }
+    if (pendingFeature || pendingLandscapePlacement || pendingPoolFeaturePlacement) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -5943,6 +5929,7 @@ export function PoolBuilder({
         {/* Site layer (fences/screens/turf) drawn with this canvas's own pan/zoom. */}
         {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale,
           poolPts: points, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck', addMode: activeTool === 'add', poolDrawMode: activeTool === 'draw-pool' || activeTool === 'draw-deck',
+          addPoolPointAt: (clientX, clientY) => { suppressClickRef.current = false; handleCanvasClick({ clientX, clientY } as React.MouseEvent<HTMLCanvasElement>); },
           /* Hand-drawn deck boundary (overlay draws it, same board transform) — Imagine Engine Studios Corp. */
           setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${Date.now().toString(36)}${i}` }))),
           setPool: (pts) => setPoints(pts as Point[]),
