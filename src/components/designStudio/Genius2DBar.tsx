@@ -13,7 +13,7 @@
 import * as React from 'react';
 import { Loader2, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeGenius } from '@/lib/geniusInvoke';
 import { productToScene } from '@/components/scene3d/SceneConverter';
 import { shapePoints, type Shape } from '@/components/scene3d/StudioDock';
 import { paverTypes } from '@/data/paverData';
@@ -112,7 +112,7 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       const currentBody = current
         ? { mode: '2d', pool: { length: Math.round(current.lengthFt), width: Math.round(current.widthFt), depthProfile: current.depthPoints.slice(0, 8), outlinePoints: current.points.length } }
         : { mode: '2d' };
-      const { data, error } = await supabase.functions.invoke('scene-genius', { body: { prompt, current: currentBody } });
+      const { data, error } = await invokeGenius('scene-genius', { body: { prompt, current: currentBody } }, { onBusy: () => setNote('Busier than normal right now — your design is underway and will go through on its own. Hang tight…') });
       if (error || !data?.plan) { setNote(data?.error || 'Genius could not design that. Try again.'); return; }
       const plan = data.plan as any;
 

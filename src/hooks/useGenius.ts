@@ -8,6 +8,7 @@ import { runGeniusCartCommand, type GeniusCartAdapter } from '@/lib/geniusCartCo
 import { advanceBooking, isBookingActive, startBooking, wantsAppointment } from '@/lib/geniusBooking';
 import { resolveShowroomRequest } from '@/lib/geniusShowroom';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeGenius } from '@/lib/geniusInvoke';
 import { buildKnowledgeDigest } from '@/lib/geniusKnowledge';
 import { getFlipModelPick } from '@/lib/metaModels';
 import { classifyGeniusTask } from '@/lib/modelRouter';
@@ -44,6 +45,7 @@ export function useGenius(options?: GeniusOptions) {
   const [turns, setTurns] = React.useState<GeniusTurn[]>([]);
   const [actions, setActions] = React.useState<NarratorAction[]>([]);
   const [isThinking, setIsThinking] = React.useState(false);
+  const [notice, setNotice] = React.useState<string | null>(null);
   const [booking, setBooking] = React.useState(isBookingActive());
 
   const optionsRef = React.useRef(options);
@@ -56,7 +58,7 @@ export function useGenius(options?: GeniusOptions) {
     const ctx = optionsRef.current?.context;
     const cart = optionsRef.current?.cart;
     try {
-      const { data, error } = await supabase.functions.invoke('genius', {
+      const { data, error } = await invokeGenius('genius', {
         body: {
           messages: [...turnsRef.current.slice(-10).map((t) => ({ role: t.role, content: t.content })), { role: 'user', content: text }],
           context: ctx
@@ -75,7 +77,7 @@ export function useGenius(options?: GeniusOptions) {
           model: getFlipModelPick() ?? undefined,
           task: classifyGeniusTask(text, 'flip'),
         },
-      });
+      }, { onBusy: () => setNotice('Busier than normal right now — your question is underway and will go through on its own. Hang tight…') });
       if (error || !data?.reply) return null;
       const remote: NarratorAction[] = Array.isArray(data.actions)
         ? data.actions.filter((a: NarratorAction) => a?.label).slice(0, 4)
@@ -93,6 +95,7 @@ export function useGenius(options?: GeniusOptions) {
 
       setTurns((prev) => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
       setActions([]);
+      setNotice(null);
       setIsThinking(true);
 
       /* Reply in the guest's language: intents run on English, the answer is translated back. */
@@ -103,6 +106,7 @@ export function useGenius(options?: GeniusOptions) {
         const reply = lang.startsWith('en') ? raw : await translateText(raw, lang);
         setTurns((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: reply }]);
         setActions(chips.length ? chips : bookChips());
+        setNotice(null);
         setIsThinking(false);
         setBooking(isBookingActive());
         return reply;
@@ -174,7 +178,7 @@ export function useGenius(options?: GeniusOptions) {
   /** The open book, as Genius sees it — handy for debugging and for chips. */
   const bookDigest = React.useCallback(() => flipManifestDigest(), []);
 
-  return { turns, actions, isThinking, booking, ask, reset, bookDigest };
+  return { turns, actions, isThinking, notice, booking, ask, reset, bookDigest };
 }
 
 export default useGenius;

@@ -380,7 +380,7 @@ export const GeniusOrb: React.FC = () => {
 
             {genius.isThinking && (
               <p className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Genius is thinking…
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> {genius.notice ?? 'Genius is thinking…'}
               </p>
             )}
 

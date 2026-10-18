@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Wand2, FolderOpen, Music2, VolumeX, Loader2, Save, Trash2, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeGenius } from '@/lib/geniusInvoke';
 import { productToScene } from './SceneConverter';
 import { paverTypes } from '@/data/paverData';
 import { poolFinishes } from '@/data/consolidatedProducts';
@@ -218,7 +219,7 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
     try {
       const s = snapshot.scene;
       const dims = s.pool.dimensions || { width: 16, length: 32, depth: 6 };
-      const { data, error } = await supabase.functions.invoke('scene-genius', {
+      const { data, error } = await invokeGenius('scene-genius', {
         body: {
           prompt,
           current: {
@@ -229,7 +230,7 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
             lights: snapshot.poolLights.length,
           },
         },
-      });
+      }, { onBusy: () => setNote('Busier than normal right now — your design is underway and will go through on its own. Hang tight…') });
       if (error || !data?.plan) { setNote(data?.error || 'Genius could not design that. Try again.'); return; }
       const plan = applyLocalIntent(prompt, data.plan as GeniusPlan);
       // Extra pools / spas / decks: Genius edits whichever bodies the words name.

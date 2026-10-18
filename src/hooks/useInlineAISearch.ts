@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { findProductInfo } from '@/data/poolProductLookup';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeGenius } from '@/lib/geniusInvoke';
 import { answerPriceQuestion, answerIntent, buildKnowledgeDigest, intentProducts } from '@/lib/geniusKnowledge';
 import { classifyGeniusTask } from '@/lib/modelRouter';
 import { detectLanguage, translateText } from '@/lib/genius/geniusLanguage';
@@ -54,7 +55,7 @@ export function useInlineAISearch() {
       let fullText = local ?? '';
       if (!local) {
         const tools = PLATFORM_TOOLS.map((t) => `${t.label} (${t.route}): ${t.description}`).join('\n');
-        const { data, error } = await supabase.functions.invoke('genius', {
+        const { data, error } = await invokeGenius('genius', {
           body: {
             messages: pending
               ? [
