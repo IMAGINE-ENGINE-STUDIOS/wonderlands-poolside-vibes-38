@@ -4674,7 +4674,7 @@ export function PoolBuilder({
       }
       ctx.closePath();
       ctx.clip();
-      const poolTextureImg = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+      const poolTextureImg = entityTexture(pool.materials, 'finish');
       if (poolTextureImg) {
         const pattern = scaledPattern(ctx, poolTextureImg, scale * FINISH_TILE_FT);
         if (pattern) {
