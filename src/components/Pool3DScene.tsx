@@ -1,7 +1,7 @@
 import * as React from 'react';
 const { useState, useMemo, useEffect, useRef, Suspense } = React;
 import { PerspectiveCamera, Grid, useTexture, TransformControls, OrbitControls } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
+import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { useTextureInvalidation } from '@/hooks/useTextureInvalidation';
@@ -141,6 +141,34 @@ export interface Pool3DSceneProps {
   /** Show the underground pool hull (ground turns see-through). */
   xray?: boolean;
 }
+
+/**
+ * Drives the below-ground cutaway each frame: when the camera dips under grade,
+ * the wall half facing the camera is discarded so you look INTO the pool.
+ * Works in the walls' local space, so parent group offsets don't matter.
+ * Credits: Imagine Engine Studios Corp.
+ */
+const CutawayDriver: React.FC<{
+  geometry: THREE.BufferGeometry;
+  uniforms: { uCutOn: { value: number }; uCutCam: { value: THREE.Vector2 }; uCutCenter: { value: THREE.Vector2 } };
+  enabled: boolean;
+}> = ({ geometry, uniforms, enabled }) => {
+  const ref = React.useRef<THREE.Group>(null);
+  const tmp = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ camera }) => {
+    const g = ref.current;
+    if (!g) return;
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    const bb = geometry.boundingBox!;
+    uniforms.uCutCenter.value.set((bb.min.x + bb.max.x) / 2, (bb.min.z + bb.max.z) / 2);
+    camera.getWorldPosition(tmp);
+    const below = tmp.y < 0;
+    g.worldToLocal(tmp);
+    uniforms.uCutCam.value.set(tmp.x, tmp.z);
+    uniforms.uCutOn.value = enabled && below ? 1 : 0;
+  });
+  return <group ref={ref} />;
+};
 
 export const PoolMesh: React.FC<{
   points: Point[];
