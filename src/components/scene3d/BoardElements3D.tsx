@@ -124,9 +124,11 @@ const isVinyl = (s: string) => s === "vinyl";
 const PYRAMID = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1).rotateY(Math.PI / 4);
 function VinylFence({ f, i }: { f: Fence3D; i: number }) {
   const H = f.height;
-  /* Textured finishes from the AFC-373 manifest; posts follow the panel finish unless set. */
+  /* Panel infill wears the AFC-373 texture once per panel; posts, caps and rails
+     stay solid vinyl in the matching finish colour (texture would smear on them). */
   const panelMat = React.useMemo(() => vinylMaterial(f.color), [f.color]);
-  const postMat = React.useMemo(() => vinylMaterial(f.postColor ?? f.color), [f.postColor, f.color]);
+  const railMat = React.useMemo(() => vinylSolidMaterial(f.color), [f.color]);
+  const postMat = React.useMemo(() => vinylSolidMaterial(f.postColor ?? f.color), [f.postColor, f.color]);
   const parts = React.useMemo(() => buildVinylFence(f.pts, H), [f.pts, H]);
   return (
     <group name="board-fence" onClick={select({ type: "fence", i })}>

@@ -70,3 +70,12 @@ export function vinylMaterial(hex?: string): THREE.MeshStandardMaterial {
   }
   return m;
 }
+
+const solidCache = new Map<string, THREE.MeshStandardMaterial>();
+/** Solid vinyl in the finish's manifest colour — posts, caps and rails. */
+export function vinylSolidMaterial(hex?: string): THREE.MeshStandardMaterial {
+  const f = vinylFinishFor(hex);
+  let m = solidCache.get(f.id);
+  if (!m) { m = new THREE.MeshStandardMaterial({ color: f.hex, roughness: 0.7, metalness: 0 }); solidCache.set(f.id, m); }
+  return m;
+}
