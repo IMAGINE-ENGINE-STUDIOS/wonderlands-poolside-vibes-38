@@ -656,7 +656,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
       <main className="flex-1 relative overflow-hidden">
         {activeView === '2d' ? <div className="relative w-full h-full">
             {/* Objects & layers — same spot as the 3D Studio widget. */}
-            <div className="absolute top-4 right-16 md:right-[4.25rem] z-20"><BoardObjectsPanel /></div>
+            <div className="absolute top-4 right-16 md:right-[4.25rem] z-40"><BoardObjectsPanel /></div>
             <PoolBuilder managedProjects onProjectStateChange={capture2D} key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} renderOverlay={(view) => <SiteElementsLayer view={view} poolTotals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost, deck: poolBuilderData.breakdown.deckCost, coping: poolBuilderData.breakdown.copingCost, features: poolBuilderData.breakdown.featuresCost, deckArea: poolBuilderData.deckArea || 0, area: poolBuilderData.area || 0 } : null} />} />
             {/* Genius draws a full pool + depth + deck from a sentence (same brief as 3D). */}
             <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} />
