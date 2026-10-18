@@ -113,7 +113,7 @@ serve(async (req) => {
       const details = await res.text().catch(() => "");
       console.error(`genius meta error [${res.status}]: ${details.slice(0, 300)}`);
       const message = res.status === 429 ? "Genius is catching her breath — try again in a moment." : "Genius is unavailable right now.";
-      return new Response(JSON.stringify({ error: message, status: res.status }), {
+      return new Response(JSON.stringify({ error: message, status: res.status, upstream: details.slice(0, 240) }), {
         status: res.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

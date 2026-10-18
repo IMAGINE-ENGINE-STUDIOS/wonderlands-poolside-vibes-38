@@ -46,6 +46,11 @@ export async function metaChat(cfg: LLMConfig, body: Record<string, unknown>, pr
   if (!cfg.apiKey) {
     return new Response(JSON.stringify({ error: "GROQ_API_KEY is not configured" }), { status: 500 });
   }
+  // Sent WITHOUT response_format: several Groq-served Meta models reject
+  // json_object mode (observed live as chain-wide failures), while the
+  // callers' system prompts already require JSON and their parsers
+  // extract it tolerantly. Everything else in the caller's body passes.
+  const { response_format: _dropped, ...wireBody } = body;
   const chain = preferredModel && !META_CHAT_CHAIN.includes(preferredModel) ? [preferredModel, ...META_CHAT_CHAIN] : [...META_CHAT_CHAIN];
   let last: Response | null = null;
   for (let i = 0; i < chain.length; i++) {
@@ -56,7 +61,7 @@ export async function metaChat(cfg: LLMConfig, body: Record<string, unknown>, pr
       r = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
         method: "POST",
         headers: { Authorization: `Bearer ${cfg.apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ ...body, model }),
+        body: JSON.stringify({ ...wireBody, model }),
         signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
       });
     } catch (e) {

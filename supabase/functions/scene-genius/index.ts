@@ -59,12 +59,18 @@ Deno.serve(async (req) => {
       const details = await res.text().catch(() => '');
       console.error('scene-genius meta error', res.status, details.slice(0, 300));
       const busy = res.status === 429;
-      return json({ error: busy ? 'Genius is busy right now. Try again in a minute.' : 'Genius could not design that. Try again.' }, busy ? 429 : 502);
+      return json({ error: busy ? 'Genius is busy right now. Try again in a minute.' : 'Genius could not design that. Try again.', status: res.status, upstream: details.slice(0, 240) }, busy ? 429 : 502);
     }
     const data = await res.json().catch(() => null);
     const text: string = data?.choices?.[0]?.message?.content ?? '';
+    // Tolerant extraction: models may fence the JSON or add prose around it.
+    const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
     let plan: unknown;
-    try { plan = JSON.parse(text); } catch { return json({ error: 'Genius returned an unreadable design. Try again.' }, 502); }
+    try { plan = JSON.parse(cleaned); } catch {
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) { try { plan = JSON.parse(match[0]); } catch { /* fall through */ } }
+      if (plan === undefined) return json({ error: 'Genius returned an unreadable design. Try again.' }, 502);
+    }
     return json({ plan });
   } catch (e) {
     console.error(e);
