@@ -119,7 +119,7 @@ export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], d
 export interface BoardView {
   width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number;
   /** Main pool + its deck (PoolBuilder state) — turf is cut around both. */
-  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean;
+  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean; poolDrawMode?: boolean;
   setDeck?: (pts: Pt[]) => void; setPool?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
   /** Extra pools/spas and their attached decks (PoolBuilder state). */
   extraPools?: { id: string; type?: string; points: Pt[]; shape?: string }[]; extraDecks?: Record<string, Pt[]>;
@@ -534,7 +534,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
               const sel = selected === e.id;
               const turf = TURFS.find((g) => g.color === e.color);
               return (
-                <g key={e.id} style={{ pointerEvents: "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
+                <g key={e.id} style={{ pointerEvents: view.poolDrawMode ? "none" : "auto", cursor: "pointer" }} onClick={(ev) => { if (drawing) return; ev.stopPropagation(); setSelected(e.id); }}>
                   {e.kind === "turf" && <path d={surfacePath(e.id)} fillRule="evenodd" fill={turf ? `url(#turf-${turf.id})` : e.color} fillOpacity={0.95} stroke={sel ? "hsl(var(--foreground))" : "none"} strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" />}
                   {e.kind === "deck" && <path d={surfacePath(e.id)} fillRule="evenodd" fill={e.textureUrl ? `url(#own-${e.id})` : `url(#paver-${e.style ?? DECK_PAVERS[0]?.id})`} stroke={sel ? "hsl(var(--foreground))" : "#8a7a62"} strokeWidth={(sel ? 2.5 : 1.5) / (view.zoom || 1)} />}
                   {/* Placed fences/screens keep the exact drawing-board look: solid round-joined line + ringed post handles. */}
