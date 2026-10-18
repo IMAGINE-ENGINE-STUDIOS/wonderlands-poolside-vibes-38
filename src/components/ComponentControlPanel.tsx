@@ -232,6 +232,21 @@ export function ComponentControlPanel({
 
       {/* Content */}
       <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+        {/* Pool elevation — lifts the active pool/spa rim; a finished riser wall fills below. */}
+        {selectedComponent === 'pool' && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Pool Elevation</Label>
+              <span className="text-xs text-muted-foreground">{(((scene.pool as any).elevation || 0) * 12).toFixed(0)} in</span>
+            </div>
+            <Slider
+              value={[((scene.pool as any).elevation || 0) * 12]}
+              onValueChange={(v) => onSceneChange({ ...scene, pool: { ...scene.pool, elevation: v[0] / 12 } as any })}
+              min={0} max={60} step={1} className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">Raise the pool or spa so it can spill over into a lower pool or deck.</p>
+          </div>
+        )}
         {/* Texture Selection */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
