@@ -150,7 +150,7 @@ serve(async (req) => {
           }))
       : [];
 
-    return new Response(JSON.stringify({ reply, actions, model: modelKey }), {
+    return new Response(JSON.stringify({ reply, actions, model: json?.model ?? null }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
