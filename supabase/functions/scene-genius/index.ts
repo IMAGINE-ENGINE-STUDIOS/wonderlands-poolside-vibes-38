@@ -1,12 +1,7 @@
 // Scene Genius — turns a plain-language brief into a full pool scene plan
 // (pool shape, size, depth profile, deck, stairs, seating, lights, finishes,
-// and 3D models to search for) using Meta models on Groq, reached
-// through this Supabase function (see _shared/metaChat).
-// The client applies the plan. Model choice: _shared/modelRouter (scene3d).
+// and 3D models to search for) using Groq. The client applies the plan.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
-import { metaChat, llmConfig } from "../_shared/metaChat.ts";
-import { apiIdForModelKey } from "../_shared/metaModels.ts";
-import { routeModelKey } from "../_shared/modelRouter.ts";
 
 const SYSTEM = `You EDIT a residential backyard pool design in feet. You receive the current design and the user's request.
 Reply with ONE JSON object only. Include ONLY the keys the user's request changes — omit everything else so it stays as is.
@@ -27,10 +22,22 @@ Reply with ONE JSON object only. Include ONLY the keys the user's request change
  "night": boolean,
  "models": [ { "query": string, "kind": "object"|"tree"|"terrain"|"skydome", "x": number, "z": number } ]
 }
-Rules: "models" ONLY when the user explicitly names objects, plants, trees, furniture, terrain or sky to add — the query must be exactly the thing they named. Never add palm trees or decor on your own. Keep x/z outside the pool and deck.
-PLACEMENT RULES (absolute): plants, trees and decor NEVER sit on the pool, the deck, a fence or a screen. "Inside the screen" means within the enclosure's footprint on its floor — never on the screen itself; "inside the fenced area" means the open ground the fence encloses. Vehicles go on driveway areas only. Patio furniture, fireplaces, BBQ and outdoor kitchens MAY sit on the deck when the user asks. If a requested spot breaks a rule, put the model at the nearest legal spot and say so in the summary.
-SCALE: every model is placed at real-world size — a chair is chair-sized, a palm is palm-sized; when you compose a full scene ("make it beautiful"), balance planting, furniture and lighting across the open zones and respect every placement rule.
-NEVER change the pool shape, size, depth, deck or anything else the user did not name. If the request is about doors, gates, fences or screens, return only {"summary"}. No prose, no markdown.`;
+Rules: "models" ONLY when the user explicitly names objects, plants, trees, furniture, terrain or sky to add — the query must be exactly the thing they named. Never add palm trees or decor on your own. Keep x/z outside the pool and deck. NEVER change the pool shape, size, depth, deck or anything else the user did not name. If the request is about doors, gates, fences or screens, return only {"summary"}. No prose, no markdown.`;
+
+// Pick the best chat model this Groq account can use (cached per instance).
+const PREFERRED = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'llama-4-maverick', 'llama-4-scout', 'qwen', 'llama-3.1-70b', 'gpt-oss', 'llama'];
+let cachedModel: string | null = null;
+async function pickModel(key: string): Promise<string> {
+  if (cachedModel) return cachedModel;
+  const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { Authorization: `Bearer ${key}` } });
+  const ids: string[] = r.ok ? ((await r.json()).data || []).map((m: { id: string }) => m.id) : [];
+  const chat = ids.filter((id) => !/whisper|tts|guard|embed|playai|orpheus|distil/i.test(id));
+  for (const pref of PREFERRED) {
+    const hit = chat.find((id) => id.toLowerCase().includes(pref));
+    if (hit) return (cachedModel = hit);
+  }
+  return (cachedModel = chat[0] || 'llama-3.3-70b-versatile');
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -43,34 +50,34 @@ Deno.serve(async (req) => {
     const current = body?.current && typeof body.current === 'object' ? JSON.stringify(body.current).slice(0, 2000) : '';
     if (prompt.length < 3) return json({ error: 'Describe the project you want in a few words.' }, 400);
 
-    const llm = llmConfig();
-    if (!llm.apiKey) return json({ error: 'Genius is not configured yet.' }, 500);
+    const key = Deno.env.get('GROQ_API_KEY');
+    if (!key) return json({ error: 'Genius is not configured yet.' }, 500);
 
-    const res = await metaChat(llm, {
-      temperature: 0.4,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: SYSTEM },
-        ...(current ? [{ role: 'user', content: `Current design (JSON): ${current}` }] : []),
-        { role: 'user', content: prompt },
-      ],
-    }, apiIdForModelKey(routeModelKey({ task: 'scene3d' })));
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: await pickModel(key),
+        temperature: 0.4,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: SYSTEM },
+          ...(current ? [{ role: 'user', content: `Current design (JSON): ${current}` }] : []),
+          { role: 'user', content: prompt },
+        ],
+      }),
+    });
     if (!res.ok) {
-      const details = await res.text().catch(() => '');
-      console.error('scene-genius meta error', res.status, details.slice(0, 300));
-      const busy = res.status === 429;
-      return json({ error: busy ? 'Genius is busy right now. Try again in a minute.' : 'Genius could not design that. Try again.', status: res.status, upstream: details.slice(0, 240) }, busy ? 429 : 502);
+      const t = await res.text();
+      console.error('groq error', res.status, t.slice(0, 300));
+      if (res.status === 404) cachedModel = null;
+      const msg = res.status === 429 ? 'Genius is busy right now. Try again in a minute.' : 'Genius could not design that. Try again.';
+      return json({ error: msg }, res.status === 429 ? 429 : 502);
     }
-    const data = await res.json().catch(() => null);
+    const data = await res.json();
     const text: string = data?.choices?.[0]?.message?.content ?? '';
-    // Tolerant extraction: models may fence the JSON or add prose around it.
-    const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
     let plan: unknown;
-    try { plan = JSON.parse(cleaned); } catch {
-      const match = cleaned.match(/\{[\s\S]*\}/);
-      if (match) { try { plan = JSON.parse(match[0]); } catch { /* fall through */ } }
-      if (plan === undefined) return json({ error: 'Genius returned an unreadable design. Try again.' }, 502);
-    }
+    try { plan = JSON.parse(text); } catch { return json({ error: 'Genius returned an unreadable design. Try again.' }, 502); }
     return json({ plan });
   } catch (e) {
     console.error(e);

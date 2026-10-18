@@ -1,8 +1,10 @@
-/** Genius concierge (Meta models on Groq, via this Supabase doorway — the Startup Factory Hub pattern). Imagine Engine Studios Corp. */
+/** Genius concierge — Groq via the shared groqChat helper, exactly as the
+ * app originally ran (founder direction 2026-10-18: restore the original
+ * free-tier Groq setup). The Meta-model catalog/router experiments live
+ * in _shared/metaChat.ts + metaModels.ts, unused by this function; they
+ * return when the self-hosted model VM (infra/model-server) goes live. */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { metaChat, llmConfig } from "../_shared/metaChat.ts";
-import { apiIdForModelKey } from "../_shared/metaModels.ts";
-import { effectiveModelKey } from "../_shared/modelRouter.ts";
+import { groqChat } from "../_shared/groqChat.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,18 +90,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const llm = llmConfig();
-    if (!llm.apiKey) throw new Error("GROQ_API_KEY is not configured");
+    const apiKey = Deno.env.get("GROQ_API_KEY");
+    if (!apiKey) throw new Error("GROQ_API_KEY is not configured");
 
     const body = (await req.json()) as GeniusRequest;
     const turns = (body.messages ?? []).slice(-12).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));
 
-    /* The guest's flipper pick wins; otherwise the router chooses by task. */
-    const modelKey = effectiveModelKey(
-      { explicit: body.model, task: body.task, hasImage: body.hasImage },
-      (key) => apiIdForModelKey(key) != null,
-    );
-    const res = await metaChat(llm, ({
+    const res = await groqChat(apiKey, {
         temperature: 0.4,
         response_format: { type: "json_object" },
         messages: [
@@ -107,7 +104,7 @@ serve(async (req) => {
           { role: "system", content: buildContext(body) },
           ...turns,
         ],
-      }), apiIdForModelKey(modelKey));
+      });
 
     if (!res.ok) {
       const details = await res.text().catch(() => "");
