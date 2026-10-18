@@ -775,11 +775,14 @@ export function UnifiedPoolVisualizer({
   const [xray, setXray] = usePersistentState('studio3d.xray', false);
   const poolElevation = Math.max(0, (scene.pool as any).elevation ?? 0);
   const deckElevation = scene.deck.deckElevation ?? 0;
-  const setLevels = (patch: { pool?: number; deck?: number }) => setScene({
+  const bodyElevation = activeWater != null ? Math.max(0, activeW?.elevation ?? 0) : poolElevation;
+  const setLevels = (patch: { pool?: number; deck?: number }) => (activeWater != null && patch.pool !== undefined)
+    ? (updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((w, k) => (k === activeWater ? { ...w, elevation: patch.pool } : w)) })), localStorage.setItem('studio3d.levels.elevated', patch.pool > 0 ? '1' : '0'))
+    : (patch.pool !== undefined && localStorage.setItem('studio3d.levels.elevated', patch.pool > 0 ? '1' : '0'), setScene({
     ...scene,
     pool: patch.pool !== undefined ? { ...scene.pool, elevation: patch.pool } as any : scene.pool,
     deck: patch.deck !== undefined ? { ...scene.deck, deckElevation: patch.deck } : scene.deck,
-  });
+  }));
   const [boardForList, setBoardForList] = useState(() => loadBoard3D());
   useEffect(() => {
     const on = () => setBoardForList(loadBoard3D());
@@ -1438,8 +1441,8 @@ export function UnifiedPoolVisualizer({
             <div className="space-y-2 text-xs">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Site levels</div>
               <label className="block">
-                <span className="flex justify-between"><span>Pool height above ground</span><span>{poolElevation.toFixed(1)} ft</span></span>
-                <Slider min={0} max={5} step={0.25} value={[poolElevation]} onValueChange={([v]) => setLevels({ pool: v })} className="mt-1.5" />
+                <span className="flex justify-between"><span>{activeW ? (activeW.kind === 'spa' ? 'Spa' : 'Pool') + ' ' + ((activeWater ?? 0) + 2) : 'Pool'} height above ground</span><span>{bodyElevation.toFixed(1)} ft</span></span>
+                <Slider min={0} max={5} step={0.25} value={[bodyElevation]} onValueChange={([v]) => setLevels({ pool: v })} className="mt-1.5" />
               </label>
               <label className="block">
                 <span className="flex justify-between"><span>Deck level (− sunken / + raised)</span><span>{deckElevation >= 0 ? '+' : ''}{deckElevation.toFixed(1)} ft</span></span>
@@ -1973,7 +1976,7 @@ export function UnifiedPoolVisualizer({
           
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
-          <BoardElements3D holes={[]}
+          <BoardElements3D holes={[]} mainElevation={poolElevation}
             scales={boardScales} mainCoping={scene.deck.coping?.url} mainWaterline={scene.deck.waterline?.url ?? scene.deck.coping?.url} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
