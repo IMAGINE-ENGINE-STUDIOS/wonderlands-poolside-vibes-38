@@ -225,13 +225,16 @@ function denseRing(pts: { x: number; y: number }[]): { x: number; y: number }[] 
   return out;
 }
 /** One water material for every extra body (fewer shader programs / draw state changes). */
-let waterMat: THREE.MeshPhysicalMaterial | null = null;
-const sharedWater = () => (waterMat ??= new THREE.MeshPhysicalMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.05, transmission: 0.4 }));
+/* No transmission (it forced a second full-scene render pass) and no depth write, so the pool floor always shows through. Imagine Engine Studios Corp */
+let waterMat: THREE.MeshStandardMaterial | null = null;
+const sharedWater = () => (waterMat ??= new THREE.MeshStandardMaterial({ color: "#58c4e0", transparent: true, opacity: 0.55, roughness: 0.08, metalness: 0.1, depthWrite: false, side: THREE.DoubleSide }));
 /**
  * Board reloads re-parse every body from storage, so compare by content:
  * only the pool that actually changed rebuilds its shell/coping/waterline.
  */
-const Water = React.memo(WaterBody, (a, b) => a.i === b.i && a.scales === b.scales && a.mainCoping === b.mainCoping && a.mainWaterline === b.mainWaterline && JSON.stringify(a.w) === JSON.stringify(b.w));
+const waterKeyCache = new WeakMap<Water3D, string>();
+const waterKey = (w: Water3D) => { let k = waterKeyCache.get(w); if (k == null) { k = JSON.stringify(w); waterKeyCache.set(w, k); } return k; };
+const Water = React.memo(WaterBody, (a, b) => a.i === b.i && a.scales === b.scales && a.mainCoping === b.mainCoping && a.mainWaterline === b.mainWaterline && (a.w === b.w || waterKey(a.w) === waterKey(b.w)));
 function WaterBody({ w, i, scales, mainCoping, mainWaterline }: { w: Water3D; i: number; scales: SceneScales; mainCoping?: string; mainWaterline?: string }) {
   const c = React.useMemo(() => waterCenter(w.pts), [w.pts]);
   const local = React.useMemo(() => denseRing(w.pts.map((p) => ({ x: p.x - c.x, y: p.z - c.z }))).map((p, k) => ({ ...p, id: `${w.itemId ?? i}-p${k}` })), [w.pts, c, w.itemId, i]);
@@ -256,7 +259,7 @@ function WaterBody({ w, i, scales, mainCoping, mainWaterline }: { w: Water3D; i:
       <group onClick={pick("waterline")}>
         <WaterlineMesh poolPoints={local as any} wallCurve={curve} waterlineTextureUrl={urlOr(w.waterline, mainWaterline)} waterlineTextureScale={w.waterlineScale ?? scales.waterline} copingHeight={copingH} />
       </group>
-      {!w.waterOff && <mesh geometry={waterGeo} material={sharedWater()} position={[0, -0.25, 0]} />}
+      {!w.waterOff && <mesh geometry={waterGeo} material={sharedWater()} position={[0, -0.25, 0]} renderOrder={10} raycast={() => null} />}
       <PoolAssetsRenderer poolPoints={local as any} poolDepth={deep} getFloorDepthAt={depthAt}
         stairs={w.stairs ?? []} onStairsChange={(stairs) => setAssets({ stairs })}
         chairs={w.chairs ?? []} onChairsChange={(chairs) => setAssets({ chairs })}
@@ -344,7 +347,9 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
   const invalidate = useThree((st) => st.invalidate);
   // The studio renders on demand: redraw as soon as a widget edits a piece.
   React.useEffect(() => { invalidate(); }, [data, invalidate]);
-  const allHoles = React.useMemo(() => [...holes, ...(data?.waters ?? []).filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(denseRing(w.pts.map((p) => ({ x: p.x, y: p.z }))).map((p) => ({ x: p.x, z: p.y })), Math.max(0.1, (w.copingWidth || 1) - 0.02)).offset)], [holes, data?.waters]);
+  // Key by content so a new-but-equal holes array never recomputes rings or recompiles shaders.
+  const holesIn = React.useMemo(() => holes, [JSON.stringify(holes)]); // eslint-disable-line react-hooks/exhaustive-deps
+  const allHoles = React.useMemo(() => [...holesIn, ...(data?.waters ?? []).filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(denseRing(w.pts.map((p) => ({ x: p.x, y: p.z }))).map((p) => ({ x: p.x, z: p.y })), Math.max(0.1, (w.copingWidth || 1) - 0.02)).offset)], [holesIn, data?.waters]);
   const holesKey = React.useMemo(() => allHoles.map((h) => h.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join("|")).join("#"), [allHoles]);
   React.useEffect(() => {
     const on = () => setData(loadBoard3D());

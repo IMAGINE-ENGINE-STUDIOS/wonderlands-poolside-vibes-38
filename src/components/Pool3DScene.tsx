@@ -571,8 +571,7 @@ export const PoolMesh: React.FC<{
         <meshPhongMaterial
           color={linerTexture ? "#ffffff" : "#4DD0E1"}
           map={linerTexture}
-          transparent
-          opacity={0.85}
+          /* Opaque floor: transparent floors were hidden behind the water surface. */
           side={THREE.DoubleSide}
           shininess={100}
           specular="#ffffff"
