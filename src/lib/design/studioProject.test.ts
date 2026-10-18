@@ -18,4 +18,9 @@ describe('complete studio documents',()=>{
  it('preserves empty designs and intentional empty attached decks',()=>{
   const doc=completeStudioProject({points:[],additionalPools:[],additionalDeckPoints:{a:[]},site:[]},null,null);assert.deepEqual(doc.points,[]);assert.deepEqual(doc.additionalDeckPoints.a,[]);
  });
+ it('keeps saved deck and site textures when legacy surfaces omit texture fields',()=>{
+  const state={scale:10,additionalPools:[{id:'a',points,materials:{paverUrl:'/saved.webp',paverScale:2}}],site:[{id:'t',textureUrl:'/turf.webp',textureScale:3}]};
+  const board:Board3D={origin:{x:0,y:0},fences:[],screens:[],waters:[{itemId:'a',kind:'pool',label:'Pool',pts:points.map(p=>({x:p.x/10,z:p.y/10})),depth:5,finish:'/finish.webp',coping:'/coping.webp',waterline:'/tile.webp',copingWidth:1}],surfaces:[{itemId:'__deck_a',kind:'deck',color:'#fff',regions:[]},{itemId:'t',kind:'turf',color:'#090',regions:[]}]};
+  const next=reconcileStudioBoard(state,board);assert.equal(next.additionalPools[0].materials.paverUrl,'/saved.webp');assert.equal(next.additionalPools[0].materials.paverScale,2);assert.equal(next.site[0].textureUrl,'/turf.webp');assert.equal(next.site[0].textureScale,3);
+ });
 });

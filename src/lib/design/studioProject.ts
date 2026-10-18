@@ -18,7 +18,8 @@ export function reconcileStudioBoard<T extends { additionalPools?: any[]; site?:
     const coping = paverTypes.find(p => p.image === w.coping);
     if (coping) Object.assign(materials, { copingId: coping.id });
     const deck = board.surfaces.find(s => s.itemId === `__deck_${p.id}`);
-    if (deck) Object.assign(materials, { paverUrl: deck.image, paverScale: deck.scale, paverId: paverTypes.find(p => p.image === deck.image)?.id ?? old?.paverId });
+    if (deck?.image !== undefined) Object.assign(materials, { paverUrl: deck.image, paverId: paverTypes.find(p => p.image === deck.image)?.id ?? old?.paverId });
+    if (deck?.scale !== undefined) materials.paverScale = deck.scale;
     const same = w.pts.length === p.points.length && w.pts.every((q, i) => Math.abs((q.x + origin.x) * scale - p.points[i].x) < .01 && Math.abs((q.z + origin.y) * scale - p.points[i].y) < .01);
     // A densified render ring is not a new control polygon unless it was edited in 3D.
     const unchanged = p.renderRing3D && JSON.stringify(p.renderRing3D) === JSON.stringify(w.pts);
@@ -27,7 +28,7 @@ export function reconcileStudioBoard<T extends { additionalPools?: any[]; site?:
   const site = (state.site ?? []).map(e => {
     const line = [...board.fences, ...board.screens].find(x => x.itemId === e.id);
     const surface = board.surfaces.find(s => s.itemId === e.id);
-    return { ...e, ...(line ? { pts: toPx(line.pts), color: line.color, height: line.height, gates: line.gates, details3D: line } : {}), ...(surface ? { textureUrl: surface.image, textureScale: surface.scale, color: surface.kind === 'turf' ? surface.color : e.color } : {}) };
+    return { ...e, ...(line ? { pts: toPx(line.pts), color: line.color, height: line.height, gates: line.gates, details3D: line } : {}), ...(surface?.image !== undefined ? { textureUrl: surface.image } : {}), ...(surface?.scale !== undefined ? { textureScale: surface.scale } : {}), ...(surface?.kind === 'turf' ? { color: surface.color } : {}) };
   });
   return { ...state, additionalPools, site };
 }
