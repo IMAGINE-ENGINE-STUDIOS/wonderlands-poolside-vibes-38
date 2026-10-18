@@ -168,6 +168,7 @@ const shadeColor = (color: string, percent: number) => {
   return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
 };
 import { buildFinishTextures } from '@/data/textureLibrary';
+import { useSceneLayers, isObjectHidden, boardObjectId } from '@/lib/design/sceneLayers';
 // Same finish catalogue the 3D viewer offers, so 2D and 3D show identical choices.
 /** Pattern scaled to real feet so 2D textures match the 3D Studio's 1 ft UV (Imagine Engine Studios Corp). */
 const scaledPattern = (ctx: CanvasRenderingContext2D, img: CanvasImageSource & { width: number; height: number }, tilePx: number) => {
@@ -364,6 +365,9 @@ export function PoolBuilder({
   const [hardscapePoints, setHardscapePoints] = useState<HardscapePoint[]>([]);
   const [additionalDeckPoints, setAdditionalDeckPoints] = useState<Record<string, HardscapePoint[]>>({});
   const [selectedDeckId, setSelectedDeckId] = useState<string>('main');
+  /* Objects panel eyes hide pieces on the 2D board too (display only; quotes keep them). Imagine Engine Studios Corp. */
+  const layerState = useSceneLayers();
+  const hid2D = (id: string, layer: string) => isObjectHidden(id, layer, layerState);
   const [deckOffsetsById, setDeckOffsetsById] = useState<Record<string, number>>({ main: 3 });
   const [fencePoints, setFencePoints] = useState<FencePoint[]>([]);
   const [fenceDoors, setFenceDoors] = useState<FenceDoor[]>([]);
@@ -2072,7 +2076,7 @@ export function PoolBuilder({
     // Draw hardscape deck area with editable corners (squared or smooth)
     // Get appropriate LOD texture based on zoom level
     const paverTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.paver, zoomLevel) : null;
-    if (paverTexture && hardscapePoints.length >= 3) {
+    if (paverTexture && hardscapePoints.length >= 3 && !hid2D('obj-deck', 'deck')) {
       const img = paverTexture;
 
       ctx.save();
@@ -2152,7 +2156,7 @@ export function PoolBuilder({
     };
 
     // Draw pool shape - use per-point curveType for freeform, straight for rectangle
-    if (points.length > 2) {
+    if (points.length > 2 && !hid2D('obj-pool', 'structure')) {
       ctx.save();
 
       // Create path for pool outline
@@ -2814,7 +2818,7 @@ export function PoolBuilder({
 
     // Draw features with better styling - Only pool-related features (stairs, lights, jets)
     const poolFeatureTypes = ['stairs', 'light', 'jet'];
-    features.filter(f => poolFeatureTypes.includes(f.type)).forEach(feature => {
+    features.filter((f, fi) => poolFeatureTypes.includes(f.type) && !hid2D(`feature-${f.id ?? fi}`, f.type === 'light' ? 'lighting' : 'structure')).forEach(feature => {
       ctx.save();
       if (feature.type === 'grass') {
         // Grass patch
@@ -3236,7 +3240,7 @@ export function PoolBuilder({
     });
 
     // Draw features with better styling
-    features.filter(f => f.type !== 'grass' && f.type !== 'home').forEach(feature => {
+    features.filter((f, fi) => f.type !== 'grass' && f.type !== 'home' && !hid2D(`feature-${f.id ?? fi}`, f.type === 'light' ? 'lighting' : f.type === 'tree' ? 'landscape' : 'structure')).forEach(feature => {
       ctx.save();
       ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
       ctx.shadowBlur = 4;
@@ -4325,7 +4329,7 @@ export function PoolBuilder({
 
     // Draw additional pools/spas (rendered with the same look as the main pool)
     additionalPools.forEach((pool, poolIndex) => {
-      if (pool.points.length < 3) return;
+      if (pool.points.length < 3 || hid2D(boardObjectId('water', pool.id, poolIndex), 'structure')) return;
       const isIntegrated = pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge';
       const isSeparatePool = pool.featureType === 'regular' || !pool.featureType;
       const isSelected = selectedAdditionalPool === pool.id;
@@ -4335,7 +4339,7 @@ export function PoolBuilder({
       // Integrated features share the main pool's deck
       if (isSeparatePool) {
         const poolHardscapePoints = additionalDeckPoints[pool.id] || generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset);
-        if (paverTexture && poolHardscapePoints.length >= 3) {
+        if (paverTexture && poolHardscapePoints.length >= 3 && !hid2D(`obj-deck-${pool.id}`, 'deck')) {
           const img = paverTexture;
           ctx.save();
 
@@ -4762,7 +4766,7 @@ export function PoolBuilder({
     ctx.restore();
     // Close camera transform
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, selectedDrawPointId, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode, entityTextureTick, deckPaths]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, selectedDrawPointId, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode, entityTextureTick, deckPaths, layerState]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -5061,6 +5065,17 @@ export function PoolBuilder({
       setSelectedDeckId('main');
       if (activeTool === 'select-deck') setActiveTool('select');
       return;
+    }
+    // Inside a pool/spa body = select that pool (finish/elevation widget), never its deck.
+    for (const pool of additionalPools) {
+      if (pool.points.length >= 3 && isPointInPolygon(x, y, pool.points)) {
+        setSelectedAdditionalPool(pool.id);
+        setSelectedDeckId('main');
+        setMaterialTarget(`__xp:${pool.id}`);
+        window.dispatchEvent(new CustomEvent('design-studio:select', { detail: `__xp:${pool.id}` }));
+        if (activeTool === 'select-deck') setActiveTool('select');
+        return;
+      }
     }
     for (const pool of additionalPools) {
       const poolDeck = additionalDeckPoints[pool.id] || (pool.featureType === 'regular' ? generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset) : []);

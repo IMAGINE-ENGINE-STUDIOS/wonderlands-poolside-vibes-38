@@ -22,6 +22,8 @@ import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
 import { applyHoleCut } from "./holeCutShader";
 import { buildVinylFence } from "./vinylFenceGeometry";
+import { RiserWall } from "./SiteLevels3D";
+import { Spillovers3D } from "./Spillover3D";
 import { vinylMaterial, vinylSolidMaterial } from "@/lib/design/vinylFenceMaterials";
 import { useSceneLayers, isObjectHidden, boardObjectId } from "@/lib/design/sceneLayers";
 
@@ -267,10 +269,14 @@ function WaterBody({ w, i, scales, mainCoping, mainWaterline }: { w: Water3D; i:
   const dims = React.useMemo(() => { const xs = local.map((p) => p.x), ys = local.map((p) => p.y); return { length: Math.max(...ys) - Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), depth: deep }; }, [local, deep]);
   const waterGeo = React.useMemo(() => { const g = new THREE.ShapeGeometry(new THREE.Shape(curve.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g; }, [curve]);
   const copingH = w.copingHeight ?? 2 / 12;
+  const elev = Math.max(0, w.elevation ?? 0);
+  const outerRing = React.useMemo(() => mitredOffsetRing(curve, w.copingWidth || 1).offset, [curve, w.copingWidth]);
   const pick = (part: WaterPart) => (e: any) => { if (e.delta > 4) return; select({ type: "water", i, part })(e); };
   const setAssets = (patch: Partial<Water3D>) => updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((x, k) => (k === i ? { ...x, ...patch } : x)) }));
   return (
-    <group name={`board-${w.kind}`} position={[c.x, 0, c.z]}>
+    <group name={`board-${w.kind}`} position={[c.x, elev, c.z]}>
+      {/* Raised body: finished skirt from the ground up to the coping. */}
+      {elev > 0 && <RiserWall ring={outerRing} y0={-elev} y1={0} />}
       <group onClick={pick("pool")}>
         <PoolMesh points={local as any} depthPoints={[]} perimeterDepthPoints={perimeter} floorDepthAt={depthAt}
           linerTextureUrl={urlOr(w.finish, BASE_FINISH)!} linerTextureScale={w.finishScale ?? scales.finish} poolDimensions={dims} copingHeight={copingH} />
@@ -365,7 +371,7 @@ function TurfSurface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; hole
 const DECK_SLAB_FT = 0.25;
 
 /** mainCoping/mainWaterline: extra pools without their own chosen texture inherit the main pool's (never a plain white ring). */
-export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCoping, mainWaterline }: { holes?: XZ[][]; scales?: SceneScales; mainCoping?: string; mainWaterline?: string }) {
+export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCoping, mainWaterline, mainElevation = 0 }: { holes?: XZ[][]; scales?: SceneScales; mainCoping?: string; mainWaterline?: string; mainElevation?: number }) {
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
   const invalidate = useThree((st) => st.invalidate);
   // The studio renders on demand: redraw as soon as a widget edits a piece.
@@ -391,6 +397,7 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
         : <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={s.scale ?? scales.paver} />)}
       {data.fences.map((f, i) => off("fence", f.itemId, i, "fences") ? null : <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => off("screen", s.itemId, i, "fences") ? null : <Screen key={`c${i}`} s={s} i={i} />)}
+      {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} mainPts={data.primaryPts} />}
       {(data.waters ?? []).map((w, i) => off("water", w.itemId, i, "structure") ? null : <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} />)}
     </group>
   );
