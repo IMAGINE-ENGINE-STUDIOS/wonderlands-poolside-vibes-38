@@ -1360,6 +1360,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           selectedCategory={selectedCategory}
           copingHeight={copingHeight}
           onSelectComponent={onSelectComponent}
+          cutaway={!xray}
         />
       </group>}
 
