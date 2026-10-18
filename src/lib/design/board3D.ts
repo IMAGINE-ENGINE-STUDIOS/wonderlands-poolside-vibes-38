@@ -131,7 +131,29 @@ export function clearBoard3D() {
   window.dispatchEvent(new Event(BOARD_3D_EVENT));
 }
 export function loadBoard3D(): Board3D | null {
-  try { const raw = localStorage.getItem(BOARD_3D_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  try { const raw = localStorage.getItem(BOARD_3D_KEY); return raw ? sanitizeBoard3D(JSON.parse(raw)) : null; } catch { return null; }
+}
+
+/* ---------- integrity guard (Imagine Engine Studios Corp.) ----------
+ * Saved boards outlive the code that wrote them: a redrawn pool, a deleted spa
+ * or an older save can leave entries with missing / NaN coordinates. Any of
+ * those crashes the 3D canvas ("reading 'x' of undefined"), so every load drops
+ * broken points and the entries that no longer have enough of them. */
+const okXZ = (p: unknown): p is XZ => !!p && Number.isFinite((p as XZ).x) && Number.isFinite((p as XZ).z);
+const ring = (pts: unknown, min: number): XZ[] | null => { const r = Array.isArray(pts) ? pts.filter(okXZ) : []; return r.length >= min ? r : null; };
+export function sanitizeBoard3D(d: Board3D | null | undefined): Board3D | null {
+  if (!d || typeof d !== "object") return null;
+  const lines = <T extends { pts: XZ[] }>(list: T[] | undefined) => (list ?? []).flatMap((e) => { const pts = e && ring(e.pts, 2); return pts ? [{ ...e, pts }] : []; });
+  return {
+    ...d,
+    origin: d.origin && Number.isFinite(d.origin.x) && Number.isFinite(d.origin.y) ? d.origin : { x: 0, y: 0 },
+    primaryPts: ring(d.primaryPts, 3) ?? undefined,
+    fences: lines(d.fences),
+    screens: lines(d.screens),
+    surfaces: (d.surfaces ?? []).filter(Boolean).map((s) => ({ ...s, regions: (s.regions ?? []).map((poly) => (poly ?? []).map((r) => ring(r, 3)).filter(Boolean) as XZ[][]).filter((poly) => poly.length > 0) })),
+    waters: (d.waters ?? []).flatMap((w) => { const pts = w && ring(w.pts, 3); return pts ? [{ ...w, pts }] : []; }),
+    spills: (d.spills ?? []).filter((s) => s && okXZ(s.a) && okXZ(s.b) && okXZ(s.center)),
+  };
 }
 
 /* ---------- per-water depth helpers (shared by renderer + widget) ---------- */
