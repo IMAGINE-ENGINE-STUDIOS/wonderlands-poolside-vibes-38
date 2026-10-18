@@ -6055,7 +6055,7 @@ export function PoolBuilder({
                 }
               } : null);
             }
-          }} onCancel={() => setSelectedSplinePoint(null)} onComplete={() => setSelectedSplinePoint(null)} canComplete={true} isEditMode={true} pointLabel={`Point ${selectedSplinePoint.index + 1}`} onAddPoint={() => {
+          }} onCancel={() => { setSelectedSplinePoint(null); setActiveTool('select'); setSnapPoint(null); }} onComplete={() => setSelectedSplinePoint(null)} canComplete={true} isEditMode={true} isAddingPoint={activeTool === 'add'} pointLabel={`Point ${selectedSplinePoint.index + 1}`} onAddPoint={() => {
             setActiveTool(prev => prev === 'add' ? 'select' : 'add');
             setPendingLandscapePlacement(null);
             setPendingPoolFeaturePlacement(null);
