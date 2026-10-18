@@ -1162,6 +1162,20 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     ? Math.max(...depthPoints.map(dp => dp.depth)) 
     : 8);
   
+  /* Site levels: outer rim of the attached deck (or the coping when there is no deck). */
+  const hasDeck = !hardscapePoints || hardscapePoints.length >= 3;
+  const siteOuterRing = useMemo(() => {
+    if (poolCurve3D.length < 3) return [] as Array<{ x: number; z: number }>;
+    if (hasDeck) {
+      const b = resolveDeckBoundaries({ poolCurve: poolCurve3D, hardscapePoints: normalizedHardscapePoints, copingWidth: localCopingWidth, copingEnabled: true, deckWidth: Math.max(3, localDeckWidth), minDeckWidth: 3 });
+      if (b) return b.outer;
+    }
+    return sanitizeBoundary(generateOffsetCurve(poolCurve3D, localCopingWidth));
+  }, [poolCurve3D, normalizedHardscapePoints, localCopingWidth, localDeckWidth, hasDeck]);
+  /** Deck top relative to grade: raised pool lifts the deck with it. */
+  const deckTop = poolElevation + (hasDeck ? deckElevation : 0);
+  const xrayRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(generateOffsetCurve(poolCurve3D, 0.5)) : []), [poolCurve3D]);
+
   // Convert pool points to spline editor format
   // Pool points should be INSIDE the coping (offset inward by coping width)
   const poolSplinePoints: SplinePoint[] = useMemo(() => {
@@ -1243,6 +1257,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         copingEnabled={copingEnabled}
         poolPosition={poolPosition}
         deckWidth={Math.max(3, localDeckWidth)}
+        pitRing={deckTop < -0.01 ? siteOuterRing : undefined}
+        xray={xray}
       />
 
       <group position={poolPosition}>
@@ -1264,8 +1280,18 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       )}
 
 
+      {/* Raised / sunken site levels (riser walls, pit walls, auto steps). */}
+      {Math.abs(deckTop) > 0.01 && siteOuterRing.length >= 3 && (
+        <>
+          <RiserWall ring={siteOuterRing} y0={0} y1={deckTop} />
+          {hasDeck && <AutoSteps ring={siteOuterRing} level={deckTop} />}
+        </>
+      )}
+      {xray && <XrayShell ring={xrayRing} depth={poolDepth + 0.75 - poolElevation} />}
+
+      <group position={[0, poolElevation, 0]}>
       {/* Pool Mesh */}
-      <group onClick={(e) => {
+      {!hiddenParts.pool && <group onClick={(e) => {
         e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
         onSelectCategory?.('pool');
@@ -1285,13 +1311,13 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           copingHeight={copingHeight}
           onSelectComponent={onSelectComponent}
         />
-      </group>
+      </group>}
 
       {/* NEW SPLINE-BASED DECK AND COPING SYSTEM */}
       {points.length >= 3 && (
         <>
           {/* Coping - 1ft band at pool edge (toggleable) */}
-          {copingEnabled && (
+          {copingEnabled && !hiddenParts.coping && (
             <group onClick={(e) => {
               e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
@@ -1312,7 +1338,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           )}
 
           {/* Explicit empty outline means no attached deck. */}
-          {(!hardscapePoints || hardscapePoints.length >= 3) && <group onClick={(e) => {
+          {hasDeck && !hiddenParts.deck && <group onClick={(e) => {
             e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
             onSelectCategory?.('deck');
@@ -1337,7 +1363,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       )}
 
       {/* Waterline Tile */}
-      <group onClick={(e) => {
+      {!hiddenParts.waterline && <group onClick={(e) => {
         e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
         onSelectCategory?.('waterline');
@@ -1353,7 +1379,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           waterlineTextureRotation={waterlineTextureRotation}
           copingHeight={copingHeight}
         />
-      </group>
+      </group>}
 
       {/* Water is now rendered independently in UnifiedPoolVisualizer */}
 
@@ -1381,6 +1407,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           isSelected={selectedStairId === stair.id}
         />
       ))}
+      </group>
 
       {/* Boundary Debug Overlay */}
       {showDebugBoundaries && poolCurve3D.length > 0 && (
