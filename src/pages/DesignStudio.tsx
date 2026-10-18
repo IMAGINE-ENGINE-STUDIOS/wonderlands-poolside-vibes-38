@@ -603,7 +603,8 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
             </Button>
             <BoardHeaderControls hideHistory />
           </div>
-          <div id="studio3d-header-slot" className="relative z-[70] order-last flex w-full min-w-0 flex-wrap items-center py-1" />
+          {/* 3D controls sit inline in the top row (not a second row below). */}
+          <div id="studio3d-header-slot" className="relative z-[70] flex min-w-0 flex-1 items-center justify-center overflow-x-auto" />
           
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <div className="min-w-0 max-w-xs hidden sm:block overflow-hidden">

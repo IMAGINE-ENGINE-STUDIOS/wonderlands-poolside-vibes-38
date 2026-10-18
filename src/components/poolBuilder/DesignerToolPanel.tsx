@@ -105,9 +105,10 @@ interface DesignerToolPanelProps {
 
 /* Inventory pools (main-site catalogs, same order, own photos) with measurements parsed to feet. */
 const parseFt = (s: string) => { const m = s.match(/(\d+(?:\.\d+)?)\s*'?\s*(?:(\d+)\s*")?/); return m ? parseFloat(m[1]) + (m[2] ? parseInt(m[2]) / 12 : 0) : 0; };
-const INVENTORY_POOLS = [...catalogPools, ...gilmerPools]
+/* Pools then every spa (Gilmer spas included), same catalogue order. */
+const INVENTORY_POOLS = [...catalogPools, ...gilmerPools, ...gilmerSpas]
   .filter(p => p.image && p.dimensions)
-  .map(p => { const [a, b] = String(p.dimensions).split(/\s*[x×]\s*/i); const w = parseFt(a ?? ''), l = parseFt(b ?? ''); return { model: p.model, image: p.image as string, dims: String(p.dimensions), w: Math.min(w, l), l: Math.max(w, l) }; })
+  .map(p => { const [a, b] = String(p.dimensions).split(/\s*[x×]\s*/i); const w = parseFt(a ?? ''), l = parseFt(b ?? ''); return { model: p.model, image: p.image as string, dims: String(p.dimensions), w: Math.min(w, l), l: Math.max(w, l), q: `${p.model} ${p.dimensions} ${(p as { brand?: string }).brand ?? ''} ${(p as { type?: string }).type ?? ''}`.toLowerCase() }; })
   .filter(p => p.w > 0 && p.l > 0);
 
 function ColorChips({ colors, value, onPick }: { colors: { id: string; hex: string }[]; value?: string; onPick: (hex: string) => void }) {
@@ -235,17 +236,19 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-xs font-bold uppercase tracking-[0.15em] text-background hover:opacity-90">
                   <PenTool className="h-4 w-4" />Draw a pool
                 </button>
-                {props.onPickPool && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {INVENTORY_POOLS.map(p => (
-                      <button key={p.model} onClick={() => props.onPickPool!(p.w, p.l)} title={p.model}
+                {props.onPickPool && (<>
+                  <Input value={poolQuery} onChange={(e) => setPoolQuery(e.target.value)} placeholder="Search pools & spas…" className="h-8 text-xs" />
+                  <div className="grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1">
+                    {INVENTORY_POOLS.filter(p => !poolQuery.trim() || poolQuery.toLowerCase().split(/\s+/).every(w => p.q.includes(w))).map(p => (
+                      <button key={p.model + p.dims} onClick={() => props.onPickPool!(p.w, p.l)} title={p.model}
                         className="overflow-hidden rounded-lg border border-border bg-background text-left hover:border-foreground">
                         <img src={p.image} alt={p.model} loading="lazy" className="aspect-[4/3] w-full object-cover" />
-                        <span className="block px-1.5 py-1 text-[11px] font-bold text-foreground">{p.dims}</span>
+                        <span className="block truncate px-1.5 pt-1 text-[10px] text-muted-foreground">{p.model}</span>
+                        <span className="block px-1.5 pb-1 text-[11px] font-bold text-foreground">{p.dims}</span>
                       </button>
                     ))}
                   </div>
-                )}
+                </>)}
                 <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Basic shapes</p>
                 <div className="grid grid-cols-3 gap-1">
                   {(['rectangle', 'kidney', 'freeform'] as const).map(shape => (
