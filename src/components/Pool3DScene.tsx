@@ -27,7 +27,8 @@ import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, generateOffsetCurve } from '@/utils/curveUtils';
 import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
-import { RiserWall, AutoSteps, XrayShell } from './scene3d/SiteLevels3D';
+import { RiserWall, PerimeterStairs } from './scene3d/SiteLevels3D';
+import { useSiteStairs } from '@/lib/design/siteStairs';
 
 interface Point {
   x: number;
