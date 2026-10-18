@@ -39,6 +39,8 @@ import { CategoryToolbar } from "@/components/designStudio/CategoryToolbar";
 import { BoardHeaderControls } from "@/components/designStudio/BoardHeaderControls";
 import { BoardReportButton } from "@/components/designStudio/BoardReportButton";
 import { useBoardCommands, sendBoardCommand } from "@/components/designStudio/boardCommands";
+import { ProjectManager, getAutoSave, setAutoSave, saveProjectToLibrary } from '@/components/poolBuilder/ProjectManager';
+import { completeStudioProject, reconcileStudioBoard } from '@/lib/design/studioProject';
 import { toast as boardToast } from "sonner";
 import { SubToolbar } from "@/components/designStudio/SubToolbar";
 import { Genius2DBar } from "@/components/designStudio/Genius2DBar";
@@ -101,6 +103,11 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
     };
   } | null>(null);
   const [resetKey, setResetKey] = useState(0);
+  const [projectsOpen, setProjectsOpen] = useState(false);
+  const project2DRef = useRef<any>(getAutoSave()?.data ?? {});
+  const projectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const capture2D = useCallback((data: any) => { project2DRef.current = data; }, []);
+
   
   // Loop prevention for bidirectional sync
   const updateSourceRef = useRef<'2d' | '3d' | null>(null);
@@ -111,7 +118,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
   if (lastScene3DRef.current === null) {
     try {
       const raw = localStorage.getItem(sceneMemoryKey);
-      if (raw) lastScene3DRef.current = JSON.parse(raw);
+      lastScene3DRef.current = getAutoSave()?.data?.scene3D ?? (raw ? JSON.parse(raw) : null);
     } catch { /* ignore */ }
   }
   const [selectedExtras, setSelectedExtras] = useState<any>({
@@ -141,6 +148,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
   // Reset entire scene to blank
   const handleResetScene = useCallback(() => {
     // Clear all state first (including the 2D ⇄ 3D scene memory)
+    project2DRef.current = {};
     lastScene3DRef.current = null;
     try { localStorage.removeItem(sceneMemoryKey); } catch { /* ignore */ }
     // Every board element goes: fences, screens, turf, drawn decks, extra pools/spas and the saved 3D board.
@@ -384,11 +392,43 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
   // Handle switching to 3D view
   const sentBoardRef = useRef<any>(null);
   const skipFirst3DRef = useRef(false);
-  /* Opening a saved project drops the remembered 3D scene of the previous design. */
+  const getCompleteProject = useCallback(() => {
+    const scene = lastScene3DRef.current;
+    let data = project2DRef.current;
+    if (activeView === '3d' && scene) {
+      const converted = scene3DToPoolBuilder(scene, data.scale ?? 10);
+      data = { ...data, points: converted.points, depthPoints: converted.depthPoints, hardscapePoints: converted.hardscapePoints,
+        selectedFinishId: converted.materials.finish ?? data.selectedFinishId,
+        selectedPaverId: converted.materials.paver ?? data.selectedPaverId,
+        selectedCopingId: converted.materials.coping ?? data.selectedCopingId };
+    }
+    return completeStudioProject(data, scene, activeView === '3d' ? loadBoard3D() : data.board3D ?? null);
+  }, [activeView]);
+  const saveComplete = useCallback(() => {
+    try { const data = getCompleteProject(); const p = saveProjectToLibrary(data); setAutoSave(data); boardToast.success(`Saved ${p.name}`); }
+    catch { boardToast.message('Your browser could not save this design. Free some storage and try again.'); }
+  }, [getCompleteProject]);
+  const loadComplete = useCallback((data: any) => {
+    if (projectTimer.current) clearTimeout(projectTimer.current);
+    project2DRef.current = data; setAutoSave(data);
+    lastScene3DRef.current = data.scene3D ?? null;
+    externalUpdateRef.current = null; materials2DDirtyRef.current = false;
+    cacheWrite(SITE_ELEMENTS_KEY, data.site ?? []);
+    window.dispatchEvent(new CustomEvent(SITE_ELEMENTS_EVENT, { detail: data.site ?? [] }));
+    if (data.board3D) saveBoard3D(data.board3D); else clearBoard3D();
+    try { if (data.scene3D) localStorage.setItem(sceneMemoryKey, JSON.stringify(data.scene3D)); else localStorage.removeItem(sceneMemoryKey); } catch { /* quota */ }
+    setActiveView('2d'); setResetKey(k => k + 1);
+  }, [sceneMemoryKey]);
   useEffect(() => {
-    const on = () => { lastScene3DRef.current = null; externalUpdateRef.current = null; clearBoard3D(); };
-    window.addEventListener('design-studio:project-loaded', on); return () => window.removeEventListener('design-studio:project-loaded', on);
-  }, []);
+    const save = () => {
+      if (projectTimer.current) clearTimeout(projectTimer.current);
+      projectTimer.current = setTimeout(() => setAutoSave(getCompleteProject()), 2000);
+    };
+    save(); window.addEventListener('studio3d:globalDesign', save); window.addEventListener(SITE_ELEMENTS_EVENT, save);
+    const flush = () => setAutoSave(getCompleteProject());
+    window.addEventListener('pagehide', flush);
+    return () => { if (projectTimer.current) clearTimeout(projectTimer.current); flush(); window.removeEventListener('pagehide', flush); window.removeEventListener('studio3d:globalDesign', save); window.removeEventListener(SITE_ELEMENTS_EVENT, save); };
+  }, [getCompleteProject, poolBuilderData]);
   const handleSwitch3D = useCallback(() => {
     // Never show a pool that isn't on the 2D board: 3D only opens the pool drawn here
     // (or the catalog model the studio was opened with).
@@ -403,6 +443,8 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
       saveBoard3D(sent);
       externalUpdateRef.current = null; skipFirst3DRef.current = true;
       sentBoardRef.current = JSON.parse(JSON.stringify(sent));
+      project2DRef.current = { ...project2DRef.current, additionalPools: (project2DRef.current.additionalPools ?? []).map((p: any) => ({ ...p, renderRing3D: sent.waters?.find(w => w.itemId === p.id)?.pts })) };
+      setAutoSave(completeStudioProject(project2DRef.current, lastScene3DRef.current, sent));
     } catch { /* ignore */ }
     setActiveView('3d');
     // Stay in the page (not browser fullscreen) so the header with "Back to 2D" stays visible.
@@ -422,36 +464,19 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
     if ((customPoolShape && customPoolShape.length >= 3) || searchParams.get('model')) { autoOpened3D.current = true; handleSwitch3D(); }
   }, [customPoolShape, searchParams, handleSwitch3D, embedded, initialView]);
   const handleSwitch2D = useCallback(() => {
-    // Anything reshaped in 3D (extra pools/spas, fences, screens) is written back to the 2D board.
-    try {
-      const sent = sentBoardRef.current, now = loadBoard3D();
-      const scale = poolBuilderData?.scale || 10;
-      if (sent && now?.origin) {
-        const o = now.origin;
-        const key = (pts?: { x: number; z: number }[]) => JSON.stringify((pts ?? []).map(p => [Math.round(p.x * 100), Math.round(p.z * 100)]));
-        const toPx = (pts: { x: number; z: number }[]) => pts.map(p => ({ x: (p.x + o.x) * scale, y: (p.z + o.y) * scale }));
-        const changed = <T extends { itemId?: string; pts: { x: number; z: number }[] }>(a?: T[], b?: T[]) => {
-          const old = new Map((a ?? []).filter(x => x.itemId).map(x => [x.itemId!, key(x.pts)]));
-          return new Map((b ?? []).filter(x => x.itemId && old.has(x.itemId) && old.get(x.itemId) !== key(x.pts) && x.pts.length >= 2).map(x => [x.itemId!, toPx(x.pts)]));
-        };
-        const waters = changed(sent.waters as any, now.waters as any);
-        if (waters.size && poolBuilderData?.additionalPools?.length) {
-          const xp = poolBuilderData.additionalPools.map((p: any) => waters.has(p.id) ? { ...p, points: waters.get(p.id)!.map((q, i) => ({ ...q, id: `${p.id}-p${i + 1}` })) } : p);
-          externalUpdateRef.current = { ...(externalUpdateRef.current ?? {}), additionalPools: xp };
-        }
-        const lines = new Map([...changed(sent.fences as any, now.fences as any), ...changed(sent.screens as any, now.screens as any)]);
-        if (lines.size) cacheWrite(SITE_ELEMENTS_KEY, cacheRead<any[]>(SITE_ELEMENTS_KEY, []).map(e => lines.has(e.id) ? { ...e, pts: lines.get(e.id) } : e));
-      }
-    } catch { /* keep 2D as is */ }
+    const data = getCompleteProject();
+    project2DRef.current = data;
+    setAutoSave(data);
+    cacheWrite(SITE_ELEMENTS_KEY, data.site ?? []);
+    window.dispatchEvent(new CustomEvent(SITE_ELEMENTS_EVENT, { detail: data.site ?? [] }));
+    externalUpdateRef.current = null;
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     setIsFullscreen(false);
     setActiveView('2d');
-  }, [poolBuilderData]);
-  // In 3D the scene is saved on every change; Projects reopens the 2D board's project list.
+  }, [getCompleteProject]);
   useBoardCommands((c) => {
-    if (activeView !== '3d') return;
-    if (c === 'save') boardToast.success('Project saved');
-    else if (c === 'projects') { handleSwitch2D(); window.setTimeout(() => sendBoardCommand('projects'), 600); }
+    if (c === 'save') saveComplete();
+    else if (c === 'projects') setProjectsOpen(true);
   });
   /**
    * 3D scene with memory: geometry comes from the current 2D design, while
@@ -562,15 +587,15 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
         totalCost: poolBuilderData.breakdown?.total || poolBuilderData.totalCost || 0
       } : null} />
         </> : <header className="relative z-[60] flex items-center justify-between gap-1 px-1.5 sm:px-4 py-1.5 bg-muted/50 border-b shrink-0">
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Back always returns to the 2D designer — your shape, finishes and 3D settings are kept. */}
             <Button variant="ghost" size="sm" onClick={handleSwitch2D} className="gap-2 px-2 sm:px-3" title="Back to the 2D designer">
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back</span>
             </Button>
             <BoardHeaderControls hideHistory />
-            <div id="studio3d-header-slot" className="flex items-center min-w-0 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" />
           </div>
+          <div id="studio3d-header-slot" className="relative z-[70] flex flex-1 items-center min-w-0 py-1" />
           
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <div className="min-w-0 hidden sm:block">
@@ -616,10 +641,11 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
           </div>
         </header>}
 
+      <ProjectManager isOpen={projectsOpen} onOpenChange={setProjectsOpen} onSaveProject={getCompleteProject} onLoadProject={loadComplete} />
       {/* Main Content */}
       <main className="flex-1 relative overflow-hidden">
         {activeView === '2d' ? <div className="w-full h-full">
-            <PoolBuilder key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} renderOverlay={(view) => <SiteElementsLayer view={view} poolTotals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost, deck: poolBuilderData.breakdown.deckCost, coping: poolBuilderData.breakdown.copingCost, features: poolBuilderData.breakdown.featuresCost, deckArea: poolBuilderData.deckArea || 0, area: poolBuilderData.area || 0 } : null} />} />
+            <PoolBuilder managedProjects onProjectStateChange={capture2D} key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} renderOverlay={(view) => <SiteElementsLayer view={view} poolTotals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost, deck: poolBuilderData.breakdown.deckCost, coping: poolBuilderData.breakdown.copingCost, features: poolBuilderData.breakdown.featuresCost, deckArea: poolBuilderData.deckArea || 0, area: poolBuilderData.area || 0 } : null} />} />
             {/* Genius draws a full pool + depth + deck from a sentence (same brief as 3D). */}
             <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} />
           </div> : <div className="w-full h-full">

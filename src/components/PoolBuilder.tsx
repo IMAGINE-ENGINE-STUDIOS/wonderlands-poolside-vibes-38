@@ -657,11 +657,11 @@ export function PoolBuilder({
   const applyExternalMaterials = (m?: { finish?: string; paver?: string; coping?: string }) => {
     if (!m) return;
     const n = (x?: string) => (x || '').toLowerCase().trim();
-    const f = m.finish && CATALOG_FINISHES_2D.find(t => n(t.name) === n(m.finish));
+    const f = m.finish && CATALOG_FINISHES_2D.find(t => (t.id === m.finish || n(t.name) === n(m.finish)));
     if (f) setSelectedFinishId(f.id);
-    const pv = m.paver && paverTypes.find(t => n(t.name) === n(m.paver));
+    const pv = m.paver && paverTypes.find(t => (t.id === m.paver || n(t.name) === n(m.paver)));
     if (pv) setSelectedPaverId(pv.id);
-    const cp = m.coping && paverTypes.find(t => n(t.name) === n(m.coping));
+    const cp = m.coping && paverTypes.find(t => (t.id === m.coping || n(t.name) === n(m.coping)));
     if (cp) setSelectedCopingId(cp.id);
   };
 
