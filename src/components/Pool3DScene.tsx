@@ -1057,7 +1057,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
     
     // Smoothed once here → walls, coping, waterline and deck all share it.
-    return smoothCurvedRing(smoothPoolCurve.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y })));
+    return smoothPoolCurve.map(p => ({ x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y }));
   }, [points, poolFrameCenter]);
   
   // Calculate normalized hardscape points for exact deck sync (same origin as the pool)
@@ -1301,8 +1301,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             </group>
           )}
 
-          {/* Deck Border - outer face around coping, 3" tall, min 3ft wide */}
-          <group onClick={(e) => {
+          {/* Explicit empty outline means no attached deck. */}
+          {(!hardscapePoints || hardscapePoints.length >= 3) && <group onClick={(e) => {
             e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
             onSelectCategory?.('deck');
@@ -1322,7 +1322,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
               textureRotation={paverTextureRotation}
               cutouts={boardDeckCutouts}
             />
-          </group>
+          </group>}
         </>
       )}
 

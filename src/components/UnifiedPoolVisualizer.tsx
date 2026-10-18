@@ -1,3 +1,4 @@
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Sky, Grid, PerformanceMonitor } from '@react-three/drei';
@@ -1390,7 +1391,7 @@ export function UnifiedPoolVisualizer({
         {/* Undo/Redo & Reset View Controls */}
         {/* In the Design Studio these controls live in the white header (slot #studio3d-header-slot) — Imagine Engine Studios Corp */}
         <HeaderSlotPortal>
-        <div className="flex flex-nowrap items-center gap-1 md:gap-1.5 [&_button]:shrink-0">
+        <div className="flex min-w-0 flex-nowrap items-center gap-1 md:gap-1.5 [&_button]:shrink-0">
           <button
             onClick={undo}
             disabled={!canUndo}
@@ -1450,19 +1451,13 @@ export function UnifiedPoolVisualizer({
           </button>
           {boardWaters.length > 0 && (
             /* Pool picker: every header control and widget works on the chosen pool/spa. */
-            <div className="flex h-9 md:h-10 items-center gap-1 rounded-full border border-slate-200/80 bg-white px-1 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-              {[null, ...boardWaters.map((_, k) => k)].map((k) => {
-                const on = (k ?? null) === activeWater;
-                const w = k == null ? null : boardWaters[k];
-                const label = k == null ? 'Main pool' : `${w!.kind === 'spa' ? 'Spa' : 'Pool'} ${boardWaters.slice(0, k + 1).filter((x) => x.kind === w!.kind).length + (w!.kind === 'spa' ? 0 : 1)}`;
-                return (
-                  <button key={k ?? 'main'} type="button" onClick={() => targetWater(k)} title={`Edit and center on ${label}`}
-                    className={`h-7 md:h-8 rounded-full px-3 text-xs font-medium transition-colors ${on ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'}`}>
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+            <Select value={activeWater == null ? 'main' : String(activeWater)} onValueChange={(value) => targetWater(value === 'main' ? null : Number(value))}>
+              <SelectTrigger aria-label="Pool in focus" className="h-9 w-32 shrink-0 rounded-full bg-background text-foreground border-border"><SelectValue /></SelectTrigger>
+              <SelectContent className="z-[100]">
+                <SelectItem value="main">Main pool</SelectItem>
+                {boardWaters.map((w, k) => <SelectItem key={w.itemId ?? k} value={String(k)}>{w.kind === 'spa' ? 'Spa' : 'Pool'} {k + 2}</SelectItem>)}
+              </SelectContent>
+            </Select>
           )}
           {activeW && (
             /* Tile size for the selected pool/spa only; unset parts follow the main pool. */
@@ -1909,7 +1904,7 @@ export function UnifiedPoolVisualizer({
           
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
-          <BoardElements3D holes={"outline" in terrainSiteRef && terrainSiteRef.outline ? [terrainSiteRef.outline] : []}
+          <BoardElements3D holes={[]}
             scales={boardScales} mainCoping={scene.deck.coping?.url} mainWaterline={scene.deck.waterline?.url ?? scene.deck.coping?.url} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}

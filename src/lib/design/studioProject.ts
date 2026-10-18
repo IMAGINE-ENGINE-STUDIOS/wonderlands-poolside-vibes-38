@@ -1,5 +1,7 @@
 /** Complete studio document and ID-based 3D reconciliation. Imagine Engine Studios Corp. */
 import type { Board3D } from './board3D';
+import { paverTypes } from '@/data/paverData';
+import { buildFinishTextures } from '@/data/textureLibrary';
 import type { StudioMaterials } from './studioMaterials';
 
 export function reconcileStudioBoard<T extends { additionalPools?: any[]; site?: any[]; scale?: number; additionalDeckPoints?: Record<string, any[]> }>(state: T, board: Board3D | null): T {
@@ -11,8 +13,12 @@ export function reconcileStudioBoard<T extends { additionalPools?: any[]; site?:
     if (!w) return p;
     const old = p.materials as StudioMaterials | undefined;
     const materials = { ...old, finishUrl: w.finish, copingUrl: w.coping, waterlineUrl: w.waterline, finishScale: w.finishScale, copingScale: w.copingScale, waterlineScale: w.waterlineScale };
+    const finish = buildFinishTextures().find(f => f.url === w.finish);
+    if (finish) Object.assign(materials, { finishId: `cat-${finish.id}` });
+    const coping = paverTypes.find(p => p.image === w.coping);
+    if (coping) Object.assign(materials, { copingId: coping.id });
     const deck = board.surfaces.find(s => s.itemId === `__deck_${p.id}`);
-    if (deck) Object.assign(materials, { paverUrl: deck.image, paverScale: deck.scale });
+    if (deck) Object.assign(materials, { paverUrl: deck.image, paverScale: deck.scale, paverId: paverTypes.find(p => p.image === deck.image)?.id ?? old?.paverId });
     const same = w.pts.length === p.points.length && w.pts.every((q, i) => Math.abs((q.x + origin.x) * scale - p.points[i].x) < .01 && Math.abs((q.z + origin.y) * scale - p.points[i].y) < .01);
     // A densified render ring is not a new control polygon unless it was edited in 3D.
     const unchanged = p.renderRing3D && JSON.stringify(p.renderRing3D) === JSON.stringify(w.pts);
