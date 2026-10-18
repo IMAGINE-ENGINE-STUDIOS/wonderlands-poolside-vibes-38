@@ -13,6 +13,8 @@
 import * as React from "react";
 import * as THREE from "three";
 import { InstancedBoxes } from "./InstancedBoxes";
+import { useThree } from "@react-three/fiber";
+import { ringLengths, ringAt, nearestU, updateStairs, type StairKey, type StairRun } from "@/lib/design/siteStairs";
 
 type XZ = { x: number; z: number };
 
@@ -108,8 +110,6 @@ export function XrayShell({ ring, depth }: { ring: XZ[]; depth: number }) {
 /* Perimeter access stairs — sweep along any stretch of a ring, up to a full  */
 /* 360° wrap, and can be dragged around the edge. Imagine Engine Studios Corp. */
 /* ------------------------------------------------------------------------- */
-import { useThree } from "@react-three/fiber";
-import { ringLengths, ringAt, nearestU, updateStairs, type StairKey, type StairRun } from "@/lib/design/siteStairs";
 
 const handleMat = new THREE.MeshStandardMaterial({ color: "#f97066", roughness: 0.4 });
 
