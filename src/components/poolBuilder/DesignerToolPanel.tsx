@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { paverTypes } from '@/data/paverData';
 import { gilmerPools } from '@/data/gilmerPools';
+import { gilmerSpas } from '@/data/gilmerSpas';
 import { pools as catalogPools } from '@/components/PoolCatalog';
 import { DECK_PAVERS, FENCE_MATERIALS, FENCE_COLORS, SCREEN_STYLES, SCREEN_COLORS, TURFS } from '@/components/designStudio/SiteElementsLayer';
 import { TextureBuilder, type TextureConfig } from '../TextureBuilder';
