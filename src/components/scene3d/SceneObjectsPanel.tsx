@@ -253,7 +253,6 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false, foot
         <button type="submit" className="p-1 rounded hover:bg-muted" title="Add layer"><FolderPlus className="w-3.5 h-3.5" /></button>
       </form>
       {footer && <div className="px-3 py-2 border-t border-border">{footer}</div>}
-      </div>
     </div>
   );
 }
