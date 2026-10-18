@@ -26,6 +26,7 @@ import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, generateOffsetCurve } from '@/utils/curveUtils';
 import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
+import { RiserWall, AutoSteps, XrayShell } from './scene3d/SiteLevels3D';
 
 interface Point {
   x: number;
@@ -133,6 +134,12 @@ export interface Pool3DSceneProps {
   showRulers?: boolean;
   showDebugBoundaries?: boolean;
   onDebugBoundariesChange?: (show: boolean) => void;
+  /** Layer visibility: parts hidden from the view (still in the project/quote). */
+  hiddenParts?: { pool?: boolean; coping?: boolean; deck?: boolean; waterline?: boolean };
+  /** Pool rim height above grade (ft) — raised / semi-inground pools. */
+  poolElevation?: number;
+  /** Show the underground pool hull (ground turns see-through). */
+  xray?: boolean;
 }
 
 export const PoolMesh: React.FC<{
@@ -716,7 +723,10 @@ const GrassTerrainFallback: React.FC<{
   copingEnabled?: boolean;
   poolPosition?: [number, number, number];
   deckWidth?: number;
-}> = ({ poolCurve3D = [], hardscapeCurve3D, copingWidth = 1.0, copingEnabled = true, poolPosition = [0, 0, 0], deckWidth = 3 }) => {
+  /** Extra lawn opening (sunken deck pit). */
+  pitRing?: Array<{ x: number; z: number }>;
+  xray?: boolean;
+}> = ({ poolCurve3D = [], hardscapeCurve3D, copingWidth = 1.0, copingEnabled = true, poolPosition = [0, 0, 0], deckWidth = 3, pitRing, xray = false }) => {
   const texture = useTexture(grassTexture);
   // Extra pools/spas from the Global Design Board each cut their own opening.
   const [boardWaters, setBoardWaters] = React.useState(() => loadBoard3D()?.waters ?? []);
@@ -752,6 +762,7 @@ const GrassTerrainFallback: React.FC<{
         rings.push((ring.length >= 3 ? ring : pool).map(p => [p.x + poolPosition[0], -(p.z + poolPosition[2])] as [number, number]));
       }
       for (const w of boardWaters) if (w.pts && w.pts.length >= 3) rings.push(w.pts.map((p) => [p.x, -p.z] as [number, number]));
+      if (pitRing && pitRing.length >= 3) rings.push(pitRing.map((p) => [p.x + poolPosition[0], -(p.z + poolPosition[2])] as [number, number]));
       const merged = rings.length > 1 ? (polygonClipping.union as any)(...rings.map((r) => [[...r, r[0]]])) : rings.map((r) => [r]);
       for (const poly of merged as [number, number][][][]) {
         const outer = poly[0]; if (!outer || outer.length < 3) continue;
@@ -776,11 +787,11 @@ const GrassTerrainFallback: React.FC<{
       geometry.rotateX(-Math.PI / 2);
       return geometry;
     }
-  }, [texture, poolCurve3D, hardscapeCurve3D, copingWidth, copingEnabled, deckWidth, poolPosition, boardWaters]);
+  }, [texture, poolCurve3D, hardscapeCurve3D, copingWidth, copingEnabled, deckWidth, poolPosition, boardWaters, pitRing]);
 
   return (
     <mesh geometry={terrainGeometry} position={[0, -0.06, 0]} receiveShadow>
-      <meshStandardMaterial map={texture} color="#ffffff" side={THREE.DoubleSide} />
+      <meshStandardMaterial map={texture} color="#ffffff" side={THREE.DoubleSide} transparent={xray} opacity={xray ? 0.3 : 1} depthWrite={!xray} />
     </mesh>
   );
 };
@@ -985,7 +996,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   showRulers = false,
 
   showDebugBoundaries: externalShowDebugBoundaries = false,
-  onDebugBoundariesChange
+  onDebugBoundariesChange,
+  hiddenParts = {},
+  poolElevation = 0,
+  xray = false,
 }) => {
   // Remove local state - use parent's onSelectComponent callback instead
   const [copingEnabled, setCopingEnabled] = useState(true);
@@ -1148,6 +1162,20 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     ? Math.max(...depthPoints.map(dp => dp.depth)) 
     : 8);
   
+  /* Site levels: outer rim of the attached deck (or the coping when there is no deck). */
+  const hasDeck = !hardscapePoints || hardscapePoints.length >= 3;
+  const siteOuterRing = useMemo(() => {
+    if (poolCurve3D.length < 3) return [] as Array<{ x: number; z: number }>;
+    if (hasDeck) {
+      const b = resolveDeckBoundaries({ poolCurve: poolCurve3D, hardscapePoints: normalizedHardscapePoints, copingWidth: localCopingWidth, copingEnabled: true, deckWidth: Math.max(3, localDeckWidth), minDeckWidth: 3 });
+      if (b) return b.outer;
+    }
+    return sanitizeBoundary(generateOffsetCurve(poolCurve3D, localCopingWidth));
+  }, [poolCurve3D, normalizedHardscapePoints, localCopingWidth, localDeckWidth, hasDeck]);
+  /** Deck top relative to grade: raised pool lifts the deck with it. */
+  const deckTop = poolElevation + (hasDeck ? deckElevation : 0);
+  const xrayRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(generateOffsetCurve(poolCurve3D, 0.5)) : []), [poolCurve3D]);
+
   // Convert pool points to spline editor format
   // Pool points should be INSIDE the coping (offset inward by coping width)
   const poolSplinePoints: SplinePoint[] = useMemo(() => {
@@ -1229,6 +1257,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         copingEnabled={copingEnabled}
         poolPosition={poolPosition}
         deckWidth={Math.max(3, localDeckWidth)}
+        pitRing={deckTop < -0.01 ? siteOuterRing : undefined}
+        xray={xray}
       />
 
       <group position={poolPosition}>
@@ -1250,8 +1280,18 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       )}
 
 
+      {/* Raised / sunken site levels (riser walls, pit walls, auto steps). */}
+      {Math.abs(deckTop) > 0.01 && siteOuterRing.length >= 3 && (
+        <>
+          <RiserWall ring={siteOuterRing} y0={0} y1={deckTop} />
+          {hasDeck && <AutoSteps ring={siteOuterRing} level={deckTop} />}
+        </>
+      )}
+      {xray && <XrayShell ring={xrayRing} depth={poolDepth + 0.75 - poolElevation} />}
+
+      <group position={[0, poolElevation, 0]}>
       {/* Pool Mesh */}
-      <group onClick={(e) => {
+      {!hiddenParts.pool && <group onClick={(e) => {
         e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
         onSelectCategory?.('pool');
@@ -1271,13 +1311,13 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           copingHeight={copingHeight}
           onSelectComponent={onSelectComponent}
         />
-      </group>
+      </group>}
 
       {/* NEW SPLINE-BASED DECK AND COPING SYSTEM */}
       {points.length >= 3 && (
         <>
           {/* Coping - 1ft band at pool edge (toggleable) */}
-          {copingEnabled && (
+          {copingEnabled && !hiddenParts.coping && (
             <group onClick={(e) => {
               e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
@@ -1298,7 +1338,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           )}
 
           {/* Explicit empty outline means no attached deck. */}
-          {(!hardscapePoints || hardscapePoints.length >= 3) && <group onClick={(e) => {
+          {hasDeck && !hiddenParts.deck && <group onClick={(e) => {
             e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
             onSelectCategory?.('deck');
@@ -1323,7 +1363,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       )}
 
       {/* Waterline Tile */}
-      <group onClick={(e) => {
+      {!hiddenParts.waterline && <group onClick={(e) => {
         e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
         onSelectCategory?.('waterline');
@@ -1339,7 +1379,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           waterlineTextureRotation={waterlineTextureRotation}
           copingHeight={copingHeight}
         />
-      </group>
+      </group>}
 
       {/* Water is now rendered independently in UnifiedPoolVisualizer */}
 
@@ -1367,6 +1407,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           isSelected={selectedStairId === stair.id}
         />
       ))}
+      </group>
 
       {/* Boundary Debug Overlay */}
       {showDebugBoundaries && poolCurve3D.length > 0 && (

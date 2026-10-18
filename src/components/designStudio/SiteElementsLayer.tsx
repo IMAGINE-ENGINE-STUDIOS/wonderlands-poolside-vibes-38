@@ -157,6 +157,7 @@ interface Props {
 
 export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const [items, setItems] = useSiteElements();
+  const layerState = useSceneLayers();
   const [tab, setTabRaw] = React.useState<SiteKind | null>(null);
   const [boardOpen, setBoardOpen] = React.useState(false);
   // One floating rail: opening a site panel closes the 2D tool flyout and vice-versa.
@@ -529,7 +530,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             <pattern id="screen-mesh" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0 L4 4 M4 0 L0 4" stroke="#000" strokeOpacity=".12" strokeWidth=".4" /></pattern>
           </defs>
           <g transform={t}>
-            {[...items].sort((a, b) => (a.kind === "turf" ? 0 : a.kind === "deck" ? 1 : 2) - (b.kind === "turf" ? 0 : b.kind === "deck" ? 1 : 2)).map((e) => {
+            {[...items].filter((e) => !isObjectHidden(boardObjectId(e.kind === "fence" ? "fence" : e.kind === "enclosure" ? "screen" : "surface", e.id, 0), e.kind === "fence" || e.kind === "enclosure" ? "fences" : e.kind === "deck" ? "deck" : "landscape", layerState)).sort((a, b) => (a.kind === "turf" ? 0 : a.kind === "deck" ? 1 : 2) - (b.kind === "turf" ? 0 : b.kind === "deck" ? 1 : 2)).map((e) => {
               const pts = e.pts.map((p) => `${p.x},${p.y}`).join(" ");
               const sel = selected === e.id;
               const turf = TURFS.find((g) => g.color === e.color);
@@ -731,6 +732,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 import { netRegions, computeNetAreas } from "@/lib/design/boardNetArea";
 import { loadBoard3D, type Board3D } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
+import { useSceneLayers, isObjectHidden, boardObjectId } from "@/lib/design/sceneLayers";
 
 /**
  * Builds the 3D Studio hand-off from the Design Studio: fences, screens and turf

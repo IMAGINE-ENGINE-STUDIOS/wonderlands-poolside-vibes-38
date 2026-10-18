@@ -147,6 +147,8 @@ export interface Scene3D {
     linearDepthAnchors?: LinearDepthAnchor[]; // Linear depth profile from shallow to deep
     depthAxis?: DepthAxis;                    // Direction the depth profile runs (movable / rotatable)
     shape: 'rectangle' | 'kidney' | 'freeform' | 'custom';
+    /** Rim height above grade (ft): 0 = in-ground, >0 raised / semi-inground. */
+    elevation?: number;
     finish: TextureConfig;
     position: [number, number, number];
     rotation: [number, number, number];

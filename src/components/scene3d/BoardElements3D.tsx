@@ -23,6 +23,7 @@ import { useThree } from "@react-three/fiber";
 import { applyHoleCut } from "./holeCutShader";
 import { buildVinylFence } from "./vinylFenceGeometry";
 import { vinylMaterial, vinylSolidMaterial } from "@/lib/design/vinylFenceMaterials";
+import { useSceneLayers, isObjectHidden, boardObjectId } from "@/lib/design/sceneLayers";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
 export const BOARD_SELECT_EVENT = "studio3d:boardSelect";
@@ -379,15 +380,18 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
     window.addEventListener("storage", on);
     return () => { window.removeEventListener(BOARD_3D_EVENT, on); window.removeEventListener("storage", on); };
   }, []);
+  const layers = useSceneLayers();
   if (!data) return null;
+  /* Layer visibility is display-only: hidden pieces stay in the board and the take-off. */
+  const off = (kind: "fence" | "screen" | "surface" | "water", itemId: string | undefined, i: number, layer: string) => isObjectHidden(boardObjectId(kind, itemId, i), layer, layers);
   return (
     <group name="global-design-board">
-      {data.surfaces.map((s, i) => s.kind === "deck"
+      {data.surfaces.map((s, i) => off("surface", s.itemId, i, s.kind === "deck" ? "deck" : "landscape") ? null : s.kind === "deck"
         ? <group key={`s${i}`} onClick={select({ type: "deck", i })}><Surface s={s} holes={allHoles} holesKey={holesKey} scale={s.scale ?? scales.paver} /></group>
         : <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={s.scale ?? scales.paver} />)}
-      {data.fences.map((f, i) => <Fence key={`f${i}`} f={f} i={i} />)}
-      {data.screens.map((s, i) => <Screen key={`c${i}`} s={s} i={i} />)}
-      {(data.waters ?? []).map((w, i) => <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} />)}
+      {data.fences.map((f, i) => off("fence", f.itemId, i, "fences") ? null : <Fence key={`f${i}`} f={f} i={i} />)}
+      {data.screens.map((s, i) => off("screen", s.itemId, i, "fences") ? null : <Screen key={`c${i}`} s={s} i={i} />)}
+      {(data.waters ?? []).map((w, i) => off("water", w.itemId, i, "structure") ? null : <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} />)}
     </group>
   );
 }
