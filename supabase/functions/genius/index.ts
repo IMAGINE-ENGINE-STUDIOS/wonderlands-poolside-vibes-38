@@ -1,6 +1,6 @@
-/** Genius concierge (Meta models via OpenRouter — no Groq). Imagine Engine Studios Corp. */
+/** Genius concierge (Meta models, self-hosted endpoint — no Groq, no OpenRouter). Imagine Engine Studios Corp. */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { metaChat } from "../_shared/metaChat.ts";
+import { metaChat, llmConfig } from "../_shared/metaChat.ts";
 import { apiIdForModelKey } from "../_shared/metaModels.ts";
 import { effectiveModelKey } from "../_shared/modelRouter.ts";
 
@@ -88,8 +88,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
-    if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
+    const llm = llmConfig();
+    if (!llm.baseUrl) throw new Error("Self-hosted model endpoint is not configured (set LLM_BASE_URL)");
 
     const body = (await req.json()) as GeniusRequest;
     const turns = (body.messages ?? []).slice(-12).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));
@@ -99,7 +99,7 @@ serve(async (req) => {
       { explicit: body.model, task: body.task, hasImage: body.hasImage },
       (key) => apiIdForModelKey(key) != null,
     );
-    const res = await metaChat(apiKey, ({
+    const res = await metaChat(llm, ({
         temperature: 0.4,
         response_format: { type: "json_object" },
         messages: [

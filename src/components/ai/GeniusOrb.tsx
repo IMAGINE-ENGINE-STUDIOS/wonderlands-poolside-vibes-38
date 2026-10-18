@@ -338,17 +338,17 @@ export const GeniusOrb: React.FC = () => {
               aria-label="Choose the Meta model Genius answers with"
               className="min-w-0 flex-1 bg-transparent text-[11px] uppercase tracking-[0.14em] text-foreground focus:outline-none [&>option]:normal-case [&>option]:tracking-normal"
             >
-              <optgroup label="Hosted — flip anytime">
+              <optgroup label="Your model server — flip anytime">
                 {META_MODELS.filter((m) => m.apiId).map((m) => (
                   <option key={m.key} value={m.key}>
                     {m.label}
                   </option>
                 ))}
               </optgroup>
-              <optgroup label="Self-hosted via Ollama — local builds only">
+              <optgroup label="Hosted-only — too large to self-host">
                 {META_MODELS.filter((m) => !m.apiId).map((m) => (
                   <option key={m.key} value={m.key} disabled>
-                    {m.label} · local only
+                    {m.label} · hosted only
                   </option>
                 ))}
               </optgroup>

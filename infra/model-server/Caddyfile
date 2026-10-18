@@ -1,0 +1,13 @@
+# Authenticated HTTPS front door for the model server.
+# Callers (the Supabase functions) send: Authorization: Bearer <MODEL_API_KEY>
+# Paths pass through unchanged — Ollama natively serves the
+# OpenAI-compatible /v1/chat/completions route the functions call.
+{$MODEL_DOMAIN} {
+	@authed header Authorization "Bearer {$MODEL_API_KEY}"
+	handle @authed {
+		reverse_proxy ollama:11434
+	}
+	handle {
+		respond "unauthorized" 401
+	}
+}

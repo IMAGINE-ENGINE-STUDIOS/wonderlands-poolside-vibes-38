@@ -1,8 +1,13 @@
 # Model routing — how Genius chooses the right Meta model for the task
 
 Implemented in `supabase/functions/_shared/modelRouter.ts` (server) and
-`src/lib/modelRouter.ts` (browser mirror). No Groq: every model is Meta's,
-served via OpenRouter. The catalog itself lives in `metaModels.ts`.
+`src/lib/modelRouter.ts` (browser mirror). No Groq, no OpenRouter: every
+model is Meta's open weights, self-hosted on the founder's model server
+(`infra/model-server/`) and called through the `LLM_BASE_URL` secret.
+The catalog itself lives in `metaModels.ts`. Where a route names Muse
+Spark Open (agentic / vision-agentic), the self-hosted chain answers in
+its place — at 816B it cannot be self-hosted; it stays in the catalog
+as the hosted-only exception.
 
 ## The cascade (cheapest first)
 

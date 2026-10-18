@@ -1,0 +1,54 @@
+# Wonderlands model server — the founder's own GPU box serving Meta's open
+# models to the Wonderlands Supabase functions. No OpenRouter, no Groq.
+#
+#   docker compose up -d
+#   ./pull-models.sh            # download the models this hardware can run
+#   docker compose --profile tls up -d   # add the authenticated HTTPS proxy
+#
+# The Supabase secrets then point at the proxy:
+#   LLM_BASE_URL = https://models.yourdomain.com/v1
+#   LLM_API_KEY  = the MODEL_API_KEY from .env (the proxy's bearer key)
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: wonderlands-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_models:/root/.ollama
+    environment:
+      # Keep models loaded and allow long design requests.
+      OLLAMA_KEEP_ALIVE: "30m"
+      OLLAMA_NUM_PARALLEL: "2"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # No public port: Ollama is only reachable through the proxy (or LAN).
+    expose:
+      - "11434"
+
+  proxy:
+    image: caddy:2
+    container_name: wonderlands-model-proxy
+    restart: unless-stopped
+    profiles: ["tls"]
+    depends_on:
+      - ollama
+    ports:
+      - "443:443"
+      - "80:80"
+    environment:
+      MODEL_DOMAIN: ${MODEL_DOMAIN:-models.example.com}
+      MODEL_API_KEY: ${MODEL_API_KEY:-change-me}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  ollama_models:
+  caddy_data:
+  caddy_config:

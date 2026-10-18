@@ -1,9 +1,10 @@
 // Scene Genius — turns a plain-language brief into a full pool scene plan
 // (pool shape, size, depth profile, deck, stairs, seating, lights, finishes,
-// and 3D models to search for) using Meta models via OpenRouter (no Groq).
+// and 3D models to search for) using Meta models on the founder's
+// SELF-HOSTED model server (no Groq, no OpenRouter — see _shared/metaChat).
 // The client applies the plan. Model choice: _shared/modelRouter (scene3d).
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
-import { metaChat } from "../_shared/metaChat.ts";
+import { metaChat, llmConfig } from "../_shared/metaChat.ts";
 import { apiIdForModelKey } from "../_shared/metaModels.ts";
 import { routeModelKey } from "../_shared/modelRouter.ts";
 
@@ -42,27 +43,28 @@ Deno.serve(async (req) => {
     const current = body?.current && typeof body.current === 'object' ? JSON.stringify(body.current).slice(0, 2000) : '';
     if (prompt.length < 3) return json({ error: 'Describe the project you want in a few words.' }, 400);
 
-    const key = Deno.env.get('OPENROUTER_API_KEY');
-    if (!key) return json({ error: 'Genius is not configured yet.' }, 500);
+    const llm = llmConfig();
+    if (!llm.baseUrl) return json({ error: 'Genius is not configured yet.' }, 500);
 
-    let res;
-    try {
-      res = await metaChat(key, {
-        temperature: 0.4,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: SYSTEM },
-          ...(current ? [{ role: 'user', content: `Current design (JSON): ${current}` }] : []),
-          { role: 'user', content: prompt },
-        ],
-      }, apiIdForModelKey(routeModelKey({ task: 'scene3d' })));
-    } catch (e) {
-      console.error('scene-genius meta error', e instanceof Error ? e.message : e);
-      const busy = e instanceof Error && /429/.test(e.message);
+    const res = await metaChat(llm, {
+      temperature: 0.4,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: SYSTEM },
+        ...(current ? [{ role: 'user', content: `Current design (JSON): ${current}` }] : []),
+        { role: 'user', content: prompt },
+      ],
+    }, apiIdForModelKey(routeModelKey({ task: 'scene3d' })));
+    if (!res.ok) {
+      const details = await res.text().catch(() => '');
+      console.error('scene-genius meta error', res.status, details.slice(0, 300));
+      const busy = res.status === 429;
       return json({ error: busy ? 'Genius is busy right now. Try again in a minute.' : 'Genius could not design that. Try again.' }, busy ? 429 : 502);
     }
+    const data = await res.json().catch(() => null);
+    const text: string = data?.choices?.[0]?.message?.content ?? '';
     let plan: unknown;
-    try { plan = JSON.parse(res.text); } catch { return json({ error: 'Genius returned an unreadable design. Try again.' }, 502); }
+    try { plan = JSON.parse(text); } catch { return json({ error: 'Genius returned an unreadable design. Try again.' }, 502); }
     return json({ plan });
   } catch (e) {
     console.error(e);
