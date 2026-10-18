@@ -1,3 +1,4 @@
+import earcut from 'earcut';
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -109,12 +110,13 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
         uvs.push(u, v);
       }
 
-      // Create triangles using fan from center (matches pool floor triangulation)
-      for (let i = 0; i < normalizedPoints.length; i++) {
-        const currIdx = 1 + i;
-        const nextIdx = 1 + ((i + 1) % normalizedPoints.length);
-        // Counterclockwise winding for top-facing surface
-        indices.push(0, currIdx, nextIdx);
+      // Earcut stays inside concave curves (a centre fan folded over the deck).
+      const tri = earcut(normalizedPoints.flatMap((p) => [p.x, p.z]));
+      for (let i = 0; i < tri.length; i += 3) {
+        const t = [tri[i] + 1, tri[i + 1] + 1, tri[i + 2] + 1];
+        const [p0, p1, p2] = t.map((k) => normalizedPoints[k - 1]);
+        const up = (p1.x - p0.x) * (p2.z - p0.z) - (p1.z - p0.z) * (p2.x - p0.x) < 0;
+        if (up) indices.push(t[0], t[1], t[2]); else indices.push(t[0], t[2], t[1]);
       }
 
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));

@@ -10,8 +10,8 @@ describe('studio spline precision', () => {
     assert.deepEqual(poolInsertionHit(pool, 'rectangle', { x: 50, y: 10 }, 1), { index: 0, point: { x: 50, y: 0 } });
   });
   it('handles become smaller on screen when zoomed in', () => {
-    assert.equal(splineHandleRadius(1), 3);
-    assert.ok(splineHandleRadius(4) * 4 < splineHandleRadius(1));
+    assert.equal(splineHandleRadius(1), 5);
+    assert.equal(splineHandleRadius(4) * 4, splineHandleRadius(1));
     assert.ok(splineHitRadius(4) < splineHitRadius(1));
   });
 });

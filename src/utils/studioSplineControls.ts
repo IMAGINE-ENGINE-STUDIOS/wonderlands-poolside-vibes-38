@@ -4,11 +4,12 @@ import { nearestSegment } from './splineEditing';
 
 export function splineHandleRadius(zoom: number): number {
   const z = Math.max(0.1, zoom);
-  return Math.max(1.5, 3 / Math.sqrt(Math.max(1, z))) / z;
+  // Constant on-screen size: about the size of a typed "O" (~10px across) at any zoom.
+  return 5 / z;
 }
 
 export function splineHitRadius(zoom: number): number {
-  return (splineHandleRadius(zoom) * Math.max(0.1, zoom) + 2) / Math.max(0.1, zoom);
+  return (splineHandleRadius(zoom) * Math.max(0.1, zoom) + 5) / Math.max(0.1, zoom);
 }
 
 /** Inside the visible outline or within a small screen-space edge tolerance. */
