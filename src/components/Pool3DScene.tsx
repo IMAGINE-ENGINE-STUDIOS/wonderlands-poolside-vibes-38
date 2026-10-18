@@ -1287,7 +1287,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           {hasDeck && <AutoSteps ring={siteOuterRing} level={deckTop} />}
         </>
       )}
-      {xray && <XrayShell ring={xrayRing} depth={poolDepth + 0.75 - poolElevation} />}
+      {/* Below-ground view: only the ground turns see-through so the finished pool interior
+          (walls, floor, seats, water) stays visible — no opaque outer shell is drawn over it. */}
 
       <group position={[0, poolElevation, 0]}>
       {/* Pool Mesh */}

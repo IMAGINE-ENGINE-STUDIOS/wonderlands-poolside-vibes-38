@@ -99,14 +99,13 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false, foot
       <button
         onClick={() => setOpen(true)}
         className={cn(
-          'glass-btn p-2 rounded-lg flex items-center gap-2 text-sm',
+          'p-2 rounded-lg flex items-center justify-center bg-white text-black shadow-md border border-black/10 hover:bg-white/90',
           className
         )}
-        title="Scene objects"
+        title={`Scene objects (${total})`}
+        aria-label="Scene objects"
       >
         <Layers className="w-4 h-4" />
-        <span className="hidden md:inline">Objects</span>
-        <span className="text-xs font-semibold text-muted-foreground">{total}</span>
       </button>
     );
   }
