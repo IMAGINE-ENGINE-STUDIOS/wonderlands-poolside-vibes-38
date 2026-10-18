@@ -799,7 +799,7 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
     if (!e) return null;
     // Outward = away from the body's centre.
     const cx = src.reduce((s, p) => s + p.x, 0) / src.length, cy = src.reduce((s, p) => s + p.y, 0) / src.length;
-    return { id: sp.id, a: to(f(e[0])), b: to(f(e[1])), out: to(f({ x: cx, y: cy })), pitch: sp.pitch, waterId: sp.poolId === "__pool" ? undefined : sp.poolId.slice(5) };
+    return { id: sp.id, a: to(f(e[0])), b: to(f(e[1])), center: to(f({ x: cx, y: cy })), pitch: sp.pitch, waterId: sp.poolId === "__pool" ? undefined : sp.poolId.slice(5) };
   }).filter(Boolean) as NonNullable<Board3D["spills"]>;
   return out;
 }
