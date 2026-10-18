@@ -4,20 +4,21 @@
  * GROQ_API_KEY secret is the founder's, Groq's LPUs do the math.
  * Imagine Engine Studios Corp.
  *
- * Founder direction 2026-10-18: "use the groq then" (after the OpenRouter
- * and self-hosted detours). The chain is META-ONLY — Groq also hosts
- * non-Meta models (GPT-OSS, Qwen) and none of them are in this chain.
- * The guest's preferred model is tried first; any failure advances the
- * chain, so a pick never takes Genius offline. Muse Spark Open is a
- * limited preview on Groq: when it is unavailable the chain simply
- * advances past it.
+ * The chain is META-ONLY — Groq also hosts non-Meta models (GPT-OSS,
+ * Qwen) and none of them are in this chain:
+ *   Muse Spark Open -> Llama 4 Maverick -> Llama 4 Scout ->
+ *   Llama 3.3 70B -> Llama 3.1 8B.
  *
- * Chain: Muse Spark Open -> Llama 4 Maverick -> Llama 4 Scout ->
- * Llama 3.3 70B -> Llama 3.1 8B.
- *
- * The self-hosted alternative (the founder's own Ollama/vLLM server)
- * remains packaged in infra/model-server/ — switching back is a
- * transport change in this one file plus the serve ids in metaModels.ts.
+ * Resilience rules (learned live 2026-10-18: Groq rejects an
+ * unavailable preview model with a slow HTTP 400, which killed Genius
+ * when the chain stopped at the first model):
+ * - The caller's preferred model goes first; ANY model-level failure
+ *   advances the chain — 400/404/410/422 (model unavailable/rejected),
+ *   429 (per-model rate limits differ), 5xx, and per-attempt timeouts.
+ * - Only a 401 (the API key itself is invalid) stops the chain: every
+ *   model would fail the same way.
+ * - Each attempt is capped (25s) so one hung model cannot eat the
+ *   function's whole time budget.
  */
 import { META_MODELS } from "./metaModels.ts";
 
@@ -31,6 +32,7 @@ export function llmConfig(): LLMConfig {
 }
 
 const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
+const ATTEMPT_TIMEOUT_MS = 25_000;
 
 export const META_CHAT_CHAIN: string[] = [
   "meta-models/muse-spark-open",
@@ -48,24 +50,33 @@ export async function metaChat(cfg: LLMConfig, body: Record<string, unknown>, pr
   let last: Response | null = null;
   for (let i = 0; i < chain.length; i++) {
     const model = chain[i];
+    const isLast = i === chain.length - 1;
     let r: Response;
     try {
       r = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
         method: "POST",
         headers: { Authorization: `Bearer ${cfg.apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ ...body, model }),
+        signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
       });
     } catch (e) {
-      console.error(`groq unreachable: ${e instanceof Error ? e.message : e}`);
-      return new Response(JSON.stringify({ error: "Model provider unreachable" }), { status: 502 });
+      const timedOut = e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError");
+      if (timedOut && !isLast) {
+        console.warn(`meta model ${model} timed out; trying next`);
+        continue;
+      }
+      console.error(`groq call failed on ${model}: ${e instanceof Error ? e.message : e}`);
+      return new Response(JSON.stringify({ error: timedOut ? "Model timed out" : "Model provider unreachable" }), { status: 502 });
     }
     if (r.ok) return r;
     const text = await r.text().catch(() => "");
-    const gone = r.status === 404 || /model_not_found|decommissioned|does not exist/i.test(text);
     last = new Response(text, { status: r.status });
-    const isPreferred = preferredModel != null && i === 0 && model === preferredModel;
-    if (!gone && !isPreferred) return last;
-    console.warn(`meta model ${model} unavailable (${r.status}); trying next`);
+    if (r.status === 401) return last; // the key itself is wrong; no model will work
+    if (!isLast) {
+      console.warn(`meta model ${model} unavailable (${r.status}); trying next`);
+      continue;
+    }
+    return last;
   }
   return last ?? new Response("no model", { status: 503 });
 }
