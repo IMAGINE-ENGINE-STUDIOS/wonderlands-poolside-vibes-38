@@ -84,12 +84,12 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Wonderlands | Everything Your Home Needs. One Platform.</title>
-        <meta name="description" content="Wonderlands is a technology-powered home services platform: design, build, power and transform your home — outdoor living, pools, spas, patios, solar and energy — in one connected experience." />
-        <meta name="keywords" content="home services platform, outdoor living, pool builder, solar panels, battery storage, patios, pavers, screen enclosures, landscaping, Orlando, Central Florida" />
+        <title>Pool & Patio Design Software | Wonderlands</title>
+        <meta name="description" content="Plan pools, spas and patios in 2D and 3D with Wonderlands. Explore finishes and itemized quotes for homeowners and contractors in one design platform." />
+        <meta name="keywords" content="pool design software, patio design software, 3D pool designer, backyard design, contractor design tools" />
         <link rel="canonical" href="https://www.wonderlandsworld.com/" />
-        <meta property="og:title" content="Wonderlands | Everything Your Home Needs. One Platform." />
-        <meta property="og:description" content="Design. Build. Power. Transform. One technology-powered platform for outdoor living, home improvement, solar and energy solutions." />
+        <meta property="og:title" content="Pool & Patio Design Software | Wonderlands" />
+        <meta property="og:description" content="Design pools, spas and patios in 2D and 3D. Explore materials and itemized quotes for homeowners and contractors." />
         <meta property="og:url" content="https://www.wonderlandsworld.com/" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.wonderlandsworld.com/media/7a94e712-7683-4a26-8a1c-c6974e320b5a.png" />

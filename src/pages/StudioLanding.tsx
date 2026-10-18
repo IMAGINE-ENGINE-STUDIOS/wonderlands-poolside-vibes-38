@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -162,6 +163,23 @@ const StudioLanding = () => {
 
   return (
     <div className="min-h-screen studio-aurora text-foreground">
+      <Helmet>
+        <title>2D & 3D Pool and Patio Design Software | Wonderlands Studio</title>
+        <meta name="description" content="Design a pool, spa, deck or patio with Wonderlands Studio. Draw to scale, compare finishes and prepare itemized quotes for homeowners and contractors." />
+        <link rel="canonical" href="https://www.wonderlandsworld.com/studio" />
+        <meta property="og:title" content="2D & 3D Pool and Patio Design Software | Wonderlands Studio" />
+        <meta property="og:description" content="Pool, spa and patio design tools with material selection and itemized quotes for homeowners and contractors." />
+        <meta property="og:url" content="https://www.wonderlandsworld.com/studio" />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org', '@type': 'SoftwareApplication',
+          name: 'Wonderlands Studio', applicationCategory: 'DesignApplication',
+          operatingSystem: 'Web browser', url: 'https://www.wonderlandsworld.com/studio',
+          description: '2D and 3D pool and patio design software with product configuration and itemized quotes.',
+          featureList: ['2D drawing', '3D pool and patio visualization', 'Material selection', 'Itemized quotes'],
+          publisher: { '@type': 'Organization', name: 'Wonderlands World Experience LLC', url: 'https://www.wonderlandsworld.com' },
+        })}</script>
+      </Helmet>
       {/* ─────────── Hero ─────────── */}
       <section className="relative overflow-hidden">
         <img
@@ -186,15 +204,16 @@ const StudioLanding = () => {
               Wonderlands Studio
             </Badge>
             <h1 className="mt-6 text-4xl md:text-6xl font-light leading-[1.05] tracking-tight">
-              Design your entire outdoor world in one place
+              Pool & patio design software
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-sm md:text-base leading-relaxed text-muted-foreground">
-              Fourteen collections, live pricing, drawing boards and permit-ready documents —
-              composed into a single studio built for Florida projects.
+              Design pools, spas, decks and patios in 2D and 3D. Compare materials and
+              prepare itemized quotes — for homeowners planning their backyard and
+              contractors presenting a residential project.
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="rounded-full px-8">
-                <Link to="/wonderlands-studio">
+                <Link to="/design-studio">
                   Enter the Studio <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

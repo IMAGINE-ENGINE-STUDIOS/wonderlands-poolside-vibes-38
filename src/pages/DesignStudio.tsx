@@ -8,6 +8,7 @@ const {
   useRef
 } = React;
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Layers, Box, RotateCcw, Home } from "lucide-react";
@@ -547,6 +548,15 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
       </div>;
   }
   return <div className={`${embedded ? 'h-full min-h-0' : 'h-screen'} overflow-hidden bg-background flex flex-col select-none`}>
+      {!embedded && <Helmet>
+        <title>2D & 3D Pool and Patio Designer | Wonderlands</title>
+        <meta name="description" content="Draw custom pools, spas, decks and patios to scale in your browser. Switch between 2D and 3D, choose finishes and build a residential project estimate." />
+        <link rel="canonical" href="https://www.wonderlandsworld.com/design-studio" />
+        <meta property="og:title" content="2D & 3D Pool and Patio Designer | Wonderlands" />
+        <meta property="og:description" content="Browser-based pool and patio design tools for homeowners and contractors: scaled drawing, 3D visualization, materials and estimates." />
+        <meta property="og:url" content="https://www.wonderlandsworld.com/design-studio" />
+        <meta property="og:type" content="website" />
+      </Helmet>}
       {/* Category Toolbar with integrated header elements */}
       {activeView === '2d' ? <>
           <CategoryToolbar hideCategories activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-1 sm:gap-4">
