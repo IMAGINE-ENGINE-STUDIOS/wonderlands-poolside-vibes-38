@@ -1330,62 +1330,6 @@ export function PoolBuilder({
   }, [pendingDeckData, hardscapePoints]);
 
   // Handle pool type selection from dialog
-  const handlePoolTypeSelection = useCallback((featureType: 'regular' | 'spillover-spa' | 'tanning-ledge') => {
-    if (!pendingPoolData) return;
-    if (featureType === 'regular') {
-      // Regular pool - add directly without perimeter snapping
-      const newPoolId = Date.now().toString();
-      const newPoolPoints = pendingPoolData.points;
-      setAdditionalPools(prev => [...prev, {
-        id: newPoolId,
-        type: 'pool',
-        points: newPoolPoints,
-        shape: 'freeform',
-        featureType: 'regular',
-        intersectsWith: pendingPoolData.intersectsWith
-      }]);
-      setAdditionalDeckPoints(prev => ({ ...prev, [newPoolId]: generateHardscapeFromPool(newPoolPoints, 3) }));
-      setDeckOffsetsById(prev => ({ ...prev, [newPoolId]: 3 }));
-      setPendingPoolData(null);
-      setShowPoolTypeDialog(false);
-      setSplineDrawing({
-        isActive: false,
-        points: [],
-        currentCurveType: 'linear'
-      });
-      setActiveTool(null);
-
-      // Check if pool extends outside existing deck and prompt for deck
-      checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
-    } else {
-      // Spillover spa or tanning ledge — keep the exact shape the user just drew
-      // (merged with the main pool; no coping at the join). Imagine Engine Studios Corp.
-      const newPoolId = Date.now().toString();
-      const drawn = pendingPoolData.points;
-      setAdditionalPools(prev => [...prev, {
-        id: newPoolId,
-        type: featureType === 'spillover-spa' ? 'spa' : 'pool',
-        points: drawn,
-        shape: 'freeform',
-        featureType,
-        intersectsWith: pendingPoolData.intersectsWith,
-        isMerged: true
-      }]);
-      if (featureType === 'spillover-spa') {
-        setAdditionalDeckPoints(prev => ({ ...prev, [newPoolId]: generateHardscapeFromPool(drawn, 3) }));
-        setDeckOffsetsById(prev => ({ ...prev, [newPoolId]: 3 }));
-      }
-      setPendingPoolData(null);
-      setShowPoolTypeDialog(false);
-      setSplineDrawing({
-        isActive: false,
-        points: [],
-        currentCurveType: 'linear'
-      });
-      setActiveTool(null);
-      checkAndPromptForOutsideDeck(newPoolId, drawn);
-    }
-  }, [pendingPoolData, getPerimeterPositionFromPoint, checkAndPromptForOutsideDeck]);
 
   // Handle perimeter anchor click to fix position and start drawing
   const handlePerimeterAnchorClick = useCallback(() => {
@@ -5196,28 +5140,6 @@ export function PoolBuilder({
       };
 
 
-      // Check if this is the FIRST point and it's on an existing pool area
-      // Show the dialog immediately so user knows they're creating an integrated feature
-      if (splineDrawing.points.length === 0 && !perimeterAnchorMode.isActive) {
-        const clickedPoolId = checkClickedOnPoolArea(x, y);
-        if (clickedPoolId) {
-          // Show dialog immediately when starting to draw on an existing pool
-          // Store the first point and show dialog
-          setPendingPoolData({
-            points: [{
-              x,
-              y,
-              id: '1',
-              curveType: splineDrawing.currentCurveType
-            }],
-            intersectsWith: clickedPoolId
-          });
-          setShowPoolTypeDialog(true);
-          // Don't add the point yet - wait for dialog selection
-          return;
-        }
-      }
-
       // Check if clicking near first point to close the shape
       if (splineDrawing.points.length >= 3) {
         const firstPoint = splineDrawing.points[0];
@@ -5251,11 +5173,7 @@ export function PoolBuilder({
             return;
           }
           
-          const intersectingPoolId = checkDeckIntersection(newPoolPoints);
-          if (intersectingPoolId) {
-            setPendingPoolData({ points: newPoolPoints, intersectsWith: intersectingPoolId });
-            setShowPoolTypeDialog(true);
-          } else {
+          { // overlapping shapes always become their own pool/spa (overlap dialog removed)
             const newPoolId = Date.now().toString();
             setAdditionalPools(prev => [...prev, {
               id: newPoolId, type: 'pool', points: newPoolPoints, shape: 'freeform', featureType: 'regular'
@@ -6180,11 +6098,7 @@ export function PoolBuilder({
                 return;
               }
               
-              const intersectingPoolId = checkDeckIntersection(newPoolPoints);
-              if (intersectingPoolId) {
-                setPendingPoolData({ points: newPoolPoints, intersectsWith: intersectingPoolId });
-                setShowPoolTypeDialog(true);
-              } else {
+              { // overlapping shapes always become their own pool/spa (overlap dialog removed)
                 const newPoolId = Date.now().toString();
                 setAdditionalPools(prev => [...prev, {
                   id: newPoolId, type: 'pool', points: newPoolPoints, shape: 'freeform', featureType: 'regular'
@@ -6536,64 +6450,6 @@ export function PoolBuilder({
             </Button>
           </div> : (/* Pool Design Add/Remove Corner Buttons */
       null /* corner +/- buttons removed: use Tools › Add Point or right-click on the board */)}
-      
-      {/* Pool Type Selection Dialog - Shows when new pool intersects existing */}
-      <Dialog open={showPoolTypeDialog} onOpenChange={setShowPoolTypeDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">What type of pool feature is this?</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground mb-4">
-            This new shape overlaps with an existing pool. Please select the type of feature you're creating:
-          </p>
-          <div className="grid gap-3">
-            <Button variant="outline" className="h-auto py-4 flex flex-col items-start gap-1 text-left" onClick={() => handlePoolTypeSelection('spillover-spa')}>
-              <span className="font-semibold flex items-center gap-2">
-                <Waves className="h-4 w-4" />
-                Spillover Spa
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Water flows over the edge into the main pool. Coping will be trimmed at water intersection.
-              </span>
-            </Button>
-            
-            <Button variant="outline" className="h-auto py-4 flex flex-col items-start gap-1 text-left" onClick={() => handlePoolTypeSelection('tanning-ledge')}>
-              <span className="font-semibold flex items-center gap-2">
-                <Droplets className="h-4 w-4" />
-                Tanning Ledge / Baja Shelf
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Shallow area integrated with the pool. No coping at the intersection.
-              </span>
-            </Button>
-            
-            <Button variant="outline" className="h-auto py-4 flex flex-col items-start gap-1 text-left" onClick={() => handlePoolTypeSelection('regular')}>
-              <span className="font-semibold flex items-center gap-2">
-                <Box className="h-4 w-4" />
-                Separate Pool (Keep Both)
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Two independent pools that happen to overlap. Full coping on both.
-              </span>
-            </Button>
-          </div>
-          
-          <div className="flex justify-end mt-4">
-            <Button variant="ghost" onClick={() => {
-            setShowPoolTypeDialog(false);
-            setPendingPoolData(null);
-            setSplineDrawing({
-              isActive: false,
-              points: [],
-              currentCurveType: 'linear'
-            });
-            setActiveTool(null);
-          }}>
-              Cancel
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
       
       {/* Deck Confirmation Dialog - Shows when new water body extends outside existing deck */}
       <Dialog open={showDeckDialog} onOpenChange={setShowDeckDialog}>
