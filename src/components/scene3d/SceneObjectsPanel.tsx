@@ -16,8 +16,14 @@ import {
   Boxes,
   Search,
   X,
+  Eye,
+  EyeOff,
+  FolderPlus,
+  Fence,
+  LayoutGrid,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSceneLayers, sceneLayerActions, layerOf, isObjectHidden } from '@/lib/design/sceneLayers';
 
 export interface SceneObjectEntry {
   id: string;
@@ -27,6 +33,8 @@ export interface SceneObjectEntry {
   selected?: boolean;
   onSelect?: () => void;
   onDelete?: () => void;
+  /** Default layer id (see lib/design/sceneLayers DEFAULT_LAYERS). */
+  layer?: string;
 }
 
 export interface SceneObjectGroup {
@@ -39,16 +47,21 @@ interface SceneObjectsPanelProps {
   groups: SceneObjectGroup[];
   className?: string;
   defaultOpen?: boolean;
+  /** Extra controls shown under the list (e.g. pool / deck levels). */
+  footer?: React.ReactNode;
 }
 
 /**
  * Scene Objects widget — lists every object currently in the 3D scene,
  * grouped by kind, with selection and delete actions.
  */
-export function SceneObjectsPanel({ groups, className, defaultOpen = false }: SceneObjectsPanelProps) {
+export function SceneObjectsPanel({ groups, className, defaultOpen = false, footer }: SceneObjectsPanelProps) {
   const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [byLayer, setByLayer] = useState(true);
+  const [newLayer, setNewLayer] = useState('');
+  const layerState = useSceneLayers();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -63,6 +76,18 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false }: Sc
       }))
       .filter(g => g.items.length > 0);
   }, [groups, query]);
+
+  /* Layer view: every object regrouped under the layer it lives on. */
+  const shown = useMemo(() => {
+    if (!byLayer) return filtered.map(g => ({ ...g, layerId: undefined as string | undefined }));
+    const all = filtered.flatMap(g => g.items);
+    return layerState.layers.map(l => ({
+      key: `layer:${l.id}`,
+      label: l.name,
+      layerId: l.id as string | undefined,
+      items: all.filter(i => layerOf(i.id, i.layer ?? 'structure', layerState) === l.id),
+    })).filter(g => g.items.length > 0 || !query);
+  }, [byLayer, filtered, layerState, query]);
 
   const total = useMemo(
     () => groups.reduce((sum, g) => sum + g.items.length, 0),
@@ -89,7 +114,7 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false }: Sc
   return (
     <div
       className={cn(
-        'w-64 max-h-[60vh] flex flex-col glass-panel rounded-xl overflow-hidden',
+        'w-72 max-h-[70vh] flex flex-col glass-panel rounded-xl overflow-hidden',
         className
       )}
     >
@@ -99,6 +124,14 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false }: Sc
           Scene Objects
           <span className="text-xs font-normal text-muted-foreground">{total}</span>
         </div>
+        <button
+          onClick={() => setByLayer(v => !v)}
+          className="ml-auto mr-1 px-1.5 py-0.5 rounded text-[10px] hover:bg-muted flex items-center gap-1"
+          title={byLayer ? 'Group by type' : 'Group by layer'}
+        >
+          {byLayer ? <LayoutGrid className="w-3 h-3" /> : <Layers className="w-3 h-3" />}
+          {byLayer ? 'Types' : 'Layers'}
+        </button>
         <button
           onClick={() => setOpen(false)}
           className="p-1 rounded hover:bg-muted transition-colors"
@@ -121,29 +154,46 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false }: Sc
       </div>
 
       <div className="flex-1 overflow-y-auto py-1">
-        {filtered.length === 0 && (
+        {shown.length === 0 && (
           <p className="px-3 py-4 text-xs text-muted-foreground text-center">No objects found.</p>
         )}
-        {filtered.map(group => {
+        {shown.map(group => {
           const isCollapsed = collapsed[group.key];
+          const layer = group.layerId ? layerState.layers.find(l => l.id === group.layerId) : undefined;
           return (
             <div key={group.key} className="mb-1">
-              <button
-                onClick={() => setCollapsed(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
-                className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                {group.label}
-                <span className="ml-auto text-[10px] font-semibold">{group.items.length}</span>
-              </button>
+              <div className="flex items-center gap-1 px-2">
+                <button
+                  onClick={() => setCollapsed(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                  className="flex-1 min-w-0 flex items-center gap-1.5 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  <span className={cn('truncate', layer?.hidden && 'line-through opacity-60')}>{group.label}</span>
+                  <span className="ml-auto text-[10px] font-semibold">{group.items.length}</span>
+                </button>
+                {layer && (
+                  <button onClick={() => sceneLayerActions.toggleLayer(layer.id)} className="p-1 rounded hover:bg-muted" title={layer.hidden ? 'Show layer' : 'Hide layer'}>
+                    {layer.hidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                  </button>
+                )}
+                {layer && !layer.builtIn && (
+                  <button onClick={() => sceneLayerActions.removeLayer(layer.id)} className="p-1 rounded hover:bg-destructive/20" title="Delete layer">
+                    <Trash2 className="w-3 h-3 text-destructive" />
+                  </button>
+                )}
+              </div>
               {!isCollapsed && (
                 <ul>
-                  {group.items.map(item => (
+                  {group.items.map(item => {
+                    const hidden = isObjectHidden(item.id, item.layer ?? 'structure', layerState);
+                    const own = layerState.hidden.includes(item.id);
+                    return (
                     <li key={item.id}>
                       <div
                         className={cn(
                           'group flex items-center gap-2 pl-6 pr-2 py-1.5 text-xs cursor-pointer transition-colors',
-                          item.selected ? 'bg-primary/15 text-foreground' : 'hover:bg-muted/60'
+                          item.selected ? 'bg-primary/15 text-foreground' : 'hover:bg-muted/60',
+                          hidden && 'opacity-50'
                         )}
                         onClick={item.onSelect}
                       >
@@ -152,6 +202,22 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false }: Sc
                         {item.detail && (
                           <span className="text-[10px] text-muted-foreground shrink-0">{item.detail}</span>
                         )}
+                        <select
+                          value={layerOf(item.id, item.layer ?? 'structure', layerState)}
+                          onClick={e => e.stopPropagation()}
+                          onChange={e => sceneLayerActions.moveObject(item.id, e.target.value)}
+                          className="w-5 opacity-0 group-hover:opacity-100 bg-transparent text-[10px] cursor-pointer"
+                          title="Move to layer"
+                        >
+                          {layerState.layers.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                        </select>
+                        <button
+                          onClick={e => { e.stopPropagation(); sceneLayerActions.toggleObject(item.id); }}
+                          className="p-0.5 rounded hover:bg-muted"
+                          title={own ? 'Show' : 'Hide'}
+                        >
+                          {own ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3 opacity-60" />}
+                        </button>
                         {item.onDelete && (
                           <button
                             onClick={e => {
@@ -166,12 +232,27 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false }: Sc
                         )}
                       </div>
                     </li>
-                  ))}
+                  );})}
                 </ul>
               )}
             </div>
           );
         })}
+      </div>
+
+      <form
+        className="flex items-center gap-1 px-2 py-1.5 border-t border-border"
+        onSubmit={e => { e.preventDefault(); if (newLayer.trim()) { sceneLayerActions.addLayer(newLayer); setNewLayer(''); setByLayer(true); } }}
+      >
+        <input
+          value={newLayer}
+          onChange={e => setNewLayer(e.target.value)}
+          placeholder="New layer name"
+          className="flex-1 min-w-0 bg-muted/50 rounded-md px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+        />
+        <button type="submit" className="p-1 rounded hover:bg-muted" title="Add layer"><FolderPlus className="w-3.5 h-3.5" /></button>
+      </form>
+      {footer && <div className="px-3 py-2 border-t border-border">{footer}</div>}
       </div>
     </div>
   );
@@ -188,4 +269,5 @@ export const sceneObjectIcons = {
   light: <Lightbulb className="w-3.5 h-3.5" />,
   terrain: <TreePine className="w-3.5 h-3.5" />,
   asset: <Boxes className="w-3.5 h-3.5" />,
+  fence: <Fence className="w-3.5 h-3.5" />,
 };
