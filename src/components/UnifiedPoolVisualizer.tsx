@@ -1933,11 +1933,12 @@ export function UnifiedPoolVisualizer({
             </>
           )}
           
-          {/* Pool Lights - Draggable, wall-snapped lights */}
+          <group position={[0, poolElevation, 0]}>
+          {/* Pool Lights - Draggable, wall-snapped lights (hidden ones are kept on edit) */}
           <EnhancedPoolLights
             poolPoints={scene.pool.points}
-            lights={poolLights}
-            onLightsChange={handlePoolLightsChange}
+            lights={lightsV.shown}
+            onLightsChange={(next) => handlePoolLightsChange(lightsV.merge(next))}
             selectedLightId={selectedLightId}
             onSelectLight={setSelectedLightId}
           />
@@ -1945,7 +1946,7 @@ export function UnifiedPoolVisualizer({
           {/* Water Caustics - Light patterns on pool floor */}
           <WaterCaustics
             poolPoints={scene.pool.points}
-            lights={poolLights}
+            lights={lightsV.shown}
             isNightMode={isNightMode}
             sunAngle={sunAngle}
             causticIntensity={0.5}
@@ -1954,17 +1955,18 @@ export function UnifiedPoolVisualizer({
           {/* Pool Assets (Stairs, Chairs, Contour Seating) */}
           <PoolAssetsRenderer
             poolPoints={scene.pool.points}
-            stairs={poolStairs}
-            onStairsChange={setPoolStairs}
-            chairs={poolChairs}
-            onChairsChange={setPoolChairs}
-            contourSeating={contourSeating}
-            onContourSeatingChange={setContourSeating}
+            stairs={stairsV.shown}
+            onStairsChange={(next) => setPoolStairs(stairsV.merge(next))}
+            chairs={chairsV.shown}
+            onChairsChange={(next) => setPoolChairs(chairsV.merge(next))}
+            contourSeating={seatingV.shown}
+            onContourSeatingChange={(next) => setContourSeating(seatingV.merge(next))}
             selectedAssetId={selectedPoolAssetId}
             onSelectAsset={setSelectedPoolAssetId}
             poolDepth={poolDepth}
             getFloorDepthAt={getFloorDepthAt}
           />
+          </group>
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
@@ -2060,13 +2062,13 @@ export function UnifiedPoolVisualizer({
           )}
 
           {/* 3D Assets */}
-          {assets3D.map((asset) => (
+          {assets3D.filter((a) => !hid(a.id)).map((asset) => (
             <Asset3DRenderer key={asset.id} asset={asset} />
           ))}
 
           {/* Terrain Assets from Terrain Editor - selectable with transform gizmo + snapping */}
           <TerrainAssetsRenderer
-            assets={terrainAssets}
+            assets={terrainAssets.filter((a) => !hid(a.id, 'landscape'))}
             siteRef={terrainSiteRef}
             selectedAssetId={selectedTerrainAssetId}
             onAssetClick={(id) => setSelectedTerrainAssetId(id)}
