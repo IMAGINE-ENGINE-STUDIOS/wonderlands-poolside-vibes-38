@@ -1,4 +1,4 @@
-/** Genius concierge (Meta models, self-hosted endpoint — no Groq, no OpenRouter). Imagine Engine Studios Corp. */
+/** Genius concierge (Meta models on Groq, via this Supabase doorway — the Startup Factory Hub pattern). Imagine Engine Studios Corp. */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { metaChat, llmConfig } from "../_shared/metaChat.ts";
 import { apiIdForModelKey } from "../_shared/metaModels.ts";
@@ -89,7 +89,7 @@ serve(async (req) => {
 
   try {
     const llm = llmConfig();
-    if (!llm.baseUrl) throw new Error("Self-hosted model endpoint is not configured (set LLM_BASE_URL)");
+    if (!llm.apiKey) throw new Error("GROQ_API_KEY is not configured");
 
     const body = (await req.json()) as GeniusRequest;
     const turns = (body.messages ?? []).slice(-12).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));

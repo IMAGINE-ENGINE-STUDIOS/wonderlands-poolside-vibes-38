@@ -1,7 +1,7 @@
 // Scene Genius — turns a plain-language brief into a full pool scene plan
 // (pool shape, size, depth profile, deck, stairs, seating, lights, finishes,
-// and 3D models to search for) using Meta models on the founder's
-// SELF-HOSTED model server (no Groq, no OpenRouter — see _shared/metaChat).
+// and 3D models to search for) using Meta models on Groq, reached
+// through this Supabase function (see _shared/metaChat).
 // The client applies the plan. Model choice: _shared/modelRouter (scene3d).
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { metaChat, llmConfig } from "../_shared/metaChat.ts";
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     if (prompt.length < 3) return json({ error: 'Describe the project you want in a few words.' }, 400);
 
     const llm = llmConfig();
-    if (!llm.baseUrl) return json({ error: 'Genius is not configured yet.' }, 500);
+    if (!llm.apiKey) return json({ error: 'Genius is not configured yet.' }, 500);
 
     const res = await metaChat(llm, {
       temperature: 0.4,

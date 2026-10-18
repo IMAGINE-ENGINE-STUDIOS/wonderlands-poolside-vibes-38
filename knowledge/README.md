@@ -29,9 +29,9 @@ must be corrected.
 2. Every price includes delivery and installation, as described.
 3. Local, deterministic answers first (price lookups, page turns, design-bus
    commands); a model is called only when the local layer cannot answer.
-4. No Groq and no OpenRouter anywhere in the Genius path: Meta models only,
-   self-hosted on the founder's own model server (see `infra/model-server/`)
-   and reached through the `LLM_BASE_URL` / `LLM_API_KEY` Supabase secrets.
-   Muse Spark Open is the hosted-only exception (816B — cannot self-host).
+4. Meta models only in the Genius path, served by Groq through the
+   Supabase doorway (the Startup Factory Hub pattern; `GROQ_API_KEY`
+   secret). No OpenRouter. The self-hosted alternative stays packaged in
+   `infra/model-server/` for owned-hardware builds.
 5. A user's explicit model pick (the FLIP model flipper) always wins over the
    router; the router only decides when no pick was made.

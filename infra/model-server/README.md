@@ -1,9 +1,12 @@
-# Wonderlands model server — self-hosted Meta models
+# Wonderlands model server — self-hosted Meta models (alternative path)
 
-Founder direction (2026-10-18): **no OpenRouter, no Groq.** Wonderlands'
-AI runs Meta's free open-source models on a GPU server the founder owns.
-The Supabase functions (`genius`, `scene-genius`) call that server; they
-hold no model weights themselves.
+> **Current production path (2026-10-18): Groq.** The founder settled on
+> Groq through the Supabase doorway (the Startup Factory Hub pattern), so
+> the functions call Groq, not this server. This package remains the
+> owned-hardware alternative: if Wonderlands ever moves off Groq, this
+> is the drop-in replacement — same OpenAI-compatible API, models on a
+> GPU server the founder owns, configured via `LLM_BASE_URL`/`LLM_API_KEY`
+> in the transport file (`supabase/functions/_shared/metaChat.ts`).
 
 ## Why the models cannot live "in Supabase"
 
