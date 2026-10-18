@@ -86,6 +86,18 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       if (ok) setPrompt('');
       return;
     }
+    /* Draw a site element (fence / screen / turf): the site layer draws it from
+     * the real outlines and reports back — no scene-genius round-trip. */
+    const drawKind = /\b(fence|fencing)\b/.test(q) ? 'fence' : /\b(screen|enclosure|cage)\b/.test(q) ? 'enclosure' : /\b(turf|grass|lawn)\b/.test(q) ? 'turf' : null;
+    if (drawKind && /\b(draw|add|put|build|install|around|surround|enclose|wrap)\b/.test(q)) {
+      const around = /\bpool\b/.test(q) && !/\bdeck\b/.test(q) ? 'pool' : 'deck';
+      const done = new Promise<boolean>((res) => { const h = (e: Event) => { window.removeEventListener('design-studio:element-result', h); res(!!(e as CustomEvent).detail?.ok); }; window.addEventListener('design-studio:element-result', h); setTimeout(() => res(false), 1200); });
+      window.dispatchEvent(new CustomEvent('design-studio:add-element', { detail: { kind: drawKind, around } }));
+      const ok = await done;
+      setNote(ok ? `Drew the ${drawKind === 'enclosure' ? 'screen enclosure' : drawKind} around the ${around}. Nothing else changed.` : 'Draw the pool and its deck first, then ask again.');
+      if (ok) setPrompt('');
+      return;
+    }
     const poolish = /\b(pool|spa|kidney|oval|rectangle|roman|freeform|l-shape|deep|depth|shallow|deck)\b|\d+\s*[x×]\s*\d+/.test(q);
     const finishish = /\b(finish|coping|waterline|tile|pavers?|shell|interior)\b/.test(q);
     const siteish = /\b(fence|screen|enclosure|cage|turf|grass|landscap|garden|palm|tree|rock|boulder)\b/.test(q);

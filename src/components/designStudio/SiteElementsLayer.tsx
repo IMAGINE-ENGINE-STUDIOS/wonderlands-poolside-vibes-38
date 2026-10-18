@@ -468,6 +468,52 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     window.addEventListener("design-studio:add-gate", on);
     return () => window.removeEventListener("design-studio:add-gate", on);
   }, [items, selected, addGate]);
+  /* Genius draws a site element: a fence around the deck, a screen enclosure
+   * around the pool + deck, or a turf patch beside them. Geometry follows the
+   * REAL drawn outlines (offset outward), defaults are the same first catalog
+   * choices the rail offers, and the guest can restyle/retexture afterwards. */
+  React.useEffect(() => {
+    const ringOut = (pts: Pt[], offsetFt: number): Pt[] | null => {
+      if (pts.length < 3) return null;
+      const area = (poly: Pt[]) => Math.abs(poly.reduce((a, p, i) => { const q = poly[(i + 1) % poly.length]; return a + p.x * q.y - q.x * p.y; }, 0) / 2);
+      const ring = pts.map((p) => ({ x: p.x, z: p.y }));
+      const off = offsetFt * scale;
+      let out = mitredOffsetRing(ring, off, { miterLimit: 2.5 }).offset.map((p) => ({ x: p.x, y: p.z }));
+      if (out.length < 3 || area(out) < area(pts)) out = mitredOffsetRing(ring, -off, { miterLimit: 2.5 }).offset.map((p) => ({ x: p.x, y: p.z }));
+      return out.length >= 3 ? out : null;
+    };
+    const on = (ev: Event) => {
+      const { kind, around } = (ev as CustomEvent).detail || {};
+      const reply = (ok: boolean) => window.dispatchEvent(new CustomEvent("design-studio:element-result", { detail: { ok, kind } }));
+      const deckPts = view?.deckPts ?? [];
+      const poolPts = view?.poolPts ?? [];
+      const base = around === "pool" ? (poolPts.length >= 3 ? poolPts : deckPts) : (deckPts.length >= 3 ? deckPts : poolPts);
+      if (!kind || base.length < 3) return reply(false);
+      const close = (pts: Pt[]) => [...pts, pts[0]];
+      let el: SiteElement | null = null;
+      if (kind === "fence") {
+        const ring = ringOut(base, 1); if (!ring) return reply(false);
+        const m = FENCE_MATERIALS[0]; const h = FENCE_HEIGHTS.find((x) => x.ft === 4) ?? FENCE_HEIGHTS[0];
+        el = { id: `fence-${Date.now().toString(36)}`, kind, pts: close(ring), label: m.label, detail: `black · ${h.label}`, color: "#1f1f1f", height: h.ft, style: m.id, rate: h.rate, unit: "lf" };
+      } else if (kind === "enclosure") {
+        const ring = ringOut(base, 1); if (!ring) return reply(false);
+        const st = SCREEN_STYLES[0]; const h = st.heights.includes(10) ? 10 : st.heights[0];
+        el = { id: `enclosure-${Date.now().toString(36)}`, kind, pts: close(ring), label: st.label, detail: `bronze frame · ${h}' tall`, color: "#6b4a2b", height: h, style: st.id, rate: st.rate, unit: "sqft" };
+      } else if (kind === "turf") {
+        const xs = base.map((p) => p.x), ys = base.map((p) => p.y);
+        const gap = 3 * scale, hgt = 8 * scale;
+        const y0 = Math.max(...ys) + gap;
+        const g = TURFS[0];
+        el = { id: `turf-${Date.now().toString(36)}`, kind, pts: close([{ x: Math.min(...xs), y: y0 }, { x: Math.max(...xs), y: y0 }, { x: Math.max(...xs), y: y0 + hgt }, { x: Math.min(...xs), y: y0 + hgt }]), label: g.label, detail: "Artificial turf", color: g.color, rate: g.rate, unit: "sqft" };
+      }
+      if (!el) return reply(false);
+      setItems((p) => [...p, el as SiteElement]);
+      setSelected(el.id);
+      reply(true);
+    };
+    window.addEventListener("design-studio:add-element", on);
+    return () => window.removeEventListener("design-studio:add-element", on);
+  }, [items, view, scale, setItems]);
   const retexture =  (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt, ...(opt.style ? { textureUrl: undefined } : {}) } : x));
   const menuItem = items.find((x) => x.id === menu?.id);
   const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))
