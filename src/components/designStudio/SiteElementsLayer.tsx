@@ -167,6 +167,9 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const [draft, setDraft] = React.useState<Pt[]>([]);
   const [hover, setHover] = React.useState<Pt | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
+  /* Spill-over edges (water falling over part of a pool/spa spline). Imagine Engine Studios Corp. */
+  const spills = useSpills();
+  const [spillSel, setSpillSel] = React.useState<string | null>(null);
   /* Materials panel (DesignerToolPanel) listens to the board selection and restyles it here. */
   React.useEffect(() => {
     const kind = !selected ? null : selected === "__pool" || selected.startsWith("__xp:") ? "pool" : selected === "__deck" || selected.startsWith("__xd:") ? "deck" : items.find((x) => x.id === selected)?.kind ?? null;
@@ -562,6 +565,11 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                 </g>
               );
             })}
+            {spills.map((sp) => { const pts = getPts(sp.poolId); const e = pts.length >= 3 ? spillEnds(pts, sp) : null; if (!e) return null; const z = view.zoom || 1; const on = spillSel === sp.id;
+              return <g key={sp.id} style={{ pointerEvents: view.poolDrawMode ? "none" : "auto", cursor: "pointer" }} onClick={(ev) => { ev.stopPropagation(); setSpillSel(sp.id); }}>
+                <line x1={e[0].x} y1={e[0].y} x2={e[1].x} y2={e[1].y} stroke="hsl(var(--background))" strokeWidth={Math.max(6 / z, scale * 0.9)} strokeLinecap="round" />
+                <line x1={e[0].x} y1={e[0].y} x2={e[1].x} y2={e[1].y} stroke="hsl(var(--primary))" strokeWidth={Math.max(4 / z, scale * 0.6)} strokeDasharray={`${scale * 0.6} ${scale * 0.3}`} strokeLinecap="round" opacity={on ? 1 : 0.8} />
+              </g>; })}
             {drawing && draft.length > 0 && (
               <>
                 {/* Same look as main-pool spline drawing: solid placed edges, dashed live edge + closing guide, ringed handles. */}
@@ -602,11 +610,26 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             ))}
             {menuItem && (menuItem.gates?.length ?? 0) > 0 && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { setItems((p) => p.map((x) => x.id === menuItem.id ? { ...x, gates: [] } : x)); setMenu(null); }}>Remove {menuItem.kind === "fence" ? "gates" : "doors"}</button>}
             {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const pts = getPts(menu.id) as Array<Pt & { curveFlip?: boolean }>; const j = (menu.seg + 1) % pts.length; setPts(menu.id, pts.map((q, k) => k === j ? { ...q, curveFlip: !q.curveFlip } : q)); setMenu(null); }}>Flip curve (outward / inward)</button>}
+            {isPoolId(menu.id) && (extras.length > 0 || (loadBoard3D()?.waters ?? []).some((w) => (w.elevation ?? 0) > 0) || localStorage.getItem("studio3d.levels.elevated") === "1") && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { const sp = spillActions.add(menu.id, menu.seg); setSpillSel(sp.id); setMenu(null); }}>Make this edge a spill over</button>}
             {isPoolId(menu.id) && <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id === "__pool" ? "__deck" : `__xd:${menu.id.slice(5)}`); setMenu(null); }}>Remove deck (no deck)</button>}
             <button className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { eraseId(menu.id); setMenu(null); }}>Erase</button>
           </>) : textureOptions.map((o) => <button key={o.key} className="block w-full px-2 py-1.5 text-left hover:bg-muted" onClick={() => { retexture(menu.id, o.apply); setMenu(null); }}>{o.label}</button>)}
         </div>
       )}
+      {spillSel && (() => { const sp = spills.find((x) => x.id === spillSel); if (!sp) return null; return (
+        <div className="absolute left-1/2 top-14 z-[33] w-72 -translate-x-1/2 rounded-2xl border border-border/50 bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
+          <div className="mb-2 flex items-center justify-between"><b className="uppercase tracking-[0.2em]">Spill over · {labelOf(sp.poolId)}</b><button title="Close" onClick={() => setSpillSel(null)} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button></div>
+          {([["Start along edge", "t0"], ["End along edge", "t1"]] as const).map(([l, k]) => (
+            <label key={k} className="mb-2 block"><span className="flex justify-between"><span>{l}</span><span>{Math.round(sp[k] * 100)}%</span></span>
+              <input type="range" min={0} max={1} step={0.01} value={sp[k]} onChange={(e) => spillActions.update(sp.id, { [k]: Number(e.target.value) })} className="w-full accent-[hsl(var(--primary))]" /></label>))}
+          <div className="mb-2 flex gap-1.5">
+            <button onClick={() => spillActions.update(sp.id, { pitch: 0 })} className={cn("flex-1 border px-2 py-1.5", sp.pitch === 0 ? "border-foreground bg-foreground text-background" : "border-border")}>Down the wall</button>
+            <button onClick={() => spillActions.update(sp.id, { pitch: sp.pitch || 20 })} className={cn("flex-1 border px-2 py-1.5", sp.pitch > 0 ? "border-foreground bg-foreground text-background" : "border-border")}>Thrown out</button>
+          </div>
+          <label className="mb-2 block"><span className="flex justify-between"><span>Water pitch</span><span>{sp.pitch}°</span></span>
+            <input type="range" min={0} max={45} step={1} value={sp.pitch} onChange={(e) => spillActions.update(sp.id, { pitch: Number(e.target.value) })} className="w-full accent-[hsl(var(--primary))]" /></label>
+          <button onClick={() => { spillActions.remove(sp.id); setSpillSel(null); }} className="flex w-full items-center justify-center gap-1.5 border border-border py-1.5 hover:bg-muted"><Trash2 className="h-3.5 w-3.5" />Remove spill over</button>
+        </div>); })()}
       {(editId || moving) && (
         <div className="absolute left-1/2 top-3 z-[30] flex -translate-x-1/2 items-center gap-3 border border-border bg-background/95 px-4 py-2 text-xs shadow-sm backdrop-blur">
           <span>{moving ? "Move the mouse, click to drop" : "Drag squares to move points · click a circle to add a point · right-click a square to remove it"}</span>
@@ -735,6 +758,8 @@ import { netRegions, computeNetAreas } from "@/lib/design/boardNetArea";
 import { loadBoard3D, type Board3D } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
 import { useSceneLayers, isObjectHidden, boardObjectId } from "@/lib/design/sceneLayers";
+import { useSpills, spillActions, spillEnds, loadSpills } from "@/lib/design/spillovers";
+import { loadBoard3D } from "@/lib/design/board3D";
 
 /**
  * Builds the 3D Studio hand-off from the Design Studio: fences, screens and turf
@@ -767,6 +792,15 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
     else if (e.kind === 'enclosure') out.screens.push({ ...e.details3D, itemId: e.id, pts, gates, height: e.height ?? 10, color: e.color });
     else out.surfaces.push({ itemId: e.id, kind: e.kind, color: e.kind === 'deck' ? '#ffffff' : e.color, image: e.textureUrl ?? (e.kind === 'deck' ? DECK_PAVERS.find(d => d.id === e.style)?.image : TURFS.find(g => g.color === e.color)?.texture), scale: e.textureScale, regions: regionsOf(e.id) });
   }
+  /* Spill-over edges in 3D feet (ends + pitch); the 3D Studio draws the falling water sheet. */
+  out.spills = loadSpills().map((sp) => {
+    const src = sp.poolId === "__pool" ? poolPts : extraPools.find((p) => `__xp:${p.id}` === sp.poolId)?.points ?? [];
+    const e = src.length >= 3 ? spillEnds(src, sp) : null;
+    if (!e) return null;
+    // Outward = away from the body's centre.
+    const cx = src.reduce((s, p) => s + p.x, 0) / src.length, cy = src.reduce((s, p) => s + p.y, 0) / src.length;
+    return { id: sp.id, a: to(f(e[0])), b: to(f(e[1])), out: to(f({ x: cx, y: cy })), pitch: sp.pitch, waterId: sp.poolId === "__pool" ? undefined : sp.poolId.slice(5) };
+  }).filter(Boolean) as NonNullable<Board3D["spills"]>;
   return out;
 }
 /** Auto deck width around each extra pool/spa (ft), same default as the main pool. */
