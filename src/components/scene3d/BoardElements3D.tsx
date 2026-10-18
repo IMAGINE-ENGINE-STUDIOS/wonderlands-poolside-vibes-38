@@ -22,7 +22,7 @@ import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
 import { applyHoleCut } from "./holeCutShader";
 import { buildVinylFence } from "./vinylFenceGeometry";
-import { vinylMaterial } from "@/lib/design/vinylFenceMaterials";
+import { vinylMaterial, vinylSolidMaterial } from "@/lib/design/vinylFenceMaterials";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
 export const BOARD_SELECT_EVENT = "studio3d:boardSelect";
