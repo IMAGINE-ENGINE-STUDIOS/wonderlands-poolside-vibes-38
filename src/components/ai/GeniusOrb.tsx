@@ -30,6 +30,7 @@ import { getFlipControls, turnToPageNumber } from '@/lib/flipPageRegistry';
 import { clickViewportOption } from '@/lib/flipViewportReader';
 import type { NarratorAction } from '@/lib/narratorStore';
 import { isGeniusOpen, setGeniusOpen, subscribeGeniusPanel } from '@/lib/geniusPanelStore';
+import { META_MODELS, getFlipModelKey, setFlipModelKey } from '@/lib/metaModels';
 import { toast } from 'sonner';
 
 const ACTION_ICON: Record<NarratorAction['type'], React.ComponentType<{ className?: string }>> = {
@@ -65,6 +66,8 @@ export const GeniusOrb: React.FC = () => {
     };
   }, []);
   const [draft, setDraft] = React.useState('');
+  /* The Meta model Genius answers with — the guest can flip it right here. */
+  const [modelKey, setModelKey] = React.useState<string>(() => getFlipModelKey());
   const { context, script, actions, isLoading, isSpeaking, muted, setMuted, narrate, stop, replay } = useNarrator();
   const inRouter = useInRouterContext();
   const routerNavigate = inRouter ? useNavigate() : null;
@@ -322,6 +325,35 @@ export const GeniusOrb: React.FC = () => {
               <X className="h-4 w-4" />
             </button>
           </header>
+
+          {/* Model flipper — flip Genius between Meta's models. Hosted picks go to the genius function; Code Llama is self-hosted only, so it is listed but not selectable here. */}
+          <div className="flex items-center gap-2 border-b border-border/40 px-4 py-2">
+            <span className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">Model</span>
+            <select
+              value={modelKey}
+              onChange={(e) => {
+                setModelKey(e.target.value);
+                setFlipModelKey(e.target.value);
+              }}
+              aria-label="Choose the Meta model Genius answers with"
+              className="min-w-0 flex-1 bg-transparent text-[11px] uppercase tracking-[0.14em] text-foreground focus:outline-none [&>option]:normal-case [&>option]:tracking-normal"
+            >
+              <optgroup label="Hosted — flip anytime">
+                {META_MODELS.filter((m) => m.apiId).map((m) => (
+                  <option key={m.key} value={m.key}>
+                    {m.label}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Self-hosted via Ollama — local builds only">
+                {META_MODELS.filter((m) => !m.apiId).map((m) => (
+                  <option key={m.key} value={m.key} disabled>
+                    {m.label} · local only
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
 
           <div ref={scrollRef} className="max-h-72 space-y-3 overflow-y-auto px-4 py-3">
             {isLoading && !script ? (

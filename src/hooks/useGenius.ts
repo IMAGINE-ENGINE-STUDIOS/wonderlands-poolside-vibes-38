@@ -9,6 +9,7 @@ import { advanceBooking, isBookingActive, startBooking, wantsAppointment } from 
 import { resolveShowroomRequest } from '@/lib/geniusShowroom';
 import { supabase } from '@/integrations/supabase/client';
 import { buildKnowledgeDigest } from '@/lib/geniusKnowledge';
+import { getFlipModelKey } from '@/lib/metaModels';
 
 export interface GeniusTurn {
   id: string;
@@ -70,6 +71,7 @@ export function useGenius(options?: GeniusOptions) {
             : undefined,
           cart: cart?.items.length ? cart.items.map((i) => `${i.name} ($${Math.round(i.price).toLocaleString()})`).join(', ') : undefined,
           catalog: buildKnowledgeDigest(),
+          model: getFlipModelKey(),
         },
       });
       if (error || !data?.reply) return null;

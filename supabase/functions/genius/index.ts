@@ -1,6 +1,7 @@
-/** Genius concierge (Groq). Imagine Engine Studios Corp. */
+/** Genius concierge (Meta models via OpenRouter — no Groq). Imagine Engine Studios Corp. */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { groqChat } from "../_shared/groqChat.ts";
+import { metaChat } from "../_shared/metaChat.ts";
+import { apiIdForModelKey } from "../_shared/metaModels.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,6 +26,8 @@ interface GeniusRequest {
   catalog?: string;
   /** Items already in the guest's selection */
   cart?: string;
+  /** Catalog key of the Meta model the guest flipped to in FLIP (see _shared/metaModels.ts). Local-only keys resolve to null and the hosted chain answers. */
+  model?: string;
 }
 
 const SYSTEM = `You are Genius, the voice of Wonderlands World — a warm, cultured outdoor-living designer who guides a guest through the Wonderlands experience out loud.
@@ -80,13 +83,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const apiKey = Deno.env.get("GROQ_API_KEY");
-    if (!apiKey) throw new Error("GROQ_API_KEY is not configured");
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
 
     const body = (await req.json()) as GeniusRequest;
     const turns = (body.messages ?? []).slice(-12).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));
 
-    const res = await groqChat(apiKey, ({
+    const res = await metaChat(apiKey, ({
         temperature: 0.4,
         response_format: { type: "json_object" },
         messages: [
@@ -94,11 +97,11 @@ serve(async (req) => {
           { role: "system", content: buildContext(body) },
           ...turns,
         ],
-      }));
+      }), apiIdForModelKey(body.model));
 
     if (!res.ok) {
       const details = await res.text().catch(() => "");
-      console.error(`genius groq error [${res.status}]: ${details.slice(0, 300)}`);
+      console.error(`genius meta error [${res.status}]: ${details.slice(0, 300)}`);
       const message = res.status === 429 ? "Genius is catching her breath — try again in a moment." : "Genius is unavailable right now.";
       return new Response(JSON.stringify({ error: message, status: res.status }), {
         status: res.status,
@@ -140,7 +143,7 @@ serve(async (req) => {
           }))
       : [];
 
-    return new Response(JSON.stringify({ reply, actions }), {
+    return new Response(JSON.stringify({ reply, actions, model: body.model ?? null }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
