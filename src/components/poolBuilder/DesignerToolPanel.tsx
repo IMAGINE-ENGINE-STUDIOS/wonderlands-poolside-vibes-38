@@ -128,6 +128,7 @@ type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'pool-features' |
 
 export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const [expandedSection, setExpandedSection] = useState<PanelSection>(null);
+  const [poolQuery, setPoolQuery] = useState('');
   const [depthAnchorId, setDepthAnchorId] = useState<string | null>(null);
   // Board selection (broadcast by SiteElementsLayer) drives the Materials panel.
   const [boardSel, setBoardSel] = useState<{ id: string | null; kind: string | null; color?: string; style?: string } | null>(null);
