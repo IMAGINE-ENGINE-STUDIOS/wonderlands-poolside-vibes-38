@@ -5,8 +5,8 @@
  * Rule (one place, used by the board's take-off, header and total):
  *  - Pools and spas are counted whole.
  *  - Deck = drawn deck MINUS every pool/spa it overlaps, MINUS any deck drawn later
- *    on top of it (the newest surface wins where two decks overlap).
- *  - Turf = drawn turf MINUS pools, spas and decks, MINUS later turf on top.
+ *    before it (existing surfaces keep their material where drawings overlap).
+ *  - Turf = drawn turf MINUS pools, spas, coping and decks, MINUS earlier turf.
  *  - Screens cover everything (gross footprint); fences are linear (untouched).
  * Uses polygon-clipping (already used by paverAreaLogic) for exact booleans.
  */
@@ -30,7 +30,7 @@ const multiArea = (m: Ring[][]) => m.reduce((s, poly) => s + poly.reduce((a, r, 
 const gross = (pts: NetPt[]) => (pts.length < 3 ? 0 : ringArea(ring(pts)));
 
 /** What each surface kind is cut by (besides later items of the same kind). */
-const CUT_BY: Record<string, string[]> = { deck: ["pool", "spa"], turf: ["pool", "spa", "deck"] };
+const CUT_BY: Record<string, string[]> = { deck: ["pool", "spa", "coping"], turf: ["pool", "spa", "coping", "deck"] };
 
 /** Net sq ft per item id (only for area kinds). Fences are not included. */
 export function computeNetAreas(items: NetItem[]): Map<string, number> {
@@ -40,7 +40,7 @@ export function computeNetAreas(items: NetItem[]): Map<string, number> {
     const cutKinds = CUT_BY[it.kind];
     if (!cutKinds) { out.set(it.id, gross(it.pts)); return; }
     const cuts = items
-      .filter((o, j) => o.id !== it.id && o.pts.length >= 3 && (cutKinds.includes(o.kind) || (o.kind === it.kind && j > idx)))
+      .filter((o, j) => o.id !== it.id && o.pts.length >= 3 && (cutKinds.includes(o.kind) || (o.kind === it.kind && j < idx)))
       .map((o) => [ring(o.pts)]);
     if (!cuts.length) { out.set(it.id, gross(it.pts)); return; }
     try {
@@ -57,7 +57,7 @@ export function computeNetAreas(items: NetItem[]): Map<string, number> {
 export function cuttersFor(items: NetItem[], it: NetItem): NetPt[][] {
   const cutKinds = CUT_BY[it.kind] ?? [];
   const idx = items.findIndex((o) => o.id === it.id);
-  return items.filter((o, j) => o.id !== it.id && o.pts.length >= 3 && (cutKinds.includes(o.kind) || (o.kind === it.kind && j > idx))).map((o) => o.pts);
+  return items.filter((o, j) => o.id !== it.id && o.pts.length >= 3 && (cutKinds.includes(o.kind) || (o.kind === it.kind && j < idx))).map((o) => o.pts);
 }
 
 /** Exact clipped regions (outer + holes) for 3D surfaces. */
