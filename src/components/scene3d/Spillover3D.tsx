@@ -29,13 +29,31 @@ function streakTexture() {
   return streak;
 }
 
+/** Spillway bed depth (ft): the notch through the coping, water crosses it before falling. */
+const LIP = 1;
+/** A flat quad strip a→b pushed out along n from o0 to o1 at height y (bed) or a vertical face at offset o from y0 to y1 (wall). */
+function quad(p: [number, number, number][], uv: [number, number][]) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(p.flat(), 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv.flat(), 2));
+  g.setIndex([0, 1, 2, 0, 2, 3]); g.computeVertexNormals(); return g;
+}
+function spillwayParts(a: XZ, b: XZ, n: XZ, top: number, bottom: number) {
+  const L = Math.hypot(b.x - a.x, b.z - a.z), H = Math.max(0.05, top - bottom);
+  const at = (p: XZ, o: number, y: number): [number, number, number] => [p.x + n.x * o, y, p.z + n.z * o];
+  const bed = quad([at(a, -0.05, top), at(b, -0.05, top), at(b, LIP, top), at(a, LIP, top)], [[0, 0], [L, 0], [L, LIP], [0, LIP]]);
+  const lip = quad([at(a, LIP, top), at(b, LIP, top), at(b, LIP, top - 0.25), at(a, LIP, top - 0.25)], [[0, 0], [L, 0], [L, 0.25], [0, 0.25]]);
+  const wall = quad([at(a, LIP, top - 0.25), at(b, LIP, top - 0.25), at(b, LIP, bottom), at(a, LIP, bottom)], [[0, 0], [L, 0], [L, H], [0, H]]);
+  return { bed, lip, wall };
+}
+
 function sheetGeometry(a: XZ, b: XZ, n: XZ, top: number, bottom: number, pitch: number) {
   const H = Math.max(0.3, top - bottom), L = Math.hypot(b.x - a.x, b.z - a.z);
   const throwFt = Math.tan((Math.min(45, Math.max(0, pitch)) * Math.PI) / 180) * H * 1.2;
   const rows = 16, cols = Math.max(2, Math.ceil(L * 2));
   const pos: number[] = [], uv: number[] = [], idx: number[] = [];
   for (let r = 0; r <= rows; r++) {
-    const u = r / rows, off = 0.06 + throwFt * Math.sqrt(u), y = top - H * u * u * 0.35 - H * u * 0.65;
+    const u = r / rows, off = LIP + 0.06 + throwFt * Math.sqrt(u), y = top - H * u * u * 0.35 - H * u * 0.65;
     for (let c = 0; c <= cols; c++) {
       const t = c / cols, x = a.x + (b.x - a.x) * t + n.x * off, z = a.z + (b.z - a.z) * t + n.z * off;
       pos.push(x, y, z); uv.push(t * L * 0.5, u * H * 0.5);
@@ -45,10 +63,23 @@ function sheetGeometry(a: XZ, b: XZ, n: XZ, top: number, bottom: number, pitch: 
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
   g.setIndex(idx); g.computeVertexNormals();
-  return { g, landOff: 0.06 + throwFt, L };
+  return { g, landOff: LIP + 0.06 + throwFt, L };
 }
 
-export function Spillovers3D({ data, mainElevation = 0, deckLevel = 0, mainPts }: { data: Board3D; mainElevation?: number; deckLevel?: number; mainPts?: XZ[] }) {
+export function Spillovers3D({ data, mainElevation = 0, deckLevel = 0, mainPts, tileUrl }: { data: Board3D; mainElevation?: number; deckLevel?: number; mainPts?: XZ[]; tileUrl?: string }) {
+  // Tiled spillway bed + wet wall: the source body's waterline tile, else the main one.
+  const tiles = React.useMemo(() => {
+    const cache = new Map<string, THREE.MeshStandardMaterial>();
+    return (url?: string) => {
+      const k = url || "";
+      if (!cache.has(k)) {
+        const m = new THREE.MeshStandardMaterial({ color: url ? "#ffffff" : "#2f7fb8", roughness: 0.15, metalness: 0.15, side: THREE.DoubleSide });
+        if (url) new THREE.TextureLoader().load(url, (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; m.map = t; m.needsUpdate = true; });
+        cache.set(k, m);
+      }
+      return cache.get(k)!;
+    };
+  }, []);
   const tex = React.useMemo(streakTexture, []);
   const mat = React.useMemo(() => new THREE.MeshStandardMaterial({ map: tex, transparent: true, opacity: 0.8, roughness: 0.05, metalness: 0.1, side: THREE.DoubleSide, depthWrite: false }), [tex]);
   const foam = React.useMemo(() => new THREE.MeshStandardMaterial({ color: "#ffffff", transparent: true, opacity: 0.55, depthWrite: false }), []);
@@ -67,10 +98,14 @@ export function Spillovers3D({ data, mainElevation = 0, deckLevel = 0, mainPts }
     const n = { x: nx, z: nz };
     const { g, landOff } = sheetGeometry(sp.a, sp.b, n, top, Math.min(bottom, top - 0.3), sp.pitch);
     const foamGeo = new THREE.PlaneGeometry(Math.hypot(sp.b.x - sp.a.x, sp.b.z - sp.a.z), 0.5); foamGeo.rotateX(-Math.PI / 2);
-    return { id: sp.id, g, foamGeo, foamPos: [mx + nx * landOff, Math.min(bottom, top - 0.3) + 0.03, mz + nz * landOff] as [number, number, number], foamRot: -Math.atan2(sp.b.z - sp.a.z, sp.b.x - sp.a.x) };
-  }), [data.spills, data.waters, mainElevation, deckLevel, mainPts]);
+    const parts = spillwayParts(sp.a, sp.b, n, top + 0.04, Math.min(bottom, top - 0.3));
+    return { id: sp.id, g, parts, tile: tiles(src?.waterline || tileUrl), foamGeo, foamPos: [mx + nx * landOff, Math.min(bottom, top - 0.3) + 0.03, mz + nz * landOff] as [number, number, number], foamRot: -Math.atan2(sp.b.z - sp.a.z, sp.b.x - sp.a.x) };
+  }), [data.spills, data.waters, mainElevation, deckLevel, mainPts, tileUrl, tiles]);
   return <group name="spillovers">{sheets.map((s) => (
     <group key={s.id}>
+      <mesh geometry={s.parts.bed} material={s.tile} receiveShadow />
+      <mesh geometry={s.parts.lip} material={s.tile} />
+      <mesh geometry={s.parts.wall} material={s.tile} receiveShadow />
       <mesh geometry={s.g} material={mat} renderOrder={11} raycast={() => null} />
       <mesh geometry={s.foamGeo} material={foam} position={s.foamPos} rotation={[0, s.foamRot, 0]} renderOrder={12} raycast={() => null} />
     </group>))}</group>;
