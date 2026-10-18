@@ -12,7 +12,15 @@ import {
   type SitePlanData,
 } from "@/components/blueprint/SiteDrawingBoard";
 import { computeSiteEstimate, formatMoney } from "@/lib/siteEstimate";
-import { registerGeniusDesignAgent, resizeSitePlanPool } from "@/lib/geniusDesignBus";
+import {
+  registerGeniusDesignAgent,
+  resizeSitePlanPool,
+  translateSiteShapes,
+  moveShapeBeside,
+  reshapeSiteShape,
+  placeObjectShapes,
+  removeSiteShapes,
+} from "@/lib/geniusDesignBus";
 import { buildProductSitePlan } from "@/lib/productSitePlan";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { applySelectionsToPlan, selectionsFromExtras } from "@/lib/design/productBoardHydration";
@@ -249,6 +257,40 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
         if (!seeded) return "There is no published drawing for this one — draw it and I will price it.";
         setFlipBoardValue(boardId, { site: seeded });
         return `${modelName ?? "The plan"} is back at its published dimensions.`;
+      },
+      move: (target, dxFt, dyFt) => {
+        if (board.kind !== "site") return null;
+        const next = translateSiteShapes(siteRef.current, target, dxFt, dyFt);
+        if (!next) return `There is no ${target} on this board yet.`;
+        setFlipBoardValue(boardId, { site: next });
+        return `Moved the ${target} ${Math.abs(dxFt) >= Math.abs(dyFt) ? `${Math.abs(dxFt)}′ ${dxFt < 0 ? "left" : "right"}` : `${Math.abs(dyFt)}′ ${dyFt < 0 ? "up" : "down"}`}.`;
+      },
+      moveBeside: (target, beside, side) => {
+        if (board.kind !== "site") return null;
+        const moved = moveShapeBeside(siteRef.current, target, beside, side);
+        if (!moved) return `I need both the ${target} and the ${beside} drawn before I can set one beside the other.`;
+        setFlipBoardValue(boardId, { site: moved.plan });
+        return `The ${target} now sits beside the ${beside}, 2′ clear.`;
+      },
+      place: (req) => {
+        if (board.kind !== "site") return null;
+        const outcome = placeObjectShapes(siteRef.current, req);
+        if (outcome.placed > 0) setFlipBoardValue(boardId, { site: outcome.plan });
+        return outcome.note;
+      },
+      reshape: (target, op) => {
+        if (board.kind !== "site") return null;
+        const next = reshapeSiteShape(siteRef.current, target, op);
+        if (!next) return `There is no ${target} shape on this board to reshape.`;
+        setFlipBoardValue(boardId, { site: next });
+        return op === "curve" ? `The ${target} edges are curved now — a smooth spline all round.` : `The ${target} is straightened — clean lines again.`;
+      },
+      remove: (target) => {
+        if (board.kind !== "site") return null;
+        const { plan, removed } = removeSiteShapes(siteRef.current, target);
+        if (!removed) return null;
+        setFlipBoardValue(boardId, { site: plan });
+        return `Removed ${removed} ${target} shape${removed === 1 ? "" : "s"} from the board.`;
       },
     });
   }, [board.kind, boardId, categoryId, modelName, modelMeta, part]);
