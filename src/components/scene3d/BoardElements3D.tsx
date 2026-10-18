@@ -14,7 +14,7 @@ import { textureCache } from "@/utils/textureCache";
 import { smoothCurvedRing } from "@/utils/deckSurface";
 import { generateCurvedPoolPoints } from "@/utils/curveUtils";
 import { PoolMesh } from "@/components/Pool3DScene";
-import { CopingGeometry } from "./CopingGeometry";
+import { CopingGeometry, type SpillCut } from "./CopingGeometry";
 import { InstancedBoxes, beamBox, type BoxInstance } from "./InstancedBoxes";
 import { buildScreenFrame, strut } from "@/utils/screenStructureGeometry";
 import { WaterlineMesh } from "@/components/WaterlineMesh";
@@ -258,8 +258,8 @@ const sharedWater = () => (waterMat ??= new THREE.MeshStandardMaterial({ color: 
  */
 const waterKeyCache = new WeakMap<Water3D, string>();
 const waterKey = (w: Water3D) => { let k = waterKeyCache.get(w); if (k == null) { k = JSON.stringify(w); waterKeyCache.set(w, k); } return k; };
-const Water = React.memo(WaterBody, (a, b) => a.i === b.i && a.scales === b.scales && a.mainCoping === b.mainCoping && a.mainWaterline === b.mainWaterline && (a.w === b.w || waterKey(a.w) === waterKey(b.w)));
-function WaterBody({ w, i, scales, mainCoping, mainWaterline }: { w: Water3D; i: number; scales: SceneScales; mainCoping?: string; mainWaterline?: string }) {
+const Water = React.memo(WaterBody, (a, b) => a.i === b.i && a.scales === b.scales && a.mainCoping === b.mainCoping && a.mainWaterline === b.mainWaterline && a.cutKey === b.cutKey && (a.w === b.w || waterKey(a.w) === waterKey(b.w)));
+function WaterBody({ w, i, scales, mainCoping, mainWaterline, cuts }: { w: Water3D; i: number; scales: SceneScales; mainCoping?: string; mainWaterline?: string; cuts?: SpillCut[]; cutKey?: string }) {
   const c = React.useMemo(() => waterCenter(w.pts), [w.pts]);
   const local = React.useMemo(() => denseRing(w.pts.map((p) => ({ x: p.x - c.x, y: p.z - c.z }))).map((p, k) => ({ ...p, id: `${w.itemId ?? i}-p${k}` })), [w.pts, c, w.itemId, i]);
   const curve = React.useMemo(() => local.map((p) => ({ x: p.x, z: p.y })), [local]);
@@ -282,7 +282,8 @@ function WaterBody({ w, i, scales, mainCoping, mainWaterline }: { w: Water3D; i:
           linerTextureUrl={urlOr(w.finish, BASE_FINISH)!} linerTextureScale={w.finishScale ?? scales.finish} poolDimensions={dims} copingHeight={copingH} />
       </group>
       <group onClick={pick("coping")}>
-        <CopingGeometry poolPoints={curve} copingWidth={w.copingWidth} copingHeight={copingH} textureUrl={urlOr(w.coping, mainCoping)} textureScale={w.copingScale ?? scales.coping} />
+        <CopingGeometry poolPoints={curve} copingWidth={w.copingWidth} copingHeight={copingH} textureUrl={urlOr(w.coping, mainCoping)} textureScale={w.copingScale ?? scales.coping}
+          cuts={cuts?.map((k) => ({ a: { x: k.a.x - c.x, z: k.a.z - c.z }, b: { x: k.b.x - c.x, z: k.b.z - c.z } }))} />
       </group>
       <group onClick={pick("waterline")}>
         <WaterlineMesh poolPoints={local as any} wallCurve={curve} waterlineTextureUrl={urlOr(w.waterline, mainWaterline)} waterlineTextureScale={w.waterlineScale ?? scales.waterline} copingHeight={copingH} />
@@ -397,8 +398,8 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
         : <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={s.scale ?? scales.paver} />)}
       {data.fences.map((f, i) => off("fence", f.itemId, i, "fences") ? null : <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => off("screen", s.itemId, i, "fences") ? null : <Screen key={`c${i}`} s={s} i={i} />)}
-      {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} deckLevel={deckLevel} mainPts={data.primaryPts} />}
-      {(data.waters ?? []).map((w, i) => !w || !Array.isArray(w.pts) || w.pts.length < 3 || off("water", w.itemId, i, "structure") ? null : <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} />)}
+      {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} deckLevel={deckLevel} mainPts={data.primaryPts} tileUrl={mainWaterline} />}
+      {(data.waters ?? []).map((w, i) => !w || !Array.isArray(w.pts) || w.pts.length < 3 || off("water", w.itemId, i, "structure") ? null : (() => { const cuts = (data.spills ?? []).filter((sp) => sp.waterId === w.itemId); return <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} cuts={cuts} cutKey={cuts.map((k) => `${k.a.x},${k.a.z},${k.b.x},${k.b.z}`).join("|")} />; })())}
     </group>
   );
 }
