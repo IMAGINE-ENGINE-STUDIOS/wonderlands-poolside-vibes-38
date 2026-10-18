@@ -114,11 +114,15 @@ export function useDraggablePanel(key: string) {
     setPos({ x: 0, y: 0 });
   }, [storageKey]);
 
+  // Phones: panels dock as a bottom sheet (styles/components.css [data-studio-panel]);
+  // drag offsets saved on desktop would push them off-screen, so they are ignored.
+  const phone = typeof window !== 'undefined' && window.innerWidth < 640;
   return {
     panelProps: {
       ref,
-      onPointerDown,
-      style: { translate: `${pos.x}px ${pos.y}px`, cursor: 'grab' } as React.CSSProperties,
+      onPointerDown: phone ? undefined : onPointerDown,
+      'data-studio-panel': '',
+      style: (phone ? {} : { translate: `${pos.x}px ${pos.y}px`, cursor: 'grab' }) as React.CSSProperties,
     },
     reset,
   };

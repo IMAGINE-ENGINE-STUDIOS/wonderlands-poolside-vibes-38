@@ -114,7 +114,7 @@ export function SceneObjectsPanel({ groups, className, defaultOpen = false, foot
   return (
     <div
       className={cn(
-        'w-72 max-h-[70vh] flex flex-col glass-panel rounded-xl overflow-hidden',
+        'w-[min(18rem,calc(100vw-1.5rem))] max-h-[60vh] sm:max-h-[70vh] flex flex-col glass-panel rounded-xl overflow-hidden',
         className
       )}
     >
