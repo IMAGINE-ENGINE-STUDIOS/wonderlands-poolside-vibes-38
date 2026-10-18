@@ -1,5 +1,5 @@
 import * as React from 'react';
-const { useState, useMemo, useEffect, useRef, Suspense } = React;
+const { useState, useMemo, useEffect, useRef, useCallback, Suspense } = React;
 import { PerspectiveCamera, Grid, useTexture, TransformControls, OrbitControls } from '@react-three/drei';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
