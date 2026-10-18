@@ -27,7 +27,7 @@ export function inSpillCut(x: number, z: number, c: SpillCut, width: number) {
   const t = ((x - c.a.x) * dx + (z - c.a.z) * dz) / L2;
   if (t < 0 || t > 1) return false;
   const d = Math.abs((x - c.a.x) * dz - (z - c.a.z) * dx) / Math.sqrt(L2);
-  return d <= width + 0.35;
+  return d <= width + 0.05;
 }
 
 export const CopingGeometry = ({ 
@@ -83,11 +83,21 @@ export const CopingGeometry = ({
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
 
+    // With spill cuts, long straight edges are split into ≤0.25 ft steps so the notch
+    // removes only stones over the stretch — a whole side (or its corner) never vanishes.
+    const ring = cuts && cuts.length
+      ? poolPoints.flatMap((p, i) => {
+          const q = poolPoints[(i + 1) % poolPoints.length];
+          const n = Math.max(1, Math.ceil(Math.hypot(q.x - p.x, q.z - p.z) / 0.25));
+          return Array.from({ length: n }, (_, k) => ({ x: p.x + ((q.x - p.x) * k) / n, z: p.z + ((q.z - p.z) * k) / n }));
+        })
+      : poolPoints;
+
     // Exact mitred band: sharp tips (triangular pools) get a bevel instead of a
     // collapsed/overlapping corner, and the inner ring is expanded in lockstep so
     // every inner vertex pairs with exactly one outer vertex.
     const { base: copingInnerBoundary, offset: copingOuterBoundary } = mitredOffsetRing(
-      poolPoints,
+      ring,
       copingWidth,
       { miterLimit: 2.5 }
     );
