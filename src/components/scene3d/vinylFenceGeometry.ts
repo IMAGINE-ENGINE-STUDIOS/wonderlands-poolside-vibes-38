@@ -70,17 +70,9 @@ export function buildVinylFence(pts: VXZ[], H: number): VinylParts {
     const span = L - V.post + 2 * V.pocket;
     out.rails.push({ x: cx, y: botY, z: cz, sx: span, sy: V.railH, sz: V.railD, ry });
     out.rails.push({ x: cx, y: topY, z: cz, sx: span, sy: V.railH, sz: V.railD, ry });
-    // Pickets packed edge to edge; last one trimmed so the field fills exactly.
-    const n = Math.ceil(span / V.picketW - 1e-6);
-    const start = -span / 2;
-    for (let s = 0; s < n; s++) {
-      const w = Math.min(V.picketW, span - s * V.picketW);
-      if (w <= 0.005) break;
-      const off = start + s * V.picketW + w / 2;
-      // Alternate a hair of depth so each T&G seam reads as a groove line.
-      const d = s % 2 ? V.picketD : V.picketD * 0.92;
-      out.pickets.push({ x: cx + ux * off, y: (fieldLo + fieldHi) / 2, z: cz + uz * off, sx: w, sy: fieldH + 0.04, sz: d, ry });
-    }
+    // One infill board per panel: the diffuse texture already draws the T&G
+    // pickets, so it maps exactly once across each 8 ft panel (manifest repeat 1,1).
+    out.pickets.push({ x: cx, y: (fieldLo + fieldHi) / 2, z: cz, sx: span, sy: fieldH + 0.04, sz: V.picketD, ry });
   }
   return out;
 }

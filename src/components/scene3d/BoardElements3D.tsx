@@ -22,7 +22,7 @@ import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
 import { applyHoleCut } from "./holeCutShader";
 import { buildVinylFence } from "./vinylFenceGeometry";
-import { vinylMaterial } from "@/lib/design/vinylFenceMaterials";
+import { vinylMaterial, vinylSolidMaterial } from "@/lib/design/vinylFenceMaterials";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
 export const BOARD_SELECT_EVENT = "studio3d:boardSelect";
@@ -124,14 +124,16 @@ const isVinyl = (s: string) => s === "vinyl";
 const PYRAMID = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1).rotateY(Math.PI / 4);
 function VinylFence({ f, i }: { f: Fence3D; i: number }) {
   const H = f.height;
-  /* Textured finishes from the AFC-373 manifest; posts follow the panel finish unless set. */
+  /* Panel infill wears the AFC-373 texture once per panel; posts, caps and rails
+     stay solid vinyl in the matching finish colour (texture would smear on them). */
   const panelMat = React.useMemo(() => vinylMaterial(f.color), [f.color]);
-  const postMat = React.useMemo(() => vinylMaterial(f.postColor ?? f.color), [f.postColor, f.color]);
+  const railMat = React.useMemo(() => vinylSolidMaterial(f.color), [f.color]);
+  const postMat = React.useMemo(() => vinylSolidMaterial(f.postColor ?? f.color), [f.postColor, f.color]);
   const parts = React.useMemo(() => buildVinylFence(f.pts, H), [f.pts, H]);
   return (
     <group name="board-fence" onClick={select({ type: "fence", i })}>
       <InstancedBoxes boxes={parts.posts} material={postMat} castShadow />
-      <InstancedBoxes boxes={parts.rails} material={panelMat} castShadow />
+      <InstancedBoxes boxes={parts.rails} material={railMat} castShadow />
       <InstancedBoxes boxes={parts.pickets} material={panelMat} castShadow />
       {parts.caps.map((c, k) => (
         <group key={k} position={[c.x, c.y - c.sy / 2, c.z]}>
