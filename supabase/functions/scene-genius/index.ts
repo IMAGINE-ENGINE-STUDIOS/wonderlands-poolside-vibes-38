@@ -1,10 +1,21 @@
 // Scene Genius — turns a plain-language brief into a full pool scene plan
 // (pool shape, size, depth profile, deck, stairs, seating, lights, finishes,
 // and 3D models to search for) using Groq. The client applies the plan.
+// Brief upgraded 2026-10-18: edit-in-place doctrine (relative resizes and
+// spline/shape edits modify the CURRENT design; a new design is emitted
+// only when explicitly requested), circular pools, multi-part requests.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
-const SYSTEM = `You EDIT a residential backyard pool design in feet. You receive the current design and the user's request.
-Reply with ONE JSON object only. Include ONLY the keys the user's request changes — omit everything else so it stays as is.
+const SYSTEM = `You EDIT a residential backyard pool design in feet. You receive the current design and the user's request. Reply with ONE JSON object only.
+
+EDIT-IN-PLACE DOCTRINE (absolute):
+- The current design EXISTS. Every request modifies it. Include ONLY the keys the request changes — omit everything else so it stays exactly as it is. NEVER re-emit the whole design, and NEVER treat an edit as a new design. Only when the user explicitly says "new pool", "start over", "replace it" or "scrap this" may you specify a full design.
+- RELATIVE EDITS are computed from the CURRENT design values: "make the pool 2 feet larger" = current length + 2 AND width + 2. "Longer" changes length only; "wider" changes width only. "Deeper" / "shallower" adjusts every depthProfile depth by the amount (keep depths between 0 and 12, keep the profile shape). "Bigger deck" = deck width + the amount. If no amount is given for a relative edit, use 2 feet.
+- SHAPE AND SPLINE EDITS change only the shape keys: "round the corners" = raise cornerRadius (keep shape, size, depth, deck, finishes untouched). "Make it curvy / freeform / kidney" = change "shape" only. A shape change is an edit of the current pool, not a new pool.
+- CIRCULAR POOL: a round or circular pool is shape "oval" with length EQUAL to width (the diameter). "Round pool, 20 feet across" = oval, length 20, width 20.
+- MULTI-PART REQUESTS: put every changed key in the ONE plan ("make it longer, add wedding-cake stairs, blue waterline, night mode" = pool + stairs + waterlineHint + night together).
+
+PLAN SCHEMA (include only changed keys):
 {
  "summary": string (one sentence describing what you changed),
  "pool": { "shape": "rectangle"|"oval"|"kidney"|"l-shape"|"freeform"|"roman", "length": number 10-60, "width": number 8-30,
@@ -12,9 +23,9 @@ Reply with ONE JSON object only. Include ONLY the keys the user's request change
            "depthProfile": [ { "position": number 0-1, "depth": number 0-12 } ] (2-8 anchors, shallow end at 0),
            "zeroEntry": { "length": number 4-15 } (only when the user asks for zero entry / beach entry / walk-in entry) },
  "deck": { "width": number 3-20, "copingWidth": number 0.5-2 },
- "finishHint": string (pool interior finish words, e.g. "blue", "white", "graphite"),
+ "finishHint": string (pool interior finish words: plaster, pebble, quartz + color, e.g. "pebble blue", "white plaster", "graphite"),
  "copingHint": string (coping material/color words, e.g. "travertine", "white", "bullnose"),
- "waterlineHint": string (waterline tile words),
+ "waterlineHint": string (waterline tile words, e.g. "blue glass tile", "aqua ceramic"),
  "paverHint": string (deck paver words, e.g. "travertine", "gray", "brick"),
  "stairs": [ { "style": "classic"|"wedding-cake"|"bench"|"floating", "width": number 3-14, "wallPosition": number 0-1, "softEdge": number 0-0.5 } ],
  "seating": [ { "type": "bench"|"lounge"|"corner"|"barstool"|"contour", "wallPosition": number 0-1, "count": number } ],
@@ -22,7 +33,12 @@ Reply with ONE JSON object only. Include ONLY the keys the user's request change
  "night": boolean,
  "models": [ { "query": string, "kind": "object"|"tree"|"terrain"|"skydome", "x": number, "z": number } ]
 }
-Rules: "models" ONLY when the user explicitly names objects, plants, trees, furniture, terrain or sky to add — the query must be exactly the thing they named. Never add palm trees or decor on your own. Keep x/z outside the pool and deck. NEVER change the pool shape, size, depth, deck or anything else the user did not name. If the request is about doors, gates, fences or screens, return only {"summary"}. No prose, no markdown.`;
+
+RULES:
+- "models" ONLY when the user explicitly names objects, plants, trees, furniture, terrain or sky to add — the query must be exactly the thing they named. Never add palm trees or decor on your own. Keep x/z OUTSIDE the pool and deck footprints and off any fence/screen line; spread models at least 4 feet apart in open yard.
+- FINISHES: when the user changes a finish, return ONLY that hint key (finishHint / copingHint / waterlineHint / paverHint) with their material and color words — plus summary.
+- SITE REQUESTS (fence, gate, door, screen enclosure, turf, extra deck, landscaping beds): return ONLY { "summary": one sentence naming exactly what to add or change and where, e.g. "Add a fence around the deck with a gate on the south side" } — no other keys. The app routes these from your summary.
+- NEVER change the pool shape, size, depth, deck or anything else the user did not name. No prose, no markdown — JSON only.`;
 
 // Pick the best chat model this Groq account can use (cached per instance).
 const PREFERRED = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'llama-4-maverick', 'llama-4-scout', 'qwen', 'llama-3.1-70b', 'gpt-oss', 'llama'];
