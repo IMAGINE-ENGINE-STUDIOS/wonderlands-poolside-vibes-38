@@ -22,6 +22,7 @@ import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
 import { useThree } from "@react-three/fiber";
 import { applyHoleCut } from "./holeCutShader";
 import { buildVinylFence } from "./vinylFenceGeometry";
+import { vinylMaterial } from "@/lib/design/vinylFenceMaterials";
 
 /** Clicking a board element opens its widget (BoardElementEditor). */
 export const BOARD_SELECT_EVENT = "studio3d:boardSelect";
@@ -123,8 +124,9 @@ const isVinyl = (s: string) => s === "vinyl";
 const PYRAMID = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1).rotateY(Math.PI / 4);
 function VinylFence({ f, i }: { f: Fence3D; i: number }) {
   const H = f.height;
-  const panelMat = React.useMemo(() => new THREE.MeshStandardMaterial({ color: f.color || "#ffffff", roughness: 0.42 }), [f.color]);
-  const postMat = React.useMemo(() => new THREE.MeshStandardMaterial({ color: f.postColor ?? "#ffffff", roughness: 0.4 }), [f.postColor]);
+  /* Textured finishes from the AFC-373 manifest; posts follow the panel finish unless set. */
+  const panelMat = React.useMemo(() => vinylMaterial(f.color), [f.color]);
+  const postMat = React.useMemo(() => vinylMaterial(f.postColor ?? f.color), [f.postColor, f.color]);
   const parts = React.useMemo(() => buildVinylFence(f.pts, H), [f.pts, H]);
   return (
     <group name="board-fence" onClick={select({ type: "fence", i })}>
