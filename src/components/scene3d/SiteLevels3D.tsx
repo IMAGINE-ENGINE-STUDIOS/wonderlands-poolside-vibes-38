@@ -13,6 +13,8 @@
 import * as React from "react";
 import * as THREE from "three";
 import { InstancedBoxes } from "./InstancedBoxes";
+import { useThree } from "@react-three/fiber";
+import { ringLengths, ringAt, nearestU, updateStairs, type StairKey, type StairRun } from "@/lib/design/siteStairs";
 
 type XZ = { x: number; z: number };
 
@@ -100,6 +102,71 @@ export function XrayShell({ ring, depth }: { ring: XZ[]; depth: number }) {
     <group renderOrder={-1}>
       <mesh geometry={geo.wall} material={xrayMat} />
       <mesh geometry={geo.floor} material={xrayMat} />
+    </group>
+  );
+}
+
+/* ------------------------------------------------------------------------- */
+/* Perimeter access stairs — sweep along any stretch of a ring, up to a full  */
+/* 360° wrap, and can be dragged around the edge. Imagine Engine Studios Corp. */
+/* ------------------------------------------------------------------------- */
+
+const handleMat = new THREE.MeshStandardMaterial({ color: "#f97066", roughness: 0.4 });
+
+/**
+ * Steps from `hi` (at the ring) down to `lo`, marching away from the ring:
+ * dir +1 = outward (raised deck / raised pool), −1 = inward (sunken pit).
+ */
+export function PerimeterStairs({ ring: raw, hi, lo, dir, run, stairKey, material }: {
+  ring: XZ[]; hi: number; lo: number; dir: 1 | -1; run: StairRun; stairKey: StairKey; material?: THREE.Material;
+}) {
+  const ring = React.useMemo(() => clean(raw), [raw]);
+  const acc = React.useMemo(() => ringLengths(ring), [ring]);
+  const { boxes, handle } = React.useMemo(() => {
+    const h = hi - lo;
+    if (!run.enabled || ring.length < 3 || h < 0.2) return { boxes: [], handle: null };
+    const L = acc[acc.length - 1] || 1;
+    let area = 0; for (let i = 0; i < ring.length; i++) { const a = ring[i], b = ring[(i + 1) % ring.length]; area += a.x * b.z - b.x * a.z; }
+    const sgn = area >= 0 ? 1 : -1;
+    const full = run.span >= 0.999;
+    const len = full ? L : Math.min(L, Math.max(run.width, run.span * L));
+    const pieces = Math.max(1, Math.ceil(len / 1));
+    const n = Math.max(2, Math.ceil(h / RISER_FT));
+    const out: { x: number; y: number; z: number; sx: number; sy: number; sz: number; ry: number }[] = [];
+    const u0 = run.start - len / L / 2;
+    for (let k = 0; k < pieces; k++) {
+      const p = ringAt(ring, acc, u0 + ((k + 0.5) * len) / pieces / L);
+      const nx = p.tz * sgn * dir, nz = -p.tx * sgn * dir;
+      const ry = -Math.atan2(p.tz, p.tx);
+      for (let j = 1; j < n; j++) {
+        const d = (j - 0.5) * TREAD_FT, top = hi - (h * j) / n;
+        // Outer steps sweep a longer arc on convex edges; widen them a touch so no gaps show.
+        const sx = (len / pieces) * (1 + (dir > 0 ? d * 0.08 : 0)) + 0.04;
+        out.push({ x: p.x + nx * d, y: (top + lo) / 2, z: p.z + nz * d, sx, sy: top - lo, sz: TREAD_FT, ry });
+      }
+    }
+    const c = ringAt(ring, acc, run.start);
+    const cnx = c.tz * sgn * dir, cnz = -c.tx * sgn * dir;
+    return { boxes: out, handle: { x: c.x + cnx * 0.5, y: hi + 0.35, z: c.z + cnz * 0.5 } };
+  }, [ring, acc, hi, lo, dir, run]);
+
+  const controls = useThree((s) => s.controls) as { enabled?: boolean } | null;
+  const dragging = React.useRef(false);
+  const plane = React.useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), -hi), [hi]);
+  const hit = React.useMemo(() => new THREE.Vector3(), []);
+  if (!boxes.length) return null;
+  return (
+    <group>
+      <InstancedBoxes boxes={boxes} material={material ?? wallMat} castShadow />
+      {handle && (
+        <mesh position={[handle.x, handle.y, handle.z]} material={handleMat}
+          onPointerDown={(e) => { e.stopPropagation(); dragging.current = true; (e.target as Element)?.setPointerCapture?.(e.pointerId); if (controls) controls.enabled = false; }}
+          onPointerMove={(e) => { if (!dragging.current) return; e.stopPropagation(); if (e.ray.intersectPlane(plane, hit)) updateStairs(stairKey, { start: nearestU(ring, acc, { x: hit.x, z: hit.z }) }); }}
+          onPointerUp={(e) => { dragging.current = false; (e.target as Element)?.releasePointerCapture?.(e.pointerId); if (controls) controls.enabled = true; }}
+        >
+          <sphereGeometry args={[0.3, 16, 12]} />
+        </mesh>
+      )}
     </group>
   );
 }

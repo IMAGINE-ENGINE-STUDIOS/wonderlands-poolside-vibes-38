@@ -27,7 +27,8 @@ import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, generateOffsetCurve } from '@/utils/curveUtils';
 import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
-import { RiserWall, AutoSteps, XrayShell } from './scene3d/SiteLevels3D';
+import { RiserWall, PerimeterStairs } from './scene3d/SiteLevels3D';
+import { useSiteStairs } from '@/lib/design/siteStairs';
 
 interface Point {
   x: number;
@@ -1225,8 +1226,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     }
     return sanitizeBoundary(generateOffsetCurve(poolCurve3D, localCopingWidth));
   }, [poolCurve3D, normalizedHardscapePoints, localCopingWidth, localDeckWidth, hasDeck]);
-  /** Deck top relative to grade: raised pool lifts the deck with it. */
-  const deckTop = poolElevation + (hasDeck ? deckElevation : 0);
+  /** Deck top relative to grade — independent of the pool, so a pool can rise above its deck. */
+  const deckTop = hasDeck ? deckElevation : 0;
+  /** Outer edge of the coping: where a raised pool's own wall and access stairs start. */
+  const copingOuterRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(generateOffsetCurve(poolCurve3D, localCopingWidth)) : []), [poolCurve3D, localCopingWidth]);
+  const siteStairs = useSiteStairs();
   const xrayRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(generateOffsetCurve(poolCurve3D, 0.5)) : []), [poolCurve3D]);
 
   // Convert pool points to spline editor format
@@ -1337,7 +1341,15 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {Math.abs(deckTop) > 0.01 && siteOuterRing.length >= 3 && (
         <>
           <RiserWall ring={siteOuterRing} y0={0} y1={deckTop} />
-          {hasDeck && <AutoSteps ring={siteOuterRing} level={deckTop} />}
+          {hasDeck && <PerimeterStairs stairKey="deck" run={siteStairs.deck} ring={siteOuterRing}
+            hi={Math.max(0, deckTop)} lo={Math.min(0, deckTop)} dir={deckTop > 0 ? 1 : -1} />}
+        </>
+      )}
+      {/* Pool taller than its deck: finished pool wall + access stairs from the deck up to the coping. */}
+      {poolElevation - deckTop > 0.01 && copingOuterRing.length >= 3 && (
+        <>
+          <RiserWall ring={copingOuterRing} y0={deckTop} y1={poolElevation} />
+          <PerimeterStairs stairKey="pool" run={siteStairs.pool} ring={copingOuterRing} hi={poolElevation} lo={deckTop} dir={1} />
         </>
       )}
       {/* Below-ground view: only the ground turns see-through so the finished pool interior
@@ -1393,7 +1405,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           )}
 
           {/* Explicit empty outline means no attached deck. */}
-          {hasDeck && !hiddenParts.deck && <group onClick={(e) => {
+          {/* The deck keeps its own level: cancel the pool's lift inside this group. */}
+          {hasDeck && !hiddenParts.deck && <group position={[0, -poolElevation, 0]} onClick={(e) => {
             e.stopPropagation();
           if ((e as any).delta > 4) return; // a drag (orbiting the camera) is not a click
             onSelectCategory?.('deck');

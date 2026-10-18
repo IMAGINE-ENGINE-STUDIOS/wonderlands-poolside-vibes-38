@@ -1,4 +1,5 @@
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { useSiteStairs, updateStairs } from '@/lib/design/siteStairs';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Sky, Grid, PerformanceMonitor } from '@react-three/drei';
@@ -773,6 +774,7 @@ export function UnifiedPoolVisualizer({
   const layerState = useSceneLayers();
   const hid = (id: string, layer = 'structure') => isObjectHidden(id, layer, layerState);
   const [xray, setXray] = usePersistentState('studio3d.xray', false);
+  const siteStairs = useSiteStairs();
   const poolElevation = Math.max(0, (scene.pool as any).elevation ?? 0);
   const deckElevation = scene.deck.deckElevation ?? 0;
   const bodyElevation = activeWater != null ? Math.max(0, activeW?.elevation ?? 0) : poolElevation;
@@ -1448,6 +1450,21 @@ export function UnifiedPoolVisualizer({
                 <span className="flex justify-between"><span>Deck level (− sunken / + raised)</span><span>{deckElevation >= 0 ? '+' : ''}{deckElevation.toFixed(1)} ft</span></span>
                 <Slider min={-4} max={4} step={0.25} value={[deckElevation]} onValueChange={([v]) => setLevels({ deck: v })} className="mt-1.5" />
               </label>
+              {([['deck', 'Deck stairs', Math.abs(deckElevation) > 0.01], ['pool', 'Pool access stairs', poolElevation - deckElevation > 0.01]] as const).map(([k, label, show]) => show && (
+                <div key={k} className="space-y-1.5 border-t border-border/50 pt-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox checked={siteStairs[k].enabled} onCheckedChange={(v) => updateStairs(k, { enabled: !!v })} />
+                    <span>{label}</span>
+                  </label>
+                  {siteStairs[k].enabled && <>
+                    <label className="block"><span className="flex justify-between"><span>Position around edge</span><span>{Math.round(siteStairs[k].start * 360)}°</span></span>
+                      <Slider min={0} max={1} step={0.005} value={[siteStairs[k].start]} onValueChange={([v]) => updateStairs(k, { start: v })} className="mt-1.5" /></label>
+                    <label className="block"><span className="flex justify-between"><span>Wrap around</span><span>{siteStairs[k].span >= 0.999 ? '360°' : Math.round(siteStairs[k].span * 360) + '°'}</span></span>
+                      <Slider min={0} max={1} step={0.01} value={[siteStairs[k].span]} onValueChange={([v]) => updateStairs(k, { span: v })} className="mt-1.5" /></label>
+                    <div className="text-[10px] text-muted-foreground">Drag the coral handle in the scene to slide the stairs along the edge.</div>
+                  </>}
+                </div>
+              ))}
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={!!xray} onCheckedChange={(v) => setXray(!!v)} />
                 <span>See pool walls below ground</span>
@@ -1976,7 +1993,7 @@ export function UnifiedPoolVisualizer({
           
           {/* Landscaping plan handed off from the Landscape Studio */}
           <LandscapePlants3D />
-          <BoardElements3D holes={[]} mainElevation={poolElevation}
+          <BoardElements3D holes={[]} mainElevation={poolElevation} deckLevel={deckElevation}
             scales={boardScales} mainCoping={scene.deck.coping?.url} mainWaterline={scene.deck.waterline?.url ?? scene.deck.coping?.url} />
 
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
