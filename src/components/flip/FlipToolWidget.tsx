@@ -16,6 +16,7 @@ import {
   registerGeniusDesignAgent,
   resizeSitePlanPool,
   translateSiteShapes,
+  translateSiteShapesMulti,
   moveShapeBeside,
   reshapeSiteShape,
   placeObjectShapes,
@@ -260,10 +261,18 @@ const FlipToolWidget: React.FC<Props> = ({ categoryId, onExpand, part = "board",
       },
       move: (target, dxFt, dyFt) => {
         if (board.kind !== "site") return null;
-        const next = translateSiteShapes(siteRef.current, target, dxFt, dyFt);
+        const next = translateSiteShapesMulti(siteRef.current, [target], dxFt, dyFt);
         if (!next) return `There is no ${target} on this board yet.`;
         setFlipBoardValue(boardId, { site: next });
         return `Moved the ${target} ${Math.abs(dxFt) >= Math.abs(dyFt) ? `${Math.abs(dxFt)}′ ${dxFt < 0 ? "left" : "right"}` : `${Math.abs(dyFt)}′ ${dyFt < 0 ? "up" : "down"}`}.`;
+      },
+      moveGroup: (targets, dxFt, dyFt) => {
+        if (board.kind !== "site") return null;
+        const next = translateSiteShapesMulti(siteRef.current, targets, dxFt, dyFt);
+        if (!next) return "None of those are on this board yet — draw them first and I'll move them together.";
+        setFlipBoardValue(boardId, { site: next });
+        const names = targets.map((target) => `the ${target}`).join(" and ");
+        return `Moved ${names} together ${Math.abs(dxFt) >= Math.abs(dyFt) ? `${Math.abs(dxFt)}′ ${dxFt < 0 ? "left" : "right"}` : `${Math.abs(dyFt)}′ ${dyFt < 0 ? "up" : "down"}`} — their layout stays exactly as drawn.`;
       },
       moveBeside: (target, beside, side) => {
         if (board.kind !== "site") return null;

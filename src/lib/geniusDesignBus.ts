@@ -29,6 +29,8 @@ export interface GeniusDesignAgent {
   setLayer?: (layer: string) => string | null;
   /** Translate a layer's shapes by feet (v2) */
   move?: (target: string, dxFt: number, dyFt: number) => string | null;
+  /** Move several things together by the same delta, layout preserved (v3) */
+  moveGroup?: (targets: string[], dxFt: number, dyFt: number) => string | null;
   /** Move a layer beside / inside another layer (v2) */
   moveBeside?: (target: string, beside: string, side?: string) => string | null;
   /** Place catalog objects with the placement rules enforced (v2) */
@@ -102,6 +104,7 @@ export type GeniusDesignCommand =
   | { kind: 'layer'; layer: string }
   | { kind: 'describe' }
   | { kind: 'move'; target: string; dxFt: number; dyFt: number }
+  | { kind: 'moveGroup'; targets: string[]; dxFt: number; dyFt: number }
   | { kind: 'moveBeside'; target: string; beside: string; side?: string }
   | { kind: 'place'; req: GeniusPlaceRequest }
   | { kind: 'reshape'; target: string; op: 'curve' | 'straighten' }
@@ -126,8 +129,41 @@ const ITEM_WORDS: Array<[RegExp, GeniusPlaceCategory, string]> = [
   [/\b(fireplaces?|fire ?pits?|fire ?bowls?)\b/, 'fire', 'fire feature'],
   [/\b(bbq|barbecue|grills?|outdoor kitchens?|kitchens?)\b/, 'kitchen', 'outdoor kitchen'],
   [/\b(cars?|vehicles?|trucks?|vans?)\b/, 'vehicle', 'vehicle'],
-  [/\b(statues?|decor(ations?)?|fountains?|lighting|lights?|planters?)\b/, 'decor', 'decor'],
+  [/\b(statues?|decor(ations?)?|fountains?|lighting|lights?|planters?|rocks?|boulders?)\b/, 'decor', 'decor'],
 ];
+
+/** Placed-object words resolve to their placement category token (genius:<category>). */
+const ITEM_TARGET_WORDS: Array<[RegExp, string]> = [
+  [/\brocks?|boulders?\b/, 'decor'],
+  [/\bpalms?|trees?|plants?|flowers?|bush(es)?|shrubs?|hedges?\b/, 'plant'],
+  [/\bchairs?|tables?|loungers?|sofas?|couch|furniture|benches?\b/, 'furniture'],
+  [/\bfireplaces?|fire ?pits?|fire ?bowls?\b/, 'fire'],
+  [/\bbbq|barbecue|grills?|outdoor kitchens?|kitchens?\b/, 'kitchen'],
+  [/\bcars?|vehicles?|trucks?|vans?\b/, 'vehicle'],
+  [/\bstatues?|fountains?|planters?\b/, 'decor'],
+];
+
+/** A movable thing: a drawn layer (pool, fence, screen…) or a placed object (rocks, palms…). */
+const findMoveTarget = (t: string): string | null => {
+  const layer = findTarget(t);
+  if (layer) return layer;
+  const item = ITEM_TARGET_WORDS.find(([re]) => re.test(t));
+  return item ? item[1] : null;
+};
+
+/** Every movable thing named in the phrase, in spoken order (for group moves). */
+const findMoveTargets = (t: string): string[] => {
+  const found: Array<{ at: number; target: string }> = [];
+  for (const [word, layer] of Object.entries(TARGET_WORDS)) {
+    const m = new RegExp(`\\b${word}\\b`).exec(t);
+    if (m) found.push({ at: m.index, target: layer });
+  }
+  for (const [re, token] of ITEM_TARGET_WORDS) {
+    const m = re.exec(t);
+    if (m) found.push({ at: m.index, target: token });
+  }
+  return [...new Set(found.sort((a, b) => a.at - b.at).map((f) => f.target))];
+};
 
 const findTarget = (t: string): string | null => {
   for (const [word, layer] of Object.entries(TARGET_WORDS)) {
@@ -175,14 +211,7 @@ export function parseGeniusDesignCommand(text: string): GeniusDesignCommand | nu
 
   /* v2 — move ("move the pool 3 feet left", "move the spa next to the fence") */
   if (/\b(move|shift|slide|nudge|relocate)\b/.test(t)) {
-    const target = findTarget(t);
-    if (target) {
-      const besideMatch = t.match(/\b(?:next to|beside|against|near|inside|into|by)\s+(?:the\s+)?([a-z ]+?)(?:\s+(?:on|to|by)\b|$)/);
-      const besideWord = besideMatch ? findTarget(besideMatch[1]) : null;
-      if (besideWord && besideWord !== target) {
-        const side = /\bleft\b/.test(t) ? 'left' : /\bright\b/.test(t) ? 'right' : /\b(above|behind|north)\b/.test(t) ? 'above' : /\b(below|front|south)\b/.test(t) ? 'below' : undefined;
-        return { kind: 'moveBeside', target, beside: besideWord, side };
-      }
+    const dirDelta = (): { dx: number; dy: number } | null => {
       const distMatch = t.match(/(\d+(?:\.\d+)?|[a-z\s-]{3,16}?)\s*(?:ft|feet|foot|m|metres?|meters?)\b/);
       const dist = distMatch ? readNumber(distMatch[1]) : null;
       const feet = dist == null ? 2 : /met/.test(t) ? dist * 3.28084 : dist;
@@ -191,7 +220,32 @@ export function parseGeniusDesignCommand(text: string): GeniusDesignCommand | nu
       else if (/\bright\b|\beast\b/.test(t)) dx = feet;
       if (/\b(up|north|back|away)\b/.test(t)) dy = -feet;
       else if (/\b(down|south|forward|towards? me)\b/.test(t)) dy = feet;
-      if (dx !== 0 || dy !== 0) return { kind: 'move', target, dxFt: +dx.toFixed(2), dyFt: +dy.toFixed(2) };
+      return dx !== 0 || dy !== 0 ? { dx, dy } : null;
+    };
+    /* v3 — group move: two or more named things move together, layout preserved
+       ("move the pool and the rocks together", "move the fence and the deck 4 feet north") */
+    const group = findMoveTargets(t);
+    if (group.length >= 2) {
+      const d = dirDelta();
+      if (d) return { kind: 'moveGroup', targets: group, dxFt: +d.dx.toFixed(2), dyFt: +d.dy.toFixed(2) };
+    }
+    const target = findMoveTarget(t);
+    if (target) {
+      /* The landmark after a beside-phrase is the destination, never the mover:
+         resolve the mover from the text BEFORE the phrase, so "move the spa
+         beside the pool" moves the spa (not the pool), and "move the palm next
+         to the fence" moves the palm. */
+      const besideMatch = t.match(/\b(?:next to|beside|against|near)\s+(?:the\s+)?(.+)$/);
+      if (besideMatch) {
+        const mover = findMoveTarget(t.slice(0, besideMatch.index)) ?? target;
+        const besideWord = findTarget(besideMatch[1]) ?? findMoveTarget(besideMatch[1]);
+        if (besideWord && besideWord !== mover) {
+          const side = /\bleft\b/.test(t) ? 'left' : /\bright\b/.test(t) ? 'right' : /\b(above|behind|north)\b/.test(t) ? 'above' : /\b(below|front|south)\b/.test(t) ? 'below' : undefined;
+          return { kind: 'moveBeside', target: mover, beside: besideWord, side };
+        }
+      }
+      const d = dirDelta();
+      if (d) return { kind: 'move', target, dxFt: +d.dx.toFixed(2), dyFt: +d.dy.toFixed(2) };
     }
   }
 
@@ -252,6 +306,10 @@ export function runGeniusDesignCommand(text: string): string | null {
     case 'move': {
       const done = agent.move?.(command.target, command.dxFt, command.dyFt);
       return done ?? `This board cannot move the ${command.target} by voice yet — drag it and I will keep pricing.`;
+    }
+    case 'moveGroup': {
+      const done = agent.moveGroup?.(command.targets, command.dxFt, command.dyFt);
+      return done ?? `This board cannot move things together by voice yet — drag them and I will keep pricing.`;
     }
     case 'moveBeside': {
       const done = agent.moveBeside?.(command.target, command.beside, command.side);
@@ -503,6 +561,28 @@ export function translateSiteShapes(plan: SitePlanData, layer: string, dxFt: num
   return {
     ...plan,
     shapes: plan.shapes.map((s) => s.layer === layer
+      ? { ...s, points: s.points.map((p) => ({ x: +(p.x + dx).toFixed(2), y: +(p.y + dy).toFixed(2) })) }
+      : s),
+  };
+}
+
+/** Does a shape belong to a move target? A target is a drawn layer name
+ * (pool, fence, enclosure, deck…) or a placed-object category — Genius-placed
+ * shapes carry importedFrom 'genius:<category>' (rocks ride the decor
+ * category, exactly as remove already treats them). */
+export function shapeMatchesTarget(s: SiteShape, target: string): boolean {
+  return s.layer === target || s.importedFrom === `genius:${target}`;
+}
+
+/** Translate every shape matching ANY of the targets by the same feet delta —
+ * a group move: relative layout between the moved things is preserved exactly.
+ * Returns null when nothing on the plan matches any target. */
+export function translateSiteShapesMulti(plan: SitePlanData, targets: string[], dxFt: number, dyFt: number): SitePlanData | null {
+  if (!plan.shapes.some((s) => targets.some((t) => shapeMatchesTarget(s, t)))) return null;
+  const dx = dxFt * plan.pxPerFt, dy = dyFt * plan.pxPerFt;
+  return {
+    ...plan,
+    shapes: plan.shapes.map((s) => targets.some((t) => shapeMatchesTarget(s, t))
       ? { ...s, points: s.points.map((p) => ({ x: +(p.x + dx).toFixed(2), y: +(p.y + dy).toFixed(2) })) }
       : s),
   };
