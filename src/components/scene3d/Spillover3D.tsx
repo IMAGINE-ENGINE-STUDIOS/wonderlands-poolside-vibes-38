@@ -41,10 +41,15 @@ function quad(p: [number, number, number][], uv: [number, number][]) {
 function spillwayParts(a: XZ, b: XZ, n: XZ, top: number, bottom: number) {
   const L = Math.hypot(b.x - a.x, b.z - a.z), H = Math.max(0.05, top - bottom);
   const at = (p: XZ, o: number, y: number): [number, number, number] => [p.x + n.x * o, y, p.z + n.z * o];
-  const bed = quad([at(a, -0.05, top), at(b, -0.05, top), at(b, LIP, top), at(a, LIP, top)], [[0, 0], [L, 0], [L, LIP], [0, LIP]]);
-  const lip = quad([at(a, LIP, top), at(b, LIP, top), at(b, LIP, top - 0.25), at(a, LIP, top - 0.25)], [[0, 0], [L, 0], [L, 0.25], [0, 0.25]]);
-  const wall = quad([at(a, LIP, top - 0.25), at(b, LIP, top - 0.25), at(b, LIP, bottom), at(a, LIP, bottom)], [[0, 0], [L, 0], [L, H], [0, H]]);
-  return { bed, lip, wall };
+  // Wet wall is a skin laid on the riser face (coping outer ring = LIP) — 2 mm proud
+  // to avoid z-fighting, one continuous face from the lip down to the landing.
+  const W = LIP + 0.007;
+  const bed = quad([at(a, -0.05, top), at(b, -0.05, top), at(b, W, top), at(a, W, top)], [[0, 0], [L, 0], [L, LIP], [0, LIP]]);
+  const lip = quad([at(a, W, top), at(b, W, top), at(b, W, bottom), at(a, W, bottom)], [[0, 0], [L, 0], [L, H], [0, H]]);
+  // Side returns close the notch ends so no gap shows between coping and spillway.
+  const sideA = quad([at(a, -0.05, top), at(a, W, top), at(a, W, top - 0.32), at(a, -0.05, top - 0.32)], [[0, 0], [LIP, 0], [LIP, 0.32], [0, 0.32]]);
+  const sideB = quad([at(b, W, top), at(b, -0.05, top), at(b, -0.05, top - 0.32), at(b, W, top - 0.32)], [[0, 0], [LIP, 0], [LIP, 0.32], [0, 0.32]]);
+  return { bed, lip, wall: sideA, sideB };
 }
 
 function sheetGeometry(a: XZ, b: XZ, n: XZ, top: number, bottom: number, pitch: number) {
@@ -89,7 +94,11 @@ export function Spillovers3D({ data, mainElevation = 0, deckLevel = 0, mainPts, 
     const src = sp.waterId ? data.waters?.find((w) => w.itemId === sp.waterId) : undefined;
     const top = (sp.waterId ? src?.elevation ?? 0 : mainElevation) - 0.12;
     const mx = (sp.a.x + sp.b.x) / 2, mz = (sp.a.z + sp.b.z) / 2;
-    let nx = mx - sp.center.x, nz = mz - sp.center.z; const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
+    // True wall normal: perpendicular to the spill chord, flipped away from the body
+    // centre. (A radial normal tilted the wet wall off the riser on straight sides.)
+    const cl = Math.hypot(sp.b.x - sp.a.x, sp.b.z - sp.a.z) || 1;
+    let nx = (sp.b.z - sp.a.z) / cl, nz = -(sp.b.x - sp.a.x) / cl;
+    if (nx * (mx - sp.center.x) + nz * (mz - sp.center.z) < 0) { nx = -nx; nz = -nz; }
     // Landing: inside another water body → its water line, else the ground/deck.
     const probe = { x: mx + nx * (0.6 + Math.tan((sp.pitch * Math.PI) / 180) * 1.5), z: mz + nz * (0.6 + Math.tan((sp.pitch * Math.PI) / 180) * 1.5) };
     const bodies: Array<{ pts: XZ[]; elev: number; id?: string }> = [...(mainPts && mainPts.length >= 3 ? [{ pts: mainPts, elev: mainElevation }] : []), ...(data.waters ?? []).map((w) => ({ pts: w?.pts ?? [], elev: w?.elevation ?? 0, id: w?.itemId }))];
