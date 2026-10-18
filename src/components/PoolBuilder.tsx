@@ -5990,7 +5990,7 @@ export function PoolBuilder({
       <div className="flex-1 overflow-hidden relative">
         {/* Site layer (fences/screens/turf) drawn with this canvas's own pan/zoom. */}
         {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale,
-          poolPts: points, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck', addMode: activeTool === 'add', poolDrawMode: activeTool === 'draw-pool' || activeTool === 'draw-deck' || activeTool === 'draw',
+          poolPts: points, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck', addMode: activeTool === 'add', poolDrawMode: activeTool === 'draw-pool' || activeTool === 'draw-deck',
           /* Hand-drawn deck boundary (overlay draws it, same board transform) — Imagine Engine Studios Corp. */
           setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${Date.now().toString(36)}${i}` }))),
           setPool: (pts) => setPoints(pts as Point[]),
