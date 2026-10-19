@@ -52,13 +52,10 @@ function persistedBarriers(): Barrier {
 }
 export const LANDSCAPE_LAYOUT_EVENT = 'design-studio:landscape-layout';
 
-function loadLayout(): LandscapeLayout {
-  try {
-    const raw = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
-    if (raw && Array.isArray(raw.beds) && Array.isArray(raw.plantings)) return raw as LandscapeLayout;
-  } catch { /* fresh board */ }
-  return emptyLandscapeLayout();
-}
+/* The board ALWAYS starts at zero (founder rule): a previous session's
+ * landscape is never restored onto a fresh board. The layout lives in
+ * session state; Genius builds it, Reset clears it, and leaving the
+ * Studio ends it. */
 
 /* ------------------------------------------------------------------ *
  * Plan-view drawing kit — the same craft standard as the Studio's other
@@ -141,7 +138,7 @@ function BedPattern({ fillId, base }: { fillId: string; base: string }) {
 }
 
 export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) => {
-  const [layout, setLayout] = React.useState<LandscapeLayout>(loadLayout);
+  const [layout, setLayout] = React.useState<LandscapeLayout>(() => emptyLandscapeLayout());
   const layoutRef = React.useRef(layout);
   layoutRef.current = layout;
   const viewRef = React.useRef(view);
@@ -184,9 +181,14 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
     if (holeFt) saveLandscape3D(layoutTo3D(next, holeFt));
   }, [publishSnapshot]);
 
-  /* The board's opening state is a state too: publish it so the Objects
-   * panel and the summary are right before the first edit. */
-  React.useEffect(() => { publishSnapshot(layoutRef.current); }, [publishSnapshot]);
+  /* Opening state: ZERO. Clear any landscape an earlier session persisted
+   * (board storage + the 3D handoff) and publish the empty snapshot so the
+   * Objects panel and the summary open clean too. */
+  React.useEffect(() => {
+    try { localStorage.removeItem(LS_KEY); } catch { /* storage unavailable */ }
+    clearLandscape3D();
+    publishSnapshot(emptyLandscapeLayout());
+  }, [publishSnapshot]);
 
   const holeOf = React.useCallback(() => {
     const v = viewRef.current;
