@@ -26,6 +26,7 @@ import { invokeGenius } from '@/lib/geniusInvoke';
 import { shapePoints, roundCorners, type Shape } from '@/components/scene3d/StudioDock';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
 import { parseLocalEdit } from '@/lib/landscape/landscapeOps';
+import { composeBrief, briefToEdits, styleLabel, type DesignBrief } from '@/lib/landscape/designBrief';
 
 const clamp = (v: unknown, lo: number, hi: number, d: number) => {
   const n = typeof v === 'number' && Number.isFinite(v) ? v : d;
@@ -149,6 +150,7 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
   const [prompt, setPrompt] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [note, setNote] = React.useState<string | null>(null);
+  const pendingBriefRef = React.useRef<DesignBrief | null>(null);
   /* Latest site elements (fence / enclosure / turf…), for zones and moves. */
   const elementsRef = React.useRef<any[]>([]);
   React.useEffect(() => {
@@ -307,7 +309,36 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       : /\bcoastal\b|\bnative\b/.test(q) ? 'coastal-native'
       : /\bthemed patio\b/.test(q) ? 'themed-patio' : null;
     const localEdit = !lookId && landscapeVerbs ? parseLocalEdit(q) : null;
-    if ((lookId || localEdit || (plantHits.length && landscapeVerbs)) && !/\bmove\b/.test(q)) {
+    /* Brief flow (Training Plan Phase 1): whole-design requests form a
+     * brief first. No style signal → ONE question, with the professional
+     * default already chosen; the answer (or "go ahead") resumes here.
+     * Hard constraints (avoid / low maintenance / privacy / budget /
+     * must-haves) route even styled requests through the brief so trait
+     * law is applied to the blueprint. */
+    let briefFlow: { edits: any[]; rationale: string[] } | null = null;
+    const resumed = pendingBriefRef.current;
+    if (resumed) {
+      const picked = composeBrief(q).style;
+      const affirms = /^(go ahead|yes|ok|sure|proceed|do it|sounds good)\b/.test(q.trim());
+      if (picked || affirms) {
+        const style = picked ?? resumed.clarify?.defaultId ?? 'tropical-poolside';
+        pendingBriefRef.current = null;
+        briefFlow = briefToEdits({ ...resumed, style, styleLabel: styleLabel(style), clarify: undefined });
+      } else pendingBriefRef.current = null;
+    }
+    if (!briefFlow && !resumed) {
+      const brief = composeBrief(q);
+      const constrained = brief.privacy || brief.maintenance === 'low' || !!brief.budgetCap || brief.avoid.length > 0 || brief.mustHave.length > 0;
+      if (constrained) briefFlow = briefToEdits(brief);
+      else if (!lookId && !localEdit && brief.clarify && landscapeVerbs) {
+        pendingBriefRef.current = brief;
+        const opts = brief.clarify.options.map((o) => `${o.label} (${o.blurb})`).join(' · ');
+        setNote(`${brief.clarify.question} ${opts}. Or say "go ahead" and I'll design ${styleLabel(brief.clarify.defaultId) ?? 'Tropical Poolside'}.`);
+        setPrompt('');
+        return;
+      }
+    }
+    if ((briefFlow || lookId || localEdit || (plantHits.length && landscapeVerbs)) && !/\bmove\b/.test(q)) {
       if (!current) { setNote('Draw the pool first — the landscape is composed around it.'); return; }
       const side = /around the pool|by the pool|near the pool/.test(q) ? 'pool' as const
         : /\bback\b|\brear\b/.test(q) ? 'back' as const
@@ -322,7 +353,8 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
         window.dispatchEvent(new CustomEvent('design-studio:landscape-edit', { detail }));
       });
       let res: any = null;
-      if (lookId) res = await sendLandscape({ look: lookId });
+      if (briefFlow) res = await sendLandscape({ edits: briefFlow.edits });
+      else if (lookId) res = await sendLandscape({ look: lookId });
       else if (localEdit) res = await sendLandscape({ edits: [localEdit] });
       else {
         const QUERY: Record<string, { query: string; pattern?: string }> = {
@@ -339,7 +371,7 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
         res = await sendLandscape({ edits: [{ add: ops }] });
       }
       if (res?.ok) {
-        setNote(`Landscaped with real plants: ${res.plantCount} plants${res.bedSqFt ? ` in ${res.bedSqFt} sq ft of beds` : ''}${res.species?.length ? ` — ${res.species.join(', ')}` : ''}. Installed total ≈ $${Number(res.total || 0).toLocaleString()}. Nothing on the pool or deck.`);
+        setNote(`Landscaped with real plants: ${res.plantCount} plants${res.bedSqFt ? ` in ${res.bedSqFt} sq ft of beds` : ''}${res.species?.length ? ` — ${res.species.join(', ')}` : ''}. Installed total ≈ $${Number(res.total || 0).toLocaleString()}. Nothing on the pool or deck.${briefFlow?.rationale?.length ? ` ${briefFlow.rationale.join(' ')}` : ''}`);
         setPrompt('');
       } else {
         setNote('The landscape builder could not place that — try naming a plant or a look (tropical, formal, coastal, modern).');
