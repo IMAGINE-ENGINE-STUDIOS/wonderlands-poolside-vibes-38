@@ -116,23 +116,38 @@ function FitToHeight({ url, p }: { url: string; p: Plant3D }) {
   React.useLayoutEffect(() => {
     const g = ref.current;
     if (!g) return;
-    let tries = 0;
+    /* THE SCALE GATE (founder rule): the model stays INVISIBLE until it has
+     * been measured and fitted — the old 30-frame give-up is how an
+     * unmeasured centimetre-authored palm could render ~100 stories tall.
+     * And the target itself answers to the hard law: no palm over 60 ft,
+     * no tree over 60 ft, whatever the catalog or the file claims. */
+    g.visible = false;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | number = 0;
+    const started = performance.now();
     const apply = () => {
+      if (cancelled) return;
       g.scale.setScalar(1);
       g.position.set(0, 0, 0);
       g.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(g, true);
-      if (box.isEmpty() || box.getSize(new THREE.Vector3()).y < 1e-4) { if (tries++ < 30) requestAnimationFrame(apply); return; }
+      if (box.isEmpty() || box.getSize(new THREE.Vector3()).y < 1e-4) {
+        timer = performance.now() - started < 2500 ? requestAnimationFrame(apply) : setTimeout(apply, 400);
+        return;
+      }
       box.applyMatrix4(g.matrixWorld.clone().invert());
       const size = box.getSize(new THREE.Vector3());
-      const k = p.h / size.y;
+      const capFt = p.form === 'palm' ? 60 : p.form === 'tree' ? 60 : p.form === 'shrub' ? 15 : p.form === 'spike' ? 10 : p.form === 'mat' ? 3 : 30;
+      const k = Math.min(p.h, capFt) / size.y;
       g.scale.setScalar(k);
       g.position.x = -((box.min.x + box.max.x) / 2) * k;
       g.position.z = -((box.min.z + box.max.z) / 2) * k;
       g.position.y = -box.min.y * k;
+      g.visible = true;
     };
     apply();
-  }, [url, p.h]);
+    return () => { cancelled = true; cancelAnimationFrame(timer as number); clearTimeout(timer as ReturnType<typeof setTimeout>); };
+  }, [url, p.h, p.form]);
   return (
     <group position={[p.x, 0, p.z]} rotation={[0, p.rot, 0]}>
       <group ref={ref}>

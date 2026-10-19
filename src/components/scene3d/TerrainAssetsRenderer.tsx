@@ -4,7 +4,7 @@ import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Model3DLoader } from './Model3DLoader';
 import { TerrainAsset } from './TerrainEditor';
-import { realWorldFit, type SiteRef } from './realScale';
+import { realWorldFit, heightCapFt, type SiteRef } from './realScale';
 
 export type GizmoMode = 'translate' | 'rotate' | 'scale';
 
@@ -139,18 +139,34 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
   React.useLayoutEffect(() => {
     const g = ref.current;
     if (!g) return;
-    let tries = 0;
+    /* THE SCALE GATE (founder rule): a dropped model stays INVISIBLE until
+     * it has been measured and fitted under the hard scale law. The old
+     * behaviour — show it raw after ~20 frames of trying — is how a
+     * centimetre-authored palm once stood ~100 stories tall. The gate
+     * retries for as long as the model takes to load; it never gives up
+     * into an unmeasured render. */
+    g.visible = false;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | number = 0;
+    const started = performance.now();
     const apply = () => {
+      if (cancelled) return;
       g.scale.setScalar(1);
       g.position.set(0, 0, 0);
       g.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(g, true);
-      if (box.isEmpty()) { if (tries++ < 20) requestAnimationFrame(apply); return; }
+      if (box.isEmpty()) {
+        timer = performance.now() - started < 2500 ? requestAnimationFrame(apply) : setTimeout(apply, 400);
+        return;
+      }
       box.applyMatrix4(g.matrixWorld.clone().invert());
       const size = box.getSize(new THREE.Vector3());
       const min = box.min;
       const isEnv = asset.type === 'terrain' || asset.type === 'skydome';
       // Environments are always framed to the pool + deck; objects honour autoFit.
+      // Manual mode (autoFit off) still answers to the HARD LAW: if the
+      // user's scale makes the object taller than its category ceiling,
+      // it is pulled back to the ceiling — a palm can never exceed 60 ft.
       if (isEnv || asset.autoFit !== false) {
         const k = realWorldFit(asset.name, asset.type, size, siteRef);
         g.scale.setScalar(k);
@@ -164,7 +180,15 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
           ? -(min.y + size.y / 2) * k * 0.2
           // Terrains sit just under the deck so hills never rise over the pool.
           : asset.type === 'terrain' ? -(min.y + size.y * 0.35) * k - 0.4 : -min.y * k;
+      } else {
+        const outerY = Array.isArray(asset.scale) ? asset.scale[1] : asset.scale;
+        const cap = heightCapFt(asset.name, asset.type);
+        const worldH = size.y * Math.max(outerY || 1, 1e-4);
+        const k = worldH > cap ? cap / worldH : 1;
+        g.scale.setScalar(k);
+        g.position.y = -min.y * k;
       }
+      g.visible = true;
       // Sharp textures at grazing angles (terrains looked low-res).
       const aniso = gl.capabilities.getMaxAnisotropy();
       g.traverse((o) => {
@@ -233,7 +257,8 @@ function FitToRealSize({ asset, siteRef, children }: { asset: TerrainAsset; site
       g.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.userData.walkable = true; });
     };
     apply();
-  }, [asset.url, asset.name, asset.type, asset.autoFit, siteRef?.poolLength, siteRef?.poolWidth, siteRef?.deckWidth, siteRef?.outlineKey]);
+    return () => { cancelled = true; cancelAnimationFrame(timer as number); clearTimeout(timer as ReturnType<typeof setTimeout>); };
+  }, [asset.url, asset.name, asset.type, asset.autoFit, asset.scale, siteRef?.poolLength, siteRef?.poolWidth, siteRef?.deckWidth, siteRef?.outlineKey]);
   return <group ref={ref}>{children}</group>;
 }
 

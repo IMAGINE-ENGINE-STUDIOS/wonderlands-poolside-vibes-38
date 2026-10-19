@@ -57,6 +57,30 @@ const BY_TYPE: Record<string, Target | ((s: SiteRef) => Target)> = {
 
 const DEFAULT_SITE: SiteRef = { poolLength: 32, poolWidth: 16, deckWidth: 6 };
 
+/**
+ * HARD SCALE LAW (founder rule, non-negotiable): nothing stands in the
+ * scene outside its real-world band, no matter what the model file claims.
+ * A palm can never exceed a few dozen feet — 60 ft is the ceiling for the
+ * tallest palm alive; trees 60; structures stay under 40; people under
+ * 7.5. The pool is the scene's ruler: no object's height may exceed
+ * twice the pool's long side either. These caps bind EVERY fit path —
+ * trusted-unit fits, target fits, and manual scales alike.
+ */
+export function heightCapFt(name: string, type: string): number {
+  const n = name.toLowerCase();
+  if (type === 'terrain' || type === 'skydome') return Infinity;
+  if (/palm/.test(n)) return 60;
+  if (/house|building|villa|home/.test(n)) return 40;
+  if (/tree|oak|pine|birch|maple|cypress/.test(n)) return 60;
+  if (/pergola|gazebo|cabana/.test(n)) return 16;
+  if (/umbrella|parasol/.test(n)) return 12;
+  if (/person|human|man|woman|girl|boy|character/.test(n)) return 7.5;
+  if (/bush|shrub|hedge/.test(n)) return 12;
+  if (type === 'tree') return 60;
+  if (type === 'landscape') return 30;
+  return 30;
+}
+
 /** Returns the uniform scale factor to apply to the raw model. */
 export function realWorldFit(name: string, type: string, size: THREE.Vector3, site?: SiteRef): number {
   const s = site ?? DEFAULT_SITE;
@@ -75,12 +99,16 @@ export function realWorldFit(name: string, type: string, size: THREE.Vector3, si
   // expected real size; if it lands within 2× of it, keep the model's TRUE size.
   const UNIT_TO_FT = [3.28084, 0.0328084, 0.00328084, 1 / 12, 1];
   const best = UNIT_TO_FT.map((u) => ({ u, err: Math.abs(Math.log((h * u) / t.h)) })).sort((a, b) => a.err - b.err)[0];
-  if (best.err < Math.log(2)) return best.u;
-  let k = t.h / h;
+  let k = best.err < Math.log(2) ? best.u : t.h / h;
   // Footprint target wins when the model is wide/flat (e.g. a lounger).
-  if (t.w) k = Math.min(k, (t.w * 1.25) / footprint);
+  if (best.err >= Math.log(2) && t.w) k = Math.min(k, (t.w * 1.25) / footprint);
   // Nothing (except houses) may outgrow the pool footprint.
   const poolMax = Math.max(s.poolLength, s.poolWidth);
   if (!/house|building|villa|home/i.test(name)) k = Math.min(k, (poolMax * 1.5) / footprint);
-  return k;
+  // THE HARD LAW binds last, over every path above: category ceiling AND
+  // the pool-relative ceiling (height <= 2x the pool's long side).
+  const capFt = Math.min(heightCapFt(name, type), 2 * poolMax);
+  if (h * k > capFt) k = capFt / h;
+  if (!Number.isFinite(k) || k <= 0) k = t.h / h;
+  return Math.min(Math.max(k, 1e-5), 1e5);
 }
