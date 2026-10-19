@@ -2355,7 +2355,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
         {/* Wide search desk — spans the book from corner to corner.
             The collapsible "FLIP Search Engine" header was removed: the bar is
             always live, and the rail Genius button pops the narrator console here. */}
-        <div className="mx-auto mt-6 w-full px-1 md:px-0" style={{ maxWidth: portrait ? dims.w : dims.w * 2 }}>
+        <div id="flip-search-desk" className="mx-auto mt-6 w-full px-1 md:px-0" style={{ maxWidth: portrait ? dims.w : dims.w * 2 }}>
           <div className="border border-border/60 bg-background/70 backdrop-blur-xl">
             {narratorOpen && (
               <div className="border-b border-border/60 px-3 pb-4 pt-3 md:px-5">
@@ -2388,6 +2388,33 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
           </div>
         )}
       </div>
+
+      {/* Mobile Genius button — the left rail that carries this toggle on
+          desktop is hidden below md, which left phones with NO way to open
+          the narrator console (the FLIP AI). Same toggle, placed where the
+          platform's other AI button lives: above the cart, bottom-right. */}
+      <button
+        onClick={() => {
+          const opening = !narratorOpen;
+          setNarratorOpen(opening);
+          if (opening) {
+            requestAnimationFrame(() => {
+              document.getElementById("flip-search-desk")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+          }
+        }}
+        title="Genius — narrator for this spread"
+        aria-label="Genius narrator"
+        aria-pressed={narratorOpen}
+        className={`fixed bottom-24 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full border shadow-xl backdrop-blur-xl transition-colors md:hidden ${
+          narratorOpen
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-primary/50 bg-background/85 text-primary"
+        }`}
+      >
+        <span aria-hidden className="absolute inset-0 rounded-full bg-primary/15 blur-[6px]" />
+        <Headphones className="relative h-5 w-5" />
+      </button>
 
       <FlipCart />
 
