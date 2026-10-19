@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { invokeGenius } from '@/lib/geniusInvoke';
 import { shapePoints, roundCorners, type Shape } from '@/components/scene3d/StudioDock';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
+import { parseLocalEdit } from '@/lib/landscape/landscapeOps';
 
 const clamp = (v: unknown, lo: number, hi: number, d: number) => {
   const n = typeof v === 'number' && Number.isFinite(v) ? v : d;
@@ -289,82 +290,82 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       return;
     }
 
-    /* ---- direct landscape planting (no function round-trip) ---- */
+    /* ---- landscaping through the Planting Studio engine: real catalog
+     * plants at true spacing + canopy, beds, priced take-off. Looks win over
+     * free phrasing; the engine's own phrase parser is next; named plants
+     * become PlantOps. Rocks, boulders and fountains are not plants — they
+     * still land as pool features below. ---- */
     const vegHit = VEG.filter((v) => v.re.test(q));
-    /* Simple-prompt landscapes: "build a landscape", "make it tropical",
-     * "a formal garden" name no plants — compose the standard recipe for
-     * the style instead of planting nothing. */
-    let recipeCounts: Map<string, number> | null = null;
-    if (!vegHit.length && /\b(landscape|landscaping|garden)\b/.test(q) && /\b(build|make|create|design|do|add|landscape|plant)\b/.test(q)) {
-      const picks: Array<[string, number]> = /\btropical\b/.test(q)
-        ? [['palms', 5], ['shrubs', 8], ['flower beds', 2], ['boulders', 2]]
-        : /\bformal|estate|parterre\b/.test(q)
-          ? [['palms', 2], ['hedges', 4], ['flower beds', 2], ['fountain', 1], ['shrubs', 6]]
-          : [['palms', 3], ['trees', 2], ['shrubs', 8], ['flower beds', 2], ['rocks', 3], ['hedges', 2]];
-      recipeCounts = new Map(picks);
-      for (const [label] of picks) {
-        const entry = VEG.find((v) => v.label === label);
-        if (entry && !vegHit.includes(entry)) vegHit.push(entry);
+    const plantHits = vegHit.filter((v) => !/rocks?|boulders?|fountain/.test(v.label));
+    const landscapeVerbs = /\b(add|plant|put|place|grow|landscape|landscaping|build|make|create|design|line|surround)\b/.test(q);
+    const lookId = /\btropical\b/.test(q) ? 'tropical-poolside'
+      : /\bmodern\b|\bminimal/.test(q) ? 'modern-minimal'
+      : /\bcoastal\b|\bnative\b/.test(q) ? 'coastal-native'
+      : /\bformal\b|\btopiary\b|\bestate\b|\bparterre\b/.test(q) ? 'formal-topiary'
+      : /\bthemed patio\b/.test(q) ? 'themed-patio' : null;
+    const localEdit = !lookId && landscapeVerbs ? parseLocalEdit(q) : null;
+    if ((lookId || localEdit || (plantHits.length && landscapeVerbs)) && !/\bmove\b/.test(q)) {
+      if (!current) { setNote('Draw the pool first — the landscape is composed around it.'); return; }
+      const side = /around the pool|by the pool|near the pool/.test(q) ? 'pool' as const
+        : /\bback\b|\brear\b/.test(q) ? 'back' as const
+        : /\bfront\b/.test(q) ? 'front' as const
+        : /\bleft\b/.test(q) ? 'left' as const
+        : /\bright\b/.test(q) ? 'right' as const
+        : /\baround\b/.test(q) ? 'around' as const : undefined;
+      const sendLandscape = (detail: Record<string, unknown>) => new Promise<any>((res) => {
+        const h = (e: Event) => { window.removeEventListener('design-studio:landscape-result', h); res((e as CustomEvent).detail); };
+        window.addEventListener('design-studio:landscape-result', h);
+        setTimeout(() => res(null), 2000);
+        window.dispatchEvent(new CustomEvent('design-studio:landscape-edit', { detail }));
+      });
+      let res: any = null;
+      if (lookId) res = await sendLandscape({ look: lookId });
+      else if (localEdit) res = await sendLandscape({ edits: [localEdit] });
+      else {
+        const QUERY: Record<string, { query: string; pattern?: string }> = {
+          palms: { query: 'palm', pattern: 'accent' }, oaks: { query: 'oak', pattern: 'accent' }, trees: { query: 'oak', pattern: 'accent' },
+          'flowering shrubs': { query: 'ixora' }, shrubs: { query: 'ligustrum' },
+          hedges: { query: 'clusia', pattern: 'hedge' }, 'flower beds': { query: 'ixora', pattern: 'row' },
+        };
+        const ops = plantHits.map((v) => {
+          const numM = q.match(new RegExp(`(\\d+|${Object.keys(COUNT_WORDS).join('|')})\\s+(?:[a-z]+\\s+)?${v.label.replace(/s$/, '').replace('flower beds', 'flower')}`));
+          const count = numM ? (Number(numM[1]) || COUNT_WORDS[numM[1]] || undefined) : undefined;
+          const base = QUERY[v.label] ?? { query: v.label };
+          return { query: base.query, ...(base.pattern ? { pattern: base.pattern } : {}), ...(count ? { count } : {}), ...(side ? { side } : {}) };
+        });
+        res = await sendLandscape({ edits: [{ add: ops }] });
       }
-    }
-    if (vegHit.length && /\b(add|plant|put|place|grow|landscape|line|surround)\b/.test(q) && !current) {
-      setNote('Draw the pool first — then I can plant around it.');
+      if (res?.ok) {
+        setNote(`Landscaped with real plants: ${res.plantCount} plants${res.bedSqFt ? ` in ${res.bedSqFt} sq ft of beds` : ''}${res.species?.length ? ` — ${res.species.join(', ')}` : ''}. Installed total ≈ $${Number(res.total || 0).toLocaleString()}. Nothing on the pool or deck.`);
+        setPrompt('');
+      } else {
+        setNote('The landscape builder could not place that — try naming a plant or a look (tropical, formal, coastal, modern).');
+      }
       return;
     }
-    if (vegHit.length && /\b(add|plant|put|place|grow|landscape|line|surround)\b/.test(q) && current) {
+    /* Rocks, boulders and fountains ride the pool-features path. */
+    const rockHits = vegHit.filter((v) => /rocks?|boulders?|fountain/.test(v.label));
+    if (rockHits.length && landscapeVerbs && current) {
       const deck = deckRingPx(current.points);
-      const zoneKind = /\binside the (?:screen|enclosure)\b/.test(q) ? 'enclosure' : /\binside the fenc/.test(q) ? 'fence' : null;
-      const zone = zoneKind ? elementsRef.current.find((x) => x.kind === zoneKind)?.pts : null;
-      const zb = zone ? bbox(zone) : bbox(current.points);
-      const placed: any[] = [];
-      const placedNames: string[] = [];
-      const taken: Array<{ x: number; y: number }> = [];
-      const fits = (x: number, y: number) => {
-        if (pointInPoly(x, y, deck)) return false;                    /* never on pool or deck */
-        if (zone && !pointInPoly(x, y, zone)) return false;           /* stay inside the asked zone */
-        if (!zone && pointInPoly(x, y, current.points)) return false;
-        return taken.every((t) => Math.hypot(t.x - x, t.y - y) >= 3 * PX_PER_FT);
-      };
-      for (const v of vegHit) {
-        const numM = q.match(new RegExp(`(\\d+|${Object.keys(COUNT_WORDS).join('|')})\\s+(?:[a-z]+\\s+)?${v.label.replace(/s$/, '').replace('flower beds', 'flower')}`));
-        const count = Math.min(24, recipeCounts?.get(v.label) ?? (numM ? (Number(numM[1]) || COUNT_WORDS[numM[1]] || v.def) : v.def));
-        let made = 0;
-        if (zone) {
-          for (let tries = 0; tries < 400 && made < count; tries++) {
-            const x = zb.minX + Math.random() * (zb.maxX - zb.minX);
-            const y = zb.minY + Math.random() * (zb.maxY - zb.minY);
-            if (!fits(x, y)) continue;
-            placed.push({ ...v.make(), x: Math.round(x), y: Math.round(y), id: `gf-${Date.now().toString(36)}-${placed.length}` });
-            taken.push({ x, y }); made++;
-          }
-        } else {
-          /* bed ring: just outside the deck, evenly around the pool */
-          const ringPts: Array<{ x: number; y: number }> = [];
-          const bed = deckRingPx(current.points, 9.5);
-          for (let i = 0; i < bed.length; i++) {
-            const a = bed[i], b = bed[(i + 1) % bed.length];
-            const segLen = Math.hypot(b.x - a.x, b.y - a.y);
-            const steps = Math.max(1, Math.floor(segLen / (3.2 * PX_PER_FT)));
-            for (let sIdx = 0; sIdx < steps; sIdx++) ringPts.push({ x: a.x + ((b.x - a.x) * sIdx) / steps, y: a.y + ((b.y - a.y) * sIdx) / steps });
-          }
-          const start = Math.floor(Math.random() * Math.max(1, ringPts.length));
-          for (let k = 0; k < ringPts.length && made < count; k++) {
-            const p = ringPts[(start + k * 2) % ringPts.length];
-            if (!fits(p.x, p.y)) continue;
-            placed.push({ ...v.make(), x: Math.round(p.x), y: Math.round(p.y), id: `gf-${Date.now().toString(36)}-${placed.length}` });
-            taken.push(p); made++;
-          }
+      const feats = [...current.features];
+      let made = 0;
+      for (const v of rockHits) {
+        const numM = q.match(new RegExp(`(\\d+|${Object.keys(COUNT_WORDS).join('|')})\\s+(?:[a-z]+\\s+)?${v.label.replace(/s$/, '')}`));
+        const count = Math.min(12, numM ? (Number(numM[1]) || COUNT_WORDS[numM[1]] || v.def) : v.def);
+        const bed = deckRingPx(current.points, 9.5);
+        for (let k = 0; k < count; k++) {
+          const p = bed[Math.floor(((k + 0.5) / count) * bed.length)] ?? centroid(current.points);
+          if (pointInPoly(p.x, p.y, deck) || pointInPoly(p.x, p.y, current.points)) continue;
+          feats.push({ ...v.make(), x: Math.round(p.x), y: Math.round(p.y), id: `gf-r-${Date.now().toString(36)}-${made}` });
+          made++;
         }
-        if (made) placedNames.push(`${made} ${v.label}`);
       }
-      if (placed.length) {
-        sendPoolUpdate({ features: [...current.features, ...placed] });
-        setNote(`Planted ${placedNames.join(', ')}${zone ? ` inside the ${zoneKind === 'enclosure' ? 'screen' : 'fenced area'}` : ' around the pool'} — on the ground, never on the pool or deck. Nothing else changed.`);
+      if (made) {
+        sendPoolUpdate({ features: feats });
+        setNote(`Placed ${made} rock/fountain pieces around the pool — on the ground, never on the pool or deck.`);
         setPrompt('');
         return;
       }
-      setNote(zone ? 'No open ground fits inside there clear of the pool and deck — try planting around the pool instead.' : 'Draw the pool first, then I can plant around it.');
-      return;
     }
 
     /* ---- everything else goes to scene-genius ---- */

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PoolBuilder } from "@/components/PoolBuilder";
 import { SiteElementsLayer, SiteTakeoffMenu, siteElementsTo3D, SITE_ELEMENTS_KEY, SITE_ELEMENTS_EVENT } from "@/components/designStudio/SiteElementsLayer";
+import { LandscapeLayer } from "@/components/designStudio/LandscapeLayer";
 import { saveBoard3D, loadBoard3D, clearBoard3D } from "@/lib/design/board3D";
 import { cacheRead, cacheWrite } from "@/lib/uiCache";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
@@ -714,7 +715,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
         {activeView === '2d' ? <div className="relative w-full h-full">
             {/* Objects & layers — same spot as the 3D Studio widget. */}
             <div className="absolute top-4 right-16 md:right-[4.25rem] z-40"><BoardObjectsPanel /></div>
-            <PoolBuilder managedProjects onProjectStateChange={capture2D} key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} renderOverlay={(view) => <SiteElementsLayer view={view} poolTotals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost, deck: poolBuilderData.breakdown.deckCost, coping: poolBuilderData.breakdown.copingCost, features: poolBuilderData.breakdown.featuresCost, deckArea: poolBuilderData.deckArea || 0, area: poolBuilderData.area || 0 } : null} />} />
+            <PoolBuilder managedProjects onProjectStateChange={capture2D} key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} renderOverlay={(view) => <><LandscapeLayer view={view} /><SiteElementsLayer view={view} poolTotals={poolBuilderData?.breakdown ? { pool: poolBuilderData.breakdown.poolCost, deck: poolBuilderData.breakdown.deckCost, coping: poolBuilderData.breakdown.copingCost, features: poolBuilderData.breakdown.featuresCost, deckArea: poolBuilderData.deckArea || 0, area: poolBuilderData.area || 0 } : null} /></>} />
             {/* Genius draws a full pool + depth + deck from a sentence (same brief as 3D). */}
             <Genius2DBar onScene={(sc) => { updateSourceRef.current = null; handle3DSceneChange(sc); }} getCurrent={() => poolDataRef.current} />
           </div> : <div className="w-full h-full">
