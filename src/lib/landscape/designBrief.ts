@@ -131,16 +131,19 @@ const violates = (plant: LandscapingPlant, op: PlantOp, brief: DesignBrief): str
   return null;
 };
 
-const substituteFor = (plant: LandscapingPlant, op: PlantOp, brief: DesignBrief): LandscapingPlant | null => {
+const substituteFor = (plant: LandscapingPlant, op: PlantOp, brief: DesignBrief, prefer?: Set<string>): LandscapingPlant | null => {
   const cands = landscapingPlants.filter((p) =>
     p.category === plant.category && p.id !== plant.id && !violates(p, op, brief));
   if (!cands.length) return null;
   if (op.pattern === "hedge") cands.sort((a, b) => traitsFor(b).screening - traitsFor(a).screening);
+  /* Species from designs the customer already approved win ties — the
+   * house style is learned, not reinvented (Training Plan, Phase 5). */
+  if (prefer?.size) cands.sort((a, b) => (prefer.has(b.id) ? 1 : 0) - (prefer.has(a.id) ? 1 : 0));
   return cands[0];
 };
 
 /** Adapt the style's blueprint to the brief. Every change is disclosed. */
-export function briefToEdits(brief: DesignBrief): { edits: LandscapeEdit[]; rationale: string[]; substitutions: Sub[] } {
+export function briefToEdits(brief: DesignBrief, opts?: { prefer?: Set<string> }): { edits: LandscapeEdit[]; rationale: string[]; substitutions: Sub[] } {
   const look = LANDSCAPE_LOOKS.find((l) => l.id === (brief.style ?? "tropical-poolside")) ?? LANDSCAPE_LOOKS[0];
   const substitutions: Sub[] = [];
   const scale = brief.tier === "essential" ? 0.7 : brief.tier === "estate" ? 1.3 : 1;
@@ -157,7 +160,7 @@ export function briefToEdits(brief: DesignBrief): { edits: LandscapeEdit[]; rati
         if (plant) {
           const why = violates(plant, op, brief);
           if (why) {
-            const sub = substituteFor(plant, op, brief);
+            const sub = substituteFor(plant, op, brief, opts?.prefer);
             if (sub) {
               substitutions.push({ from: plant.name, to: sub.name, reason: why });
               plant = sub;

@@ -10,6 +10,8 @@
  */
 import * as React from 'react';
 import { applyLandscapeEdit, filterKeepOut, type KeepOutOpts, type LandscapeEdit } from '@/lib/landscape/landscapeOps';
+import { inspectDesign, repairLayout } from '@/lib/landscape/inspectDesign';
+import { recordDesign } from '@/lib/landscape/designCorpus';
 import {
   BED_FILLS, bedFill, emptyLandscapeLayout, measureLandscapeLayout, sampleBed, type LandscapeLayout,
 } from '@/lib/landscape/landscapeEstimate';
@@ -260,6 +262,39 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
       const b = barriersRef.current;
       const opts: KeepOutOpts | undefined = b.polys.length ? { polys: b.polys, boundsFt: b.boundsFt } : undefined;
       for (const e of edits) next = applyLandscapeEdit(next, e, hole, opts);
+      /* Inspector (Phase 4): Genius compositions are graded before the
+       * customer sees them; one repair pass removes whatever breaks the
+       * rules. Corpus (Phase 5): the design is remembered so the next one
+       * composes in the pattern of work already approved. */
+      let inspection: { score: number; passed: boolean; fixed: number } | undefined;
+      if ((d.look || d.inspect) && !d.clearAll) {
+        const holePoly = [
+          { x: hole.x0 * 10, y: hole.y0 * 10 }, { x: hole.x1 * 10, y: hole.y0 * 10 },
+          { x: hole.x1 * 10, y: hole.y1 * 10 }, { x: hole.x0 * 10, y: hole.y1 * 10 },
+        ];
+        const iopts = { hole: holePoly, barriers: b.polys, budgetCap: typeof d.budgetCap === 'number' ? d.budgetCap : undefined, privacy: !!d.privacy || !!d.brief?.privacy };
+        let insp = inspectDesign(next, iopts);
+        let fixed = 0;
+        if (!insp.passed) {
+          const rep = repairLayout(next, insp, iopts);
+          if (rep.removed > 0) { next = rep.layout; fixed = rep.removed; insp = inspectDesign(next, iopts); }
+        }
+        inspection = { score: insp.score, passed: insp.passed, fixed };
+        const tt = measureLandscapeLayout(next);
+        const counts = new Map<string, number>();
+        for (const p of next.plantings) counts.set(p.plantId, (counts.get(p.plantId) ?? 0) + 1);
+        recordDesign({
+          id: `d-${Date.now().toString(36)}`, ts: Date.now(),
+          style: (d.look as string) ?? d.brief?.style ?? null,
+          tier: d.brief?.tier, maintenance: d.brief?.maintenance,
+          privacy: !!d.privacy || !!d.brief?.privacy, waterfront: !!d.brief?.waterfront,
+          frameW: b.boundsFt ? Math.round(b.boundsFt.x1 - b.boundsFt.x0) : 60,
+          frameH: b.boundsFt ? Math.round(b.boundsFt.y1 - b.boundsFt.y0) : 40,
+          plantCount: tt.plantCount, total: tt.total,
+          speciesTop: [...counts.entries()].sort((a, c) => c[1] - a[1]).slice(0, 8).map(([id]) => id),
+          layout: next, inspectionScore: insp.score,
+        });
+      }
       commit(next, hole);
       const t = measureLandscapeLayout(next);
       reply(true, {
@@ -267,6 +302,7 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
         bedSqFt: Math.round(t.bedSqFt),
         total: Math.round(t.total),
         species: t.species.slice(0, 6).map((sp) => `${sp.qty} ${sp.name}`),
+        ...(inspection ? { inspection } : {}),
       });
     };
     window.addEventListener('design-studio:landscape-edit', on);

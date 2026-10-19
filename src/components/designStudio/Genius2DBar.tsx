@@ -26,7 +26,9 @@ import { invokeGenius } from '@/lib/geniusInvoke';
 import { shapePoints, roundCorners, type Shape } from '@/components/scene3d/StudioDock';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
 import { parseLocalEdit } from '@/lib/landscape/landscapeOps';
-import { composeBrief, briefToEdits, styleLabel, type DesignBrief } from '@/lib/landscape/designBrief';
+import { composeBrief, styleLabel, type DesignBrief } from '@/lib/landscape/designBrief';
+import { composeFromBrief } from '@/lib/landscape/composition';
+import { preferredSpecies } from '@/lib/landscape/designCorpus';
 
 const clamp = (v: unknown, lo: number, hi: number, d: number) => {
   const n = typeof v === 'number' && Number.isFinite(v) ? v : d;
@@ -316,6 +318,7 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
      * must-haves) route even styled requests through the brief so trait
      * law is applied to the blueprint. */
     let briefFlow: { edits: any[]; rationale: string[] } | null = null;
+    let briefMeta: DesignBrief | null = null;
     const resumed = pendingBriefRef.current;
     if (resumed) {
       const picked = composeBrief(q).style;
@@ -323,13 +326,14 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       if (picked || affirms) {
         const style = picked ?? resumed.clarify?.defaultId ?? 'tropical-poolside';
         pendingBriefRef.current = null;
-        briefFlow = briefToEdits({ ...resumed, style, styleLabel: styleLabel(style), clarify: undefined });
+        briefMeta = { ...resumed, style, styleLabel: styleLabel(style), clarify: undefined };
+        briefFlow = composeFromBrief(briefMeta, { prefer: preferredSpecies({ style }) });
       } else pendingBriefRef.current = null;
     }
     if (!briefFlow && !resumed) {
       const brief = composeBrief(q);
       const constrained = brief.privacy || brief.maintenance === 'low' || !!brief.budgetCap || brief.avoid.length > 0 || brief.mustHave.length > 0;
-      if (constrained) briefFlow = briefToEdits(brief);
+      if (constrained) { briefMeta = brief; briefFlow = composeFromBrief(brief, { prefer: preferredSpecies({ style: brief.style }) }); }
       else if (!lookId && !localEdit && brief.clarify && landscapeVerbs) {
         pendingBriefRef.current = brief;
         const opts = brief.clarify.options.map((o) => `${o.label} (${o.blurb})`).join(' · ');
@@ -353,7 +357,7 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
         window.dispatchEvent(new CustomEvent('design-studio:landscape-edit', { detail }));
       });
       let res: any = null;
-      if (briefFlow) res = await sendLandscape({ edits: briefFlow.edits });
+      if (briefFlow) res = await sendLandscape({ edits: briefFlow.edits, inspect: true, budgetCap: briefMeta?.budgetCap, privacy: !!briefMeta?.privacy, brief: briefMeta ? { style: briefMeta.style, tier: briefMeta.tier, maintenance: briefMeta.maintenance, privacy: briefMeta.privacy, waterfront: briefMeta.waterfront } : undefined });
       else if (lookId) res = await sendLandscape({ look: lookId });
       else if (localEdit) res = await sendLandscape({ edits: [localEdit] });
       else {
@@ -371,7 +375,7 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
         res = await sendLandscape({ edits: [{ add: ops }] });
       }
       if (res?.ok) {
-        setNote(`Landscaped with real plants: ${res.plantCount} plants${res.bedSqFt ? ` in ${res.bedSqFt} sq ft of beds` : ''}${res.species?.length ? ` — ${res.species.join(', ')}` : ''}. Installed total ≈ $${Number(res.total || 0).toLocaleString()}. Nothing on the pool or deck.${briefFlow?.rationale?.length ? ` ${briefFlow.rationale.join(' ')}` : ''}`);
+        setNote(`Landscaped with real plants: ${res.plantCount} plants${res.bedSqFt ? ` in ${res.bedSqFt} sq ft of beds` : ''}${res.species?.length ? ` — ${res.species.join(', ')}` : ''}. Installed total ≈ $${Number(res.total || 0).toLocaleString()}. Nothing on the pool or deck.${briefFlow?.rationale?.length ? ` ${briefFlow.rationale.join(' ')}` : ''}${res.inspection ? ` Self-check ${res.inspection.score}/100${res.inspection.fixed ? ` — I fixed ${res.inspection.fixed} placement(s) that broke the rules before showing you` : ''}.` : ''}`);
         setPrompt('');
       } else {
         setNote('The landscape builder could not place that — try naming a plant or a look (tropical, formal, coastal, modern).');
