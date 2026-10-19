@@ -327,7 +327,7 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
       const asked = prompt.toLowerCase();
       const models = (Array.isArray(plan.models) ? plan.models : []).filter((m: any) =>
         typeof m?.query === 'string' && m.query.toLowerCase().split(/\s+/).some((w: string) => w.length > 3 && asked.includes(w.replace(/s$/, ''))),
-      ).slice(0, 6);
+      ).slice(0, 10);
       let placed = 0;
       if (models.length) {
         setNote(`${plan.summary || 'Design updated.'} Adding ${models.length} 3D models…`);
@@ -340,7 +340,7 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
           const ang = Math.atan2(clamp(m.z, -80, 80, 1), clamp(m.x, -80, 80, 1)) || (i * Math.PI) / 3;
           const r = Math.max(reach, Math.hypot(clamp(m.x, -80, 80, 0), clamp(m.z, -80, 80, 0)));
           return {
-            id: `sf-${hit.uid}-${now}-${i}`, name: hit.name, type: kind, url: hit.url, format: 'glb',
+            id: `sf-${hit.uid}-${now}-${i}`, name: `${m.query} — ${hit.name}`, type: kind, url: hit.url, format: 'glb',
             position: kind === 'terrain' || kind === 'skydome' ? [0, 0, 0] : [Math.cos(ang) * r, 0, Math.sin(ang) * r], rotation: [0, 0, 0],
             scale: 1, visible: true, autoFit: true,
           } as TerrainAsset;

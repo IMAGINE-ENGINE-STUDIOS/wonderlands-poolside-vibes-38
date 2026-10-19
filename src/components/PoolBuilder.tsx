@@ -687,6 +687,9 @@ export function PoolBuilder({
     }
     const xp = (onExternalUpdate as { additionalPools?: PoolShape[] }).additionalPools;
     if (Array.isArray(xp)) setAdditionalPools(prev => xp.map(n => ({ ...(prev.find(o => o.id === n.id) ?? {}), ...n })));
+    if (onExternalUpdate.features) {
+      setFeatures(onExternalUpdate.features as PoolFeature[]);
+    }
     applyExternalMaterials(onExternalUpdate.materials);
     
     // Clear flag after a frame to allow normal updates

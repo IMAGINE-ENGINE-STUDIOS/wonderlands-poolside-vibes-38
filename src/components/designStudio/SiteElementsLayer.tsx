@@ -514,6 +514,41 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
     window.addEventListener("design-studio:add-element", on);
     return () => window.removeEventListener("design-studio:add-element", on);
   }, [items, view, scale, setItems]);
+  /* Genius moves a site element: by a delta in feet, or "beside the pool" —
+   * the element keeps its shape and lands just outside the pool on the side
+   * it already sits. Geometry is this layer's own points, translated whole. */
+  React.useEffect(() => {
+    const on = (ev: Event) => {
+      const { kind, dxFt = 0, dyFt = 0, besidePool = false } = (ev as CustomEvent).detail || {};
+      const reply = (ok: boolean) => window.dispatchEvent(new CustomEvent("design-studio:element-result", { detail: { ok, kind: "move" } }));
+      const targets = items.filter((x) => x.kind === kind);
+      if (!targets.length) return reply(false);
+      if (besidePool) {
+        const pool = view?.poolPts ?? [];
+        if (pool.length < 3) return reply(false);
+        const t = targets[0];
+        const cen = (pts: Pt[]) => ({ x: pts.reduce((s, p) => s + p.x, 0) / pts.length, y: pts.reduce((s, p) => s + p.y, 0) / pts.length });
+        const pc = cen(pool), ec = cen(t.pts);
+        const pw = Math.max(...pool.map((p) => p.x)) - Math.min(...pool.map((p) => p.x));
+        const ph = Math.max(...pool.map((p) => p.y)) - Math.min(...pool.map((p) => p.y));
+        const ew = (Math.max(...t.pts.map((p) => p.x)) - Math.min(...t.pts.map((p) => p.x))) / 2;
+        const eh = (Math.max(...t.pts.map((p) => p.y)) - Math.min(...t.pts.map((p) => p.y))) / 2;
+        const gap = 9 * scale; /* clear of the deck that rings the pool */
+        let nx = ec.x, ny = ec.y;
+        if (Math.abs(ec.x - pc.x) >= Math.abs(ec.y - pc.y)) nx = pc.x + Math.sign(ec.x - pc.x || 1) * (pw / 2 + gap + ew);
+        else ny = pc.y + Math.sign(ec.y - pc.y || 1) * (ph / 2 + gap + eh);
+        const dx = nx - ec.x, dy = ny - ec.y;
+        setItems((p) => p.map((x) => x.id === t.id ? { ...x, pts: x.pts.map((q) => ({ x: Math.round(q.x + dx), y: Math.round(q.y + dy) })) } : x));
+        setSelected(t.id);
+        return reply(true);
+      }
+      const dx = dxFt * scale, dy = dyFt * scale;
+      setItems((p) => p.map((x) => x.kind === kind ? { ...x, pts: x.pts.map((q) => ({ x: Math.round(q.x + dx), y: Math.round(q.y + dy) })) } : x));
+      reply(true);
+    };
+    window.addEventListener("design-studio:move-element", on);
+    return () => window.removeEventListener("design-studio:move-element", on);
+  }, [items, view, scale, setItems]);
   const retexture =  (id: string, opt: { color?: string; label?: string; style?: string; rate?: number }) => setItems((p) => p.map((x) => x.id === id ? { ...x, ...opt, ...(opt.style ? { textureUrl: undefined } : {}) } : x));
   const menuItem = items.find((x) => x.id === menu?.id);
   const textureOptions = !menuItem ? [] : menuItem.kind === "turf" ? TURFS.map((g) => ({ key: g.id, label: g.label, apply: { color: g.color, label: g.label, rate: g.rate } }))

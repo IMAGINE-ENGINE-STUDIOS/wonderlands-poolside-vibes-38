@@ -406,6 +406,45 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
     }, 150);
   }, [poolBuilderData?.scale, sceneMemoryKey]);
 
+  /* Genius 2D bridge: the Genius bar speaks PoolBuilder's OWN data format
+   * (points / depthPoints / features / additionalPools in board pixels) on
+   * this event, and the update lands through the exact external-update path
+   * the 3D sync uses — no 3D round-trip, no converter in between. */
+  useEffect(() => {
+    const h = (e: Event) => {
+      const d = (e as CustomEvent).detail ?? {};
+      const cur: any = poolDataRef.current ?? {};
+      const points = Array.isArray(d.points) && d.points.length >= 3 ? d.points : cur.points;
+      const depthPoints = Array.isArray(d.depthPoints) && d.depthPoints.length >= 2 ? d.depthPoints : cur.depthPoints;
+      externalUpdateRef.current = {
+        points,
+        depthPoints,
+        hardscapePoints: d.hardscapePoints ?? cur.hardscapePoints,
+        features: d.features ?? cur.features,
+        additionalPools: d.additionalPools ?? cur.additionalPools,
+        ...(d.materials ? { materials: d.materials } : {}),
+      };
+      updateSourceRef.current = '3d';
+      requestAnimationFrame(() => { updateSourceRef.current = null; });
+      if (points) setCustomPoolShape(points);
+      setSelectedExtras((prev: any) => ({
+        ...prev,
+        customPoolShape: points ?? prev.customPoolShape,
+        depthProfile: depthPoints ?? prev.depthProfile,
+        additionalPools: d.additionalPools ?? prev.additionalPools,
+        poolBuilderData: {
+          ...prev.poolBuilderData,
+          points: points ?? prev.poolBuilderData?.points,
+          depthPoints: depthPoints ?? prev.poolBuilderData?.depthPoints,
+          features: d.features ?? prev.poolBuilderData?.features,
+          additionalPools: d.additionalPools ?? prev.poolBuilderData?.additionalPools,
+        },
+      }));
+    };
+    window.addEventListener('design-studio:pool-update', h);
+    return () => window.removeEventListener('design-studio:pool-update', h);
+  }, []);
+
   // Handle switching to 3D view
   const sentBoardRef = useRef<any>(null);
   const skipFirst3DRef = useRef(false);
