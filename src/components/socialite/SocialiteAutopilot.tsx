@@ -14,24 +14,24 @@ import { getSavedTz } from "@/lib/socialite/sendTime";
 const BUCKET = "socialite-autopost";
 
 export const DEFAULT_TEMPLATES = [
-  "Another Florida backyard, reimagined. {project} — designed and built by Wonderlands World. Your paradise is closer than you think: free design consult at wonderlandsworld.com",
-  "This is what evenings were made for. {project}, by Wonderlands World. Ready when you are — book a free consult, link in bio.",
-  "From the first sketch to the first swim. {project} is pure Wonderlands World craftsmanship. Start your project at wonderlandsworld.com",
-  "Pool days hit different when the backyard looks like this. {project} — another Wonderlands World build. Free consults, honest numbers, beautiful results.",
-  "Details make the paradise: the waterline, the stone, the light at golden hour. {project} by Wonderlands World. See what we can build for you — link in bio.",
-  "Your staycation headquarters could look like this. {project}, designed and built by Wonderlands World in Florida. Free design consult at wonderlandsworld.com",
-  "Imagine stepping out your back door into this. {project} — Wonderlands World turns backyards into resorts. Book your free consult today.",
-  "Screened, serene, and swim-ready. {project} by Wonderlands World. Florida living, elevated. Start with a free consult — wonderlandsworld.com",
-  "Weekend forecast: 100% chance of this. {project}, a Wonderlands World backyard. Your turn — free consult, link in bio.",
-  "Built for cannonballs, cocktails, and quiet mornings alike. {project} by Wonderlands World. Let us design yours: wonderlandsworld.com",
-  "Every Wonderlands World project starts with a conversation. {project} started exactly that way. Yours can too — free consult, link in bio.",
-  "Luxury is a backyard that never asks you to leave. {project} — designed and built by Wonderlands World, Florida. Free design consult at wonderlandsworld.com",
+  "From dirt to dive-in ready. {project} — designed and built by Wonderlands World. DM us for a free design consult.",
+  "Same yard. Completely different life. {project}, a Wonderlands World backyard. Your staycation starts at home — free consult, link in bio.",
+  "Your backyard, but better. {project} by Wonderlands World. Comment 'POOL' and we'll send ideas for yours.",
+  "Florida lives outside. Build for it. {project} — another Wonderlands World build in Central Florida. Save this for your backyard mood board.",
+  "Plot twist: it's your backyard. {project}, designed and built by Wonderlands World. Tag who you'd invite first.",
+  "Pool Build Diary: the details nobody sees once the water's in — the steel, the plumbing, the finish work. {project} by Wonderlands World. Follow along for the next stage.",
+  "3 things nobody tells you before building a pool in Florida: permits and HOA approval take time, a screen enclosure changes your whole budget picture, and hurricane season shapes the schedule. We handle all of it. {project} — Wonderlands World. DM us for a free design consult.",
+  "Why they chose us, in one frame: honest numbers, a design that fits the home, and a crew that treats the yard like their own. {project} — Wonderlands World.",
+  "What a real Florida pool project includes: design, permitting, dig, steel, plumbing, shell, finish, and the first swim. {project} by Wonderlands World — this is what the journey looks like. Free consult at wonderlandsworld.com",
+  "Orlando summers were made for this. {project} — built for sunshine, designed for you, by Wonderlands World. Comment 'POOL' and we'll send ideas.",
+  "Golden hour at {project}. Built for cannonballs, cocktails, and quiet mornings alike — Wonderlands World. Your turn: free design consult, link in bio.",
+  "Where summer never ends. {project}, a Wonderlands World backyard in Central Florida. Dig it. Dream it. Dive in. Start at wonderlandsworld.com",
 ];
 
 export const DEFAULT_TAGSETS = [
-  "#PoolBuilder #FloridaPools #BackyardParadise #OutdoorLiving #LuxuryPools #PoolDesign #CustomPools #WonderlandsWorld #SwimmingPool #BackyardGoals",
-  "#Orlando #FloridaLiving #PoolLife #ResortStyleLiving #OutdoorOasis #PoolGoals #LanaiLife #WonderlandsWorld #HomeDesign #Staycation",
-  "#PoolConstruction #BackyardDesign #FloridaHomes #SwimLife #PatioGoals #OutdoorLivingSpace #WonderlandsWorld #DreamBackyard #PoolParty #SunshineState",
+  "#CentralFloridaPools #OrlandoPoolBuilder #FloridaBackyard #PoolBuild #BackyardGoals #LakelandFL #WinterHavenFL #WonderlandsWorld",
+  "#CentralFloridaPools #OrlandoPoolBuilder #FloridaBackyard #BackyardGoals #LuxuryPools #PoolDesign #WonderlandsWorld #Staycation",
+  "#PoolBuild #FloridaBackyard #OrlandoPoolBuilder #CentralFloridaPools #OutdoorLiving #DreamBackyard #WonderlandsWorld #PoolGoals",
 ];
 
 type Cfg = {

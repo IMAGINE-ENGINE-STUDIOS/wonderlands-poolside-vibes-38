@@ -100,6 +100,16 @@ async function topUpOne(db: any, cfg: any) {
       if (at > now && at <= horizon) slots.push(at);
     }
   }
+  // Kickoff: an owner who just switched Autopilot on (empty queue) gets a
+  // first post ~10 minutes out instead of waiting for the next daily slot.
+  // At most one kickoff per local day, remembered in state.
+  const state0: any = { ...(cfg.state ?? {}) };
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
+  if (!covered.length && state0.kickoffFor !== todayKey) {
+    slots.push(new Date(now.getTime() + 10 * 60_000));
+    state0.kickoffFor = todayKey;
+    cfg.state = state0;
+  }
   const missing = slots.filter((at) => !covered.some((c: number) => Math.abs(c - at.getTime()) < 4 * 60_000));
   if (!missing.length) return;
 
