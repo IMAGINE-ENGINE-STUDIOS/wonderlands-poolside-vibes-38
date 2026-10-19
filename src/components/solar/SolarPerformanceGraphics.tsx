@@ -268,27 +268,58 @@ const SunPathConsole: React.FC<{
   const tariff = tariffByCode(tariffCode);
 
 
-  /* Play sweeps the day forward in solar time, then rolls into the next day. */
+  /* Play sweeps the day forward in solar time, then rolls into the next day.
+     The playhead accumulates locally and state commits at most ~10x/s:
+     committing every frame re-rendered this whole console 60x/s and starved
+     pointer events, so buttons felt dead exactly while the sun was moving. */
   React.useEffect(() => {
     if (!playing) return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      /* Reduced motion: step the clock in coarse jumps instead of leaving a
+         "Pause transit" button on screen while nothing ever moves. */
+      const iv = window.setInterval(() => {
+        setHours((h) => {
+          const next = h + 0.5;
+          if (next >= 24) {
+            setDoy((d) => (d % 365) + 1);
+            return next - 24;
+          }
+          return next;
+        });
+      }, 600);
+      return () => window.clearInterval(iv);
+    }
     let raf = 0;
     let last = performance.now();
-    const tick = (t: number) => {
-      const dt = (t - last) / 1000;
-      last = t;
+    let lastCommit = 0;
+    let acc = 0;
+    const commit = (step: number) => {
       setHours((h) => {
-        const next = h + dt * 3; // 3 solar hours per second
+        const next = h + step;
         if (next >= 24) {
           setDoy((d) => (d % 365) + 1);
           return next - 24;
         }
         return next;
       });
+    };
+    const tick = (t: number) => {
+      const dt = Math.min(0.1, Math.max(0, (t - last) / 1000));
+      last = t;
+      acc += dt * 3; // 3 solar hours per second
+      if (t - lastCommit >= 100) {
+        lastCommit = t;
+        const step = acc;
+        acc = 0;
+        commit(step);
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (acc > 0) commit(acc);
+    };
   }, [playing]);
 
   /* Today's declination read from the ephemeris (Cooper's sine only covers the
@@ -418,21 +449,31 @@ const SunPathConsole: React.FC<{
     }
     let raf = 0;
     let last = performance.now();
+    let lastCommit = 0;
+    /* The sim always starts from day 0 (its key resets it), so a local
+       playhead can mirror the state: commits throttled to ~10x/s, and the
+       stop is decided here in the tick — never inside a state updater. */
+    let head = 0;
     const tick = (t: number) => {
-      const dt = (t - last) / 1000;
+      const dt = Math.min(0.1, Math.max(0, (t - last) / 1000));
       last = t;
-      setYearDay((d) => {
-        const next = d + dt * 70; // a full year in roughly five seconds
-        if (next >= 365) {
-          setYearRun(false);
-          return 365;
-        }
-        return next;
-      });
+      head += dt * 70; // a full year in roughly five seconds
+      if (head >= 365) {
+        setYearDay(365);
+        setYearRun(false);
+        return;
+      }
+      if (t - lastCommit >= 100) {
+        lastCommit = t;
+        setYearDay(head);
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (head > 0 && head < 365) setYearDay(head);
+    };
   }, [yearRun]);
 
   /* Following the simulation moves the sky with it. */
@@ -1172,7 +1213,7 @@ const SunPathConsole: React.FC<{
 
         {/* live sun with ray crown and ground track */}
         {sun.altitude > 0 && (
-          <g>
+          <g pointerEvents="none">
             <line x1={sun.x} x2={sun.x} y1={sun.y} y2={DOME.base} stroke="#fbbf24" strokeOpacity={0.3} strokeWidth={0.8} />
             <line x1={DOME.left} x2={sun.x} y1={sun.y} y2={sun.y} stroke="#fbbf24" strokeOpacity={0.18} strokeWidth={0.6} strokeDasharray="2 4" />
             <g filter="url(#wlSunGlow)">
@@ -1208,11 +1249,11 @@ const SunPathConsole: React.FC<{
       <div className="relative mt-6">
         <div className="relative h-[5px] w-full rounded-full bg-foreground/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]">
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400/70 via-amber-300 to-orange-400 transition-[width] duration-300"
+            className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400/70 via-amber-300 to-orange-400 ${playing || yearRun ? "" : "transition-[width] duration-300"}`}
             style={{ width: `${progress * 100}%` }}
           />
           <span
-            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_18px_4px_rgba(251,191,36,0.7)] transition-[left] duration-300"
+            className={`absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_18px_4px_rgba(251,191,36,0.7)] ${playing || yearRun ? "" : "transition-[left] duration-300"}`}
             style={{ left: `${progress * 100}%` }}
           />
         </div>
@@ -1280,7 +1321,10 @@ const SunPathConsole: React.FC<{
             max={365}
             step={1}
             value={doy}
-            onChange={(e) => setDoy(Number(e.target.value))}
+            onChange={(e) => {
+              setYearRun(false);
+              setDoy(Number(e.target.value));
+            }}
             className="wl-range mt-3 w-full cursor-pointer"
             aria-label="Day of year"
           />
@@ -1289,7 +1333,10 @@ const SunPathConsole: React.FC<{
               <button
                 key={i}
                 type="button"
-                onClick={() => setDoy(start)}
+                onClick={() => {
+                  setYearRun(false);
+                  setDoy(start);
+                }}
                 className={`rounded-lg border px-2.5 py-1.5 text-[11px] uppercase tracking-[0.1em] transition ${
                   monthIdx === i
                     ? "border-amber-300/55 bg-amber-300/15 text-amber-100"

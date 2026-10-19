@@ -542,7 +542,12 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
 
       setBusy("trace");
       try {
-        const { path, rejected } = await traceRoofPlane(frame.current, point);
+        const { path, rejected } = await Promise.race([
+          traceRoofPlane(frame.current, point),
+          new Promise<never>((_, reject) =>
+            window.setTimeout(() => reject(new Error("Roof trace timed out")), 12000),
+          ),
+        ]);
         if (path) {
           if (hit) addMeasuredFace(hit, path);
           else addFace(path, "auto");

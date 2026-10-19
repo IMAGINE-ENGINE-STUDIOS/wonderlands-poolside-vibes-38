@@ -323,13 +323,29 @@ const AerialCanvas: React.FC<Props> = ({
     if (!d) return;
     if (d.frame !== null) cancelAnimationFrame(d.frame);
     if (d.pending.x || d.pending.y) panBy(d.pending.x, d.pending.y);
-    if (d.moved <= 5) {
+    if (d.moved <= 8) {
       const p = local(e);
       onMapClick?.(toLatLng(p.x, p.y));
       return;
     }
     /* let the imagery keep travelling briefly, then settle */
     if (Math.hypot(d.vx, d.vy) > 3 && performance.now() - d.at < 90) glide(d.vx, d.vy);
+  };
+
+  /* An interrupted press (OS gesture takeover, notification, palm rejection)
+     is NOT a click: clear the drag state without firing onMapClick, or the
+     board traces roof planes the user never asked for. */
+  const onPointerCancel = (e: React.PointerEvent) => {
+    setGrabbing(false);
+    vertex.current = null;
+    const d = drag.current;
+    drag.current = null;
+    if (d?.frame != null) cancelAnimationFrame(d.frame);
+    try {
+      host.current?.releasePointerCapture?.(e.pointerId);
+    } catch {
+      /* capture was already released */
+    }
   };
 
   /* ── wheel + trackpad pinch (native, non-passive) ───────────────────── */
@@ -400,7 +416,7 @@ const AerialCanvas: React.FC<Props> = ({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
+      onPointerCancel={onPointerCancel}
       onKeyDown={onKeyDown}
       onDoubleClick={(e) => {
         e.preventDefault();
