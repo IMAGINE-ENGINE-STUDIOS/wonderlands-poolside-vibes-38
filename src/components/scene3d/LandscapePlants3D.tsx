@@ -11,6 +11,8 @@
 import * as React from "react";
 import * as THREE from "three";
 import { loadLandscape3D, LANDSCAPE_3D_EVENT, type Landscape3D, type Plant3D } from "@/lib/landscape/landscape3D";
+import { supabase } from "@/integrations/supabase/client";
+import { Model3DLoader } from "./Model3DLoader";
 
 const trunk = new THREE.MeshStandardMaterial({ color: "#6b4f35", roughness: 0.9 });
 const mulch = new THREE.MeshStandardMaterial({ color: "#4a3426", roughness: 1 });
@@ -72,6 +74,85 @@ const Plant = React.memo(function Plant({ p }: { p: Plant3D }) {
   }
 });
 
+/* ------------------------------------------------------------------ *
+ * Real models: every distinct catalog species is fetched ONCE from
+ * Sketchfab (same search + download path the Studio dock uses), then
+ * instanced at each planting, measured and scaled so its height equals
+ * the plant's true mature height from plantSpecs. While a model loads —
+ * or when none is found — the stylised plant above stands in.
+ * ------------------------------------------------------------------ */
+const urlCache = new Map<string, Promise<string | null>>();
+function sketchfabUrl(q: string): Promise<string | null> {
+  let hit = urlCache.get(q);
+  if (hit) return hit;
+  hit = (async () => {
+    try {
+      const r = await fetch(`https://api.sketchfab.com/v3/search?type=models&downloadable=true&count=4&q=${encodeURIComponent(q)}`);
+      const j = await r.json();
+      const m = (j?.results ?? []).find((x: any) => x?.uid);
+      if (!m) return null;
+      const { data } = await supabase.functions.invoke('sketchfab-download', { body: { uid: m.uid } });
+      return (data as any)?.url ?? null;
+    } catch { return null; }
+  })();
+  urlCache.set(q, hit);
+  return hit;
+}
+
+/** Measures the loaded model and rescales it to the plant's true height. */
+function FitToHeight({ url, p }: { url: string; p: Plant3D }) {
+  const ref = React.useRef<THREE.Group>(null);
+  React.useLayoutEffect(() => {
+    const g = ref.current;
+    if (!g) return;
+    let tries = 0;
+    const apply = () => {
+      g.scale.setScalar(1);
+      g.position.set(0, 0, 0);
+      g.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(g, true);
+      if (box.isEmpty() || box.getSize(new THREE.Vector3()).y < 1e-4) { if (tries++ < 30) requestAnimationFrame(apply); return; }
+      box.applyMatrix4(g.matrixWorld.clone().invert());
+      const size = box.getSize(new THREE.Vector3());
+      const k = p.h / size.y;
+      g.scale.setScalar(k);
+      g.position.x = -((box.min.x + box.max.x) / 2) * k;
+      g.position.z = -((box.min.z + box.max.z) / 2) * k;
+      g.position.y = -box.min.y * k;
+    };
+    apply();
+  }, [url, p.h]);
+  return (
+    <group position={[p.x, 0, p.z]} rotation={[0, p.rot, 0]}>
+      <group ref={ref}>
+        <Model3DLoader url={url} format="glb" />
+      </group>
+    </group>
+  );
+}
+
+function SpeciesModels({ q, plants }: { q: string; plants: Plant3D[] }) {
+  const [url, setUrl] = React.useState<string | null | undefined>(undefined);
+  React.useEffect(() => {
+    let live = true;
+    sketchfabUrl(q).then((u) => { if (live) setUrl(u); });
+    return () => { live = false; };
+  }, [q]);
+  if (!url) return <>{plants.map((p, i) => <Plant key={i} p={p} />)}</>;
+  const real = plants.slice(0, 24);
+  const rest = plants.slice(24);
+  return (
+    <>
+      {real.map((p, i) => (
+        <React.Suspense key={i} fallback={<Plant p={p} />}>
+          <FitToHeight url={url} p={p} />
+        </React.Suspense>
+      ))}
+      {rest.map((p, i) => <Plant key={`s${i}`} p={p} />)}
+    </>
+  );
+}
+
 function Bed({ points }: { points: { x: number; z: number }[] }) {
   const geo = React.useMemo(() => {
     if (points.length < 3) return null;
@@ -94,10 +175,17 @@ export function LandscapePlants3D() {
     return () => { window.removeEventListener(LANDSCAPE_3D_EVENT, on); window.removeEventListener("storage", on); };
   }, []);
   if (!data) return null;
+  const groups = new Map<string, Plant3D[]>();
+  const plain: Plant3D[] = [];
+  for (const p of data.plants) {
+    if (p.q) { const g = groups.get(p.q); if (g) g.push(p); else groups.set(p.q, [p]); }
+    else plain.push(p);
+  }
   return (
     <group name="landscape-plan">
       {data.beds.map((b, i) => <Bed key={i} points={b.points} />)}
-      {data.plants.map((p, i) => <Plant key={i} p={p} />)}
+      {plain.map((p, i) => <Plant key={i} p={p} />)}
+      {[...groups.entries()].map(([q, plants]) => <SpeciesModels key={q} q={q} plants={plants} />)}
     </group>
   );
 }

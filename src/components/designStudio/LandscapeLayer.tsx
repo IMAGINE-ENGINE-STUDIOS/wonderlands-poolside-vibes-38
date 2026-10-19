@@ -15,6 +15,7 @@ import {
 } from '@/lib/landscape/landscapeEstimate';
 import { drawnSpreadFt, getPlantSpec, plantById } from '@/lib/landscape/plantSpecs';
 import { LANDSCAPE_LOOKS } from '@/lib/landscape/presets';
+import { layoutTo3D, saveLandscape3D } from '@/lib/landscape/landscape3D';
 import type { BoardView } from './SiteElementsLayer';
 
 const LS_KEY = 'design_studio_landscape_v1';
@@ -35,11 +36,12 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
   const viewRef = React.useRef(view);
   viewRef.current = view;
 
-  const commit = React.useCallback((next: LandscapeLayout) => {
+  const commit = React.useCallback((next: LandscapeLayout, holeFt?: { x0: number; y0: number; x1: number; y1: number }) => {
     layoutRef.current = next;
     setLayout(next);
     try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ }
     window.dispatchEvent(new CustomEvent(LANDSCAPE_LAYOUT_EVENT, { detail: next }));
+    if (holeFt) saveLandscape3D(layoutTo3D(next, holeFt));
   }, []);
 
   /* Genius landscape edits: { edits: LandscapeEdit[] } or { look: id },
@@ -68,18 +70,33 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
       if (!edits.length && !d.clearAll) return reply(false, { reason: 'empty' });
       let next = d.clearAll ? emptyLandscapeLayout() : layoutRef.current;
       for (const e of edits) next = applyLandscapeEdit(next, e, hole);
-      commit(next);
+      commit(next, hole);
       const t = measureLandscapeLayout(next);
       reply(true, {
         plantCount: t.plantCount,
         bedSqFt: Math.round(t.bedSqFt),
         total: Math.round(t.total),
-        species: t.species.slice(0, 6).map((sp) => `${sp.count} ${sp.name}`),
+        species: t.species.slice(0, 6).map((sp) => `${sp.qty} ${sp.name}`),
       });
     };
     window.addEventListener('design-studio:landscape-edit', on);
     return () => window.removeEventListener('design-studio:landscape-edit', on);
   }, [commit]);
+
+  /* A saved layout meets the board: publish the 3D handoff once the pool
+   * geometry is known, so 3D shows the plan without a fresh edit. */
+  const holeKey = view?.poolPts?.length ? `${view.poolPts.length}:${view.deckPts?.length ?? 0}` : '';
+  const publishedRef = React.useRef('');
+  React.useEffect(() => {
+    if (!view || !holeKey || publishedRef.current === holeKey) return;
+    const all = [...(view.poolPts ?? []), ...(view.deckPts ?? [])];
+    if (all.length < 3 || !layoutRef.current.plantings.length) return;
+    const xs = all.map((p) => p.x), ys = all.map((p) => p.y);
+    publishedRef.current = holeKey;
+    saveLandscape3D(layoutTo3D(layoutRef.current, {
+      x0: Math.min(...xs) / 10, y0: Math.min(...ys) / 10, x1: Math.max(...xs) / 10, y1: Math.max(...ys) / 10,
+    }));
+  }, [view, holeKey]);
 
   if (!view) return null;
   const transform = `translate(${view.width / 2 + view.pan.x} ${view.height / 2 + view.pan.y}) scale(${view.zoom}) translate(${-view.width / 2} ${-view.height / 2})`;
@@ -97,7 +114,22 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
     .filter(Boolean)
     .sort((a, b) => a!.spec.heightFt - b!.spec.heightFt) as Array<{ p: LandscapeLayout['plantings'][number]; spec: ReturnType<typeof getPlantSpec>; r: number }>;
 
+  const takeoff = measureLandscapeLayout(layout);
+  const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
   return (
+    <>
+    {takeoff.plantCount > 0 && (
+      <div className="pointer-events-auto absolute left-3 top-3 z-30 max-w-[240px] rounded-xl border border-border/70 bg-background/75 px-3 py-2 shadow-lg backdrop-blur-xl">
+        <div className="text-[11px] font-semibold text-foreground">Landscaping · {money(takeoff.total)}</div>
+        <div className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">
+          {takeoff.species.slice(0, 4).map((sp) => (
+            <div key={sp.key} className="flex justify-between gap-3"><span className="truncate">{sp.name} ×{sp.qty}</span><span>{money(sp.amount)}</span></div>
+          ))}
+          {takeoff.bedSqFt > 0 && <div className="flex justify-between gap-3"><span>Beds {Math.round(takeoff.bedSqFt)} sq ft</span><span>{money(takeoff.bedTotal)}</span></div>}
+          <div className="mt-0.5 border-t border-border/50 pt-0.5">{takeoff.plantCount} plants, priced live from the catalog</div>
+        </div>
+      </div>
+    )}
     <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
       <g transform={transform}>
         {layout.beds.map((b) => {
@@ -123,6 +155,7 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
         ))}
       </g>
     </svg>
+    </>
   );
 };
 
