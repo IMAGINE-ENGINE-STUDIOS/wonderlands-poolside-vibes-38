@@ -78,11 +78,23 @@ function pointInPoly(x: number, y: number, poly: Array<{ x: number; y: number }>
   }
   return inside;
 }
-/** The deck ring around an outline (px), used as the no-planting zone. */
+const ringArea = (pts: Array<{ x: number; y: number }>) => {
+  let a = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i], n = pts[(i + 1) % pts.length];
+    a += p.x * n.y - n.x * p.y;
+  }
+  return Math.abs(a / 2);
+};
+/** The deck ring around an outline (px), used as the no-planting zone.
+ *  The offset's sign flips with outlining winding, so try both ways and keep
+ *  the ring that really expands — the same check SiteElementsLayer runs. */
 function deckRingPx(outline: Array<{ x: number; y: number }>, deckFt = 7) {
   const ring = outline.map((p) => ({ x: p.x, z: p.y }));
-  const out = mitredOffsetRing(ring, deckFt * PX_PER_FT, { miterLimit: 2.5 }).offset;
-  return out.length >= 3 ? out.map((p) => ({ x: p.x, y: p.z })) : outline;
+  const base = ringArea(outline);
+  let out = mitredOffsetRing(ring, deckFt * PX_PER_FT, { miterLimit: 2.5 }).offset.map((p) => ({ x: p.x, y: p.z }));
+  if (out.length < 3 || ringArea(out) < base) out = mitredOffsetRing(ring, -deckFt * PX_PER_FT, { miterLimit: 2.5 }).offset.map((p) => ({ x: p.x, y: p.z }));
+  return out.length >= 3 && ringArea(out) > base ? out : outline;
 }
 
 /** Scale the current outline to the target feet about its own centre.
@@ -279,6 +291,26 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
 
     /* ---- direct landscape planting (no function round-trip) ---- */
     const vegHit = VEG.filter((v) => v.re.test(q));
+    /* Simple-prompt landscapes: "build a landscape", "make it tropical",
+     * "a formal garden" name no plants — compose the standard recipe for
+     * the style instead of planting nothing. */
+    let recipeCounts: Map<string, number> | null = null;
+    if (!vegHit.length && /\b(landscape|landscaping|garden)\b/.test(q) && /\b(build|make|create|design|do|add|landscape|plant)\b/.test(q)) {
+      const picks: Array<[string, number]> = /\btropical\b/.test(q)
+        ? [['palms', 5], ['shrubs', 8], ['flower beds', 2], ['boulders', 2]]
+        : /\bformal|estate|parterre\b/.test(q)
+          ? [['palms', 2], ['hedges', 4], ['flower beds', 2], ['fountain', 1], ['shrubs', 6]]
+          : [['palms', 3], ['trees', 2], ['shrubs', 8], ['flower beds', 2], ['rocks', 3], ['hedges', 2]];
+      recipeCounts = new Map(picks);
+      for (const [label] of picks) {
+        const entry = VEG.find((v) => v.label === label);
+        if (entry && !vegHit.includes(entry)) vegHit.push(entry);
+      }
+    }
+    if (vegHit.length && /\b(add|plant|put|place|grow|landscape|line|surround)\b/.test(q) && !current) {
+      setNote('Draw the pool first — then I can plant around it.');
+      return;
+    }
     if (vegHit.length && /\b(add|plant|put|place|grow|landscape|line|surround)\b/.test(q) && current) {
       const deck = deckRingPx(current.points);
       const zoneKind = /\binside the (?:screen|enclosure)\b/.test(q) ? 'enclosure' : /\binside the fenc/.test(q) ? 'fence' : null;
@@ -295,7 +327,7 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       };
       for (const v of vegHit) {
         const numM = q.match(new RegExp(`(\\d+|${Object.keys(COUNT_WORDS).join('|')})\\s+(?:[a-z]+\\s+)?${v.label.replace(/s$/, '').replace('flower beds', 'flower')}`));
-        const count = Math.min(24, numM ? (Number(numM[1]) || COUNT_WORDS[numM[1]] || v.def) : v.def);
+        const count = Math.min(24, recipeCounts?.get(v.label) ?? (numM ? (Number(numM[1]) || COUNT_WORDS[numM[1]] || v.def) : v.def));
         let made = 0;
         if (zone) {
           for (let tries = 0; tries < 400 && made < count; tries++) {
@@ -420,14 +452,20 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       const deck = deckRingPx(outline);
       let modelsPlaced = 0;
       for (const m of models) {
-        const name = String(m?.name ?? m?.category ?? '').toLowerCase();
-        const v = VEG.find((x) => x.re.test(name)) ?? (/\bfire\b/.test(name) ? null : null);
+        /* scene-genius models are { query, kind, x, z } — the query IS the name. */
+        const name = String(m?.query ?? m?.name ?? m?.category ?? '').toLowerCase();
+        const v = VEG.find((x) => x.re.test(name)) ?? (m?.kind === 'tree' ? VEG[2] : null);
         if (!v) continue;
-        const x = oc.x + (typeof m.x === 'number' ? m.x : 0) * PX_PER_FT;
-        const y = oc.y + (typeof m.y === 'number' ? m.y : typeof m.z === 'number' ? m.z : 0) * PX_PER_FT;
-        if (pointInPoly(x, y, deck) || pointInPoly(x, y, outline)) continue;
-        feats.push({ ...v.make(), x: Math.round(x), y: Math.round(y), id: `gf-m-${Date.now().toString(36)}-${modelsPlaced}` });
-        modelsPlaced++;
+        /* The plan speaks feet from the pool centre; a spot inside the deck
+         * ring gets a second chance pushed half again as far out. */
+        for (const grow of [1, 1.6]) {
+          const x = oc.x + (typeof m.x === 'number' ? m.x : 0) * PX_PER_FT * grow;
+          const y = oc.y + (typeof m.y === 'number' ? m.y : typeof m.z === 'number' ? m.z : 0) * PX_PER_FT * grow;
+          if (pointInPoly(x, y, deck) || pointInPoly(x, y, outline)) continue;
+          feats.push({ ...v.make(), x: Math.round(x), y: Math.round(y), id: `gf-m-${Date.now().toString(36)}-${modelsPlaced}` });
+          modelsPlaced++;
+          break;
+        }
       }
 
       const materials = {
