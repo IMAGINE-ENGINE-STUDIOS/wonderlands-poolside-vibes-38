@@ -9,7 +9,7 @@
  * and broadcasts on `design-studio:landscape-layout`.
  */
 import * as React from 'react';
-import { applyLandscapeEdit, type LandscapeEdit } from '@/lib/landscape/landscapeOps';
+import { applyLandscapeEdit, filterKeepOut, type KeepOutOpts, type LandscapeEdit } from '@/lib/landscape/landscapeOps';
 import {
   bedFill, emptyLandscapeLayout, measureLandscapeLayout, sampleBed, type LandscapeLayout,
 } from '@/lib/landscape/landscapeEstimate';
@@ -19,6 +19,34 @@ import { layoutTo3D, saveLandscape3D } from '@/lib/landscape/landscape3D';
 import type { BoardView } from './SiteElementsLayer';
 
 const LS_KEY = 'design_studio_landscape_v1';
+const SITE_LS_KEY = 'design_studio_site_elements_v1';
+
+interface Barrier { polys: Array<Array<{ x: number; y: number }>>; boundsFt?: { x0: number; y0: number; x1: number; y1: number } }
+
+/** Fences and screen enclosures are the landscape's legal boundary: their
+ * lines are keep-out zones, and the largest closed one frames the yard —
+ * "inside the fenced area" made literal. */
+function barriersOf(els: Array<{ kind?: string; pts?: Array<{ x: number; y: number }> }>): Barrier {
+  const bs = (els ?? []).filter((e) => (e.kind === 'fence' || e.kind === 'enclosure') && (e.pts?.length ?? 0) >= 2);
+  const polys = bs.map((e) => e.pts as Array<{ x: number; y: number }>);
+  let boundsFt: Barrier['boundsFt']; let best = 0;
+  for (const e of bs) {
+    const pts = e.pts as Array<{ x: number; y: number }>;
+    if (pts.length < 3) continue;
+    const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+    const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+    if (area > best) { best = area; boundsFt = { x0: Math.min(...xs) / 10, y0: Math.min(...ys) / 10, x1: Math.max(...xs) / 10, y1: Math.max(...ys) / 10 }; }
+  }
+  return { polys, boundsFt };
+}
+
+function persistedBarriers(): Barrier {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SITE_LS_KEY) || 'null');
+    if (Array.isArray(raw)) return barriersOf(raw);
+  } catch { /* no site elements yet */ }
+  return { polys: [] };
+}
 export const LANDSCAPE_LAYOUT_EVENT = 'design-studio:landscape-layout';
 
 function loadLayout(): LandscapeLayout {
@@ -36,6 +64,15 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
   const viewRef = React.useRef(view);
   viewRef.current = view;
 
+  const [barriers, setBarriers] = React.useState<Barrier>(persistedBarriers);
+  const barriersRef = React.useRef(barriers);
+  barriersRef.current = barriers;
+  React.useEffect(() => {
+    const on = (ev: Event) => setBarriers(barriersOf(((ev as CustomEvent).detail ?? []) as never[]));
+    window.addEventListener('design-studio:site-elements', on);
+    return () => window.removeEventListener('design-studio:site-elements', on);
+  }, []);
+
   const commit = React.useCallback((next: LandscapeLayout, holeFt?: { x0: number; y0: number; x1: number; y1: number }) => {
     layoutRef.current = next;
     setLayout(next);
@@ -43,6 +80,20 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
     window.dispatchEvent(new CustomEvent(LANDSCAPE_LAYOUT_EVENT, { detail: next }));
     if (holeFt) saveLandscape3D(layoutTo3D(next, holeFt));
   }, []);
+
+  /* The law applies retroactively: a fence drawn over existing plants
+   * lifts the ones on its line, and 3D republishes without them. */
+  React.useEffect(() => {
+    if (!barriers.polys.length || !layoutRef.current.plantings.length) return;
+    const next = filterKeepOut(layoutRef.current, barriers.polys);
+    if (next === layoutRef.current) return;
+    const v = viewRef.current;
+    const all = [...(v?.poolPts ?? []), ...(v?.deckPts ?? [])];
+    if (all.length >= 3) {
+      const xs = all.map((p) => p.x), ys = all.map((p) => p.y);
+      commit(next, { x0: Math.min(...xs) / 10, y0: Math.min(...ys) / 10, x1: Math.max(...xs) / 10, y1: Math.max(...ys) / 10 });
+    } else commit(next);
+  }, [barriers, commit]);
 
   /* Genius landscape edits: { edits: LandscapeEdit[] } or { look: id },
    * applied against the live pool+deck hole so nothing lands on water or
@@ -69,7 +120,9 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
       }
       if (!edits.length && !d.clearAll) return reply(false, { reason: 'empty' });
       let next = d.clearAll ? emptyLandscapeLayout() : layoutRef.current;
-      for (const e of edits) next = applyLandscapeEdit(next, e, hole);
+      const b = barriersRef.current;
+      const opts: KeepOutOpts | undefined = b.polys.length ? { polys: b.polys, boundsFt: b.boundsFt } : undefined;
+      for (const e of edits) next = applyLandscapeEdit(next, e, hole, opts);
       commit(next, hole);
       const t = measureLandscapeLayout(next);
       reply(true, {

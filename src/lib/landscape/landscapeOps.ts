@@ -69,7 +69,10 @@ export function findPlant(query: string): LandscapingPlant | null {
 }
 
 /** Bounding frame of the current plan (or a default 60×40 ft yard). */
-export function frameOf(layout: LandscapeLayout, hole?: Frame["hole"]): Frame {
+export function frameOf(layout: LandscapeLayout, hole?: Frame["hole"], boundsFt?: { x0: number; y0: number; x1: number; y1: number }): Frame {
+  /* A real boundary (the fence/screen line) beats the synthesized yard:
+   * everything composes INSIDE the fenced area. */
+  if (boundsFt && boundsFt.x1 - boundsFt.x0 >= 20 && boundsFt.y1 - boundsFt.y0 >= 14) return { ...boundsFt, hole };
   const pts: LandscapePoint[] = [
     ...layout.beds.flatMap((b) => b.points),
     ...layout.plantings.map((p) => ({ x: p.x, y: p.y })),
@@ -182,10 +185,37 @@ export function bedAlong(side: Side, f: Frame, depthFt = 5, fill: BedFillId = "m
 }
 
 /** Applies an edit and returns the new layout (never mutates). */
-export function applyLandscapeEdit(layout: LandscapeLayout, edit: LandscapeEdit, hole?: Frame["hole"]): LandscapeLayout {
+export interface KeepOutOpts { polys: LandscapePoint[][]; clearFt?: number; boundsFt?: { x0: number; y0: number; x1: number; y1: number } }
+
+const distToSeg = (p: LandscapePoint, a: LandscapePoint, b: LandscapePoint): number => {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const L2 = dx * dx + dy * dy;
+  const t = L2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L2)) : 0;
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+};
+
+/** The placement law for fences and screens: no planting inside a barrier
+ * polygon or within clearance of its line. Beds may hug a fence; plants may
+ * not sit on it. Returns the layout with offending plantings removed. */
+export function filterKeepOut(layout: LandscapeLayout, polys: LandscapePoint[][], clearFt = 1.2): LandscapeLayout {
+  if (!polys.length) return layout;
+  const clearPx = clearFt * PX;
+  /* A fence or screen is a LINE, not a solid: the yard inside it is exactly
+   * where plants belong ("inside the fenced area"). Only the line itself —
+   * within clearance — is forbidden ground. */
+  const violates = (p: LandscapePoint) => polys.some((poly) => {
+    for (let i = 1; i < poly.length; i++) if (distToSeg(p, poly[i - 1], poly[i]) < clearPx) return true;
+    if (poly.length >= 3) { const a = poly[poly.length - 1], b = poly[0]; if (a.x !== b.x || a.y !== b.y) if (distToSeg(p, a, b) < clearPx) return true; }
+    return false;
+  });
+  const plantings = layout.plantings.filter((p) => !violates(p));
+  return plantings.length === layout.plantings.length ? layout : { ...layout, plantings };
+}
+
+export function applyLandscapeEdit(layout: LandscapeLayout, edit: LandscapeEdit, hole?: Frame["hole"], opts?: KeepOutOpts): LandscapeLayout {
   let beds = edit.clear ? [] : [...layout.beds];
   let plantings = edit.clear ? [] : [...layout.plantings];
-  const f = frameOf({ beds, plantings }, hole);
+  const f = frameOf({ beds, plantings }, hole, opts?.boundsFt);
   if (edit.remove?.length) {
     const ids = new Set(edit.remove.map((q) => findPlant(q)?.id).filter(Boolean) as string[]);
     plantings = plantings.filter((p) => !ids.has(p.plantId));
@@ -193,7 +223,8 @@ export function applyLandscapeEdit(layout: LandscapeLayout, edit: LandscapeEdit,
   if (edit.newBed) beds.push(bedAlong(edit.newBed.side, f, edit.newBed.depthFt, edit.newBed.fill));
   if (edit.bedFill) beds = beds.map((b) => ({ ...b, fill: edit.bedFill! }));
   for (const op of edit.add ?? []) plantings.push(...placeOp(op, f));
-  return { ...layout, beds, plantings, irrigation: edit.irrigation ?? layout.irrigation };
+  const out = { ...layout, beds, plantings, irrigation: edit.irrigation ?? layout.irrigation };
+  return opts?.polys?.length ? filterKeepOut(out, opts.polys, opts.clearFt) : out;
 }
 
 /** Deterministic phrase parser — works offline and before Genius replies. */

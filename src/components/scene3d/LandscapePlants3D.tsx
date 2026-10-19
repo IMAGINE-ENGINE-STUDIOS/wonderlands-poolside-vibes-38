@@ -60,9 +60,19 @@ const Plant = React.memo(function Plant({ p }: { p: Plant3D }) {
       );
     case "grass":
     case "spike":
-      return <mesh geometry={CONE7} material={bloom ?? leaf} position={[p.x, p.h / 2, p.z]} rotation={[0, p.rot, 0]} scale={[r, p.h, r]} />;
+      return (
+        <group position={[p.x, 0, p.z]} rotation={[0, p.rot, 0]}>
+          <mesh geometry={CONE7} material={leaf} position={[0, p.h / 2, 0]} scale={[r, p.h, r]} />
+          {bloom && <mesh geometry={SPHERE10} material={bloom} position={[0, p.h * 0.94, 0]} scale={r * 0.32} />}
+        </group>
+      );
     case "mat":
-      return <mesh geometry={MAT12} material={bloom ?? leaf} position={[p.x, 0.15, p.z]} scale={[r, 0.3, r]} />;
+      return (
+        <group position={[p.x, 0, p.z]}>
+          <mesh geometry={MAT12} material={leaf} position={[0, 0.15, 0]} scale={[r, 0.3, r]} />
+          {bloom && <mesh geometry={SPHERE10} material={bloom} position={[0, 0.34, 0]} scale={r * 0.3} />}
+        </group>
+      );
     default: {
       const rr = Math.max(r, 0.1);
       return (
@@ -93,7 +103,7 @@ function sketchfabUrl(q: string): Promise<string | null> {
       const m = (j?.results ?? []).find((x: any) => x?.uid);
       if (!m) return null;
       const { data } = await supabase.functions.invoke('sketchfab-download', { body: { uid: m.uid } });
-      return (data as any)?.url ?? null;
+      return (data as any)?.glb ?? (data as any)?.url ?? null;
     } catch { return null; }
   })();
   urlCache.set(q, hit);
@@ -139,7 +149,7 @@ function downloadUrl(uid: string): Promise<string | null> {
   hit = (async () => {
     try {
       const { data } = await supabase.functions.invoke('sketchfab-download', { body: { uid } });
-      return (data as any)?.url ?? null;
+      return (data as any)?.glb ?? (data as any)?.url ?? null;
     } catch { return null; }
   })();
   uidUrlCache.set(uid, hit);

@@ -299,9 +299,12 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
     const plantHits = vegHit.filter((v) => !/rocks?|boulders?|fountain/.test(v.label));
     const landscapeVerbs = /\b(add|plant|put|place|grow|landscape|landscaping|build|make|create|design|line|surround)\b/.test(q);
     const lookId = /\btropical\b/.test(q) ? 'tropical-poolside'
+      : /palm beach|\bestate\b/.test(q) ? 'palm-beach-estate'
+      : /\bcourtyard\b/.test(q) ? 'courtyard-garden-room'
+      : /\bformal\b|\bparterre\b/.test(q) ? 'formal-garden-axis'
+      : /\btopiary\b/.test(q) ? 'formal-topiary'
       : /\bmodern\b|\bminimal/.test(q) ? 'modern-minimal'
       : /\bcoastal\b|\bnative\b/.test(q) ? 'coastal-native'
-      : /\bformal\b|\btopiary\b|\bestate\b|\bparterre\b/.test(q) ? 'formal-topiary'
       : /\bthemed patio\b/.test(q) ? 'themed-patio' : null;
     const localEdit = !lookId && landscapeVerbs ? parseLocalEdit(q) : null;
     if ((lookId || localEdit || (plantHits.length && landscapeVerbs)) && !/\bmove\b/.test(q)) {
