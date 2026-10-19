@@ -19,6 +19,12 @@ must be corrected.
   what Genius must be able to draw, move and restyle, and the placement rules.
 - `solar-genius.md` — Solar Genius surfaces and data.
 - `flip.md` — the FLIP book: structure, editions, and how Genius reads it.
+- `landscaping/` — the landscaping library: every plant Wonderlands sells
+  (`products-landscaping.md`, from `src/data/landscapingData.ts`), the 1:1
+  real-world scale logic for 3D models (`scale-table.md`), the placement law
+  with the planter refinement (`placement-law.md`), named design patterns
+  (`landscape-patterns.md`), and the example-image library index
+  (`examples/README.md`).
 - `model-routing.md` — the comprehensive logic for choosing which Meta model
   answers which kind of user request. Implemented in
   `src/lib/modelRouter.ts` and `supabase/functions/_shared/modelRouter.ts`.

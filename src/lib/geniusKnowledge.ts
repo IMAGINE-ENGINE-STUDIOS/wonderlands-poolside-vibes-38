@@ -13,6 +13,7 @@ import { gilmerSpas } from '@/data/gilmerSpas';
 import { saunas } from '@/data/saunaData';
 import { DISCIPLINES } from '@/lib/quoteDisciplines';
 import { paverTypes } from '@/data/paverData';
+import { landscapingPlants } from '@/data/landscapingData';
 
 export interface KnowledgeItem { name: string; category: string; brand?: string; price: number; dimensions?: string; depth?: string; note?: string; image?: string }
 
@@ -48,6 +49,13 @@ export function getKnowledgeItems(): KnowledgeItem[] {
   saunas.forEach((s: any) => push({ name: s.model ?? s.name, category: 'Sauna', brand: 'Almost Heaven', price: s.price, dimensions: s.dimensions, image: s.image }));
   /* Pavers are priced per square foot (main-page paver catalog). */
   paverTypes.forEach((p) => push({ name: p.name, category: 'Paver', price: p.basePrice, note: p.description, image: p.image }));
+  /* Landscaping plants (the /landscaping catalog): retail is the data's own
+   * finalPrice (base x LANDSCAPING_MARKUP), one plant installed. The size
+   * ladder rides in `dimensions` so the digest line carries it verbatim. */
+  landscapingPlants.forEach((p) => {
+    const ladder = [...new Set(p.variants.flatMap((v) => v.sizes.map((sz) => `${sz.size} ${money(sz.finalPrice)}`)))].slice(0, 7).join(' · ');
+    push({ name: p.name, category: `Plant — ${p.category}`, price: p.minPrice, dimensions: ladder ? `sizes installed: ${ladder}` : undefined, image: p.image });
+  });
   cache = out;
   return out;
 }
