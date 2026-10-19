@@ -32,6 +32,7 @@ import type { StudioMaterials } from '@/lib/design/studioMaterials';
 import { buildFinishTextures } from '@/data/textureLibrary';
 import { densifyPoolOutline } from "@/utils/curveUtils";
 import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from "@/components/scene3d/PoolDesignerHeader";
+import { useLandscapeSnapshot } from "@/lib/landscape/landscapeStore";
 import { getDeckPricePerSqFt } from "@/utils/poolBuilderPricing";
 import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
 
@@ -898,6 +899,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
  */
 export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: Pt[]; poolDepth?: number; deckWidth?: number; copingWidth?: number; poolPrice?: number; stats?: unknown; totals?: unknown; deckAreaSqFt?: number; featuresList?: Array<{ type: string; cost: number }>; additionalPools?: Array<{ id: string; type?: string; points: Pt[] }>; additionalDecks?: Record<string, Pt[]>; paver?: { id: string; name: string } }> = ({ scale, poolPts, deckPts, poolDepth = 6, deckWidth = 4, copingWidth = 1, poolPrice = 0, deckAreaSqFt, featuresList = [], additionalPools = [], additionalDecks = {}, paver }) => {
   const [items] = useSiteElements();
+  const landscape = useLandscapeSnapshot();
   const feet = React.useMemo(() => poolPts.map((p) => ({ x: p.x / scale, y: p.y / scale })), [poolPts, scale]);
   // Every element on the board: site pieces, placed features and extra water bodies.
   const extras = React.useMemo(() => {
@@ -905,8 +907,8 @@ export const SiteTakeoffMenu: React.FC<{ scale: number; poolPts: Pt[]; deckPts: 
     const counts = new Map<string, { n: number; cost: number }>();
     featuresList.forEach((f) => { const c = counts.get(f.type) ?? { n: 0, cost: 0 }; c.n++; c.cost += f.cost; counts.set(f.type, c); });
     const feats = [...counts].map(([t, c]) => ({ name: `${t.replace(/-/g, " ").replace(/^./, (m) => m.toUpperCase())}${c.n > 1 ? ` × ${c.n}` : ""}`, price: c.cost }));
-    return [...site, ...feats].filter((l) => l.price > 0);
-  }, [items, poolPts, deckPts, scale, featuresList]);
+    return [...site, ...feats, ...landscape.lines].filter((l) => l.price > 0);
+  }, [items, poolPts, deckPts, scale, featuresList, landscape]);
   const bodies = React.useMemo(() => additionalPools.filter((p) => p.points?.length >= 3).map((p, i) => {
     const a = areaFt(p.points, scale);
     const label = p.type === "spa" ? "Spa" : p.type === "tanning-ledge" ? "Tanning ledge" : "Pool";

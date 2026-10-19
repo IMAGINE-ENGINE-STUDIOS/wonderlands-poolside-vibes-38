@@ -12,6 +12,7 @@ import * as React from "react";
 import { SceneObjectsPanel, sceneObjectIcons, type SceneObjectGroup } from "@/components/scene3d/SceneObjectsPanel";
 import { useSiteElements } from "./SiteElementsLayer";
 import { boardObjectId } from "@/lib/design/sceneLayers";
+import { useLandscapeSnapshot } from "@/lib/landscape/landscapeStore";
 
 /* ---------- 2D design snapshot store ---------- */
 type Board2D = { points?: unknown[]; hardscapePoints?: unknown[]; additionalPools?: Array<{ id: string; type?: string; name?: string; points: unknown[] }>; additionalDeckPoints?: Record<string, unknown[]>; features?: Array<{ id?: string; type?: string; name?: string }> };
@@ -41,6 +42,7 @@ const FEATURE: Record<string, { label: string; icon: React.ReactNode; layer: str
 
 export function BoardObjectsPanel() {
   const [items, setItems] = useSiteElements();
+  const landscape = useLandscapeSnapshot();
   const board = React.useSyncExternalStore(subscribe, getBoard);
   const groups: SceneObjectGroup[] = React.useMemo(() => {
     const out: SceneObjectGroup[] = [];
@@ -81,7 +83,30 @@ export function BoardObjectsPanel() {
       };
     };
     out.push(make(["fence", "enclosure"], "fences", "Fences & Screens"), make(["deck", "turf"], "surfaces", "Decks & Turf"));
+    if (landscape.species.length || landscape.beds.length) {
+      out.push({
+        key: "landscaping", label: "Landscaping",
+        items: [
+          ...landscape.species.map((sp) => ({
+            id: `landscape-${sp.plantId}`,
+            label: `${sp.name} × ${sp.count}`,
+            detail: "Landscaping",
+            icon: sceneObjectIcons.terrain,
+            layer: "landscape",
+            onDelete: () => window.dispatchEvent(new CustomEvent("design-studio:landscape-remove", { detail: { plantId: sp.plantId } })),
+          })),
+          ...landscape.beds.map((b) => ({
+            id: `landscape-bed-${b.id}`,
+            label: b.label,
+            detail: `${b.sqFt} sq ft bed`,
+            icon: sceneObjectIcons.terrain,
+            layer: "landscape",
+            onDelete: () => window.dispatchEvent(new CustomEvent("design-studio:landscape-remove", { detail: { bedId: b.id } })),
+          })),
+        ],
+      });
+    }
     return out.filter((g) => g.items.length);
-  }, [items, setItems, board]);
+  }, [items, setItems, board, landscape]);
   return <SceneObjectsPanel groups={groups} />;
 }

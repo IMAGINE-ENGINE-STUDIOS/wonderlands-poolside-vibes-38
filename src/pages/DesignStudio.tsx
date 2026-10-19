@@ -44,6 +44,7 @@ import { BoardReportButton } from "@/components/designStudio/BoardReportButton";
 import { useBoardCommands, sendBoardCommand } from "@/components/designStudio/boardCommands";
 import { ProjectManager, getAutoSave, setAutoSave, saveProjectToLibrary, setActiveStudioProject } from '@/components/poolBuilder/ProjectManager';
 import { completeStudioProject } from '@/lib/design/studioProject';
+import { clearLandscape3D } from '@/lib/landscape/landscape3D';
 import { toast as boardToast } from "sonner";
 import { SubToolbar } from "@/components/designStudio/SubToolbar";
 import { Genius2DBar } from "@/components/designStudio/Genius2DBar";
@@ -162,6 +163,11 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
     cacheWrite(SITE_ELEMENTS_KEY, []);
     window.dispatchEvent(new CustomEvent(SITE_ELEMENTS_EVENT, { detail: [] }));
     clearBoard3D();
+    // The landscape layer goes with everything else: its saved plan, its 3D
+    // handoff, and a reset event for the mounted layer to clear itself.
+    try { localStorage.removeItem('design_studio_landscape_v1'); } catch { /* ignore */ }
+    clearLandscape3D();
+    window.dispatchEvent(new CustomEvent('design-studio:landscape-reset'));
     sentBoardRef.current = null;
     setPoolBuilderData(null);
     setCustomPoolShape(null);

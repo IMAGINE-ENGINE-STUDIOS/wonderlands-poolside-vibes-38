@@ -15,7 +15,8 @@ import {
 } from '@/lib/landscape/landscapeEstimate';
 import { drawnSpreadFt, getPlantSpec, plantById } from '@/lib/landscape/plantSpecs';
 import { LANDSCAPE_LOOKS } from '@/lib/landscape/presets';
-import { layoutTo3D, saveLandscape3D } from '@/lib/landscape/landscape3D';
+import { clearLandscape3D, layoutTo3D, saveLandscape3D } from '@/lib/landscape/landscape3D';
+import { publishLandscape } from '@/lib/landscape/landscapeStore';
 import type { BoardView } from './SiteElementsLayer';
 
 const LS_KEY = 'design_studio_landscape_v1';
@@ -73,13 +74,69 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
     return () => window.removeEventListener('design-studio:site-elements', on);
   }, []);
 
+  const publishSnapshot = React.useCallback((next: LandscapeLayout) => {
+    const t = measureLandscapeLayout(next);
+    const byPlant = new Map<string, { name: string; count: number }>();
+    for (const p of next.plantings) {
+      const cur = byPlant.get(p.plantId) ?? { name: plantById(p.plantId)?.name ?? p.plantId, count: 0 };
+      cur.count++; byPlant.set(p.plantId, cur);
+    }
+    publishLandscape({
+      total: t.total, plantCount: t.plantCount, bedSqFt: t.bedSqFt,
+      lines: [
+        ...t.species.map((sp) => ({ name: `Landscaping · ${sp.name} ×${sp.qty}`, price: sp.amount })),
+        ...t.beds.map((b) => ({ name: `Planting bed · ${bedFill(b.fill).name} (${Math.round(b.areaSqFt)} sq ft)`, price: b.amount })),
+        ...(next.irrigation && t.irrigationTotal > 0 ? [{ name: 'Drip irrigation system', price: t.irrigationTotal }] : []),
+      ],
+      species: [...byPlant.entries()].map(([plantId, v]) => ({ plantId, name: v.name, count: v.count })),
+      beds: t.beds.map((b) => ({ id: b.id, label: `Bed · ${bedFill(b.fill).name}`, sqFt: Math.round(b.areaSqFt) })),
+    });
+  }, []);
+
   const commit = React.useCallback((next: LandscapeLayout, holeFt?: { x0: number; y0: number; x1: number; y1: number }) => {
     layoutRef.current = next;
     setLayout(next);
     try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ }
     window.dispatchEvent(new CustomEvent(LANDSCAPE_LAYOUT_EVENT, { detail: next }));
+    publishSnapshot(next);
     if (holeFt) saveLandscape3D(layoutTo3D(next, holeFt));
+  }, [publishSnapshot]);
+
+  /* The board's opening state is a state too: publish it so the Objects
+   * panel and the summary are right before the first edit. */
+  React.useEffect(() => { publishSnapshot(layoutRef.current); }, [publishSnapshot]);
+
+  const holeOf = React.useCallback(() => {
+    const v = viewRef.current;
+    const all = [...(v?.poolPts ?? []), ...(v?.deckPts ?? [])];
+    if (all.length < 3) return undefined;
+    const xs = all.map((p) => p.x), ys = all.map((p) => p.y);
+    return { x0: Math.min(...xs) / 10, y0: Math.min(...ys) / 10, x1: Math.max(...xs) / 10, y1: Math.max(...ys) / 10 };
   }, []);
+
+  /* Reset Everything wipes the landscape with the rest of the board, and
+   * the Objects panel can remove a species or a bed from here. */
+  React.useEffect(() => {
+    const onReset = () => { commit(emptyLandscapeLayout()); clearLandscape3D(); };
+    const onRemove = (ev: Event) => {
+      const d = (ev as CustomEvent).detail || {};
+      const cur = layoutRef.current;
+      const next = d.bedId
+        ? { ...cur, beds: cur.beds.filter((b) => b.id !== d.bedId) }
+        : d.plantId
+          ? { ...cur, plantings: cur.plantings.filter((p) => p.plantId !== d.plantId) }
+          : d.plantingId
+            ? { ...cur, plantings: cur.plantings.filter((p) => p.id !== d.plantingId) }
+            : cur;
+      if (next !== cur) commit(next, holeOf());
+    };
+    window.addEventListener('design-studio:landscape-reset', onReset);
+    window.addEventListener('design-studio:landscape-remove', onRemove);
+    return () => {
+      window.removeEventListener('design-studio:landscape-reset', onReset);
+      window.removeEventListener('design-studio:landscape-remove', onRemove);
+    };
+  }, [commit, holeOf]);
 
   /* The law applies retroactively: a fence drawn over existing plants
    * lifts the ones on its line, and 3D republishes without them. */
@@ -167,22 +224,8 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
     .filter(Boolean)
     .sort((a, b) => a!.spec.heightFt - b!.spec.heightFt) as Array<{ p: LandscapeLayout['plantings'][number]; spec: ReturnType<typeof getPlantSpec>; r: number }>;
 
-  const takeoff = measureLandscapeLayout(layout);
-  const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
   return (
     <>
-    {takeoff.plantCount > 0 && (
-      <div className="pointer-events-auto absolute left-3 top-3 z-30 max-w-[240px] rounded-xl border border-border/70 bg-background/75 px-3 py-2 shadow-lg backdrop-blur-xl">
-        <div className="text-[11px] font-semibold text-foreground">Landscaping · {money(takeoff.total)}</div>
-        <div className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">
-          {takeoff.species.slice(0, 4).map((sp) => (
-            <div key={sp.key} className="flex justify-between gap-3"><span className="truncate">{sp.name} ×{sp.qty}</span><span>{money(sp.amount)}</span></div>
-          ))}
-          {takeoff.bedSqFt > 0 && <div className="flex justify-between gap-3"><span>Beds {Math.round(takeoff.bedSqFt)} sq ft</span><span>{money(takeoff.bedTotal)}</span></div>}
-          <div className="mt-0.5 border-t border-border/50 pt-0.5">{takeoff.plantCount} plants, priced live from the catalog</div>
-        </div>
-      </div>
-    )}
     <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
       <g transform={transform}>
         {layout.beds.map((b) => {
@@ -197,11 +240,20 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
               fillOpacity={0.55}
               stroke={fill.fleck}
               strokeWidth={2 / zoom}
-            />
+              style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              onDoubleClick={() => commit({ ...layoutRef.current, beds: layoutRef.current.beds.filter((x) => x.id !== b.id) }, holeOf())}
+            >
+              <title>Planting bed — double-click to remove</title>
+            </polygon>
           );
         })}
         {plantingViews.map(({ p, spec, r }) => (
-          <g key={p.id}>
+          <g
+            key={p.id}
+            style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+            onDoubleClick={() => commit({ ...layoutRef.current, plantings: layoutRef.current.plantings.filter((x) => x.id !== p.id) }, holeOf())}
+          >
+            <title>{`${plantById(p.plantId)?.name ?? 'Plant'} — double-click to remove`}</title>
             <circle cx={p.x} cy={p.y} r={r} fill={spec.foliage} fillOpacity={0.75} stroke="rgba(0,0,0,0.25)" strokeWidth={0.75 / zoom} />
             {spec.bloom && <circle cx={p.x} cy={p.y} r={Math.max(1.5, r * 0.35)} fill={spec.bloom} fillOpacity={0.9} />}
           </g>
