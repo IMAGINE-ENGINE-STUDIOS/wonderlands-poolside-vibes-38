@@ -102,6 +102,8 @@ const AdminPreview = lazy(() => import("./pages/AdminPreview"));
 const DevStaging = import.meta.env.DEV ? lazy(() => import("./pages/DevStaging")) : null;
 const PublicCompanySite = lazy(() => import("./pages/PublicCompanySite"));
 const TenantDomainSite = lazy(() => import("./pages/TenantDomainSite"));
+/** The free FLIP subdomain: on this host, /<slug> IS a published book. */
+const isFlipHost = (h: string) => h === 'flip.wonderlandsworld.com';
 /** Hosts that serve the Wonderlands app itself; any other host is a company's own domain. */
 const isOwnHost = (h: string) => h === 'localhost' || h === '127.0.0.1' || /(^|\.)wonderlandsworld\.com$/.test(h) || /\.lovable\.(app|dev)$/.test(h) || /\.lovableproject\.com$/.test(h);
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -254,6 +256,15 @@ const App = () => {
             <Route path="/tech-stack" element={<TechnologyPage />} />
             <Route path="/flip-pages" element={<FlipPagesFile />} />
             <Route path="/flip/:slug" element={<FlipBookPublished />} />
+            {/* On the flip subdomain the builder's advertised address is
+                flip.wonderlandsworld.com/<slug> — this host-gated route is
+                what makes that address real. Static routes rank above it,
+                so the app's own pages still win on this host; any other
+                single segment is read as a book slug and the reader shows
+                its own not-found state instead of a bare 404. */}
+            {typeof window !== 'undefined' && isFlipHost(window.location.hostname) && (
+              <Route path="/:slug" element={<FlipBookPublished />} />
+            )}
             {/* Product suites — one per category, full configuration + board */}
             <Route path="/suites/saunas" element={<SaunaSuite />} />
             <Route path="/suites/spas" element={<SpaSuite />} />
