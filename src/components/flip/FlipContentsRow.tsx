@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Plus } from "lucide-react";
 
 /**
  * A single line of a FLIP contents page.
@@ -23,6 +23,10 @@ export interface FlipContentsRowProps {
   tone?: "light" | "ink";
   /** Optional — informational rows (option chapters) simply open their leaf. */
   onOpen?: () => void;
+  /** Optional — adds this row's option to the reader's order. */
+  onAdd?: () => void;
+  /** The option is already on the order — the add control shows a check. */
+  added?: boolean;
 }
 
 const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
@@ -34,6 +38,8 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
   description,
   tone = "light",
   onOpen,
+  onAdd,
+  added,
 }) => {
   const [open, setOpen] = React.useState(false);
   const ink = tone === "ink";
@@ -73,6 +79,28 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
         {priceLabel ? (
           <span className={`shrink-0 font-serif text-[11px] ${ink ? "text-white/80" : "text-muted-foreground"}`}>
             {priceLabel}
+          </span>
+        ) : null}
+        {onAdd ? (
+          <span
+            role="button"
+            aria-label={added ? `${name} is in your order` : `Add ${name} to your order`}
+            title={added ? "In your order" : "Add to your order"}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAdd();
+            }}
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+              added
+                ? ink
+                  ? "border-white bg-white text-black"
+                  : "border-foreground bg-foreground text-background"
+                : ink
+                  ? "border-white/50 text-white hover:bg-white hover:text-black"
+                  : "border-border text-muted-foreground hover:border-foreground hover:bg-foreground hover:text-background"
+            }`}
+          >
+            {added ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
           </span>
         ) : null}
         {onOpen ? (

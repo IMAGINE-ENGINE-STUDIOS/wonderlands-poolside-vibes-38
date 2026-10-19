@@ -18,6 +18,9 @@ export interface CartItem {
   quantity: number;
   image?: string;
   category: string;
+  /** Configuration signature: the same product id with different extras is a
+      different cart line — configurations never merge into each other. */
+  configKey?: string;
   extras?: {
     name: string;
     price: number;
@@ -25,6 +28,10 @@ export interface CartItem {
     image?: string;
     /** Feature key (finish, heater, liner, ...) used to edit the selection later */
     key?: string;
+    /** Chapter the option came from (Interior Finish, Water & Comfort…) */
+    group?: string;
+    /** Pricing unit for measured options ("sqft" | "each") */
+    unit?: 'sqft' | 'each';
     /** Quantity for countable features (jets, doors, ...) */
     quantity?: number;
     /** Currently selected option label, when it differs from the display name */

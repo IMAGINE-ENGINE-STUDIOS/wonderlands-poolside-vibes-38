@@ -224,7 +224,7 @@ const FlipCart: React.FC<FlipCartProps> = ({ current, onQuote, onOpenChange }) =
 
               {cartItems.map((item, i) => {
                 const extras = item.extras ?? [];
-                const line = (item.price + extras.reduce((s, e) => s + e.price, 0)) * item.quantity;
+                const line = (item.price + extras.reduce((s, e) => s + e.price * (e.quantity ?? 1), 0)) * item.quantity;
                 return (
                   <article key={item.id} className="border-b border-border/60 py-5">
                     <div className="flex gap-4">

@@ -19,7 +19,17 @@ interface ShoppingCartContextType {
   /** Adds a feature and guarantees its parent product is on the list */
   addFeatureToProduct: (
     product: Omit<CartItem, 'quantity'>,
-    feature: { name: string; price: number; key?: string; image?: string }
+    feature: {
+      name: string;
+      price: number;
+      key?: string;
+      image?: string;
+      group?: string;
+      quantity?: number;
+      unit?: 'sqft' | 'each';
+      selectedOption?: string;
+      options?: { name: string; price: number }[];
+    }
   ) => void;
   /** Live-syncs base price and features of a cart item while it is being configured */
   syncItemConfig: (id: string, next: { price?: number; extras?: CartItem['extras'] }) => void;
@@ -89,12 +99,18 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
         resolveCategoryLabel(incoming.category, (incoming as any).type, incoming.id, incoming.name) ||
         'Other',
     };
-    const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
+    /* Merge only into the line with the SAME configuration: the same model
+       configured differently is a different line, and an incoming price or
+       extras payload must never be silently discarded by an id-only match. */
+    const configKey = item.configKey ?? '';
+    const existingItem = cartItems.find(
+      cartItem => cartItem.id === item.id && (cartItem.configKey ?? '') === configKey
+    );
 
     
     if (existingItem) {
       const updatedItems = cartItems.map(cartItem =>
-        cartItem.id === item.id
+        cartItem.id === item.id && (cartItem.configKey ?? '') === configKey
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       );
@@ -194,7 +210,17 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
    */
   const addFeatureToProduct = (
     product: Omit<CartItem, 'quantity'>,
-    feature: { name: string; price: number; key?: string; image?: string }
+    feature: {
+      name: string;
+      price: number;
+      key?: string;
+      image?: string;
+      group?: string;
+      quantity?: number;
+      unit?: 'sqft' | 'each';
+      selectedOption?: string;
+      options?: { name: string; price: number }[];
+    }
   ) => {
     const category =
       resolveCategoryLabel(product.category, (product as any).type, product.id, product.name) ||
@@ -227,7 +253,7 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
 
   const getCartTotal = () =>
     cartItems.reduce((total, item) => {
-      const extras = (item.extras || []).reduce((sum, e) => sum + e.price, 0);
+      const extras = (item.extras || []).reduce((sum, e) => sum + e.price * (e.quantity ?? 1), 0);
       return total + (item.price + extras) * item.quantity;
     }, 0);
 

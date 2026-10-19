@@ -348,12 +348,20 @@ const OptionChapter: React.FC<{
   const productCartId = `flip-${categoryId}-${entry.id}`;
   const optionId = (o: StudioOption) =>
     `flip-${categoryId}-${entry.id}-${group.title}-${o.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  /* One cart key per choice chapter: every option of a single-choice group
+     shares it, so a second pick replaces the first on the product line. */
+  const groupKey = () =>
+    `flip-${categoryId}-${entry.id}-${group.title}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const inOrder = (o: StudioOption) =>
     (cart?.cartItems ?? []).some(
       (c) =>
         c.id === optionId(o) ||
         (c.id === productCartId &&
-          (c.extras ?? []).some((e: any) => e.key === optionId(o))),
+          (c.extras ?? []).some(
+            (e: any) =>
+              e.key === optionId(o) ||
+              (group.choice && e.key === groupKey() && e.selectedOption === o.label),
+          )),
     );
 
   /** Measurement being collected for a unit-priced option (sq ft or count). */
@@ -369,7 +377,8 @@ const OptionChapter: React.FC<{
     o.price === 0 && /included/i.test(o.priceLabel ?? "") && isTurnkeyScopeLine(o.label);
 
   const addOption = (o: StudioOption, qty = 1) => {
-    const total = lineTotal(o, qty);
+    if (o.unpriced) return;
+    const choice = !!group.choice;
     cart?.addFeatureToProduct(
       {
         id: productCartId,
@@ -379,18 +388,33 @@ const OptionChapter: React.FC<{
         category: categoryLabel,
       },
       {
-        key: optionId(o),
+        /* Choice chapters key by group (one pick per chapter, replaced in
+           place); measured options store rate x quantity instead of a baked
+           total so the cart can itemise them; choice picks carry their
+           alternatives so the Order Desk switcher can change them in place. */
+        key: choice ? groupKey() : optionId(o),
+        group: group.title,
         name: o.unit
           ? `${group.title}: ${o.label} (${qty} ${unitWord(o)} @ ${o.priceLabel})`
           : `${group.title}: ${o.label}`,
-        price: total,
+        price: o.price,
+        ...(o.unit ? { quantity: qty, unit: o.unit } : {}),
+        ...(choice
+          ? {
+              selectedOption: o.label,
+              options: group.items
+                .filter((i) => !i.unit)
+                .map((i) => ({ name: `${group.title}: ${i.label}`, price: i.price })),
+            }
+          : {}),
         image: o.image ?? entry.image,
-      },
+      } as any,
     );
     setMeasure(null);
   };
 
   const requestAdd = (o: StudioOption) => {
+    if (o.unpriced) return;
     if (o.unit && o.price > 0) {
       setActive(o);
       setMeasure({ label: o.label, value: o.unit === "sqft" ? "400" : "1" });
@@ -401,7 +425,16 @@ const OptionChapter: React.FC<{
 
   /* the add control, printed on the gutter side of the row (see LeafSideContext) */
   const control = (o: StudioOption) =>
-    isIncluded(o) ? (
+    o.unpriced ? (
+      /* no studio price matched this label — configured in the studio,
+         never offered as a $0 add and never labelled "Included" */
+      <span
+        title="Configured and priced in the studio"
+        className="flex h-6 shrink-0 items-center gap-1 border border-foreground/30 bg-foreground/[0.06] px-2 text-[8px] uppercase tracking-[0.25em] text-muted-foreground"
+      >
+        In studio
+      </span>
+    ) : isIncluded(o) ? (
       /* fitted as standard — nothing to add, so the row is marked, not offered */
       <span
         title="Included as standard"
@@ -666,6 +699,9 @@ export const useProductBookPages = ({
   const cartId = `flip-${category.id}-${entry.id}`;
   const added = (cart?.cartItems ?? []).some((c) => c.id === cartId);
   const add = useCallback(() => {
+    /* An option is not a product: a pseudo-entry minted from an option row
+       (id "opt-…") must never become a cart line of its own. */
+    if (entry.id.startsWith("opt-")) return;
     cart?.addToCart({ id: cartId, name: entry.name, price: entry.price ?? 0, image: entry.image, category: category.label });
     cart?.setIsCartOpen?.(false);
   }, [cart, cartId, entry, category.label]);

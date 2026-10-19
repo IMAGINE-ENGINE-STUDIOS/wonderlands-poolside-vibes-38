@@ -20,6 +20,12 @@ export type StudioOption = {
    *  - undefined — `price` is the exact one-off price (studio `selection`/`boolean`)
    */
   unit?: "sqft" | "each";
+  /**
+   * True when no priced studio item matched this editorial label: the option
+   * exists, but its price is set in the studio — it must never be presented
+   * as free ("Included") or added to a cart at $0.
+   */
+  unpriced?: boolean;
 };
 
 export type StudioGroup = {
@@ -325,7 +331,7 @@ export const mergeStudioGroups = (
         const hit = match(label);
         return hit
           ? { ...hit, label, image: hit.image, note: hit.note }
-          : ({ label, price: 0, priceLabel: "Included" } as StudioOption);
+          : ({ label, price: 0, priceLabel: "Configured in the studio", unpriced: true } as StudioOption);
       }),
     }));
   return [...studio, ...extra];

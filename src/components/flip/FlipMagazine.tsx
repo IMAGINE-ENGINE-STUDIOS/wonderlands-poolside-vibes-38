@@ -651,9 +651,10 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
   /* -------------------------------- DOSSIER --------------------------------- */
   const [dossier, setDossier] = useState<ConsoleEntry | null>(null);
 
-  /* V7: publish what the reader is looking at so the narrator can read it aloud */
+  /* Publish what the reader is looking at so the narrator can read it aloud.
+     Every variant: gating this to v7/v8 left the narrator chat on the other
+     editions answering "this one" / "how deep is it?" with no page context. */
   useEffect(() => {
-    if (!isV7) return;
     if (dossier) {
       setNarratorContext({
         scope: "product",
@@ -1683,6 +1684,56 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
        Every additional feature now prints as a slide-open row (the same gesture
        as the contents rows): posing the mouse reveals the studio photograph and
        a short description of the option, so no chapter is text only. */
+
+    /* Adding from a magazine option chapter: the option attaches to the
+       edition's featured model through the same addFeatureToProduct the
+       product book uses — never a standalone $0 line, and never a pseudo-
+       dossier for the option itself. Measured options (priced per sq ft or
+       per unit) stay book-only: their price needs the measurement the
+       product book collects. */
+    const optHost = products[0] as ConsoleEntry | undefined;
+    const optKeyFor = (g: any, o: any) =>
+      (g.choice
+        ? `flip-${categoryId}-${optHost?.id}-${g.title}`
+        : `flip-${categoryId}-${optHost?.id}-${g.title}-${o.label}`)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-");
+    const optAddable = (o: any) =>
+      !!optHost && typeof o.price === "number" && !o.unpriced && !o.unit;
+    const optAdded = (g: any, o: any) => {
+      if (!optHost) return false;
+      const line = cartItems.find((c) => c.id === `flip-${categoryId}-${optHost.id}`);
+      return (line?.extras ?? []).some(
+        (e: any) => e.key === optKeyFor(g, o) && (!g.choice || e.selectedOption === o.label),
+      );
+    };
+    const addOptionFromMagazine = (g: any, o: any) => {
+      if (!cart || !optHost || !optAddable(o)) return;
+      cart.addFeatureToProduct(
+        {
+          id: `flip-${categoryId}-${optHost.id}`,
+          name: optHost.name,
+          price: optHost.price ?? 0,
+          image: optHost.image,
+          category: category.label,
+        },
+        {
+          key: optKeyFor(g, o),
+          group: g.title,
+          name: `${g.title}: ${o.label}`,
+          price: o.price,
+          ...(g.choice
+            ? {
+                selectedOption: o.label,
+                options: (g.items ?? [])
+                  .filter((i: any) => !i.unit && typeof i.price === "number")
+                  .map((i: any) => ({ name: `${g.title}: ${i.label}`, price: i.price })),
+              }
+            : {}),
+          image: o.image ?? optHost.image,
+        } as any,
+      );
+    };
     const PER_OPT_PAGE = 5;
     groups.forEach((g: any, gi) => {
       const items: any[] = (g.items?.length ? g.items : (g.options ?? []).map((label: string) => ({ label })));
@@ -1718,15 +1769,8 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                         .join(" · ") ||
                       `${g.title} — configured in the studio, installed with the product.`
                     }
-                    onOpen={() =>
-                      openDossier({
-                        id: `opt-${g.title}-${o.label}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-                        name: o.label,
-                        image: o.image ?? category.images?.[0] ?? "",
-                        price: (o as { price?: number }).price,
-                        meta: g.title,
-                      } as ConsoleEntry)
-                    }
+                    added={optAdded(g, o)}
+                    onAdd={optAddable(o) ? () => addOptionFromMagazine(g, o) : undefined}
                   />
                 ))}
               </ul>
