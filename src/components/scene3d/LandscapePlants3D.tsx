@@ -157,8 +157,13 @@ function SpeciesModels({ q, plants, pid }: { q: string; plants: Plant3D[]; pid?:
     return () => { live = false; };
   }, [q, pid]);
   if (!url) return <>{plants.map((p, i) => <Plant key={i} p={p} />)}</>;
-  const real = plants.slice(0, 24);
-  const rest = plants.slice(24);
+  /* Heavy photogrammetry heroes (200k+ faces) instance a few times, mid
+   * models a dozen, light models two dozen — the rest stay stylised, so a
+   * 70-plant hedge can never melt the scene. */
+  const hero = pid ? PLANT_MODELS[pid] : undefined;
+  const cap = hero?.faces ? (hero.faces > 200_000 ? 6 : hero.faces > 80_000 ? 12 : 24) : 24;
+  const real = plants.slice(0, cap);
+  const rest = plants.slice(cap);
   return (
     <>
       {real.map((p, i) => (

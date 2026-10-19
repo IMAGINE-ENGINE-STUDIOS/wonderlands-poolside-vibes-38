@@ -40,9 +40,24 @@ export async function invokeGenius(
     const maxWait = opts.maxWaitMs ?? 170_000;
     const started = Date.now();
     let announced = false;
+    let transportRetried = false;
     for (;;) {
-      const { data, error } = await supabase.functions.invoke(fn, options);
-      if (!isGeniusBusy(data, error)) return { data, error };
+      let data: any, error: any;
+      try {
+        ({ data, error } = await supabase.functions.invoke(fn, options));
+      } catch (e) {
+        /* Gateway drops and closed connections happen on the free tier: one
+         * quiet retry after a breath before the caller ever hears about it. */
+        if (!transportRetried) { transportRetried = true; await sleep(3_000); continue; }
+        throw e;
+      }
+      if (!isGeniusBusy(data, error)) {
+        const status = (error as any)?.context?.status;
+        if (error && typeof status === 'number' && status >= 500 && !transportRetried) {
+          transportRetried = true; await sleep(3_000); continue;
+        }
+        return { data, error };
+      }
       const waited = Date.now() - started;
       if (waited >= maxWait) return { data, error };
       if (!announced) {

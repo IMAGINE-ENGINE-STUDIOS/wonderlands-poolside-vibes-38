@@ -218,6 +218,8 @@ export function parseLocalEdit(text: string): LandscapeEdit | null {
   if (add.length) edit.add = add;
   const remove = t.match(/remove (?:the |all )?([a-z' ]+)/);
   if (remove && !edit.clear) edit.remove = [remove[1].trim()];
+  /* "add drip irrigation" is an irrigation request, not a plant. */
+  if (edit.add) { edit.add = edit.add.filter((o) => !/irrigation/.test(o.query)); if (!edit.add.length) delete edit.add; }
   if (!Object.keys(edit).length) return null;
   edit.summary = "Updated the plan as asked.";
   return edit;
