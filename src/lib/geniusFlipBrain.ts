@@ -104,19 +104,29 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
   /* ---------------------------- page manipulation --------------------------- */
 
   if (isFlipActive() && manifest && controls) {
-    if (/\b(next page|turn the page|forward|keep going|continue)\b/.test(t)) {
+    /* Page turns are commands, not vocabulary. Everyday words — "cover",
+       "home", "forward", "previous" — appear inside ordinary questions, so a
+       turn only fires for a command shape: the message starts with a
+       navigation verb, or it is short enough to be nothing but the command.
+       Questions fall through to the price, product and category answers. */
+    const wordCount = t.split(' ').filter(Boolean).length;
+    const navCommand =
+      /^(next|previous|prev|go|turn|open|show|take|bring|back|first|last|jump|flip)\b/.test(t) || wordCount <= 4;
+    const questionShaped =
+      /^(what|how|which|who|why|when|is|are|do|does|can|could|tell me)\b/.test(t) || raw.trim().endsWith('?');
+    if (navCommand && /\b(next page|turn the page|forward|keep going|continue|next)\b/.test(t)) {
       controls.next();
       return { handled: true, reply: `${ack} Turning forward.`, actions: bookChips() };
     }
-    if (/\b(previous page|go back a page|back a page|last page i was|previous)\b/.test(t)) {
+    if (navCommand && /\b(previous page|go back a page|back a page|last page i was|previous|prev page|go back)\b/.test(t)) {
       controls.prev();
       return { handled: true, reply: `${ack} Back one leaf.`, actions: bookChips() };
     }
-    if (/\b(first page|beginning|start of the book|cover)\b/.test(t)) {
+    if ((navCommand && /\b(first page|beginning|start of the book)\b/.test(t)) || t === 'cover' || t === 'front cover') {
       controls.goTo(0);
       return { handled: true, reply: `${ack} We are at the front of the book.`, actions: bookChips() };
     }
-    if (/\b(last page|end of the book|back cover)\b/.test(t)) {
+    if (navCommand && /\b(last page|end of the book|back cover)\b/.test(t)) {
       controls.goTo(manifest.pages.length - 1);
       return { handled: true, reply: `${ack} The closing leaf.`, actions: bookChips() };
     }
@@ -154,8 +164,10 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
         actions: bookChips(),
       };
     }
-    /* named page inside the open book: "prices", "options", "specification"… */
-    const namedPage =
+    /* named page inside the open book: "prices", "options", "specification"…
+       As a command only — as a question ("what finishes can I get?") these
+       words are answered by the price/product/support paths, not a turn. */
+    const namedPage = !navCommand || questionShaped ? undefined :
       /\b(price|prices|price sheet|cost)\b/.test(t)
         ? manifest.pages.find((p) => p.label === 'Price Sheet')
         : /\b(option|options|finish|finishes)\b/.test(t)
@@ -173,7 +185,7 @@ export function resolveGeniusRequest(text: string): GeniusResolution {
       controls.goTo(namedPage.index);
       return { handled: true, reply: `${ack} Page ${namedPage.number} — ${namedPage.title}.`, actions: bookChips() };
     }
-    if (/\b(index|home|main menu|start over|back to the book)\b/.test(t)) {
+    if (navCommand && /\b(index|home|main menu|start over|back to the book)\b/.test(t)) {
       controls.openHome();
       return { handled: true, reply: `${ack} Back to the annual index.`, actions: bookChips() };
     }

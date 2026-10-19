@@ -61,6 +61,9 @@ export function registerGeniusDesignAgent(next: GeniusDesignAgent) {
 
 export const getGeniusDesignAgent = () => agent;
 
+/** True only while a drawing board is mounted on this surface. */
+export const isGeniusDesignAgentRegistered = () => agent !== null;
+
 export function subscribeGeniusDesign(listener: Listener) {
   listeners.add(listener);
   listener(agent);

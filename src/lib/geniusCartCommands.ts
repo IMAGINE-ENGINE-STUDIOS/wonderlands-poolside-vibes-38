@@ -35,7 +35,9 @@ export function parseGeniusCartCommand(text: string): GeniusCartCommand | null {
   if (/\b(what(s| is) in (my )?(cart|selection)|my (cart|selection)|whats my total|how much (is it )?(all|in total)|total so far)\b/.test(t)) {
     return { kind: 'summary' };
   }
-  if (/\b(check ?out|place (my )?order|pay|financing|finance (it|this))\b/.test(t)) return { kind: 'checkout' };
+  /* Command forms only: bare "pay" / "financing" are question words
+     ("how do I pay?", "do you offer financing?") and belong to live support. */
+  if (/\b(check ?out|place (my )?order)\b/.test(t)) return { kind: 'checkout' };
 
   return null;
 }

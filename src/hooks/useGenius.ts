@@ -3,7 +3,7 @@ import * as React from 'react';
 import { type NarratorAction, type NarratorContext } from '@/lib/narratorStore';
 import { resolveGeniusRequest, bookChips } from '@/lib/geniusFlipBrain';
 import { flipManifestDigest } from '@/lib/flipPageRegistry';
-import { runGeniusDesignCommand } from '@/lib/geniusDesignBus';
+import { isGeniusDesignAgentRegistered, runGeniusDesignCommand } from '@/lib/geniusDesignBus';
 import { runGeniusCartCommand, type GeniusCartAdapter } from '@/lib/geniusCartCommands';
 import { advanceBooking, isBookingActive, startBooking, wantsAppointment } from '@/lib/geniusBooking';
 import { resolveShowroomRequest } from '@/lib/geniusShowroom';
@@ -114,8 +114,14 @@ export function useGenius(options?: GeniusOptions) {
 
       const ctx = optionsRef.current?.context ?? undefined;
 
-      /* 1 — an appointment in progress owns the conversation */
-      if (isBookingActive()) {
+      /* 1 — an appointment in progress owns the conversation, unless the
+         guest clearly asked a question instead of answering the booking step:
+         the question is served by the steps below and the booking stays
+         parked, instead of swallowing the text as a name or a date. */
+      const questionShaped =
+        /^(what|how|which|who|why|when|show|tell|do you|can you|could you|is there|are there)\b/i.test(text) &&
+        !/@|\d{3}/.test(text);
+      if (isBookingActive() && !questionShaped) {
         const step = await advanceBooking(text, {
           product: ctx?.product,
           category: ctx?.category,
@@ -130,8 +136,11 @@ export function useGenius(options?: GeniusOptions) {
         return settle(opened.reply, opened.actions);
       }
 
-      /* 3 — designing out loud */
-      const design = runGeniusDesignCommand(text);
+      /* 3 — designing out loud, but only when a drawing board is actually
+         registered on this surface. Without one, design-shaped questions
+         ("can you add a fire pit?") belong to the book and live support —
+         not to a brush-off about opening a board. */
+      const design = isGeniusDesignAgentRegistered() ? runGeniusDesignCommand(text) : null;
       if (design) {
         return settle(design, [
           { label: 'Price this design', type: 'branch', payload: 'What does this design cost installed?' },
@@ -139,8 +148,11 @@ export function useGenius(options?: GeniusOptions) {
         ]);
       }
 
-      /* 4 — the selection */
-      const selection = runGeniusCartCommand(text, optionsRef.current?.cart ?? null);
+      /* 4 — the selection, only when this surface actually has one. With
+         no cart adapter the parser must not answer at all: payment and
+         total questions fall through to the book and live support. */
+      const cartAdapter = optionsRef.current?.cart ?? null;
+      const selection = cartAdapter ? runGeniusCartCommand(text, cartAdapter) : null;
       if (selection) {
         return settle(selection, [
           { label: 'My selection', type: 'branch', payload: "What's in my selection?" },
@@ -165,7 +177,13 @@ export function useGenius(options?: GeniusOptions) {
         ]);
       }
 
-      return settle(resolution.reply, resolution.actions);
+      /* Live support could not answer (busy or down). Say so honestly —
+         never dress the failure up as a canned fallback line, which reads
+         exactly like "she didn't understand me". */
+      return settle(
+        'Genius is catching her breath — the live catalog is busy right now. Give me a moment and ask again, or name a model, like "Milan", and I will open its book.',
+        resolution.actions,
+      );
     },
     [isThinking, askSupport],
   );
