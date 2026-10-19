@@ -10,7 +10,7 @@ import { resolvePick, drawnSpreadFt, type PlantForm } from "@/lib/landscape/plan
 export const LANDSCAPE_3D_KEY = "studio3d.landscape.v1";
 export const LANDSCAPE_3D_EVENT = "studio3d:landscape";
 
-export interface Plant3D { x: number; z: number; h: number; spread: number; form: PlantForm; foliage: string; bloom: string | null; rot: number; /** Sketchfab search query for the real model of this exact catalog plant. */ q?: string }
+export interface Plant3D { x: number; z: number; h: number; spread: number; form: PlantForm; foliage: string; bloom: string | null; rot: number; /** Sketchfab search query for the real model of this exact catalog plant. */ q?: string; /** Catalog plant id — resolves the pinned hero model. */ pid?: string }
 export interface Bed3D { points: { x: number; z: number }[] }
 export interface Landscape3D { plants: Plant3D[]; beds: Bed3D[] }
 
@@ -32,7 +32,7 @@ export function layoutTo3D(layout: LandscapeLayout, hole: Hole): Landscape3D {
     const spread = drawnSpreadFt(spec, pick.size);
     const k = spec.spreadFt > 0 ? spread / spec.spreadFt : 1;
     const nm = pick.plant.name.includes(',') ? pick.plant.name.split(',').map((w) => w.trim()).reverse().join(' ') : pick.plant.name;
-    plants.push({ x: p.x / PX - cx, z: p.y / PX - cy, h: Math.max(0.5, spec.heightFt * k), spread, form: spec.form, foliage: spec.foliage, bloom: spec.bloom, rot: p.rot ?? 0, q: nm.toLowerCase() });
+    plants.push({ x: p.x / PX - cx, z: p.y / PX - cy, h: Math.max(0.5, spec.heightFt * k), spread, form: spec.form, foliage: spec.foliage, bloom: spec.bloom, rot: p.rot ?? 0, q: nm.toLowerCase(), pid: p.plantId });
   }
   const beds = layout.beds.map((b) => ({ points: b.points.map((pt) => ({ x: pt.x / PX - cx, z: pt.y / PX - cy })) }));
   return { plants, beds };

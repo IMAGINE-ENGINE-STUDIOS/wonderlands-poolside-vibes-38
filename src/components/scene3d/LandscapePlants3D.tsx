@@ -13,6 +13,7 @@ import * as THREE from "three";
 import { loadLandscape3D, LANDSCAPE_3D_EVENT, type Landscape3D, type Plant3D } from "@/lib/landscape/landscape3D";
 import { supabase } from "@/integrations/supabase/client";
 import { Model3DLoader } from "./Model3DLoader";
+import { PLANT_MODELS } from "@/lib/landscape/plantModels";
 
 const trunk = new THREE.MeshStandardMaterial({ color: "#6b4f35", roughness: 0.9 });
 const mulch = new THREE.MeshStandardMaterial({ color: "#4a3426", roughness: 1 });
@@ -131,13 +132,30 @@ function FitToHeight({ url, p }: { url: string; p: Plant3D }) {
   );
 }
 
-function SpeciesModels({ q, plants }: { q: string; plants: Plant3D[] }) {
+const uidUrlCache = new Map<string, Promise<string | null>>();
+function downloadUrl(uid: string): Promise<string | null> {
+  let hit = uidUrlCache.get(uid);
+  if (hit) return hit;
+  hit = (async () => {
+    try {
+      const { data } = await supabase.functions.invoke('sketchfab-download', { body: { uid } });
+      return (data as any)?.url ?? null;
+    } catch { return null; }
+  })();
+  uidUrlCache.set(uid, hit);
+  return hit;
+}
+
+function SpeciesModels({ q, plants, pid }: { q: string; plants: Plant3D[]; pid?: string }) {
   const [url, setUrl] = React.useState<string | null | undefined>(undefined);
   React.useEffect(() => {
     let live = true;
-    sketchfabUrl(q).then((u) => { if (live) setUrl(u); });
+    /* The pinned hero model wins; live search is only the fallback. */
+    const pinned = pid ? PLANT_MODELS[pid] : undefined;
+    const resolve = pinned ? downloadUrl(pinned.uid) : sketchfabUrl(q);
+    resolve.then((u) => { if (live) setUrl(u); });
     return () => { live = false; };
-  }, [q]);
+  }, [q, pid]);
   if (!url) return <>{plants.map((p, i) => <Plant key={i} p={p} />)}</>;
   const real = plants.slice(0, 24);
   const rest = plants.slice(24);
@@ -175,17 +193,21 @@ export function LandscapePlants3D() {
     return () => { window.removeEventListener(LANDSCAPE_3D_EVENT, on); window.removeEventListener("storage", on); };
   }, []);
   if (!data) return null;
-  const groups = new Map<string, Plant3D[]>();
+  const groups = new Map<string, { q: string; pid?: string; plants: Plant3D[] }>();
   const plain: Plant3D[] = [];
   for (const p of data.plants) {
-    if (p.q) { const g = groups.get(p.q); if (g) g.push(p); else groups.set(p.q, [p]); }
-    else plain.push(p);
+    const key = p.pid ?? p.q;
+    if (key) {
+      const g = groups.get(key);
+      if (g) g.plants.push(p);
+      else groups.set(key, { q: p.q ?? '', pid: p.pid, plants: [p] });
+    } else plain.push(p);
   }
   return (
     <group name="landscape-plan">
       {data.beds.map((b, i) => <Bed key={i} points={b.points} />)}
       {plain.map((p, i) => <Plant key={i} p={p} />)}
-      {[...groups.entries()].map(([q, plants]) => <SpeciesModels key={q} q={q} plants={plants} />)}
+      {[...groups.entries()].map(([key, g]) => <SpeciesModels key={key} q={g.q} pid={g.pid} plants={g.plants} />)}
     </group>
   );
 }
