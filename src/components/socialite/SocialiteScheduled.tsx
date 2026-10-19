@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtIn } from "@/lib/socialite/sendTime";
+import SocialiteAutopilot from "./SocialiteAutopilot";
 
 type Row = { id: string; kind: string; payload: any; send_at: string; timezone: string; status: string; result: any };
 const KIND: Record<string, string> = { post: "Social post", email: "Email", sms: "SMS", whatsapp: "WhatsApp" };
@@ -27,6 +28,7 @@ export default function SocialiteScheduled() {
 
   return (
     <div className="p-4 lg:p-8 max-w-[960px] space-y-5">
+      <SocialiteAutopilot />
       <div className="flex items-end justify-between gap-3">
         <div>
           <h2 className="text-[16px] font-semibold tracking-tight text-zinc-100">Timed sends</h2>

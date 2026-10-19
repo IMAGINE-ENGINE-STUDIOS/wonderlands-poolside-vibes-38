@@ -12,6 +12,7 @@ import { publishAll } from "../_shared/socialitePublish.ts";
 import { sendToContacts } from "../_shared/contactSend.ts";
 import { meter } from "../_shared/socialiteBilling.ts";
 import { guard, record, failSpike } from "../_shared/socialiteShield.ts";
+import { topUpAutopilots } from "../_shared/socialiteAutopilot.ts";
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const URL_ = Deno.env.get("SUPABASE_URL")!;
@@ -24,6 +25,9 @@ const call = async (fn: string, body: unknown) => {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const db = admin();
+  // Autopilot: keep every active owner's next ~36h of posts filled. It only
+  // enqueues normal scheduled rows — sending stays on the path below.
+  try { await topUpAutopilots(db); } catch { /* top-up must never block due sends */ }
   const { data: due } = await db.from("socialite_scheduled").select("*").eq("status", "pending").lte("send_at", new Date().toISOString()).order("send_at").limit(25);
   const done: string[] = [];
   for (const row of due ?? []) {
