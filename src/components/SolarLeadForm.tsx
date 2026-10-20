@@ -17,7 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * SolarLeadForm — lead capture for the Wonderlands Solar section.
  *
- * Collects name, email and preferred package, validates with zod, then shows
+ * Collects name, email, WhatsApp number and preferred package, validates
+ * with zod, then shows
  * a confirmation state with the official Calendly scheduling link. Leads are
  * persisted to localStorage (solar-leads) so the confirmation survives reloads
  * and the admin/Genius layer can pick them up later.
@@ -32,6 +33,7 @@ const STORAGE_KEY = "wonderlands-solar-leads";
 const leadSchema = z.object({
   name: z.string().trim().min(1, "Please enter your name").max(100, "Name must be under 100 characters"),
   email: z.string().trim().email("Please enter a valid email address").max(255, "Email must be under 255 characters"),
+  phone: z.string().trim().min(7, "Please enter your WhatsApp number").max(20, "Number must be under 20 characters").regex(/^[+()\-.\s\d]+$/, "Please enter a valid phone number"),
   packageId: z.string().min(1, "Please choose a package"),
   whatsappOptIn: z.literal(true, {
     errorMap: () => ({ message: "WhatsApp consent is required so we can reach you about your solar quote" }),
@@ -44,6 +46,7 @@ type FieldErrors = Partial<Record<keyof LeadFormValues, string>>;
 const SolarLeadForm = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [packageId, setPackageId] = useState("");
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -52,7 +55,7 @@ const SolarLeadForm = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const result = leadSchema.safeParse({ name, email, packageId, whatsappOptIn });
+    const result = leadSchema.safeParse({ name, email, phone, packageId, whatsappOptIn });
     if (!result.success) {
       const next: FieldErrors = {};
       for (const issue of result.error.issues) {
@@ -80,9 +83,9 @@ const SolarLeadForm = () => {
     // File into Clients + CRM pipeline (signed-out safe) and alert the owner.
     const msg = `Solar package: ${record.packageName} · WhatsApp opt-in: yes`;
     supabase
-      .rpc("submit_wonderlands_lead" as any, { _name: record.name, _email: record.email, _phone: "", _message: msg, _source: "solar" })
+      .rpc("submit_wonderlands_lead" as any, { _name: record.name, _email: record.email, _phone: record.phone, _message: msg, _source: "solar" })
       .then(({ data }) => {
-        if (data) supabase.functions.invoke("platform-lead-notify", { body: { name: record.name, email: record.email, message: msg, source: "Solar" } }).catch(() => {});
+        if (data) supabase.functions.invoke("platform-lead-notify", { body: { name: record.name, email: record.email, phone: record.phone, message: msg, source: "Solar" } }).catch(() => {});
       });
 
     setSubmittedPackage(record.packageName);
@@ -117,6 +120,7 @@ const SolarLeadForm = () => {
               setSubmitted(false);
               setName("");
               setEmail("");
+              setPhone("");
               setPackageId("");
               setWhatsappOptIn(false);
             }}
@@ -173,6 +177,21 @@ const SolarLeadForm = () => {
             className="rounded-none border-background/30 bg-transparent text-background placeholder:text-background/40 focus-visible:ring-background/40"
           />
           {errors.email && <p className="mt-1.5 text-[11px] text-background/70">{errors.email}</p>}
+        </div>
+        <div>
+          <label htmlFor="solar-lead-phone" className="mb-2 block text-[9px] uppercase tracking-[0.35em] opacity-70">
+            WhatsApp Number
+          </label>
+          <Input
+            id="solar-lead-phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+1 (407) 555-0134"
+            autoComplete="tel"
+            className="rounded-none border-background/30 bg-transparent text-background placeholder:text-background/40 focus-visible:ring-background/40"
+          />
+          {errors.phone && <p className="mt-1.5 text-[11px] text-background/70">{errors.phone}</p>}
         </div>
         <div className="sm:col-span-2">
           <label htmlFor="solar-lead-package" className="mb-2 block text-[9px] uppercase tracking-[0.35em] opacity-70">
