@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePersistentState } from '@/hooks/usePersistentState';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList, Briefcase, Menu, X } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList, Briefcase, Menu, X, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +48,7 @@ import AdminActionQueue from '@/components/admin/AdminActionQueue';
 import AdminTechnologyHub from '@/components/admin/AdminTechnologyHub';
 import AdminCompanies from '@/components/admin/AdminCompanies';
 import AdminDataRoom from '@/components/admin/AdminDataRoom';
+import AdminCatalog from '@/components/admin/AdminCatalog';
 
 // Navigation Item Component — Noir & Gold
 const NavItem = ({
@@ -86,7 +87,8 @@ const CHAPTER_NOTES: Record<string, string> = {
   today: 'What needs your attention right now, from your real records.',
   quotes: 'Every quote requested by your customers.', invoices: 'Bills sent, paid and overdue.',
   orders: 'Customer orders and their progress.', clients: 'Your customer pipeline and follow-ups.',
-  'unified-products': 'Catalogue products, pools and inventory.', 'tech-hub': 'Every Wonderlands tool, opened right here.',
+  'unified-products': 'Catalogue products, pools and inventory.', catalog: 'The full product catalog and its Marketplace status.',
+  'tech-hub': 'Every Wonderlands tool, opened right here.',
   companies: 'Every licensed company using the platform.', contractors: 'Trade partners, approvals and licenses.',
   projects: 'Builds in progress, phases and milestones.', procurement: 'Jobs, bids and trade partners.',
 };
@@ -201,7 +203,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
 
   const sectionLabel = (() => {
     const map: Record<string, string> = {
-      'unified-products': 'Products', quotes: 'Quotes', 'quote-tool': 'Quote Tool', invoices: 'Invoices',
+      'unified-products': 'Products', catalog: 'Catalog', quotes: 'Quotes', 'quote-tool': 'Quote Tool', invoices: 'Invoices',
       'invoice-tool': 'Invoice Tool', orders: 'Orders', users: 'Users', promotions: 'Promotions',
       'sales-reps': 'Sales Reps', 'sales-categories': 'Sales Categories', 'head-of-sales': 'Head of Sales',
       clients: 'Clients', 'customer-cache': 'Customer DB', contractors: 'Contractors', projects: 'Projects', 'my-projects': 'My Projects', compliance: 'Compliance', payouts: 'Payouts & Work Orders', messages: 'Messages',
@@ -270,6 +272,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
                 <NavItem icon={Briefcase} label="Preview company workspace" active={false} onClick={() => navigate('/admin/preview/workspace')} />
                 <NavItem icon={Users} label="Preview customer account" active={false} onClick={() => navigate('/admin/preview/account')} />
                 <NavItem icon={Database} label="Products" active={activeSection === "unified-products"} onClick={() => { setActiveSection("unified-products"); setMobileNavOpen(false); }} />
+                <NavItem icon={BookOpen} label="Catalog" active={activeSection === "catalog"} onClick={() => { setActiveSection("catalog"); setMobileNavOpen(false); }} />
                 <NavItem icon={Star} label="Quotes" active={activeSection === "quotes"} onClick={() => { setActiveSection("quotes"); setMobileNavOpen(false); }} />
                 <NavItem icon={DollarSign} label="Quote Tool" active={activeSection === "quote-tool"} onClick={() => { setActiveSection("quote-tool"); setMobileNavOpen(false); }} />
                 <NavItem icon={FileText} label="Invoices" active={activeSection === "invoices"} onClick={() => { setActiveSection("invoices"); setMobileNavOpen(false); }} />
@@ -450,6 +453,9 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
                 </CardContent>
               </Card>
             </div>}
+
+          {/* Catalog Tab - the product catalog + Marketplace status, main admins only */}
+          {isMainAdmin && activeSection === "catalog" && <AdminCatalog />}
 
           {/* Users Tab */}
           {activeSection === "users" && <div className="space-y-6 animate-fade-in">
