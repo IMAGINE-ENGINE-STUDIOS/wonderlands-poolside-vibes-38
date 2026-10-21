@@ -51,7 +51,7 @@ const clampStoryCount = (n: unknown) => Math.min(4, Math.max(1, Math.floor(Numbe
 
 /** Feed formats rotate one slot per day: slot i on day d is FEED_FORMATS[(d + i) % 3] — mirrors _shared/socialiteAutopilot.ts. */
 const FEED_FORMATS = ["Reel", "Carousel", "Photo"] as const;
-const STORY_TIMES = ["08:00", "12:00", "17:00", "21:00"];
+const STORY_TIMES = ["07:00", "12:00", "17:00", "21:00"];
 const daySerialIn = (tz: string) => {
   try {
     const parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date()).split("-").map(Number);
@@ -253,7 +253,7 @@ export default function SocialiteAutopilot() {
               className="w-16 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5 text-[12.5px] text-zinc-200" />
           </label>
         </div>
-        <p className="text-[11.5px] text-zinc-500">Stories post at {STORY_TIMES.slice(0, clampStoryCount(cfg.story_count)).join(", ")} — the first {clampStoryCount(cfg.story_count)} of 08:00, 12:00, 17:00, 21:00.</p>
+        <p className="text-[11.5px] text-zinc-500">Stories post at {STORY_TIMES.slice(0, clampStoryCount(cfg.story_count)).join(", ")} — the first {clampStoryCount(cfg.story_count)} of 07:00, 12:00, 17:00, 21:00.</p>
       </div>
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
