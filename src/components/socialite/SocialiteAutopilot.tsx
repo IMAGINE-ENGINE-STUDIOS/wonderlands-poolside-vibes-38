@@ -1,7 +1,10 @@
 /** Autopilot — evergreen auto-posting for SOCIALITE.
- *  Standing order: every day, at the chosen local times, post the next photo
- *  from the owner's media library (a shuffle-bag: every photo once before any
- *  repeats) to the chosen platforms, with captions rotated from templates.
+ *  Standing order: every day, at the chosen local times, post from the
+ *  owner's media library (a shuffle-bag: every item once before any repeats)
+ *  to the chosen platforms, with captions rotated from templates. The feed
+ *  slots rotate Reel → Carousel → Photo (shifting one slot per day), and
+ *  1–4 Stories a day post on top. Reels are .mp4 files rendered by the
+ *  Reel Factory and uploaded into the same library.
  *  Photos live in the public `socialite-autopost` bucket under
  *  <uid>/<Project>/<file>; uploads are downscaled in the browser first.
  *  The server scheduler (socialite-scheduler, every 5 min) keeps the queue
@@ -41,6 +44,19 @@ type Cfg = {
   timezone: string;
   templates: string[];
   hashtag_sets: string[];
+  story_count: number;
+};
+
+const clampStoryCount = (n: unknown) => Math.min(4, Math.max(1, Math.floor(Number(n) || 2)));
+
+/** Feed formats rotate one slot per day: slot i on day d is FEED_FORMATS[(d + i) % 3] — mirrors _shared/socialiteAutopilot.ts. */
+const FEED_FORMATS = ["Reel", "Carousel", "Photo"] as const;
+const STORY_TIMES = ["08:00", "12:00", "17:00", "21:00"];
+const daySerialIn = (tz: string) => {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date()).split("-").map(Number);
+    return Math.floor(Date.UTC(parts[0], parts[1] - 1, parts[2]) / 86400000);
+  } catch { return Math.floor(Date.now() / 86400000); }
 };
 
 const sanitizeFolder = (s: string) =>
@@ -69,25 +85,30 @@ export default function SocialiteAutopilot() {
   const [cfg, setCfg] = useState<Cfg>({
     active: false,
     platforms: ["facebook", "instagram"],
-    times: ["09:00", "13:00", "18:30"],
+    times: ["07:00", "12:30", "18:30"],
     timezone: getSavedTz(),
     templates: DEFAULT_TEMPLATES,
     hashtag_sets: DEFAULT_TAGSETS,
+    story_count: 2,
   });
   const [mediaCount, setMediaCount] = useState<number | null>(null);
+  const [reelCount, setReelCount] = useState<number | null>(null);
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
 
   const countMedia = useCallback(async (owner: string) => {
-    let count = 0;
+    let count = 0, reels = 0;
     const walk = async (path: string) => {
       for (let offset = 0; ; offset += 1000) {
         const { data, error } = await (supabase as any).storage.from(BUCKET).list(path, { limit: 1000, offset });
         if (error || !data?.length) break;
         for (const item of data) {
-          if (item.id) { if (/\.(jpe?g|png|webp)$/i.test(item.name)) count++; }
+          if (item.id) {
+            if (/\.(jpe?g|png|webp)$/i.test(item.name)) count++;
+            else if (/\.(mp4|mov)$/i.test(item.name)) reels++;
+          }
           else await walk(`${path}/${item.name}`);
         }
         if (data.length < 1000) break;
@@ -95,6 +116,7 @@ export default function SocialiteAutopilot() {
     };
     await walk(owner);
     setMediaCount(count);
+    setReelCount(reels);
   }, []);
 
   useEffect(() => {
@@ -109,10 +131,11 @@ export default function SocialiteAutopilot() {
         setCfg({
           active: !!data.active,
           platforms: data.platforms ?? ["facebook", "instagram"],
-          times: data.times ?? ["09:00", "13:00", "18:30"],
+          times: data.times ?? ["07:00", "12:30", "18:30"],
           timezone: data.timezone ?? getSavedTz(),
           templates: data.templates?.length ? data.templates : DEFAULT_TEMPLATES,
           hashtag_sets: data.hashtag_sets?.length ? data.hashtag_sets : DEFAULT_TAGSETS,
+          story_count: clampStoryCount(data.story_count),
         });
       }
       countMedia(id);
@@ -121,25 +144,30 @@ export default function SocialiteAutopilot() {
 
   const upload = async (files: FileList | null) => {
     if (!files?.length || !uid) return;
-    const list = Array.from(files).filter((f) => /^image\//i.test(f.type));
-    if (!list.length) { setNote("No image files in that selection."); return; }
+    const list = Array.from(files).filter((f) => /^image\//i.test(f.type) || /^video\/(mp4|quicktime|webm)$/i.test(f.type));
+    if (!list.length) { setNote("No image or video files in that selection."); return; }
     let done = 0, failed = 0;
     for (const f of list) {
       setBusy(`Uploading ${done + 1} of ${list.length}…`);
       const rel = (f as any).webkitRelativePath as string | undefined;
       const folder = sanitizeFolder(rel && rel.includes("/") ? rel.split("/")[0] : "Portfolio");
-      const base = f.name.replace(/\.[^.]+$/, "").replace(/[^\w-]+/g, "-").slice(0, 60) || "photo";
-      const blob = await downscale(f);
+      const isVideo = /^video\//i.test(f.type);
+      const stem = f.name.replace(/\.[^.]+$/, "").replace(/[^\w-]+/g, "-").slice(0, 60) || (isVideo ? "reel" : "photo");
+      // Photos are downscaled to posting size; reels upload exactly as rendered.
+      const blob = isVideo ? f : await downscale(f);
+      const ext = isVideo ? (f.name.match(/\.(mp4|mov|webm)$/i)?.[1].toLowerCase() ?? "mp4") : "jpg";
+      const contentType = isVideo ? f.type : "image/jpeg";
+      const key = (suffix = "") => `${uid}/${folder}/${stem}${suffix}.${ext}`;
       const { error } = await (supabase as any).storage.from(BUCKET)
-        .upload(`${uid}/${folder}/${base}.jpg`, blob, { contentType: "image/jpeg", upsert: false });
+        .upload(key(), blob, { contentType, upsert: false });
       if (error) {
         const retry = await (supabase as any).storage.from(BUCKET)
-          .upload(`${uid}/${folder}/${base}-${Date.now()}.jpg`, blob, { contentType: "image/jpeg", upsert: false });
+          .upload(key(`-${Date.now()}`), blob, { contentType, upsert: false });
         retry.error ? failed++ : done++;
       } else done++;
     }
     setBusy("");
-    setNote(`Uploaded ${done} photo${done === 1 ? "" : "s"}${failed ? `, ${failed} failed` : ""}. New photos join the rotation automatically.`);
+    setNote(`Uploaded ${done} file${done === 1 ? "" : "s"}${failed ? `, ${failed} failed` : ""}. New media joins the rotation automatically.`);
     countMedia(uid);
   };
 
@@ -154,6 +182,7 @@ export default function SocialiteAutopilot() {
       timezone: cfg.timezone,
       templates: cfg.templates.filter((t) => t.trim()),
       hashtag_sets: cfg.hashtag_sets.filter((t) => t.trim()),
+      story_count: clampStoryCount(cfg.story_count),
       updated_at: new Date().toISOString(),
     }, { onConflict: "owner_id" });
     setBusy("");
@@ -178,8 +207,8 @@ export default function SocialiteAutopilot() {
         <div>
           <h3 className="text-[15px] font-semibold text-zinc-100">Autopilot — daily portfolio posts</h3>
           <p className="text-[12.5px] text-zinc-500 max-w-[560px]">
-            Posts your portfolio photos to Facebook and Instagram every day at your times — randomized,
-            every photo once before any repeats, captions rotated for you. Runs on the server with this page closed.
+            Posts your portfolio to Facebook and Instagram every day at your times — randomized,
+            every item once before any repeats, captions rotated for you. Runs on the server with this page closed.
           </p>
         </div>
         <button
@@ -209,20 +238,41 @@ export default function SocialiteAutopilot() {
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[13px] text-zinc-300">Daily format mix</div>
+            <p className="text-[11.5px] text-zinc-500 max-w-[560px]">
+              Your {cfg.times.length} feed slots rotate Reel → Carousel → Photo, shifting one slot every day.
+              Today: {cfg.times.map((t, i) => `${FEED_FORMATS[(daySerialIn(cfg.timezone) + i) % 3]} ${t}`).join(" · ")}.
+              Carousels group 3–5 photos from one project; a slot falls back to a photo until reels are in the library.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-[12.5px] text-zinc-400">
+            Stories per day
+            <input type="number" min={1} max={4} step={1} value={cfg.story_count} aria-label="Stories per day"
+              onChange={(e) => setCfg((c) => ({ ...c, story_count: clampStoryCount(e.target.value) }))}
+              className="w-16 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5 text-[12.5px] text-zinc-200" />
+          </label>
+        </div>
+        <p className="text-[11.5px] text-zinc-500">Stories post at {STORY_TIMES.slice(0, clampStoryCount(cfg.story_count)).join(", ")} — the first {clampStoryCount(cfg.story_count)} of 08:00, 12:00, 17:00, 21:00.</p>
+      </div>
+
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="text-[13px] text-zinc-300">
             Media library: <span className="font-semibold text-zinc-100">{mediaCount === null ? "…" : mediaCount}</span> photos
-            <span className="text-zinc-500"> — uploaded once, posted in random order. Project folder names appear in captions.</span>
+            · <span className="font-semibold text-zinc-100">{reelCount === null ? "…" : reelCount}</span> reels
+            <span className="text-zinc-500"> — uploaded once, posted in random order. Project folder names appear in captions. Reels (.mp4) upload as rendered.</span>
           </div>
           <div className="flex gap-2">
             <button onClick={() => fileRef.current?.click()} className="px-3.5 py-2 rounded-full bg-zinc-100 text-zinc-900 text-[12.5px] font-semibold">Add photos</button>
             <button onClick={() => folderRef.current?.click()} className="px-3.5 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 text-[12.5px]">Add a project folder</button>
           </div>
         </div>
-        <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
-        <input ref={folderRef} type="file" accept="image/*" multiple className="hidden"
+        <input ref={fileRef} type="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple className="hidden" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
+        <input ref={folderRef} type="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple className="hidden"
           {...({ webkitdirectory: "" } as any)}
           onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
-        <p className="text-[11.5px] text-zinc-500">Tip: use “Add a project folder” with a folder named after the project (e.g. “Astoria Maxima”) — big photos are shrunk to posting size automatically before upload.</p>
+        <p className="text-[11.5px] text-zinc-500">Tip: use “Add a project folder” with a folder named after the project (e.g. “The Solstice”) — big photos are shrunk to posting size automatically before upload.</p>
       </div>
 
       <details className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">

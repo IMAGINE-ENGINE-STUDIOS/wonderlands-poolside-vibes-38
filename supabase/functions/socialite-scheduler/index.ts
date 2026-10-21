@@ -1,6 +1,6 @@
 // SOCIALITE scheduler — runs every 5 minutes (pg_cron). Sends every
 // socialite_scheduled row whose send_at has passed:
-//   kind=post     payload {text, platforms[], media[]}      → publishAll
+//   kind=post     payload {text, platforms[], media[], format?} → publishAll (format: photo|carousel|reel|story)
 //   kind=email    payload = send-bulk-email body            → send-bulk-email
 //   kind=call     payload {messages:[{to,message,recipientName}]} → make-voice-call
 //   kind=contact  payload {channel, contact_ids, subject, message} → user's own contacts
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
         if (row.kind === "contact") p.message = sh.text;
       }
       if (row.kind === "post") {
-        result = await publishAll(String(p.text ?? ""), p.platforms ?? [], p.media ?? [], row.created_by);
+        result = await publishAll(String(p.text ?? ""), p.platforms ?? [], p.media ?? [], row.created_by, typeof p.format === "string" ? p.format : undefined);
         const n = (result?.results ?? []).filter((x: any) => x?.success).length;
         await record(row.created_by, "post", { text: p.text, platforms: p.platforms });
         if (n) await meter(row.created_by, isAdm, "posts", n, { via: "schedule" });

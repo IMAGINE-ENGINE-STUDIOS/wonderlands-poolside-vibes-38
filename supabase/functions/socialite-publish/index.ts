@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     // Commercial metering: one post per platform; refused before anything is published.
     const check = await meter(auth.userId, auth.isAdmin, "posts", Math.max(1, platforms.length), {}, true);
     if (!check.ok) return json({ success: false, error: check.reason, billing: true }, 402);
-    const result = await publishAll(text, platforms, media, auth.userId);
+    const result = await publishAll(text, platforms, media, auth.userId, typeof body?.format === "string" ? body.format : undefined);
     await record(auth.userId, "post", { text, platforms });
     await meter(auth.userId, auth.isAdmin, "posts", Math.max(1, platforms.length), { platforms });
     return json({ ...result, shield });
