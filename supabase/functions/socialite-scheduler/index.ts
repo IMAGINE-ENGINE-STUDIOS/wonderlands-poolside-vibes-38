@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
       }
       if (row.kind === "post") {
         result = await publishAll(String(p.text ?? ""), p.platforms ?? [], p.media ?? [], row.created_by, typeof p.format === "string" ? p.format : undefined);
-        const n = (result?.results ?? []).filter((x: any) => x?.success).length;
+        const resultsList: any[] = Array.isArray(result?.results) ? result.results : Object.values(result?.results ?? {});
+        const n = resultsList.filter((x: any) => x && !x.error && (x.id ?? x.success)).length;
         await record(row.created_by, "post", { text: p.text, platforms: p.platforms });
         if (n) await meter(row.created_by, isAdm, "posts", n, { via: "schedule" });
       }
