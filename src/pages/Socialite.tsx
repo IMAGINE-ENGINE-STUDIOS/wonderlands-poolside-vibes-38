@@ -2778,7 +2778,7 @@ Use 2 hashtags max when promo present`;
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <button onClick={()=>generateAutomatedPosts(1)} disabled={isGeneratingBatch} className="py-2.5 rounded-xl bg-[#0f0f10] border border-zinc-800 text-zinc-300 text-[12px] font-medium hover:bg-zinc-900 transition">Test 1 post</button>
-                        <button onClick={()=>{ const s=queue.filter(p=>p.isAuto); if(s.length===0){ showToast("No auto posts to clear", "error"); return; } if(!confirm(`Delete ${s.length} auto-generated posts?`)) return; setQueue(q=>q.filter(p=>!p.isAuto)); showToast(`Cleared ${s.length} auto posts`, "success"); }} className="py-2.5 rounded-xl bg-[#0f0f10] border border-zinc-800 text-zinc-400 text-[12px] font-medium hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/20 transition">Clear auto posts</button>
+                        <button onClick={()=>{ const s=queue.filter(p=>p.isAuto); if(s.length===0){ showToast("No auto posts to clear", "error"); return; } setQueue(q=>q.filter(p=>!p.isAuto)); showToast(`Cleared ${s.length} auto posts`, "success"); }} className="py-2.5 rounded-xl bg-[#0f0f10] border border-zinc-800 text-zinc-400 text-[12px] font-medium hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/20 transition">Clear auto posts</button>
                       </div>
                       <div className="p-3 rounded-xl bg-[#0f0f10] border border-zinc-800 space-y-1.5">
                         <div className="flex justify-between text-[11px] mono"><span className="text-zinc-500">Status</span><span className={automationEnabled ? "text-emerald-300" : "text-zinc-400"}>{automationEnabled ? "RUNNING" : "PAUSED"}</span></div>
@@ -2952,7 +2952,6 @@ Use 2 hashtags max when promo present`;
                       )}
                       <button
                         onClick={() => {
-                          if (!confirm("Delete this post from queue?")) return;
                           setQueue((q) => q.filter((p) => p.id !== post.id));
                           showToast("Post deleted", "success");
                         }}
