@@ -1233,8 +1233,13 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   }, [poolCurve3D, normalizedHardscapePoints, localCopingWidth, localDeckWidth, hasDeck]);
   /** Deck top relative to grade — independent of the pool, so a pool can rise above its deck. */
   const deckTop = hasDeck ? deckElevation : 0;
-  /** Outer edge of the coping: where a raised pool's own wall and access stairs start. */
-  const copingOuterRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(generateOffsetCurve(poolCurve3D, localCopingWidth)) : []), [poolCurve3D, localCopingWidth]);
+  /** Outer edge of the coping: where a raised pool's own wall and access stairs start.
+   * MUST be the same mitred ring the coping and the deck hole are built from:
+   * the old averaged-normal offset (generateOffsetCurve) has no miter correction,
+   * so the wall sagged inside the true coping edge wherever the outline turns
+   * (≈0.3 ft on a rectangle's straight runs), leaving a slot of lawn visible
+   * between the wall and the deck. */
+  const copingOuterRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(mitredOffsetRing(poolCurve3D, localCopingWidth, { miterLimit: 2.5 }).offset) : []), [poolCurve3D, localCopingWidth]);
   const siteStairs = useSiteStairs();
   const xrayRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(generateOffsetCurve(poolCurve3D, 0.5)) : []), [poolCurve3D]);
 
