@@ -171,7 +171,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const [selected, setSelected] = React.useState<string | null>(null);
   /* Spill-over edges (water falling over part of a pool/spa spline). Imagine Engine Studios Corp. */
   const spills = useSpills();
-  const [spillSel, setSpillSel] = React.useState<string | null>(null);
+  const [spillSel, setSpillSel] = useSpillSelection();
   /* Materials panel (DesignerToolPanel) listens to the board selection and restyles it here. */
   React.useEffect(() => {
     const kind = !selected ? null : selected === "__pool" || selected.startsWith("__xp:") ? "pool" : selected === "__deck" || selected.startsWith("__xd:") ? "deck" : items.find((x) => x.id === selected)?.kind ?? null;
@@ -841,7 +841,7 @@ import { netRegions, computeNetAreas } from "@/lib/design/boardNetArea";
 import { loadBoard3D, type Board3D } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
 import { useSceneLayers, isObjectHidden, boardObjectId } from "@/lib/design/sceneLayers";
-import { useSpills, spillActions, spillEnds, loadSpills } from "@/lib/design/spillovers";
+import { useSpills, spillActions, spillEnds, loadSpills, useSpillSelection } from "@/lib/design/spillovers";
 
 /**
  * Builds the 3D Studio hand-off from the Design Studio: fences, screens and turf
@@ -882,7 +882,7 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
     if (!e) return null;
     // Outward = away from the body's centre.
     const cx = src.reduce((s, p) => s + p.x, 0) / src.length, cy = src.reduce((s, p) => s + p.y, 0) / src.length;
-    return { id: sp.id, a: to(f(e[0])), b: to(f(e[1])), center: to(f({ x: cx, y: cy })), pitch: sp.pitch, waterId: sp.poolId === "__pool" ? undefined : sp.poolId.slice(5) };
+    return { id: sp.id, a: to(f(e[0])), b: to(f(e[1])), center: to(f({ x: cx, y: cy })), pitch: sp.pitch, wall: sp.wall, waterId: sp.poolId === "__pool" ? undefined : sp.poolId.slice(5) };
   }).filter(Boolean) as NonNullable<Board3D["spills"]>;
   return out;
 }

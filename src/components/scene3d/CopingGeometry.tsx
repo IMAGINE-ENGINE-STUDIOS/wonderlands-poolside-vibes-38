@@ -250,16 +250,36 @@ export const CopingGeometry = ({
       indices.push(bottomIdx, nextBottomIdx, nextTopIdx);
     }
     
-    // Spillway notches: drop every coping triangle over a spill stretch so the
-    // water really leaves through an opening in the stone (lib/design/spillovers).
+    // Spillway notches: drop whole steps (all four faces of a step at once) so
+    // no diagonal half-triangle shards survive at the notch edges, then seal
+    // the exposed cross-sections with end caps reusing the boundary vertices —
+    // the coping never shows a hollow end at a spill (lib/design/spillovers).
     const kept = cuts && cuts.length
       ? (() => {
+          const N = numPoints;
+          const cutStep = new Array<boolean>(N).fill(false);
+          for (let i = 0; i < N; i++) {
+            const j = (i + 1) % N;
+            const mx = (copingInnerBoundary[i].x + copingInnerBoundary[j].x + copingOuterBoundary[i].x + copingOuterBoundary[j].x) / 4;
+            const mz = (copingInnerBoundary[i].z + copingInnerBoundary[j].z + copingOuterBoundary[i].z + copingOuterBoundary[j].z) / 4;
+            cutStep[i] = cuts.some((c) => inSpillCut(mx, mz, c, copingWidth));
+          }
+          // Triangles were appended surface by surface (top, bottom, outer wall,
+          // inner wall), each surface contributing exactly N steps × 2 triangles
+          // in step order — so a triangle's step is derivable from its ordinal.
+          const per = N * 2;
           const out: number[] = [];
           for (let t = 0; t < indices.length; t += 3) {
-            const i0 = indices[t], i1 = indices[t + 1], i2 = indices[t + 2];
-            const cx = (vertices[i0 * 3] + vertices[i1 * 3] + vertices[i2 * 3]) / 3;
-            const cz = (vertices[i0 * 3 + 2] + vertices[i1 * 3 + 2] + vertices[i2 * 3 + 2]) / 3;
-            if (!cuts.some((c) => inSpillCut(cx, cz, c, copingWidth))) out.push(i0, i1, i2);
+            const step = Math.floor(((t / 3) % per) / 2);
+            if (!cutStep[step]) out.push(indices[t], indices[t + 1], indices[t + 2]);
+          }
+          // End caps: at every ring vertex where exactly one neighbouring step
+          // is cut, close the extrusion cross-section with the existing corners.
+          for (let v = 0; v < N; v++) {
+            const prevCut = cutStep[(v - 1 + N) % N], nextCut = cutStep[v];
+            if (prevCut === nextCut) continue;
+            const iT = v * 2, oT = v * 2 + 1, iB = bottomBaseIdx + v * 2, oB = bottomBaseIdx + v * 2 + 1;
+            out.push(iT, oT, iB, oT, oB, iB);
           }
           return out;
         })()

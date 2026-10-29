@@ -1,5 +1,6 @@
 import { useDraggablePanel } from '@/components/scene3d/useDraggablePanel';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSpills, useSpillSelection, spillActions } from '@/lib/design/spillovers';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -81,6 +82,17 @@ export function ComponentControlPanel({
   // Animation state for texture panel fade effect
 
   const dragPanel = useDraggablePanel('component');
+  /* Spill-over wall finishes: shown only when the board has spill overs, and
+   * edits apply to the one selected spill (2D board, 3D click and this panel
+   * share the same selection). */
+  const spills = useSpills();
+  const [spillSel, setSpillSel] = useSpillSelection();
+  const [spillWallKind, setSpillWallKind] = useState<'waterline' | 'paver'>('waterline');
+  const selSpill = spills.find((s) => s.id === spillSel) ?? null;
+  useEffect(() => { setSpillWallKind(selSpill?.wall?.kind ?? 'waterline'); }, [selSpill?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const spillWallOptions = dedupeTextures([
+    ...(spillWallKind === 'waterline' ? [...(textureLibrary.waterlines || []), ...CATALOG_LIBRARY.waterlines] : [...(textureLibrary.pavers || []), ...CATALOG_LIBRARY.pavers]),
+  ] as CatalogTextureConfig[]).filter((t) => !!t.url);
   if (!selectedComponent) return null;
 
   // Get ALL finishes regardless of pool type - show complete selection
@@ -245,6 +257,68 @@ export function ComponentControlPanel({
               min={0} max={60} step={1} className="w-full"
             />
             <p className="text-xs text-muted-foreground">Raise the pool or spa so it can spill over into a lower pool or deck.</p>
+            {/* Spillover wall finish — only when a spill over exists; edits only the selected spill. */}
+            {spills.length > 0 && (
+              <div className="space-y-2 border-t border-border pt-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Spillover Wall Finish</Label>
+                  <span className="text-xs text-muted-foreground">{spills.length} spill over{spills.length > 1 ? 's' : ''}</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {spills.map((sp, i) => (
+                    <button
+                      key={sp.id}
+                      type="button"
+                      onClick={() => setSpillSel(sp.id)}
+                      className={`px-2.5 py-1 rounded-full border text-[11px] font-medium transition-all ${spillSel === sp.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/50'}`}
+                    >
+                      Spill {i + 1}
+                    </button>
+                  ))}
+                </div>
+                {selSpill ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {(['waterline', 'paver'] as const).map((k) => (
+                        <button
+                          key={k}
+                          type="button"
+                          onClick={() => setSpillWallKind(k)}
+                          className={`py-1.5 rounded-lg border text-[11px] font-medium transition-all ${spillWallKind === k ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}
+                        >
+                          {k === 'waterline' ? 'Waterline tile' : 'Pavers / Stone'}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5 max-h-44 overflow-y-auto pr-0.5">
+                      {spillWallOptions.map((t, i) => (
+                        <button
+                          key={`${t.url}-${i}`}
+                          type="button"
+                          title={t.name}
+                          onClick={() => spillActions.update(selSpill.id, { wall: { kind: spillWallKind, url: t.url, name: t.name } })}
+                          className={`relative rounded-md overflow-hidden border-2 transition-all ${selSpill.wall?.url === t.url ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}
+                        >
+                          <img loading="lazy" decoding="async" src={t.url} alt={t.name} className="h-11 w-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                    {selSpill.wall && (
+                      <button
+                        type="button"
+                        onClick={() => spillActions.update(selSpill.id, { wall: undefined })}
+                        className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                      >
+                        Reset to the pool's waterline
+                      </button>
+                    )}
+                    <p className="text-xs text-muted-foreground">Applies only to Spill {spills.findIndex((s) => s.id === selSpill.id) + 1}'s raised wall — click a spill over in the 3D view or pick it above.</p>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Click a spill over — in the 3D view or above — to choose the finish of its raised wall.</p>
+                )}
+              </div>
+            )}
           </div>
         )}
         {/* Texture Selection */}

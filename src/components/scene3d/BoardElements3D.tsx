@@ -276,7 +276,7 @@ function WaterBody({ w, i, scales, mainCoping, mainWaterline, cuts }: { w: Water
   return (
     <group name={`board-${w.kind}`} position={[c.x, elev, c.z]}>
       {/* Raised body: finished skirt from the ground up to the coping. */}
-      {elev > 0 && <RiserWall ring={outerRing} y0={-elev} y1={0} />}
+      {elev > 0 && <RiserWall ring={outerRing} y0={-elev} y1={0} textureUrl={urlOr(w.waterline, mainWaterline)} />}
       <group onClick={pick("pool")}>
         <PoolMesh points={local as any} depthPoints={[]} perimeterDepthPoints={perimeter} floorDepthAt={depthAt}
           linerTextureUrl={urlOr(w.finish, BASE_FINISH)!} linerTextureScale={w.finishScale ?? scales.finish} poolDimensions={dims} copingHeight={copingH} />
@@ -372,7 +372,7 @@ function TurfSurface({ s, holes, holesKey }: { s: Surface3D; holes: XZ[][]; hole
 const DECK_SLAB_FT = 0.25;
 
 /** mainCoping/mainWaterline: extra pools without their own chosen texture inherit the main pool's (never a plain white ring). */
-export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCoping, mainWaterline, mainElevation = 0, deckLevel = 0 }: { holes?: XZ[][]; scales?: SceneScales; mainCoping?: string; mainWaterline?: string; mainElevation?: number; deckLevel?: number }) {
+export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCoping, mainWaterline, mainElevation = 0, deckLevel = 0, mainCopingWidth = 1 }: { holes?: XZ[][]; scales?: SceneScales; mainCoping?: string; mainWaterline?: string; mainElevation?: number; deckLevel?: number; mainCopingWidth?: number }) {
   const [data, setData] = React.useState<Board3D | null>(() => loadBoard3D());
   const invalidate = useThree((st) => st.invalidate);
   // The studio renders on demand: redraw as soon as a widget edits a piece.
@@ -398,7 +398,7 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
         : <Surface key={`s${i}`} s={s} holes={allHoles} holesKey={holesKey} scale={s.scale ?? scales.paver} />)}
       {data.fences.map((f, i) => off("fence", f.itemId, i, "fences") ? null : <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => off("screen", s.itemId, i, "fences") ? null : <Screen key={`c${i}`} s={s} i={i} />)}
-      {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} deckLevel={deckLevel} mainPts={data.primaryPts} tileUrl={mainWaterline} />}
+      {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} deckLevel={deckLevel} mainPts={data.primaryPts} tileUrl={mainWaterline} mainCopingWidth={mainCopingWidth} />}
       {(data.waters ?? []).map((w, i) => !w || !Array.isArray(w.pts) || w.pts.length < 3 || off("water", w.itemId, i, "structure") ? null : (() => { const cuts = (data.spills ?? []).filter((sp) => sp.waterId === w.itemId); return <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} cuts={cuts} cutKey={cuts.map((k) => `${k.a.x},${k.a.z},${k.b.x},${k.b.z}`).join("|")} />; })())}
     </group>
   );

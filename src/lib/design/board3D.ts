@@ -51,8 +51,8 @@ export interface Board3D {
   pool?: { w: number; l: number };
   /** First pool/spa = the studio's main pool: its board id, outline (centred on origin) and finish photo. */
   primaryId?: string; primaryPts?: XZ[]; primaryFinish?: string; origin?: { x: number; y: number }; fences: Fence3D[]; screens: Screen3D[]; surfaces: Surface3D[]; waters?: Water3D[];
-  /** Spill-over edges (lib/design/spillovers): ends in 3D feet, body centre, pitch in degrees, source water id (none = main pool). */
-  spills?: Array<{ id: string; a: XZ; b: XZ; center: XZ; pitch: number; waterId?: string }> }
+  /** Spill-over edges (lib/design/spillovers): ends in 3D feet, body centre, pitch in degrees, source water id (none = main pool), chosen elevated-wall finish when the user overrode it. */
+  spills?: Array<{ id: string; a: XZ; b: XZ; center: XZ; pitch: number; waterId?: string; wall?: { kind: "waterline" | "paver"; url: string; name?: string } }> }
 
 /** 3D-side edits from the element widgets. Keeps the same storage + event. */
 export function updateBoard3D(fn: (d: Board3D) => Board3D) {
