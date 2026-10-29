@@ -13,7 +13,7 @@ import { applyLandscapeEdit, filterKeepOut, type KeepOutOpts, type LandscapeEdit
 import { inspectDesign, repairLayout } from '@/lib/landscape/inspectDesign';
 import { recordDesign } from '@/lib/landscape/designCorpus';
 import {
-  BED_FILLS, bedFill, emptyLandscapeLayout, measureLandscapeLayout, sampleBed, type LandscapeLayout,
+  BED_FILLS, bedFill, emptyLandscapeLayout, measureLandscapeLayout, sampleBed, type BedFillId, type LandscapeLayout,
 } from '@/lib/landscape/landscapeEstimate';
 import { drawnSpreadFt, getPlantSpec, plantById } from '@/lib/landscape/plantSpecs';
 import { LANDSCAPE_LOOKS } from '@/lib/landscape/presets';
@@ -164,11 +164,11 @@ export const LandscapeLayer: React.FC<{ view: BoardView | null }> = ({ view }) =
       total: t.total, plantCount: t.plantCount, bedSqFt: t.bedSqFt,
       lines: [
         ...t.species.map((sp) => ({ name: `Landscaping · ${sp.name} ×${sp.qty}`, price: sp.amount })),
-        ...t.beds.map((b) => ({ name: `Planting bed · ${bedFill(b.fill).name} (${Math.round(b.areaSqFt)} sq ft)`, price: b.amount })),
+        ...t.beds.map((b) => ({ name: `Planting bed · ${bedFill(b.fill as BedFillId).name} (${Math.round(b.areaSqFt)} sq ft)`, price: b.amount })),
         ...(next.irrigation && t.irrigationTotal > 0 ? [{ name: 'Drip irrigation system', price: t.irrigationTotal }] : []),
       ],
       species: [...byPlant.entries()].map(([plantId, v]) => ({ plantId, name: v.name, count: v.count })),
-      beds: t.beds.map((b) => ({ id: b.id, label: `Bed · ${bedFill(b.fill).name}`, sqFt: Math.round(b.areaSqFt) })),
+      beds: t.beds.map((b) => ({ id: b.id, label: `Bed · ${bedFill(b.fill as BedFillId).name}`, sqFt: Math.round(b.areaSqFt) })),
     });
   }, []);
 

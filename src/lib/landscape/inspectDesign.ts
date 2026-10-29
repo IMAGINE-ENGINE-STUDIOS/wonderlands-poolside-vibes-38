@@ -9,7 +9,8 @@
  * repair — removing what breaks the rules — so what reaches the customer
  * has already survived review.
  */
-import { measureLandscapeLayout, pointInPolygon, sampleBed, type LandscapeLayout, type Pt } from "./landscapeEstimate";
+import { measureLandscapeLayout, pointInPolygon, sampleBed, type LandscapeLayout, type LandscapePoint } from "./landscapeEstimate";
+type Pt = LandscapePoint;
 import { drawnSpreadFt, getPlantSpec, plantById, resolvePick } from "./plantSpecs";
 import { poolZoneOk, traitsFor } from "./designTraits";
 
@@ -150,7 +151,7 @@ export function repairLayout(layout: LandscapeLayout, insp: Inspection, opts: In
   let removed = removeIds.size;
   if (opts.budgetCap) {
     let total = measureLandscapeLayout({ ...layout, plantings }).total;
-    const priceOf = (pid: string) => { const p = plantings.find((x) => x.id === pid); if (!p) return 0; const pl = plantById(p.plantId); if (!pl) return 0; const v = pl.variants.find((x) => x.id === p.variantId) ?? pl.variants[0]; return resolvePick(pl, v?.id, p.size)?.price ?? 0; };
+    const priceOf = (pid: string) => { const p = plantings.find((x) => x.id === pid); if (!p) return 0; const pl = plantById(p.plantId); if (!pl) return 0; const v = pl.variants.find((x) => x.id === p.variantId) ?? pl.variants[0]; return resolvePick(pl.id, v?.id, p.size)?.price ?? 0; };
     const screenScore = (pid: string) => { const p = plantings.find((x) => x.id === pid); const pl = p ? plantById(p.plantId) : null; return pl ? traitsFor(pl).screening : 0; };
     while (total > opts.budgetCap && plantings.length > 8) {
       const candidates = [...plantings].sort((a, b) => screenScore(a.id) - screenScore(b.id) || priceOf(b.id) - priceOf(a.id));

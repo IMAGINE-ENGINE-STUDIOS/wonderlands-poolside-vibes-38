@@ -536,10 +536,12 @@ export type Database = {
           address_zip: string | null
           assigned_sales_rep_id: string | null
           company_id: string
+          consent: Json | null
           created_at: string | null
           email: string
           email_unsubscribed: boolean
           email_unsubscribed_at: string | null
+          external_ids: Json | null
           first_name: string
           id: string
           interests: Json | null
@@ -551,6 +553,8 @@ export type Database = {
           price_range_max: number | null
           price_range_min: number | null
           source: string | null
+          source_detail: string | null
+          stage: string | null
           status: string | null
           survey_file_url: string | null
           survey_uploaded: boolean | null
@@ -564,10 +568,12 @@ export type Database = {
           address_zip?: string | null
           assigned_sales_rep_id?: string | null
           company_id?: string
+          consent?: Json | null
           created_at?: string | null
           email: string
           email_unsubscribed?: boolean
           email_unsubscribed_at?: string | null
+          external_ids?: Json | null
           first_name: string
           id?: string
           interests?: Json | null
@@ -579,6 +585,8 @@ export type Database = {
           price_range_max?: number | null
           price_range_min?: number | null
           source?: string | null
+          source_detail?: string | null
+          stage?: string | null
           status?: string | null
           survey_file_url?: string | null
           survey_uploaded?: boolean | null
@@ -592,10 +600,12 @@ export type Database = {
           address_zip?: string | null
           assigned_sales_rep_id?: string | null
           company_id?: string
+          consent?: Json | null
           created_at?: string | null
           email?: string
           email_unsubscribed?: boolean
           email_unsubscribed_at?: string | null
+          external_ids?: Json | null
           first_name?: string
           id?: string
           interests?: Json | null
@@ -607,6 +617,8 @@ export type Database = {
           price_range_max?: number | null
           price_range_min?: number | null
           source?: string | null
+          source_detail?: string | null
+          stage?: string | null
           status?: string | null
           survey_file_url?: string | null
           survey_uploaded?: boolean | null
@@ -4252,6 +4264,51 @@ export type Database = {
         }
         Relationships: []
       }
+      socialite_autopilot: {
+        Row: {
+          active: boolean
+          created_at: string
+          hashtag_sets: string[]
+          id: string
+          owner_id: string
+          platforms: string[]
+          state: Json
+          story_count: number
+          templates: string[]
+          times: string[]
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          hashtag_sets?: string[]
+          id?: string
+          owner_id: string
+          platforms?: string[]
+          state?: Json
+          story_count?: number
+          templates?: string[]
+          times?: string[]
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          hashtag_sets?: string[]
+          id?: string
+          owner_id?: string
+          platforms?: string[]
+          state?: Json
+          story_count?: number
+          templates?: string[]
+          times?: string[]
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       socialite_billing_config: {
         Row: {
           config: Json
@@ -5120,6 +5177,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      automation_edge_ping: {
+        Args: { _function_name: string }
+        Returns: undefined
+      }
       cleanup_expired_sessions: { Args: never; Returns: number }
       current_company_id: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
@@ -5238,6 +5299,18 @@ export type Database = {
         Returns: string
       }
       site_slug_for_domain: { Args: { _host: string }; Returns: string }
+      submit_lead: {
+        Args: {
+          _email: string
+          _external_ids?: Json
+          _message: string
+          _name: string
+          _phone: string
+          _source: string
+          _source_detail?: string
+        }
+        Returns: string
+      }
       submit_site_lead: {
         Args: {
           _email: string

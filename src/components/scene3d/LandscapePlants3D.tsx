@@ -137,7 +137,7 @@ function FitToHeight({ url, p }: { url: string; p: Plant3D }) {
       }
       box.applyMatrix4(g.matrixWorld.clone().invert());
       const size = box.getSize(new THREE.Vector3());
-      const capFt = p.form === 'palm' ? 60 : p.form === 'tree' ? 60 : p.form === 'shrub' ? 15 : p.form === 'spike' ? 10 : p.form === 'mat' ? 3 : 30;
+      const capFt = p.form === 'palm' ? 60 : p.form === 'tree' ? 60 : p.form === 'mound' ? 15 : p.form === 'spike' ? 10 : p.form === 'mat' ? 3 : 30;
       const k = Math.min(p.h, capFt) / size.y;
       g.scale.setScalar(k);
       g.position.x = -((box.min.x + box.max.x) / 2) * k;
