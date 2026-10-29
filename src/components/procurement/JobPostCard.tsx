@@ -53,11 +53,11 @@ interface JobPostCardProps {
 const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant = 'default' }: JobPostCardProps) => {
   const getCategoryColor = (category: string) => {
     const colors = {
-      pools: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-      outdoors: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      patios: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-      improvements: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-      construction: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+      pools: 'bg-amber-100 text-amber-900',
+      outdoors: 'bg-emerald-50 text-emerald-800',
+      patios: 'bg-orange-50 text-orange-800',
+      improvements: 'bg-neutral-100 text-neutral-700',
+      construction: 'bg-stone-200/70 text-stone-800'
     };
     return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
   };
@@ -130,7 +130,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
       {isFeatured && <div className="absolute top-0 right-0 bg-primary text-white px-3 py-1 text-xs font-semibold">FEATURED</div>}
       
       {job.image_url && (
-        <div className="h-32 bg-gradient-to-r from-primary/10 to-teal/10 relative overflow-hidden">
+        <div className="h-32 bg-gradient-to-r from-amber-100/70 to-neutral-100 relative overflow-hidden">
           <img loading="lazy" decoding="async" 
             src={job.image_url} 
             alt={job.title}
@@ -150,7 +150,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
                 onProfileClick?.(job.business_id);
               }}
             >
-              <AvatarFallback className="bg-gradient-to-br from-primary to-teal text-white font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-neutral-900 to-neutral-600 text-white font-semibold">
                 {getInitials(
                   job.profiles?.first_name || '',
                   job.profiles?.last_name || '',

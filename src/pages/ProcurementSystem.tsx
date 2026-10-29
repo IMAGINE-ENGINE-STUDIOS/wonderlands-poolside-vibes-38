@@ -1,21 +1,42 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * ProcurementSystem — the Wonderlands Procurement Exchange (/procurement).
+ *
+ * One home for the whole jobs marketplace, in the Wonderlands editorial
+ * style: browse and bid (Marketplace), manage your postings and award bids
+ * side by side (My Postings), track your proposals (My Bids), and talk to
+ * the other side in private per-job threads (Messages).
+ * Credits: Imagine Engine Studios Corp.
+ */
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { PlusCircle, Building2, AlertTriangle, Globe, TrendingUp, Users, Briefcase, DollarSign, Clock, RefreshCw } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { PlusCircle, RefreshCw } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import EnhancedJobPostingForm from '@/components/procurement/EnhancedJobPostingForm';
 import JobFeed from '@/components/procurement/JobFeed';
 import JobDetailModal from '@/components/procurement/JobDetailModal';
 import QuickProposalModal from '@/components/procurement/QuickProposalModal';
-import MessagingSystem from '@/components/procurement/MessagingSystem';
 import UserProfileModal from '@/components/UserProfileModal';
 import JobSearchEnhanced from '@/components/procurement/JobSearchEnhanced';
+import { BidComparison } from '@/components/procurement/BidComparison';
+import { ProcurementMessages } from '@/components/procurement/ProcurementMessages';
 import { useProcurementData } from '@/hooks/useProcurementData';
+import {
+  fetchJobProposals,
+  fetchMyJobs,
+  fetchMyProposals,
+  jobStatusLabel,
+  proposalStatusLabel,
+  setJobStatus,
+  withdrawProposal,
+  type ProcJob,
+  type ProcProposal,
+} from '@/lib/procurement/procurementService';
+
 interface JobPosting {
   id: string;
   title: string;
@@ -37,51 +58,99 @@ interface JobPosting {
     company_name: string;
   };
 }
+
+type View = 'marketplace' | 'postings' | 'bids' | 'messages';
+
+const money = (n?: number | null) => (n == null ? '—' : `$${Number(n).toLocaleString()}`);
+
+const jobPill: Record<string, string> = {
+  open: 'bg-emerald-50 text-emerald-800 ring-emerald-300',
+  awarded: 'bg-amber-50 text-amber-800 ring-amber-300',
+  closed: 'bg-neutral-100 text-neutral-500 ring-neutral-200',
+  draft: 'bg-neutral-100 text-neutral-600 ring-neutral-200',
+};
+const propPill: Record<string, string> = {
+  pending: 'bg-neutral-100 text-neutral-700 ring-neutral-200',
+  shortlisted: 'bg-amber-50 text-amber-800 ring-amber-300',
+  accepted: 'bg-emerald-50 text-emerald-800 ring-emerald-300',
+  rejected: 'bg-red-50 text-red-700 ring-red-200',
+  withdrawn: 'bg-neutral-100 text-neutral-400 ring-neutral-200',
+};
+
 const ProcurementSystem = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const [view, setView] = useState<View>('marketplace');
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const [showJobForm, setShowJobForm] = useState(false);
   const [showQuickProposal, setShowQuickProposal] = useState(false);
   const [quickProposalJob, setQuickProposalJob] = useState<JobPosting | null>(null);
-  const [showMessaging, setShowMessaging] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [searchFilters, setSearchFilters] = useState<any>({});
-  
-  // Use the custom hook for data fetching with caching and real-time updates
+
   const { jobs, loading, error, refetch, trackJobView } = useProcurementData(searchFilters);
+
+  /* ------------------------------ my postings / my bids ------------------------------ */
+  const [myJobs, setMyJobs] = useState<ProcJob[]>([]);
+  const [myProps, setMyProps] = useState<Array<ProcProposal & { job: ProcJob | null }>>([]);
+  const [mineLoading, setMineLoading] = useState(false);
+  const [openJobId, setOpenJobId] = useState<string>('');
+  const [openProposals, setOpenProposals] = useState<ProcProposal[]>([]);
+
+  const loadMine = useCallback(async () => {
+    if (!user) return;
+    setMineLoading(true);
+    try {
+      const [j, p] = await Promise.all([fetchMyJobs(user.id), fetchMyProposals(user.id)]);
+      setMyJobs(j);
+      setMyProps(p);
+    } catch {
+      toast.error('Could not load your procurement activity.');
+    } finally {
+      setMineLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && (view === 'postings' || view === 'bids')) void loadMine();
+  }, [user, view, loadMine]);
+
+  const toggleJobProposals = async (job: ProcJob) => {
+    if (openJobId === job.id) {
+      setOpenJobId('');
+      return;
+    }
+    setOpenJobId(job.id);
+    setOpenProposals(await fetchJobProposals(job.id).catch(() => []));
+  };
+
+  const refreshOpenProposals = async (job: ProcJob) => {
+    setOpenProposals(await fetchJobProposals(job.id).catch(() => []));
+    void loadMine();
+  };
+
+  /* ------------------------------ marketplace filtering (unchanged behavior) ------------------------------ */
   const filteredJobs = jobs.filter(job => {
-    // Search term filtering
-    const matchesSearch = !searchFilters.searchTerm || 
-      job.title.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
-      job.description?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
-      job.location?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
-      job.profiles?.company_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
-      job.profiles?.first_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
+    const matchesSearch = !searchFilters.searchTerm ||
+      job.title.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.description?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.location?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.profiles?.company_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.profiles?.first_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
       job.profiles?.last_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase());
-
-    // Category filtering
-    const matchesCategory = !searchFilters.category || 
-      searchFilters.category === 'all' || 
+    const matchesCategory = !searchFilters.category ||
+      searchFilters.category === 'all' ||
       job.category === searchFilters.category;
-
-    // Location filtering
-    const matchesLocation = !searchFilters.location || 
+    const matchesLocation = !searchFilters.location ||
       job.location?.toLowerCase().includes(searchFilters.location.toLowerCase());
-
-    // Budget filtering
-    const matchesBudget = 
-      (!searchFilters.budgetMin || job.budget_min >= searchFilters.budgetMin) && 
+    const matchesBudget =
+      (!searchFilters.budgetMin || job.budget_min >= searchFilters.budgetMin) &&
       (!searchFilters.budgetMax || job.budget_max <= searchFilters.budgetMax);
-
-    // Deadline filtering
-    const matchesDeadline = !searchFilters.deadline || 
+    const matchesDeadline = !searchFilters.deadline ||
       new Date(job.deadline) <= new Date(searchFilters.deadline);
-    
     return matchesSearch && matchesCategory && matchesLocation && matchesBudget && matchesDeadline;
   }).sort((a, b) => {
-    // Sorting logic
     switch (searchFilters.sortBy) {
       case 'oldest':
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -90,8 +159,8 @@ const ProcurementSystem = () => {
       case 'budget_low':
         return (a.budget_min || 0) - (b.budget_min || 0);
       case 'deadline':
-        return new Date(a.deadline || '9999-12-31').getTime() - 
-               new Date(b.deadline || '9999-12-31').getTime();
+        return new Date(a.deadline || '9999-12-31').getTime() -
+          new Date(b.deadline || '9999-12-31').getTime();
       case 'most_proposals':
         return (b.proposal_count || 0) - (a.proposal_count || 0);
       case 'most_viewed':
@@ -101,6 +170,7 @@ const ProcurementSystem = () => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
   });
+
   const requireAuth = (action: () => void, actionName: string) => {
     if (!user) {
       toast.error(`Please sign in to ${actionName}`);
@@ -133,7 +203,7 @@ const ProcurementSystem = () => {
       if (job) {
         setQuickProposalJob(job);
         setShowQuickProposal(true);
-        trackJobView(jobId); // Track view when opening proposal
+        trackJobView(jobId);
       }
     }, 'submit proposals');
   };
@@ -143,204 +213,275 @@ const ProcurementSystem = () => {
       setShowProfile(true);
     }, 'view profiles');
   };
-  const handleMessaging = () => {
-    requireAuth(() => {
-      setShowMessaging(true);
-    }, 'access messages');
-  };
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* Corporate Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-400 rounded-lg flex items-center justify-center">
-                <Briefcase className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">Procurement Network</h1>
-                <p className="text-sm text-slate-600">Professional B2B Marketplace</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={() => refetch()} 
-                variant="ghost" 
-                size="sm"
-                className="gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              {user ? <>
-                  <Button onClick={handleMessaging} variant="ghost" size="sm">
-                    Messages
-                  </Button>
-                  <Button onClick={() => navigate('/dashboard')} variant="outline">
-                    Dashboard
-                  </Button>
-                </> : <Button onClick={() => navigate('/auth')} className="bg-blue-600 hover:bg-blue-700">
-                  Sign In
-                </Button>}
-            </div>
+
+  const stats = [
+    { label: 'Open opportunities', value: String(filteredJobs.length) },
+    { label: 'Proposals on open jobs', value: String(filteredJobs.reduce((n, j) => n + (j.proposal_count || 0), 0)) },
+    { label: 'Open budget (max)', value: `$${filteredJobs.reduce((n, j) => n + (j.budget_max || 0), 0).toLocaleString()}` },
+    ...(user
+      ? [
+          { label: 'Your open postings', value: String(myJobs.filter(j => j.status === 'open').length) },
+          { label: 'Your active bids', value: String(myProps.filter(p => ['pending', 'shortlisted'].includes(p.status)).length) },
+          { label: 'Jobs you won', value: String(myProps.filter(p => p.status === 'accepted').length) },
+        ]
+      : []),
+  ];
+
+  const tabBtn = (v: View, label: string) => (
+    <button
+      key={v}
+      onClick={() => setView(v)}
+      className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition ${
+        view === v ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-600 ring-1 ring-neutral-300 hover:text-neutral-900'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  const signInPanel = (what: string) => (
+    <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center">
+      <p className="font-serif text-2xl font-light">Sign in to see {what}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        Your postings, bids and messages live under your Wonderlands account.
+      </p>
+      <Button className="mt-5 bg-neutral-900 text-white hover:bg-neutral-800" onClick={() => navigate('/auth')}>
+        Sign in
+      </Button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="mx-auto max-w-7xl px-6 py-14 md:px-10 md:py-20">
+        <p className="text-[10px] uppercase tracking-[0.42em] text-muted-foreground">
+          Wonderlands — Procurement Exchange
+        </p>
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-6">
+          <h1 className="max-w-2xl font-serif text-4xl font-light leading-[1.05] tracking-tight text-foreground md:text-6xl">
+            Every job, every bid, one table
+          </h1>
+          <div className="flex flex-wrap gap-3 pb-1">
+            <Button onClick={handlePostJobClick} className="bg-neutral-900 text-white hover:bg-neutral-800">
+              <PlusCircle className="mr-2 h-4 w-4" /> Post a requirement
+            </Button>
+            <Button variant="outline" onClick={() => refetch()} className="gap-2">
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+            </Button>
           </div>
         </div>
-      </header>
+        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+          Post what your project needs, receive proposals from approved contractors and
+          suppliers, compare them side by side and award — with both sides notified at
+          every step.
+        </p>
+        <div className="mt-8 h-px w-24 bg-foreground/30" />
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                Connect with Top Suppliers
-              </h2>
-              <p className="text-xl mb-6 text-blue-100">
-                Post procurement needs, receive proposals from approved contractors and suppliers, and manage every bid in one place.
-              </p>
-              <div className="flex gap-4">
-                <Button onClick={handlePostJobClick} size="lg" className="bg-white text-blue-700 hover:bg-blue-50">
-                  <PlusCircle className="mr-2 h-5 w-5" />
-                  Post Requirement
-                </Button>
-                <Button onClick={() => document.getElementById('jobs-section')?.scrollIntoView({
-                behavior: 'smooth'
-              })} size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                  Browse Opportunities
-                </Button>
+        {/* Stats */}
+        <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border lg:grid-cols-3 xl:grid-cols-6">
+          {stats.map(s => (
+            <div key={s.label} className="bg-card p-5">
+              <div className="font-serif text-3xl font-light text-foreground">{s.value}</div>
+              <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* View tabs */}
+        <div className="mt-10 flex flex-wrap gap-2">
+          {tabBtn('marketplace', 'Marketplace')}
+          {tabBtn('postings', 'My Postings')}
+          {tabBtn('bids', 'My Bids')}
+          {tabBtn('messages', 'Messages')}
+        </div>
+
+        <div className="mt-8">
+          {view === 'marketplace' && (
+            <>
+              <div className="mb-8">
+                <JobSearchEnhanced onFiltersChange={setSearchFilters} totalJobs={filteredJobs.length} />
               </div>
+              {error ? (
+                <p className="text-sm text-red-600">The marketplace could not load just now — try Refresh.</p>
+              ) : (
+                <JobFeed
+                  jobs={filteredJobs}
+                  loading={loading}
+                  onJobClick={(job) => {
+                    setSelectedJob(job);
+                    trackJobView(job.id);
+                  }}
+                  onQuickProposal={handleQuickProposal}
+                  onProfileClick={handleProfileClick}
+                />
+              )}
+            </>
+          )}
+
+          {view === 'postings' && (!user ? signInPanel('your postings') : (
+            <div className="space-y-4">
+              {mineLoading && <p className="text-sm text-muted-foreground">Loading your postings…</p>}
+              {!mineLoading && myJobs.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center">
+                  <p className="font-serif text-2xl font-light">No postings yet</p>
+                  <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                    Post your first requirement and proposals from approved suppliers will land here.
+                  </p>
+                  <Button className="mt-5 bg-neutral-900 text-white hover:bg-neutral-800" onClick={handlePostJobClick}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Post a requirement
+                  </Button>
+                </div>
+              )}
+              {myJobs.map(job => (
+                <div key={job.id} className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="min-w-0 flex-1 truncate font-serif text-xl font-normal text-foreground">{job.title}</h3>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${jobPill[job.status] ?? jobPill.open}`}>
+                      {jobStatusLabel[job.status] ?? job.status}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+                    <span>Budget {money(job.budget_min)} – {money(job.budget_max)}</span>
+                    {job.location && <span>{job.location}</span>}
+                    {job.deadline && <span>Deadline {new Date(job.deadline).toLocaleDateString()}</span>}
+                    <span>{job.proposal_count ?? 0} proposals</span>
+                    <span>{job.view_count ?? 0} views</span>
+                  </div>
+                  {job.description && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-neutral-600">{job.description}</p>}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => void toggleJobProposals(job)}
+                      className="rounded-full bg-neutral-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-neutral-700"
+                    >
+                      {openJobId === job.id ? 'Hide bids' : `Compare bids (${job.proposal_count ?? 0})`}
+                    </button>
+                    {job.status === 'open' && (
+                      <button
+                        onClick={() => void setJobStatus(job.id, 'closed').then(loadMine)}
+                        className="rounded-full bg-white px-4 py-2 text-xs font-medium text-neutral-700 ring-1 ring-neutral-300 transition hover:bg-neutral-50"
+                      >
+                        Close job
+                      </button>
+                    )}
+                    {job.status === 'closed' && (
+                      <button
+                        onClick={() => void setJobStatus(job.id, 'open').then(loadMine)}
+                        className="rounded-full bg-white px-4 py-2 text-xs font-medium text-neutral-700 ring-1 ring-neutral-300 transition hover:bg-neutral-50"
+                      >
+                        Reopen job
+                      </button>
+                    )}
+                  </div>
+                  {openJobId === job.id && (
+                    <div className="mt-4 border-t border-border pt-4">
+                      <BidComparison job={job} proposals={openProposals} onChanged={() => void refreshOpenProposals(job)} />
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
-      </section>
+          ))}
 
-      {/* Stats Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <Briefcase className="h-8 w-8 text-blue-600" />
-              <span className="text-sm font-medium text-slate-500">Active</span>
+          {view === 'bids' && (!user ? signInPanel('your bids') : (
+            <div className="space-y-4">
+              {mineLoading && <p className="text-sm text-muted-foreground">Loading your bids…</p>}
+              {!mineLoading && myProps.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center">
+                  <p className="font-serif text-2xl font-light">No bids yet</p>
+                  <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                    Browse the marketplace and place your first proposal.
+                  </p>
+                  <Button className="mt-5 bg-neutral-900 text-white hover:bg-neutral-800" onClick={() => setView('marketplace')}>
+                    Browse opportunities
+                  </Button>
+                </div>
+              )}
+              {myProps.map(p => (
+                <div key={p.id} className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="min-w-0 flex-1 truncate font-serif text-xl font-normal text-foreground">
+                      {p.job?.title ?? 'Job'}
+                    </h3>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${propPill[p.status] ?? propPill.pending}`}>
+                      {proposalStatusLabel[p.status] ?? p.status}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+                    <span>Your bid <strong className="text-foreground">{money(p.proposed_price)}</strong></span>
+                    {p.estimated_timeline && <span>Timeline {p.estimated_timeline}</span>}
+                    {p.job?.location && <span>{p.job.location}</span>}
+                    {p.job && <span>Job: {jobStatusLabel[p.job.status] ?? p.job.status}</span>}
+                    <span>Sent {new Date(p.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {p.proposal_text && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-neutral-600">{p.proposal_text}</p>}
+                  {['pending', 'shortlisted'].includes(p.status) && p.job?.status === 'open' && (
+                    <button
+                      onClick={() => void withdrawProposal(p, p.job).then(loadMine)}
+                      className="mt-3 rounded-full bg-white px-4 py-2 text-xs font-medium text-red-700 ring-1 ring-red-200 transition hover:bg-red-50"
+                    >
+                      Withdraw bid
+                    </button>
+                  )}
+                  {p.status === 'accepted' && (
+                    <p className="mt-3 text-sm font-medium text-emerald-700">
+                      You won this job — the buyer has your details and you've both been notified. Coordinate in Messages.
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
-            <div className="text-3xl font-bold text-slate-900 mb-1">{filteredJobs.length}</div>
-            <div className="text-sm text-slate-600">Open Opportunities</div>
-          </Card>
+          ))}
 
-          <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="h-8 w-8 text-green-600" />
-              <span className="text-sm font-medium text-slate-500">Bids</span>
-            </div>
-            <div className="text-3xl font-bold text-slate-900 mb-1">{filteredJobs.reduce((n, j) => n + (j.proposal_count || 0), 0)}</div>
-            <div className="text-sm text-slate-600">Proposals Received</div>
-          </Card>
-
-          <Card className="p-6 border-slate-200 bg-white hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="h-8 w-8 text-yellow-600" />
-              <span className="text-sm font-medium text-slate-500">Value</span>
-            </div>
-            <div className="text-3xl font-bold text-slate-900 mb-1">${filteredJobs.reduce((n, j) => n + (j.budget_max || 0), 0).toLocaleString()}</div>
-            <div className="text-sm text-slate-600">Open Budget (max)</div>
-          </Card>
-
+          {view === 'messages' && (!user ? signInPanel('your messages') : <ProcurementMessages />)}
         </div>
-      </section>
-
-      {/* Main Content */}
-      <main id="jobs-section" className="max-w-7xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <h3 className="text-2xl font-bold text-slate-900 mb-2">Browse Opportunities</h3>
-          <p className="text-slate-600">Discover procurement needs from verified businesses</p>
-        </div>
-
-        <div className="mb-8">
-          <JobSearchEnhanced onFiltersChange={setSearchFilters} totalJobs={filteredJobs.length} />
-        </div>
-
-        <JobFeed 
-          jobs={filteredJobs} 
-          loading={loading} 
-          onJobClick={(job) => {
-            setSelectedJob(job);
-            trackJobView(job.id); // Track view when clicking job
-          }} 
-          onQuickProposal={handleQuickProposal} 
-          onProfileClick={handleProfileClick} 
-        />
       </main>
-
-      {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12 px-4 mt-20">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8">
-          <div>
-            <h4 className="font-bold text-lg mb-4">Procurement Network</h4>
-            <p className="text-slate-400 text-sm">
-              Professional B2B marketplace connecting businesses with verified suppliers worldwide.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">Platform</h4>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li>Browse Jobs</li>
-              <li>Post Requirements</li>
-              <li>Find Suppliers</li>
-              <li>Success Stories</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li>About Us</li>
-              <li>Contact</li>
-              <li>Careers</li>
-              <li>Press</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li>Terms of Service</li>
-              <li>Privacy Policy</li>
-              <li>Cookie Policy</li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-slate-800 text-center text-sm text-slate-400">
-          © {new Date().getFullYear()} Procurement Network. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
 
       {/* Modals */}
-      {user && isCompanyProfileComplete() && <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
+      {user && isCompanyProfileComplete() && (
+        <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
           <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
             <EnhancedJobPostingForm onJobCreated={handleJobCreated} />
           </DialogContent>
-        </Dialog>}
+        </Dialog>
+      )}
 
-      {/* Job Detail Modal */}
-      {selectedJob && <JobDetailModal job={selectedJob} isOpen={!!selectedJob} onClose={() => setSelectedJob(null)} onProposalSubmitted={() => {
-      setSelectedJob(null);
-      refetch(); // Use refetch instead of fetchJobs
-    }} />}
+      {selectedJob && (
+        <JobDetailModal
+          job={selectedJob}
+          isOpen={!!selectedJob}
+          onClose={() => setSelectedJob(null)}
+          onProposalSubmitted={() => {
+            setSelectedJob(null);
+            refetch();
+          }}
+        />
+      )}
 
-      {/* Quick Proposal Modal */}
-      <QuickProposalModal job={quickProposalJob} isOpen={showQuickProposal} onClose={() => {
-      setShowQuickProposal(false);
-      setQuickProposalJob(null);
-    }} onSubmit={proposalData => {
-      console.log('Quick proposal submitted:', proposalData);
-      refetch(); // Refresh jobs after proposal submission using cached refetch
-    }} />
+      <QuickProposalModal
+        job={quickProposalJob}
+        isOpen={showQuickProposal}
+        onClose={() => {
+          setShowQuickProposal(false);
+          setQuickProposalJob(null);
+        }}
+        onSubmit={() => {
+          refetch();
+        }}
+      />
 
-      {/* Messaging System */}
-      <MessagingSystem isOpen={showMessaging} onClose={() => setShowMessaging(false)} />
-
-      {/* User Profile Modal */}
-      <UserProfileModal isOpen={showProfile} onClose={() => {
-      setShowProfile(false);
-      setSelectedProfileId(null);
-    }} userId={selectedProfileId || undefined} isOwnProfile={!selectedProfileId} />
-    </div>;
+      <UserProfileModal
+        isOpen={showProfile}
+        onClose={() => {
+          setShowProfile(false);
+          setSelectedProfileId(null);
+        }}
+        userId={selectedProfileId || undefined}
+        isOwnProfile={!selectedProfileId}
+      />
+    </div>
+  );
 };
+
 export default ProcurementSystem;

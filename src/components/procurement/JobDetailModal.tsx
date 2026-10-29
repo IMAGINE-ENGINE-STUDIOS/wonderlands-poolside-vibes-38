@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { BidComparison } from '@/components/procurement/BidComparison';
+import type { ProcJob, ProcProposal } from '@/lib/procurement/procurementService';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -326,6 +328,15 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
             </TabsContent>
 
             <TabsContent value="proposals">
+              {user?.id === job.business_id ? (
+                <div className="max-h-96 overflow-y-auto pr-1">
+                  <BidComparison
+                    job={job as unknown as ProcJob}
+                    proposals={proposals as unknown as ProcProposal[]}
+                    onChanged={() => void fetchJobDetails()}
+                  />
+                </div>
+              ) : (
               <ScrollArea className="h-96">
                 <div className="space-y-4">
                   {proposals.length === 0 ? (
@@ -381,6 +392,7 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
                   )}
                 </div>
               </ScrollArea>
+              )}
             </TabsContent>
 
             {canSubmitProposal && (
