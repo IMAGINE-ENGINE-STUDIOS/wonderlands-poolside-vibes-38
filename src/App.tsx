@@ -97,6 +97,8 @@ const TanningLedgeSuite = lazy(() => import("./pages/suites/TanningLedgeSuite"))
 /* Screen enclosures + lanai + fencing share one suite (three trades, one page) */
 const EnclosureSuite = lazy(() => import("./pages/suites/EnclosureSuite"));
 const CustomerAccount = lazy(() => import("./pages/CustomerAccount"));
+const LiveLobby = lazy(() => import("./pages/LiveLobby"));
+const LiveRoomPage = lazy(() => import("./pages/LiveRoomPage"));
 const CompanyWorkspace = lazy(() => import("./pages/CompanyWorkspace"));
 const AdminPreview = lazy(() => import("./pages/AdminPreview"));
 const DevStaging = import.meta.env.DEV ? lazy(() => import("./pages/DevStaging")) : null;
@@ -239,6 +241,8 @@ const App = () => {
             <Route path="/design" element={<DesignProposals />} />
             <Route path="/about" element={<About />} />
             <Route path="/consultation" element={<Consultation />} />
+            <Route path="/live" element={<LiveLobby />} />
+            <Route path="/live/:slug" element={<LiveRoomPage />} />
             <Route path="/solar-board" element={<SolarBoard />} />
             <Route path="/solar-genius" element={<SolarGenius />} />
             <Route path="/product-manual" element={<ProductManual />} />

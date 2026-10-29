@@ -10,6 +10,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { freshMeetingLink } from '@/lib/live/liveMeetings';
 import type { NarratorAction } from '@/lib/narratorStore';
 
 export const SCHEDULE_LINK = 'https://calendly.com/wonderlandsworlds/30min';
@@ -189,6 +190,7 @@ export async function advanceBooking(
           actions: chips(['Tomorrow at 10am', 'Friday at 3pm']),
         };
       }
+      const live = freshMeetingLink(draft.topic || context?.product || context?.category || 'Wonderlands consultation');
       const payload = {
         name: draft.name || 'Wonderlands guest',
         email: draft.email ?? null,
@@ -198,7 +200,9 @@ export async function advanceBooking(
         preferred_text: draft.whenText ?? null,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         topic: draft.topic || context?.product || context?.category || 'Outdoor living consultation',
-        notes: context?.route ? `Requested from ${context.route}` : null,
+        notes: [context?.route ? `Requested from ${context.route}` : null, `Video meeting (Wonderlands Live): ${live.link}`]
+          .filter(Boolean)
+          .join(' · '),
       };
       const when = draft.whenText;
       try {
@@ -206,7 +210,7 @@ export async function advanceBooking(
         if (error) throw error;
         cancelBooking();
         return {
-          reply: `Booked. A Wonderlands designer will confirm ${when}${data?.confirmationSent ? ' by email' : ''}. Shall we keep designing in the meantime?`,
+          reply: `Booked. A Wonderlands designer will confirm ${when}${data?.confirmationSent ? ' by email' : ''}. We'll meet on Wonderlands Live — your personal video link is ${live.link} (no account needed, just open it at the time). Shall we keep designing in the meantime?`,
           actions: chips(['Keep reading the book', 'Price my design']),
         };
       } catch {

@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { freshMeetingLink } from '@/lib/live/liveMeetings';
 import { 
   Users, 
   Eye, 
@@ -27,6 +28,7 @@ import {
   Upload,
   FileText,
   MessageSquare,
+  Video,
   Zap,
   Play,
   Loader2
@@ -453,6 +455,40 @@ const AdminClientManager = () => {
       toast({
         title: "Error",
         description: "Failed to add activity",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const scheduleLiveMeeting = async () => {
+    if (!selectedClient) return;
+    const clientName = [selectedClient.first_name, selectedClient.last_name].filter(Boolean).join(" ").trim();
+    const { link } = freshMeetingLink(clientName ? `Meeting with ${clientName}` : "Client meeting");
+    try {
+      const { error } = await supabase
+        .from('client_activities')
+        .insert([{
+          client_id: selectedClient.id,
+          activity_type: 'meeting',
+          description: `Wonderlands Live video meeting: ${link}`
+        }]);
+      if (error) throw error;
+      await supabase
+        .from('clients')
+        .update({ last_contacted_at: new Date().toISOString() })
+        .eq('id', selectedClient.id);
+      try { await navigator.clipboard.writeText(link); } catch { /* clipboard unavailable */ }
+      toast({
+        title: "Video meeting created",
+        description: `Link copied: ${link}`,
+      });
+      fetchActivities(selectedClient.id);
+      fetchClients();
+    } catch (error) {
+      console.error('Error scheduling live meeting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create the video meeting",
         variant: "destructive",
       });
     }
@@ -1663,11 +1699,18 @@ const AdminClientManager = () => {
                                       onChange={(e) => setNewActivity({...newActivity, description: e.target.value})}
                                       className="flex-1 bg-white border border-neutral-200 rounded-xl shadow-sm border-neutral-200 text-black "
                                     />
-                                    <Button 
+                                    <Button
                                       onClick={addActivity}
                                       className="bg-cyan-600 hover:bg-cyan-700 text-black "
                                     >
                                       <Plus className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      onClick={scheduleLiveMeeting}
+                                      className="bg-amber-500 hover:bg-amber-600 text-black"
+                                      title="Set up a Wonderlands Live video meeting and copy its link"
+                                    >
+                                      <Video className="h-4 w-4 mr-1" /> Live meeting
                                     </Button>
                                   </div>
 

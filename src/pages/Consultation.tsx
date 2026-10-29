@@ -51,6 +51,26 @@ const Consultation: React.FC = () => {
 
         <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-12">
           <div className="lg:col-span-8">
+            <div className="mb-8 border border-amber-500/40 bg-amber-50/60 p-6">
+              <p className="text-[10px] uppercase tracking-[0.4em] text-amber-700">
+                New — Wonderlands Live
+              </p>
+              <h2 className="mt-3 font-serif text-2xl font-light text-foreground">
+                Meet your designer face to face, right here
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                Our consultations now run on Wonderlands Live, our own video meeting room.
+                Set up a meeting and you get a personal link — open it at the time and we
+                design together on your screen: pools, finishes and prices, live. No account
+                and no downloads needed.
+              </p>
+              <a
+                href="/live"
+                className="mt-5 inline-flex rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800"
+              >
+                Set up your video meeting
+              </a>
+            </div>
             <div className="overflow-hidden border border-border/70">
               <iframe
                 src={CALENDLY_EMBED}
