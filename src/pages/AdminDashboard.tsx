@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePersistentState } from '@/hooks/usePersistentState';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList, Briefcase, Menu, X, BookOpen } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat, FolderOpen, ClipboardList, Briefcase, Menu, X, BookOpen, Video } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ import AdminOrdersManager from '@/components/AdminOrdersManager';
 import AdminDashboardMetrics from '@/components/AdminDashboardMetrics';
 import AdminReferralsManager from '@/components/AdminReferralsManager';
 import AdminClientManager from '@/components/AdminClientManager';
+import { AdminMeetingsView } from '@/components/live/MeetingsPanel';
 import ApiKeyManager from '@/components/ApiKeyManager';
 import SampleDataSetup from '@/components/SampleDataSetup';
 import SetupDemoUsers from '@/components/SetupDemoUsers';
@@ -211,7 +212,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
       'api-manager': 'API Management', 'delivery-logistics': 'Delivery', 'content-editor': 'Content Editor',
       procurement: 'Procurement', analytics: 'Analytics', setup: 'Setup', calculator: 'Pool Calculator',
       performance: 'Performance', 'automation-templates': 'Message Templates',
-      'automation-sequences': 'Sequences', 'automation-status': 'Status Monitor', 'api-keys': 'API Keys', 'tech-hub': 'Technology Hub', today: 'Today', companies: 'Licensed companies',
+      'automation-sequences': 'Sequences', 'automation-status': 'Status Monitor', 'api-keys': 'API Keys', 'tech-hub': 'Technology Hub', today: 'Today', companies: 'Licensed companies', meetings: 'Meetings',
     };
     return map[activeSection] ?? 'Dashboard';
   })();
@@ -267,10 +268,12 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
               </h3>
               <div className="space-y-0.5">
                 <NavItem icon={Activity} label="Today" active={activeSection === "today"} onClick={() => { setActiveSection("today"); setMobileNavOpen(false); }} />
+                <NavItem icon={Video} label="Meetings" active={activeSection === "meetings"} onClick={() => { setActiveSection("meetings"); setMobileNavOpen(false); }} />
                 <NavItem icon={Building2} label="Licensed companies" active={activeSection === "companies"} onClick={() => { setActiveSection("companies"); setMobileNavOpen(false); }} />
                 <NavItem icon={FolderOpen} label="Data Room" active={activeSection === "data-room"} onClick={() => { setActiveSection("data-room"); setMobileNavOpen(false); }} />
-                <NavItem icon={Briefcase} label="Preview company workspace" active={false} onClick={() => navigate('/admin/preview/workspace')} />
-                <NavItem icon={Users} label="Preview customer account" active={false} onClick={() => navigate('/admin/preview/account')} />
+                <NavItem icon={Briefcase} label="Company workspace (view as)" active={false} onClick={() => navigate('/admin/preview/workspace')} />
+                <NavItem icon={Users} label="Customer account (view as)" active={false} onClick={() => navigate('/admin/preview/account')} />
+                <NavItem icon={Users} label="Sales rep dashboard (view as)" active={false} onClick={() => navigate('/admin/preview/sales-rep')} />
                 <NavItem icon={Database} label="Products" active={activeSection === "unified-products"} onClick={() => { setActiveSection("unified-products"); setMobileNavOpen(false); }} />
                 <NavItem icon={BookOpen} label="Catalog" active={activeSection === "catalog"} onClick={() => { setActiveSection("catalog"); setMobileNavOpen(false); }} />
                 <NavItem icon={Star} label="Quotes" active={activeSection === "quotes"} onClick={() => { setActiveSection("quotes"); setMobileNavOpen(false); }} />
@@ -434,6 +437,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
 
           {isMainAdmin && activeSection === 'today' && <AdminTechnologyHub />}
           {isMainAdmin && activeSection === 'companies' && <AdminCompanies />}
+          {isMainAdmin && activeSection === 'meetings' && <AdminMeetingsView />}
           {isMainAdmin && activeSection === 'data-room' && <AdminDataRoom />}
 
           {/* Products Tab - Only for main admins */}

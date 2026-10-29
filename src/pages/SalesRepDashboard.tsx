@@ -18,6 +18,7 @@ import solarRoofArray from '@/assets/solar/solar-roof-array.jpg';
 import SalesRepClientCRM from '@/components/SalesRepClientCRM';
 import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
 import PromotionsBanner from '@/components/PromotionsBanner';
+import { MeetingsPanel } from '@/components/live/MeetingsPanel';
 import { useTriggerAutomation } from '@/hooks/useTriggerAutomation';
 
 interface Client {
@@ -47,8 +48,10 @@ interface ClientAutomation {
 }
 
 
-/** `embedded` (showroom): never redirects away from the host page. */
-const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) => {
+/** `embedded` (showroom): never redirects away from the host page.
+ * `previewRepId` (admin view-as): load this rep's dashboard fully working
+ * under the admin's session. */
+const SalesRepDashboard = ({ embedded = false, previewRepId }: { embedded?: boolean; previewRepId?: string } = {}) => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
@@ -84,12 +87,12 @@ const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) =>
   ];
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !previewRepId) {
       if (!embedded) navigate('/auth');
       return;
     }
 
-    if (profile?.role !== 'sales_rep' as any && !embedded) {
+    if (!previewRepId && profile?.role !== 'sales_rep' as any && !embedded) {
       navigate('/');
       return;
     }
@@ -97,16 +100,19 @@ const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) =>
     // Check if user is Head of Sales
     checkHeadOfSalesStatus();
     fetchAssignedClients();
-  }, [user, profile, navigate, embedded]);
+  }, [user, profile, navigate, embedded, previewRepId]);
+
+  /** The rep whose data this dashboard shows: the signed-in rep, or the rep an admin is viewing as. */
+  const repId = previewRepId ?? user?.id;
 
   const checkHeadOfSalesStatus = async () => {
-    if (!user) return;
-    
+    if (!repId) return;
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('sales_category')
-        .eq('id', user.id)
+        .eq('id', repId)
         .single();
       
       if (!error && data) {
@@ -123,7 +129,7 @@ const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) =>
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('assigned_sales_rep_id', user?.id)
+        .eq('assigned_sales_rep_id', repId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -263,7 +269,7 @@ const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) =>
         notes: newClient.notes || null,
         status: 'new',
         source: 'sales_rep',
-        assigned_sales_rep_id: user?.id
+        assigned_sales_rep_id: repId
       });
       if (error) throw error;
       toast({ title: "Client Added", description: `${newClient.first_name} ${newClient.last_name} has been added and assigned to you` });
@@ -299,7 +305,7 @@ const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) =>
     return 'Not specified';
   };
 
-  if (!user || profile?.role !== 'sales_rep' as any) {
+  if (!previewRepId && (!user || profile?.role !== 'sales_rep' as any)) {
     return null;
   }
 
@@ -319,19 +325,21 @@ const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) =>
                   {isHeadOfSales ? 'Head of Sales Portal' : 'Sales Rep Portal'}
                 </h1>
                 <p className="text-xs text-neutral-500 ">
-                  Welcome, {profile?.first_name || profile?.email}
+                  Welcome, {previewRepId ? 'Admin view' : (profile?.first_name || profile?.email)}
                   {isHeadOfSales && <span className="ml-2 text-neutral-700">• Head of Sales</span>}
                 </p>
               </div>
             </div>
-            <Button 
-              onClick={handleLogout}
-              variant="outline"
-              className="border-neutral-200 text-black hover:bg-neutral-100"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            {!previewRepId && (
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="border-neutral-200 text-black hover:bg-neutral-100"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -353,6 +361,12 @@ const SalesRepDashboard = ({ embedded = false }: { embedded?: boolean } = {}) =>
             </TabsList>
           </Tabs>
         )}
+
+        {/* Meetings — Wonderlands Live, in every dashboard */}
+        <section className="mb-6 rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-neutral-500">Meetings</h2>
+          <MeetingsPanel compact />
+        </section>
 
         {/* Team Management View (Head of Sales Only) */}
         {isHeadOfSales && activeView === 'team-management' && (

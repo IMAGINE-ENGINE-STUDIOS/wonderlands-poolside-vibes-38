@@ -14,6 +14,7 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import EditorialShell, { Panel, StatTile, EmptyState, Skeleton, money } from '@/components/shell/EditorialShell';
 import ConsumerPreferences from '@/components/ConsumerPreferences';
 import PromotionsBanner from '@/components/PromotionsBanner';
+import { MeetingsPanel } from '@/components/live/MeetingsPanel';
 
 const CHAPTERS = [
   { key: 'home', label: 'Welcome' },
@@ -21,13 +22,14 @@ const CHAPTERS = [
   { key: 'orders', label: 'Orders & tracking' },
   { key: 'invoices', label: 'Invoices & payments' },
   { key: 'offers', label: 'Offers' },
+  { key: 'meetings', label: 'Meetings' },
   { key: 'addresses', label: 'Addresses & preferences' },
 ];
 const STEPS = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
 
-interface Props { previewUserId?: string; previewEmail?: string; previewName?: string }
+interface Props { previewUserId?: string; previewEmail?: string; previewName?: string; actAsAdmin?: boolean }
 
-const CustomerAccount: React.FC<Props> = ({ previewUserId, previewEmail, previewName }) => {
+const CustomerAccount: React.FC<Props> = ({ previewUserId, previewEmail, previewName, actAsAdmin }) => {
   const { user, profile, signOut } = useAuth();
   const uid = previewUserId ?? user?.id;
   const email = (previewEmail ?? user?.email ?? '').toLowerCase();
@@ -52,8 +54,10 @@ const CustomerAccount: React.FC<Props> = ({ previewUserId, previewEmail, preview
   const date = (d: string) => new Date(d).toLocaleDateString();
 
   const body = () => {
-    if (!data && tab !== 'offers' && tab !== 'addresses') return <div className="grid gap-4 sm:grid-cols-3"><Skeleton /><Skeleton /><Skeleton /></div>;
+    if (!data && tab !== 'offers' && tab !== 'addresses' && tab !== 'meetings') return <div className="grid gap-4 sm:grid-cols-3"><Skeleton /><Skeleton /><Skeleton /></div>;
     switch (tab) {
+      case 'meetings':
+        return <MeetingsPanel />;
       case 'quotes':
         return <Panel kicker="Chapter 02" title="My quotes">{data!.quotes.length ? (
           <ul className="divide-y divide-border">{data!.quotes.map(q => (
@@ -97,7 +101,7 @@ const CustomerAccount: React.FC<Props> = ({ previewUserId, previewEmail, preview
             </div>
             <Panel kicker="Next step" title="Talk to a designer">
               <p className="text-sm text-muted-foreground mb-4">Book a free 30-minute consultation to turn your ideas into a plan.</p>
-              <Button asChild><a href="https://calendly.com/wonderlandsworlds/30min" target="_blank" rel="noreferrer">Book consultation</a></Button>
+              <Button asChild><Link to="/live">Book a video consultation</Link></Button>
             </Panel>
           </div>
         );
@@ -106,7 +110,7 @@ const CustomerAccount: React.FC<Props> = ({ previewUserId, previewEmail, preview
 
   return (
     <EditorialShell
-      eyebrow={previewUserId ? 'Customer preview' : 'My account'}
+      eyebrow={actAsAdmin ? 'Customer dashboard — admin acting' : previewUserId ? 'Customer preview' : 'My account'}
       title={`Welcome, ${name}`}
       subtitle="Your quotes, orders and invoices in one place."
       chapters={CHAPTERS} active={tab} onSelect={setTab}

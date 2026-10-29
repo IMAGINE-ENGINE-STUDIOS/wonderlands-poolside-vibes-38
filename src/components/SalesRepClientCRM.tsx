@@ -12,8 +12,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Phone, Mail, MapPin, DollarSign, Calendar, History, 
   MessageSquare, FileText, Loader2, Plus, CheckCircle2, 
-  Clock, User, Activity, Send
+  Clock, User, Activity, Send, Video
 } from 'lucide-react';
+import { freshMeetingLink } from '@/lib/live/liveMeetings';
 
 interface Client {
   id: string;
@@ -184,6 +185,46 @@ const SalesRepClientCRM = ({ client, isOpen, onClose, onClientUpdated }: SalesRe
       toast({
         title: "Error",
         description: "Failed to add activity.",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingActivity(false);
+    }
+  };
+
+  const scheduleLiveMeeting = async () => {
+    const clientName = [client.first_name, client.last_name].filter(Boolean).join(" ").trim();
+    const { link } = freshMeetingLink(clientName ? `Meeting with ${clientName}` : "Client meeting");
+    setSavingActivity(true);
+    try {
+      const { error } = await supabase
+        .from('client_activities')
+        .insert({
+          client_id: client.id,
+          activity_type: 'meeting',
+          description: `Wonderlands Live video meeting: ${link}`,
+          created_by: user?.id
+        });
+
+      if (error) throw error;
+
+      await supabase
+        .from('clients')
+        .update({ last_contacted_at: new Date().toISOString() })
+        .eq('id', client.id);
+
+      try { await navigator.clipboard.writeText(link); } catch { /* clipboard unavailable */ }
+      toast({
+        title: "Video meeting created",
+        description: `Link copied: ${link}`,
+      });
+      fetchActivities();
+      onClientUpdated();
+    } catch (error) {
+      console.error('Error scheduling live meeting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create the video meeting.",
         variant: "destructive"
       });
     } finally {
@@ -439,6 +480,15 @@ const SalesRepClientCRM = ({ client, isOpen, onClose, onClientUpdated }: SalesRe
                       <Plus className="h-4 w-4 mr-2" />
                     )}
                     Log Activity
+                  </Button>
+                  <Button
+                    onClick={scheduleLiveMeeting}
+                    disabled={savingActivity}
+                    className="w-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30"
+                    title="Set up a Wonderlands Live video meeting and copy its link"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Live meeting
                   </Button>
                 </div>
               </div>

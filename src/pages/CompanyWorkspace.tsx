@@ -18,6 +18,7 @@ import EditorialShell, { Panel, StatTile, EmptyState, Skeleton, money } from '@/
 import CompanyCRM, { type CrmView } from '@/components/crm/CompanyCRM';
 import SiteBuilder from '@/components/siteBuilder/SiteBuilder';
 import ContractorWorkspace, { type Section } from '@/components/contractor/ContractorWorkspace';
+import { MeetingsPanel } from '@/components/live/MeetingsPanel';
 
 const CHAPTERS = [
   { key: 'today', label: 'Today', group: 'Overview' },
@@ -33,13 +34,14 @@ const CHAPTERS = [
   { key: 'messages', label: 'Messages', group: 'Projects' },
   { key: 'compliance', label: 'Licenses & agreement', group: 'Projects' },
   { key: 'tools', label: 'Marketing & builders', group: 'Tools' },
+  { key: 'meetings', label: 'Meetings', group: 'Tools' },
   { key: 'settings', label: 'Company settings', group: 'Tools' },
 ];
 const CONTRACTOR_SECTIONS = ['procurement', 'my-projects', 'payouts', 'messages', 'compliance'];
 
 interface Company { id: string; name: string; trades: string[]; status: string; phone: string | null; email: string | null; city: string | null; state: string | null; license_number: string | null }
 
-const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewCompanyId }) => {
+const CompanyWorkspace: React.FC<{ previewCompanyId?: string; actAsAdmin?: boolean }> = ({ previewCompanyId, actAsAdmin }) => {
   const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = usePersistentState(previewCompanyId ? 'ws_preview_tab' : 'ws_tab', 'today');
@@ -48,7 +50,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
   const [rows, setRows] = useState<{ clients: any[]; quotes: any[]; invoices: any[]; members: any[] } | null>(null);
   const [hasTrade, setHasTrade] = useState<boolean | null>(null);
   const [form, setForm] = useState<Partial<Company>>({});
-  const readOnly = !!previewCompanyId;
+  const readOnly = !!previewCompanyId && !actAsAdmin;
 
   useEffect(() => {
     if (!user && !previewCompanyId) return;
@@ -118,6 +120,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
       return <div className="[&>div]:m-0 [&>div]:min-h-0 [&>div]:rounded-2xl"><ContractorWorkspace section={tab as Section} /></div>;
     }
     if (tab === 'website') return <SiteBuilder key={company.id} companyId={company.id} companyName={company.name} readOnly={readOnly && !user} />;
+    if (tab === 'meetings') return <MeetingsPanel />;
     if (['myday', 'pipeline', 'accounts'].includes(tab)) return <CompanyCRM key={company.id} companyId={company.id} view={tab as CrmView} readOnly={readOnly} userId={user?.id} />;
     if (!counts || !rows) return <div className="grid gap-4 sm:grid-cols-4"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>;
     switch (tab) {
@@ -165,11 +168,11 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string }> = ({ previewComp
 
   return (
     <EditorialShell
-      eyebrow={readOnly ? 'Company preview' : 'Company workspace'}
+      eyebrow={actAsAdmin ? 'Company dashboard — admin acting' : readOnly ? 'Company preview' : 'Company workspace'}
       title={company.name}
       subtitle="Your clients, quotes, projects and tools — private to your company."
       chapters={CHAPTERS} active={tab} onSelect={setTab}
-      actions={!readOnly && <Button variant="outline" size="sm" onClick={() => signOut()}><LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Sign out</span></Button>}
+      actions={!previewCompanyId && <Button variant="outline" size="sm" onClick={() => signOut()}><LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Sign out</span></Button>}
     >{body()}</EditorialShell>
   );
 };
