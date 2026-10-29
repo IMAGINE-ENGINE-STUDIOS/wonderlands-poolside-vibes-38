@@ -15,6 +15,7 @@ import { PlusCircle, RefreshCw } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import EnhancedJobPostingForm from '@/components/procurement/EnhancedJobPostingForm';
 import JobFeed from '@/components/procurement/JobFeed';
@@ -98,6 +99,30 @@ const ProcurementSystem = () => {
   const [openJobId, setOpenJobId] = useState<string>('');
   const [openProposals, setOpenProposals] = useState<ProcProposal[]>([]);
 
+  /* ------------------------------ bidder view ------------------------------ */
+  // The main board is Wonderlands' procurement: Wonderlands (and businesses)
+  // post, contractors bid. A signed-in contractor gets the bidder view —
+  // project slides, bid features and chat, no posting tools and no sales
+  // figures. Their own procurement lives in their dashboard's Procurement tab.
+  const isMainAdmin = profile?.role === 'main_admin';
+  const [contractorAccount, setContractorAccount] = useState(false);
+  useEffect(() => {
+    if (!user || isMainAdmin) return;
+    let on = true;
+    (async () => {
+      const byId = await supabase.from('contractors').select('id').eq('user_id', user.id).maybeSingle();
+      let found = !!byId.data;
+      if (!found && user.email) {
+        const byEmail = await supabase.from('contractors').select('id').eq('email', user.email).maybeSingle();
+        found = !!byEmail.data;
+      }
+      if (on) setContractorAccount(found);
+    })();
+    return () => { on = false; };
+  }, [user, isMainAdmin]);
+  const bidderView = !!user && !isMainAdmin && contractorAccount;
+  const effectiveView: View = bidderView && view === 'postings' ? 'marketplace' : view;
+
   const loadMine = useCallback(async () => {
     if (!user) return;
     setMineLoading(true);
@@ -113,8 +138,8 @@ const ProcurementSystem = () => {
   }, [user]);
 
   useEffect(() => {
-    if (user && (view === 'postings' || view === 'bids')) void loadMine();
-  }, [user, view, loadMine]);
+    if (user && (bidderView || view === 'postings' || view === 'bids')) void loadMine();
+  }, [user, view, loadMine, bidderView]);
 
   const toggleJobProposals = async (job: ProcJob) => {
     if (openJobId === job.id) {
@@ -184,16 +209,8 @@ const ProcurementSystem = () => {
     refetch();
     toast.success('Job posted successfully!');
   };
-  const isCompanyProfileComplete = () => {
-    if (!profile) return false;
-    return profile.company_name && (profile.first_name || profile.last_name);
-  };
   const handlePostJobClick = () => {
     requireAuth(() => {
-      if (!isCompanyProfileComplete()) {
-        toast.error('Please complete your company profile before posting jobs');
-        return;
-      }
       setShowJobForm(true);
     }, 'post jobs');
   };
@@ -214,13 +231,18 @@ const ProcurementSystem = () => {
     }, 'view profiles');
   };
 
+
   const stats = [
     { label: 'Open opportunities', value: String(filteredJobs.length) },
     { label: 'Proposals on open jobs', value: String(filteredJobs.reduce((n, j) => n + (j.proposal_count || 0), 0)) },
-    { label: 'Open budget (max)', value: `$${filteredJobs.reduce((n, j) => n + (j.budget_max || 0), 0).toLocaleString()}` },
+    ...(!bidderView
+      ? [{ label: 'Open budget (max)', value: `$${filteredJobs.reduce((n, j) => n + (j.budget_max || 0), 0).toLocaleString()}` }]
+      : []),
+    ...(user && !bidderView
+      ? [{ label: 'Your open postings', value: String(myJobs.filter(j => j.status === 'open').length) }]
+      : []),
     ...(user
       ? [
-          { label: 'Your open postings', value: String(myJobs.filter(j => j.status === 'open').length) },
           { label: 'Your active bids', value: String(myProps.filter(p => ['pending', 'shortlisted'].includes(p.status)).length) },
           { label: 'Jobs you won', value: String(myProps.filter(p => p.status === 'accepted').length) },
         ]
@@ -263,18 +285,20 @@ const ProcurementSystem = () => {
             Every job, every bid, one table
           </h1>
           <div className="flex flex-wrap gap-3 pb-1">
-            <Button onClick={handlePostJobClick} className="bg-neutral-900 text-white hover:bg-neutral-800">
-              <PlusCircle className="mr-2 h-4 w-4" /> Post a requirement
-            </Button>
+            {!bidderView && (
+              <Button onClick={handlePostJobClick} className="bg-neutral-900 text-white hover:bg-neutral-800">
+                <PlusCircle className="mr-2 h-4 w-4" /> Post a requirement
+              </Button>
+            )}
             <Button variant="outline" onClick={() => refetch()} className="gap-2">
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
             </Button>
           </div>
         </div>
         <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-          Post what your project needs, receive proposals from approved contractors and
-          suppliers, compare them side by side and award — with both sides notified at
-          every step.
+          {bidderView
+            ? 'Wonderlands posts its projects here. Open a project to see its slides, scope and requirements, place your bid, and coordinate with the team in chat.'
+            : 'Post what your project needs, receive proposals from approved contractors and suppliers, compare them side by side and award — with both sides notified at every step.'}
         </p>
         <div className="mt-8 h-px w-24 bg-foreground/30" />
 
@@ -291,13 +315,13 @@ const ProcurementSystem = () => {
         {/* View tabs */}
         <div className="mt-10 flex flex-wrap gap-2">
           {tabBtn('marketplace', 'Marketplace')}
-          {tabBtn('postings', 'My Postings')}
+          {!bidderView && tabBtn('postings', 'My Postings')}
           {tabBtn('bids', 'My Bids')}
           {tabBtn('messages', 'Messages')}
         </div>
 
         <div className="mt-8">
-          {view === 'marketplace' && (
+          {effectiveView === 'marketplace' && (
             <>
               <div className="mb-8">
                 <JobSearchEnhanced onFiltersChange={setSearchFilters} totalJobs={filteredJobs.length} />
@@ -319,7 +343,7 @@ const ProcurementSystem = () => {
             </>
           )}
 
-          {view === 'postings' && (!user ? signInPanel('your postings') : (
+          {effectiveView === 'postings' && (!user ? signInPanel('your postings') : (
             <div className="space-y-4">
               {mineLoading && <p className="text-sm text-muted-foreground">Loading your postings…</p>}
               {!mineLoading && myJobs.length === 0 && (
@@ -383,7 +407,7 @@ const ProcurementSystem = () => {
             </div>
           ))}
 
-          {view === 'bids' && (!user ? signInPanel('your bids') : (
+          {effectiveView === 'bids' && (!user ? signInPanel('your bids') : (
             <div className="space-y-4">
               {mineLoading && <p className="text-sm text-muted-foreground">Loading your bids…</p>}
               {!mineLoading && myProps.length === 0 && (
@@ -433,13 +457,13 @@ const ProcurementSystem = () => {
             </div>
           ))}
 
-          {view === 'messages' && (!user ? signInPanel('your messages') : <ProcurementMessages />)}
+          {effectiveView === 'messages' && (!user ? signInPanel('your messages') : <ProcurementMessages />)}
         </div>
       </main>
       <Footer />
 
       {/* Modals */}
-      {user && isCompanyProfileComplete() && (
+      {user && (
         <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
           <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
             <EnhancedJobPostingForm onJobCreated={handleJobCreated} />

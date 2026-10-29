@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import ContractorProcurementTab from './ContractorProcurementTab';
+import ContractorJobsConsole from './ContractorJobsConsole';
 import ContractorCurrentProjectsTab from './ContractorCurrentProjectsTab';
 import ContractorPayoutsTab from './ContractorPayoutsTab';
 import ContractorMessagesTab from './ContractorMessagesTab';
@@ -107,7 +108,13 @@ const ContractorWorkspace: React.FC<{ section: Section }> = ({ section }) => {
       )}
 
       {blocked ? null : section === 'procurement' ? (
-        <ContractorProcurementTab contractorId={contractor.id} contractorStatus={status} />
+        <div className="space-y-8">
+          <ContractorJobsConsole />
+          <div>
+            <h3 className="mb-3 font-semibold text-neutral-900">Bid on Wonderlands &amp; partner projects</h3>
+            <ContractorProcurementTab contractorId={contractor.id} contractorStatus={status} />
+          </div>
+        </div>
       ) : section === 'my-projects' ? (
         <ContractorCurrentProjectsTab contractorId={contractor.id} />
       ) : section === 'payouts' ? (

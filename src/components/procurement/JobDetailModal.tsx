@@ -282,6 +282,18 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
             </TabsList>
 
             <TabsContent value="details" className="space-y-4">
+              {/* Project slides — image attachments lead the details, like a project deck */}
+              {attachments.filter(a => (a.file_type || '').startsWith('image') || /\.(png|jpe?g|webp|gif|avif)$/i.test(a.file_url || a.file_name || '')).length > 0 && (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {attachments
+                    .filter(a => (a.file_type || '').startsWith('image') || /\.(png|jpe?g|webp|gif|avif)$/i.test(a.file_url || a.file_name || ''))
+                    .map(a => (
+                      <button key={a.id} onClick={() => window.open(a.file_url, '_blank')} className="group overflow-hidden rounded-xl ring-1 ring-neutral-200" title={a.file_name}>
+                        <img src={a.file_url} alt={a.file_name} className="h-44 w-full object-cover transition duration-300 group-hover:scale-[1.03]" loading="lazy" />
+                      </button>
+                    ))}
+                </div>
+              )}
               {/* Requirements */}
               {requirements.length > 0 && (
                 <Card>
