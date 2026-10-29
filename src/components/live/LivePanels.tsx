@@ -62,7 +62,7 @@ export function ChatPanel({ room }: { room: LiveRoom }) {
   );
 }
 
-export function ProductsPanel({ room }: { room: LiveRoom }) {
+export function ProductsPanel({ room, onPresented }: { room: LiveRoom; onPresented?: () => void }) {
   const [q, setQ] = React.useState("");
   const query = q.trim().toLowerCase();
   const present = (key: string) => {
@@ -71,6 +71,8 @@ export function ProductsPanel({ room }: { room: LiveRoom }) {
     } else {
       room.updateProduct(key, 0);
     }
+    // Drop it into the viewport: close the panel so the stage is front and center.
+    onPresented?.();
   };
   const canPresent = room.isHost || room.canInteract();
   return (
@@ -134,16 +136,18 @@ export function ProductsPanel({ room }: { room: LiveRoom }) {
   );
 }
 
-export function WidgetsPanel({ room }: { room: LiveRoom }) {
+export function WidgetsPanel({ room, onPresented }: { room: LiveRoom; onPresented?: () => void }) {
   const share = (id: string, route?: string) => {
     if (!room.isHost) return;
     room.setStage({ widgetId: id, route: route ?? null });
+    // Drop it into the viewport: close the panel so the stage is front and center.
+    onPresented?.();
   };
   return (
     <div className="h-full overflow-y-auto p-2.5">
       <p className="px-1 pb-2 text-[11px] leading-relaxed text-white/45">
         {room.isHost
-          ? "Shared widgets load natively on every participant's device — no screen-share lag. You control who can interact."
+          ? "Tap a widget and it drops onto the stage in the video area, loaded natively on every participant's device — no screen-share lag. You control who can interact."
           : "The host shares widgets here. They load on your device at full speed."}
       </p>
       <div className="space-y-2">

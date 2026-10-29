@@ -266,8 +266,8 @@ export default function LiveRoomPage() {
             </div>
             <div className="min-h-0 flex-1">
               {panel === "chat" && <ChatPanel room={room} />}
-              {panel === "products" && <ProductsPanel room={room} />}
-              {panel === "widgets" && <WidgetsPanel room={room} />}
+              {panel === "products" && <ProductsPanel room={room} onPresented={() => setPanel(null)} />}
+              {panel === "widgets" && <WidgetsPanel room={room} onPresented={() => setPanel(null)} />}
               {panel === "people" && <PeoplePanel room={room} />}
             </div>
           </aside>
