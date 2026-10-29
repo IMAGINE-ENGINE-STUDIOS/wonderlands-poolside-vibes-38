@@ -55,7 +55,7 @@ export function CameraFocusController({
 
     // Blend toward the requested distance instead of forcing it — avoids
     // abrupt zoom jumps when the user is already framed well.
-    const requested = Math.max(4, request.distance ?? 14);
+    const requested = Math.max(14, request.distance ?? 14);
     const distance = currentDistance > 0.01
       ? Math.min(currentDistance, requested)
       : requested;
