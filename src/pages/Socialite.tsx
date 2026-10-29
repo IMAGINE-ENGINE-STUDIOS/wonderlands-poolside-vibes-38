@@ -824,11 +824,9 @@ Use 2 hashtags max when promo present`;
     const updated = { ...post, engagement: { likes, comments, shares } };
     setQueue((q) => q.map((p) => (p.id === post.id ? updated : p)));
     if (success) {
-      if (isYT) {
-        showToast(`Synced YT 👁 ${shares.toLocaleString()} views • ♥ ${likes} • 💬 ${comments}`, "success");
-      } else {
-        showToast(`Synced ♥ ${likes} • synced engagement`, "success");
-      }
+      // Nothing was fetched from any platform — say so instead of claiming
+      // a sync. The numbers shown are the post's saved (real, local) counts.
+      showToast(`No live metrics available yet — saved numbers kept (♥ ${likes} • 💬 ${comments} • ↗ ${shares})`, "success");
     }
     return updated;
   }, [showToast]);
@@ -861,13 +859,15 @@ Use 2 hashtags max when promo present`;
       const ctr = p.performance?.ctr ?? calcCtr(likes, comments);
       const hour = `${String(p.scheduledAt.getHours()).padStart(2,"0")}:00`;
       const lower = p.text.toLowerCase();
-      let topicMatch = topics.find(t=> lower.includes(t.toLowerCase())) || "product launch";
+      let topicMatch = topics.find(t=> lower.includes(t.toLowerCase())) || "";
       if (!topics.some(t=>lower.includes(t.toLowerCase()))) {
         const words = lower.split(/\s+/).slice(0,4).join(" ");
         topicMatch = words || "general";
       }
       let promoMatch = promotions.find(pr=> p.text.includes(pr.code))?.code || (p as any)._metaPromo || "";
-      let toneMatch = (p as any)._metaTone || selectedTones[Math.floor(Math.random()*selectedTones.length)] || "Minimal" as Tone;
+      // No detected tone → "Unspecified". Never assign a random tone: the
+      // tone ranking below would present the guess as measured performance.
+      let toneMatch = ((p as any)._metaTone || "Unspecified") as Tone;
       // try detect tone word
       for (const tn of TONES) { if (lower.includes(tn.toLowerCase())) { toneMatch = tn; break; } }
       return {
@@ -941,7 +941,7 @@ Use 2 hashtags max when promo present`;
       const avgLikes = data.likes.reduce((a,b)=>a+b,0)/Math.max(1,data.likes.length);
       const avgCtr = data.ctrs.reduce((a,b)=>a+b,0)/Math.max(1,data.ctrs.length);
       const score = avgLikes*0.6 + avgCtr*110 + data.count*15;
-      const redemptions = 0;
+      const redemptions = promoRedemptions[code] ?? 0;
       return { code, title: data.title, discount: data.discount, avgLikes, avgCtr, count: data.count, redemptions, score };
     }).sort((a,b)=>b.score-a.score);
 
@@ -969,13 +969,17 @@ Use 2 hashtags max when promo present`;
     const topTopic = topicsArr[0]?.topic;
     const topTone = tones[0]?.tone;
 
-    const bestSlotLabel = slots[0]?.label || "8pm";
-    const secondSlotLabel = slots[1]?.label || "9am";
-    const bestSlotCtr = slots[0]?.avgCtr?.toFixed(1) || "4.2";
-    const secondCtr = slots[1]?.avgCtr?.toFixed(1) || "2.1";
-    const promoStr = topPromo ? `use ${topPromo} on ${autoPlatforms.includes("instagram" as PlatformId) ? "Instagram" : autoPlatforms[0] || "Instagram"}` : "use promo on Instagram";
-    const engagementLift = 0;
-    const recommendation = `Bot learned: Move 60% of posts to ${bestSlotLabel} + ${secondSlotLabel} (${bestSlotCtr}% CTR vs ${secondCtr}%) + ${promoStr} = +${engagementLift}% engagement. Top topic: ${topTopic || "product launch"} • Tone: ${topTone || "Minimal"} • ${topSlots.join(", ")} perform 2x better.`;
+    // Real numbers only: every figure in this recommendation comes from the
+    // posts just scanned. Anything missing is left out of the sentence —
+    // never filled in with an invented slot, CTR or lift figure.
+    const bestSlot = slots[0];
+    const secondSlot = slots[1];
+    const slotPart = bestSlot
+      ? `Best slot so far: ${bestSlot.label} (${bestSlot.avgCtr.toFixed(1)}% CTR across ${bestSlot.count} post${bestSlot.count === 1 ? "" : "s"})`
+      : "No slot data yet";
+    const secondPart = secondSlot ? ` • Next: ${secondSlot.label} (${secondSlot.avgCtr.toFixed(1)}% CTR)` : "";
+    const promoPart = topPromo ? ` • Top promo: ${topPromo}` : "";
+    const recommendation = `${slotPart}${secondPart}${promoPart} • Top topic: ${topTopic || "none yet"} • Tone: ${topTone || "none yet"}.`;
 
     const brain: PerformanceBrainData = {
       slots,
@@ -995,7 +999,7 @@ Use 2 hashtags max when promo present`;
     setIsAnalyzing(false);
     showToast(`Performance Brain updated • ${enriched.length} posts scanned • ${slots.length} slots ranked`, "success");
     return brain;
-  }, [queue, topics, promotions, selectedTones, autoPlatforms, showToast]);
+  }, [queue, topics, promotions, selectedTones, autoPlatforms, promoRedemptions, showToast]);
 
   useEffect(()=>{
     if (queue.length>0 && !performanceBrain) {
@@ -1068,34 +1072,22 @@ Use 2 hashtags max when promo present`;
     if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
   };
 
-  // Meta AI placeholder
-  const generatePlaceholder = useCallback((prompt: string, type: "image" | "video") => {
-    const colors = type === "image" ? ["#f09433", "#e6683c"] : ["#00f2ea", "#ff0050"];
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='800'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='${colors[0]}'/><stop offset='100%' stop-color='${colors[1]}'/></linearGradient><filter id='blur'><feGaussianBlur stdDeviation='20'/></filter></defs><rect width='100%' height='100%' fill='url(#g)'/><circle cx='400' cy='320' r='140' fill='white' fill-opacity='0.18' filter='url(#blur)'/><circle cx='400' cy='400' r='100' fill='white'/><text x='50%' y='620' text-anchor='middle' font-family='Inter' font-size='18' font-weight='600' fill='white'>${prompt.slice(0, 48).replace(/</g, "")}</text><text x='50%' y='650' text-anchor='middle' font-family='Inter' font-size='12' fill='white' opacity='0.7'>Generated with Meta AI • Llama 3.2 + Emu</text><text x='50%' y='680' text-anchor='middle' font-family='Inter' font-size='10' fill='white' opacity='0.5'>${type.toUpperCase()} • 4K • studio lighting</text></svg>`;
-    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-  }, []);
-
+  // NO FAKE GENERATION: this studio used to fabricate a gradient SVG,
+  // label it "Generated with Meta AI • Llama 3.2 + Emu / 4K" and drop it
+  // into the publishable media list. Real pictures are created by Genius
+  // (socialite-ai, the admin's connected provider) and flow back into the
+  // composer through Genius's "use this post" action — so Generate now
+  // routes there honestly instead of inventing an asset.
   const handleGenerate = useCallback(
     (type: "image" | "video") => {
       if (!aiPrompt.trim()) {
-        showToast("Enter a prompt to generate", "error");
+        showToast("Describe the picture first", "error");
         return;
       }
-      setAiStatus("enhancing");
-      setAiGeneratingType(type);
-      setTimeout(() => {
-        setAiStatus("generating");
-        setTimeout(() => {
-          const enhanced = `high quality, detailed, 4k, studio lighting, ${aiPrompt}`;
-          const url = generatePlaceholder(enhanced, type);
-          setMedia((m) => [...m, { url, type: (type === "video" ? "video" : "image") as MediaItem["type"], name: `${type}-${Date.now()}` }].slice(0, 4));
-          setAiStatus("done");
-          showToast(`${type === "image" ? "Image" : "Video"} generated with Meta AI open source`, "success");
-          setTimeout(() => setAiStatus("idle"), 1500);
-        }, 1200);
-      }, 600);
+      showToast(`Real ${type} generation runs in Genius with your connected provider — opening Genius. Nothing was generated here.`, "success");
+      setView("genius");
     },
-    [aiPrompt, generatePlaceholder, showToast]
+    [aiPrompt, showToast]
   );
 
   // Llama enhancer
@@ -2094,13 +2086,12 @@ Use 2 hashtags max when promo present`;
                     <div className="mt-4 p-3 rounded-xl bg-[#0f0f10] border border-zinc-800 flex items-center gap-2.5">
                       <div className="w-4 h-4 border-2 border-zinc-600 border-t-white rounded-full animate-spin" />
                       <span className="text-[12px] text-zinc-300 mono">
-                        {aiStatus === "enhancing" ? "Llama enhancing prompt →" : aiStatus === "generating" ? `Emu generating ${aiGeneratingType}...` : "Done — added to media"}
+                        {aiStatus === "enhancing" ? "Preparing prompt →" : aiStatus === "generating" ? `Generating ${aiGeneratingType}...` : "Done — added to media"}
                       </span>
-                      <span className="ml-auto text-[11px] text-zinc-500 mono">Llama 3.2 + Emu</span>
                     </div>
                   )}
 
-                  <div className="mt-3 text-[11px] text-zinc-500 leading-[1.4]">App ID {META_APP_ID} • Token {META_APP_ID.slice(0, 4)}…{META_APP_ID.slice(-4)} preloaded • Open source models</div>
+                  <div className="mt-3 text-[11px] text-zinc-500 leading-[1.4]">Pictures are created by Genius with your connected provider — this studio never adds a placeholder or fake "generated" image to your media.</div>
                 </div>
                 )}
 
@@ -2285,7 +2276,7 @@ Use 2 hashtags max when promo present`;
                           <div className="p-4 flex gap-3">
                             <img src={profile.avatar} className="w-8 h-8 rounded-full bg-zinc-800" alt="" />
                             <div className="flex-1 min-w-0">
-                              <span className="text-[13px] font-semibold">{profile.name}</span> <span className="text-[11px] text-zinc-500">• 2m</span>
+                              <span className="text-[13px] font-semibold">{profile.name}</span> <span className="text-[11px] text-zinc-500">• now</span>
                               <p className="text-[13px] mt-1 leading-[1.5] whitespace-pre-wrap">{postText.slice(0, 450)}</p>
                             </div>
                           </div>
@@ -2296,7 +2287,7 @@ Use 2 hashtags max when promo present`;
                               <img src={profile.avatar} className="w-9 h-9 rounded-full bg-zinc-800" alt="" />
                               <div>
                                 <div className="text-[13px] font-semibold">{profile.name}</div>
-                                <div className="text-[11px] text-zinc-500">Sponsored • 🌎</div>
+                                <div className="text-[11px] text-zinc-500">Public • 🌎</div>
                               </div>
                             </div>
                             <p className="text-[13px] mt-3 leading-[1.5] whitespace-pre-wrap">{postText.slice(0, 280)}</p>
@@ -2312,7 +2303,7 @@ Use 2 hashtags max when promo present`;
                             )}
                             <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                               <p className="text-[12px] leading-[1.4] text-white line-clamp-2">{postText.slice(0, 140)}</p>
-                              <div className="mt-2 flex items-center gap-2 text-[11px] text-white/70">♫ original sound • Alex</div>
+                              <div className="mt-2 flex items-center gap-2 text-[11px] text-white/70">♫ original sound</div>
                             </div>
                           </div>
                         )}
@@ -2330,7 +2321,7 @@ Use 2 hashtags max when promo present`;
                                 </div>
                               </div>
                               <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-[10px] text-white mono">
-                                {media.find((m) => m.type === "video") ? "12:34" : "0:28"}
+                                preview
                               </div>
                             </div>
                             <div className="p-3.5 flex gap-3">
