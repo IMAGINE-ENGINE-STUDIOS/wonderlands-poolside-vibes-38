@@ -44,6 +44,24 @@ export default function LiveRoomPage() {
   const [teamHost, setTeamHost] = React.useState(false);
   const [panel, setPanel] = React.useState<Panel>(null);
   const [copied, setCopied] = React.useState(false);
+  const stageBoxRef = React.useRef<HTMLElement | null>(null);
+  const recRef = React.useRef<MediaRecorder | null>(null);
+  const [recording, setRecording] = React.useState(false);
+  const [recSecs, setRecSecs] = React.useState(0);
+  const [recNotice, setRecNotice] = React.useState("");
+  const streamsRef = React.useRef<{ local: MediaStream | null; remotes: Record<string, MediaStream> }>({ local: null, remotes: {} });
+  React.useEffect(() => { streamsRef.current = { local: room.localStream, remotes: room.remoteStreams }; });
+  React.useEffect(() => {
+    if (!recording) return;
+    const t = setInterval(() => setRecSecs((v) => v + 1), 1000);
+    return () => clearInterval(t);
+  }, [recording]);
+  React.useEffect(() => {
+    if (!recNotice) return;
+    const t = setTimeout(() => setRecNotice(""), 5000);
+    return () => clearTimeout(t);
+  }, [recNotice]);
+  React.useEffect(() => () => { try { if (recRef.current && recRef.current.state !== "inactive") recRef.current.stop(); } catch { /* gone */ } }, []);
   const title = meetingTitle(slug) ?? "Wonderlands Live meeting";
   const link = liveLink(slug);
 
@@ -202,6 +220,121 @@ export default function LiveRoomPage() {
   );
   const togglePanel = (p: Panel) => setPanel(panel === p ? null : p);
 
+  /* Host recording. Mobile browsers have no screen capture, so the room
+     view itself (every tile and the stage hero, in the on-screen layout) is
+     composited onto a canvas and recorded, with the mic and everyone's
+     audio mixed in — the same result on phone and desktop. */
+  const fmtRec = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const toggleRecord = () => {
+    if (recRef.current) { if (recRef.current.state !== "inactive") recRef.current.stop(); return; }
+    if (typeof MediaRecorder === "undefined" || !("captureStream" in HTMLCanvasElement.prototype)) { setRecNotice("Recording is not supported in this browser."); return; }
+    const stage = stageBoxRef.current;
+    if (!stage) { setRecNotice("Recording could not start here."); return; }
+    const canvas = document.createElement("canvas");
+    canvas.width = 1280; canvas.height = 720;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { setRecNotice("Recording is not supported in this browser."); return; }
+    let ac: AudioContext | null = null;
+    const audioTracks: MediaStreamTrack[] = [];
+    const connected = new Set<MediaStream>();
+    let dest: MediaStreamAudioDestinationNode | null = null;
+    try {
+      ac = new AudioContext();
+      void ac.resume().catch(() => {});
+      dest = ac.createMediaStreamDestination();
+      audioTracks.push(...dest.stream.getAudioTracks());
+    } catch { ac = null; dest = null; }
+    const connectNewSources = () => {
+      if (!ac || !dest) return;
+      const all: Array<MediaStream | null> = [streamsRef.current.local, ...Object.values(streamsRef.current.remotes)];
+      for (const s of all) {
+        if (!s || !s.getAudioTracks().length || connected.has(s)) continue;
+        try { ac.createMediaStreamSource(new MediaStream(s.getAudioTracks())).connect(dest); connected.add(s); } catch { /* skip */ }
+      }
+    };
+    connectNewSources();
+    const corsImgs = new Map<string, HTMLImageElement>();
+    const getCorsImg = (src: string) => {
+      let im = corsImgs.get(src);
+      if (!im) { im = new Image(); im.crossOrigin = "anonymous"; im.src = src; corsImgs.set(src, im); }
+      return im.complete && im.naturalWidth > 0 ? im : null;
+    };
+    const drawFit = (src: CanvasImageSource, sw: number, sh: number, x: number, y: number, w: number, h: number, contain: boolean) => {
+      try {
+        if (!sw || !sh) { ctx.drawImage(src as any, x, y, w, h); return; }
+        const s = contain ? Math.min(w / sw, h / sh) : Math.max(w / sw, h / sh);
+        const dw = sw * s, dh = sh * s;
+        if (contain) { ctx.fillStyle = "#09090b"; ctx.fillRect(x, y, w, h); ctx.drawImage(src as any, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); }
+        else ctx.drawImage(src as any, (sw - w / s) / 2, (sh - h / s) / 2, w / s, h / s, x, y, w, h);
+      } catch { /* skip this element */ }
+    };
+    let raf = 0;
+    const paint = () => {
+      connectNewSources();
+      const sr = stage.getBoundingClientRect();
+      ctx.fillStyle = "#09090b"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (sr.width > 0 && sr.height > 0) {
+        const scale = Math.min(canvas.width / sr.width, canvas.height / sr.height);
+        const ox = (canvas.width - sr.width * scale) / 2, oy = (canvas.height - sr.height * scale) / 2;
+        const rectOf = (el: Element) => { const r = el.getBoundingClientRect(); return { x: ox + (r.left - sr.left) * scale, y: oy + (r.top - sr.top) * scale, w: r.width * scale, h: r.height * scale }; };
+        // Shared widgets (iframes) cannot be drawn — hold their place with a labelled card.
+        stage.querySelectorAll("iframe").forEach((el) => {
+          const { x, y, w, h } = rectOf(el);
+          if (w < 4 || h < 4) return;
+          ctx.fillStyle = "#18181b"; ctx.fillRect(x, y, w, h);
+          ctx.fillStyle = "#e4e4e7"; ctx.font = "600 28px system-ui, sans-serif"; ctx.textAlign = "center";
+          try { ctx.fillText("Shared widget", x + w / 2, y + h / 2, Math.max(60, w - 48)); } catch { /* skip */ }
+        });
+        stage.querySelectorAll("video, img").forEach((el) => {
+          const { x, y, w, h } = rectOf(el);
+          if (w < 4 || h < 4) return;
+          const contain = (el as HTMLElement).className.includes("object-contain");
+          if (el instanceof HTMLVideoElement) {
+            drawFit(el, el.videoWidth, el.videoHeight, x, y, w, h, contain);
+            const label = el.parentElement?.textContent?.trim() ?? "";
+            if (label && label.length <= 40 && el.videoWidth > 0) {
+              const bh = Math.max(18, h * 0.12);
+              ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(x, y + h - bh, w, bh);
+              ctx.fillStyle = "#ffffff"; ctx.font = `${Math.max(11, Math.round(bh * 0.55))}px ui-monospace, monospace`; ctx.textAlign = "left";
+              try { ctx.fillText(label, x + 8, y + h - bh * 0.32, Math.max(40, w - 12)); } catch { /* skip */ }
+            }
+          } else if (el instanceof HTMLImageElement) {
+            const src = el.currentSrc || el.src;
+            const clean = !src || src.startsWith("blob:") || src.startsWith("data:") || src.startsWith(window.location.origin);
+            if (clean) drawFit(el, el.naturalWidth, el.naturalHeight, x, y, w, h, contain);
+            else { const ci = getCorsImg(src); if (ci) drawFit(ci, ci.naturalWidth, ci.naturalHeight, x, y, w, h, contain); }
+          }
+        });
+      }
+      raf = requestAnimationFrame(paint);
+    };
+    const vstream = (canvas as any).captureStream(30) as MediaStream;
+    const stream = new MediaStream([...vstream.getVideoTracks(), ...audioTracks]);
+    const mime = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"].find((m) => MediaRecorder.isTypeSupported(m)) || "";
+    let mr: MediaRecorder;
+    try { mr = mime ? new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_000_000 }) : new MediaRecorder(stream); }
+    catch { setRecNotice("Could not start recording."); return; }
+    const chunks: Blob[] = [];
+    mr.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    mr.onstop = () => {
+      cancelAnimationFrame(raf);
+      vstream.getTracks().forEach((t) => t.stop());
+      ac?.close().catch(() => {});
+      const type = mr.mimeType || mime || "video/webm";
+      const ext = type.includes("mp4") ? "mp4" : "webm";
+      if (chunks.length) {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob(chunks, { type }));
+        a.download = `Wonderlands-Live-${slug}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.${ext}`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setRecNotice("Recording saved to your downloads");
+      }
+      recRef.current = null; setRecording(false);
+    };
+    paint();
+    mr.start(1000); recRef.current = mr; setRecording(true); setRecSecs(0);
+  };
+
   return (
     <div className="flex h-dvh flex-col bg-zinc-100 sm:p-3">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white sm:rounded-2xl sm:border sm:border-zinc-200">
@@ -215,6 +348,16 @@ export default function LiveRoomPage() {
           </span>
           {room.isHost && (
             <span className="shrink-0 rounded-full bg-zinc-900 px-2 py-1 font-mono text-[10px] text-white">HOST</span>
+          )}
+          {room.isHost && (
+            <button
+              onClick={toggleRecord}
+              title={recording ? "Stop recording" : "Record this meeting"}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[11px] transition ${recording ? "bg-red-500 text-white hover:bg-red-400" : "border border-zinc-200 text-zinc-700 hover:bg-zinc-50"}`}
+            >
+              <span className={`h-2 w-2 rounded-full ${recording ? "animate-pulse bg-white" : "bg-red-500"}`} />
+              {recording ? fmtRec(recSecs) : "REC"}
+            </button>
           )}
           <div className="ml-auto shrink-0">
             <button onClick={copyLink} className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-3.5 py-1.5 text-sm text-zinc-800 transition hover:bg-zinc-50">
@@ -232,7 +375,10 @@ export default function LiveRoomPage() {
         <div className="relative flex min-h-0 flex-1">
           <div className="flex min-w-0 flex-1 flex-col">
             {/* the viewport — dark stage inset, SFH format */}
-            <main className="flex min-h-0 flex-1 flex-col bg-zinc-950 p-1.5 sm:m-3 sm:mb-0 sm:rounded-2xl sm:p-3">
+            <main ref={stageBoxRef} className="relative flex min-h-0 flex-1 flex-col bg-zinc-950 p-1.5 sm:m-3 sm:mb-0 sm:rounded-2xl sm:p-3">
+              {recNotice && (
+                <div className="pointer-events-none absolute left-1/2 top-3 z-30 -translate-x-1/2 rounded-full bg-zinc-900/90 px-4 py-1.5 text-xs text-white shadow-lg">{recNotice}</div>
+              )}
               {heroMode ? (
                 <div className="flex h-full flex-col gap-1.5 sm:flex-row sm:gap-3">
                   <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl bg-zinc-900">
