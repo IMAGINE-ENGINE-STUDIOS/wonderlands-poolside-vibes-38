@@ -29,7 +29,7 @@ export default function LiveRoomPage() {
     try { return localStorage.getItem(GUEST_NAME_KEY) ?? ""; } catch { return ""; }
   });
   const [eligible, setEligible] = React.useState(false);
-  const [panel, setPanel] = React.useState<Panel>("chat");
+  const [panel, setPanel] = React.useState<Panel>(null);
   const [copied, setCopied] = React.useState(false);
   const title = meetingTitle(slug) ?? "Wonderlands Live meeting";
   const link = liveLink(slug);
@@ -126,20 +126,24 @@ export default function LiveRoomPage() {
       ? room.name
       : room.participants.find((p) => p.clientId === spotlightId)?.name ?? "";
 
-  const tiles = (
+  // Tiles for the grid / filmstrip. Whoever is shown big (spotlight) is NOT
+  // repeated in the strip — that was the duplicated-camera bug.
+  const renderTiles = (excludeId: string | null) => (
     <>
-      <div
-        className="aspect-video max-h-full"
-        onDoubleClick={() => room.setMySpotlight(room.spotlight === room.clientId ? null : room.clientId)}
-      >
-        <VideoTile stream={room.screenStream ?? room.localStream} name={room.name} isLocal micOff={!room.micOn} hand={room.hand} isHost={room.isHost} small />
-      </div>
+      {excludeId !== room.clientId && (
+        <div
+          className="aspect-video max-h-full shrink-0"
+          onDoubleClick={() => room.setMySpotlight(room.spotlight === room.clientId ? null : room.clientId)}
+        >
+          <VideoTile stream={room.screenStream ?? room.localStream} name={room.name} isLocal micOff={!room.micOn} hand={room.hand} isHost={room.isHost} small />
+        </div>
+      )}
       {room.participants
-        .filter((p) => p.clientId !== room.clientId)
+        .filter((p) => p.clientId !== room.clientId && p.clientId !== excludeId)
         .map((p) => (
           <div
             key={p.clientId}
-            className="aspect-video max-h-full"
+            className="aspect-video max-h-full shrink-0"
             onDoubleClick={() => room.setMySpotlight(room.spotlight === p.clientId ? null : p.clientId)}
           >
             <VideoTile stream={room.remoteStreams[p.clientId] ?? null} name={p.name} micOff={!p.mic} hand={p.hand} isHost={p.role === "host"} small />
@@ -147,6 +151,9 @@ export default function LiveRoomPage() {
         ))}
     </>
   );
+  const stageTiles = renderTiles(null);
+  const spotlightTiles = renderTiles(spotlightId);
+  const spotlightStripEmpty = room.participants.length <= 1;
 
   const panelBtn = (p: Panel, icon: React.ReactNode, label: string) => (
     <button
@@ -163,7 +170,7 @@ export default function LiveRoomPage() {
   const ctrlBtn = (on: boolean, onClick: () => void, icon: React.ReactNode, label: string, danger = false) => (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center gap-1 rounded-2xl px-3 py-2 text-[10px] font-medium transition ${
+      className={`flex shrink-0 flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] font-medium transition sm:px-3 ${
         danger
           ? "bg-red-500 text-white hover:bg-red-400"
           : on
@@ -190,7 +197,7 @@ export default function LiveRoomPage() {
         <div className="ml-auto flex items-center gap-2">
           <button onClick={copyLink} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-2 text-xs font-medium transition hover:bg-white/15">
             {copied ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
-            {copied ? "Link copied" : "Copy invite link"}
+            {copied ? "Copied" : (<><span className="hidden sm:inline">Copy invite link</span><span className="sm:hidden">Copy link</span></>)}
           </button>
           <button
             onClick={() => { room.leave(); window.location.href = "/live"; }}
@@ -213,14 +220,16 @@ export default function LiveRoomPage() {
               <div className="min-h-0 flex-1">
                 <LiveStage stage={room.stage} interactive={room.canInteract()} onProductSelect={room.updateProduct} />
               </div>
-              <div className="flex h-24 shrink-0 gap-2 overflow-x-auto">{tiles}</div>
+              <div className="flex h-24 shrink-0 gap-2 overflow-x-auto">{stageTiles}</div>
             </>
           ) : spotlightId ? (
             <>
               <div className="min-h-0 flex-1">
                 <VideoTile stream={spotlightStream} name={spotlightName} isLocal={spotlightId === room.clientId} />
               </div>
-              <div className="flex h-24 shrink-0 gap-2 overflow-x-auto">{tiles}</div>
+              {!spotlightStripEmpty && (
+                <div className="flex h-24 shrink-0 gap-2 overflow-x-auto">{spotlightTiles}</div>
+              )}
             </>
           ) : (
             <div
@@ -232,7 +241,7 @@ export default function LiveRoomPage() {
                     : "grid-cols-3"
               }`}
             >
-              {tiles}
+              {stageTiles}
             </div>
           )}
         </main>
@@ -266,13 +275,13 @@ export default function LiveRoomPage() {
       </div>
 
       {/* controls */}
-      <footer className="flex items-end justify-center gap-2 border-t border-white/10 px-3 py-2.5">
+      <footer className="flex items-end justify-start gap-1.5 overflow-x-auto border-t border-white/10 px-2.5 py-2.5 sm:justify-center sm:gap-2 sm:px-3">
         {ctrlBtn(room.micOn, room.toggleMic, room.micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />, "Mic")}
         {ctrlBtn(room.camOn, room.toggleCam, room.camOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />, "Camera")}
         {ctrlBtn(!room.sharingScreen, () => void room.toggleScreen(), <MonitorUp className="h-5 w-5" />, "Share")}
         {ctrlBtn(!room.hand, room.toggleHand, <Hand className="h-5 w-5" />, "Hand")}
-        <div className="mx-1 hidden h-10 w-px bg-white/10 sm:block" />
-        <div className="flex items-center gap-1.5 pb-0.5">
+        <div className="mx-1 hidden h-10 w-px shrink-0 bg-white/10 sm:block" />
+        <div className="flex shrink-0 items-center gap-1.5 pb-0.5">
           {panelBtn("chat", <MessageSquare className="h-4 w-4" />, "Chat")}
           {panelBtn("products", <Package className="h-4 w-4" />, "Products")}
           {panelBtn("widgets", <LayoutGrid className="h-4 w-4" />, "Widgets")}
