@@ -71,6 +71,14 @@ Deno.serve(async (req) => {
     const resendKey = Deno.env.get("RESEND_API_KEY");
     if (resendKey && email) {
       const when = preferredText ?? (preferredAt ? new Date(preferredAt).toUTCString() : "a time we will confirm");
+      // Wonderlands Live is the default meeting app: if the booking carries a
+      // live-video link (in notes), the confirmation email carries it too and
+      // never points the guest at an outside scheduler.
+      const liveMatch = notes?.match(/https?:\/\/[^\s·]+\/live\/[a-z0-9-]+/i);
+      const liveLink = liveMatch ? liveMatch[0] : null;
+      const meetingBlock = liveLink
+        ? `<p><strong>Your video meeting link:</strong> <a href="${liveLink}">${liveLink}</a><br/>Open it at the meeting time — no account needed. We'll design together on your screen.</p>`
+        : `<p>A designer will confirm your meeting details shortly.</p>`;
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
@@ -82,8 +90,7 @@ Deno.serve(async (req) => {
             <h2 style="letter-spacing:.04em">Wonderlands World</h2>
             <p>Thank you, ${name}. Your consultation request is with our design team.</p>
             <p><strong>Requested:</strong> ${when}<br/><strong>Subject:</strong> ${topic}</p>
-            <p>A designer will confirm shortly. You may also pick a time directly:
-              <a href="https://calendly.com/wonderlandsworlds/30min">choose a time</a>.</p>
+            ${meetingBlock}
             <p style="font-size:12px;color:#64748b">All prices include delivery, installation and the product as described.</p>
           </div>`,
         }),
