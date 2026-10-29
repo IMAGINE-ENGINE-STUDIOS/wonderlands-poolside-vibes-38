@@ -359,7 +359,7 @@ export function UnifiedPoolVisualizer({
   // Selecting a pool part glides to the exact point the user clicked, keeping
   // the current viewing side. One camera authority: CameraFocusController.
   const lastPickRef = useRef<[number, number, number] | null>(null);
-  const PART_DISTANCE: Record<string, number> = { pool: 20, deck: 16, coping: 8, waterline: 6 };
+  const PART_DISTANCE: Record<string, number> = { pool: 26, deck: 22, coping: 18, waterline: 18 };
   const selectComponentAtPick = useCallback((c: 'pool' | 'deck' | 'coping' | 'waterline' | null) => {
     setSelectedComponent(c);
     if (c && lastPickRef.current) { setAutoRotate(false); focusOn(lastPickRef.current, PART_DISTANCE[c]); }
