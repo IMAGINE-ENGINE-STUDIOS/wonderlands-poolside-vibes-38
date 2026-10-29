@@ -33,7 +33,8 @@ function bandGeometry(raw: XZ[], y0: number, y1: number) {
     const p = ring[i % ring.length];
     if (i) { const q = ring[i - 1]; run += Math.hypot(p.x - q.x, p.z - q.z); }
     pos.push(p.x, y0, p.z, p.x, y1, p.z);
-    uv.push(run, y0, run, y1);
+    // UVs measured from the wall's own base (1 ft tiles) — independent of pool depth.
+    uv.push(run, 0, run, y1 - y0);
     if (i) { const b = (i - 1) * 2; idx.push(b, b + 2, b + 1, b + 1, b + 2, b + 3); }
   }
   const g = new THREE.BufferGeometry();
@@ -44,10 +45,21 @@ function bandGeometry(raw: XZ[], y0: number, y1: number) {
 }
 
 const wallMat = new THREE.MeshStandardMaterial({ color: "#d6cdbf", roughness: 0.85, side: THREE.DoubleSide });
+const urlMats = new Map<string, THREE.MeshStandardMaterial>();
+function matForUrl(url: string) {
+  let m = urlMats.get(url);
+  if (!m) {
+    const t = new THREE.TextureLoader().load(url);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace;
+    m = new THREE.MeshStandardMaterial({ map: t, roughness: 0.6, side: THREE.DoubleSide });
+    urlMats.set(url, m);
+  }
+  return m;
+}
 
-export function RiserWall({ ring, y0, y1, texture }: { ring: XZ[]; y0: number; y1: number; texture?: THREE.Texture | null }) {
+export function RiserWall({ ring, y0, y1, texture, textureUrl }: { ring: XZ[]; y0: number; y1: number; texture?: THREE.Texture | null; textureUrl?: string }) {
   const geo = React.useMemo(() => (clean(ring).length >= 3 && Math.abs(y1 - y0) > 0.01 ? bandGeometry(ring, Math.min(y0, y1), Math.max(y0, y1)) : null), [ring, y0, y1]);
-  const mat = React.useMemo(() => (texture ? new THREE.MeshStandardMaterial({ map: texture, roughness: 0.85, side: THREE.DoubleSide }) : wallMat), [texture]);
+  const mat = React.useMemo(() => (textureUrl ? matForUrl(textureUrl) : texture ? new THREE.MeshStandardMaterial({ map: texture, roughness: 0.85, side: THREE.DoubleSide }) : wallMat), [texture, textureUrl]);
   if (!geo) return null;
   return <mesh geometry={geo} material={mat} castShadow receiveShadow />;
 }

@@ -212,14 +212,17 @@ export const PoolMesh: React.FC<{
     uCutCam: { value: new THREE.Vector2() },
     uCutCenter: { value: new THREE.Vector2() },
   }), []);
+  // Normal-based cutaway: a wall fragment is dropped only when its inward face
+  // points away from the camera (the near wall). Far walls face the camera and
+  // stay visible/pickable, so lights and fittings remain editable underground.
   const patchCutaway = useCallback((shader: THREE.WebGLProgramParametersWithUniforms) => {
     Object.assign(shader.uniforms, cutUniforms);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vCutLocal;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCutLocal = position.xz;');
+      .replace('#include <common>', '#include <common>\nvarying vec2 vCutLocal;\nvarying vec2 vCutN;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCutLocal = position.xz;\nvCutN = normal.xz;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vCutLocal;\nuniform float uCutOn;\nuniform vec2 uCutCam;\nuniform vec2 uCutCenter;')
-      .replace('void main() {', 'void main() {\n  if (uCutOn > 0.5 && dot(vCutLocal - uCutCenter, uCutCam - uCutCenter) > 0.0) discard;');
+      .replace('#include <common>', '#include <common>\nvarying vec2 vCutLocal;\nvarying vec2 vCutN;\nuniform float uCutOn;\nuniform vec2 uCutCam;\nuniform vec2 uCutCenter;')
+      .replace('void main() {', 'void main() {\n  if (uCutOn > 0.5 && dot(vCutN, vCutN) > 0.04) {\n    float inward = sign(dot(vCutN, uCutCenter - vCutLocal));\n    if (inward * dot(vCutN, vCutLocal - uCutCam) > 0.0) discard;\n  }');
   }, [cutUniforms]);
 
   const poolDimensions = useMemo(() => {
@@ -1350,7 +1353,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {/* Pool taller than its deck: finished pool wall + access stairs from the deck up to the coping. */}
       {poolElevation - deckTop > 0.01 && copingOuterRing.length >= 3 && (
         <>
-          <RiserWall ring={copingOuterRing} y0={deckTop} y1={poolElevation} />
+          <RiserWall ring={copingOuterRing} y0={deckTop} y1={poolElevation} textureUrl={normalizedWaterlineUrl || undefined} />
           <PerimeterStairs stairKey="pool" run={siteStairs.pool} ring={copingOuterRing} hi={poolElevation} lo={deckTop} dir={1} />
         </>
       )}
