@@ -7,10 +7,12 @@
  * Credits: Imagine Engine Studios Corp.
  */
 import * as React from "react";
-import { Hand, Lock, MicOff, Crown } from "lucide-react";
+import { Hand, Lock, Mic, MicOff, Crown } from "lucide-react";
 import type { LiveStageState } from "@/lib/live/liveTypes";
 import { liveWidget } from "@/lib/live/liveCatalog";
 import { ProductShowcase } from "./ProductShowcase";
+
+const initials = (n: string) => n.split(/[\s@._-]+/).filter(Boolean).map((p) => p[0]).join("").slice(0, 2).toUpperCase();
 
 export function VideoTile({
   stream,
@@ -39,7 +41,7 @@ export function VideoTile({
   const hasVideo = !!stream && stream.getVideoTracks().some((t) => t.readyState === "live" && t.enabled);
   return (
     <div
-      className="group relative h-full w-full overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-white/10"
+      className="group relative h-full w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-zinc-800 to-zinc-900"
       onDoubleClick={onDoubleClick}
     >
       {stream ? (
@@ -53,19 +55,21 @@ export function VideoTile({
       ) : null}
       {!hasVideo && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-lg font-semibold text-white">
-            {(name || "?").slice(0, 1).toUpperCase()}
+          <div className={`flex items-center justify-center rounded-full bg-white/10 font-medium text-zinc-200 ${small ? "h-14 w-14 text-base" : "h-28 w-28 text-3xl"}`}>
+            {initials(name || "?")}
           </div>
         </div>
       )}
-      <div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-2.5 pb-1.5 pt-6 text-white">
-        <span className={`truncate ${small ? "text-[11px]" : "text-xs"} font-medium`}>
+      <div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent p-2.5 text-white">
+        <span className="truncate font-mono text-xs">
           {name}
-          {isLocal ? " (you)" : ""}
+          {isLocal ? " (You)" : ""}
         </span>
-        {isHost && <Crown className="h-3.5 w-3.5 shrink-0 text-amber-300" />}
+        {isHost && <Crown className="h-3.5 w-3.5 shrink-0 text-amber-400" />}
         {hand && <Hand className="h-3.5 w-3.5 shrink-0 text-amber-200" />}
-        {micOff && <MicOff className="h-3.5 w-3.5 shrink-0 text-red-300" />}
+        <span className={`ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${micOff ? "bg-red-500" : "bg-white/15"}`}>
+          {micOff ? <MicOff className="h-3 w-3 text-white" /> : <Mic className="h-3 w-3 text-white" />}
+        </span>
       </div>
     </div>
   );
@@ -83,7 +87,7 @@ export function LiveStage({
   const widget = liveWidget(stage.widgetId);
   if (!widget) return null;
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-xl bg-neutral-950 ring-1 ring-white/10">
+    <div className="relative h-full w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-zinc-950">
       {widget.kind === "showcase" ? (
         <ProductShowcase
           productKey={stage.productKey}
