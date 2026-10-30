@@ -425,6 +425,9 @@ export function useLiveRoom(slug: string): LiveRoom {
         setParticipants(all);
         for (const p of all) if (p.clientId !== clientId) ensurePeer(p.clientId);
       });
+      channel.on("presence", { event: "join" }, () => {
+        if (meRef.current.role === "host" && stageRef.current.widgetId) broadcastStage(stageRef.current);
+      });
       channel.on("presence", { event: "leave" }, ({ leftPresences }) => {
         for (const p of leftPresences as unknown as LiveParticipant[]) dropPeer(p.clientId);
       });
@@ -437,7 +440,15 @@ export function useLiveRoom(slug: string): LiveRoom {
       channel.on("broadcast", { event: LIVE_EVENTS.stageSet }, ({ payload }) => {
         const next = payload as LiveStageState;
         const sender = participantsRef.current.find((p) => p.clientId === next.updatedBy);
-        if (sender?.role === "host" || next.updatedBy === clientId) setStageState(next);
+        // Accept from the host, from myself, or when the sender is not in
+        // presence yet (presence lags broadcasts — dropping here lost the
+        // stage for guests) as long as the stage is newer than ours.
+        if (sender?.role === "host" || next.updatedBy === clientId || (!sender && next.ts >= stageRef.current.ts)) setStageState(next);
+      });
+      channel.on("broadcast", { event: LIVE_EVENTS.stageGet }, () => {
+        // A guest who joined after the stage was set asks for it — the host
+        // answers with the current stage (broadcasts are not replayed).
+        if (meRef.current.role === "host" && stageRef.current.widgetId) broadcastStage(stageRef.current);
       });
       channel.on("broadcast", { event: LIVE_EVENTS.stageState }, ({ payload }) => {
         const delta = payload as { productKey: string; variantIdx: number; from: string };
@@ -474,6 +485,9 @@ export function useLiveRoom(slug: string): LiveRoom {
             joinedAt: meRef.current.joinedAt,
           } satisfies LiveParticipant);
           setJoined(true);
+          if (meRef.current.role !== "host") {
+            void channel.send({ type: "broadcast", event: LIVE_EVENTS.stageGet, payload: { from: clientId } });
+          }
         }
       });
     },

@@ -65,6 +65,7 @@ export const LIVE_EVENTS = {
   chat: "chat",
   signal: "sig",
   stageSet: "stage:set",
+  stageGet: "stage:get",
   stageState: "stage:state",
   stageLock: "stage:lock",
   control: "ctl",
