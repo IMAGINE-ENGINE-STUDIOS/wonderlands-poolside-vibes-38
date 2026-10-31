@@ -5,16 +5,21 @@
  */
 import * as React from "react";
 import {
-  Crown, Hand, Lock, LockOpen, MicOff, MonitorPlay, Search, Send, Star, UserX,
+  BookOpen, Captions, Crown, Download, FileText, Hand, LayoutDashboard, Lock, LockOpen,
+  MicOff, MonitorPlay, Paperclip, PenLine, Search, Send, SlidersHorizontal, Star, UserX,
 } from "lucide-react";
 import type { LiveRoom } from "@/hooks/useLiveRoom";
-import { LIVE_PRODUCT_GROUPS, LIVE_WIDGETS } from "@/lib/live/liveCatalog";
+import { LIVE_PRODUCT_GROUPS, LIVE_WIDGETS, liveProduct } from "@/lib/live/liveCatalog";
+import type { LiveProductView } from "@/lib/live/liveTypes";
+import { uploadLiveFile } from "@/lib/live/liveFiles";
 
 const fmtTime = (ts: number) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
-export function ChatPanel({ room }: { room: LiveRoom }) {
+export function ChatPanel({ room, slug }: { room: LiveRoom; slug: string }) {
   const [draft, setDraft] = React.useState("");
+  const [attaching, setAttaching] = React.useState(false);
   const endRef = React.useRef<HTMLDivElement>(null);
+  const fileRef = React.useRef<HTMLInputElement>(null);
   React.useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [room.chat.length]);
@@ -22,6 +27,18 @@ export function ChatPanel({ room }: { room: LiveRoom }) {
     if (!draft.trim()) return;
     room.sendChat(draft);
     setDraft("");
+  };
+  const attach = async (f: File | undefined) => {
+    if (!f) return;
+    setAttaching(true);
+    try {
+      const att = await uploadLiveFile(f, slug);
+      room.sendChat("", att);
+    } catch {
+      room.sendChat("⚠ A file could not be uploaded.");
+    } finally {
+      setAttaching(false);
+    }
   };
   return (
     <div className="flex h-full flex-col">
@@ -40,13 +57,34 @@ export function ChatPanel({ room }: { room: LiveRoom }) {
                 m.fromId === room.clientId ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-900"
               }`}
             >
-              {m.text}
+              {m.text && <div>{m.text}</div>}
+              {m.attachment && (
+                <a href={m.attachment.url} target="_blank" rel="noreferrer" className="mt-1 block">
+                  {m.attachment.kind === "image" ? (
+                    <img src={m.attachment.url} alt={m.attachment.name} className="max-h-36 rounded-lg object-cover" />
+                  ) : null}
+                  <span className="mt-1 flex items-center gap-1.5 text-xs underline decoration-dotted">
+                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{m.attachment.name}</span>
+                  </span>
+                </a>
+              )}
             </div>
           </div>
         ))}
         <div ref={endRef} />
       </div>
       <div className="flex items-center gap-2 border-t border-zinc-100 p-2.5">
+        <input ref={fileRef} type="file" hidden onChange={(e) => { void attach(e.target.files?.[0]); e.target.value = ""; }} />
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={attaching}
+          className="rounded-full bg-zinc-100 p-2.5 text-zinc-700 transition hover:bg-zinc-200 disabled:opacity-50"
+          aria-label="Attach a file"
+          title="Attach a file"
+        >
+          <Paperclip className="h-4 w-4" />
+        </button>
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -62,19 +100,165 @@ export function ChatPanel({ room }: { room: LiveRoom }) {
   );
 }
 
+export function TranscriptPanel({ room, title }: { room: LiveRoom; title: string }) {
+  const endRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [room.txLines.length]);
+  const save = () => {
+    const head = `Wonderlands Live — session transcript\nMeeting: ${title}\nDate: ${new Date().toLocaleString()}\n`;
+    const body = room.txLines.map((l) => `[${fmtTime(l.ts)}] ${l.speaker}: ${l.text}`).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([head + "\n" + body], { type: "text/plain" }));
+    a.download = `transcript-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+  return (
+    <div className="flex h-full flex-col">
+      <div className="border-b border-zinc-100 p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-zinc-900">Transcript</span>
+          <button
+            onClick={() => room.setTxOn(!room.txOn)}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+              room.txOn ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-600"
+            }`}
+          >
+            <Captions className="h-3.5 w-3.5" />
+            {room.txOn ? "Transcribing" : "Start"}
+          </button>
+        </div>
+        <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
+          {room.txSupported
+            ? "Each person's own device transcribes what they say and shares the lines with the room. Turn it on and speak — your words appear here for everyone."
+            : "This browser does not offer speech transcription (Chrome works best). You can still read lines shared by other participants."}
+        </p>
+      </div>
+      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 py-3">
+        {room.txLines.length === 0 && (
+          <p className="text-center text-xs text-zinc-400">No transcript lines yet.</p>
+        )}
+        {room.txLines.map((l) => (
+          <div key={l.id} className="text-sm leading-relaxed">
+            <span className="font-medium text-zinc-900">{l.speaker}</span>{" "}
+            <span className="text-[11px] text-zinc-400">{fmtTime(l.ts)}</span>
+            <div className="text-zinc-700">{l.text}</div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+      {room.txLines.length > 0 && (
+        <div className="border-t border-zinc-100 p-2.5">
+          <button onClick={save} className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 py-2 text-sm text-white transition hover:bg-zinc-700">
+            <Download className="h-4 w-4" /> Download transcript (.txt)
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function JournalPanel({ slug, title }: { slug: string; title: string }) {
+  const draftKey = `wlive:journal:${slug}:draft`;
+  const savedKey = `wlive:journal:${slug}:saved`;
+  const [draft, setDraft] = React.useState(() => { try { return localStorage.getItem(draftKey) ?? ""; } catch { return ""; } });
+  const [saved, setSaved] = React.useState<Array<{ ts: number; text: string }>>(() => {
+    try { return JSON.parse(localStorage.getItem(savedKey) ?? "[]") as Array<{ ts: number; text: string }>; } catch { return []; }
+  });
+  React.useEffect(() => { try { localStorage.setItem(draftKey, draft); } catch { /* private mode */ } }, [draft, draftKey]);
+  const saveNote = () => {
+    const text = draft.trim();
+    if (!text) return;
+    const next = [{ ts: Date.now(), text }, ...saved].slice(0, 50);
+    setSaved(next);
+    try { localStorage.setItem(savedKey, JSON.stringify(next)); } catch { /* private mode */ }
+    // Mirror into the Genius journal store so the notes sit next to the
+    // session transcript in the Genius thread (SFH behaviour).
+    try {
+      const KEY = "wlive:genius:journal:v1";
+      const entries = JSON.parse(localStorage.getItem(KEY) ?? "[]") as Array<{ ts: number; kind: string; content: string }>;
+      const content = `📓 Journal note — live session "${title}" • ${new Date().toLocaleString()}\n\n${text}`;
+      if (!entries.some((e) => e?.content === content)) {
+        localStorage.setItem(KEY, JSON.stringify([{ ts: Date.now(), kind: "note", content }, ...entries].slice(0, 50)));
+      }
+    } catch { /* best effort */ }
+    setDraft("");
+  };
+  return (
+    <div className="flex h-full flex-col">
+      <div className="border-b border-zinc-100 p-3">
+        <div className="flex items-center gap-2">
+          <PenLine className="h-4 w-4 text-zinc-500" />
+          <span className="text-sm font-medium text-zinc-900">Journal</span>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+          Your private session notepad. Drafts save automatically on this device; saved notes also go to your Genius journal.
+        </p>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Write your notes for this session…"
+          className="min-h-[160px] w-full resize-y rounded-xl bg-zinc-50 px-3 py-2 text-sm leading-relaxed text-zinc-900 ring-1 ring-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:ring-zinc-900/25"
+        />
+        <button
+          onClick={saveNote}
+          disabled={!draft.trim()}
+          className="mt-2 w-full rounded-full bg-zinc-900 py-2 text-sm text-white transition hover:bg-zinc-700 disabled:opacity-40"
+        >
+          Save note to Genius
+        </button>
+        {saved.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Saved notes</div>
+            {saved.map((n) => (
+              <div key={n.ts} className="rounded-xl bg-zinc-50 p-3 ring-1 ring-zinc-200">
+                <div className="text-[11px] text-zinc-400">{new Date(n.ts).toLocaleString()}</div>
+                <div className="mt-1 whitespace-pre-wrap text-sm text-zinc-800">{n.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const PRODUCT_VIEWS: Array<{ id: LiveProductView; label: string; blurb: string; icon: React.ReactNode; route: string | null }> = [
+  { id: "showcase", label: "Big showcase", blurb: "The product, big — finishes and priced options below.", icon: <LayoutDashboard className="h-4 w-4" />, route: null },
+  { id: "flip", label: "FLIP book", blurb: "The FLIP collection book version of this product.", icon: <BookOpen className="h-4 w-4" />, route: "/flip" },
+  { id: "studio", label: "Wonderlands Studio", blurb: "Open the product in the Design Studio.", icon: <MonitorPlay className="h-4 w-4" />, route: "/design-studio" },
+  { id: "configure", label: "Configure & quote", blurb: "The full configuration and quotation tool.", icon: <SlidersHorizontal className="h-4 w-4" />, route: "/quote" },
+];
+
 export function ProductsPanel({ room, onPresented }: { room: LiveRoom; onPresented?: () => void }) {
   const [q, setQ] = React.useState("");
+  const [chooserFor, setChooserFor] = React.useState<string | null>(null);
   const query = q.trim().toLowerCase();
-  const present = (key: string) => {
+  const present = (key: string, view: LiveProductView) => {
+    const def = PRODUCT_VIEWS.find((v) => v.id === view);
     if (room.isHost) {
-      room.setStage({ widgetId: "product-showcase", route: null, productKey: key, variantIdx: 0 });
+      room.setStage({
+        widgetId: "product-showcase",
+        route: def?.route ?? null,
+        productKey: key,
+        productView: view,
+        variantIdx: 0,
+        optionIds: [],
+        file: null,
+      });
     } else {
-      room.updateProduct(key, 0);
+      room.updateProduct(key, 0, []);
     }
+    setChooserFor(null);
     // Drop it into the viewport: close the panel so the stage is front and center.
     onPresented?.();
   };
   const canPresent = room.isHost || room.canInteract();
+  const chooserProduct = chooserFor ? liveProduct(chooserFor) : null;
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-zinc-100 p-2.5">
@@ -89,12 +273,39 @@ export function ProductsPanel({ room, onPresented }: { room: LiveRoom; onPresent
         </div>
         <p className="mt-2 px-1 text-[11px] leading-relaxed text-zinc-500">
           {room.isHost
-            ? "Tap a product to present it on the shared stage — it loads on every guest's device."
+            ? "Tap a product, then choose how to drop it on the stage — big showcase, FLIP book, Studio or configurator."
             : canPresent
               ? "The host unlocked you: tap a product to change what everyone is viewing."
               : "The host presents products here. Ask in chat if you'd like a closer look."}
         </p>
       </div>
+      {chooserProduct && (
+        <div className="border-b border-amber-200 bg-amber-50 p-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium text-zinc-900">Present “{chooserProduct.name}” as…</div>
+            <button onClick={() => setChooserFor(null)} className="text-xs text-zinc-500 underline">
+              Cancel
+            </button>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {PRODUCT_VIEWS.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => present(chooserProduct.key, v.id)}
+                className="rounded-xl bg-white p-2.5 text-left ring-1 ring-amber-200 transition hover:ring-amber-400"
+              >
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-zinc-900">
+                  {v.icon} {v.label}
+                </span>
+                <span className="mt-1 block text-[11px] leading-snug text-zinc-500">{v.blurb}</span>
+              </button>
+            ))}
+          </div>
+          {!room.isHost && (
+            <p className="mt-2 text-[11px] text-zinc-500">As an unlocked guest you present the big showcase; the host can switch the view.</p>
+          )}
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto p-2.5">
         {LIVE_PRODUCT_GROUPS.map((group) => {
           const items = group.products.filter(
@@ -113,7 +324,7 @@ export function ProductsPanel({ room, onPresented }: { room: LiveRoom; onPresent
                     <button
                       key={p.key}
                       disabled={!canPresent}
-                      onClick={() => present(p.key)}
+                      onClick={() => (room.isHost ? setChooserFor(p.key) : present(p.key, "showcase"))}
                       className={`overflow-hidden rounded-lg bg-white text-left ring-1 transition ${
                         active ? "ring-emerald-500" : "ring-zinc-200"
                       } ${canPresent ? "hover:ring-emerald-400/70" : "cursor-not-allowed opacity-60"}`}

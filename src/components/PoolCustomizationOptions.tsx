@@ -213,6 +213,19 @@ const poolOptions: PoolOption[] = [
   },
 ];
 
+/** The platform's priced add-on options (same data the quote tool uses).
+ *  Exported so the Live product showcase prices selections with the exact
+ *  same engine — same features, same prices, no second list to drift. */
+export const LIVE_POOL_OPTIONS: PoolOption[] = poolOptions;
+export const LIVE_OPTION_CATEGORIES: Record<PoolOption["category"], string> = {
+  waterline: "Finishes & Liners",
+  jets: "Water Jets & Hydrotherapy",
+  heating: "Pool Heating",
+  covers: "Covers",
+  decorative: "Decorative & Tile",
+  "screen-enclosure": "Screen Enclosure",
+};
+
 const categoryInfo = {
   waterline: { 
     icon: Palette, 

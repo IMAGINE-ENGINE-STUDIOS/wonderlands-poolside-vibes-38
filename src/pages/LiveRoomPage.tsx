@@ -18,17 +18,18 @@
 import * as React from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
-  Check, Copy, Hand, LayoutGrid, MessageSquare, Mic, MicOff, MonitorUp, Package,
-  PhoneOff, Users, Video, VideoOff, X,
+  Captions, Check, Copy, Hand, LayoutGrid, MessageSquare, Mic, MicOff, MonitorUp, Package,
+  PenLine, PhoneOff, Upload, Users, Video, VideoOff, X,
 } from "lucide-react";
 import { useLiveRoom } from "@/hooks/useLiveRoom";
 import { VideoTile, LiveStage } from "@/components/live/LiveStage";
-import { ChatPanel, PeoplePanel, ProductsPanel, WidgetsPanel } from "@/components/live/LivePanels";
+import { ChatPanel, JournalPanel, PeoplePanel, ProductsPanel, TranscriptPanel, WidgetsPanel } from "@/components/live/LivePanels";
 import { canHost, meetingTitle, GUEST_NAME_KEY } from "@/lib/live/liveMeetings";
-import { liveLink } from "@/lib/live/liveTypes";
+import { appPath, liveLink } from "@/lib/live/liveTypes";
+import { uploadLiveFile } from "@/lib/live/liveFiles";
 import { useAuth } from "@/contexts/AuthContext";
 
-type Panel = "chat" | "products" | "widgets" | "people" | null;
+type Panel = "chat" | "products" | "widgets" | "people" | "transcript" | "journal" | null;
 
 // SFH stage grid: 1 = full, 2–4 = halves/quarters, then 3 across.
 const colsFor = (n: number) => (n <= 1 ? 1 : n <= 4 ? 2 : n <= 9 ? 3 : 4);
@@ -44,6 +45,8 @@ export default function LiveRoomPage() {
   const [teamHost, setTeamHost] = React.useState(false);
   const [panel, setPanel] = React.useState<Panel>(null);
   const [copied, setCopied] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [fileNotice, setFileNotice] = React.useState("");
   const stageBoxRef = React.useRef<HTMLElement | null>(null);
   const recRef = React.useRef<MediaRecorder | null>(null);
   const [recording, setRecording] = React.useState(false);
@@ -147,8 +150,23 @@ export default function LiveRoomPage() {
     );
   }
 
+  /* ------------------------------ file share ------------------------------ */
+  const shareFiles = async (list: FileList | File[] | null) => {
+    const f = list?.[0];
+    if (!f) return;
+    setFileNotice(`Uploading ${f.name}…`);
+    try {
+      const att = await uploadLiveFile(f, slug);
+      room.presentFile(att);
+      setFileNotice("");
+    } catch {
+      setFileNotice("Could not upload that file. Please try again.");
+      setTimeout(() => setFileNotice(""), 4000);
+    }
+  };
+
   /* ------------------------------ in room ------------------------------ */
-  const stageActive = !!room.stage.widgetId;
+  const stageActive = !!room.stage.widgetId || !!room.stage.file;
   const spotlightId = room.spotlight;
   const spotlightStream =
     spotlightId === room.clientId
@@ -375,9 +393,17 @@ export default function LiveRoomPage() {
         <div className="relative flex min-h-0 flex-1">
           <div className="flex min-w-0 flex-1 flex-col">
             {/* the viewport — dark stage inset, SFH format */}
-            <main ref={stageBoxRef} className="relative flex min-h-0 flex-1 flex-col bg-zinc-950 p-1.5 sm:m-3 sm:mb-0 sm:rounded-2xl sm:p-3">
+            <main
+              ref={stageBoxRef}
+              className="relative flex min-h-0 flex-1 flex-col bg-zinc-950 p-1.5 sm:m-3 sm:mb-0 sm:rounded-2xl sm:p-3"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => { e.preventDefault(); void shareFiles(e.dataTransfer.files); }}
+            >
               {recNotice && (
                 <div className="pointer-events-none absolute left-1/2 top-3 z-30 -translate-x-1/2 rounded-full bg-zinc-900/90 px-4 py-1.5 text-xs text-white shadow-lg">{recNotice}</div>
+              )}
+              {fileNotice && (
+                <div className="pointer-events-none absolute left-1/2 top-12 z-30 -translate-x-1/2 rounded-full bg-zinc-900/90 px-4 py-1.5 text-xs text-white shadow-lg">{fileNotice}</div>
               )}
               {heroMode ? (
                 <div className="flex h-full flex-col gap-1.5 sm:flex-row sm:gap-3">
@@ -388,6 +414,16 @@ export default function LiveRoomPage() {
                         aria-label="Stop presenting"
                         title="Stop presenting"
                         onClick={room.clearStage}
+                        className="absolute right-3 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                    {room.stage.file && !room.isHost && (
+                      <button
+                        aria-label="Stop sharing this file"
+                        title="Stop sharing this file"
+                        onClick={room.clearFile}
                         className="absolute right-3 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
                       >
                         <X className="h-4 w-4" />
@@ -419,14 +455,18 @@ export default function LiveRoomPage() {
                 {barBtn("Microphone", room.micOn, room.toggleMic, room.micOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />, true)}
                 {barBtn("Camera", room.camOn, room.toggleCam, room.camOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />, true)}
                 {barBtn("Share screen", room.sharingScreen, () => void room.toggleScreen(), <MonitorUp className="h-4 w-4" />)}
+                {barBtn("Share a file", false, () => fileInputRef.current?.click(), <Upload className="h-4 w-4" />)}
                 {barBtn("Products", panel === "products", () => togglePanel("products"), <Package className="h-4 w-4" />)}
                 {barBtn("Widgets", panel === "widgets", () => togglePanel("widgets"), <LayoutGrid className="h-4 w-4" />)}
                 {barBtn("Raise hand", room.hand, room.toggleHand, <Hand className="h-4 w-4" />)}
+                {barBtn("Transcript", panel === "transcript", () => togglePanel("transcript"), <Captions className="h-4 w-4" />)}
+                {barBtn("Journal", panel === "journal", () => togglePanel("journal"), <PenLine className="h-4 w-4" />)}
                 {barBtn("Chat", panel === "chat", () => togglePanel("chat"), <MessageSquare className="h-4 w-4" />)}
                 {barBtn("People", panel === "people", () => togglePanel("people"), <Users className="h-4 w-4" />)}
+                <input ref={fileInputRef} type="file" hidden onChange={(e) => { void shareFiles(e.target.files); e.target.value = ""; }} />
                 <button
                   aria-label="Leave"
-                  onClick={() => { room.leave(); window.location.href = "/live"; }}
+                  onClick={() => { room.leave(); window.location.href = appPath("/live"); }}
                   className="ml-1 flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-red-500 px-3 text-sm font-medium text-white transition hover:bg-red-400 sm:px-5"
                 >
                   <PhoneOff className="h-4 w-4" />
@@ -439,8 +479,8 @@ export default function LiveRoomPage() {
           {/* side panel — light, SFH pill tabs */}
           {panel && (
             <aside className="absolute inset-y-0 right-0 z-40 flex w-[320px] max-w-[88vw] flex-col bg-white shadow-2xl lg:static lg:z-auto lg:w-[340px] lg:border-l lg:border-zinc-200 lg:shadow-none">
-              <div className="flex items-center gap-1 border-b border-zinc-100 p-2">
-                {(["chat", "products", "widgets", "people"] as const).map((p) => (
+              <div className="flex flex-wrap items-center gap-1 border-b border-zinc-100 p-2">
+                {(["chat", "products", "widgets", "people", "transcript", "journal"] as const).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPanel(p)}
@@ -456,10 +496,12 @@ export default function LiveRoomPage() {
                 </button>
               </div>
               <div className="min-h-0 flex-1">
-                {panel === "chat" && <ChatPanel room={room} />}
+                {panel === "chat" && <ChatPanel room={room} slug={slug} />}
                 {panel === "products" && <ProductsPanel room={room} onPresented={() => setPanel(null)} />}
                 {panel === "widgets" && <WidgetsPanel room={room} onPresented={() => setPanel(null)} />}
                 {panel === "people" && <PeoplePanel room={room} />}
+                {panel === "transcript" && <TranscriptPanel room={room} title={title} />}
+                {panel === "journal" && <JournalPanel slug={slug} title={title} />}
               </div>
             </aside>
           )}

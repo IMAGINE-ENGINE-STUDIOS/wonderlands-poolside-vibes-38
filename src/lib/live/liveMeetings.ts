@@ -31,8 +31,12 @@ function saveMeetings(list: LiveMeeting[]) {
 
 export function createMeeting(input: { title?: string; guestName?: string; guestEmail?: string; startsAt?: string | null }): LiveMeeting {
   const title = (input.title ?? "").trim() || "Wonderlands consultation";
+  // Never reuse an ID: regenerate until the slug is unique on this device.
+  const taken = new Set(loadMeetings().map((m) => m.slug));
+  let slug = newRoomSlug(title);
+  while (taken.has(slug)) slug = newRoomSlug(title);
   const meeting: LiveMeeting = {
-    slug: newRoomSlug(title),
+    slug,
     title,
     guestName: input.guestName?.trim() || undefined,
     guestEmail: input.guestEmail?.trim() || undefined,

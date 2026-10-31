@@ -14,11 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   EMPTY_STAGE,
   LIVE_EVENTS,
+  type LiveAttachment,
   type LiveChatMessage,
   type LiveControl,
   type LiveParticipant,
   type LiveRole,
+  type LiveSharedFile,
   type LiveStageState,
+  type LiveTxLine,
 } from "@/lib/live/liveTypes";
 
 const ICE_SERVERS: RTCIceServer[] = [
@@ -71,13 +74,21 @@ export interface LiveRoom {
   toggleCam: () => void;
   toggleHand: () => void;
   toggleScreen: () => Promise<void>;
-  sendChat: (text: string) => void;
+  sendChat: (text: string, attachment?: LiveAttachment | null) => void;
   /* host stage controls */
   setStage: (partial: Partial<LiveStageState>) => void;
   clearStage: () => void;
   setLockAll: (locked: boolean) => void;
   setGuestLock: (guestId: string, locked: boolean) => void;
-  updateProduct: (productKey: string, variantIdx: number) => void;
+  updateProduct: (productKey: string, variantIdx: number, optionIds?: string[]) => void;
+  /* file share — any participant may present a file on the stage */
+  presentFile: (file: Omit<LiveSharedFile, "presentedBy">) => void;
+  clearFile: () => void;
+  /* transcription — each device transcribes its own speaker and shares lines */
+  txLines: LiveTxLine[];
+  txOn: boolean;
+  txSupported: boolean;
+  setTxOn: (on: boolean) => void;
   /* host people controls */
   eject: (guestId: string) => void;
   muteGuest: (guestId: string) => void;
@@ -103,6 +114,8 @@ export function useLiveRoom(slug: string): LiveRoom {
   const [hand, setHand] = React.useState(false);
   const [mediaError, setMediaError] = React.useState<string | null>(null);
   const [chat, setChat] = React.useState<LiveChatMessage[]>([]);
+  const [txLines, setTxLines] = React.useState<LiveTxLine[]>([]);
+  const [txOn, setTxOnState] = React.useState(false);
   const [stage, setStageState] = React.useState<LiveStageState>(EMPTY_STAGE);
   const [hostSpotlight, setHostSpotlight] = React.useState<string | null>(null);
   const [mySpotlight, setMySpotlight] = React.useState<string | null>(null);
@@ -256,7 +269,14 @@ export function useLiveRoom(slug: string): LiveRoom {
     [broadcastStage, clientId],
   );
 
-  const clearStage = React.useCallback(() => setStage({ widgetId: null, route: null }), [setStage]);
+  const clearStage = React.useCallback(() => {
+    setStage({ widgetId: null, route: null, file: null });
+    void channelRef.current?.send({
+      type: "broadcast",
+      event: LIVE_EVENTS.fileSet,
+      payload: { file: null, from: clientId },
+    });
+  }, [setStage, clientId]);
 
   const setLockAll = React.useCallback((locked: boolean) => setStage({ lockAll: locked }), [setStage]);
 
@@ -267,17 +287,95 @@ export function useLiveRoom(slug: string): LiveRoom {
   );
 
   const updateProduct = React.useCallback(
-    (productKey: string, variantIdx: number) => {
+    (productKey: string, variantIdx: number, optionIds?: string[]) => {
       if (!canInteract()) return;
-      setStageState((prev) => ({ ...prev, productKey, variantIdx }));
+      setStageState((prev) => ({ ...prev, productKey, variantIdx, optionIds: optionIds ?? prev.optionIds }));
       void channelRef.current?.send({
         type: "broadcast",
         event: LIVE_EVENTS.stageState,
-        payload: { productKey, variantIdx, from: clientId },
+        payload: { productKey, variantIdx, optionIds, from: clientId },
       });
     },
     [canInteract, clientId],
   );
+
+  /* ------------------------------ file share ------------------------------ */
+  const presentFile = React.useCallback(
+    (file: Omit<LiveSharedFile, "presentedBy">) => {
+      const shared: LiveSharedFile = { ...file, presentedBy: meRef.current.name || "A participant" };
+      setStageState((prev) => ({ ...prev, file: shared }));
+      void channelRef.current?.send({
+        type: "broadcast",
+        event: LIVE_EVENTS.fileSet,
+        payload: { file: shared, from: clientId },
+      });
+    },
+    [clientId],
+  );
+
+  const clearFile = React.useCallback(() => {
+    setStageState((prev) => ({ ...prev, file: null }));
+    void channelRef.current?.send({
+      type: "broadcast",
+      event: LIVE_EVENTS.fileSet,
+      payload: { file: null, from: clientId },
+    });
+  }, [clientId]);
+
+  /* ------------------------------ transcription ------------------------------ */
+  const txSupported = React.useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      !!((window as unknown as Record<string, unknown>).SpeechRecognition ||
+        (window as unknown as Record<string, unknown>).webkitSpeechRecognition),
+    [],
+  );
+  const recognitionRef = React.useRef<{ stop: () => void } | null>(null);
+
+  const setTxOn = React.useCallback((on: boolean) => setTxOnState(on), []);
+
+  React.useEffect(() => {
+    if (!txOn || !joined || !txSupported) return;
+    const Ctor = (window as unknown as Record<string, new () => Record<string, unknown>>).SpeechRecognition ||
+      (window as unknown as Record<string, new () => Record<string, unknown>>).webkitSpeechRecognition;
+    if (!Ctor) return;
+    let stopped = false;
+    const rec = new Ctor() as Record<string, unknown> & {
+      start: () => void; stop: () => void;
+      onresult: ((e: unknown) => void) | null; onend: (() => void) | null; onerror: (() => void) | null;
+    };
+    rec.continuous = true;
+    rec.interimResults = false;
+    try { rec.lang = navigator.language || "en-US"; } catch { /* default */ }
+    rec.onresult = (e: unknown) => {
+      const ev = e as { resultIndex: number; results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> };
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (!r.isFinal) continue;
+        const text = (r[0]?.transcript ?? "").trim();
+        if (!text) continue;
+        const line: LiveTxLine = {
+          id: `${clientId}-${Date.now()}-${i}`,
+          fromId: clientId,
+          speaker: meRef.current.name || "Guest",
+          text,
+          ts: Date.now(),
+        };
+        setTxLines((prev) => [...prev.slice(-399), line]);
+        void channelRef.current?.send({ type: "broadcast", event: LIVE_EVENTS.tx, payload: line });
+      }
+    };
+    rec.onend = () => { if (!stopped) { try { rec.start(); } catch { /* already running */ } } };
+    rec.onerror = () => { /* onend restarts */ };
+    try { rec.start(); } catch { /* already running */ }
+    recognitionRef.current = rec as unknown as { stop: () => void };
+    return () => {
+      stopped = true;
+      rec.onend = null;
+      try { rec.stop(); } catch { /* gone */ }
+      recognitionRef.current = null;
+    };
+  }, [txOn, joined, txSupported, clientId]);
 
   /* ------------------------------ host controls ------------------------------ */
   const sendControl = React.useCallback((ctl: LiveControl) => {
@@ -372,6 +470,8 @@ export function useLiveRoom(slug: string): LiveRoom {
     setJoined(false);
     setParticipants([]);
     setChat([]);
+    setTxLines([]);
+    setTxOnState(false);
   }, [dropPeer]);
 
   const join = React.useCallback(
@@ -426,7 +526,7 @@ export function useLiveRoom(slug: string): LiveRoom {
         for (const p of all) if (p.clientId !== clientId) ensurePeer(p.clientId);
       });
       channel.on("presence", { event: "join" }, () => {
-        if (meRef.current.role === "host" && stageRef.current.widgetId) broadcastStage(stageRef.current);
+        if (meRef.current.role === "host" && (stageRef.current.widgetId || stageRef.current.file)) broadcastStage(stageRef.current);
       });
       channel.on("presence", { event: "leave" }, ({ leftPresences }) => {
         for (const p of leftPresences as unknown as LiveParticipant[]) dropPeer(p.clientId);
@@ -448,16 +548,31 @@ export function useLiveRoom(slug: string): LiveRoom {
       channel.on("broadcast", { event: LIVE_EVENTS.stageGet }, () => {
         // A guest who joined after the stage was set asks for it — the host
         // answers with the current stage (broadcasts are not replayed).
-        if (meRef.current.role === "host" && stageRef.current.widgetId) broadcastStage(stageRef.current);
+        if (meRef.current.role === "host" && (stageRef.current.widgetId || stageRef.current.file)) broadcastStage(stageRef.current);
       });
       channel.on("broadcast", { event: LIVE_EVENTS.stageState }, ({ payload }) => {
-        const delta = payload as { productKey: string; variantIdx: number; from: string };
+        const delta = payload as { productKey: string; variantIdx: number; optionIds?: string[]; from: string };
         // Apply selections from the host or from a guest the host unlocked.
         const sender = participantsRef.current.find((p) => p.clientId === delta.from);
         const senderLocked = sender ? !(sender.role === "host") && (stageRef.current.locks[sender.clientId] ?? stageRef.current.lockAll) : true;
         if (sender && !senderLocked) {
-          setStageState((prev) => ({ ...prev, productKey: delta.productKey, variantIdx: delta.variantIdx }));
+          setStageState((prev) => ({
+            ...prev,
+            productKey: delta.productKey,
+            variantIdx: delta.variantIdx,
+            optionIds: delta.optionIds ?? prev.optionIds,
+          }));
         }
+      });
+      channel.on("broadcast", { event: LIVE_EVENTS.fileSet }, ({ payload }) => {
+        // File share is open to every participant (SFH behaviour): anyone can
+        // put a file on the stage or take their file down.
+        const delta = payload as { file: LiveSharedFile | null; from: string };
+        setStageState((prev) => ({ ...prev, file: delta.file }));
+      });
+      channel.on("broadcast", { event: LIVE_EVENTS.tx }, ({ payload }) => {
+        const line = payload as LiveTxLine;
+        if (line && line.text) setTxLines((prev) => [...prev.slice(-399), line]);
       });
       channel.on("broadcast", { event: LIVE_EVENTS.control }, ({ payload }) => {
         const ctl = payload as LiveControl & { targetId: string };
@@ -497,9 +612,9 @@ export function useLiveRoom(slug: string): LiveRoom {
   React.useEffect(() => () => leave(), [leave]);
 
   const sendChat = React.useCallback(
-    (text: string) => {
+    (text: string, attachment?: LiveAttachment | null) => {
       const clean = text.trim().slice(0, 1000);
-      if (!clean) return;
+      if (!clean && !attachment) return;
       const msg: LiveChatMessage = {
         id: `${clientId}-${Date.now()}`,
         fromId: clientId,
@@ -507,6 +622,7 @@ export function useLiveRoom(slug: string): LiveRoom {
         role: meRef.current.role,
         text: clean,
         ts: Date.now(),
+        attachment: attachment ?? null,
       };
       setChat((prev) => [...prev.slice(-199), msg]);
       void channelRef.current?.send({ type: "broadcast", event: LIVE_EVENTS.chat, payload: msg });
@@ -552,6 +668,12 @@ export function useLiveRoom(slug: string): LiveRoom {
     setLockAll,
     setGuestLock,
     updateProduct,
+    presentFile,
+    clearFile,
+    txLines,
+    txOn,
+    txSupported,
+    setTxOn,
     eject,
     muteGuest,
     spotlightAll,
