@@ -7,7 +7,7 @@ import type { BlockType, SectionStyle } from './model';
  * treatments. A variant is still just props + style on a normal section, so
  * everything it inserts stays fully editable in the inspector afterwards.
  */
-export interface BlockVariant { name: string; hint: string; props?: Record<string, any>; style?: Partial<SectionStyle> }
+export interface BlockVariant { name: string; hint: string; props?: Record<string, any>; style?: Partial<SectionStyle>; /** Configurator only: steers which real catalogue product + options hydrate in. */ product?: string }
 
 const dark: Partial<SectionStyle> = { bg: '#0b0b0f', color: '#f4f4f5' };
 const ink: Partial<SectionStyle> = { bg: '#111827', color: '#f9fafb' };
@@ -205,20 +205,45 @@ export const BLOCK_VARIANTS: Partial<Record<BlockType, BlockVariant[]>> = {
     { name: 'Slider Wide', hint: 'Full measure comparison', props: {}, style: { ...wide } },
   ],
   booking: [
-    { name: 'Booking on Royal', hint: 'Booking widget on royal blue', props: {}, style: { ...royal, ...centre } },
-    { name: 'Booking Narrow', hint: 'Centred, compact', props: {}, style: { ...narrow } },
+    { name: 'Consultation — Standard', hint: 'Title, intro line and the full booking frame', props: { title: 'Book a consultation', body: 'Pick a time that works for you — we confirm within one business day.', height: 700 }, style: {} },
+    { name: 'Compact Booking', hint: 'Shorter frame for mid-page', props: { title: 'Book now', height: 560 }, style: { ...narrow, ...snug } },
+    { name: 'Tall Scheduler', hint: 'Full-height frame, nothing gets cut off', props: { title: 'Schedule your visit', height: 900 }, style: { ...wide } },
+    { name: 'Booking on Royal', hint: 'Booking frame under a royal heading band', props: { title: 'Book a consultation', height: 700 }, style: { ...royal, ...centre } },
+    { name: 'Booking on Mist', hint: 'Quiet grey section, frame stands out', props: { title: 'Book a consultation', height: 700 }, style: { ...mist } },
+    { name: 'Site Visit Booking', hint: 'Wording for on-site estimates', props: { title: 'Book a site visit', body: 'We come to you, measure up and quote on the spot.', height: 700 }, style: { ...left } },
   ],
   configurator: [
-    { name: 'Studio on Dark', hint: 'Design studio on near-black', props: {}, style: { ...dark, ...wide } },
-    { name: 'Studio Wide', hint: 'Full measure studio', props: {}, style: { ...wide } },
+    { name: 'Pool Studio', hint: 'A pool with finishes, liners, pavers, covers and heaters', props: {}, product: 'pool', style: { ...wide } },
+    { name: 'Pool Studio on Dark', hint: 'The pool configurator on near-black', props: {}, product: 'pool', style: { ...dark, ...wide } },
+    { name: 'Sauna Studio', hint: 'A sauna with its real options', props: {}, product: 'sauna', style: { ...wide } },
+    { name: 'Solar Studio', hint: 'A solar product with its real options', props: {}, product: 'solar', style: { ...wide } },
+    { name: 'Enclosure Studio', hint: 'Screen enclosure / lanai product', props: {}, product: 'enclosure', style: { ...wide } },
+    { name: 'Spa Studio', hint: 'A spa / hot tub product', props: {}, product: 'spa', style: { ...wide } },
+    { name: 'Any Product', hint: 'First catalogue product — rename it in the Section tab', props: {}, product: '', style: { ...wide } },
   ],
   tech: [
-    { name: 'App Wide', hint: 'Tool at full width', props: {}, style: { ...wide } },
-    { name: 'App on Mist', hint: 'Tool on cool grey', props: {}, style: { ...mist } },
+    { name: 'Design Studio (2D)', hint: 'The 2D design studio, embedded live', props: { tool: 'design2d', title: 'Design Studio', height: 760 }, style: { ...wide } },
+    { name: '3D Studio', hint: 'The 3D design studio, embedded live', props: { tool: 'studio', title: '3D Design Studio', height: 820 }, style: { ...wide } },
+    { name: 'Global Design Board', hint: 'Design Board V2, embedded live', props: { tool: 'design', title: 'Design Board', height: 820 }, style: { ...wide } },
+    { name: 'Landscaping Studio', hint: 'Landscaping planner, embedded live', props: { tool: 'landscaping', title: 'Landscaping Studio', height: 760 }, style: { ...wide } },
+    { name: 'Solar Drawing Board', hint: 'Solar layout board, embedded live', props: { tool: 'solarboard', title: 'Solar Drawing Board', height: 760 }, style: { ...wide } },
+    { name: 'Enclosures Board', hint: 'Screen enclosure, lanai and fencing board', props: { tool: 'enclosures', title: 'Enclosures & Lanai Board', height: 760 }, style: { ...wide } },
+    { name: 'Pool & Spa Suites', hint: 'Pool and spa suite planner', props: { tool: 'poolspa', title: 'Pool & Spa Suites', height: 760 }, style: { ...wide } },
+    { name: 'Blueprint Builder', hint: 'Blueprint builder, embedded live', props: { tool: 'blueprint', title: 'Blueprint Builder', height: 820 }, style: { ...wide } },
+    { name: 'Solar Genius', hint: 'Solar Genius tool, embedded live', props: { tool: 'solar', title: 'Solar Genius', height: 760 }, style: { ...wide } },
+    { name: 'Quote Atelier', hint: 'The instant quote tool, embedded live', props: { tool: 'quote', title: 'Get an Instant Quote', height: 760 }, style: { ...wide } },
+    { name: 'Pool Cost Calculator', hint: 'Pool cost calculator, embedded live', props: { tool: 'calculator', title: 'What Does a Pool Cost?', height: 700 }, style: { ...wide } },
+    { name: 'Studio Showroom', hint: 'The studio showroom, embedded live', props: { tool: 'showroom', title: 'Studio Showroom', height: 760 }, style: { ...wide } },
+    { name: 'FLIP Book', hint: 'A FLIP catalogue — pick the book in the Section tab', props: { tool: 'flip', title: 'Browse the Catalogue', height: 820 }, style: { ...wide } },
+    { name: '3D Studio on Dark', hint: 'The 3D studio framed by a dark section', props: { tool: 'studio', title: '3D Design Studio', height: 820 }, style: { ...dark, ...wide } },
   ],
   embed: [
-    { name: 'Embed Wide', hint: 'Full-width embed', props: {}, style: { width: 'full', padY: 24 } },
-    { name: 'Embed Narrow', hint: 'Centred embed', props: {}, style: { ...narrow } },
+    { name: 'Page Embed — Standard', hint: 'Any https page in a rounded frame', props: { height: 500 }, style: {} },
+    { name: 'Tall Embed', hint: 'Full documents, maps and portals', props: { height: 800 }, style: { ...wide } },
+    { name: 'Compact Embed', hint: 'Widgets and small tools', props: { height: 360 }, style: { ...narrow } },
+    { name: 'Full-Bleed Embed', hint: 'Edge to edge, no margins', props: { height: 640 }, style: { width: 'full', padY: 0 } },
+    { name: 'Embed on Mist', hint: 'Frame on cool grey', props: { height: 500 }, style: { ...mist } },
+    { name: 'Embed on Dark', hint: 'Frame on near-black', props: { height: 500 }, style: { ...dark } },
   ],
   spacer: [
     { name: 'Small Gap', hint: '40px of air', props: { height: 40 }, style: {} },

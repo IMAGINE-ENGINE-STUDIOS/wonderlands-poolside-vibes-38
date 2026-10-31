@@ -117,27 +117,109 @@ const FieldEditor: React.FC<{ f: Field; value: any; onChange: (v: any) => void; 
   </label>;
 };
 
-/** Live miniature snapshot of a gallery variant: the real renderer at 25%
- *  scale, mounted lazily as cards scroll into view — a light picture of the
- *  actual widget's design, not a colour strip. Heavy embeds keep the strip. */
-const THUMB_SKIP = new Set<BlockType>(['tech', 'video', 'embed', 'booking', 'configurator', 'map', 'spacer']);
-function VariantThumb({ type, v, theme }: { type: BlockType; v: BlockVariant; theme: SiteTheme }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [on, setOn] = useState(false);
-  useEffect(() => { const el = ref.current; if (!el) return; const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: '240px' }); io.observe(el); return () => io.disconnect(); }, []);
-  const mini = useMemo<Page | null>(() => {
-    if (THUMB_SKIP.has(type)) return null;
-    const sec = newSection(type);
-    if (v.props) sec.props = { ...sec.props, ...structuredClone(v.props) };
-    if (v.style) sec.style = { ...sec.style, ...structuredClone(v.style) };
-    sec.style = { ...sec.style, padY: Math.min(sec.style.padY ?? 84, 48) };
-    if (type === 'products' && !(sec.props.items || []).length) sec.props.items = [0, 1, 2].map(i => ({ name: `Signature product ${i + 1}`, price: '$1,200', description: 'A short line about what makes it great.', image: '' }));
-    return { id: 'thumb', name: 'Thumb', slug: 'thumb', sections: [sec] };
-  }, [type, v]);
-  if (!mini) return <span className="mb-1.5 block h-10 overflow-hidden rounded-md border border-border/60" style={{ background: v.style?.gradFrom && v.style?.gradTo ? `linear-gradient(${v.style.gradAngle ?? 135}deg, ${v.style.gradFrom}, ${v.style.gradTo})` : v.style?.bg || 'linear-gradient(135deg,#f8fafc,#e2e8f0)' }} />;
-  return <div ref={ref} className="relative mb-1.5 h-[92px] overflow-hidden rounded-md border border-border/60 bg-white">
-    {on && <div style={{ width: 1040, transform: 'scale(0.25)', transformOrigin: 'top left', pointerEvents: 'none', position: 'absolute', top: 0, left: 0 }}><SiteRenderer page={mini} theme={theme} /></div>}
-  </div>;
+/**
+ * Light snapshot — a pure-CSS miniature that DRAWS the variant's actual
+ * layout, alignment and colours. It never renders the real widget (no
+ * iframes, no data loads, no cache pressure): just bars, photo blocks and
+ * pills arranged the way the real section composes.
+ */
+function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; theme: SiteTheme }) {
+  const st = v.style || {}; const pr = v.props || {};
+  const bg = st.gradFrom && st.gradTo ? `linear-gradient(${st.gradAngle ?? 135}deg, ${st.gradFrom}, ${st.gradTo})` : st.bg || '#ffffff';
+  const ink = st.color || '#14181f';
+  const acc = theme.primary;
+  const photo = 'linear-gradient(135deg,#7dd3fc 0%,#38bdf8 45%,#1d4ed8 100%)';
+  const bar = (w: string | number, h = 3, o = .55, c = ink, key?: number) => <span key={key} style={{ display: 'block', width: w, height: h, borderRadius: 2, background: c, opacity: o }} />;
+  const pill = (c = acc, w = 26) => <span style={{ display: 'inline-block', width: w, height: 8, borderRadius: 99, background: c }} />;
+  const ph = (h: number | string, flex?: number) => <span style={{ display: 'block', height: h, flex, borderRadius: 3, background: photo, opacity: .9 }} />;
+  const lines = (n: number, o = .5) => <span style={{ display: 'grid', gap: 3 }}>{Array.from({ length: n }, (_, i) => bar(`${88 - i * 14}%`, 3, o, ink, i))}</span>;
+  const ctr: React.CSSProperties = { margin: '0 auto' };
+  const grid3 = (cell: (i: number) => React.ReactNode) => <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 5, height: '100%' }}>{[0, 1, 2].map(i => <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>{cell(i)}</div>)}</div>;
+  const cardBox: React.CSSProperties = { border: `1px solid ${ink}30`, borderRadius: 4, padding: 4, background: `${ink}08` };
+  const layout = String(pr.layout || '');
+  let inner: React.ReactNode = <>{bar('46%', 6, .85)}<div style={{ marginTop: 6 }}>{lines(4)}</div></>;
+  if (type === 'hero') {
+    if (layout === 'split') inner = <div style={{ display: 'flex', gap: 7, height: '100%' }}><div style={{ flex: 1.05, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>{bar('30%', 2, .6, acc)}{bar('92%', 7, .9)}{bar('70%', 7, .9)}{bar('80%', 3, .5)}<span style={{ display: 'flex', gap: 4 }}>{pill()}{pill(ink, 22)}</span></div><div style={{ flex: .95, display: 'flex' }}>{ph('100%', 1)}</div></div>;
+    else if (layout === 'card') inner = <div style={{ height: '100%', background: photo, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ background: 'rgba(255,255,255,.28)', border: '1px solid rgba(255,255,255,.65)', borderRadius: 5, padding: '8px 10px', width: '72%', display: 'grid', gap: 3, justifyItems: 'center' }}>{bar('34%', 2, .7, '#fff')}{bar('88%', 6, .95, '#fff')}{bar('60%', 6, .95, '#fff')}{bar('70%', 3, .7, '#fff')}{pill('#ffffff', 24)}</div></div>;
+    else if (layout === 'bottom') inner = <div style={{ height: '100%', background: photo, borderRadius: 4, position: 'relative' }}><div style={{ position: 'absolute', left: 8, bottom: 7, display: 'grid', gap: 3, width: '70%' }}>{bar('30%', 2, .8, '#fff')}{bar('95%', 7, .95, '#fff')}{bar('75%', 3, .8, '#fff')}{pill()}</div></div>;
+    else inner = <div style={{ display: 'grid', gap: 4, justifyItems: st.align === 'left' ? 'start' : 'center', alignContent: 'center', height: '100%', textAlign: 'center' }}>{bar('26%', 2, .6, acc)}{bar('76%', 8, .92)}{bar('54%', 8, .92)}{bar('62%', 3, .5)}<span style={{ display: 'flex', gap: 4 }}>{pill()}{pill(ink, 22)}</span></div>;
+  } else if (type === 'header') {
+    inner = layout === 'centered'
+      ? <div style={{ display: 'grid', justifyItems: 'center', gap: 5 }}><span style={{ display: 'flex', gap: 3, alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: 2, background: acc }} />{bar(34, 5, .9)}</span><span style={{ display: 'flex', gap: 6 }}>{bar(16, 3, .5)}{bar(20, 3, .5)}{bar(14, 3, .5)}{pill(acc, 20)}</span></div>
+      : <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ display: 'flex', gap: 3, alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: 2, background: acc }} />{bar(30, 5, .9)}</span><span style={{ display: 'flex', gap: 5, alignItems: 'center' }}>{bar(14, 3, .5)}{bar(18, 3, .5)}{bar(12, 3, .5)}{pill(acc, 20)}</span></div>;
+  } else if (type === 'footer') {
+    if (layout === 'stacked') inner = <>{bar('72%', 13, .92)}<div style={{ borderTop: `1px solid ${ink}30`, marginTop: 7, paddingTop: 5, display: 'flex', justifyContent: 'space-between' }}>{bar('30%', 3, .5)}<span style={{ display: 'flex', gap: 5 }}>{bar(14, 3, .5)}{bar(18, 3, .5)}{bar(12, 3, .5)}</span></div></>;
+    else if (layout === 'centered') inner = <div style={{ display: 'grid', justifyItems: 'center', gap: 4 }}>{bar(40, 6, .9)}{bar('46%', 3, .5)}<span style={{ display: 'flex', gap: 5 }}>{bar(14, 3, .5)}{bar(18, 3, .5)}{bar(12, 3, .5)}</span>{bar('30%', 2, .35)}</div>;
+    else inner = <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ display: 'grid', gap: 3 }}>{bar(36, 6, .9)}{bar(56, 3, .5)}{bar(44, 3, .5)}</span><span style={{ display: 'flex', gap: 5 }}>{bar(14, 3, .5)}{bar(18, 3, .5)}{bar(12, 3, .5)}</span></div>;
+  } else if (type === 'text') {
+    if (layout === 'quote') inner = <div style={{ display: 'grid', justifyItems: 'center', gap: 3, textAlign: 'center' }}><span style={{ fontFamily: 'Georgia, serif', fontSize: 20, lineHeight: .6, color: acc }}>“</span>{bar('78%', 5, .85)}{bar('60%', 5, .85)}{bar('30%', 2, .45)}</div>;
+    else if (layout === 'lead') inner = <><span style={{ float: 'left', fontFamily: 'Georgia, serif', fontSize: 24, lineHeight: .8, paddingRight: 5, color: acc }}>A</span>{lines(5, .55)}</>;
+    else if (layout === 'twocol') inner = <>{bar('40%', 5, .85)}<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>{lines(4)}{lines(4)}</div></>;
+    else inner = <>{bar('44%', 6, .85)}<div style={{ marginTop: 5 }}>{lines(4)}</div></>;
+  } else if (type === 'services' || type === 'columns') {
+    if (layout === 'rows') inner = <div style={{ display: 'grid', gap: 6 }}>{[0, 1].map(i => <div key={i} style={{ display: 'flex', gap: 6, flexDirection: i ? 'row-reverse' : 'row' }}>{ph(26, 1)}<span style={{ flex: 1.2, display: 'grid', gap: 3, alignContent: 'center' }}>{bar('60%', 4, .85)}{bar('95%', 3, .5)}{bar('80%', 3, .5)}</span></div>)}</div>;
+    else if (layout === 'numbered') inner = <div style={{ display: 'grid', gap: 5 }}>{[1, 2, 3].map(n => <div key={n} style={{ display: 'flex', gap: 6, alignItems: 'center', borderTop: n > 1 ? `1px solid ${ink}25` : undefined, paddingTop: n > 1 ? 4 : 0 }}><span style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: acc, width: 16 }}>0{n}</span><span style={{ display: 'grid', gap: 2, flex: 1 }}>{bar('52%', 4, .85)}{bar('88%', 3, .5)}</span></div>)}</div>;
+    else if (layout === 'cards') inner = grid3(() => <div style={cardBox}>{ph(20)}{bar('70%', 4, .85)}{bar('90%', 3, .5)}</div>);
+    else inner = grid3(() => <>{ph(24)}{bar('70%', 4, .85)}{bar('92%', 3, .5)}{bar('80%', 3, .5)}</>);
+  } else if (type === 'products') {
+    if (layout === 'list') inner = <div style={{ display: 'grid', gap: 5 }}>{[0, 1].map(i => <div key={i} style={{ ...cardBox, display: 'flex', gap: 5, alignItems: 'center' }}>{ph(22, .5)}<span style={{ flex: 1, display: 'grid', gap: 2 }}>{bar('55%', 4, .85)}{bar(24, 3, .8, acc)}{bar('85%', 3, .45)}</span>{pill(acc, 18)}</div>)}</div>;
+    else inner = grid3(() => <div style={{ ...cardBox, background: '#fff' }}>{ph(22)}{bar('72%', 4, .85, '#14181f')}{bar(22, 3, .8, acc)}</div>);
+  } else if (type === 'testimonials') {
+    if (layout === 'spotlight') inner = <div style={{ display: 'grid', justifyItems: 'center', gap: 3 }}><span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', display: 'grid', gap: 3, justifyItems: 'center' }}>{bar(150, 5, .88)}{bar(110, 5, .88)}</span>{bar(30, 3, .5)}<div style={{ display: 'flex', gap: 10, marginTop: 3 }}><span style={{ display: 'grid', gap: 2 }}>{bar(52, 3, .6)}{bar(24, 2, .4)}</span><span style={{ display: 'grid', gap: 2 }}>{bar(52, 3, .6)}{bar(24, 2, .4)}</span></div></div>;
+    else if (layout === 'cards') inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, height: '100%' }}>{[0, 1].map(i => <div key={i} style={cardBox}>{bar('85%', 4, .75)}{bar('92%', 4, .75)}{bar('60%', 4, .75)}{bar(24, 3, .45)}</div>)}</div>;
+    else inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>{[0, 1].map(i => <span key={i} style={{ display: 'grid', gap: 3 }}>{bar('88%', 4, .8)}{bar('70%', 4, .8)}{bar(24, 3, .45)}</span>)}</div>;
+  } else if (type === 'cta') {
+    if (layout === 'card') inner = <div style={{ background: acc, borderRadius: 6, height: '100%', display: 'grid', justifyItems: 'center', alignContent: 'center', gap: 4, padding: 6 }}>{bar('58%', 6, .95, '#fff')}{bar('72%', 3, .75, '#fff')}{pill('#ffffff', 30)}</div>;
+    else if (layout === 'split') inner = <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, height: '100%' }}><span style={{ display: 'grid', gap: 3, flex: 1 }}>{bar('64%', 6, .9)}{bar('85%', 3, .5)}</span>{pill()}</div>;
+    else inner = <div style={{ display: 'grid', justifyItems: 'center', gap: 4, alignContent: 'center', height: '100%' }}>{bar('52%', 7, .9)}{bar('66%', 3, .55)}{pill()}</div>;
+  } else if (type === 'form') {
+    const inputs = <span style={{ display: 'grid', gap: 3 }}>{[0, 1, 2].map(i => <span key={i} style={{ height: 9, borderRadius: 2, border: `1px solid ${ink}35`, background: '#fff' }} />)}{pill(acc, 34)}</span>;
+    if (layout === 'split') inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, height: '100%' }}><span style={{ display: 'grid', gap: 3, alignContent: 'start' }}>{bar('70%', 5, .88)}{bar('92%', 3, .5)}{bar('80%', 3, .5)}</span>{inputs}</div>;
+    else if (layout === 'card') inner = <div style={{ background: '#fff', borderRadius: 5, padding: 7, boxShadow: '0 6px 14px rgba(0,0,0,.18)', maxWidth: '78%', margin: '0 auto' }}>{inputs}</div>;
+    else inner = <div style={{ maxWidth: '72%', margin: '0 auto', display: 'grid', gap: 4 }}>{bar('50%', 5, .88)}{inputs}</div>;
+  } else if (type === 'gallery') {
+    if (layout === 'strip') inner = <div style={{ display: 'flex', gap: 4, height: '100%', overflow: 'hidden' }}>{[0, 1, 2, 3].map(i => <span key={i} style={{ minWidth: '38%', display: 'flex' }}>{ph('100%', 1)}</span>)}</div>;
+    else if (layout === 'masonry') inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4, height: '100%' }}>{[58, 34, 46].map((h, i) => <span key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>{ph(h)}{ph(70 - h)}</span>)}</div>;
+    else inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4, height: '100%' }}>{[0, 1, 2, 3, 4, 5].map(i => ph('auto', 1))}</div>;
+  } else if (type === 'faq') {
+    if (layout === 'accordion') inner = <div style={{ display: 'grid', gap: 4 }}>{[0, 1, 2].map(i => <span key={i} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${ink}25`, paddingBottom: 3 }}>{bar(`${52 - i * 8}%`, 4, .8)}<span style={{ color: ink, opacity: .6, fontSize: 9 }}>+</span></span>)}</div>;
+    else inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, height: '100%' }}>{[0, 1, 2, 3].map(i => <div key={i} style={layout === 'cards' ? cardBox : undefined}>{bar('62%', 4, .85)}{bar('90%', 3, .5)}{bar('75%', 3, .5)}</div>)}</div>;
+  } else if (type === 'pricing') {
+    if (layout === 'rows') inner = <div style={{ display: 'grid', gap: 5 }}>{[0, 1, 2].map(i => <span key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: i ? `1px solid ${ink}25` : undefined, paddingTop: i ? 4 : 0 }}><span style={{ display: 'grid', gap: 2 }}>{bar(44 - i * 6, 4, .85)}{bar(70, 2, .45)}</span><span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>{bar(18, 5, .9, acc)}{pill(acc, 18)}</span></span>)}</div>;
+    else inner = grid3((i) => <div style={{ ...cardBox, background: '#fff', border: i === 1 ? `2px solid ${acc}` : cardBox.border, transform: i === 1 ? 'translateY(-2px)' : undefined }}>{bar('60%', 4, .85, '#14181f')}{bar(20, 6, .9, '#14181f')}{bar('85%', 3, .5, '#14181f')}{bar('75%', 3, .5, '#14181f')}{pill(i === 1 ? acc : ink, 22)}</div>);
+  } else if (type === 'team') {
+    inner = grid3(() => <>{layout === 'round' ? <span style={{ width: 26, height: 26, borderRadius: '50%', background: photo, margin: '0 auto' }} /> : ph(26)}{bar('64%', 4, .85, ink, undefined)}{bar('40%', 3, .5)}</>);
+    if (layout === 'cards') inner = grid3(() => <div style={cardBox}>{ph(22)}{bar('64%', 4, .85)}{bar('42%', 3, .5)}</div>);
+  } else if (type === 'stats') {
+    inner = <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, alignContent: 'center', height: '100%' }}>{[0, 1, 2, 3].map(i => <span key={i} style={layout === 'dividers' ? { borderLeft: `2px solid ${acc}`, paddingLeft: 4, display: 'grid', gap: 2 } : { display: 'grid', gap: 2, justifyItems: 'center' }}>{bar(layout === 'big' ? 20 : 15, layout === 'big' ? 8 : 6, .95, acc)}{bar(16, 2, .5)}</span>)}</div>;
+  } else if (type === 'logos') {
+    if (layout === 'grid') inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4, height: '100%' }}>{[0, 1, 2, 3, 4, 5].map(i => <span key={i} style={{ ...cardBox, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{bar(22, 4, .55)}</span>)}</div>;
+    else inner = <div style={{ display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center', height: '100%' }}>{[26, 20, 30, 22].map((w, i) => bar(w, 5, .55, ink, i))}</div>;
+  } else if (type === 'posts') {
+    if (layout === 'list') inner = <div style={{ display: 'grid', gap: 6 }}>{[0, 1].map(i => <div key={i} style={{ display: 'flex', gap: 6 }}>{ph(24, .8)}<span style={{ flex: 1, display: 'grid', gap: 2, alignContent: 'center' }}>{bar('72%', 4, .85)}{bar('92%', 3, .5)}</span></div>)}</div>;
+    else inner = grid3(() => <>{ph(22)}{bar('74%', 4, .85)}{bar('90%', 3, .5)}</>);
+  } else if (type === 'image') {
+    if (layout === 'framed') inner = <div style={{ background: '#fff', padding: 4, borderRadius: 3, boxShadow: '0 4px 10px rgba(0,0,0,.15)', height: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}><span style={{ flex: 1, display: 'flex' }}>{ph('100%', 1)}</span>{bar('36%', 3, .5, '#14181f')}</div>;
+    else if (layout === 'overlay') inner = <div style={{ position: 'relative', height: '100%', display: 'flex' }}>{ph('100%', 1)}<span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 6px 4px', background: 'linear-gradient(transparent, rgba(0,0,0,.7))' }}>{bar('44%', 3, .9, '#fff')}</span></div>;
+    else inner = <div style={{ height: '100%', display: 'flex' }}>{ph('100%', 1)}</div>;
+  } else if (type === 'video') {
+    inner = <div style={{ height: '100%', background: '#0b0b0f', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ width: 0, height: 0, borderLeft: '7px solid #0b0b0f', borderTop: '4.5px solid transparent', borderBottom: '4.5px solid transparent', marginLeft: 2 }} /></span></div>;
+  } else if (type === 'beforeafter') {
+    inner = <div style={{ position: 'relative', height: '100%', display: 'flex', borderRadius: 4, overflow: 'hidden' }}><span style={{ flex: 1, background: 'linear-gradient(135deg,#94a3b8,#64748b)' }} /><span style={{ flex: 1, background: photo }} /><span style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 2, background: '#fff', transform: 'translateX(-1px)' }} /><span style={{ position: 'absolute', left: '50%', top: '50%', width: 14, height: 14, borderRadius: '50%', background: '#fff', transform: 'translate(-50%,-50%)', boxShadow: '0 1px 4px rgba(0,0,0,.4)' }} /></div>;
+  } else if (type === 'map') {
+    inner = <div style={{ position: 'relative', height: '100%', background: '#e6f2e4', borderRadius: 4, overflow: 'hidden' }}><span style={{ position: 'absolute', left: 0, right: 0, top: '38%', height: 5, background: '#fff' }} /><span style={{ position: 'absolute', top: 0, bottom: 0, left: '56%', width: 4, background: '#fff' }} /><span style={{ position: 'absolute', left: '18%', top: '12%', width: '26%', height: '18%', background: '#bcd8f7', borderRadius: 2 }} /><span style={{ position: 'absolute', left: '56%', top: '38%', transform: 'translate(-50%,-100%)' }}><span style={{ display: 'block', width: 11, height: 11, borderRadius: '50% 50% 50% 0', background: acc, transform: 'rotate(-45deg)', border: '1.5px solid #fff' }} /></span></div>;
+  } else if (type === 'booking') {
+    inner = <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 6, height: '100%' }}><span style={{ display: 'grid', gridTemplateRows: 'repeat(4, 1fr)', gap: 2 }}>{[0, 1, 2, 3].map(r => <span key={r} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>{[0, 1, 2, 3, 4, 5, 6].map(c => <span key={c} style={{ borderRadius: 1, background: r === 1 && c === 3 ? acc : `${ink}22` }} />)}</span>)}</span><span style={{ display: 'grid', gap: 3, alignContent: 'start' }}>{pill(acc, '80%')}{pill(ink, '65%')}{pill(ink, '72%')}</span></div>;
+  } else if (type === 'embed') {
+    inner = <div style={{ height: '100%', border: `1px solid ${ink}30`, borderRadius: 4, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#fff' }}><span style={{ display: 'flex', gap: 3, padding: '3px 5px', background: `${ink}10`, borderBottom: `1px solid ${ink}18` }}>{[0, 1, 2].map(i => <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: `${ink}35` }} />)}<span style={{ flex: 1, height: 5, borderRadius: 3, background: `${ink}12`, marginLeft: 3 }} /></span><span style={{ padding: 6, display: 'grid', gap: 3 }}>{bar('52%', 4, .8, '#14181f')}{bar('88%', 3, .45, '#14181f')}{bar('76%', 3, .45, '#14181f')}{ph(18)}</span></div>;
+  } else if (type === 'tech') {
+    inner = <div style={{ height: '100%', border: `1px solid ${ink}25`, borderRadius: 4, overflow: 'hidden', display: 'flex', background: '#fff' }}><span style={{ width: '22%', background: `${ink}08`, borderRight: `1px solid ${ink}15`, padding: 4, display: 'grid', gap: 3, alignContent: 'start' }}>{bar('80%', 3, .6, '#14181f')}{bar('65%', 3, .45, '#14181f')}{bar('72%', 3, .45, '#14181f')}</span><span style={{ flex: 1, padding: 5, display: 'grid', gap: 3, alignContent: 'start' }}><span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>{bar(38, 4, .8, '#14181f')}{pill(acc, 16)}</span>{ph(30)}<span style={{ display: 'flex', gap: 3 }}>{pill(ink, 18)}{pill(ink, 22)}{pill(acc, 20)}</span></span></div>;
+  } else if (type === 'configurator') {
+    inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 6, height: '100%' }}><span style={{ display: 'flex' }}>{ph('100%', 1)}</span><span style={{ display: 'grid', gap: 3, alignContent: 'start' }}>{bar('58%', 5, .88)}{bar(24, 4, .85, acc)}{[0, 1].map(i => <span key={i} style={{ display: 'flex', gap: 3 }}>{pill(ink, 16)}{pill(acc, 20)}{pill(ink, 14)}</span>)}{bar('70%', 3, .5)}<span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>{bar(20, 5, .9)}{pill(acc, 26)}</span></span></div>;
+  } else if (type === 'spacer') {
+    inner = <div style={{ height: '100%', display: 'flex', alignItems: 'center' }}><span style={{ flex: 1, borderTop: `1.5px dashed ${ink}40` }} /></div>;
+  }
+  return <div className="relative mb-1.5 h-[92px] overflow-hidden rounded-md border border-border/60" style={{ background: bg, color: ink, padding: 8 }}>{inner}</div>;
 }
 
 const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?: boolean; embedded?: boolean }> = ({ companyId, companyName, readOnly, embedded = false }) => {
@@ -231,7 +313,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     else editPage(p => { const from = p.sections.findIndex(s => s.id === drag.id); if (from < 0) return; const [m] = p.sections.splice(from, 1); p.sections.splice(from < index ? index - 1 : index, 0, m); });
     setDrag(null); setDropAt(null);
   };
-  const hydrateConfigurator = (s: Section) => { if (s.type === 'configurator') import('@/lib/siteBuilder/configuratorPresets').then(m => m.configuratorProps(s.props)).then(props => editPage(p => { const t = p.sections.find(x => x.id === s.id); if (t) t.props = props; })); };
+  const hydrateConfigurator = (s: Section, productHint = '') => { if (s.type === 'configurator') import('@/lib/siteBuilder/configuratorPresets').then(m => m.configuratorProps(s.props, productHint)).then(props => editPage(p => { const t = p.sections.find(x => x.id === s.id); if (t) t.props = props; })); };
   const addBlock = (type: BlockType) => { const s = newSection(type); const i = section ? page.sections.indexOf(section) + 1 : page.sections.length; editPage(p => { p.sections.splice(i, 0, s); }); setSel(s.id); setPanel('content'); pendingScroll.current = s.id; hydrateConfigurator(s); };
   /** Insert a styled gallery variant after the selected section (or at the end),
    *  then open the Section tab so the new block is ready to edit. */
@@ -241,7 +323,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     if (v.style) s.style = { ...s.style, ...structuredClone(v.style) };
     const i = section ? page.sections.indexOf(section) + 1 : page.sections.length;
     editPage(p => { p.sections.splice(i, 0, s); });
-    setSel(s.id); pendingScroll.current = s.id; hydrateConfigurator(s);
+    setSel(s.id); pendingScroll.current = s.id; hydrateConfigurator(s, v.product || '');
     setVariantFor(null); setPicked(null); setPanel('content');
   };
   /** Blocks menu choreography: the other buttons slide right and vanish, the
@@ -401,7 +483,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
             </button>
             <div className="grid gap-1.5">{variantsFor(variantFor).map((v, i) => (
               <button key={i} disabled={readOnly} onClick={() => addVariant(variantFor, v)} className="sb-variant rounded-xl border border-border p-2 text-left transition-shadow hover:border-teal hover:shadow-md" style={{ animationDelay: `${Math.min(i, 24) * 35}ms` }}>
-                <VariantThumb type={variantFor} v={v} theme={theme} />
+                <VariantSnap type={variantFor} v={v} theme={theme} />
                 <span className="block truncate px-1 text-sm font-medium">{v.name}</span>
                 <span className="block truncate px-1 pb-1 text-[11px] text-muted-foreground">{v.hint}</span>
               </button>))}
@@ -465,7 +547,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
                 <Button size="sm" variant="ghost" onClick={() => saveSection(section)}>Save section</Button></span>}</div>
             {(BLOCKS[section.type].fields as Field[]).map(f => section.type === 'map' && f.key === 'address'
               ? <div key={f.key} className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Address — suggestions appear as you type, or drop the pin on the map</span>
-                  <AddressField disabled={readOnly} value={section.props.address || ''} onChange={v => editSection(section.id, s => { s.props.address = v; })} onPlace={p => editSection(section.id, s => { s.props.address = p.label; s.props.lat = p.lat; s.props.lng = p.lng; s.props.zoom = 16; })} />
+                  <AddressField disabled={readOnly} value={section.props.address || ''} bias={section.props.lat != null && section.props.lng != null ? { lat: Number(section.props.lat), lng: Number(section.props.lng) } : null} onChange={v => editSection(section.id, s => { s.props.address = v; })} onPlace={p => editSection(section.id, s => { s.props.address = p.label; s.props.lat = p.lat; s.props.lng = p.lng; s.props.zoom = 16; })} />
                   {typeof section.props.lat === 'number' && typeof section.props.lng === 'number'
                     ? <p className="flex items-center justify-between text-xs text-muted-foreground"><span>Pin set at {section.props.lat.toFixed(5)}, {section.props.lng.toFixed(5)} — drag it on the map to adjust.</span>{!readOnly && <button type="button" className="underline" onClick={() => editSection(section.id, s => { s.props.lat = null; s.props.lng = null; })}>Clear pin</button>}</p>
                     : <p className="text-xs text-muted-foreground">No pin yet — click the map in the page to drop one. Visitors see the pin on the published site.</p>}

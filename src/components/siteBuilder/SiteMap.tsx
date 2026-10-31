@@ -13,18 +13,70 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-export interface Place { label: string; lat: number; lng: number }
+export interface Place { label: string; sub: string; lat: number; lng: number }
 const NOMINATIM = 'https://nominatim.openstreetmap.org';
 const cache = new Map<string, Place[] | Place | null>();
 
-/** Address suggestions as you type (debounced by the caller). */
-export async function searchPlaces(q: string): Promise<Place[]> {
-  const key = `s:${q.toLowerCase()}`;
+/**
+ * Build a clean postal label from Nominatim's address parts. Raw
+ * display_name leads with business names ("Bosphorous Turkish Cuisine,
+ * 6900, …") which reads as a wrong suggestion; the parts are correct:
+ * "6900 Tavistock Lakes Boulevard" + sub "Orlando, FL 32827".
+ */
+function formatParts(a: any, fallback: string): { label: string; sub: string } {
+  if (!a) return { label: fallback, sub: '' };
+  const road = a.road || a.pedestrian || a.footway || a.cycleway || '';
+  const street = [a.house_number, road].filter(Boolean).join(' ');
+  const city = a.city || a.town || a.village || a.hamlet || a.suburb || a.neighbourhood || '';
+  const iso = String(a['ISO3166-2-lvl4'] || '');
+  const state = (iso.includes('-') ? iso.split('-').pop() : '') || a.state || '';
+  const place = [city, [state, a.postcode].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  if (street) return { label: [street, place].filter(Boolean).join(', '), sub: place };
+  return { label: fallback.split(',').slice(0, 2).join(',').trim() || fallback, sub: place };
+}
+
+function toPlaces(j: any): Place[] {
+  const seen = new Set<string>();
+  const out: Place[] = [];
+  for (const x of Array.isArray(j) ? j : []) {
+    const f = formatParts(x.address, String(x.display_name || ''));
+    if (!f.label || seen.has(f.label.toLowerCase())) continue;
+    seen.add(f.label.toLowerCase());
+    out.push({ label: f.label, sub: f.sub, lat: Number(x.lat), lng: Number(x.lon) });
+  }
+  return out.filter(p => isFinite(p.lat) && isFinite(p.lng));
+}
+
+async function nominatim(params: Record<string, string>): Promise<any> {
+  const qs = new URLSearchParams({ format: 'jsonv2', addressdetails: '1', ...params });
+  const r = await fetch(`${NOMINATIM}/search?${qs}`, { headers: { Accept: 'application/json' } });
+  return r.json();
+}
+
+/**
+ * Address suggestions as you type. Nominatim free-form search on its own
+ * ranks POIs and fuzzy-matches street names badly, so: restrict to the
+ * address layer, bias toward the current pin's area when there is one,
+ * merge a structured street search when the query starts with a house
+ * number, format labels from address parts, and rank numbered addresses
+ * first.
+ */
+export async function searchPlaces(q: string, bias?: { lat: number; lng: number } | null): Promise<Place[]> {
+  const key = `s:${q.toLowerCase()}${bias ? '@b' : ''}`;
   if (cache.has(key)) return (cache.get(key) as Place[]) ?? [];
+  const common: Record<string, string> = { limit: '10', dedupe: '1', layer: 'address' };
+  if (bias) common.viewbox = `${bias.lng - 0.7},${bias.lat + 0.5},${bias.lng + 0.7},${bias.lat - 0.5}`;
   try {
-    const r = await fetch(`${NOMINATIM}/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json' } });
-    const j = await r.json();
-    const out: Place[] = (Array.isArray(j) ? j : []).map((x: any) => ({ label: String(x.display_name || ''), lat: Number(x.lat), lng: Number(x.lon) })).filter((p: Place) => p.label && isFinite(p.lat) && isFinite(p.lng));
+    let out = toPlaces(await nominatim({ ...common, q }));
+    const num = q.match(/^\s*(\d+)\s+/);
+    if (num) {
+      const structured = toPlaces(await nominatim({ ...common, street: q }));
+      const have = new Set(out.map(p => p.label.toLowerCase()));
+      out = [...structured.filter(p => !have.has(p.label.toLowerCase())), ...out];
+      const hn = num[1];
+      out.sort((a, b) => Number(b.label.startsWith(`${hn} `)) - Number(a.label.startsWith(`${hn} `)));
+    }
+    out = out.slice(0, 8);
     cache.set(key, out); return out;
   } catch { return []; }
 }
@@ -37,12 +89,12 @@ export async function geocodeAddress(q: string): Promise<Place | null> {
   const one = out[0] ?? null; cache.set(key, one); return one;
 }
 
-/** Coordinates → a readable address for the address box. */
+/** Coordinates → a clean postal address for the address box. */
 export async function reverseGeocode(lat: number, lng: number): Promise<string> {
   try {
-    const r = await fetch(`${NOMINATIM}/reverse?format=jsonv2&zoom=18&lat=${lat}&lon=${lng}`, { headers: { Accept: 'application/json' } });
+    const r = await fetch(`${NOMINATIM}/reverse?format=jsonv2&addressdetails=1&zoom=18&lat=${lat}&lon=${lng}`, { headers: { Accept: 'application/json' } });
     const j = await r.json();
-    return String(j?.display_name || '');
+    return formatParts(j?.address, String(j?.display_name || '')).label;
   } catch { return ''; }
 }
 
@@ -124,9 +176,11 @@ export default SiteMap;
 /** Address box with Google-style suggestions; picking one sets address + pin. */
 export const AddressField: React.FC<{
   value: string; disabled?: boolean;
+  /** Current pin, when set — suggestions are biased toward its area. */
+  bias?: { lat: number; lng: number } | null;
   onChange: (address: string) => void;
   onPlace: (p: Place) => void;
-}> = ({ value, disabled, onChange, onPlace }) => {
+}> = ({ value, disabled, bias, onChange, onPlace }) => {
   const [q, setQ] = useState(value || '');
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<Place[]>([]);
@@ -136,17 +190,20 @@ export const AddressField: React.FC<{
     setQ(v); onChange(v);
     if (timer.current) clearTimeout(timer.current);
     if (v.trim().length < 3) { setList([]); setOpen(false); return; }
-    timer.current = setTimeout(async () => { setList(await searchPlaces(v.trim())); setOpen(true); }, 350);
+    timer.current = setTimeout(async () => { setList(await searchPlaces(v.trim(), bias)); setOpen(true); }, 350);
   };
   return (
     <div style={{ position: 'relative' }}>
       <input disabled={disabled} value={q} onChange={(e) => type(e.target.value)} onFocus={() => list.length && setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder="Start typing an address…" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" autoComplete="off" />
       {open && list.length > 0 && (
-        <ul className="absolute left-0 right-0 top-full z-30 mt-1 max-h-56 overflow-y-auto rounded-md border border-border bg-background shadow-lg">
+        <ul className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-background shadow-lg">
           {list.map((p, i) => (
             <li key={i}>
-              <button type="button" className="block w-full px-3 py-2 text-left text-sm hover:bg-muted" onMouseDown={(e) => { e.preventDefault(); setQ(p.label); setOpen(false); onChange(p.label); onPlace(p); }}>{p.label}</button>
+              <button type="button" className="block w-full px-3 py-2 text-left hover:bg-muted" onMouseDown={(e) => { e.preventDefault(); setQ(p.label); setOpen(false); onChange(p.label); onPlace(p); }}>
+                <span className="block truncate text-sm font-medium">{p.sub ? p.label.slice(0, p.label.length - p.sub.length).replace(/,\s*$/, '') : p.label}</span>
+                {p.sub && <span className="block truncate text-xs text-muted-foreground">{p.sub}</span>}
+              </button>
             </li>
           ))}
         </ul>
