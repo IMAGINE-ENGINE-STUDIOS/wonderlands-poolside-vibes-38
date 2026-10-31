@@ -2,7 +2,7 @@ import * as React from "react";
 const { useState } = React;
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { LayoutDashboard } from "lucide-react";
+import { Home, LayoutDashboard } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
  * The main page now renders every category section inline (see src/pages/Index.tsx),
  * so this rail only exposes, for signed-in staff, the Admin Dashboard — the cart
  * lives solely in the Studio cart / FLIP Order Desk.
- * On non-home routes the rail's shortcut slot stays empty (no Home button — removed 2026-10-31 at the founder's direction).
+ * On non-home routes it collapses to a single "Home" button.
  */
 const RightNavigation = () => {
   const { user } = useAuth();
@@ -38,7 +38,19 @@ const RightNavigation = () => {
         } max-h-[90vh] overflow-y-auto scrollbar-hide`}
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {!isMainPage || isQuoteOpen ? null : (
+        {!isMainPage || isQuoteOpen ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => navigate("/")}
+                className="relative rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-lg"
+              >
+                <Home className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Home</TooltipContent>
+          </Tooltip>
+        ) : (
           <>
             {user && (
               <Tooltip>

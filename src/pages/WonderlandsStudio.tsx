@@ -1939,6 +1939,14 @@ const WonderlandsStudio = () => {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5">
             {/* Left side: Home button + Title */}
             <div className="flex items-center gap-3">
+              <a
+                href="/"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                title="Back to Home"
+                aria-label="Back to Home"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </a>
               <h1 className="text-lg md:text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
                 Wonderlands Studio
               </h1>
