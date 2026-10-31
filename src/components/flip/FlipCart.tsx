@@ -124,7 +124,7 @@ const FlipCart: React.FC<FlipCartProps> = ({ current, onQuote, onOpenChange }) =
       <button
         onClick={() => setOpen(true)}
         aria-label="Open the order desk"
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-3 border border-foreground bg-background/90 px-5 py-3.5 shadow-xl backdrop-blur-xl transition-colors hover:bg-foreground hover:text-background"
+        className="flex items-center gap-3 border border-foreground bg-background/90 px-5 py-3.5 shadow-xl backdrop-blur-xl transition-colors hover:bg-foreground hover:text-background max-md:mx-auto max-md:mb-6 max-md:mt-2 max-md:w-fit max-md:px-4 max-md:py-3 md:fixed md:bottom-5 md:right-5 md:z-40"
       >
         <ShoppingBag className="h-4 w-4" />
         <span className="text-[9px] uppercase tracking-[0.3em]">Order Desk</span>

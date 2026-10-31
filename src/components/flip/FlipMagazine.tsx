@@ -9,7 +9,7 @@ import PageFlipTransMotion, { usePageFlipTransMotion } from "./PageFlipTransMoti
 import { useFlipLocked } from "./flipBoardStore";
 import { ChevronLeft, ChevronRight, LayoutList, Sparkles, Ruler, Images, Calculator, Plus, Check, BookOpen, PenTool, X, Headphones, ArrowUpRight } from "lucide-react";
 import { ITEMS } from "@/components/FlipIndex";
-import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
+import { loadCategoryEntries, getCachedCategoryEntries, formatEntryPrice, formatEntryPriceOrRequest, type ConsoleEntry } from "./flipConsoleData";
 import { preloadImages, prefetchEditions } from "@/lib/flipPreload";
 import FlipSearch from "@/components/flip/FlipSearch";
 import { suiteRoute, DEDICATED_SUITES } from "@/lib/suiteRoutes";
@@ -210,7 +210,6 @@ const includedLinesForCategory = (id: string): [string, string][] =>
     ["Handover", "Care notes and next steps explained at completion"],
   ];
 
-const MAX_MODELS = 24;
 
 const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
   <p className={`text-[9px] uppercase tracking-[0.35em] text-muted-foreground ${className}`}>{children}</p>
@@ -479,7 +478,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
      models are printed catalog by catalog (Latham first, each priced low to
      high) so the intro leaf can send the reader straight into either one. */
   const products = useMemo(() => {
-    const list = (entries ?? []).slice(0, MAX_MODELS);
+    const list = entries ?? [];
     if (categoryId !== "pools") return list;
     const rank = (b?: string) => ((b ?? "").toLowerCase().includes("latham") ? 0 : 1);
     return [...list].sort(
@@ -931,7 +930,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
 
             <div className="grid grid-cols-3 gap-4 border-t border-white/25 pt-4">
               {[
-                ["14", "Disciplines"],
+                ["16", "Disciplines"],
                 ["Turnkey", "Installation"],
                 ["Florida", "Engineered"],
               ].map(([a, b]) => (
@@ -1195,7 +1194,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                     </span>
                     <span className="relative mt-3 flex items-center justify-between gap-3 text-[8.5px] uppercase tracking-[0.3em] text-white/70">
                       <span>
-                        {c.models.length} models · from {formatEntryPrice(c.models[0]) || "on request"}
+                        {c.models.length} models{formatEntryPrice(c.models[0]) ? ` · from ${formatEntryPrice(c.models[0])}` : ""}
                       </span>
                       <ChevronRight className="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-1.5" />
                     </span>
@@ -1274,7 +1273,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
             {!products.length && <li className="pt-6 text-[11px] text-muted-foreground">Composing pages…</li>}
           </ul>
           <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-            {products.length} models · pose the mouse on a line to preview it
+            {products.length} models · {portrait ? "tap a line to preview it" : "pose the mouse on a line to preview it"}
           </p>
         </div>
       ),
@@ -1319,7 +1318,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
       body: category.description,
       stats: [
         { value: String(products.length || "—"), label: "Models in this edition" },
-        { value: (products[0] ? formatEntryPrice(products[0]) : "") || "On request", label: "From" },
+        { value: products[0] ? formatEntryPrice(products[0]) || (products[0].hidePrice ? "—" : "On request") : "On request", label: "From" },
         { value: "Turnkey", label: "Delivered & installed" },
       ],
       lockup: "Wonderlands World — FLIP",
@@ -1404,7 +1403,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                   {lead.name}
                 </span>
                 <span className="shrink-0 font-serif text-[12px] text-foreground">
-                  {formatEntryPrice(lead) || "On request"}
+                  {formatEntryPriceOrRequest(lead)}
                 </span>
               </span>
             </button>
@@ -1463,7 +1462,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                     {p.name}
                   </span>
                   <span className="block font-serif text-[10.5px] text-muted-foreground">
-                    {formatEntryPrice(p) || "On request"}
+                    {formatEntryPriceOrRequest(p)}
                   </span>
                 </button>
               );
@@ -1560,7 +1559,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
               <ProductTitle entry={p} className="mt-2 font-serif text-3xl font-light leading-tight sm:text-5xl" />
               {p.meta && <p className="mt-3 max-w-sm text-[11px] leading-relaxed opacity-80">{p.meta}</p>}
               <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-white/25 pt-4">
-                <p className="font-serif text-2xl font-light">{formatEntryPrice(p) || "On request"}</p>
+                <p className="font-serif text-2xl font-light">{formatEntryPriceOrRequest(p)}</p>
                 <AddButton entry={p} tone="dark" />
               </div>
             </div>
@@ -1578,7 +1577,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
             <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4">
               <div>
                 <Eyebrow>Investment</Eyebrow>
-                <p className="mt-1 font-serif text-2xl font-light">{formatEntryPrice(p) || "On request"}</p>
+                <p className="mt-1 font-serif text-2xl font-light">{formatEntryPriceOrRequest(p)}</p>
               </div>
               <div>
                 <Eyebrow>Discipline</Eyebrow>
@@ -1651,7 +1650,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                     </button>
 
                     <span className="shrink-0 font-serif text-base font-light">
-                      {formatEntryPrice(p) || "On request"}
+                      {formatEntryPriceOrRequest(p)}
                     </span>
                     <button
                       onClick={() => addEntry(p)}
@@ -1734,7 +1733,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
         } as any,
       );
     };
-    const PER_OPT_PAGE = 5;
+    const PER_OPT_PAGE = portrait ? 4 : 5;
     groups.forEach((g: any, gi) => {
       const items: any[] = (g.items?.length ? g.items : (g.options ?? []).map((label: string) => ({ label })));
       const chunks: any[][] = [];
@@ -1775,7 +1774,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
                 ))}
               </ul>
               <p className="mt-4 border-t border-border/50 pt-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                Pose the mouse on a line to see it — configured, priced, installed
+                {portrait ? "Tap a line to see it" : "Pose the mouse on a line to see it"} — configured, priced, installed
               </p>
             </div>
           ),
@@ -1801,7 +1800,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
           </p>
           <div className="mt-6 grid gap-2">
             {[
-              ["From", products.length ? formatEntryPrice(products[0]) || "On request" : "On request"],
+              ["From", products.length ? formatEntryPrice(products[0]) || (products[0].hidePrice ? "—" : "On request") : "On request"],
               ["Models in edition", String(products.length)],
               ["Option chapters", String(groups.length)],
             ].map(([k, v]) => (
@@ -2424,7 +2423,7 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
         {/* Wide search desk — spans the book from corner to corner.
             The collapsible "FLIP Search Engine" header was removed: the bar is
             always live, and the rail Genius button pops the narrator console here. */}
-        <div id="flip-search-desk" className="mx-auto mt-6 w-full px-1 md:px-0" style={{ maxWidth: portrait ? dims.w : dims.w * 2 }}>
+        <div id="flip-search-desk" className="mx-auto mt-6 w-full px-1 md:px-0" style={{ maxWidth: `min(100%, ${portrait ? dims.w : dims.w * 2}px)` }}>
           <div className="border border-border/60 bg-background/70 backdrop-blur-xl">
             {narratorOpen && (
               <div className="border-b border-border/60 px-3 pb-4 pt-3 md:px-5">

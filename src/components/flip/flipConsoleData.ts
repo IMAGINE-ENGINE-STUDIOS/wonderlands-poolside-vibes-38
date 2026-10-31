@@ -14,17 +14,25 @@ export type ConsoleEntry = {
   color?: string;
   /** Pre-formatted price line ("Included", "$15 / sq ft") */
   priceLabel?: string;
+  /** No price line is printed at all (e.g. Solar — the main page shows none) */
+  hidePrice?: boolean;
 };
 
 const money = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 export const formatEntryPrice = (e: ConsoleEntry) => {
+  if (e.hidePrice) return "";
   if (e.priceLabel) return e.priceLabel;
   if (typeof e.price !== "number") return "";
   const suffix = e.unit === "sqft" ? " / sq ft" : e.unit === "linear-ft" ? " / linear ft" : "";
   return `${money(e.price)}${suffix}`;
 };
+
+/** Price line for surfaces that fall back to "On request" — price-hidden
+ *  entries (Solar) print no price line at all, never "On request". */
+export const formatEntryPriceOrRequest = (e: ConsoleEntry) =>
+  e.hidePrice ? "" : formatEntryPrice(e) || "On request";
 
 const fromLookup = async (
   match: (category: string) => boolean,
@@ -119,8 +127,24 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
         (c) => c === "Pool",
         (b) => (b ?? "").toLowerCase() !== "wonderlands",
       );
-    case "spas":
-      return fromLookup((c) => c === "Spa");
+    case "spas": {
+      const [entries, { gilmerSpas }] = await Promise.all([
+        fromLookup((c) => c === "Spa"),
+        import("@/data/gilmerSpas"),
+      ]);
+      /* Glimmerglass spa meta (dimensions / depth / image) comes straight
+         from gilmerSpas, so the book matches GilmerSpaCard exactly. */
+      const byModel = new Map(gilmerSpas.map((s) => [s.model.toLowerCase(), s]));
+      return entries.map((e) => {
+        const g = byModel.get(e.name.toLowerCase());
+        if (!g) return e;
+        return {
+          ...e,
+          image: g.image,
+          meta: [g.dimensions, g.depth].filter(Boolean).join(" · "),
+        };
+      });
+    }
     case "tanning-ledges":
       return fromLookup((c) => c === "Tanning Ledge");
     case "covers":
@@ -142,7 +166,7 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
       const { drivewayGates } = await import("@/data/drivewayGates");
       return drivewayGates.map((g: any, i: number) => ({
         id: `gate-${i}`,
-        name: `${g.name ?? "Driveway Gate"} — ${g.baseDimensions}`,
+        name: g.model ?? "Driveway Gate",
         image: g.image ?? g.images?.[0],
         price: g.basePrice,
         unit: "each" as const,
@@ -192,7 +216,8 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
         meta: "High-density turf, drainage base included",
       }));
     }
-    /* Wonderlands Solar — energy collection */
+    /* Wonderlands Solar — energy collection. The main page prints no price
+       for these, so the book prints no price line either (hidePrice). */
     case "solar": {
       const { solarProducts } = await import("@/data/solarData");
       return solarProducts
@@ -203,12 +228,13 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
           unit: "each" as const,
           brand: "Wonderlands Solar",
           meta: p.spec,
+          hidePrice: true,
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
     }
     case "landscaping": {
       const { landscapingPlants } = await import("@/data/landscapingData");
-      return landscapingPlants.slice(0, 60).map((p: any) => ({
+      return landscapingPlants.map((p: any) => ({
         id: p.id,
         name: p.name,
         image: p.image,
@@ -218,11 +244,22 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
       }));
     }
     case "finishes": {
-      const [{ poolTiles }, pebble] = await Promise.all([
-        import("@/data/poolData"),
+      const [{ poolFinishes }, pebble] = await Promise.all([
+        import("@/data/consolidatedProducts"),
         import("@/data/pebbleTecFinishes"),
       ]);
-      /* Pebble Tec leads the chapter — it is the surface of every concrete shell */
+      /* The edition is the finish catalog itself: the 12 catalog finishes
+         PoolFinishesSection renders, then the 57 Pebble Tec finishes.
+         Pool tiles are a different product and are not edition entries. */
+      const catalogEntries: ConsoleEntry[] = poolFinishes.map((f) => ({
+        id: f.id,
+        name: f.name,
+        image: f.image,
+        price: f.price,
+        unit: "each" as const,
+        brand: f.collection,
+        meta: f.collection,
+      }));
       const pebbleEntries: ConsoleEntry[] = pebble.pebbleTecFinishes.map((f) => ({
         id: f.id,
         name: f.name,
@@ -232,15 +269,7 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
         meta: `${f.collection} · ${f.note}`,
         priceLabel: pebble.PEBBLE_TEC_PRICE_LABEL,
       }));
-      const tileEntries: ConsoleEntry[] = poolTiles.map((t: any, i: number) => ({
-        id: `finish-${i}`,
-        name: t.name,
-        image: t.image,
-        price: t.price,
-        unit: "each" as const,
-        meta: t.description,
-      }));
-      return [...pebbleEntries, ...tileEntries];
+      return [...catalogEntries, ...pebbleEntries];
     }
     case "liners": {
       const { poolLiners } = await import("@/data/poolData");

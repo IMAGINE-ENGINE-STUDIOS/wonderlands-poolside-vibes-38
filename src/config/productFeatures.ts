@@ -5,6 +5,10 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 import noCoverBlack from '@/assets/covers/no-cover-black.webp';
 import { getSaunaOptionRetail } from '@/lib/saunaPricing';
+import gilmerMoonlight from '@/assets/pools/glimmerglass/gilmer-moonlight.webp';
+import gilmerPacifica from '@/assets/pools/glimmerglass/gilmer-pacifica.webp';
+import gilmerPearl from '@/assets/pools/glimmerglass/gilmer-pearl.webp';
+import gilmerTranquility from '@/assets/pools/glimmerglass/gilmer-tranquility.webp';
 
 // Product type definitions
 export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'scene';
@@ -60,25 +64,70 @@ const spas: FeatureOption[] = [
     category: 'premium',
     image: "/media/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.webp",
     dimensions: "7' x 7' x 34\"",
-    features: ["LED Lighting", "Jets", "Heater"]
+    features: ["LED Lighting System", "Digital Controls", "Insulated Shell"]
   },
   {
     model: "Serenity",
     name: "Serenity",
-    price: 22000,
+    price: 26000,
     category: 'deluxe',
-    image: "/wonderlands-branding/1412e1fb-72ec-4219-a98f-4fcffbd15095.webp",
-    dimensions: "6' x 6' x 32\"",
-    features: ["LED Lighting", "Jets", "Heater"]
+    image: "/media/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.webp",
+    dimensions: "8' x 8' x 36\"",
+    features: ["55 Hydrotherapy Jets", "Aromatherapy System", "Bluetooth Audio", "Energy Efficient"]
+  },
+  {
+    model: "Tranquil",
+    name: "Tranquil",
+    price: 26000,
+    category: 'standard',
+    image: "/media/7edc4a89-7438-4f88-81f4-8beea8152f07.webp",
+    dimensions: "9' x 9' x 38\"",
+    features: ["70 Precision Jets", "Smart Controls", "UV Sanitization", "Premium Insulation"]
+  },
+  {
+    model: "Oasis",
+    name: "Oasis",
+    price: 28000,
+    category: 'premium',
+    image: "/media/46c5f140-bd7e-4a4d-9a19-1f15b078b899.webp",
+    dimensions: "10' x 10' x 40\"",
+    features: ["85 Therapeutic Jets", "Cascade Waterfall", "Advanced Filtration", "Mobile App Control"]
+  },
+  {
+    model: "Moondance Spillover",
+    name: "Moondance Spillover",
+    price: 20000,
+    category: 'spillover',
+    image: gilmerMoonlight,
+    dimensions: "8'x8'x3'3\"",
+    features: ["Spillover Design", "Fiberglass Construction", "Lifetime Structural Warranty"]
+  },
+  {
+    model: "Pacifica",
+    name: "Pacifica",
+    price: 18000,
+    category: 'standard',
+    image: gilmerPacifica,
+    dimensions: "7'6\"x7'6\"x3'",
+    features: ["Ergonomic Seating", "Fiberglass Construction", "Lifetime Structural Warranty"]
+  },
+  {
+    model: "Pearl Spillover",
+    name: "Pearl Spillover",
+    price: 18000,
+    category: 'spillover',
+    image: gilmerPearl,
+    dimensions: "7'6\"x7'6\"x3'",
+    features: ["Spillover Design", "Fiberglass Construction", "Lifetime Structural Warranty"]
   },
   {
     model: "Tranquility",
     name: "Tranquility",
     price: 20000,
-    category: 'standard',
-    image: "/media/997efdd7-a754-4836-98ac-05c5e9abaf0b.webp",
-    dimensions: "5' x 5' x 30\"",
-    features: ["Basic Lighting", "Jets"]
+    category: 'deluxe',
+    image: gilmerTranquility,
+    dimensions: "9'x9'x3'8\"",
+    features: ["Premium Design", "Fiberglass Construction", "Lifetime Structural Warranty"]
   }
 ];
 
@@ -859,7 +908,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       description: 'Automated gate opening system for convenient access',
       type: 'boolean',
       icon: 'Zap',
-      basePrice: 2000
+      basePrice: 2300
     },
     {
       id: 'installation',

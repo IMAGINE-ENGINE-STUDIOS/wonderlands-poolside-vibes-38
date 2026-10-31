@@ -70,7 +70,7 @@ const FlipContentsRow: React.FC<FlipContentsRowProps> = ({
           {String(index + 1).padStart(2, "0")}
         </span>
         <span
-          className={`min-w-0 flex-1 truncate text-[10.5px] uppercase tracking-[0.16em] ${
+          className={`min-w-0 flex-1 break-words text-[10.5px] uppercase leading-snug tracking-[0.16em] ${
             ink ? "text-white" : "text-foreground"
           }`}
         >

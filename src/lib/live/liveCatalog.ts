@@ -7,25 +7,156 @@
  */
 import { poolProductLookup, type PoolProductInfo } from "@/data/poolProductLookup";
 import { ALL_BOARDS, suiteRoute } from "@/lib/suiteRoutes";
+import { studioScreenEnclosures, studioFencing, studioLanai } from "@/data/studioCategoryProducts";
+import { poolFinishes } from "@/data/consolidatedProducts";
+import { pebbleTecFinishes } from "@/data/pebbleTecFinishes";
+import { solarProducts } from "@/data/solarData";
+import { landscapingPlants } from "@/data/landscapingData";
+import { paverTypes } from "@/data/paverData";
+import { artificialGrassOptions, getGrassPricePerSqFt } from "@/data/artificialGrassData";
+import { poolLiners } from "@/data/poolData";
 
 export interface LiveProduct extends PoolProductInfo {
   key: string;
+  /** Price is carried for quotes but never shown in the tab (e.g. Solar —
+   *  the main page prints no prices for it). */
+  hidePrice?: boolean;
 }
 
-export const LIVE_PRODUCTS: LiveProduct[] = Object.entries(poolProductLookup).map(
-  ([key, p]) => ({ key, ...p }),
-);
+const slugify = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/** The main-page categories the lookup does not carry, sourced from the
+ *  same in-code catalogs their main-page sections render. */
+const extraProducts: LiveProduct[] = [
+  ...studioScreenEnclosures.map((e) => ({
+    key: `screen-enclosure-${slugify(e.name)}`,
+    name: e.name,
+    brand: "Wonderlands",
+    category: "Screen Enclosures",
+    price: e.price,
+    image: e.image,
+    dimensions: "Custom fit",
+    depth: "N/A",
+  })),
+  ...studioFencing.map((e) => ({
+    key: `patio-fencing-${slugify(e.name)}`,
+    name: e.name,
+    brand: "Wonderlands",
+    category: "Patio Fencing",
+    price: e.price,
+    image: e.image,
+    dimensions: "Custom fit",
+    depth: "N/A",
+  })),
+  ...studioLanai.map((e) => ({
+    key: `lanai-${slugify(e.name)}`,
+    name: e.name,
+    brand: "Wonderlands",
+    category: "Lanai",
+    price: e.price,
+    image: e.image,
+    dimensions: "Custom fit",
+    depth: "N/A",
+  })),
+  ...paverTypes
+    .filter((pv) => pv.category === "paver")
+    .map((pv) => ({
+      key: `paver-${pv.id}`,
+      name: pv.name,
+      brand: "Wonderlands",
+      category: "Pavers",
+      price: pv.basePrice,
+      image: pv.image,
+      dimensions: "Priced per sq ft",
+      depth: "N/A",
+    })),
+  ...artificialGrassOptions.map((g) => ({
+    key: `grass-${g.id}`,
+    name: g.name,
+    brand: "Wonderlands",
+    category: "Artificial Grass",
+    price: getGrassPricePerSqFt(g.name),
+    image: g.image,
+    dimensions: "Priced per sq ft",
+    depth: "N/A",
+  })),
+  ...landscapingPlants.map((pl, i) => ({
+    key: `plant-${slugify(pl.name)}-${i}`,
+    name: pl.name,
+    brand: "Wonderlands",
+    category: "Landscaping",
+    price: Math.round(pl.minPrice),
+    image: pl.image,
+    dimensions: pl.category,
+    depth: "N/A",
+  })),
+  ...poolFinishes.map((f) => ({
+    key: `finish-${f.id}`,
+    name: f.name,
+    brand: f.collection ?? "Latham",
+    category: "Finishes",
+    price: f.price,
+    image: f.image,
+    dimensions: f.collection ?? "",
+    depth: "N/A",
+  })),
+  ...pebbleTecFinishes.map((f) => ({
+    key: `finish-pebble-${slugify(f.name)}-${slugify(f.collection)}`,
+    name: f.name,
+    brand: "Pebble Tec",
+    category: "Finishes",
+    price: 0,
+    hidePrice: true,
+    image: f.image,
+    dimensions: f.collection,
+    depth: "N/A",
+  })),
+  ...poolLiners.map((l) => ({
+    key: `liner-${slugify(l.name)}`,
+    name: l.name,
+    brand: "Latham",
+    category: "Liners",
+    price: l.price,
+    image: l.image,
+    dimensions: "Custom fit",
+    depth: "N/A",
+  })),
+  ...solarProducts.map((sp) => ({
+    key: `solar-${sp.id}`,
+    name: sp.name,
+    brand: "Wonderlands Solar",
+    category: "Solar",
+    price: sp.price,
+    hidePrice: true,
+    image: sp.image,
+    dimensions: sp.spec,
+    depth: "N/A",
+  })),
+];
+
+export const LIVE_PRODUCTS: LiveProduct[] = [
+  ...Object.entries(poolProductLookup).map(([key, p]) => ({ key, ...p })),
+  ...extraProducts,
+];
 
 export const LIVE_PRODUCT_GROUPS: Array<{ category: string; products: LiveProduct[] }> = (() => {
-  const order = ["Pool", "Spa", "Tanning Ledge", "Sauna", "Cover", "Driveway Gate"];
+  const order = [
+    "Pool", "Spa", "Tanning Ledge", "Sauna", "Cover", "Driveway Gate",
+    "Screen Enclosures", "Patio Fencing", "Lanai", "Pavers",
+    "Artificial Grass", "Landscaping", "Finishes", "Liners", "Solar",
+  ];
   const byCat = new Map<string, LiveProduct[]>();
   // The lookup carries alias keys for search matching ("moondance spillover
   // spa" = "Moondance Spillover"); the picker shows each product once —
   // first key per display name wins. LIVE_PRODUCTS itself is untouched.
   const seenNames = new Set<string>();
   for (const p of LIVE_PRODUCTS) {
-    if (seenNames.has(p.name)) continue;
-    seenNames.add(p.name);
+    const dedupeKey =
+      p.category === "Finishes" || p.category === "Landscaping"
+        ? `${p.category}|${p.name}|${p.dimensions}`
+        : `${p.category}|${p.name}`;
+    if (seenNames.has(dedupeKey)) continue;
+    seenNames.add(dedupeKey);
     const list = byCat.get(p.category) ?? [];
     list.push(p);
     byCat.set(p.category, list);

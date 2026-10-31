@@ -80,6 +80,12 @@ const LATHAM_MODELS = [
 
 const isGlimmerGlass = (ctx: StudioContext) => (ctx.brand ?? "").toLowerCase().includes("glimmer");
 
+/** SpaCatalog's spas — the card offers every catalog finish at full price. */
+const SPA_CATALOG_MODELS = ["Mystic", "Serenity", "Tranquil", "Oasis"];
+/** Latham tanning ledges — the card offers every catalog finish (the
+ *  ledge feature config already halves the prices). */
+const LATHAM_LEDGE_MODELS = ["Hermosa", "Rectangle"];
+
 /** Only the collections the given model is offered in. */
 const finishAllowed = (option: FeatureOption, ctx: StudioContext) => {
   const collection = (option as any).collection as string | undefined;
@@ -87,6 +93,8 @@ const finishAllowed = (option: FeatureOption, ctx: StudioContext) => {
   if (WONDERLANDS_MODELS.includes(model)) return collection === "Mini Pebbles";
   /* GlimmerGlass is finished in its own gelcoat only — no Latham finish ranges */
   if (isGlimmerGlass(ctx)) return false;
+  if (SPA_CATALOG_MODELS.includes(model)) return true;
+  if (LATHAM_LEDGE_MODELS.some((b) => model.startsWith(b))) return true;
   if (LATHAM_MODELS.some((b) => model.startsWith(b))) return collection === "Crystite Crystal";
   return collection !== "Crystite Crystal" && collection !== "Mini Pebbles";
 };
@@ -143,7 +151,7 @@ const buildItems = (f: FeatureConfig, ctx: StudioContext, prefix = ""): StudioOp
     });
   }
 
-  if (!out.length && !f.subFeatures?.length) {
+  if (!out.length && !f.subFeatures?.length && !f.options?.length) {
     const base = Number(f.basePrice) || Number(f.pricePerUnit) || 0;
     out.push({
       label: prefix ? `${prefix}: ${f.label}` : f.label,
@@ -177,7 +185,55 @@ const STANDARD_INCLUSIONS: StudioOption[] = TURNKEY_SCOPE.map((i) => ({
 }));
 
 import { TURNKEY_SCOPE } from "@/data/turnkeyScope";
-import { pebbleTecFinishes as PEBBLE_TEC, PEBBLE_TEC_PRICE_LABEL } from "@/data/pebbleTecFinishes";
+import sunsetGroveImage from "@/assets/water-features/waterfalls/sunset-grove-kit-pool.webp";
+import maldivesImage from "@/assets/water-features/waterfalls/maldiveskit-castlerock.webp";
+import serenityWaterfallImage from "@/assets/water-features/waterfalls/serenitykit.webp";
+import grassLightGreenImage from "@/assets/turf/grass-light-green.avif";
+import grassDarkGreenImage from "@/assets/turf/grass-dark-green.avif";
+import grassNaturalGreenImage from "@/assets/turf/grass-natural-green.avif";
+import grassEmeraldImage from "@/assets/turf/grass-emerald.avif";
+import grassOliveImage from "@/assets/turf/grass-olive.avif";
+
+/** Rocky waterfall kits — the pool cards' own waterfall options. */
+const WATERFALL_OPTIONS: StudioOption[] = [
+  { label: "Sunset Grove Rocky Waterfall", price: 17500, priceLabel: "$17,500", image: sunsetGroveImage, note: "Rock waterfall kit — Castle Rock, Gray or Brown" },
+  { label: "Maldives Rocky Waterfall", price: 5600, priceLabel: "$5,600", image: maldivesImage, note: "Rock waterfall kit — Castle Rock, Gray or Brown" },
+  { label: "Serenity Rocky Waterfall", price: 9500, priceLabel: "$9,500", image: serenityWaterfallImage, note: "Rock waterfall kit — Castle Rock, Gray or Brown" },
+];
+
+/** Artificial grass — the turf range, priced per square foot. */
+const GRASS_OPTIONS: StudioOption[] = [
+  { label: "Artificial Grass — Light Green", price: 25, priceLabel: "$25 / sq ft", unit: "sqft", image: grassLightGreenImage },
+  { label: "Artificial Grass — Dark Green", price: 25, priceLabel: "$25 / sq ft", unit: "sqft", image: grassDarkGreenImage },
+  { label: "Artificial Grass — Natural Green", price: 25, priceLabel: "$25 / sq ft", unit: "sqft", image: grassNaturalGreenImage },
+  { label: "Artificial Grass — Emerald", price: 25, priceLabel: "$25 / sq ft", unit: "sqft", image: grassEmeraldImage },
+  { label: "Artificial Grass — Olive", price: 25, priceLabel: "$25 / sq ft", unit: "sqft", image: grassOliveImage },
+];
+
+/** The heater photo every pool/spa card uses. */
+const HEATER_IMAGE = "/media/34a72b4b-56fe-42f6-b7cc-5ace54914636.webp";
+
+/** Spa heaters, brand-split exactly as the two spa cards split them. */
+const spaHeaterItems = (glimmer: boolean): StudioOption[] =>
+  (glimmer
+    ? [
+        ["Spa Heat Pump - Compact", 5250],
+        ["Spa Heat Pump - Premium", 6750],
+        ["Pentair MasterTemp 125 (125K BTU)", 3450],
+        ["Pentair UltraTemp 90 Heat Pump", 7762],
+      ]
+    : [
+        ["Spa Heat Pump - Compact", 5250],
+        ["Spa Heat Pump - Premium", 6750],
+        ["Spa Gas Heater", 4200],
+        ["Solar Spa Heater", 3300],
+      ]
+  ).map(([label, price]) => ({
+    label: label as string,
+    price: price as number,
+    priceLabel: money(price as number),
+    image: HEATER_IMAGE,
+  }));
 
 const POOL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges", "finishes", "liners"]);
 
@@ -198,9 +254,9 @@ const SHELL_LIKE = new Set(["pools", "concrete-pools", "spas", "tanning-ledges"]
  */
 const CATEGORY_FEATURE_ALLOW: Record<string, Set<string>> = {
   /* Spas can show spa finishes, waterline, heater, jets, cover and their immediate surround — never tanning ledges */
-  spas: new Set(["finish", "liner", "tiles", "heater", "jets", "pavers", "cover", "screenEnclosure"]),
+  spas: new Set(["finish", "liner", "tiles", "heater", "jets", "pavers", "screenEnclosure"]),
   /* Tanning ledges are shallow-water shelves; they do not inherit add-a-spa, enclosure or concrete-pool construction chapters */
-  "tanning-ledges": new Set(["finish", "heater", "jets", "pavers", "liner", "tiles"]),
+  "tanning-ledges": new Set(["finish", "heater", "jets", "pavers"]),
   /* Pavers are a hardscape surface: the paver material itself, the measured deck area and the base */
   pavers: new Set(["material", "area", "baseMaterial"]),
   /* Covers need their fabric colour and housing/install choices; never pool heaters/jets/finishes */
@@ -209,7 +265,7 @@ const CATEGORY_FEATURE_ALLOW: Record<string, Set<string>> = {
   "screen-enclosures": new Set(["area", "quality", "doorType", "roofStyle"]),
   lanai: new Set(["area", "quality", "doorType", "roofStyle"]),
   /* Driveway gates keep only access, operator and install choices */
-  "driveway-gates": new Set(["automation", "installation", "accessControl", "intercom"]),
+  "driveway-gates": new Set(["automation"]),
   /* Interior surfaces: the finish itself plus the tile/waterline detail read against it */
   finishes: new Set(["finish", "tiles"]),
   /* Vinyl liner prints: the liner field and its waterline border only */
@@ -220,6 +276,12 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
   const key = `${categoryId}|${ctx.modelName ?? ""}|${ctx.brand ?? ""}`;
   const cached = cache.get(key);
   if (cached) return cached;
+
+  /* The concrete edition is the Wonderlands collection; without a model in
+     context its finishes still resolve to the Mini Pebbles range. */
+  if (categoryId === "concrete-pools" && !ctx.modelName) {
+    ctx = { ...ctx, modelName: WONDERLANDS_MODELS[0] };
+  }
 
   const productType = CATEGORY_TO_PRODUCT[categoryId];
   const allow = CATEGORY_FEATURE_ALLOW[categoryId];
@@ -235,27 +297,7 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
     });
   }
 
-
-  /* Concrete shells are finished in Pebble Tec — never in a moulded gelcoat */
-  if (categoryId === "concrete-pools") {
-    const finishes: StudioOption[] = PEBBLE_TEC.map((f) => ({
-      label: `${f.name} — ${f.collection}`,
-      price: 0,
-      priceLabel: PEBBLE_TEC_PRICE_LABEL,
-      note: f.note,
-      image: f.image,
-      color: f.color,
-    }));
-    groups.push({
-      title: "Pebble Tec interior finish",
-      note: "The surface of every Wonderlands concrete shell — priced per shell surface area",
-      items: finishes,
-      options: finishes.map((f) => f.label),
-      choice: true,
-    });
-  }
-
-  if (isGlimmerGlass(ctx) && (categoryId === "pools" || categoryId === "spas" || categoryId === "finishes")) {
+  if (isGlimmerGlass(ctx) && (categoryId === "pools" || categoryId === "spas" || categoryId === "finishes" || categoryId === "tanning-ledges")) {
     groups.push({
       title: "Gelcoat colour",
       note: "Included with every GlimmerGlass shell — the only line finished in gelcoat",
@@ -265,13 +307,52 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
     });
   }
 
+  /* Spas carry their own insulated cover as a priced item — never the
+     pool automatic-cover chapter. */
+  if (categoryId === "spas") {
+    const spaCover: StudioOption = { label: "Spa Cover", price: 3200, priceLabel: "$3,200" };
+    groups.push({
+      title: "Spa Cover",
+      note: "Insulated spa cover, sized to the vessel",
+      items: [spaCover],
+      options: ["Spa Cover — $3,200"],
+      choice: true,
+    });
+  }
+
+  /* Pools gain the waterfall and turf chapters their cards carry. */
+  if (categoryId === "pools" || categoryId === "concrete-pools") {
+    groups.push({
+      title: "Rocky Waterfalls",
+      note: "Rock waterfall kits — Castle Rock, Gray or Brown",
+      items: WATERFALL_OPTIONS,
+      options: WATERFALL_OPTIONS.map((i) => `${i.label} — ${i.priceLabel}`),
+      choice: true,
+    });
+    groups.push({
+      title: "Artificial Grass",
+      note: "Premium low-maintenance turf, priced per sq ft",
+      items: GRASS_OPTIONS,
+      options: GRASS_OPTIONS.map((i) => `${i.label} — ${i.priceLabel}`),
+      choice: true,
+    });
+  }
+
   if (productType) {
     getProductFeatures(productType).forEach((f) => {
       /* Keep only the features that educate a reader of *this* book */
       if (allow && !allow.has(f.id)) return;
-      const items = buildItems(f, ctx).filter(
-        (i) => !(POOL_LIKE.has(categoryId) && /salt/i.test(i.label)),
-      );
+      /* Wonderlands pools ARE concrete — no Concrete Construction chapter */
+      if (
+        f.id === "concreteConstruction" &&
+        (categoryId === "concrete-pools" || WONDERLANDS_MODELS.includes(ctx.modelName ?? ""))
+      )
+        return;
+      const items = (
+        categoryId === "spas" && f.id === "heater"
+          ? spaHeaterItems(isGlimmerGlass(ctx))
+          : buildItems(f, ctx)
+      ).filter((i) => !(POOL_LIKE.has(categoryId) && /salt/i.test(i.label)));
 
       if (!items.length) return;
       groups.push({
@@ -322,17 +403,23 @@ export const mergeStudioGroups = (
 
   const extra: StudioGroup[] = editorial
     .filter((g) => !seen.has(g.title.toLowerCase()))
-    .map((g) => ({
-      ...g,
-      items: g.options.map((label) => {
-        if (POOL_LIKE.has(categoryId) && /salt/i.test(label)) {
-          return { label, price: 0, priceLabel: "Included" } as StudioOption;
-        }
-        const hit = match(label);
-        return hit
-          ? { ...hit, label, image: hit.image, note: hit.note }
-          : ({ label, price: 0, priceLabel: "Configured in the studio", unpriced: true } as StudioOption);
-      }),
-    }));
+    .map((g) => {
+      const items = g.options
+        .map((label) => {
+          if (POOL_LIKE.has(categoryId) && /salt/i.test(label)) {
+            return { label, price: 0, priceLabel: "Included" } as StudioOption;
+          }
+          const hit = match(label);
+          return hit
+            ? { ...hit, label, image: hit.image, note: hit.note }
+            : ({ label, price: 0, priceLabel: "Configured in the studio", unpriced: true } as StudioOption);
+        })
+        /* FLIP never prints an unpriced "Configured in the studio" line —
+           an editorial option with no priced studio match is dropped, and
+           a chapter with nothing priced left in it is dropped whole. */
+        .filter((i) => !i.unpriced);
+      return { ...g, items, options: items.map((i) => i.label) };
+    })
+    .filter((g) => g.items.length > 0);
   return [...studio, ...extra];
 };

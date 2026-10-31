@@ -4,7 +4,7 @@ import HTMLFlipBook from "react-pageflip";
 import { resolveProductGallery } from "@/lib/flipProductGallery";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X, Check, Plus, ArrowUpRight, Maximize2 } from "lucide-react";
-import { formatEntryPrice, type ConsoleEntry } from "./flipConsoleData";
+import { formatEntryPriceOrRequest, type ConsoleEntry } from "./flipConsoleData";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeStudioGroups, type StudioGroup, type StudioOption } from "@/lib/flipStudioFeatures";
 import { isTurnkeyScopeLine } from "@/data/turnkeyScope";
@@ -351,11 +351,23 @@ const OptionChapter: React.FC<{
   entry: ConsoleEntry;
   categoryLabel: string;
   categoryId: string;
-}> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId }) => {
+  /** Portrait (single-leaf) books always use the carousel — the leaf is
+   *  narrow by construction even when the window itself is wide (stage
+   *  embeds), where the window-based check alone would print the list. */
+  forceCarousel?: boolean;
+}> = ({ group, chunk, index, chunkIndex, chunkCount, perPage, entry, categoryLabel, categoryId, forceCarousel }) => {
   const cart = useOptionalShoppingCart();
   /* which leaf of the spread this chapter is printed on — decides the + side */
   const leafSide = useLeafSide();
-  const narrow = useNarrowLeaf();
+  const narrow = useNarrowLeaf() || !!forceCarousel;
+  /* Touch devices get tap wording — there is no hover to speak of. */
+  const coarsePointer = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(hover: none)").matches,
+    [],
+  );
   const [slide, setSlide] = useState(0);
   const [active, setActive] = useState<StudioOption | null>(null);
   const [full, setFull] = useState(false);
@@ -517,7 +529,7 @@ const OptionChapter: React.FC<{
           ) : o.color ? (
             <span className="h-7 w-7 shrink-0 border border-border/60" style={{ backgroundColor: o.color }} />
           ) : null}
-          <span className="min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.18em]">{o.label}</span>
+          <span className="min-w-0 flex-1 break-words text-[11px] uppercase leading-snug tracking-[0.18em]">{o.label}</span>
           <span className="shrink-0 font-serif text-[11px] text-muted-foreground">{o.priceLabel}</span>
           {/* left-hand leaf: the + stays on the inner (right) edge of the row */}
           {leafSide !== "right" && control(o)}
@@ -583,7 +595,7 @@ const OptionChapter: React.FC<{
     );
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden p-7 sm:p-9">
+    <div className="flex h-full w-full flex-col overflow-hidden p-5 sm:p-9">
       <Eyebrow>
         {String(index + 3).padStart(2, "0")} — {group.title}
         {chunkCount > 1 ? ` (${chunkIndex + 1}/${chunkCount})` : ""}
@@ -602,8 +614,8 @@ const OptionChapter: React.FC<{
         <div className={`relative mt-4 aspect-[5/4] w-full shrink-0 overflow-hidden bg-muted ${narrow ? "max-h-[34%]" : "max-h-[46%]"}`}>
           {plateArt(true)}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
-          <p className="absolute inset-x-3 bottom-2 flex items-baseline justify-between gap-3 pr-10 text-[9px] uppercase tracking-[0.3em] text-white/90">
-            <span className="truncate">{preview?.label ?? group.title}</span>
+          <p className="absolute inset-x-3 bottom-2 flex items-end justify-between gap-3 pr-10 text-[9px] uppercase tracking-[0.3em] text-white/90">
+            <span className="min-w-0 flex-1 break-words leading-snug">{preview?.label ?? group.title}</span>
             {preview?.priceLabel && <span className="shrink-0 opacity-80">{preview.priceLabel}</span>}
           </p>
           <button
@@ -616,8 +628,8 @@ const OptionChapter: React.FC<{
           </button>
         </div>
       ) : (
-        <div className="mt-4 shrink-0 border-y border-border/60 py-4">
-          <p className="font-serif text-4xl font-light leading-none text-foreground/15">
+        <div className={`mt-4 shrink-0 border-y border-border/60 ${narrow ? "py-3" : "py-4"}`}>
+          <p className={`font-serif font-light leading-none text-foreground/15 ${narrow ? "text-3xl" : "text-4xl"}`}>
             {String(chunk.length).padStart(2, "0")}
           </p>
           <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
@@ -648,7 +660,7 @@ const OptionChapter: React.FC<{
                   <span className="h-10 w-10 shrink-0 border border-border/60" style={{ backgroundColor: current.color }} />
                 ) : null}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[12px] font-medium uppercase tracking-[0.14em]">{current.label}</span>
+                  <span className="block break-words text-[12px] font-medium uppercase leading-snug tracking-[0.14em]">{current.label}</span>
                   <span className="mt-0.5 block font-serif text-[12px] text-muted-foreground">{current.priceLabel}</span>
                 </span>
                 {control(current)}
@@ -731,19 +743,23 @@ const OptionChapter: React.FC<{
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-3 border-t border-border/50 pt-3 text-center text-[10px] leading-relaxed text-muted-foreground">
-            Option {slideIdx + 1} of {chunk.length} — tap + to carry it into your estimate, exactly as in Wonderlands
-            Studio. Turn the page for more.
-          </p>
         </div>
       ) : (
         <>
           <div className="mt-4 flex min-h-0 flex-1 flex-col">{rows(true)}</div>
           <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
-            Hover any option to see it on the plate above, expand it with the corner control, then add it with the + to
-            carry it into your estimate with the same category, pricing and image data used by Wonderlands Studio.
+            {coarsePointer
+              ? "Tap any option to see it on the plate above, expand it with the corner control, then add it with the + to carry it into your estimate with the same category, pricing and image data used by Wonderlands Studio."
+              : "Hover any option to see it on the plate above, expand it with the corner control, then add it with the + to carry it into your estimate with the same category, pricing and image data used by Wonderlands Studio."}
           </p>
         </>
+      )}
+      {narrow && (
+        /* the hint is a root-level shrink-0 strip so a tall chapter header
+           can never push it past the leaf's bottom edge */
+        <p className="mt-3 shrink-0 border-t border-border/50 pt-3 text-center text-[10px] leading-relaxed text-muted-foreground">
+          Option {slideIdx + 1} of {chunk.length} — tap + to add it to your estimate.
+        </p>
       )}
 
       {/* full-spread study — the whole book: one leaf is the photograph, the facing leaf the options */}
@@ -755,8 +771,8 @@ const OptionChapter: React.FC<{
             {/* left leaf — the plate, full page */}
             <div className="relative min-h-0 bg-muted">
               {plateArt(true)}
-              <p className="absolute inset-x-4 bottom-3 flex items-baseline justify-between gap-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                <span className="truncate">{preview?.label ?? group.title}</span>
+              <p className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-3 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
+                <span className="min-w-0 flex-1 break-words leading-snug">{preview?.label ?? group.title}</span>
                 <span className="shrink-0 opacity-70">{categoryLabel}</span>
               </p>
             </div>
@@ -847,7 +863,7 @@ export const useProductBookPages = ({
   const brandKey = Object.keys(BRAND_NOTES).find((b) => (entry.brand ?? "").toLowerCase().includes(b.toLowerCase()));
   const brandNote = CATEGORY_MAKER_NOTES[category.id] || (brandKey && BRAND_NOTES[brandKey]) || BRAND_NOTES.Wonderlands;
   const metaBits = (entry.meta ?? "").split("·").map((s) => s.trim()).filter(Boolean);
-  const price = formatEntryPrice(entry) || "On request";
+  const price = formatEntryPriceOrRequest(entry);
   const story = STORIES[category.id] ?? FALLBACK_STORY;
   /** Product photography for the editorial pages — strictly this model's own
       plate plus verified manufacturer scene photography for its brand and
@@ -1043,7 +1059,7 @@ export const useProductBookPages = ({
                 </blockquote>
               </div>
 
-              <div className="flex min-h-0 flex-col gap-3">
+              <div className="flex min-h-0 flex-col gap-3 overflow-hidden">
                 {detail && (
                   <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted max-sm:hidden">
                     <img
@@ -1084,18 +1100,18 @@ export const useProductBookPages = ({
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 border-t border-border/50 pt-3 sm:grid-cols-3">
+            <div className="mt-4 grid shrink-0 grid-cols-3 gap-3 border-t border-border/50 pt-3">
               <div>
                 <Eyebrow>Installation</Eyebrow>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{story.craft}</p>
+                <p className="mt-1 line-clamp-4 text-[9.5px] leading-relaxed text-foreground/80 sm:line-clamp-none sm:text-[10.5px]">{story.craft}</p>
               </div>
               <div>
                 <Eyebrow>Living with it</Eyebrow>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{story.care}</p>
+                <p className="mt-1 line-clamp-4 text-[9.5px] leading-relaxed text-foreground/80 sm:line-clamp-none sm:text-[10.5px]">{story.care}</p>
               </div>
               <div>
                 <Eyebrow>Included</Eyebrow>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-foreground/80">{includedLineFor(category.id)}</p>
+                <p className="mt-1 line-clamp-4 text-[9.5px] leading-relaxed text-foreground/80 sm:line-clamp-none sm:text-[10.5px]">{includedLineFor(category.id)}</p>
               </div>
             </div>
           </div>
@@ -1192,6 +1208,7 @@ export const useProductBookPages = ({
               entry={entry}
               categoryLabel={category.label}
               categoryId={category.id}
+              forceCarousel={portrait}
             />
           ),
         });

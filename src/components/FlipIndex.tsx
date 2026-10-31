@@ -500,7 +500,7 @@ const FlipIndex: React.FC = () => {
           <p className="font-serif text-xl font-light leading-none tracking-tight text-foreground">FLIP</p>
           <span className="hidden h-px w-8 bg-foreground/30 sm:block" />
           <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
-            The Index — Fourteen Disciplines
+            The Index — Sixteen Disciplines
           </p>
         </div>
         <div className="flex items-center gap-4">

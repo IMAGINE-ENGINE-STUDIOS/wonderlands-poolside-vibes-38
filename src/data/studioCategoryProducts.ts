@@ -2,6 +2,10 @@
 // selectable in the Studio. Prices mirror the main-page sections exactly.
 import screenEnclosurePremium from '@/assets/enclosures/screen-enclosure-premium.webp';
 import screenEnclosureDeluxe from '@/assets/enclosures/screen-enclosure-deluxe.webp';
+import aluminumFencing from '@/assets/fencing/aluminum-fencing.webp';
+import lanaiStandardImg from '@/assets/enclosures/lanai-standard.webp';
+import lanaiDeluxeImg from '@/assets/enclosures/lanai-deluxe.webp';
+import lanaiPremiumImg from '@/assets/enclosures/lanai-premium.webp';
 
 export interface StudioCategoryItem {
   name: string;
@@ -42,21 +46,21 @@ export const studioFencing: StudioCategoryItem[] = [
     name: '36" Aluminum Fence',
     price: 40,
     unit: 'linear-ft',
-    image: '/media/8bf11ea9-c402-4834-a163-0876545498bd.webp',
+    image: aluminumFencing,
     description: 'Pool code compliant 36-inch aluminum fencing',
   },
   {
     name: '46" Aluminum Fence',
     price: 50,
     unit: 'linear-ft',
-    image: '/media/8bf11ea9-c402-4834-a163-0876545498bd.webp',
+    image: aluminumFencing,
     description: 'Pool code compliant 46-inch aluminum fencing',
   },
   {
     name: '56" Aluminum Fence',
     price: 60,
     unit: 'linear-ft',
-    image: '/media/8bf11ea9-c402-4834-a163-0876545498bd.webp',
+    image: aluminumFencing,
     description: 'Premium 56-inch aluminum fencing with enhanced security',
   },
 ];
@@ -67,21 +71,21 @@ export const studioLanai: StudioCategoryItem[] = [
     name: 'Standard Lanai',
     price: 60,
     unit: 'sqft',
-    image: '/media/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
+    image: lanaiStandardImg,
     description: 'Foundation and roof included',
   },
   {
     name: 'Deluxe Lanai',
     price: 80,
     unit: 'sqft',
-    image: '/media/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
+    image: lanaiDeluxeImg,
     description: 'Upgraded structure, foundation and roof included',
   },
   {
     name: 'Premium Lanai',
     price: 100,
     unit: 'sqft',
-    image: '/media/4511f6d7-594e-4c22-bd69-221e519f2f34.webp',
+    image: lanaiPremiumImg,
     description: 'Top-tier structure, foundation and roof included',
   },
 ];

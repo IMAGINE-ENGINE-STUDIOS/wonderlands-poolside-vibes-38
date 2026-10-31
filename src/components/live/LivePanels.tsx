@@ -5,8 +5,8 @@
  */
 import * as React from "react";
 import {
-  BookOpen, Captions, Crown, Download, FileText, Hand, LayoutDashboard, Lock, LockOpen,
-  MicOff, MonitorPlay, Paperclip, PenLine, Search, Send, SlidersHorizontal, Star, UserX,
+  BookOpen, Captions, ChevronRight, Crown, Download, FileText, Hand, LayoutDashboard, Lock, LockOpen,
+  MicOff, MonitorPlay, Paperclip, PenLine, Search, Send, SlidersHorizontal, Star, UserX, X,
 } from "lucide-react";
 import type { LiveRoom } from "@/hooks/useLiveRoom";
 import { LIVE_PRODUCT_GROUPS, LIVE_WIDGETS, liveProduct } from "@/lib/live/liveCatalog";
@@ -236,8 +236,10 @@ const PRODUCT_VIEWS: Array<{ id: LiveProductView; label: string; blurb: string; 
 
 export function ProductsPanel({ room, onPresented }: { room: LiveRoom; onPresented?: () => void }) {
   const [q, setQ] = React.useState("");
+  const [cat, setCat] = React.useState<string>("All");
   const [chooserFor, setChooserFor] = React.useState<string | null>(null);
   const query = q.trim().toLowerCase();
+  const totalCount = LIVE_PRODUCT_GROUPS.reduce((s, g) => s + g.products.length, 0);
   const present = (key: string, view: LiveProductView) => {
     const def = PRODUCT_VIEWS.find((v) => v.id === view);
     if (room.isHost) {
@@ -278,36 +280,87 @@ export function ProductsPanel({ room, onPresented }: { room: LiveRoom; onPresent
               ? "The host unlocked you: tap a product to change what everyone is viewing."
               : "The host presents products here. Ask in chat if you'd like a closer look."}
         </p>
+        {/* Category filter — one tap to a single collection instead of
+            scrolling the whole catalog (founder directive 2026-10-31). */}
+        <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {["All", ...LIVE_PRODUCT_GROUPS.map((g) => g.category)].map((c) => {
+            const count = c === "All" ? totalCount : (LIVE_PRODUCT_GROUPS.find((g) => g.category === c)?.products.length ?? 0);
+            const on = cat === c;
+            return (
+              <button
+                key={c}
+                onClick={() => setCat(c)}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition ${
+                  on ? "bg-zinc-900 text-white ring-zinc-900" : "bg-white text-zinc-600 ring-zinc-200 hover:ring-zinc-400"
+                }`}
+              >
+                {c === "All" ? "All" : c.endsWith("s") ? c : `${c}s`}
+                <span className={`rounded-full px-1.5 text-[10px] font-semibold ${on ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-500"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
       {chooserProduct && (
-        <div className="border-b border-amber-200 bg-amber-50 p-3">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium text-zinc-900">Present “{chooserProduct.name}” as…</div>
-            <button onClick={() => setChooserFor(null)} className="text-xs text-zinc-500 underline">
-              Cancel
-            </button>
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {PRODUCT_VIEWS.map((v) => (
+        <div className="border-b border-zinc-200 bg-zinc-50 p-3">
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200">
+            <div className="relative">
+              <img src={chooserProduct.image} alt={chooserProduct.name} className="h-28 w-full object-cover" />
               <button
-                key={v.id}
-                onClick={() => present(chooserProduct.key, v.id)}
-                className="rounded-xl bg-white p-2.5 text-left ring-1 ring-amber-200 transition hover:ring-amber-400"
+                onClick={() => setChooserFor(null)}
+                aria-label="Cancel"
+                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/75"
               >
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-zinc-900">
-                  {v.icon} {v.label}
-                </span>
-                <span className="mt-1 block text-[11px] leading-snug text-zinc-500">{v.blurb}</span>
+                <X className="h-4 w-4" />
               </button>
-            ))}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-white/70">
+                  {chooserProduct.brand ?? "Wonderlands"} · {chooserProduct.category}
+                </div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <div className="truncate text-base font-semibold text-white">{chooserProduct.name}</div>
+                  <div className="shrink-0 font-mono text-sm font-medium text-white">${chooserProduct.price.toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+            <div className="p-2">
+              <div className="px-2 pb-1 pt-1 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
+                Present as
+              </div>
+              {PRODUCT_VIEWS.map((v) => {
+                const live = room.stage.widgetId === "product-showcase" && room.stage.productKey === chooserProduct.key && (room.stage.productView ?? "showcase") === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    onClick={() => present(chooserProduct.key, v.id)}
+                    className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition hover:bg-amber-50"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                      {v.icon}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+                        {v.label}
+                        {live && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">On stage now</span>}
+                      </span>
+                      <span className="block truncate text-xs text-zinc-500">{v.blurb}</span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-zinc-300" />
+                  </button>
+                );
+              })}
+            </div>
           </div>
           {!room.isHost && (
-            <p className="mt-2 text-[11px] text-zinc-500">As an unlocked guest you present the big showcase; the host can switch the view.</p>
+            <p className="mt-2 px-1 text-[11px] text-zinc-500">As an unlocked guest you present the big showcase; the host can switch the view.</p>
           )}
         </div>
       )}
       <div className="min-h-0 flex-1 overflow-y-auto p-2.5">
         {LIVE_PRODUCT_GROUPS.map((group) => {
+          if (cat !== "All" && group.category !== cat) return null;
           const items = group.products.filter(
             (p) => !query || p.name.toLowerCase().includes(query) || (p.brand ?? "").toLowerCase().includes(query),
           );
