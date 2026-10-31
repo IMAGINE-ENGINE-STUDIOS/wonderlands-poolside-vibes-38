@@ -41,7 +41,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
         const choices = feature.options?.filter(opt => opt.name !== 'None') ?? [];
         const isOpen = openSection === feature.id;
         return (
-          <div key={feature.id} className="border-b border-border/60 pb-3">
+          <div key={feature.id} className="border-b border-black/5 pb-3 dark:border-white/10">
             {/* header doubles as the accordion trigger — retracted until clicked */}
             <button
               type="button"
@@ -50,23 +50,23 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
               className="w-full flex items-baseline justify-between gap-3 text-left py-1"
             >
               <div className="min-w-0">
-                <Label className="text-sm font-semibold cursor-pointer">{feature.label}</Label>
+                <Label className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 cursor-pointer">{feature.label}</Label>
                 {feature.description && (
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{feature.description}</p>
                 )}
               </div>
               <span className="flex items-center gap-2 shrink-0">
                 {selectedOption && selectedOption.name !== 'None' ? (
-                  <span className="text-xs font-semibold text-primary">
+                  <span className="text-xs font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
                     {selectedOption.price > 0 ? `+${fmt(selectedOption.price)}` : 'Included'}
                   </span>
                 ) : choices.some(o => o.price > 0) ? (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
                     from {fmt(Math.min(...choices.filter(o => o.price > 0).map(o => o.price)))}
                   </span>
                 ) : null}
                 <ChevronDown
-                  className={`h-4 w-4 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                  className={`h-4 w-4 text-zinc-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
                 />
               </span>
             </button>
@@ -100,9 +100,9 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
           <div key={feature.id}>
             <div className="flex items-center justify-between mb-2">
               <div>
-                <Label className="text-sm font-medium">{feature.label}</Label>
+                <Label className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{feature.label}</Label>
                 {feature.description && (
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{feature.description}</p>
                 )}
               </div>
               <Input
@@ -128,12 +128,12 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
           <div key={feature.id}>
             <div className="flex items-center justify-between mb-2">
               <div>
-                <Label className="text-sm font-medium">{feature.label}</Label>
+                <Label className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{feature.label}</Label>
                 {feature.description && (
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{feature.description}</p>
                 )}
                 {!!feature.pricePerUnit && (
-                  <p className="text-xs font-semibold text-primary">{fmt(feature.pricePerUnit)} / sq ft</p>
+                  <p className="text-xs font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{fmt(feature.pricePerUnit)} / sq ft</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                   }}
                   className="w-24"
                 />
-                <span className="text-xs text-muted-foreground">sq ft</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">sq ft</span>
               </div>
             </div>
           </div>
@@ -165,9 +165,9 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
           <div key={feature.id}>
             <div className="flex items-center justify-between mb-2">
               <div>
-                <Label className="text-sm font-medium">{feature.label}</Label>
+                <Label className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{feature.label}</Label>
                 {feature.description && (
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{feature.description}</p>
                 )}
               </div>
               <Checkbox
@@ -181,7 +181,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
               />
             </div>
             {isParentEnabled && feature.subFeatures && (
-              <div className="ml-4 space-y-4 mt-4 p-4 bg-muted/30 rounded-lg border border-border">
+              <div className="ml-4 mt-4 space-y-4 rounded-2xl border border-black/5 bg-zinc-50 p-4 dark:border-white/10 dark:bg-zinc-900">
                 {feature.subFeatures.map(subFeature => renderFeature(subFeature))}
               </div>
             )}
@@ -203,7 +203,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
       {otherFeatures.map(feature => renderFeature(feature))}
 
       {booleanFeatures.length > 0 && (
-        <div className="border-b border-border/60 pb-3">
+        <div className="border-b border-black/5 pb-3 dark:border-white/10">
           <button
             type="button"
             onClick={() => toggleSection('__additional__')}
@@ -211,11 +211,11 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
             className="w-full flex items-baseline justify-between gap-3 text-left py-1"
           >
             <div className="min-w-0">
-              <Label className="text-sm font-semibold cursor-pointer">Additional Features</Label>
-              <p className="text-xs text-muted-foreground">Tap a tile to add or remove it</p>
+              <Label className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 cursor-pointer">Additional Features</Label>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Tap a tile to add or remove it</p>
             </div>
             <ChevronDown
-              className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-300 ${
+              className={`h-4 w-4 text-zinc-400 shrink-0 transition-transform duration-300 ${
                 openSection === '__additional__' ? 'rotate-180' : ''
               }`}
             />

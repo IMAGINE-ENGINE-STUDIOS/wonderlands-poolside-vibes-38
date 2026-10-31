@@ -34,7 +34,7 @@ export type FeatureTile = {
 type Accent = "primary" | "coral" | "stone";
 
 const ACCENT: Record<Accent, { ring: string; text: string }> = {
-  primary: { ring: "border-primary bg-primary/10", text: "text-primary" },
+  primary: { ring: "border-zinc-900 ring-1 ring-zinc-900 bg-zinc-50", text: "text-zinc-900" },
   coral: { ring: "border-coral bg-coral/10", text: "text-coral" },
   stone: { ring: "border-stone-600 bg-stone-600/10", text: "text-stone-600" },
 };
@@ -52,7 +52,7 @@ export const FeatureTileCarousel: React.FC<{
 
   return (
     <div className="space-y-2">
-      {label && <label className="text-xs font-medium text-muted-foreground block">{label}</label>}
+      {label && <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 block">{label}</label>}
       <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
         <CarouselContent className="-ml-1">
           {tiles.map((t) => (
@@ -68,11 +68,11 @@ export const FeatureTileCarousel: React.FC<{
                     t.onSelect();
                   }
                 }}
-                className={`p-3 border rounded-none cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                  t.selected ? a.ring : "border-border"
+                className={`p-3 border rounded-2xl cursor-pointer transition-all hover:border-zinc-300 h-full flex flex-col ${
+                  t.selected ? a.ring : "border-black/5"
                 }`}
               >
-                <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0 bg-muted/50 flex items-center justify-center">
+                <div className="w-full h-24 rounded-xl mb-2.5 overflow-hidden flex-shrink-0 bg-zinc-100 flex items-center justify-center">
                   {t.image ? (
                     <img
                       loading="lazy"
@@ -82,21 +82,21 @@ export const FeatureTileCarousel: React.FC<{
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    t.icon ?? <span className="text-[10px] text-muted-foreground px-1 text-center">{t.name}</span>
+                    t.icon ?? <span className="text-[10px] text-zinc-400 px-1 text-center">{t.name}</span>
                   )}
                 </div>
                 <div className="flex-1 flex flex-col justify-between min-h-0">
-                  <p className="text-xs font-medium text-center line-clamp-2">{t.name}</p>
+                  <p className="text-[13px] font-medium text-center text-zinc-900 line-clamp-2">{t.name}</p>
                   {t.priceLabel && (
-                    <p className={`text-xs font-semibold text-center mt-1 ${a.text}`}>{t.priceLabel}</p>
+                    <p className={`text-xs font-semibold text-center tabular-nums mt-1 ${a.text}`}>{t.priceLabel}</p>
                   )}
                 </div>
               </div>
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-0 animate-pulse" />
-        <CarouselNext className="right-0 animate-pulse" />
+        <CarouselPrevious className="left-0" />
+        <CarouselNext className="right-0" />
       </Carousel>
     </div>
   );

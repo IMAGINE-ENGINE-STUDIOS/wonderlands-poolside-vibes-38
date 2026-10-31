@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Package, ChevronRight, ChevronLeft, Send, Loader2, Pencil } from "lucide-react";
+import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Package, ChevronRight, ChevronLeft, Send, Loader2, Pencil, Check, ShoppingBag } from "lucide-react";
 import { parseDimensions, parseDepth } from "@/components/scene3d/SceneConverter";
 import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
@@ -88,21 +88,21 @@ interface StudioCategory {
 }
 
 const STUDIO_CATEGORIES: StudioCategory[] = [
-  { value: 'pools', label: 'Pools', icon: Waves, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'spas', label: 'Spas', icon: Droplets, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'tanning-ledges', label: 'Tanning Ledges', icon: Sun, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'saunas', label: 'Saunas', icon: Thermometer, activeClass: 'bg-amber-600 text-white' },
-  { value: 'screen-enclosures', label: 'Screen Enclosures', icon: Shield, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'patio-fencing', label: 'Patio Fencing', icon: Layers, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'lanai', label: 'Lanai', icon: Sun, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'pavers', label: 'Pavers', icon: Package, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'artificial-grass', label: 'Artificial Grass', icon: Layers, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'landscaping', label: 'Landscaping', icon: Palette, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'covers', label: 'Covers', icon: Shield, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'driveway-gates', label: 'Driveway Gates', icon: Settings, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'finishes', label: 'Finishes', icon: Palette, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'liners', label: 'Liners', icon: Layers, activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'build-a-pool', label: 'Build a Pool', icon: Waves, activeClass: 'bg-teal text-white' },
+  { value: 'pools', label: 'Pools', icon: Waves, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'spas', label: 'Spas', icon: Droplets, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'tanning-ledges', label: 'Tanning Ledges', icon: Sun, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'saunas', label: 'Saunas', icon: Thermometer, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'screen-enclosures', label: 'Screen Enclosures', icon: Shield, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'patio-fencing', label: 'Patio Fencing', icon: Layers, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'lanai', label: 'Lanai', icon: Sun, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'pavers', label: 'Pavers', icon: Package, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'artificial-grass', label: 'Artificial Grass', icon: Layers, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'landscaping', label: 'Landscaping', icon: Palette, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'covers', label: 'Covers', icon: Shield, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'driveway-gates', label: 'Driveway Gates', icon: Settings, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'finishes', label: 'Finishes', icon: Palette, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'liners', label: 'Liners', icon: Layers, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'build-a-pool', label: 'Build a Pool', icon: Waves, activeClass: 'bg-zinc-900 text-white' },
 ];
 
 // Studio search uses the same AdvancedSearch component as the main page
@@ -324,15 +324,15 @@ const paverCategories = [{
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'premium':
-      return 'bg-gradient-to-r from-coral to-orange';
+      return 'bg-zinc-100 text-zinc-700';
     case 'deluxe':
-      return 'bg-gradient-to-r from-primary to-teal';
+      return 'bg-zinc-100 text-zinc-700';
     case 'classic':
-      return 'bg-gradient-to-r from-secondary to-accent';
+      return 'bg-zinc-100 text-zinc-700';
     case 'compact':
-      return 'bg-gradient-to-r from-teal to-primary';
+      return 'bg-zinc-100 text-zinc-700';
     default:
-      return 'bg-gradient-to-r from-primary to-teal';
+      return 'bg-zinc-100 text-zinc-700';
   }
 };
 const getExtraPrice = (extra: string) => {
@@ -2124,12 +2124,12 @@ const WonderlandsStudio = () => {
               </div>
             ) : selectedProduct ? <motion.div key={selectedProduct.model || selectedProduct.name || 'product'} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 30 }} className="space-y-4 sm:space-y-6">
                 {/* Large Product Media Gallery */}
-                <Card>
+                <Card className="border-black/5 shadow-none dark:border-white/10">
                   <CardContent className="p-3 sm:p-6">
                      {/* View Mode - Product Image only, Design Studio button for 2D/3D */}
                     {(selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && (
                       <div className="flex justify-between items-center mb-4">
-                        <div className="inline-flex rounded-lg border border-border p-1 bg-muted/50 gap-1">
+                        <div className="inline-flex rounded-full border border-black/5 bg-zinc-50 p-1 gap-1 dark:border-white/10 dark:bg-zinc-900">
                           <Button
                             variant="secondary"
                             size="sm"
@@ -2143,7 +2143,7 @@ const WonderlandsStudio = () => {
                       </div>
                     )}
                     
-                    <div className="relative rounded-lg sm:rounded-xl bg-background overflow-hidden w-full h-[38vh] sm:h-[46vh] max-h-[460px] flex items-center justify-center">
+                    <div className="relative rounded-[1.75rem] bg-zinc-50 dark:bg-zinc-900 overflow-hidden w-full h-[38vh] sm:h-[46vh] max-h-[460px] flex items-center justify-center">
                       {(selectedProduct.media || selectedProduct.gallery || selectedProduct.image) ? (
                         <div className="w-full h-full flex items-center justify-center">
                           <ProductMediaGallery 
@@ -2161,69 +2161,90 @@ const WonderlandsStudio = () => {
 
                       ) : (
                         <div className="flex items-center justify-center h-full">
-                          <Package className="h-16 w-16 text-muted-foreground" />
+                          <Package className="h-16 w-16 text-zinc-500 dark:text-zinc-400" />
                         </div>
                       )}
                     </div>
                     
                     {/* Product Details - Directly below image with no gap */}
-                    <div className="space-y-3 sm:space-y-4 -mt-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                          <div>
-                            <h1 className="text-xl sm:text-2xl font-bold">
+                    <div className="mt-6 space-y-5">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
                               {selectedProduct.model || selectedProduct.name}
                             </h1>
-                            <p className="text-2xl sm:text-3xl font-bold text-primary mt-1 sm:mt-2">
+                            <p className="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50 sm:text-[28px]">
                               ${getProductPrice(selectedProduct).toLocaleString()}
                             </p>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {getProductCategoryLabel(selectedProduct, activeTab) && <Badge className="bg-gradient-to-r from-primary to-teal">
-                                {getProductCategoryLabel(selectedProduct, activeTab)}
-                              </Badge>}
-                              {selectedProduct.dimensions && <Badge variant="outline">{selectedProduct.dimensions}</Badge>}
-                              {selectedProduct.depth && <Badge variant="outline">Depth: {selectedProduct.depth}</Badge>}
-                              {selectedProduct.warrantyYears && (
-                                <Badge variant="secondary">
-                                  {typeof selectedProduct.warrantyYears === 'string'
-                                    ? selectedProduct.warrantyYears
-                                    : `${selectedProduct.warrantyYears} Year${selectedProduct.warrantyYears === 1 ? '' : 's'} Warranty`}
-                                </Badge>
-                              )}
-                            </div>
                           </div>
                           <button
                             type="button"
                             onClick={handleAddToCart}
                             aria-label={`Add ${selectedProduct.model || selectedProduct.name} to cart`}
-                            className="shrink-0 h-11 w-11 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-md"
+                            className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-zinc-900 py-2.5 pl-4 pr-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
                           >
-                            <Plus className="h-5 w-5" />
+                            <ShoppingBag className="h-4 w-4" />
+                            Add
                           </button>
                         </div>
 
+                        {/* Spec strip — engineering readout, no decoration */}
+                        {(getProductCategoryLabel(selectedProduct, activeTab) || selectedProduct.dimensions || selectedProduct.depth || selectedProduct.warrantyYears) && (
+                          <div className="flex flex-wrap border-y border-black/5 dark:border-white/10">
+                            {getProductCategoryLabel(selectedProduct, activeTab) && (
+                              <div className="px-4 py-3 first:pl-0">
+                                <span className="block text-[10px] uppercase tracking-[0.14em] text-zinc-400">Category</span>
+                                <span className="block text-sm font-medium tabular-nums text-zinc-900 dark:text-zinc-50">{getProductCategoryLabel(selectedProduct, activeTab)}</span>
+                              </div>
+                            )}
+                            {selectedProduct.dimensions && (
+                              <div className="px-4 py-3 first:pl-0">
+                                <span className="block text-[10px] uppercase tracking-[0.14em] text-zinc-400">Dimensions</span>
+                                <span className="block text-sm font-medium tabular-nums text-zinc-900 dark:text-zinc-50">{selectedProduct.dimensions}</span>
+                              </div>
+                            )}
+                            {selectedProduct.depth && (
+                              <div className="px-4 py-3 first:pl-0">
+                                <span className="block text-[10px] uppercase tracking-[0.14em] text-zinc-400">Depth</span>
+                                <span className="block text-sm font-medium tabular-nums text-zinc-900 dark:text-zinc-50">{selectedProduct.depth}</span>
+                              </div>
+                            )}
+                            {selectedProduct.warrantyYears && (
+                              <div className="px-4 py-3 first:pl-0">
+                                <span className="block text-[10px] uppercase tracking-[0.14em] text-zinc-400">Warranty</span>
+                                <span className="block text-sm font-medium tabular-nums text-zinc-900 dark:text-zinc-50">
+                                  {typeof selectedProduct.warrantyYears === 'string'
+                                    ? selectedProduct.warrantyYears
+                                    : `${selectedProduct.warrantyYears} Year${selectedProduct.warrantyYears === 1 ? '' : 's'} Warranty`}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* Product Description */}
-                        {selectedProduct.description && <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
-                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                              {selectedProduct.description}
-                            </p>
-                          </div>}
+                        {selectedProduct.description && (
+                          <p className="text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            {selectedProduct.description}
+                          </p>
+                        )}
 
 
                       </div>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-black/5 shadow-none dark:border-white/10">
                   <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
                     {selectedProduct.type === 'scene' ? (
                       // Belgard Studio Options for Scenes - keep existing hardcoded UI
                       <>
                         {/* Concrete Pavers & Slabs */}
-                        <div>
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <Label className="text-sm font-medium">Concrete Pavers & Slabs</Label>
-                              <p className="text-xs text-muted-foreground">Durable concrete solutions</p>
+                              <Label className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Concrete Pavers & Slabs</Label>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Durable concrete solutions</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Checkbox checked={selectedExtras.concreteSlabs} onCheckedChange={checked => {
@@ -2250,10 +2271,10 @@ const WonderlandsStudio = () => {
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.concreteSlabs.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                      <div className="cursor-pointer rounded-2xl border border-black/5 bg-white p-3 h-full transition-all duration-200 hover:shadow-md dark:border-white/10 dark:bg-zinc-900">
                                         <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
                                           ${option.price}/sq ft
                                         </p>
                                         {option.category === 'sample' && <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>}
@@ -2267,11 +2288,11 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Outdoor Kitchens */}
-                        <div>
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <Label className="text-sm font-medium">Outdoor Kitchens</Label>
-                              <p className="text-xs text-muted-foreground">Complete cooking solutions</p>
+                              <Label className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Outdoor Kitchens</Label>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Complete cooking solutions</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Checkbox checked={selectedExtras.outdoorKitchens} onCheckedChange={checked => {
@@ -2298,10 +2319,10 @@ const WonderlandsStudio = () => {
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.outdoorKitchens.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                      <div className="cursor-pointer rounded-2xl border border-black/5 bg-white p-3 h-full transition-all duration-200 hover:shadow-md dark:border-white/10 dark:bg-zinc-900">
                                         <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
                                           ${option.price.toLocaleString()}
                                         </p>
                                         {option.category === 'sample' && <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>}
@@ -2315,11 +2336,11 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Fireplaces */}
-                        <div>
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <Label className="text-sm font-medium">Fireplaces</Label>
-                              <p className="text-xs text-muted-foreground">Outdoor warmth and ambiance</p>
+                              <Label className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Fireplaces</Label>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Outdoor warmth and ambiance</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Checkbox checked={selectedExtras.fireplaces} onCheckedChange={checked => {
@@ -2346,10 +2367,10 @@ const WonderlandsStudio = () => {
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.fireplaces.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                      <div className="cursor-pointer rounded-2xl border border-black/5 bg-white p-3 h-full transition-all duration-200 hover:shadow-md dark:border-white/10 dark:bg-zinc-900">
                                         <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
                                           ${option.price.toLocaleString()}
                                         </p>
                                         {option.category === 'sample' && <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>}
@@ -2363,11 +2384,11 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Fire Pit Kits */}
-                        <div>
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <Label className="text-sm font-medium">Fire Pit Kits</Label>
-                              <p className="text-xs text-muted-foreground">Cozy gathering spaces</p>
+                              <Label className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Fire Pit Kits</Label>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Cozy gathering spaces</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Checkbox checked={selectedExtras.firePitKits} onCheckedChange={checked => {
@@ -2394,10 +2415,10 @@ const WonderlandsStudio = () => {
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.firePitKits.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                      <div className="cursor-pointer rounded-2xl border border-black/5 bg-white p-3 h-full transition-all duration-200 hover:shadow-md dark:border-white/10 dark:bg-zinc-900">
                                         <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
                                           ${option.price.toLocaleString()}
                                         </p>
                                         {option.category === 'sample' && <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>}
@@ -2411,11 +2432,11 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Pergolas & Panels */}
-                        <div>
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <Label className="text-sm font-medium">Pergolas & Panels</Label>
-                              <p className="text-xs text-muted-foreground">Shade and privacy solutions</p>
+                              <Label className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Pergolas & Panels</Label>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Shade and privacy solutions</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Checkbox checked={selectedExtras.pergolas} onCheckedChange={checked => {
@@ -2442,10 +2463,10 @@ const WonderlandsStudio = () => {
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.pergolas.map(option => <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                      <div className="cursor-pointer rounded-2xl border border-black/5 bg-white p-3 h-full transition-all duration-200 hover:shadow-md dark:border-white/10 dark:bg-zinc-900">
                                         <img loading="lazy" decoding="async" src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
                                         <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
                                           ${option.price.toLocaleString()}
                                         </p>
                                         {option.category === 'sample' && <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>}
@@ -2509,8 +2530,8 @@ const WonderlandsStudio = () => {
                           if (!unit) return null;
                           const qty = parseFloat(selectedExtras.categoryQuantity) || 0;
                           return (
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium">
+                            <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                              <Label className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
                                 {unit === 'sqft' ? 'Surface Area' : 'Length'} ({unitLabel(unit)})
                               </Label>
                               <Input
@@ -2521,7 +2542,7 @@ const WonderlandsStudio = () => {
                                 onChange={(e) => setSelectedExtras((prev: any) => ({ ...prev, categoryQuantity: e.target.value }))}
                                 className="w-40"
                               />
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-sm tabular-nums text-zinc-500 dark:text-zinc-400">
                                 {qty > 0
                                   ? `${qty.toLocaleString()} ${unitLabel(unit)} × $${getProductPrice(selectedProduct).toLocaleString()}/${unitLabel(unit)} = $${(qty * getProductPrice(selectedProduct)).toLocaleString()}`
                                   : `$${getProductPrice(selectedProduct).toLocaleString()} per ${unitLabel(unit)}`}
@@ -2531,18 +2552,40 @@ const WonderlandsStudio = () => {
                         })()}
 
                         {selectedProduct.type === 'sauna' && (
-                          <div className="bg-amber-50 dark:bg-amber-950/20 p-3 sm:p-4 rounded-lg border border-amber-200 dark:border-amber-800">
-                            <h3 className="text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2 sm:mb-3">
-                              ✓ Included at No Extra Cost
-                            </h3>
-                            <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-amber-700 dark:text-amber-400">
-                              <span>• Kiln-dried wood construction & stainless hardware</span>
-                              <span>• Heater, sauna stones & control unit</span>
-                              <span>• Interior LED lighting</span>
-                              <span>• Ergonomic benches</span>
-                              <span>• Ventilation system</span>
-                              <span>• Delivery, permits & professional installation</span>
-                              <span>• {(selectedProduct as any).warranty || 'Structural warranty'}</span>
+                          <div className="rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                            <div className="flex items-center gap-2">
+                              <Check className="h-5 w-5 rounded-full bg-zinc-900 p-1 text-white dark:bg-zinc-50 dark:text-zinc-900" />
+                              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Included at no extra cost</h3>
+                            </div>
+                            <div className="mt-4 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+                              <div className="flex gap-2">
+                                <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">Kiln-dried wood construction & stainless hardware</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">Heater, sauna stones & control unit</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">Interior LED lighting</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">Ergonomic benches</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">Ventilation system</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">Delivery, permits & professional installation</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">{(selectedProduct as any).warranty || 'Structural warranty'}</span>
+                              </div>
                             </div>
                           </div>
                         )}
@@ -2560,7 +2603,7 @@ const WonderlandsStudio = () => {
                         )}
 
                         {!getProductUnit(selectedProduct) && getProductFeatures((selectedProduct.type || 'paver') as any).length === 0 && (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-zinc-500 dark:text-zinc-400">
                             This product is quoted as configured — no additional options required.
                           </p>
                         )}
@@ -2570,8 +2613,8 @@ const WonderlandsStudio = () => {
                       <>
                         {/* Gelcoat Color for GlimmerGlass pools ONLY */}
                         {selectedProduct && (selectedProduct as any).brand === "Glimmerglass" && (
-                          <div className="space-y-3">
-                            <h4 className="font-semibold text-foreground">Gelcoat Color (Included)</h4>
+                          <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                            <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Gelcoat Color (Included)</h4>
                             <Carousel 
                               className="w-full"
                               opts={{
@@ -2595,7 +2638,7 @@ const WonderlandsStudio = () => {
                                     className="pl-1 basis-1/2"
                                   >
                                     <div
-                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.gelcoatColor === gelcoat.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                      className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.gelcoatColor === gelcoat.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                       onClick={() =>
                                         setSelectedExtras((prev: any) => ({
                                           ...prev,
@@ -2609,7 +2652,7 @@ const WonderlandsStudio = () => {
                                       />
                                       <div className="flex-1 flex flex-col justify-between min-h-0">
                                         <p className="text-xs font-medium text-center line-clamp-2">{gelcoat.name}</p>
-                                        <p className="text-xs text-primary text-center font-semibold">Included</p>
+                                        <p className="text-xs font-medium text-center text-zinc-500 dark:text-zinc-400">Included</p>
                                       </div>
                                     </div>
                                   </CarouselItem>
@@ -2622,8 +2665,8 @@ const WonderlandsStudio = () => {
                         )}
 
                         {/* Pool Finishes — GlimmerGlass uses its gelcoat colours only, never Latham finishes */}
-                        <div className="space-y-3" hidden={/glimmer/i.test(String((selectedProduct as any)?.brand || ''))}>
-                          <h4 className="font-semibold text-foreground">Pool Finish</h4>
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6" hidden={/glimmer/i.test(String((selectedProduct as any)?.brand || ''))}>
+                          <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Pool Finish</h4>
                           <Carousel 
                             className="w-full"
                             opts={{
@@ -2661,7 +2704,7 @@ const WonderlandsStudio = () => {
                                   className="pl-1 basis-1/2 md:basis-1/4"
                                 >
                                   <div
-                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.finish === finish.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                     onClick={() =>
                                       setSelectedExtras((prev: any) => ({
                                         ...prev,
@@ -2678,9 +2721,9 @@ const WonderlandsStudio = () => {
                                     </div>
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{finish.name}</p>
-                                      <p className="text-[10px] text-primary text-center font-semibold truncate">{finish.collection}</p>
+                                      <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-400 text-center font-semibold truncate">{finish.collection}</p>
                                       {finish.price && (
-                                        <p className="text-xs text-foreground font-semibold text-center">
+                                        <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                           +${finish.price.toLocaleString()}
                                         </p>
                                       )}
@@ -2695,11 +2738,11 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Pool Liners - Default shows selected finish texture */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Pool Liner</h4>
+                            <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Pool Liner</h4>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-zinc-500 dark:text-zinc-400">
                                 {selectedExtras.liner ? 'Liner Selected' : 'Uses Pool Finish'}
                               </span>
                               <Checkbox
@@ -2717,7 +2760,7 @@ const WonderlandsStudio = () => {
                           
                           {/* Default thumbnail showing selected finish when no liner */}
                           {!selectedExtras.liner && (
-                            <div className="p-3 border rounded-lg border-primary bg-primary/10">
+                            <div className="p-3 border rounded-2xl ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800">
                               <div className="w-full h-28 rounded-md mb-2 overflow-hidden">
                                 <img loading="lazy" decoding="async"
                                   src={finishOptions.find(f => f.name === selectedExtras.finish)?.image || aquamarineFinish}
@@ -2728,7 +2771,7 @@ const WonderlandsStudio = () => {
                               <p className="text-xs font-medium text-center truncate">
                                 {selectedExtras.finish || 'Aquamarine'}
                               </p>
-                              <p className="text-[10px] text-primary text-center font-semibold">Selected Pool Finish</p>
+                              <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-400 text-center font-semibold">Selected Pool Finish</p>
                             </div>
                           )}
                           
@@ -2745,7 +2788,7 @@ const WonderlandsStudio = () => {
                               {linerOptions.map((liner) => (
                                 <CarouselItem key={liner.name} className="pl-1 basis-1/2 md:basis-1/4">
                                   <div
-                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.linerOption === liner.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.linerOption === liner.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                     onClick={() =>
                                       setSelectedExtras((prev: any) => ({
                                         ...prev,
@@ -2763,9 +2806,9 @@ const WonderlandsStudio = () => {
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{liner.name}</p>
                                       {liner.type && liner.type !== "Standard" && (
-                                        <p className="text-[10px] text-primary text-center font-semibold">{liner.type}</p>
+                                        <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-400 text-center font-semibold">{liner.type}</p>
                                       )}
-                                      <p className="text-xs text-foreground font-semibold text-center">
+                                      <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                         +$4,500
                                       </p>
                                     </div>
@@ -2780,11 +2823,11 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Pool Tiles */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Pool Tiles</h4>
+                            <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Pool Tiles</h4>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-zinc-500 dark:text-zinc-400">
                                 {selectedExtras.tiles ? 'Tiles Selected' : 'No Tiles'}
                               </span>
                               <Checkbox
@@ -2812,7 +2855,7 @@ const WonderlandsStudio = () => {
                               {tileOptions.map((tile) => (
                                 <CarouselItem key={tile.name} className="pl-1 basis-1/2">
                                   <div
-                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.tileOption === tile.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.tileOption === tile.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                     onClick={() =>
                                       setSelectedExtras((prev: any) => ({
                                         ...prev,
@@ -2830,7 +2873,7 @@ const WonderlandsStudio = () => {
                                     </div>
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{tile.name}</p>
-                                      <p className="text-xs text-primary font-semibold text-center">
+                                      <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                         +${tile.price.toLocaleString()}
                                       </p>
                                     </div>
@@ -2846,9 +2889,9 @@ const WonderlandsStudio = () => {
                         
 
                         {/* Automatic Cover */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Automatic Cover</h4>
+                            <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Automatic Cover</h4>
                             <Checkbox
                               checked={selectedExtras.cover}
                               onCheckedChange={() =>
@@ -2872,7 +2915,7 @@ const WonderlandsStudio = () => {
                                 {coverOptions.map((cover) => (
                                   <CarouselItem key={cover.name} className="pl-1 basis-1/2 md:basis-1/4">
                                     <div
-                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.coverOption === cover.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                      className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.coverOption === cover.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                       onClick={() =>
                                         setSelectedExtras((prev: any) => ({
                                           ...prev,
@@ -2889,7 +2932,7 @@ const WonderlandsStudio = () => {
                                       </div>
                                       <div className="flex flex-col gap-0.5">
                                         <p className="text-xs font-medium text-center truncate">{cover.name}</p>
-                                        <p className="text-xs text-primary font-semibold text-center">
+                                        <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                           +${cover.price.toLocaleString()}
                                         </p>
                                       </div>
@@ -2904,8 +2947,8 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Jets with Counter */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between p-2 border rounded-lg">
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                          <div className="flex items-center justify-between rounded-2xl border border-black/5 p-4 dark:border-white/10">
                             <label className="flex items-center space-x-2 cursor-pointer flex-1">
                               <Checkbox
                                 checked={selectedExtras.jets}
@@ -2918,7 +2961,7 @@ const WonderlandsStudio = () => {
                                 }
                               />
                               <div className="flex items-center space-x-1">
-                                <Zap size={16} className="text-orange-500" />
+                                <Zap size={16} className="text-zinc-400" />
                                 <span className="text-sm font-semibold">
                                   Spa Jets (+${(getExtraPrice('jets') * (selectedExtras.jetQuantity || 1)).toLocaleString()})
                                 </span>
@@ -2959,9 +3002,9 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Add a Spa */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Add a Spa</h4>
+                            <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Add a Spa</h4>
                             <Checkbox
                               checked={selectedExtras.spa}
                               onCheckedChange={() =>
@@ -2997,7 +3040,7 @@ const WonderlandsStudio = () => {
                                   {combinedSpas.map((spa: any) => (
                                     <CarouselItem key={spa.model} className="pl-1 basis-1/2 md:basis-1/4">
                                       <div
-                                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
+                                        className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.spaModel === spa.model ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                         onClick={() =>
                                           setSelectedExtras((prev: any) => ({
                                             ...prev,
@@ -3015,9 +3058,9 @@ const WonderlandsStudio = () => {
                                         <div className="flex flex-col gap-0.5">
                                           <p className="text-xs font-medium text-center truncate">{spa.model}</p>
                                           {spa.brand === 'Glimmerglass' && (
-                                            <p className="text-[10px] text-muted-foreground text-center">Glimmerglass</p>
+                                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 text-center">Glimmerglass</p>
                                           )}
-                                          <p className="text-xs text-primary font-semibold text-center">
+                                          <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                             +${spa.price.toLocaleString()}
                                           </p>
                                         </div>
@@ -3054,7 +3097,7 @@ const WonderlandsStudio = () => {
                               
                               return (
                                 <div className="space-y-2 mt-4">
-                                  <label className="text-xs font-medium text-muted-foreground">Select Spa Finish (Crystite Crystal):</label>
+                                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Select Spa Finish (Crystite Crystal):</label>
                                   <Carousel 
                                     className="w-full"
                                     opts={{
@@ -3067,7 +3110,7 @@ const WonderlandsStudio = () => {
                                       {crystiteFinishes.map((finish) => (
                                         <CarouselItem key={finish.id} className="pl-1 basis-1/2 md:basis-1/4">
                                           <div
-                                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.spaFinish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                            className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.spaFinish === finish.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                             onClick={() =>
                                               setSelectedExtras((prev: any) => ({
                                                 ...prev,
@@ -3085,7 +3128,7 @@ const WonderlandsStudio = () => {
                                             </div>
                                             <div className="flex flex-col gap-0.5">
                                               <p className="text-xs font-medium text-center truncate">{finish.name}</p>
-                                              <p className="text-xs text-primary font-semibold text-center">
+                                              <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                                 +${finish.price.toLocaleString()}
                                               </p>
                                             </div>
@@ -3104,9 +3147,9 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Tanning Ledge */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Tanning Ledge</h4>
+                            <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Tanning Ledge</h4>
                             <Checkbox
                               checked={selectedExtras.tanningLedge}
                               onCheckedChange={() =>
@@ -3130,7 +3173,7 @@ const WonderlandsStudio = () => {
                                 {tanningLedges.map((ledge: any) => (
                                   <CarouselItem key={ledge.name} className="pl-1 basis-1/2 md:basis-1/4">
                                     <div
-                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.tanningLedgeModel === ledge.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                      className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.tanningLedgeModel === ledge.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                       onClick={() =>
                                         setSelectedExtras((prev: any) => ({
                                           ...prev,
@@ -3147,7 +3190,7 @@ const WonderlandsStudio = () => {
                                       </div>
                                       <div className="flex flex-col gap-0.5">
                                         <p className="text-xs font-medium text-center truncate">{ledge.name}</p>
-                                        <p className="text-xs text-primary font-semibold text-center">
+                                        <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                           +${ledge.price.toLocaleString()}
                                         </p>
                                       </div>
@@ -3163,9 +3206,9 @@ const WonderlandsStudio = () => {
 
                         {/* Rocky Waterfalls */}
                         {(selectedProduct?.type === 'pool' || selectedProduct?.type === 'spa' || selectedProduct?.type === 'tanning-ledge') && (
-                        <div className="space-y-3">
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Rocky Waterfalls</h4>
+                            <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Rocky Waterfalls</h4>
                             {selectedExtras.rockyWaterfall && selectedExtras.rockyWaterfallTier && (
                               <Button variant="ghost" size="sm" className="h-6 text-xs text-destructive" onClick={() => removeExtra('rockyWaterfall')}>
                                 <X className="h-3 w-3 mr-1" /> Remove
@@ -3177,7 +3220,7 @@ const WonderlandsStudio = () => {
                               {rockyWaterfallTiers.map((tier) => (
                                 <CarouselItem key={tier.name} className="pl-1 basis-1/2 md:basis-1/3">
                                   <div
-                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.rockyWaterfallTier === tier.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.rockyWaterfallTier === tier.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                     onClick={() =>
                                       setSelectedExtras((prev: any) => ({
                                         ...prev,
@@ -3191,7 +3234,7 @@ const WonderlandsStudio = () => {
                                     </div>
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{tier.name}</p>
-                                      <p className="text-xs text-primary font-semibold text-center">+${tier.price.toLocaleString()}</p>
+                                      <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">+${tier.price.toLocaleString()}</p>
                                     </div>
                                   </div>
                                 </CarouselItem>
@@ -3202,7 +3245,7 @@ const WonderlandsStudio = () => {
                           </Carousel>
                           {selectedExtras.rockyWaterfall && selectedExtras.rockyWaterfallTier && (
                             <div className="mt-2">
-                              <label className="text-xs font-medium text-muted-foreground mb-1 block">Select Color</label>
+                              <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400 mb-1.5 block">Select Color</label>
                               <div className="flex gap-2">
                                 {rockyWaterfallColors.map((color) => (
                                   <Button
@@ -3222,8 +3265,8 @@ const WonderlandsStudio = () => {
                         )}
 
                         {/* Artificial Grass */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between p-2 border rounded-lg">
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                          <div className="flex items-center justify-between rounded-2xl border border-black/5 p-4 dark:border-white/10">
                             <label className="flex items-center space-x-2 cursor-pointer flex-1">
                               <Checkbox
                                 checked={selectedExtras.artificialGrass}
@@ -3251,7 +3294,7 @@ const WonderlandsStudio = () => {
                                   {artificialGrassOptions.map((grass) => (
                                     <CarouselItem key={grass.id} className="pl-1 basis-1/2 md:basis-1/4">
                                       <div
-                                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.artificialGrassColor === grass.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                        className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.artificialGrassColor === grass.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                         onClick={() =>
                                           setSelectedExtras((prev: any) => ({
                                             ...prev,
@@ -3265,7 +3308,7 @@ const WonderlandsStudio = () => {
                                         </div>
                                         <div className="flex flex-col gap-0.5">
                                           <p className="text-xs font-medium text-center truncate">{grass.name}</p>
-                                          <p className="text-xs text-primary font-semibold text-center">${getGrassPricePerSqFt(grass.name)}/sq ft</p>
+                                          <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">${getGrassPricePerSqFt(grass.name)}/sq ft</p>
                                         </div>
                                       </div>
                                     </CarouselItem>
@@ -3275,7 +3318,7 @@ const WonderlandsStudio = () => {
                                 <CarouselNext className="right-0 animate-pulse" />
                               </Carousel>
                               <div>
-                                <label className="text-xs font-medium text-muted-foreground mb-1 block">Grass Area (sq ft)</label>
+                                <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400 mb-1.5 block">Grass Area (sq ft)</label>
                                 <Input
                                   type="number"
                                   min="0"
@@ -3289,7 +3332,7 @@ const WonderlandsStudio = () => {
                                 {selectedExtras.artificialGrassArea &&
                                   !isNaN(parseFloat(selectedExtras.artificialGrassArea)) &&
                                   parseFloat(selectedExtras.artificialGrassArea) > 0 && (
-                                    <div className="text-xs text-green-600 font-medium">
+                                    <div className="text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
                                       Calculated Cost: ${calculateGrassCost(selectedExtras.artificialGrassArea, selectedExtras.artificialGrassColor).toLocaleString()} ({selectedExtras.artificialGrassArea} sq ft × ${getGrassPricePerSqFt(selectedExtras.artificialGrassColor)}/sq ft)
                                     </div>
                                   )}
@@ -3301,8 +3344,8 @@ const WonderlandsStudio = () => {
 
 
                         {/* Deck Pavers */}
-                        <div className="space-y-3">
-                          <h4 className="font-semibold text-foreground">Deck Pavers</h4>
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                          <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Deck Pavers</h4>
                           <Carousel
                             className="w-full"
                             opts={{
@@ -3315,7 +3358,7 @@ const WonderlandsStudio = () => {
                               {paverOptions.map((paver) => (
                                 <CarouselItem key={paver.name} className="pl-1 basis-1/2 md:basis-1/4">
                                   <div
-                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.paverOption === paver.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.paverOption === paver.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                     onClick={() => {
                                       const isConcrete = paver.name === "Concrete Deck";
                                       if (isConcrete) setPaverSurfaceArea("");
@@ -3337,7 +3380,7 @@ const WonderlandsStudio = () => {
                                     </div>
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{paver.name}</p>
-                                      <p className="text-xs text-primary font-semibold text-center">
+                                      <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                         {paver.name === "Concrete Deck" ? "$10/sq ft" : `$${getPaverPricePerSqFt(paver.name)}/sq ft`}
                                       </p>
                                     </div>
@@ -3349,7 +3392,7 @@ const WonderlandsStudio = () => {
                             <CarouselNext className="right-0 animate-pulse" />
                           </Carousel>
                           <div className="mt-3">
-                            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                            <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400 mb-1.5 block">
                               Paver Surface Area (sq ft)
                             </label>
                             <Input
@@ -3382,7 +3425,7 @@ const WonderlandsStudio = () => {
                               !isNaN(parseFloat(selectedExtras.paverSurfaceArea)) &&
                               selectedExtras.paverOption &&
                               selectedExtras.paverOption !== "Concrete Deck" && (
-                                <div className="text-xs text-green-600 font-medium">
+                                <div className="text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
                                   Calculated Cost: ${calculatePaverCost(selectedExtras.paverSurfaceArea, selectedExtras.paverOption).toLocaleString()} ({selectedExtras.paverSurfaceArea} sq ft × ${getPaverPricePerSqFt(selectedExtras.paverOption)}/sq ft)
                                 </div>
                               )}
@@ -3390,8 +3433,8 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Screen Enclosure */}
-                        <div className="space-y-3">
-                          <h4 className="font-semibold text-foreground">Screen Enclosure</h4>
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                          <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Screen Enclosure</h4>
                           <Carousel 
                             className="w-full"
                             opts={{
@@ -3408,7 +3451,7 @@ const WonderlandsStudio = () => {
                               ].map((quality) => (
                                 <CarouselItem key={quality.key} className="pl-1 basis-1/2 md:basis-1/3">
                                   <div
-                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.screenEnclosureQuality === quality.key ? "border-primary bg-primary/10" : "border-border"}`}
+                                    className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.screenEnclosureQuality === quality.key ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                     onClick={() =>
                                       setSelectedExtras((prev: any) => ({
                                         ...prev,
@@ -3426,7 +3469,7 @@ const WonderlandsStudio = () => {
                                     </div>
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{quality.name}</p>
-                                      <p className="text-xs text-primary font-semibold text-center">
+                                      <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                         ${quality.price}/sq ft
                                       </p>
                                     </div>
@@ -3438,7 +3481,7 @@ const WonderlandsStudio = () => {
                             <CarouselNext className="right-0 animate-pulse" />
                           </Carousel>
                           <div className="mt-3">
-                            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                            <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400 mb-1.5 block">
                               Screen Enclosure Area (sq ft)
                             </label>
                             <Input
@@ -3456,7 +3499,7 @@ const WonderlandsStudio = () => {
                               className="mb-2"
                             />
                             {selectedExtras.screenEnclosureArea > 0 && (
-                              <div className="text-xs text-green-600 font-medium">
+                              <div className="text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
                                 Calculated Cost: ${(() => {
                                   const quality = selectedExtras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium' || 'standard';
                                   const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
@@ -3472,8 +3515,8 @@ const WonderlandsStudio = () => {
 
                         {/* Concrete Construction - Hidden for Wonderlands World pools */}
                         {!["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"].includes(selectedProduct?.model || "") && (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between p-2 border rounded-lg">
+                          <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                            <div className="flex items-center justify-between rounded-2xl border border-black/5 p-4 dark:border-white/10">
                               <label className="flex items-center space-x-2 cursor-pointer flex-1">
                                 <Checkbox
                                   checked={selectedExtras.concreteConstruction}
@@ -3490,7 +3533,7 @@ const WonderlandsStudio = () => {
                               </label>
                             </div>
                             {selectedExtras.concreteConstruction && (
-                              <p className="text-xs text-muted-foreground ml-2">
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-2">
                                 Premium concrete construction for enhanced durability and longevity. (+20% of pool price)
                               </p>
                             )}
@@ -3501,33 +3544,39 @@ const WonderlandsStudio = () => {
                     )}
 
                     {/* Included Features (pools, spas, tanning ledges, saunas only) */}
-                    {isWaterProduct(selectedProduct.type) && <div className="bg-green-50 dark:bg-green-950/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800">
-                      <h3 className="text-xs sm:text-sm font-semibold text-green-800 dark:text-green-300 mb-2 sm:mb-3">
-                        ✓ Included at No Extra Cost
-                      </h3>
-                      <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-green-700 dark:text-green-400">
-                        <div className="flex items-center gap-2">
-                          <span>• Salt water system</span>
+                    {isWaterProduct(selectedProduct.type) && <div className="rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-5 w-5 rounded-full bg-zinc-900 p-1 text-white dark:bg-zinc-50 dark:text-zinc-900" />
+                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Included at no extra cost</h3>
+                      </div>
+                      <div className="mt-4 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+                        <div className="flex gap-2">
+                          <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">Salt water system</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span>• Smart Pentair pool pump & filter</span>
+                        <div className="flex gap-2">
+                          <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">Smart Pentair pool pump & filter</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span>• LED lighting system ({selectedProduct.dimensions && selectedProduct.dimensions.includes('16') || selectedProduct.dimensions && selectedProduct.dimensions.includes('20') ? '4 lights' : '2 lights'})</span>
+                        <div className="flex gap-2">
+                          <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">LED lighting system ({selectedProduct.dimensions && selectedProduct.dimensions.includes('16') || selectedProduct.dimensions && selectedProduct.dimensions.includes('20') ? '4 lights' : '2 lights'})</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span>• Engineering drawings & permits</span>
+                        <div className="flex gap-2">
+                          <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">Engineering drawings & permits</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span>• Premium coping pavers</span>
+                        <div className="flex gap-2">
+                          <Check className="h-4 w-4 shrink-0 text-zinc-400" />
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">Premium coping pavers</span>
                         </div>
                       </div>
                     </div>}
                     {isWaterProduct(selectedProduct.type) && (<>
                           {/* Pool Heater - At bottom with auto-filled dimensions */}
-                          <div className="space-y-3">
+                          <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                             <div className="flex items-center justify-between">
-                              <h4 className="font-semibold text-foreground">Pool Heater</h4>
+                              <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Pool Heater</h4>
                               <Checkbox
                                 checked={selectedExtras.heater}
                                 onCheckedChange={() =>
@@ -3542,18 +3591,18 @@ const WonderlandsStudio = () => {
                             {selectedExtras.heater && selectedProduct && (
                               <>
                                 {/* Auto-filled pool info */}
-                                <div className="bg-muted/50 p-3 rounded-lg text-xs space-y-1">
+                                <div className="space-y-2 rounded-2xl border border-black/5 p-4 text-sm dark:border-white/10">
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Pool Dimensions:</span>
-                                    <span className="font-medium">{selectedProduct.dimensions || 'N/A'}</span>
+                                    <span className="text-zinc-500 dark:text-zinc-400">Pool Dimensions:</span>
+                                    <span className="font-medium tabular-nums text-zinc-900 dark:text-zinc-50">{selectedProduct.dimensions || 'N/A'}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Depth:</span>
-                                    <span className="font-medium">{selectedProduct.depth || 'N/A'}</span>
+                                    <span className="text-zinc-500 dark:text-zinc-400">Depth:</span>
+                                    <span className="font-medium tabular-nums text-zinc-900 dark:text-zinc-50">{selectedProduct.depth || 'N/A'}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Est. Volume:</span>
-                                    <span className="font-medium">
+                                    <span className="text-zinc-500 dark:text-zinc-400">Est. Volume:</span>
+                                    <span className="font-medium tabular-nums text-zinc-900 dark:text-zinc-50">
                                       {(() => {
                                         const { length, width } = parsePoolDimensions(selectedProduct.dimensions);
                                         const avgDepth = 5; // Average depth estimate
@@ -3576,7 +3625,7 @@ const WonderlandsStudio = () => {
                                     {poolHeaters.map((heater) => (
                                       <CarouselItem key={heater.name} className="pl-1 basis-1/2 md:basis-1/4">
                                         <div
-                                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                          className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.heaterModel === heater.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
                                           onClick={() =>
                                             setSelectedExtras((prev: any) => ({
                                               ...prev,
@@ -3593,7 +3642,7 @@ const WonderlandsStudio = () => {
                                           </div>
                                           <div className="flex flex-col gap-0.5">
                                             <p className="text-xs font-medium text-center truncate">{heater.name}</p>
-                                            <p className="text-xs text-primary font-semibold text-center">
+                                            <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
                                               +${heater.price.toLocaleString()}
                                             </p>
                                           </div>
@@ -3894,16 +3943,16 @@ const WonderlandsStudio = () => {
                         </div>
                       )}
                       
-                      <div className="text-center p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
+                      <div className="rounded-3xl border border-black/5 bg-white p-5 text-center dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                         <div className="text-xl sm:text-2xl font-bold">
-                          <span className="text-primary">
+                          <span className="text-zinc-900 tabular-nums dark:text-zinc-50">
                             ${Math.floor(poolBuilderData.breakdown?.total || 0).toLocaleString()}
                           </span>
-                          <span className="text-black">
+                          <span className="text-zinc-900 tabular-nums dark:text-zinc-50">
                             {((poolBuilderData.breakdown?.total || 0) % 1).toFixed(2).substring(1)}
                           </span>
                         </div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                           Total Configuration Price
                         </p>
                       </div>
@@ -3923,16 +3972,16 @@ const WonderlandsStudio = () => {
                         <Separator />
                       </div>
                       
-                      <div className="text-center p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
+                      <div className="rounded-3xl border border-black/5 bg-white p-5 text-center dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                         <div className="text-xl sm:text-2xl font-bold">
-                          <span className="text-primary">
+                          <span className="text-zinc-900 tabular-nums dark:text-zinc-50">
                             ${Math.floor(calculateTotalPrice()).toLocaleString()}
                           </span>
-                          <span className="text-black">
+                          <span className="text-zinc-900 tabular-nums dark:text-zinc-50">
                             {(calculateTotalPrice() % 1).toFixed(2).substring(1)}
                           </span>
                         </div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                           Total Configuration Price
                         </p>
                       </div>
