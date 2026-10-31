@@ -24,6 +24,7 @@
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { LIVE_EVENTS } from "./liveTypes";
 import { cacheWrite } from "@/lib/uiCache";
 import { setFlipBoardValue, type FlipBoardState } from "@/components/flip/flipBoardStore";
 import { SITE_ELEMENTS_EVENT, SITE_ELEMENTS_KEY } from "@/components/designStudio/SiteElementsLayer";
@@ -224,6 +225,18 @@ export function startLiveBridge(slug: string, role: Role): () => void {
   };
   window.addEventListener("wlive:flip-page", onFlipPage);
 
+  /* Finished quote/invoice documents: lib/live/liveDocs builds the file and
+     hands the announcement here so it travels on the room channel — the doc
+     lands in everyone's chat and guests get the download prompt. */
+  const onDocAnnounce = (e: Event) => {
+    const d = (e as CustomEvent).detail as { chat?: unknown; doc?: unknown; handled?: boolean } | undefined;
+    if (!d || !d.chat || !d.doc) return;
+    send(LIVE_EVENTS.chat, d.chat as Record<string, unknown>);
+    send("bridge:doc", d.doc as Record<string, unknown>);
+    d.handled = true;
+  };
+  window.addEventListener("wlive:doc-announce", onDocAnnounce);
+
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let viewTimer: ReturnType<typeof setInterval> | null = null;
   channel.subscribe((status) => {
@@ -240,6 +253,7 @@ export function startLiveBridge(slug: string, role: Role): () => void {
   return () => {
     stopped = true;
     window.removeEventListener("wlive:flip-page", onFlipPage);
+    window.removeEventListener("wlive:doc-announce", onDocAnnounce);
     if (pollTimer) clearInterval(pollTimer);
     if (viewTimer) clearInterval(viewTimer);
     if (sceneReloadTimer) clearTimeout(sceneReloadTimer);

@@ -122,12 +122,15 @@ export function LiveStage({
   onProductSelect,
   slug,
   isHost,
+  onQuote,
 }: {
   stage: LiveStageState;
   interactive: boolean;
   onProductSelect: (productKey: string, variantIdx: number, optionIds: string[]) => void;
   slug?: string;
   isHost?: boolean;
+  /** Host-only: switch the stage to the quote tool for the presented product. */
+  onQuote?: () => void;
 }) {
   if (stage.file) {
     return (
@@ -150,6 +153,7 @@ export function LiveStage({
           optionIds={stage.optionIds}
           interactive={interactive}
           onSelect={onProductSelect}
+          onQuote={isHost ? onQuote : undefined}
         />
       ) : (
         <>

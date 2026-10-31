@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollRestoration from "./components/ScrollRestoration";
 import { LiveBridgeMount } from "@/lib/live/liveBridge";
+import { LoginModalHost } from "@/components/auth/LoginModal";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
@@ -131,6 +132,7 @@ const App = () => {
       <ProjectTypeProvider>
         <ScrollRestoration />
         <LiveBridgeMount />
+        <LoginModalHost />
         <RightNavigation />
         <AIAssistantChat />
         

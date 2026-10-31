@@ -23,6 +23,7 @@ import {
   type LiveStageState,
   type LiveTxLine,
 } from "@/lib/live/liveTypes";
+import type { LiveDocAnnouncement } from "@/lib/live/liveDocs";
 
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
@@ -75,6 +76,9 @@ export interface LiveRoom {
   toggleHand: () => void;
   toggleScreen: () => Promise<void>;
   sendChat: (text: string, attachment?: LiveAttachment | null) => void;
+  /* finished quote/invoice announcements from staged widgets */
+  docPrompt: LiveDocAnnouncement | null;
+  dismissDocPrompt: () => void;
   /* host stage controls */
   setStage: (partial: Partial<LiveStageState>) => void;
   clearStage: () => void;
@@ -114,6 +118,9 @@ export function useLiveRoom(slug: string): LiveRoom {
   const [hand, setHand] = React.useState(false);
   const [mediaError, setMediaError] = React.useState<string | null>(null);
   const [chat, setChat] = React.useState<LiveChatMessage[]>([]);
+  /* A quote/invoice the host just finished in a staged widget — guests are
+     asked whether they want to download it (lib/live/liveDocs). */
+  const [docPrompt, setDocPrompt] = React.useState<LiveDocAnnouncement | null>(null);
   const [txLines, setTxLines] = React.useState<LiveTxLine[]>([]);
   const [txOn, setTxOnState] = React.useState(false);
   const [stage, setStageState] = React.useState<LiveStageState>(EMPTY_STAGE);
@@ -537,6 +544,10 @@ export function useLiveRoom(slug: string): LiveRoom {
       channel.on("broadcast", { event: LIVE_EVENTS.chat }, ({ payload }) => {
         setChat((prev) => [...prev.slice(-199), payload as LiveChatMessage]);
       });
+      channel.on("broadcast", { event: "bridge:doc" }, ({ payload }) => {
+        const d = payload as LiveDocAnnouncement;
+        if (d && d.url) setDocPrompt(d);
+      });
       channel.on("broadcast", { event: LIVE_EVENTS.stageSet }, ({ payload }) => {
         const next = payload as LiveStageState;
         const sender = participantsRef.current.find((p) => p.clientId === next.updatedBy);
@@ -663,6 +674,8 @@ export function useLiveRoom(slug: string): LiveRoom {
     toggleHand,
     toggleScreen,
     sendChat,
+    docPrompt,
+    dismissDocPrompt: () => setDocPrompt(null),
     setStage,
     clearStage,
     setLockAll,

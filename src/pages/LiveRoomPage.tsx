@@ -18,7 +18,7 @@
 import * as React from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
-  Captions, Check, Copy, Hand, LayoutGrid, MessageSquare, Mic, MicOff, MonitorUp, Package,
+  Captions, Check, Copy, Download, FileText, Hand, LayoutGrid, MessageSquare, Mic, MicOff, MonitorUp, Package,
   PenLine, PhoneOff, Upload, Users, Video, VideoOff, X,
 } from "lucide-react";
 import { useLiveRoom } from "@/hooks/useLiveRoom";
@@ -28,6 +28,7 @@ import { canHost, meetingTitle, GUEST_NAME_KEY } from "@/lib/live/liveMeetings";
 import { appPath, liveLink } from "@/lib/live/liveTypes";
 import { uploadLiveFile } from "@/lib/live/liveFiles";
 import { useAuth } from "@/contexts/AuthContext";
+import { requestLogin } from "@/components/auth/LoginModal";
 
 type Panel = "chat" | "products" | "widgets" | "people" | "transcript" | "journal" | null;
 
@@ -139,6 +140,22 @@ export default function LiveRoomPage() {
               </button>
               <p className="text-center text-[11px] text-zinc-500">You can host this meeting.</p>
             </div>
+          ) : params.get("host") === "1" && !user ? (
+            /* Joining never needs an account — HOSTING does, and the login
+               pops up right here instead of making the user go find it
+               (founder directive 2026-10-31). */
+            <div className="mt-5 space-y-2">
+              <button
+                onClick={() => requestLogin("Hosting a meeting needs a log in. Joining as a guest never does.")}
+                className="w-full rounded-full bg-white py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-200"
+              >
+                Log in to host
+              </button>
+              <button onClick={() => doJoin(false)} className="w-full rounded-full border border-white/15 py-2.5 text-sm text-white transition hover:bg-white/10">
+                Join as guest instead
+              </button>
+              <p className="text-center text-[11px] text-zinc-500">Hosting needs a log in — guests never need an account.</p>
+            </div>
           ) : (
             <button onClick={() => doJoin(false)} className="mt-5 w-full rounded-full bg-white py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-200">
               Join the meeting
@@ -210,7 +227,14 @@ export default function LiveRoomPage() {
 
   const heroMode = stageActive || !!spotlightId;
   const heroNode = stageActive ? (
-    <LiveStage stage={room.stage} interactive={room.canInteract()} onProductSelect={room.updateProduct} slug={slug} isHost={room.isHost} />
+    <LiveStage
+      stage={room.stage}
+      interactive={room.canInteract()}
+      onProductSelect={room.updateProduct}
+      slug={slug}
+      isHost={room.isHost}
+      onQuote={() => room.setStage({ widgetId: "quote", route: "/quote" })}
+    />
   ) : spotlightId ? (
     <VideoTile stream={spotlightStream} name={spotlightName} isLocal={spotlightId === room.clientId} />
   ) : null;
@@ -475,6 +499,47 @@ export default function LiveRoomPage() {
               </div>
             </div>
           </div>
+
+          {/* finished quote/invoice — the doc is already in the chat; guests
+              are asked if they want their own copy (founder, 2026-10-31) */}
+          {room.docPrompt && room.docPrompt.role === "host" && !room.isHost && (
+            <div className="absolute bottom-24 left-1/2 z-50 w-[340px] max-w-[92vw] -translate-x-1/2 rounded-2xl bg-zinc-900 p-4 text-white shadow-2xl">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-300 text-zinc-900">
+                  <FileText className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">Your host finished a {room.docPrompt.kind}</div>
+                  <div className="mt-0.5 truncate text-xs text-zinc-300">
+                    {room.docPrompt.title} · ${Math.round(room.docPrompt.total).toLocaleString()}
+                    {room.docPrompt.ref ? ` · ${room.docPrompt.ref}` : ""}
+                  </div>
+                  <p className="mt-1 text-xs text-zinc-400">It is in the chat too. Want to download your copy?</p>
+                  <div className="mt-3 flex gap-2">
+                    <a
+                      href={room.docPrompt.url}
+                      download={room.docPrompt.name}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={room.dismissDocPrompt}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-900 transition hover:bg-zinc-200"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Download
+                    </a>
+                    <button
+                      onClick={room.dismissDocPrompt}
+                      className="rounded-full border border-white/20 px-3.5 py-1.5 text-xs text-white transition hover:bg-white/10"
+                    >
+                      Not now
+                    </button>
+                  </div>
+                </div>
+                <button aria-label="Dismiss" onClick={room.dismissDocPrompt} className="shrink-0 text-zinc-400 transition hover:text-white">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* side panel — light, SFH pill tabs */}
           {panel && (

@@ -1996,6 +1996,14 @@ export function PoolBuilder({
     const viewTop = -panOffset.y * invZoom + canvasSize.height / 2 * (1 - invZoom);
     const viewRight = viewLeft + canvasSize.width * invZoom;
     const viewBottom = viewTop + canvasSize.height * invZoom;
+    // Drawing aids (spline draft, projections, symmetry guides) clip to the
+    // visible board: a finger or cursor outside the board must never paint a
+    // projection line across or beyond the viewport (founder, 2026-10-31).
+    const clipToView = () => {
+      ctx.beginPath();
+      ctx.rect(viewLeft, viewTop, viewRight - viewLeft, viewBottom - viewTop);
+      ctx.clip();
+    };
     const startX = Math.floor(viewLeft / terrainStep) * terrainStep;
     const startY = Math.floor(viewTop / terrainStep) * terrainStep;
     for (let tx = startX; tx < viewRight; tx += terrainStep) {
@@ -3843,6 +3851,7 @@ export function PoolBuilder({
     // Draw symmetry guide lines when spline drawing is active
     if (splineDrawing.isActive && symmetryMode.enabled) {
       ctx.save();
+      clipToView();
       ctx.setLineDash([10, 6]);
       ctx.lineWidth = 1;
       const centerX = canvasSize.width / 2;
@@ -3999,6 +4008,13 @@ export function PoolBuilder({
     // Draw spline drawing preview when in draw mode
     if (splineDrawing.isActive && splineDrawing.points.length > 0) {
       ctx.save();
+      clipToView();
+      // The live edge follows a cursor clamped to the visible board, so the
+      // projection stops at the board's edge instead of crossing the screen.
+      const draftCursor = {
+        x: Math.min(Math.max(cursorPos.x, viewLeft), viewRight),
+        y: Math.min(Math.max(cursorPos.y, viewTop), viewBottom),
+      };
 
       // Draw preview of how the completed pool would look (filled shape preview)
       if (splineDrawing.points.length >= 3) {
@@ -4051,7 +4067,7 @@ export function PoolBuilder({
       ctx.beginPath();
       const lastPoint = splineDrawing.points[splineDrawing.points.length - 1];
       ctx.moveTo(lastPoint.x, lastPoint.y);
-      drawCurvedSegment(ctx, lastPoint, cursorPos, splineDrawing.currentCurveType);
+      drawCurvedSegment(ctx, lastPoint, draftCursor, splineDrawing.currentCurveType);
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -4115,13 +4131,13 @@ export function PoolBuilder({
       // Draw distance from last point to cursor (live measurement)
       if (splineDrawing.points.length >= 1) {
         const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
-        const distToCursorPx = Math.sqrt(Math.pow(cursorPos.x - lastPt.x, 2) + Math.pow(cursorPos.y - lastPt.y, 2));
+        const distToCursorPx = Math.sqrt(Math.pow(draftCursor.x - lastPt.x, 2) + Math.pow(draftCursor.y - lastPt.y, 2));
         const distToCursorFeet = (distToCursorPx / scale).toFixed(1);
         if (distToCursorPx > 10) {
           // Only show if cursor is not too close
-          const midX = (lastPt.x + cursorPos.x) / 2;
-          const midY = (lastPt.y + cursorPos.y) / 2;
-          const angle = Math.atan2(cursorPos.y - lastPt.y, cursorPos.x - lastPt.x);
+          const midX = (lastPt.x + draftCursor.x) / 2;
+          const midY = (lastPt.y + draftCursor.y) / 2;
+          const angle = Math.atan2(draftCursor.y - lastPt.y, draftCursor.x - lastPt.x);
 
           // Offset perpendicular to line
           const offsetDist = 25;
@@ -4218,7 +4234,7 @@ export function PoolBuilder({
 
         // Show close indicator on first point when hovering near it
         if (isFirst && splineDrawing.points.length >= 3) {
-          const distToFirst = Math.sqrt(Math.pow(cursorPos.x - sp.x, 2) + Math.pow(cursorPos.y - sp.y, 2));
+          const distToFirst = Math.sqrt(Math.pow(draftCursor.x - sp.x, 2) + Math.pow(draftCursor.y - sp.y, 2));
           if (distToFirst < 15) {
             ctx.beginPath();
             ctx.arc(sp.x, sp.y, 14, 0, 2 * Math.PI);

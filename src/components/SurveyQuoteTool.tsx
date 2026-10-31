@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
 import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSnapshot } from "@/components/quote/quoteGallery";
+import { announceLiveDoc } from "@/lib/live/liveDocs";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
@@ -885,6 +886,17 @@ const SurveyQuoteTool = ({
     const quoteAmount = calculateQuote();
     setEditableQuoteAmount(quoteAmount);
     setCurrentStep('quote');
+    // In a live room, the finished quote goes straight to the room's chat
+    // and guests are asked if they want to download it (no-op elsewhere).
+    void announceLiveDoc({
+      kind: 'quote',
+      title: pool?.model || customProduct?.name || 'Custom quote',
+      total: quoteAmount,
+      lines: buildQuoteLineItems().map((l: any) => ({
+        label: String(l.description ?? ''),
+        amount: `$${Math.round(Number(l.total) || 0).toLocaleString()}`,
+      })),
+    });
   };
   const handleGetQuote = async () => {
     if (!surveyData.name || !surveyData.email) {
@@ -912,6 +924,17 @@ const SurveyQuoteTool = ({
     const quoteAmount = calculateQuote();
     setEditableQuoteAmount(quoteAmount);
     setCurrentStep('quote');
+    // In a live room, the finished quote goes straight to the room's chat
+    // and guests are asked if they want to download it (no-op elsewhere).
+    void announceLiveDoc({
+      kind: 'quote',
+      title: pool?.model || customProduct?.name || 'Custom quote',
+      total: quoteAmount,
+      lines: buildQuoteLineItems().map((l: any) => ({
+        label: String(l.description ?? ''),
+        amount: `$${Math.round(Number(l.total) || 0).toLocaleString()}`,
+      })),
+    });
   };
   const handleScheduleInstallation = async () => {
     // Ensure the quotation is saved and user is authenticated
@@ -1029,6 +1052,19 @@ const SurveyQuoteTool = ({
       toast({
         title: "Invoice Generated!",
         description: `Invoice ${invoice.invoice_number} has been created. Redirecting...`,
+      });
+
+      // In a live room, the finished invoice goes straight to the room's
+      // chat and guests are asked if they want to download it (no-op elsewhere).
+      await announceLiveDoc({
+        kind: 'invoice',
+        title: pool?.model || customProduct?.name || 'Custom project',
+        total: totalAmount,
+        ref: invoiceNumber,
+        lines: lineItems.map((l: any) => ({
+          label: String(l.description ?? ''),
+          amount: `$${Math.round(Number(l.total) || 0).toLocaleString()}`,
+        })),
       });
       
       // Close the dialog and navigate to the invoice page

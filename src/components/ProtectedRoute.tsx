@@ -1,8 +1,41 @@
 
 import * as React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { UserRole } from '@/contexts/AuthContext';
+import { requestLogin } from '@/components/auth/LoginModal';
+
+/**
+ * In place of a protected feature while signed out: the login modal fires
+ * on arrival (on top, not a page hunt) and a button reopens it if dismissed.
+ */
+const LoginGate = () => {
+  React.useEffect(() => {
+    requestLogin('Log in to open this — it takes a few seconds and you will stay right here.');
+  }, []);
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm text-center">
+        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Members area</p>
+        <h1 className="mt-2 font-serif text-2xl font-light">This feature needs a log in</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          The login pops up right here — no hunting for a sign-in page. Once you are in, this opens automatically.
+        </p>
+        <button
+          onClick={() => requestLogin('Log in to open this — it takes a few seconds and you will stay right here.')}
+          className="mt-5 w-full rounded-full bg-foreground py-2.5 text-sm font-semibold text-background transition hover:opacity-85"
+        >
+          Log in
+        </button>
+        <div>
+          <Link to="/" className="mt-3 inline-block text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
+            Back to the site
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -32,9 +65,12 @@ const ProtectedRoute = ({
     );
   }
 
-  // Check if authentication is required
+  // Check if authentication is required — the login pops up ON TOP of the
+  // feature instead of bouncing the user away to find a login page
+  // (founder directive 2026-10-31). Signing in re-renders this route with a
+  // user and the feature simply opens.
   if (requireAuth && !user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <LoginGate />;
   }
 
   // Check if email verification is required

@@ -152,11 +152,11 @@ const PaversWorkMessage: React.FC<{ entryName: string }> = ({ entryName }) => (
     <Eyebrow>Wonderlands hardscape</Eyebrow>
     <h3 className="mt-2 font-serif text-2xl font-light leading-tight">Our work on {entryName}</h3>
     <div className="mt-4 h-px w-14 origin-left bg-foreground/40 animate-rule-draw" />
-    <div className="mt-5 grid min-h-0 flex-1 gap-4 sm:grid-cols-2">
+    <div className="mt-5 grid min-h-0 flex-1 grid-rows-[repeat(4,minmax(0,1fr))] gap-4 sm:grid-cols-2 sm:grid-rows-2">
       {PAVERS_WORK_MESSAGE.map((paragraph, index) => (
         <p
           key={paragraph}
-          className={`font-serif text-[11.5px] leading-relaxed text-foreground/85 ${index === 0 ? "first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:leading-[0.8]" : ""}`}
+          className={`min-h-0 overflow-hidden font-serif text-[11.5px] leading-relaxed text-foreground/85 ${index === 0 ? "first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:leading-[0.8]" : ""}`}
         >
           {paragraph}
         </p>
@@ -295,6 +295,26 @@ const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
   <p className={`text-[9px] uppercase tracking-[0.35em] text-muted-foreground ${className}`}>{children}</p>
 );
 
+/**
+ * True when the book is read as a single narrow leaf (phones, small live
+ * stage embeds). Option chapters switch from printed rows — which a short
+ * leaf clips out of sight — to a one-option-at-a-time carousel there
+ * (founder directive 2026-10-31).
+ */
+const useNarrowLeaf = () => {
+  const [narrow, setNarrow] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 820px)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 820px)");
+    const on = () => setNarrow(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return narrow;
+};
+
 
 /**
  * Which leaf of the spread a page is printed on.
@@ -335,9 +355,17 @@ const OptionChapter: React.FC<{
   const cart = useOptionalShoppingCart();
   /* which leaf of the spread this chapter is printed on — decides the + side */
   const leafSide = useLeafSide();
+  const narrow = useNarrowLeaf();
+  const [slide, setSlide] = useState(0);
   const [active, setActive] = useState<StudioOption | null>(null);
   const [full, setFull] = useState(false);
-  const preview = active ?? chunk.find((o) => o.image) ?? null;
+  useEffect(() => {
+    setSlide(0);
+    setActive(null);
+  }, [chunk]);
+  const slideIdx = Math.min(slide, Math.max(0, chunk.length - 1));
+  const current = chunk[slideIdx];
+  const preview = active ?? (narrow ? current : chunk.find((o) => o.image)) ?? null;
   /* only an option's own photography ever reaches the plate — never the product
      shot, so a chapter with no swatches prints a typographic head instead. */
   const plate = preview?.image;
@@ -571,7 +599,7 @@ const OptionChapter: React.FC<{
       {/* live preview plate — swaps to the option under the cursor. Chapters with no
           photography use a typographic head instead, so no empty frame is printed. */}
       {plate || preview?.color ? (
-        <div className="relative mt-4 aspect-[5/4] max-h-[46%] w-full shrink-0 overflow-hidden bg-muted">
+        <div className={`relative mt-4 aspect-[5/4] w-full shrink-0 overflow-hidden bg-muted ${narrow ? "max-h-[34%]" : "max-h-[46%]"}`}>
           {plateArt(true)}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
           <p className="absolute inset-x-3 bottom-2 flex items-baseline justify-between gap-3 pr-10 text-[9px] uppercase tracking-[0.3em] text-white/90">
@@ -603,11 +631,120 @@ const OptionChapter: React.FC<{
         </div>
       )}
 
-      <div className="mt-4 flex min-h-0 flex-1 flex-col">{rows(true)}</div>
-      <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
-        Hover any option to see it on the plate above, expand it with the corner control, then add it with the + to
-        carry it into your estimate with the same category, pricing and image data used by Wonderlands Studio.
-      </p>
+      {narrow ? (
+        /* Mobile carousel — one option at a time, Wonderlands Studio style:
+           the short leaf never has to fit a whole list, so no option is
+           clipped out of sight (founder directive 2026-10-31). */
+        <div className="mt-4 flex min-h-0 flex-1 flex-col">
+          {current && (
+            <div className="border border-border/60 p-3">
+              <div className="flex items-center gap-3">
+                <span className="font-serif text-xs text-muted-foreground">
+                  {String(chunkIndex * perPage + slideIdx + 1).padStart(2, "0")}
+                </span>
+                {current.image ? (
+                  <img src={current.image} alt={current.label} loading="eager" decoding="async" className="h-10 w-10 shrink-0 object-cover" />
+                ) : current.color ? (
+                  <span className="h-10 w-10 shrink-0 border border-border/60" style={{ backgroundColor: current.color }} />
+                ) : null}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[12px] font-medium uppercase tracking-[0.14em]">{current.label}</span>
+                  <span className="mt-0.5 block font-serif text-[12px] text-muted-foreground">{current.priceLabel}</span>
+                </span>
+                {control(current)}
+              </div>
+              {measure?.label === current.label && (
+                <div className="mt-3 flex items-center gap-2 border-t border-dashed border-border/60 pt-3">
+                  <label className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
+                    {current.unit === "sqft" ? "Area" : "Quantity"}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    step={current.unit === "sqft" ? 10 : 1}
+                    value={measure.value}
+                    onChange={(e) => setMeasure({ label: current.label, value: e.target.value })}
+                    className="w-20 border border-border/70 bg-transparent px-2 py-1 font-serif text-[11px] outline-none focus:border-foreground"
+                  />
+                  <span className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground">{unitWord(current)}</span>
+                  <span className="ml-auto font-serif text-[11px]">
+                    ${Math.round(lineTotal(current, Math.max(0, Number(measure.value) || 0))).toLocaleString()}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => addOption(current, Math.max(1, Number(measure.value) || 1))}
+                    className="border border-foreground bg-foreground px-2 py-1 text-[9px] uppercase tracking-[0.25em] text-background"
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMeasure(null)}
+                    className="border border-border/70 px-2 py-1 text-[9px] uppercase tracking-[0.25em] text-muted-foreground"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          <div className="mt-auto flex items-center justify-between pt-3">
+            <button
+              type="button"
+              aria-label="Previous option"
+              onClick={() => {
+                const n = (slideIdx - 1 + chunk.length) % chunk.length;
+                setSlide(n);
+                setActive(chunk[n]);
+                setMeasure(null);
+              }}
+              className="flex h-9 w-9 items-center justify-center border border-border/60 transition-colors hover:bg-foreground hover:text-background"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-1.5">
+              {chunk.map((o, i) => (
+                <button
+                  key={o.label}
+                  type="button"
+                  aria-label={`Option ${i + 1}: ${o.label}`}
+                  onClick={() => {
+                    setSlide(i);
+                    setActive(chunk[i]);
+                    setMeasure(null);
+                  }}
+                  className={`h-1.5 rounded-full transition-all ${i === slideIdx ? "w-5 bg-foreground" : "w-1.5 bg-foreground/25"}`}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-label="Next option"
+              onClick={() => {
+                const n = (slideIdx + 1) % chunk.length;
+                setSlide(n);
+                setActive(chunk[n]);
+                setMeasure(null);
+              }}
+              className="flex h-9 w-9 items-center justify-center border border-border/60 transition-colors hover:bg-foreground hover:text-background"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="mt-3 border-t border-border/50 pt-3 text-center text-[10px] leading-relaxed text-muted-foreground">
+            Option {slideIdx + 1} of {chunk.length} — tap + to carry it into your estimate, exactly as in Wonderlands
+            Studio. Turn the page for more.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="mt-4 flex min-h-0 flex-1 flex-col">{rows(true)}</div>
+          <p className="mt-3 border-t border-border/50 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+            Hover any option to see it on the plate above, expand it with the corner control, then add it with the + to
+            carry it into your estimate with the same category, pricing and image data used by Wonderlands Studio.
+          </p>
+        </>
+      )}
 
       {/* full-spread study — the whole book: one leaf is the photograph, the facing leaf the options */}
       {full && (
@@ -780,6 +917,20 @@ export const useProductBookPages = ({
                 {category.description ?? category.tagline ?? category.label}
               </p>
               <p className="mt-5 font-serif text-2xl font-light">{price}</p>
+              {/* Quote button on the hero too — the founder wants it at the front
+                  of the book and at the end (the order page), never buried. */}
+              <button
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("wl:open-quote", {
+                      detail: { name: entry.name, price: entry.price ?? 0, type: category.label, image: entry.image },
+                    }),
+                  )
+                }
+                className="mt-5 inline-flex items-center gap-2 border border-white/70 px-4 py-2.5 text-[9px] uppercase tracking-[0.3em] text-white backdrop-blur transition-colors hover:bg-white hover:text-black"
+              >
+                Get a quote <ChevronRight className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         </div>
@@ -877,8 +1028,11 @@ export const useProductBookPages = ({
             </p>
             <div className="mt-3 h-px w-14 origin-left bg-foreground/40 animate-rule-draw" />
 
-            {/* body — two columns of type with a detail plate, so the leaf reads full */}
-            <div className="mt-4 grid min-h-0 flex-1 gap-4 sm:grid-cols-[1.15fr_0.85fr]">
+            {/* body — two columns of type with a detail plate, so the leaf reads full.
+                On a portrait leaf the rows are height-budgeted (text row flexible and
+                clipped, spec strip auto) — an unconstrained grid row used to spill its
+                type over the sections below and print them on top of each other. */}
+            <div className="mt-4 grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-4 sm:grid-cols-[1.15fr_0.85fr] sm:grid-rows-1">
               <div className="min-h-0 space-y-3 overflow-hidden">
                 <p className="font-serif text-[12.5px] leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-5xl first-letter:leading-[0.8]">
                   {story.body}
@@ -891,7 +1045,7 @@ export const useProductBookPages = ({
 
               <div className="flex min-h-0 flex-col gap-3">
                 {detail && (
-                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted max-sm:hidden">
                     <img
                       src={detail}
                       alt={`${entry.name} detail`}
