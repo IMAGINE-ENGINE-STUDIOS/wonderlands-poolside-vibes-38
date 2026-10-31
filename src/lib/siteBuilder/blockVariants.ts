@@ -232,7 +232,7 @@ export const BLOCK_VARIANTS: Partial<Record<BlockType, BlockVariant[]>> = {
     { name: 'Blueprint Builder', hint: 'Blueprint builder, embedded live', props: { tool: 'blueprint', title: 'Blueprint Builder', height: 820 }, style: { ...wide } },
     { name: 'Solar Genius', hint: 'Solar Genius tool, embedded live', props: { tool: 'solar', title: 'Solar Genius', height: 760 }, style: { ...wide } },
     { name: 'Quote Atelier', hint: 'The instant quote tool, embedded live', props: { tool: 'quote', title: 'Get an Instant Quote', height: 760 }, style: { ...wide } },
-    { name: 'Pool Cost Calculator', hint: 'Pool cost calculator, embedded live', props: { tool: 'calculator', title: 'What Does a Pool Cost?', height: 700 }, style: { ...wide } },
+    { name: 'Pool Calculator', hint: 'Pool calculator — water volume, heating & chemicals, embedded live', props: { tool: 'calculator', title: 'Pool Calculator', height: 700 }, style: { ...wide } },
     { name: 'Studio Showroom', hint: 'The studio showroom, embedded live', props: { tool: 'showroom', title: 'Studio Showroom', height: 760 }, style: { ...wide } },
     { name: 'FLIP Book', hint: 'A FLIP catalogue — pick the book in the Section tab', props: { tool: 'flip', title: 'Browse the Catalogue', height: 820 }, style: { ...wide } },
     { name: 'Live Video', hint: 'Live video meetings, embedded live', props: { tool: 'live', title: 'Meet Us Live', height: 760 }, style: { ...wide } },

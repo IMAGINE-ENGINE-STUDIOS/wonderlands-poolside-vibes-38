@@ -20,8 +20,7 @@ import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Copy, Trash2, G
 import { variantsFor, type BlockVariant } from '@/lib/siteBuilder/blockVariants';
 import SiteRenderer from './SiteRenderer';
 import { AddressField, reverseGeocode } from './SiteMap';
-import { wonderlandsTemplate } from '@/lib/siteBuilder/wonderlandsTemplate';
-import { TRADE_OPTIONS, tradeTemplate, sectionFrom, type Trade } from '@/lib/siteBuilder/tradeTemplates';
+import { SITE_TEMPLATES, siteTemplateById } from '@/lib/siteBuilder/templates';
 import SiteGenius, { applyGeniusOps, askSiteGenius } from './SiteGenius';
 import { collectImages } from './siteBuilderUtils';
 import SiteTextEditor from './SiteTextEditor';
@@ -142,6 +141,8 @@ function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; the
   const tx = (s: unknown, size = 7, bold = false, c = ink, o = 1) => <span style={{ display: 'block', fontSize: size, fontWeight: bold ? 700 : 500, color: c, opacity: o, lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{String(s ?? '')}</span>;
   const lines = (n: number, o = .5) => <span style={{ display: 'grid', gap: 3 }}>{Array.from({ length: n }, (_, i) => bar(`${88 - i * 14}%`, 3, o, ink, i))}</span>;
   const grid3 = (cell: (i: number) => React.ReactNode) => <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 5, height: '100%' }}>{[0, 1, 2].map(i => <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>{cell(i)}</div>)}</div>;
+  /** Grid honouring the variant's real column count (2/3/4) — a "Two-Up" thumbnail must show two. */
+  const gridN = (n: number, cell: (i: number) => React.ReactNode) => { const c = Math.max(2, Math.min(4, n || 3)); return <div style={{ display: 'grid', gridTemplateColumns: `repeat(${c}, 1fr)`, gap: 5, height: '100%' }}>{Array.from({ length: c }, (_, i) => <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>{cell(i)}</div>)}</div>; };
   const cardBox: React.CSSProperties = { border: `1px solid ${ink}30`, borderRadius: 4, padding: 4, background: `${ink}08` };
   const layout = String(pr.layout || '');
   let inner: React.ReactNode = <>{tx(pr.title || v.name, 8, true)}{<div style={{ marginTop: 5 }}>{lines(4)}</div>}</>;
@@ -169,18 +170,18 @@ function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; the
     const nm = (i: number) => items[i]?.title || items[i]?.name || '';
     if (layout === 'rows') inner = <div style={{ display: 'grid', gap: 6 }}>{[0, 1].map(i => <div key={i} style={{ display: 'flex', gap: 6, flexDirection: i ? 'row-reverse' : 'row' }}>{ph(26, 1)}<span style={{ flex: 1.2, display: 'grid', gap: 2, alignContent: 'center' }}>{tx(nm(i), 7, true)}{bar('95%', 3, .5)}{bar('80%', 3, .5)}</span></div>)}</div>;
     else if (layout === 'numbered') inner = <div style={{ display: 'grid', gap: 5 }}>{[0, 1, 2].map(i => <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', borderTop: i > 0 ? `1px solid ${ink}25` : undefined, paddingTop: i > 0 ? 4 : 0 }}><span style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: acc, width: 16 }}>0{i + 1}</span><span style={{ display: 'grid', gap: 2, flex: 1 }}>{tx(nm(i), 7, true)}{bar('88%', 3, .5)}</span></div>)}</div>;
-    else if (layout === 'cards') inner = grid3(i => <div style={cardBox}>{ph(20)}{tx(nm(i), 6.5, true)}{bar('90%', 3, .5)}</div>);
-    else inner = grid3(i => <>{ph(24)}{tx(nm(i), 6.5, true)}{bar('92%', 3, .5)}{bar('80%', 3, .5)}</>);
+    else if (layout === 'cards') inner = gridN(Number(pr.columns) || 3, i => <div style={cardBox}>{ph(20)}{tx(nm(i), 6.5, true)}{bar('90%', 3, .5)}</div>);
+    else inner = gridN(Number(pr.columns) || 3, i => <>{ph(24)}{tx(nm(i), 6.5, true)}{bar('92%', 3, .5)}{bar('80%', 3, .5)}</>);
   } else if (type === 'products') {
     const nm = (i: number) => items[i]?.name || ''; const prc = (i: number) => items[i]?.price || '';
     if (layout === 'list') inner = <div style={{ display: 'grid', gap: 5 }}>{[0, 1].map(i => <div key={i} style={{ ...cardBox, display: 'flex', gap: 5, alignItems: 'center' }}>{ph(22, .5)}<span style={{ flex: 1, display: 'grid', gap: 1 }}>{tx(nm(i), 6.5, true)}{tx(prc(i), 6, true, acc)}{bar('85%', 3, .45)}</span>{pill(acc, 18)}</div>)}</div>;
-    else inner = grid3(i => <div style={{ ...cardBox, background: '#fff' }}>{ph(22)}{tx(nm(i), 6.5, true, '#14181f')}{tx(prc(i), 6, true, acc)}</div>);
+    else inner = gridN(Number(pr.columns) || 3, i => <div style={{ ...cardBox, background: '#fff' }}>{ph(22)}{tx(nm(i), 6.5, true, '#14181f')}{tx(prc(i), 6, true, acc)}</div>);
   } else if (type === 'testimonials') {
     const q = (i: number) => items[i]?.quote || items[i]?.text || ''; const who = (i: number) => items[i]?.name || '';
     if (layout === 'wall') inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4, height: '100%' }}>{[0, 1, 2, 3, 4, 5].map(i => <div key={i} style={{ ...cardBox, height: i % 2 ? 34 : 44 }}>{tx('★ ★ ★ ★ ★', 5, false, acc)}{tx(q(i) || '“Great work…”', 5.5)}{tx(who(i), 5, true, ink, .6)}</div>)}</div>;
     else if (layout === 'spotlight') inner = <div style={{ display: 'grid', justifyItems: 'center', gap: 2, textAlign: 'center' }}>{tx(q(0) || '“The best decision we made for our home.”', 7.5, true)}{tx(who(0), 6, false, ink, .6)}<div style={{ display: 'flex', gap: 10, marginTop: 3 }}><span style={{ display: 'grid', gap: 2 }}>{bar(52, 3, .6)}{bar(24, 2, .4)}</span><span style={{ display: 'grid', gap: 2 }}>{bar(52, 3, .6)}{bar(24, 2, .4)}</span></div></div>;
-    else if (layout === 'cards') inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, height: '100%' }}>{[0, 1].map(i => <div key={i} style={cardBox}>{tx(q(i), 6)}{tx(who(i), 5.5, true, ink, .55)}</div>)}</div>;
-    else inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>{[0, 1].map(i => <span key={i} style={{ display: 'grid', gap: 2 }}>{tx(q(i), 6)}{tx(who(i), 5.5, true, ink, .55)}</span>)}</div>;
+    else if (layout === 'cards') inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, height: '100%' }}>{[0, 1].map(i => <div key={i} style={cardBox}>{tx('★ ★ ★ ★ ★', 5, false, acc)}{tx(q(i) || '“Great work, start to finish.”', 6)}{tx(who(i) || 'A happy client', 5.5, true, ink, .55)}</div>)}</div>;
+    else inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>{[0, 1].map(i => <span key={i} style={{ display: 'grid', gap: 2 }}>{tx('★ ★ ★ ★ ★', 5, false, acc)}{tx(q(i) || '“Great work, start to finish.”', 6)}{tx(who(i) || 'A happy client', 5.5, true, ink, .55)}</span>)}</div>;
   } else if (type === 'cta') {
     if (layout === 'card') inner = <div style={{ background: acc, borderRadius: 6, height: '100%', display: 'grid', justifyItems: 'center', alignContent: 'center', gap: 3, padding: 6, textAlign: 'center' }}>{tx(pr.title, 8, true, '#fff')}{tx(pr.body || pr.subtitle, 6, false, '#fff', .85)}{pill('#ffffff', 30)}</div>;
     else if (layout === 'split') inner = <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, height: '100%' }}><span style={{ display: 'grid', gap: 2, flex: 1 }}>{tx(pr.title, 8, true)}{tx(pr.body || pr.subtitle, 6, false, ink, .6)}</span>{pill()}</div>;
@@ -207,9 +208,10 @@ function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; the
   } else if (type === 'team') {
     const nm = (i: number) => items[i]?.name || ''; const rl = (i: number) => items[i]?.role || '';
     if (layout === 'cards') inner = grid3(i => <div style={cardBox}>{ph(22)}{tx(nm(i), 6.5, true)}{tx(rl(i), 5.5, false, ink, .6)}</div>);
+    else if (layout === 'grid') inner = gridN(4, i => <>{ph(26)}{tx(nm(i), 6.5, true)}{tx(rl(i), 5.5, false, ink, .6)}</>);
     else inner = grid3(i => <>{layout === 'round' ? <span style={{ width: 26, height: 26, borderRadius: '50%', background: photoBg, margin: '0 auto' }} /> : ph(26)}{tx(nm(i), 6.5, true)}{tx(rl(i), 5.5, false, ink, .6)}</>);
   } else if (type === 'stats') {
-    inner = <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, alignContent: 'center', height: '100%' }}>{[0, 1, 2, 3].map(i => <span key={i} style={layout === 'dividers' ? { borderLeft: `2px solid ${acc}`, paddingLeft: 4, display: 'grid', gap: 1 } : { display: 'grid', gap: 1, justifyItems: 'center' }}>{tx(items[i]?.value || '—', layout === 'big' || layout === 'countup' ? 11 : 9, true, acc)}{tx(items[i]?.label || '', 5, false, ink, .65)}</span>)}</div>;
+    inner = <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, alignContent: 'center', height: '100%' }}>{[0, 1, 2, 3].map(i => <span key={i} style={layout === 'dividers' ? { borderLeft: `2px solid ${acc}`, paddingLeft: 4, display: 'grid', gap: 1 } : { display: 'grid', gap: 1, justifyItems: 'center' }}>{tx(items[i]?.value || '—', layout === 'big' || layout === 'countup' ? 15 : 9, true, acc)}{tx(items[i]?.label || '', 5, false, ink, .65)}</span>)}</div>;
   } else if (type === 'logos') {
     const nm = (i: number) => items[i]?.name || '';
     if (layout === 'marquee') inner = <div style={{ display: 'flex', gap: 12, alignItems: 'center', height: '100%', overflow: 'hidden', whiteSpace: 'nowrap' }}>{[0, 1, 2, 3, 0, 1].map((j, i) => tx(nm(j) || 'LOGO', 8, true, ink, .55))}</div>;
@@ -222,6 +224,7 @@ function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; the
   } else if (type === 'image') {
     if (layout === 'framed') inner = <div style={{ background: '#fff', padding: 4, borderRadius: 3, boxShadow: '0 4px 10px rgba(0,0,0,.15)', height: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}><span style={{ flex: 1, display: 'flex' }}>{ph('100%', 1)}</span>{tx(pr.caption || pr.title || '', 5.5, false, '#14181f', .6)}</div>;
     else if (layout === 'overlay') inner = <div style={{ position: 'relative', height: '100%', display: 'flex' }}>{ph('100%', 1)}<span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 6px 4px', background: 'linear-gradient(transparent, rgba(0,0,0,.7))' }}>{tx(pr.caption || pr.title || '', 6, true, '#fff')}</span></div>;
+    else if ((Number(pr.height) || 0) >= 600) inner = <div style={{ height: '100%', display: 'flex', justifyContent: 'center' }}><span style={{ width: '56%', display: 'flex' }}>{ph('100%', 1)}</span></div>;
     else inner = <div style={{ height: '100%', display: 'flex' }}>{ph('100%', 1)}</div>;
   } else if (type === 'video') {
     inner = <div style={{ height: '100%', background: '#0b0b0f', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>{pr.title && <span style={{ position: 'absolute', top: 5, left: 7 }}>{tx(pr.title, 6, true, '#fff')}</span>}<span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ width: 0, height: 0, borderLeft: '7px solid #0b0b0f', borderTop: '4.5px solid transparent', borderBottom: '4.5px solid transparent', marginLeft: 2 }} /></span></div>;
@@ -231,6 +234,16 @@ function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; the
     inner = <div style={{ position: 'relative', height: '100%', background: '#e6f2e4', borderRadius: 4, overflow: 'hidden' }}><span style={{ position: 'absolute', left: 0, right: 0, top: '38%', height: 5, background: '#fff' }} /><span style={{ position: 'absolute', top: 0, bottom: 0, left: '56%', width: 4, background: '#fff' }} /><span style={{ position: 'absolute', left: '18%', top: '12%', width: '26%', height: '18%', background: '#bcd8f7', borderRadius: 2 }} /><span style={{ position: 'absolute', left: '56%', top: '38%', transform: 'translate(-50%,-100%)' }}><span style={{ display: 'block', width: 11, height: 11, borderRadius: '50% 50% 50% 0', background: acc, transform: 'rotate(-45deg)', border: '1.5px solid #fff' }} /></span>{pr.address && <span style={{ position: 'absolute', left: 5, bottom: 5, background: 'rgba(255,255,255,.92)', borderRadius: 3, padding: '2px 5px', maxWidth: '80%' }}>{tx(pr.address, 5.5, true, '#14181f')}</span>}</div>;
   } else if (type === 'booking') {
     inner = <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 6, height: '100%' }}><span style={{ display: 'grid', gridTemplateRows: 'repeat(4, 1fr)', gap: 2 }}>{[0, 1, 2, 3].map(r => <span key={r} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>{[0, 1, 2, 3, 4, 5, 6].map(c => <span key={c} style={{ borderRadius: 1, background: r === 1 && c === 3 ? acc : `${ink}22` }} />)}</span>)}</span><span style={{ display: 'grid', gap: 3, alignContent: 'start' }}>{tx(pr.title || 'Book a time', 6.5, true)}{pill(acc, '80%')}{pill(ink, '65%')}{pill(ink, '72%')}</span></div>;
+  } else if (type === 'button') {
+    const lbl = pr.label || 'Get a quote';
+    const btnStyle: React.CSSProperties = pr.variant === 'glass'
+      ? { background: 'rgba(255,255,255,.35)', border: '1px solid rgba(255,255,255,.8)', color: ink, backdropFilter: 'blur(3px)' }
+      : pr.variant === 'outline' ? { background: 'transparent', border: `1.5px solid ${acc}`, color: acc }
+      : { background: acc, color: '#fff' };
+    inner = <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><span style={{ ...btnStyle, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 8, fontWeight: 700, padding: '6px 14px', borderRadius: Math.min(99, (Number(pr.radius) || 999) / 8) }}>{pr.icon ? <span>{String(pr.icon).length <= 2 ? pr.icon : '✦'}</span> : null}{lbl}</span></div>;
+  } else if (type === 'configurator') {
+    const prodName = (v as any).product ? `${String((v as any).product).charAt(0).toUpperCase()}${String((v as any).product).slice(1)}` : (pr.name || 'Product');
+    inner = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 7, height: '100%' }}><span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>{ph(34, 1)}{tx(pr.name || prodName, 7, true)}{tx(pr.price || '$ —', 6.5, true, acc)}</span><span style={{ display: 'grid', gap: 3, alignContent: 'start' }}>{['Finishes', 'Options', 'Extras'].map((g, i) => <span key={g} style={{ ...cardBox, display: 'grid', gap: 2 }}>{tx(g, 5.5, true, ink, .7)}<span style={{ display: 'flex', gap: 3 }}>{pill(i === 0 ? acc : ink, 14)}{pill(ink, 14)}{pill(ink, 14)}</span></span>)}<span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${ink}25`, paddingTop: 3 }}>{tx('Total', 6, true)}{pill(acc, 24)}</span></span></div>;
   } else if (type === 'embed' || type === 'tech') {
     const tool = type === 'tech' ? (TECH_TOOLS.find(t => t.value === pr.tool)?.label || v.name) : (pr.title || 'Embedded page');
     const glyph = type === 'embed'
@@ -243,7 +256,23 @@ function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; the
             ? <span style={{ padding: 6, display: 'grid', gap: 3, flex: 1, alignContent: 'start' }}>{bar('80%', 4, .6, '#14181f')}{bar('65%', 4, .45, '#14181f')}{bar('72%', 4, .45, '#14181f')}<span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(0,0,0,.12)', paddingTop: 3 }}>{tx('Total', 6, true, '#14181f')}{pill(acc, 22)}</span></span>
             : pr.tool === 'socialite'
               ? <span style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, padding: 6, flex: 1 }}><span style={{ border: '1px solid rgba(0,0,0,.12)', borderRadius: 2, padding: 3, display: 'grid', gap: 2, alignContent: 'start' }}>{ph(12)}{bar('85%', 2, .5, '#14181f')}</span><span style={{ border: '1px solid rgba(0,0,0,.12)', borderRadius: 2, padding: 3, display: 'grid', gap: 2, alignContent: 'start' }}>{ph(12)}{bar('75%', 2, .5, '#14181f')}</span></span>
-              : <span style={{ display: 'flex', flex: 1 }}><span style={{ width: '20%', background: 'rgba(0,0,0,.06)', borderRight: '1px solid rgba(0,0,0,.1)', padding: 3, display: 'grid', gap: 2, alignContent: 'start' }}>{bar('85%', 2, .55, '#14181f')}{bar('65%', 2, .4, '#14181f')}{bar('75%', 2, .4, '#14181f')}</span><span style={{ flex: 1, padding: 5, display: 'grid', gap: 3, alignContent: 'start' }}>{ph(30)}<span style={{ display: 'flex', gap: 3 }}>{pill(ink, 16)}{pill(acc, 20)}{pill(ink, 14)}</span></span></span>;
+              : pr.tool === 'studio' || pr.tool === 'design2d'
+                ? <span style={{ display: 'flex', flex: 1, padding: 6, gap: 5 }}><span style={{ flex: 1, position: 'relative', border: '1.5px solid #14181f', borderRadius: '46% 54% 52% 48% / 58% 46% 54% 42%', background: 'linear-gradient(135deg,#7dd3fc,#1d4ed8)', opacity: .9 }}><span style={{ position: 'absolute', right: -4, top: '30%', width: 7, height: 7, borderRadius: '50%', background: '#fff', border: '1.5px solid #14181f' }} /><span style={{ position: 'absolute', left: '18%', bottom: -4, width: 7, height: 7, borderRadius: '50%', background: '#fff', border: '1.5px solid #14181f' }} /></span><span style={{ width: '26%', display: 'grid', gap: 2, alignContent: 'start' }}>{bar('90%', 2, .55, '#14181f')}{bar('70%', 2, .4, '#14181f')}{bar('80%', 2, .4, '#14181f')}{pill(acc, 16)}</span></span>
+                : pr.tool === 'design'
+                  ? <span style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2.5, padding: 6, flex: 1, backgroundImage: 'linear-gradient(rgba(20,24,31,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(20,24,31,.07) 1px, transparent 1px)', backgroundSize: '9px 9px' }}><span style={{ gridColumn: 'span 2', gridRow: 'span 2', borderRadius: '46% 54% 52% 48% / 58% 46% 54% 42%', background: 'linear-gradient(135deg,#7dd3fc,#1d4ed8)' }} /><span style={{ background: '#86efac', borderRadius: 2 }} /><span style={{ background: '#d6c8a8', borderRadius: 2 }} /><span style={{ background: '#fca5a5', borderRadius: 2 }} /><span style={{ background: '#e5e7eb', borderRadius: 2 }} /></span>
+                  : pr.tool === 'landscaping'
+                    ? <span style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 6, flex: 1 }}>{['#86efac', '#4ade80', '#bbf7d0', '#4ade80', '#a7f3d0', '#86efac'].map((c, i) => <span key={i} style={{ background: c, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8 }}>{i % 2 ? '🌿' : '🌸'}</span>)}</span>
+                    : pr.tool === 'solarboard' || pr.tool === 'solar'
+                      ? <span style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2.5, padding: 6, flex: 1, transform: 'perspective(120px) rotateX(18deg)' }}>{Array.from({ length: 6 }, (_, i) => <span key={i} style={{ background: 'linear-gradient(135deg,#1e3a8a,#2563eb)', border: '1px solid #172554', borderRadius: 1 }} />)}</span>
+                      : pr.tool === 'enclosures'
+                        ? <span style={{ display: 'flex', flex: 1, padding: 6 }}><span style={{ flex: 1, border: '2px solid #14181f', borderRadius: '50% 50% 0 0 / 34% 34% 0 0', backgroundImage: 'linear-gradient(rgba(20,24,31,.25) 1px, transparent 1px), linear-gradient(90deg, rgba(20,24,31,.25) 1px, transparent 1px)', backgroundSize: '7px 7px', backgroundColor: 'rgba(125,211,252,.18)' }} /></span>
+                        : pr.tool === 'poolspa'
+                          ? <span style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: 6, flex: 1 }}><span style={{ borderRadius: '42% 58% 55% 45% / 60% 45% 55% 40%', background: 'linear-gradient(135deg,#7dd3fc,#1d4ed8)' }} /><span style={{ borderRadius: '50%', background: 'linear-gradient(135deg,#bae6fd,#0284c7)', alignSelf: 'center', aspectRatio: '1' }} /></span>
+                          : pr.tool === 'blueprint'
+                            ? <span style={{ display: 'flex', flex: 1, padding: 6, background: '#1d4ed8', borderRadius: 2 }}><span style={{ flex: 1, border: '1.5px solid rgba(255,255,255,.9)', position: 'relative', backgroundImage: 'linear-gradient(rgba(255,255,255,.25) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.25) 1px, transparent 1px)', backgroundSize: '8px 8px' }}><span style={{ position: 'absolute', left: '18%', top: '22%', width: '46%', height: '40%', border: '1.5px solid #fff' }} /><span style={{ position: 'absolute', right: '10%', bottom: '12%', width: '22%', height: '18%', border: '1.5px solid #fff' }} /></span></span>
+                            : pr.tool === 'showroom'
+                              ? <span style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, padding: 6, flex: 1 }}>{Array.from({ length: 6 }, (_, i) => <span key={i} style={{ border: '1px solid rgba(0,0,0,.12)', borderRadius: 2, padding: 2.5, display: 'grid', gap: 2, alignContent: 'start' }}>{ph(11)}{bar('80%', 2, .5, '#14181f')}</span>)}</span>
+                              : <span style={{ display: 'flex', flex: 1 }}><span style={{ width: '20%', background: 'rgba(0,0,0,.06)', borderRight: '1px solid rgba(0,0,0,.1)', padding: 3, display: 'grid', gap: 2, alignContent: 'start' }}>{bar('85%', 2, .55, '#14181f')}{bar('65%', 2, .4, '#14181f')}{bar('75%', 2, .4, '#14181f')}</span><span style={{ flex: 1, padding: 5, display: 'grid', gap: 3, alignContent: 'start' }}>{ph(30)}<span style={{ display: 'flex', gap: 3 }}>{pill(ink, 16)}{pill(acc, 20)}{pill(ink, 14)}</span></span></span>;
     const win = <div style={{ height: '100%', border: `1px solid ${ink}30`, borderRadius: pr.frame === 'phone' ? 10 : 4, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#fff', maxWidth: pr.frame === 'phone' ? '46%' : pr.frame === 'tablet' ? '72%' : undefined, margin: pr.frame === 'phone' || pr.frame === 'tablet' ? '0 auto' : undefined }}>
       <span style={{ display: 'flex', gap: 3, alignItems: 'center', padding: '3px 5px', background: 'rgba(0,0,0,.05)', borderBottom: '1px solid rgba(0,0,0,.08)' }}>{[0, 1, 2].map(i => <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(0,0,0,.25)' }} />)}<span style={{ marginLeft: 3, flex: 1, overflow: 'hidden' }}>{tx(tool, 6, true, '#14181f')}</span></span>
       {glyph}
@@ -311,7 +340,7 @@ const GradientEditor: React.FC<{ st: SectionStyle; disabled?: boolean; onPatch: 
 const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?: boolean; embedded?: boolean }> = ({ companyId, companyName, readOnly, embedded = false }) => {
   const { toast } = useToast();
   const [site, setSite] = useState<SiteRow | null | undefined>(undefined);
-  const [doc, setDoc] = useState<SiteDoc>(() => wonderlandsTemplate(companyName));
+  const [doc, setDoc] = useState<SiteDoc>(() => blankDoc());
   const [domain, setDomain] = useState('');
   const [theme, setTheme] = useState<SiteTheme>({ ...DEFAULT_THEME, brand: companyName });
   const [past, setPast] = useState<SiteDoc[]>([]);
@@ -351,7 +380,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
       setFlips(f.data ?? []);
       if (data) {
         const l: any = data.layout ?? {};
-        const d: SiteDoc = l.draft?.pages?.length ? l.draft : l.published?.pages?.length ? l.published : wonderlandsTemplate(companyName);
+        const d: SiteDoc = l.draft?.pages?.length ? l.draft : l.published?.pages?.length ? l.published : blankDoc();
         setDoc(d); setPageId(d.pages[0].id); setHistory(Array.isArray(l.history) ? l.history : []); setTheme({ ...DEFAULT_THEME, brand: companyName, ...(data.theme as any) });
         setSite({ id: data.id, slug: data.slug, title: data.title, is_published: data.is_published, custom_domain: (data as any).custom_domain }); setDomain((data as any).custom_domain ?? '');
       } else { setSite(null); setPageId(doc.pages[0].id); }
@@ -452,11 +481,10 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     if (error) toast({ title: 'Not saved', description: error.message.includes('duplicate') ? 'That domain is already used by another site.' : error.message });
     else { setSite({ ...site, custom_domain: d || null }); setDomain(d); toast({ title: d ? 'Domain saved' : 'Domain removed' }); }
   };
-  const applyTrade = (t: Trade) => { if (!confirm('Replace every page with this template? You can undo.')) return; const d = tradeTemplate(t, theme.brand || companyName); commit(() => d); setPageId(d.pages[0].id); setSel(null); };
+  const applySiteTemplate = (id: string) => { const t = siteTemplateById(id); if (!t) return; if (!confirm(`Replace every page with the “${t.name}” template? You can undo.`)) return; const d = t.build(theme.brand || companyName); commit(() => d); setPageId(d.pages[0].id); setSel(null); };
   const restoreVersion = (v: SiteVersion) => { if (!confirm(`Restore the version published ${new Date(v.at).toLocaleString()}? You can undo.`)) return; commit(() => structuredClone(v.doc)); if (v.theme) setTheme(v.theme); setPageId(v.doc.pages[0].id); setSel(null); };
   const saveSection = (s: Section) => { const n = [...saved, structuredClone(s)].slice(-20); setSaved(n); localStorage.setItem(`sb.saved.${companyId}`, JSON.stringify(n)); toast({ title: 'Section saved', description: 'Find it under Saved sections.' }); };
   const media = useMemo(() => [...collectImages(doc), ...(theme.logo ? [theme.logo] : [])].slice(0, 60), [doc, theme.logo]);
-  const applyTemplate = () => { if (!confirm('Replace every page with the Wonderlands template? You can undo.')) return; const t = wonderlandsTemplate(theme.brand || companyName); commit(() => t); setPageId(t.pages[0].id); setSel(null); };
   // Product cards: catalogue items keep their real photo; absolute URL so published/custom-domain sites load it too.
   const absImg = (u?: string | null) => !u ? '' : /^(https?:|data:|blob:)/.test(u) ? u : `${window.location.origin}${u.startsWith('/') ? '' : '/'}${u}`;
   const toCard = (p: any) => ({ name: p.name, price: p.price ? `$${Number(p.price).toLocaleString()}` : '', description: p.description ?? '', image: absImg(p.image_url), badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' });
@@ -516,8 +544,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={page.id} onChange={e => { setPageId(e.target.value); setSel(null); }}>{doc.pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
         {!readOnly && <Button size="sm" variant="ghost" onClick={() => { const n = prompt('Page name'); if (!n) return; const p: Page = { id: uid(), name: n, slug: slugify(n), sections: [newSection('text')] }; commit(d => { d.pages.push(p); return d; }); setPageId(p.id); }}><Plus className="h-4 w-4 mr-1" />Page</Button>}
         {!readOnly && <Button size="sm" variant="ghost" onClick={() => { const p: Page = { ...structuredClone(page), id: uid(), name: `${page.name} copy`, slug: slugify(`${page.name}-copy-${uid().slice(0, 3)}`) }; p.sections.forEach(x => { x.id = uid(); }); commit(d => { d.pages.splice(d.pages.findIndex(x => x.id === page.id) + 1, 0, p); return d; }); setPageId(p.id); }}><Copy className="h-4 w-4 mr-1" />Duplicate page</Button>}
-        {!readOnly && <Button size="sm" variant="ghost" onClick={applyTemplate}>Wonderlands template</Button>}
-        {!readOnly && <select aria-label="Trade templates" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => e.target.value && applyTrade(e.target.value as Trade)}><option value="">Templates…</option>{TRADE_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select>}
+        {!readOnly && <select aria-label="Site templates" title="Apply a template — replaces every page, undo available" className="h-9 max-w-56 rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => e.target.value && applySiteTemplate(e.target.value)}><option value="">Templates…</option>{SITE_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select>}
         <select aria-label="Zoom" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={zoom} onChange={e => setZoom(Number(e.target.value))}>{[50, 75, 90, 100, 125, 150].map(z => <option key={z} value={z}>{z}%</option>)}</select>
         <div className="flex rounded-md border border-border">{(Object.keys(DEVICES) as (keyof typeof DEVICES)[]).map(k => { const I = DEVICES[k].icon; return <button key={k} aria-label={k} onClick={() => setDevice(k)} className={`px-2.5 py-1.5 ${device === k ? 'bg-muted' : ''}`}><I className="h-4 w-4" /></button>; })}</div>
         {!embedded && <Button size="sm" variant="outline" onClick={() => setPreview(true)}>Full screen</Button>}

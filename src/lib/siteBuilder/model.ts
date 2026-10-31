@@ -53,7 +53,7 @@ export const TECH_TOOLS = [
   { value: 'blueprint', label: 'Blueprint builder', path: '/blueprint-builder' },
   { value: 'solar', label: 'Solar Genius', path: '/solar-genius' },
   { value: 'quote', label: 'Quote Atelier', path: '/quote' },
-  { value: 'calculator', label: 'Pool cost calculator', path: '/pool-calculator' },
+  { value: 'calculator', label: 'Pool Calculator (volume, heating & chemicals)', path: '/pool-calculator' },
   { value: 'showroom', label: 'Studio showroom', path: '/studio-showroom' },
   { value: 'flip', label: 'FLIP book (pick below)', path: '/flip/' },
   { value: 'live', label: 'Live Video meetings', path: '/live' },

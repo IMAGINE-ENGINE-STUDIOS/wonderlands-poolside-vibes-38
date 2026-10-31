@@ -1,6 +1,7 @@
 /**
- * Wonderlands flagship template — the starting site for every company in the
- * Website builder. Mirrors the Wonderlands home page order (cinematic cover,
+ * Wonderlands flagship template — one template in the Website builder
+ * library (lib/siteBuilder/templates.ts), NOT the default site: new sites
+ * start blank. Mirrors the Wonderlands home page order (cinematic cover,
  * Design · Build · Power · Transform, collections, 3D studio, solar, FLIP,
  * quote form) across four pages. Copy is starter text the company replaces;
  * photos are the Wonderlands banners. Product cards start empty and are filled
