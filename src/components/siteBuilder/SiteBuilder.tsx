@@ -16,8 +16,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Copy, Trash2, GripVertical, ExternalLink, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Copy, Trash2, GripVertical, ExternalLink, Plus, ArrowUp, ArrowDown, ChevronLeft, X } from 'lucide-react';
+import { variantsFor, type BlockVariant } from '@/lib/siteBuilder/blockVariants';
 import SiteRenderer from './SiteRenderer';
+import { AddressField, reverseGeocode } from './SiteMap';
 import { wonderlandsTemplate } from '@/lib/siteBuilder/wonderlandsTemplate';
 import { TRADE_OPTIONS, tradeTemplate, sectionFrom, type Trade } from '@/lib/siteBuilder/tradeTemplates';
 import SiteGenius, { applyGeniusOps, askSiteGenius } from './SiteGenius';
@@ -88,8 +90,8 @@ const FieldEditor: React.FC<{ f: Field; value: any; onChange: (v: any) => void; 
   if (f.kind === 'items') {
     const list: any[] = value || [];
     return <div className="space-y-2">{label}{extra}
-      {list.map((it, i) => <details key={i} className="rounded-lg border border-border p-2">
-        <summary className="cursor-pointer text-sm flex items-center justify-between gap-2"><span className="truncate">{it.name || it.title || it.caption || it.quote || `Item ${i + 1}`}</span>
+      {list.map((it, i) => <details key={i} className="rounded-xl border border-border bg-muted/25 p-2.5 transition-colors open:bg-muted/40">
+        <summary className="cursor-pointer text-sm font-medium flex items-center justify-between gap-2"><span className="truncate">{it.name || it.title || it.caption || it.quote || `Item ${i + 1}`}</span>
           {!disabled && <span className="flex gap-1" onClick={e => e.preventDefault()}>
             <button aria-label="Move up" onClick={() => { if (!i) return; const n = [...list]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; onChange(n); }}><ArrowUp className="h-3.5 w-3.5" /></button>
             <button aria-label="Move down" onClick={() => { if (i === list.length - 1) return; const n = [...list]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; onChange(n); }}><ArrowDown className="h-3.5 w-3.5" /></button>
@@ -105,13 +107,38 @@ const FieldEditor: React.FC<{ f: Field; value: any; onChange: (v: any) => void; 
     {f.kind === 'textarea' ? <><Textarea disabled={disabled} rows={4} value={value ?? ''} onChange={e => onChange(e.target.value)} />
         {!disabled && value && <button type="button" className="text-xs text-teal underline" onClick={async e => { e.preventDefault(); const how = prompt('How should Genius rewrite it? (e.g. shorter, friendlier, more luxurious, in Spanish)'); if (!how) return; try { const r = await askSiteGenius('rewrite', `${how}:\n${value}`); if (r?.text) onChange(String(r.text)); } catch (er) { alert((er as Error).message); } }}>Rewrite with Genius</button>}</>
       : f.kind === 'image' ? <ImageField disabled={disabled} value={value} onChange={onChange} />
-      : f.kind === 'select' ? <select disabled={disabled} className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value={String(value ?? '')} onChange={e => onChange(e.target.value)}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+      : f.kind === 'select' ? (f.options.length <= 5
+        ? <div className="flex flex-wrap gap-1">{f.options.map(o => <button key={o.value} disabled={disabled} onClick={() => onChange(o.value)} className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${String(value ?? '') === o.value ? 'border-teal-600 bg-teal-600 font-medium text-white' : 'border-border bg-background hover:border-teal-600'}`}>{o.label}</button>)}</div>
+        : <select disabled={disabled} className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value={String(value ?? '')} onChange={e => onChange(e.target.value)}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>)
       : f.kind === 'url' ? <LinkField disabled={disabled} value={value} onChange={onChange} />
       : f.kind === 'color' ? <input disabled={disabled} type="color" className="h-10 w-full rounded-md border border-input" value={value || '#ffffff'} onChange={e => onChange(e.target.value)} />
       : <Input disabled={disabled} type={f.kind === 'number' ? 'number' : 'text'} value={value ?? ''} onChange={e => onChange(f.kind === 'number' ? Number(e.target.value) : e.target.value)} />}
     {extra}
   </label>;
 };
+
+/** Live miniature snapshot of a gallery variant: the real renderer at 25%
+ *  scale, mounted lazily as cards scroll into view — a light picture of the
+ *  actual widget's design, not a colour strip. Heavy embeds keep the strip. */
+const THUMB_SKIP = new Set<BlockType>(['tech', 'video', 'embed', 'booking', 'configurator', 'map', 'spacer']);
+function VariantThumb({ type, v, theme }: { type: BlockType; v: BlockVariant; theme: SiteTheme }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => { const el = ref.current; if (!el) return; const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: '240px' }); io.observe(el); return () => io.disconnect(); }, []);
+  const mini = useMemo<Page | null>(() => {
+    if (THUMB_SKIP.has(type)) return null;
+    const sec = newSection(type);
+    if (v.props) sec.props = { ...sec.props, ...structuredClone(v.props) };
+    if (v.style) sec.style = { ...sec.style, ...structuredClone(v.style) };
+    sec.style = { ...sec.style, padY: Math.min(sec.style.padY ?? 84, 48) };
+    if (type === 'products' && !(sec.props.items || []).length) sec.props.items = [0, 1, 2].map(i => ({ name: `Signature product ${i + 1}`, price: '$1,200', description: 'A short line about what makes it great.', image: '' }));
+    return { id: 'thumb', name: 'Thumb', slug: 'thumb', sections: [sec] };
+  }, [type, v]);
+  if (!mini) return <span className="mb-1.5 block h-10 overflow-hidden rounded-md border border-border/60" style={{ background: v.style?.gradFrom && v.style?.gradTo ? `linear-gradient(${v.style.gradAngle ?? 135}deg, ${v.style.gradFrom}, ${v.style.gradTo})` : v.style?.bg || 'linear-gradient(135deg,#f8fafc,#e2e8f0)' }} />;
+  return <div ref={ref} className="relative mb-1.5 h-[92px] overflow-hidden rounded-md border border-border/60 bg-white">
+    {on && <div style={{ width: 1040, transform: 'scale(0.25)', transformOrigin: 'top left', pointerEvents: 'none', position: 'absolute', top: 0, left: 0 }}><SiteRenderer page={mini} theme={theme} /></div>}
+  </div>;
+}
 
 const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?: boolean; embedded?: boolean }> = ({ companyId, companyName, readOnly, embedded = false }) => {
   const { toast } = useToast();
@@ -138,6 +165,14 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const [catalog, setCatalog] = useState<any[] | null>(null);
   /** Text being edited on the canvas (double-click): section id, prop path like 'title' or 'items.2.name'. */
   const [textEdit, setTextEdit] = useState<{ sid: string; path: string; rect: DOMRect } | null>(null);
+  /** Blocks menu: which block's style gallery is open, and the slide-out phase. */
+  const [variantFor, setVariantFor] = useState<BlockType | null>(null);
+  const [picked, setPicked] = useState<BlockType | null>(null);
+  const [menuOut, setMenuOut] = useState(false);
+  /** Full screen = a simulation of the published site (no editor chrome, X to exit). */
+  const [preview, setPreview] = useState(false);
+  /** Section to scroll into view once it has rendered (newly added/dropped blocks). */
+  const pendingScroll = useRef<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -178,14 +213,40 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
   });
 
+  /** After any add, the canvas scrolls to the new section so it is never lost off-screen. */
+  useEffect(() => {
+    const id = pendingScroll.current; if (!id) return; pendingScroll.current = null;
+    const raf = requestAnimationFrame(() => { document.getElementById(`s-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+    return () => cancelAnimationFrame(raf);
+  });
+  useEffect(() => {
+    if (!preview) return;
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setPreview(false); };
+    window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
+  }, [preview]);
+
   const insertAt = (index: number) => {
     if (!drag) return;
-    if (drag.kind === 'new') { const s = newSection(drag.type); editPage(p => { p.sections.splice(index, 0, s); }); setSel(s.id); setPanel('content'); }
+    if (drag.kind === 'new') { const s = newSection(drag.type); editPage(p => { p.sections.splice(index, 0, s); }); setSel(s.id); pendingScroll.current = s.id; }
     else editPage(p => { const from = p.sections.findIndex(s => s.id === drag.id); if (from < 0) return; const [m] = p.sections.splice(from, 1); p.sections.splice(from < index ? index - 1 : index, 0, m); });
     setDrag(null); setDropAt(null);
   };
-  const addBlock = (type: BlockType) => { const s = newSection(type); const i = section ? page.sections.indexOf(section) + 1 : page.sections.length; editPage(p => { p.sections.splice(i, 0, s); }); setSel(s.id); setPanel('content');
-    if (type === 'configurator') import('@/lib/siteBuilder/configuratorPresets').then(m => m.configuratorProps(s.props)).then(props => editPage(p => { const t = p.sections.find(x => x.id === s.id); if (t) t.props = props; })); };
+  const hydrateConfigurator = (s: Section) => { if (s.type === 'configurator') import('@/lib/siteBuilder/configuratorPresets').then(m => m.configuratorProps(s.props)).then(props => editPage(p => { const t = p.sections.find(x => x.id === s.id); if (t) t.props = props; })); };
+  const addBlock = (type: BlockType) => { const s = newSection(type); const i = section ? page.sections.indexOf(section) + 1 : page.sections.length; editPage(p => { p.sections.splice(i, 0, s); }); setSel(s.id); setPanel('content'); pendingScroll.current = s.id; hydrateConfigurator(s); };
+  /** Insert a styled gallery variant after the selected section (or at the end),
+   *  then open the Section tab so the new block is ready to edit. */
+  const addVariant = (type: BlockType, v: BlockVariant) => {
+    const s = newSection(type);
+    if (v.props) s.props = { ...s.props, ...structuredClone(v.props) };
+    if (v.style) s.style = { ...s.style, ...structuredClone(v.style) };
+    const i = section ? page.sections.indexOf(section) + 1 : page.sections.length;
+    editPage(p => { p.sections.splice(i, 0, s); });
+    setSel(s.id); pendingScroll.current = s.id; hydrateConfigurator(s);
+    setVariantFor(null); setPicked(null); setPanel('content');
+  };
+  /** Blocks menu choreography: the other buttons slide right and vanish, the
+   *  chosen block heads the menu, then its style gallery fades up. */
+  const pickBlock = (type: BlockType) => { setPicked(type); setMenuOut(true); setSel(null); setTimeout(() => { setVariantFor(type); setMenuOut(false); }, 340); };
 
   const persist = async (publish: boolean, silent = false) => {
     if (readOnly) return;
@@ -251,7 +312,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     const i = page.sections.indexOf(s);
     return <div className={`relative group ${sel === s.id ? 'outline outline-2 outline-teal -outline-offset-2' : 'hover:outline hover:outline-1 hover:outline-teal/60 -outline-offset-1'}`}
       onClick={e => { e.preventDefault(); setSel(s.id); if (panel !== 'style') setPanel('content'); }}
-      draggable={!readOnly} onDragStart={e => { e.stopPropagation(); setDrag({ kind: 'move', id: s.id }); }} onDragEnd={() => { setDrag(null); setDropAt(null); }}
+      draggable={!readOnly} onDragStart={e => { if ((e.target as HTMLElement).closest('[data-map-edit]')) { e.preventDefault(); return; } e.stopPropagation(); setDrag({ kind: 'move', id: s.id }); }} onDragEnd={() => { setDrag(null); setDropAt(null); }}
       onDragOver={e => { if (!drag) return; e.preventDefault(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setDropAt(e.clientY < r.top + r.height / 2 ? i : i + 1); }}
       onDrop={e => { e.preventDefault(); if (dropAt !== null) insertAt(dropAt); }}
       onDoubleClick={e => { if (readOnly) return; const el = (e.target as HTMLElement).closest('[data-edit]') as HTMLElement | null; if (!el) return; e.preventDefault(); setSel(s.id); setTextEdit({ sid: s.id, path: el.dataset.edit!, rect: el.getBoundingClientRect() }); }}>
@@ -293,7 +354,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         {!readOnly && <select aria-label="Trade templates" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => e.target.value && applyTrade(e.target.value as Trade)}><option value="">Templates…</option>{TRADE_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select>}
         <select aria-label="Zoom" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={zoom} onChange={e => setZoom(Number(e.target.value))}>{[50, 75, 90, 100, 125, 150].map(z => <option key={z} value={z}>{z}%</option>)}</select>
         <div className="flex rounded-md border border-border">{(Object.keys(DEVICES) as (keyof typeof DEVICES)[]).map(k => { const I = DEVICES[k].icon; return <button key={k} aria-label={k} onClick={() => setDevice(k)} className={`px-2.5 py-1.5 ${device === k ? 'bg-muted' : ''}`}><I className="h-4 w-4" /></button>; })}</div>
-        {!embedded && <Button size="sm" variant="outline" onClick={() => setFull(f => !f)}>{full ? "Exit full screen" : "Full screen"}</Button>}
+        {!embedded && <Button size="sm" variant="outline" onClick={() => setPreview(true)}>Full screen</Button>}
         <Button size="sm" variant="ghost" disabled={!past.length} onClick={undo} aria-label="Undo"><Undo2 className="h-4 w-4" /></Button>
         <Button size="sm" variant="ghost" disabled={!future.length} onClick={redo} aria-label="Redo"><Redo2 className="h-4 w-4" /></Button>
         <div className="ml-auto flex flex-wrap items-center gap-2 text-sm">
@@ -310,6 +371,9 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         {/* Genius — the whole left side */}
         <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-hidden flex flex-col min-h-0">
           <SiteGenius disabled={readOnly} brand={theme.brand || companyName} page={page} doc={doc} theme={theme}
+            onApplyDoc={d => commit(() => d)}
+            onThemePatch={t => { setTheme(cur => ({ ...cur, ...t })); setDirty(true); }}
+            onOpenPage={id => { setPageId(id); setSel(null); }}
             onBuild={(d, t) => { commit(() => d); if (t) setTheme(cur => ({ ...cur, ...Object.fromEntries(Object.entries(t).filter(([k, v]) => ['primary', 'headingFont', 'bodyFont'].includes(k) && typeof v === 'string')) })); setPageId(d.pages[0].id); setSel(null); }}
             onOps={async ops => { let open = ""; const next = applyGeniusOps(structuredClone(doc), page.id, ops, fn => { setTheme(fn); setDirty(true); }, id => { open = id; });
               // Genius product sections get real Wonderlands catalogue cards (photo, name, price, description).
@@ -320,21 +384,38 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         <div className="bg-muted/40 overflow-auto p-4" onClick={e => { if (e.target === e.currentTarget) setSel(null); }}>
           <div className="mx-auto bg-background shadow-sm transition-[max-width] duration-300" style={{ maxWidth: DEVICES[device].w, zoom: zoom / 100 } as React.CSSProperties}
             onDragOver={e => { if (drag && !page.sections.length) { e.preventDefault(); setDropAt(0); } }} onDrop={() => { if (!page.sections.length) insertAt(0); }}>
-            {page.sections.length ? <SiteRenderer page={page} theme={theme} wrap={wrap} device={device} /> : <div className="p-16 text-center text-muted-foreground">Drag a block here to start this page.</div>}
+            {page.sections.length ? <SiteRenderer page={page} theme={theme} wrap={wrap} device={device} onMapPin={(sid, la, ln) => { editSection(sid, s => { s.props.lat = la; s.props.lng = ln; }); reverseGeocode(la, ln).then(a => { if (a) editSection(sid, s => { if (Math.abs((s.props.lat ?? 0) - la) < 1e-6 && Math.abs((s.props.lng ?? 0) - ln) < 1e-6) s.props.address = a; }); }); }} /> : <div className="p-16 text-center text-muted-foreground">Drag a block here to start this page.</div>}
           </div>
         </div>
 
         {/* Inspector */}
         <aside className="border-t lg:border-t-0 lg:border-l border-border p-3 overflow-y-auto">
           <div className="flex rounded-md border border-border mb-4 text-xs">{(['blocks', 'layers', 'content', 'style', 'theme'] as const).map(k => <button key={k} onClick={() => setPanel(k)} className={`flex-1 py-1.5 capitalize ${panel === k ? 'bg-muted font-semibold' : ''}`}>{k === 'theme' ? 'Site' : k === 'content' ? 'Section' : k}</button>)}</div>
-          {panel === 'blocks' ? <div className="space-y-5">
-          {saved.length > 0 && <div><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Saved sections</p>
-            <div className="grid gap-1.5">{saved.map((x, i) => <div key={i} className="flex items-center gap-1"><button disabled={readOnly} onClick={() => { const c = { ...structuredClone(x), id: uid() }; editPage(p => { p.sections.push(c); }); setSel(c.id); }} className="flex-1 truncate rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal">{x.props.title || BLOCKS[x.type]?.label}</button>
+          {panel === 'blocks' ? <div className="space-y-5 overflow-x-hidden">
+          <style>{`@keyframes sbFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } } .sb-variant { animation: sbFadeUp .5s cubic-bezier(.22,.8,.32,1) both; } .sb-block-btn { transition: transform .32s cubic-bezier(.5,0,.8,.4), opacity .32s ease, border-color .15s ease; } .sb-menu-out .sb-block-btn { transform: translateX(112%); opacity: 0; } .sb-menu-out .sb-block-btn[data-picked="1"] { transform: translateX(0); opacity: 1; border-color: rgb(13 148 136); } .sb-menu-out .sb-group-label, .sb-menu-out .sb-saved { transform: translateX(112%); opacity: 0; transition: transform .32s ease, opacity .32s ease; }`}</style>
+          {variantFor ? <>
+            <button onClick={() => { setVariantFor(null); setPicked(null); }} className="flex w-full items-center gap-1.5 text-left">
+              <ChevronLeft className="h-4 w-4 shrink-0" />
+              <span className="min-w-0"><span className="block truncate text-base font-semibold">{BLOCKS[variantFor].label}</span>
+              <span className="block text-[11px] text-muted-foreground">{variantsFor(variantFor).length} styles — tap one to add it to the page</span></span>
+            </button>
+            <div className="grid gap-1.5">{variantsFor(variantFor).map((v, i) => (
+              <button key={i} disabled={readOnly} onClick={() => addVariant(variantFor, v)} className="sb-variant rounded-xl border border-border p-2 text-left transition-shadow hover:border-teal hover:shadow-md" style={{ animationDelay: `${Math.min(i, 24) * 35}ms` }}>
+                <VariantThumb type={variantFor} v={v} theme={theme} />
+                <span className="block truncate px-1 text-sm font-medium">{v.name}</span>
+                <span className="block truncate px-1 pb-1 text-[11px] text-muted-foreground">{v.hint}</span>
+              </button>))}
+            </div>
+          </> : <div className={menuOut ? 'sb-menu-out' : ''}>
+          {saved.length > 0 && <div className="sb-saved mb-5"><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Saved sections</p>
+            <div className="grid gap-1.5">{saved.map((x, i) => <div key={i} className="flex items-center gap-1"><button disabled={readOnly} onClick={() => { const c = { ...structuredClone(x), id: uid() }; editPage(p => { p.sections.push(c); }); setSel(c.id); pendingScroll.current = c.id; }} className="flex-1 truncate rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal">{x.props.title || BLOCKS[x.type]?.label}</button>
               <button aria-label="Forget" onClick={() => { const n = saved.filter((_, j) => j !== i); setSaved(n); localStorage.setItem(`sb.saved.${companyId}`, JSON.stringify(n)); }}><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div></div>}
-          {GROUPS.map(g => <div key={g}><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">{g}</p>
-            <div className="grid grid-cols-2  gap-1.5">{(Object.keys(BLOCKS) as BlockType[]).filter(k => BLOCKS[k].group === g).map(k =>
-              <button key={k} disabled={readOnly} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'new', type: k })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onClick={() => addBlock(k)}
-                className="rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal transition-colors cursor-grab">{BLOCKS[k].label}</button>)}</div></div>)}
+          <div className="space-y-5">{GROUPS.map(g => <div key={g}><p className="sb-group-label text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">{g}</p>
+            <div className="grid grid-cols-2  gap-1.5">{(Object.keys(BLOCKS) as BlockType[]).filter(k => BLOCKS[k].group === g).map((k, bi) =>
+              <button key={k} data-picked={menuOut && picked === k ? '1' : undefined} disabled={readOnly} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'new', type: k })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onClick={() => pickBlock(k)}
+                style={{ transitionDelay: menuOut ? `${bi * 24}ms` : '0ms' }}
+                className="sb-block-btn rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal cursor-grab">{BLOCKS[k].label}</button>)}</div></div>)}</div>
+          </div>}
           </div>
           : panel === 'layers' ? <div>
           <div><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Layers</p>
@@ -343,7 +424,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
               <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <button className="flex-1 truncate text-left" onClick={() => { setSel(s.id); setPanel('content'); }}>{BLOCKS[s.type].label}</button>
               {!readOnly && <><button aria-label="Hide" onClick={() => editSection(s.id, x => { x.style.hidden = !x.style.hidden; })}>{s.style.hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button>
-                <button aria-label="Duplicate" onClick={() => editPage(p => { p.sections.splice(i + 1, 0, { ...structuredClone(s), id: uid() }); })}><Copy className="h-3.5 w-3.5" /></button>
+                <button aria-label="Duplicate" onClick={() => { const c = { ...structuredClone(s), id: uid() }; editPage(p => { p.sections.splice(i + 1, 0, c); }); setSel(c.id); pendingScroll.current = c.id; }}><Copy className="h-3.5 w-3.5" /></button>
                 <button aria-label="Delete" onClick={() => { editPage(p => { p.sections = p.sections.filter(x => x.id !== s.id); }); if (sel === s.id) setSel(null); }}><Trash2 className="h-3.5 w-3.5" /></button></>}
             </li>)}</ul></div>
           </div>
@@ -377,8 +458,19 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
           </div>
           : !section ? <p className="text-sm text-muted-foreground">Click a section on the page to edit it, or open Site for colours, fonts and logo.</p>
           : panel === 'content' ? <div className="space-y-3">
-            <div className="flex items-center justify-between"><p className="font-semibold">{BLOCKS[section.type].label}</p>{!readOnly && <Button size="sm" variant="ghost" onClick={() => saveSection(section)}>Save section</Button>}</div>
-            {(BLOCKS[section.type].fields as Field[]).map(f => f.key === 'flipSlug'
+            <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2"><p className="font-semibold">{BLOCKS[section.type].label}</p>
+              {!readOnly && <span className="flex items-center gap-1.5">
+                <button title="Duplicate section" className="rounded-md p-1 hover:bg-background" onClick={() => { const c = { ...structuredClone(section), id: uid() }; editPage(p => { const i = p.sections.findIndex(x => x.id === section.id); p.sections.splice(i + 1, 0, c); }); setSel(c.id); pendingScroll.current = c.id; }}><Copy className="h-4 w-4" /></button>
+                <button title="Delete section" className="rounded-md p-1 hover:bg-background" onClick={() => { editPage(p => { p.sections = p.sections.filter(x => x.id !== section.id); }); setSel(null); }}><Trash2 className="h-4 w-4" /></button>
+                <Button size="sm" variant="ghost" onClick={() => saveSection(section)}>Save section</Button></span>}</div>
+            {(BLOCKS[section.type].fields as Field[]).map(f => section.type === 'map' && f.key === 'address'
+              ? <div key={f.key} className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Address — suggestions appear as you type, or drop the pin on the map</span>
+                  <AddressField disabled={readOnly} value={section.props.address || ''} onChange={v => editSection(section.id, s => { s.props.address = v; })} onPlace={p => editSection(section.id, s => { s.props.address = p.label; s.props.lat = p.lat; s.props.lng = p.lng; s.props.zoom = 16; })} />
+                  {typeof section.props.lat === 'number' && typeof section.props.lng === 'number'
+                    ? <p className="flex items-center justify-between text-xs text-muted-foreground"><span>Pin set at {section.props.lat.toFixed(5)}, {section.props.lng.toFixed(5)} — drag it on the map to adjust.</span>{!readOnly && <button type="button" className="underline" onClick={() => editSection(section.id, s => { s.props.lat = null; s.props.lng = null; })}>Clear pin</button>}</p>
+                    : <p className="text-xs text-muted-foreground">No pin yet — click the map in the page to drop one. Visitors see the pin on the published site.</p>}
+                </div>
+              : f.key === 'flipSlug'
               ? (flipField ? <label key={f.key} className="block space-y-1"><span className="text-xs font-medium text-muted-foreground">FLIP book</span><select disabled={readOnly} className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm" value={section.props.flipSlug} onChange={e => editSection(section.id, s => { s.props.flipSlug = e.target.value; })}><option value="">Choose…</option>{flips.map(b => <option key={b.slug} value={b.slug}>{b.title}</option>)}</select>{!flips.length && <span className="text-xs text-muted-foreground">Build one in Flip Builder V3 first.</span>}</label> : null)
               : <FieldEditor key={f.key} f={f} disabled={readOnly} value={section.props[f.key]} onChange={v => editSection(section.id, s => { s.props[f.key] = v; })}
                   extra={section.type === 'products' && f.key === 'items' && !readOnly ? <div className="space-y-2">
@@ -400,6 +492,10 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
         </aside>
       </div>
     </div>
+    {preview && <div className="fixed inset-0 z-[80] overflow-y-auto" style={{ background: theme.background }}>
+      <button aria-label="Exit full screen" onClick={() => setPreview(false)} className="fixed right-4 top-4 z-[81] flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white shadow-lg backdrop-blur transition hover:bg-black"><X className="h-5 w-5" /></button>
+      <SiteRenderer page={page} theme={theme} />
+    </div>}
     {textEdit && (() => { const s = page.sections.find(x => x.id === textEdit.sid); if (!s) return null;
       const keys = textEdit.path.split('.'); const get = (o: any) => keys.reduce((a, k) => a?.[k], o);
       const put = (o: any, v: any) => { let t = o; for (const k of keys.slice(0, -1)) t = t[k] ??= {}; t[keys[keys.length - 1]] = v; };

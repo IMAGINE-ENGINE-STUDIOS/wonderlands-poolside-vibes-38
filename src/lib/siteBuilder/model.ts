@@ -103,12 +103,42 @@ export const BLOCKS = {
   posts: { label: 'Blog / news', group: 'Content', props: { title: 'Latest news', items: [] },
     fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Posts', kind: 'items', blank: { title: 'Post', date: '', excerpt: '', image: '', link: '' }, fields: [item('text', 'title', 'Title'), item('text', 'date', 'Date'), item('textarea', 'excerpt', 'Summary'), item('image', 'image', 'Photo'), item('url', 'link', 'Read more link')] }] },
   beforeafter: { label: 'Before / after', group: 'Media', props: { title: 'The transformation', before: '', after: '', height: 480 }, fields: [item('text', 'title', 'Title'), item('image', 'before', 'Before photo'), item('image', 'after', 'After photo'), item('number', 'height', 'Height (px)')] },
-  map: { label: 'Map', group: 'Media', props: { title: 'Find us', address: '', height: 380 }, fields: [item('text', 'title', 'Title'), item('text', 'address', 'Address or city'), item('number', 'height', 'Height (px)')] },
+  map: { label: 'Map', group: 'Media', props: { title: 'Find us', address: '', height: 380, lat: null, lng: null, zoom: 15 }, fields: [item('text', 'title', 'Title'), item('text', 'address', 'Address or city'), item('number', 'height', 'Height (px)')] },
   booking: { label: 'Booking', group: 'Commerce', props: { title: 'Book a consultation', body: '', url: '', height: 700 }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('url', 'url', 'Calendly or booking link'), item('number', 'height', 'Height (px)')] },
   embed: { label: 'Embed', group: 'Technology', props: { url: '', height: 500, title: '' }, fields: [item('text', 'title', 'Title'), item('url', 'url', 'Page to embed (https://…)'), item('number', 'height', 'Height (px)')] },
   spacer: { label: 'Spacer', group: 'Layout', props: { height: 64 }, fields: [item('number', 'height', 'Height (px)')] },
 } satisfies Record<string, { label: string; group: string; props: Record<string, any>; fields: Field[] }>;
 export type BlockType = keyof typeof BLOCKS;
+
+/**
+ * Layout modes per block — genuinely different compositions drawn by
+ * SiteRenderer (not colour swaps). Injected as the FIRST inspector field of
+ * each block so the layout heads the Section tab, and Genius sees it too.
+ */
+export const BLOCK_LAYOUTS: Partial<Record<BlockType, { value: string; label: string }[]>> = {
+  hero: [{ value: 'stack', label: 'Stacked' }, { value: 'split', label: 'Split — image right' }, { value: 'card', label: 'Glass card over photo' }, { value: 'bottom', label: 'Bottom over photo' }],
+  header: [{ value: 'bar', label: 'Bar' }, { value: 'centered', label: 'Centred logo' }],
+  footer: [{ value: 'classic', label: 'Classic' }, { value: 'centered', label: 'Centred' }, { value: 'stacked', label: 'Big brand stacked' }],
+  text: [{ value: 'standard', label: 'Standard' }, { value: 'lead', label: 'Large lead + drop cap' }, { value: 'quote', label: 'Big quote' }, { value: 'twocol', label: 'Two columns' }],
+  services: [{ value: 'grid', label: 'Grid' }, { value: 'cards', label: 'Cards' }, { value: 'rows', label: 'Alternating rows' }, { value: 'numbered', label: 'Numbered list' }],
+  products: [{ value: 'grid', label: 'Grid' }, { value: 'list', label: 'List rows' }],
+  testimonials: [{ value: 'grid', label: 'Grid' }, { value: 'cards', label: 'Cards' }, { value: 'spotlight', label: 'Spotlight quote' }],
+  cta: [{ value: 'band', label: 'Band' }, { value: 'card', label: 'Floating card' }, { value: 'split', label: 'Split — button right' }],
+  form: [{ value: 'stacked', label: 'Stacked' }, { value: 'card', label: 'Card' }, { value: 'split', label: 'Split — form right' }],
+  gallery: [{ value: 'grid', label: 'Grid' }, { value: 'strip', label: 'Film strip' }, { value: 'masonry', label: 'Masonry' }],
+  columns: [{ value: 'grid', label: 'Grid' }, { value: 'cards', label: 'Cards' }],
+  faq: [{ value: 'accordion', label: 'Accordion' }, { value: 'twocol', label: 'Two-column Q&A' }, { value: 'cards', label: 'Cards' }],
+  pricing: [{ value: 'cards', label: 'Cards' }, { value: 'rows', label: 'Rows' }],
+  team: [{ value: 'grid', label: 'Grid' }, { value: 'cards', label: 'Cards' }, { value: 'round', label: 'Round photos' }],
+  stats: [{ value: 'row', label: 'Row' }, { value: 'dividers', label: 'Dividers' }, { value: 'big', label: 'Big centred' }],
+  logos: [{ value: 'strip', label: 'Strip' }, { value: 'grid', label: 'Grid cells' }],
+  posts: [{ value: 'grid', label: 'Grid' }, { value: 'list', label: 'List rows' }],
+  image: [{ value: 'standard', label: 'Standard' }, { value: 'framed', label: 'Framed' }, { value: 'overlay', label: 'Caption overlay' }],
+};
+for (const [t, options] of Object.entries(BLOCK_LAYOUTS)) {
+  const b = (BLOCKS as any)[t];
+  if (b && !(b.fields as Field[]).some((f) => f.key === 'layout')) b.fields = [{ key: 'layout', label: 'Layout', kind: 'select', options } as Field, ...b.fields];
+}
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 export const newSection = (type: BlockType): Section => ({ id: uid(), type, props: structuredClone(BLOCKS[type].props), style: type === 'hero' ? { color: '#ffffff', bg: '#0a0a0a', overlay: 40, align: 'center', width: 'full' } : {} });
