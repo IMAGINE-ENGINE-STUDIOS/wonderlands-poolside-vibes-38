@@ -88,6 +88,16 @@ export function AIAssistantProvider({ children }: { children: ReactNode }) {
     }
   }, [messages]);
 
+  // Genius links can carry ?genius=open — land the visitor inside Genius
+  // itself, not on a page where they have to hunt for the assistant button.
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get('genius') === 'open') {
+        setIsOpen(true);
+      }
+    } catch { /* no-op */ }
+  }, []);
+
   const openChat = useCallback((initialMessage?: string) => {
     setIsOpen(true);
     if (initialMessage) {
