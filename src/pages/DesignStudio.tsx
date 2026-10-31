@@ -11,7 +11,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Layers, Box, RotateCcw, Home } from "lucide-react";
+import { ArrowLeft, Layers, Box, RotateCcw } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -647,9 +647,11 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-                <Button onClick={() => embedded ? onClose?.() : navigate("/")} title={embedded ? 'Close studio' : 'Home'} className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
-                  <Home className="h-4 w-4" />
-                </Button>
+                {embedded && (
+                  <Button onClick={() => onClose?.()} title="Close studio" className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                )}
               </div>} />
           <SubToolbar hideTools category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={false as boolean && poolBuilderData ? {
         perimeter: poolBuilderData.perimeter,
@@ -708,10 +710,11 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            {/* Home sits in the header beside Reset (floating rail is hidden on this page). */}
-            <Button onClick={() => embedded ? onClose?.() : navigate("/")} title={embedded ? 'Close studio' : 'Home'} className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
-              <Home className="h-4 w-4" />
-            </Button>
+            {embedded && (
+              <Button onClick={() => onClose?.()} title="Close studio" className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90 shadow-md shrink-0">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </header>}
 

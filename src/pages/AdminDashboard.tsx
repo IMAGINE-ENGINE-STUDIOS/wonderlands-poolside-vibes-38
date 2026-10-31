@@ -89,7 +89,7 @@ const CHAPTER_NOTES: Record<string, string> = {
   quotes: 'Every quote requested by your customers.', invoices: 'Bills sent, paid and overdue.',
   orders: 'Customer orders and their progress.', clients: 'Your customer pipeline and follow-ups.',
   'unified-products': 'Catalogue products, pools and inventory.', catalog: 'The full product catalog and its Marketplace status.',
-  'tech-hub': 'Every Wonderlands tool, opened right here.',
+  'tech-hub': 'Every Foss Theory tool, opened right here.',
   companies: 'Every licensed company using the platform.', contractors: 'Trade partners, approvals and licenses.',
   projects: 'Builds in progress, phases and milestones.', procurement: 'Jobs, bids and trade partners.',
 };
@@ -223,13 +223,13 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
       <div className="p-6 lg:p-7 flex flex-col gap-1 border-b border-neutral-200">
         <div className="flex items-center gap-3 mb-2">
           <div className="relative h-10 w-10 bg-black rounded-md flex items-center justify-center">
-            <span className="text-white font-bold text-lg" style={{ fontFamily: "'Cormorant Garamond', serif" }}>W</span>
+            <span className="text-white font-bold text-lg" style={{ fontFamily: "'Cormorant Garamond', serif" }}>F</span>
           </div>
           <div>
             <h1 className="text-black font-bold text-lg tracking-tight leading-none" style={{ fontFamily: "'Sora', sans-serif" }}>
               {isMainAdmin ? 'Command' : profile?.role === 'supplier' ? 'Supplier' : 'Contractor'}
             </h1>
-            <span className="text-[10px] text-neutral-500 tracking-[0.18em] uppercase font-semibold">Wonderlands · Admin</span>
+            <span className="text-[10px] text-neutral-500 tracking-[0.18em] uppercase font-semibold">Foss Theory · Admin</span>
           </div>
         </div>
         {profile && (
@@ -395,11 +395,6 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
-              <Link to="/" title="Home">
-                <button className="p-2.5 rounded-lg border border-neutral-200 bg-white text-black hover:bg-neutral-100 transition-all duration-200">
-                  <Home className="h-4 w-4" />
-                </button>
-              </Link>
               <button
                 onClick={handleLogout}
                 title="Sign out"

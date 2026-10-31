@@ -370,13 +370,6 @@ const BelgardStudio = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/')}
-                className="text-sm"
-              >
-                ← Back to Home
-              </Button>
               <h1 className="text-2xl font-bold text-primary">Belgard Studio</h1>
             </div>
             <div className="flex items-center space-x-4">
