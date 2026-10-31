@@ -395,12 +395,36 @@ const SiteRenderer: React.FC<Props> = ({ page, theme: themeBase, onLead, wrap, p
         const ifr = <iframe title={p.title || 'Embedded page'} loading="lazy" src={p.url} sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style={{ width: '100%', height: p.height || 500, border: 0, borderRadius: p.frame && p.frame !== 'none' ? 0 : theme.radius, display: 'block' }} />;
         if (p.poster) return <>{title(p.title)}<EmbedFacade poster={p.poster} height={p.height || 500} radius={theme.radius} label={p.title || 'Embedded page'}>{framed(p.frame, p.title || p.url, theme.radius, ifr)}</EmbedFacade></>;
         return <>{title(p.title)}{framed(p.frame, p.title || p.url, theme.radius, ifr)}</>; }
-      case 'button': { const v = p.variant || 'solid'; const R = p.radius != null && p.radius !== '' && Number.isFinite(Number(p.radius)) ? Number(p.radius) : 999;
-        const look: React.CSSProperties = v === 'glass'
-          ? { background: 'rgba(255,255,255,.16)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', border: '1px solid rgba(255,255,255,.45)', color: 'inherit', boxShadow: '0 18px 36px rgba(0,0,0,.18)' }
-          : v === 'outline' ? { background: 'transparent', color: theme.primary, border: `1.5px solid ${theme.primary}` }
-          : { background: theme.primary, color: '#fff', border: '1px solid transparent' };
-        return <div style={{ textAlign: s.style.align || 'center' }}><a href={L(p.href) || '#'} {...ext(p.href)} style={{ ...look, borderRadius: R, padding: p.size === 'md' ? '12px 22px' : '16px 32px', fontWeight: 700, fontSize: p.size === 'md' ? 15 : 17, display: 'inline-flex', alignItems: 'center', gap: 10 }}><SbIcon name={p.icon} size={p.size === 'md' ? 18 : 20} /><span {...T('label')}>{p.label}</span></a></div>; }
+      case 'button': { const v = p.variant || 'solid';
+        /* Shape controllers: a named shape wins; Custom falls back to the
+           numeric radius prop. */
+        const SHAPES: Record<string, number> = { pill: 999, round: 16, soft: 10, sharp: 0 };
+        const R = p.shape && p.shape !== 'custom' && SHAPES[p.shape] != null ? SHAPES[p.shape]
+          : p.radius != null && p.radius !== '' && Number.isFinite(Number(p.radius)) ? Number(p.radius) : 999;
+        const P = theme.primary;
+        const looks: Record<string, React.CSSProperties> = {
+          solid: { background: P, color: '#fff', border: '1px solid transparent' },
+          gradient: { background: `linear-gradient(135deg, ${P}, #38bdf8)`, color: '#fff', border: '1px solid transparent' },
+          ocean: { background: 'linear-gradient(135deg,#0ea5e9,#1d4ed8)', color: '#fff', border: '1px solid transparent' },
+          sunset: { background: 'linear-gradient(135deg,#f59e0b,#ef4444 55%,#ec4899)', color: '#fff', border: '1px solid transparent' },
+          soft: { background: `${P}1f`, color: P, border: '1px solid transparent' },
+          outline: { background: 'transparent', color: P, border: `1.5px solid ${P}` },
+          glass: { background: 'rgba(255,255,255,.16)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', border: '1px solid rgba(255,255,255,.45)', color: 'inherit', boxShadow: '0 18px 36px rgba(0,0,0,.18)' },
+          glassdark: { background: 'rgba(10,12,16,.34)', backdropFilter: 'blur(14px) saturate(1.4)', WebkitBackdropFilter: 'blur(14px) saturate(1.4)', border: '1px solid rgba(255,255,255,.32)', color: '#fff', boxShadow: '0 18px 36px rgba(0,0,0,.25)' },
+          dark: { background: '#101418', color: '#fff', border: '1px solid transparent' },
+          light: { background: '#ffffff', color: '#101418', border: '1px solid rgba(0,0,0,.08)', boxShadow: '0 10px 28px rgba(0,0,0,.14)' },
+          ghost: { background: 'transparent', color: P, border: '1px solid transparent' },
+          link: { background: 'transparent', color: P, border: '1px solid transparent', textDecoration: 'underline', textUnderlineOffset: 5 },
+          arrow: { background: P, color: '#fff', border: '1px solid transparent' },
+          glow: { background: P, color: '#fff', border: '1px solid transparent', boxShadow: `0 12px 36px ${P}80` },
+          press: { background: P, color: '#fff', border: '1px solid transparent', boxShadow: 'inset 0 -4px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.16)' },
+          caps: { background: P, color: '#fff', border: '1px solid transparent', textTransform: 'uppercase', letterSpacing: '.14em' },
+        };
+        const look = looks[v] || looks.solid;
+        const SIZES: Record<string, { pad: string; fs: number; ic: number }> = { sm: { pad: '9px 18px', fs: 13.5, ic: 15 }, md: { pad: '12px 24px', fs: 15, ic: 17 }, lg: { pad: '16px 34px', fs: 17, ic: 20 }, xl: { pad: '20px 44px', fs: 19, ic: 22 } };
+        const sz = SIZES[p.size] || SIZES.lg;
+        const fullW = p.width === 'full';
+        return <div style={{ textAlign: s.style.align || 'center' }}><a href={L(p.href) || '#'} {...ext(p.href)} style={{ ...look, borderRadius: R, padding: sz.pad, fontWeight: 700, fontSize: sz.fs, display: fullW ? 'flex' : 'inline-flex', width: fullW ? '100%' : undefined, justifyContent: 'center', alignItems: 'center', gap: 10 }}><SbIcon name={p.icon} size={sz.ic} /><span {...T('label')}>{p.label}</span>{v === 'arrow' && <SbIcon name="arrow" size={sz.ic} />}</a></div>; }
       case 'spacer': return <div style={{ height: p.height || 64 }} />;
     }
   };
