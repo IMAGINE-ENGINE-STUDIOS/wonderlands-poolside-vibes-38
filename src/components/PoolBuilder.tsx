@@ -5133,6 +5133,11 @@ export function PoolBuilder({
       const snapped = getSymmetrySnappedPosition(x, y);
       x = snapped.x;
       y = snapped.y;
+      // A tap has no pointermove before it, so without this the live edge and
+      // its measurement keep pointing at the stale cursor (initially world
+      // 0,0 — the board's top-left corner) until the geometry closes. Keep
+      // the cursor where the finger actually is. (founder bug, 2026-10-31)
+      setCursorPos({ x, y });
 
       // Shift held: lock the new segment to a perfectly straight line
       const shiftStraight = e.shiftKey && splineDrawing.points.length > 0;

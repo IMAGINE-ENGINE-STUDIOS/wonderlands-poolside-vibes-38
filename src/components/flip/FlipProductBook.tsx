@@ -501,6 +501,34 @@ const OptionChapter: React.FC<{
       </button>
     );
 
+  /* Narrow-leaf add control — one quiet blue pill, Apple-style. Studio-only
+     and included options keep their neutral chips. */
+  const appleControl = (o: StudioOption) =>
+    o.unpriced ? (
+      <span className="flex h-7 shrink-0 items-center rounded-full bg-foreground/[0.06] px-3 text-[11px] font-medium text-muted-foreground">
+        In studio
+      </span>
+    ) : isIncluded(o) ? (
+      <span className="flex h-7 shrink-0 items-center gap-1 rounded-full bg-foreground/[0.06] px-3 text-[11px] font-medium text-muted-foreground">
+        <Check className="h-3 w-3" />
+        Standard
+      </span>
+    ) : (
+      <button
+        type="button"
+        aria-label={`Add ${o.label} to the order`}
+        onClick={(e) => {
+          e.stopPropagation();
+          requestAdd(o);
+        }}
+        className={`shrink-0 rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors ${
+          inOrder(o) ? "bg-foreground text-background" : "bg-[#0071e3] text-white active:bg-[#0060c9]"
+        }`}
+      >
+        {inOrder(o) ? "Added" : "Add"}
+      </button>
+    );
+
   const rows = (dense: boolean) => (
     <ul className={`min-h-0 flex-1 space-y-0 ${dense ? "overflow-hidden" : "overflow-y-auto"}`}>
       {chunk.map((o, oi) => (
@@ -644,105 +672,61 @@ const OptionChapter: React.FC<{
       )}
 
       {narrow ? (
-        /* Mobile carousel — one option at a time, Wonderlands Studio style:
-           the short leaf never has to fit a whole list, so no option is
-           clipped out of sight (founder directive 2026-10-31). */
+        /* Narrow leaf — the full list, Apple-style: every option visible at
+           once in one clean, quiet column, and the plate above follows the
+           tap. Replaces the one-at-a-time carousel the founder rejected
+           (2026-10-31). */
         <div className="mt-4 flex min-h-0 flex-1 flex-col">
-          {current && (
-            <div className="border border-border/60 p-3">
-              <div className="flex items-center gap-3">
-                <span className="font-serif text-xs text-muted-foreground">
-                  {String(chunkIndex * perPage + slideIdx + 1).padStart(2, "0")}
-                </span>
-                {current.image ? (
-                  <img src={current.image} alt={current.label} loading="eager" decoding="async" className="h-10 w-10 shrink-0 object-cover" />
-                ) : current.color ? (
-                  <span className="h-10 w-10 shrink-0 border border-border/60" style={{ backgroundColor: current.color }} />
-                ) : null}
-                <span className="min-w-0 flex-1">
-                  <span className="block break-words text-[12px] font-medium uppercase leading-snug tracking-[0.14em]">{current.label}</span>
-                  <span className="mt-0.5 block font-serif text-[12px] text-muted-foreground">{current.priceLabel}</span>
-                </span>
-                {control(current)}
-              </div>
-              {measure?.label === current.label && (
-                <div className="mt-3 flex items-center gap-2 border-t border-dashed border-border/60 pt-3">
-                  <label className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
-                    {current.unit === "sqft" ? "Area" : "Quantity"}
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    step={current.unit === "sqft" ? 10 : 1}
-                    value={measure.value}
-                    onChange={(e) => setMeasure({ label: current.label, value: e.target.value })}
-                    className="w-20 border border-border/70 bg-transparent px-2 py-1 font-serif text-[11px] outline-none focus:border-foreground"
-                  />
-                  <span className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground">{unitWord(current)}</span>
-                  <span className="ml-auto font-serif text-[11px]">
-                    ${Math.round(lineTotal(current, Math.max(0, Number(measure.value) || 0))).toLocaleString()}
+          <ul className="min-h-0 flex-1 divide-y divide-foreground/10 overflow-y-auto">
+            {chunk.map((o, oi) => (
+              <li
+                key={o.label}
+                onClick={() => setActive(o)}
+                className={`py-3 transition-colors ${active?.label === o.label ? "bg-foreground/[0.04]" : ""}`}
+              >
+                <div className="flex items-center gap-3.5 px-1">
+                  {o.image ? (
+                    <img src={o.image} alt={o.label} loading="eager" decoding="async" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
+                  ) : o.color ? (
+                    <span className="h-11 w-11 shrink-0 rounded-xl border border-foreground/10" style={{ backgroundColor: o.color }} />
+                  ) : (
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-foreground/[0.05] font-serif text-sm text-muted-foreground">
+                      {String(chunkIndex * perPage + oi + 1).padStart(2, "0")}
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block break-words text-[15px] font-medium leading-snug">{o.label}</span>
+                    <span className="mt-0.5 block text-[13px] text-muted-foreground">{o.priceLabel}</span>
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => addOption(current, Math.max(1, Number(measure.value) || 1))}
-                    className="border border-foreground bg-foreground px-2 py-1 text-[9px] uppercase tracking-[0.25em] text-background"
-                  >
-                    Add
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMeasure(null)}
-                    className="border border-border/70 px-2 py-1 text-[9px] uppercase tracking-[0.25em] text-muted-foreground"
-                  >
-                    Cancel
-                  </button>
+                  {appleControl(o)}
                 </div>
-              )}
-            </div>
-          )}
-          <div className="mt-auto flex items-center justify-between pt-3">
-            <button
-              type="button"
-              aria-label="Previous option"
-              onClick={() => {
-                const n = (slideIdx - 1 + chunk.length) % chunk.length;
-                setSlide(n);
-                setActive(chunk[n]);
-                setMeasure(null);
-              }}
-              className="flex h-9 w-9 items-center justify-center border border-border/60 transition-colors hover:bg-foreground hover:text-background"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <div className="flex items-center gap-1.5">
-              {chunk.map((o, i) => (
-                <button
-                  key={o.label}
-                  type="button"
-                  aria-label={`Option ${i + 1}: ${o.label}`}
-                  onClick={() => {
-                    setSlide(i);
-                    setActive(chunk[i]);
-                    setMeasure(null);
-                  }}
-                  className={`h-1.5 rounded-full transition-all ${i === slideIdx ? "w-5 bg-foreground" : "w-1.5 bg-foreground/25"}`}
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              aria-label="Next option"
-              onClick={() => {
-                const n = (slideIdx + 1) % chunk.length;
-                setSlide(n);
-                setActive(chunk[n]);
-                setMeasure(null);
-              }}
-              className="flex h-9 w-9 items-center justify-center border border-border/60 transition-colors hover:bg-foreground hover:text-background"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+                {measure?.label === o.label && (
+                  <div className="mt-3 flex items-center gap-2 px-1" onClick={(e) => e.stopPropagation()}>
+                    <label className="text-[12px] text-muted-foreground">{o.unit === "sqft" ? "Area" : "Quantity"}</label>
+                    <input
+                      type="number"
+                      min={1}
+                      step={o.unit === "sqft" ? 10 : 1}
+                      value={measure.value}
+                      onChange={(e) => setMeasure({ label: o.label, value: e.target.value })}
+                      className="w-20 rounded-lg border border-foreground/15 bg-transparent px-2 py-1.5 text-[13px] outline-none focus:border-[#0071e3]"
+                    />
+                    <span className="text-[12px] text-muted-foreground">{unitWord(o)}</span>
+                    <span className="ml-auto text-[13px]">${Math.round(lineTotal(o, Math.max(0, Number(measure.value) || 0))).toLocaleString()}</span>
+                    <button type="button" onClick={() => addOption(o, Math.max(1, Number(measure.value) || 1))} className="rounded-full bg-[#0071e3] px-3.5 py-1.5 text-[12px] font-medium text-white">
+                      Add
+                    </button>
+                    <button type="button" onClick={() => setMeasure(null)} className="rounded-full border border-foreground/15 px-3 py-1.5 text-[12px] text-muted-foreground">
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 shrink-0 border-t border-foreground/10 pt-3 text-[12px] leading-relaxed text-muted-foreground">
+            Tap an option to see it above. Tap Add to carry it into your estimate.
+          </p>
         </div>
       ) : (
         <>
@@ -753,13 +737,6 @@ const OptionChapter: React.FC<{
               : "Hover any option to see it on the plate above, expand it with the corner control, then add it with the + to carry it into your estimate with the same category, pricing and image data used by Wonderlands Studio."}
           </p>
         </>
-      )}
-      {narrow && (
-        /* the hint is a root-level shrink-0 strip so a tall chapter header
-           can never push it past the leaf's bottom edge */
-        <p className="mt-3 shrink-0 border-t border-border/50 pt-3 text-center text-[10px] leading-relaxed text-muted-foreground">
-          Option {slideIdx + 1} of {chunk.length} — tap + to add it to your estimate.
-        </p>
       )}
 
       {/* full-spread study — the whole book: one leaf is the photograph, the facing leaf the options */}

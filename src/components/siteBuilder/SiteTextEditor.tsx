@@ -27,13 +27,31 @@ const SiteTextEditor: React.FC<Props> = ({ rect, look, onLook, onClose }) => {
     return () => document.removeEventListener('keydown', key);
   }, [onClose]);
 
+  // Anchor the bar to the VISUAL viewport. rect and fixed positioning live in
+  // layout-viewport coordinates; when the phone keyboard deploys, iOS scrolls
+  // and shrinks the visual viewport, which used to carry this bar off-screen.
+  // Tracking visualViewport keeps the bar pinned inside what the user sees.
+  const [vv, setVv] = useState<{ top: number; left: number; height: number } | null>(null);
+  useEffect(() => {
+    const view = window.visualViewport;
+    if (!view) return;
+    const update = () => setVv({ top: view.offsetTop, left: view.offsetLeft, height: view.height });
+    update();
+    view.addEventListener('resize', update);
+    view.addEventListener('scroll', update);
+    return () => { view.removeEventListener('resize', update); view.removeEventListener('scroll', update); };
+  }, []);
+  const vTop = vv?.top ?? 0;
+  const vLeft = vv?.left ?? 0;
+  const keyboardOpen = !!vv && vv.height < window.innerHeight - 120;
+
   const narrow = typeof window !== 'undefined' && window.innerWidth < 640;
   const below = rect.bottom + 8 + 56 < window.innerHeight;
   const style: React.CSSProperties = narrow
-    ? { position: 'fixed', left: 12, right: 12, top: 64, zIndex: 90 }
+    ? { position: 'fixed', left: 12, right: 12, top: vTop + (keyboardOpen ? 8 : 64), zIndex: 90 }
     : { position: 'fixed', zIndex: 90, width: 'max-content', maxWidth: '94vw',
-        top: below ? rect.bottom + 8 : Math.max(8, rect.top - 8 - 56),
-        left: Math.max(8, Math.min(window.innerWidth - 540 - 8, rect.left)) };
+        top: vTop + (below ? rect.bottom + 8 : Math.max(8, rect.top - 8 - 56)),
+        left: vLeft + Math.max(8, Math.min(window.innerWidth - 540 - 8, rect.left)) };
 
   const set = (p: Partial<TextLook>) => onLook({ ...look, ...p });
   const step = (d: number) => set({ size: Math.max(8, Math.min(160, (look.size ?? 24) + d)) });
