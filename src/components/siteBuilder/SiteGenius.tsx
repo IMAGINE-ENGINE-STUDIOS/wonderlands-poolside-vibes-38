@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { BLOCKS, FONTS, compressImage, uid, type Page, type SiteDoc, type SiteTheme } from '@/lib/siteBuilder/model';
-import { isBlock, sectionFrom } from '@/lib/siteBuilder/tradeTemplates';
+import { isBlock, normalizeStyle, sectionFrom } from '@/lib/siteBuilder/tradeTemplates';
 import { slugifyPage } from './siteBuilderUtils';
 import { hydrateDocProducts } from '@/lib/siteBuilder/catalogCards';
 
@@ -48,7 +48,7 @@ export function applyGeniusOps(d: SiteDoc, pageId: string, ops: any[], setTheme:
     const page = find(o?.page); if (!page) { notes?.push('one change was skipped (unknown page)'); continue; }
     if (o?.op === 'add' && isBlock(o.type)) { const s = sectionFrom(o); const at = typeof o.index === 'number' ? Math.max(0, Math.min(page.sections.length, o.index)) : o.after ? page.sections.findIndex((x) => x.id === o.after) + 1 : page.sections.length; page.sections.splice(at, 0, s); notes?.push(`added ${label(o.type)} to ${page.name}`); }
     else if (o?.op === 'add') notes?.push(`skipped an unknown block (${String(o?.type || '?')})`);
-    else if (o?.op === 'update') { const h = locate(o.id); if (h) { const s = h.p.sections[h.i]; if (o.props && typeof o.props === 'object') Object.assign(s.props, o.props); if (o.style && typeof o.style === 'object') Object.assign(s.style, o.style); notes?.push(`updated ${label(s.type)} on ${h.p.name}`); } else notes?.push('one update was skipped (section not found)'); }
+    else if (o?.op === 'update') { const h = locate(o.id); if (h) { const s = h.p.sections[h.i]; if (o.props && typeof o.props === 'object') Object.assign(s.props, o.props); if (o.style && typeof o.style === 'object') Object.assign(s.style, normalizeStyle(o.style)); notes?.push(`updated ${label(s.type)} on ${h.p.name}`); } else notes?.push('one update was skipped (section not found)'); }
     else if (o?.op === 'remove') { const h = locate(o.id); if (h) { const [gone] = h.p.sections.splice(h.i, 1); notes?.push(`removed ${label(gone.type)} from ${h.p.name}`); } else notes?.push('one removal was skipped (section not found)'); }
     else if (o?.op === 'duplicate') { const h = locate(o.id); if (h) { h.p.sections.splice(h.i + 1, 0, { ...structuredClone(h.p.sections[h.i]), id: uid() }); notes?.push(`duplicated ${label(h.p.sections[h.i].type)} on ${h.p.name}`); } }
     else if (o?.op === 'move') { const h = locate(o.id); if (h) { const [m] = h.p.sections.splice(h.i, 1); h.p.sections.splice(Math.max(0, Math.min(h.p.sections.length, Number(o.to) || 0)), 0, m); notes?.push(`moved ${label(m.type)} on ${h.p.name}`); } }

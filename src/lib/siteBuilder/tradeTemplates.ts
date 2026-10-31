@@ -7,9 +7,18 @@
 import { BLOCKS, newSection, uid, type BlockType, type Section, type SiteDoc } from './model';
 
 type Spec = { type: BlockType; props?: Record<string, any>; style?: Record<string, any> };
+/** Genius sometimes nests gradient keys under style.bg as an object
+ *  ({bg:{gradStops:[...],gradAngle:90}}) — hoist them to the style top level
+ *  so the renderer sees them; a plain-string bg is left untouched. */
+export const normalizeStyle = (st: any): Record<string, any> => {
+  if (!st || typeof st !== 'object') return st ?? {};
+  const s = { ...st };
+  if (s.bg && typeof s.bg === 'object') { const inner = s.bg; delete s.bg; Object.assign(s, inner); }
+  return s;
+};
 export const sectionFrom = (s: Spec): Section => {
   const base = newSection(s.type);
-  return { ...base, props: { ...base.props, ...(s.props ?? {}) }, style: { ...base.style, ...(s.style ?? {}) } };
+  return { ...base, props: { ...base.props, ...(s.props ?? {}) }, style: { ...base.style, ...normalizeStyle(s.style) } };
 };
 /** Only known block types survive (used for Genius results too). */
 export const isBlock = (t: unknown): t is BlockType => typeof t === 'string' && t in BLOCKS;
