@@ -116,7 +116,7 @@ const StudioEditorial: React.FC = () => {
 
             <div className="mt-10">
               <Link
-                to="/studio"
+                to="/wonderlands-studio"
                 className="group relative inline-flex items-center gap-4 overflow-hidden rounded-none border border-blue-700 bg-background px-8 py-4 text-[11px] uppercase tracking-[0.35em] text-blue-700 transition-all duration-500 hover:border-blue-700 hover:text-white"
               >
                 <span className="absolute inset-0 -z-10 origin-left scale-x-0 bg-blue-700 transition-transform duration-500 group-hover:scale-x-100" />

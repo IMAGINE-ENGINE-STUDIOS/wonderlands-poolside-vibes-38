@@ -60,7 +60,7 @@ const PlatformPositioning: React.FC = () => {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                to="/studio"
+                to="/wonderlands-studio"
                 className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-background transition hover:-translate-y-0.5"
               >
                 Start My Project

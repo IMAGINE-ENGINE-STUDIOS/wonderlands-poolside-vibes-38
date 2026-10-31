@@ -354,7 +354,7 @@ const FlipCart: React.FC<FlipCartProps> = ({ current, onQuote, onOpenChange }) =
                 <button
                   onClick={() => {
                     setOpen(false);
-                    navigate("/studio");
+                    navigate("/wonderlands-studio");
                   }}
                   className="inline-flex items-center justify-between border border-border px-4 py-3 text-[10px] uppercase tracking-[0.3em] transition-colors hover:bg-foreground hover:text-background"
                 >

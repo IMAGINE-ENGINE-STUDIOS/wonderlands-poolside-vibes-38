@@ -1932,72 +1932,44 @@ const WonderlandsStudio = () => {
 
 
 
-  return <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
-      {/* Compact Header */}
-      <div className="relative z-[300] border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center justify-between gap-4">
+  return <div className="min-h-screen bg-[#f5f5f7] dark:bg-zinc-950">
+      {/* Slim frosted header */}
+      <div className="sticky top-0 z-[450] border-b border-black/5 bg-white/75 backdrop-blur-xl dark:bg-zinc-950/75">
+        <div className="mx-auto max-w-[1400px] px-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5">
             {/* Left side: Home button + Title */}
             <div className="flex items-center gap-3">
               <a
                 href="/"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                 title="Back to Home"
+                aria-label="Back to Home"
               >
-                <ChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Home</span>
+                <ChevronLeft className="w-5 h-5" />
               </a>
-              <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
+              <h1 className="text-lg md:text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
                 Wonderlands Studio
               </h1>
             </div>
-            
-            {/* Project Type Toggle - Hidden (commercial mode disabled) */}
-            
-            {/* AI Search - centered on the landing, docks to this corner once a product is selected */}
-            <div className="w-48 md:w-96">
-              <motion.div
-                layout
-                transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-                className={selectedProduct
-                  ? 'relative w-full'
-                  : 'fixed left-0 right-0 mx-auto top-[112px] z-[400] w-[min(92vw,680px)] px-2'}
-              >
-                <AdvancedSearch variant={selectedProduct ? 'slim' : 'default'} />
-              </motion.div>
-            </div>
 
+            {/* AI Search — in-flow in the header */}
+            <div className="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1 sm:max-w-xl sm:mx-auto">
+              <AdvancedSearch variant="slim" />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
-        <div className="flex flex-col lg:flex-row-reverse gap-2 sm:gap-4">
-          {/* Options Sidebar - Product Selection (Collapsible, right side on desktop) */}
-          <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'w-full lg:w-12' : 'w-full lg:w-80'} flex-shrink-0`}>
+      <div className="mx-auto max-w-[1400px] px-3 sm:px-5 py-4 sm:py-6">
+        <div className="flex flex-col lg:flex-row-reverse gap-6">
+          {/* Product Browser - Product Selection (Collapsible, right side on desktop;
+              on small screens it trades places with the stage: one pane at a time) */}
+          <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'w-full lg:w-12' : 'w-full lg:w-80'} shrink-0 ${selectedProduct ? 'hidden lg:block' : 'block'}`}>
             {leftSidebarCollapsed ? <div className="sticky top-4 flex lg:justify-end">
                 <Button variant="outline" size="sm" onClick={() => setLeftSidebarCollapsed(false)} className="w-10 h-10 p-0">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-              </div> : <Card className="sticky top-4">
-                {/* Store shopping list + total — on top of categories */}
-                <StudioCartWidget
-                  currentPrice={selectedProduct ? (activeTab === 'build-a-pool' && poolBuilderData ? (poolBuilderData.breakdown?.total || 0) : calculateTotalPrice()) : 0}
-                  currentName={selectedProduct ? (selectedProduct.model || selectedProduct.name || 'Product') : undefined}
-                  currentCategory={selectedProduct?.category}
-                  currentExtras={selectedProduct ? buildCurrentExtras().map(e => ({
-                    ...e,
-                    quantity: e.key === 'jets' ? selectedExtras.jetQuantity : e.quantity,
-                  })) : []}
-                  onRemoveCurrentExtra={handleRemoveCurrentFeature}
-                  onCurrentExtraQuantity={handleCurrentFeatureQuantity}
-                  onCurrentExtraOption={handleCurrentFeatureOption}
-                  onAddCurrent={selectedProduct ? handleAddToCart : undefined}
-                  onQuote={handleQuoteRequest}
-                  onListOpenChange={setShoppingListOpen}
-                />
-
-
+              </div> : <Card className="sticky top-[76px] rounded-3xl border-black/5 shadow-none dark:border-white/10">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">Product Categories</CardTitle>
@@ -2022,7 +1994,7 @@ const WonderlandsStudio = () => {
                         return (
                           <>
                             {/* Active category — full width row */}
-                            <div className={cn("flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-semibold shadow-sm", activeCategory.activeClass)}>
+                            <div className={cn("flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-semibold shadow-sm transition-colors duration-300", activeCategory.activeClass)}>
                               <ActiveIcon className="h-4 w-4 shrink-0" />
                               <span className="truncate">{activeCategory.label}</span>
                             </div>
@@ -2061,7 +2033,7 @@ const WonderlandsStudio = () => {
 
 
                     <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
-                      {getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${(product.model && selectedProduct?.model === product.model) || (product.name && selectedProduct?.name === product.name) ? 'border-primary bg-primary/10 shadow-sm' : 'border-border hover:border-primary/50'}`} onClick={() => {
+                      {getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-2xl border border-black/5 bg-white cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-px dark:border-white/10 dark:bg-zinc-900 ${(product.model && selectedProduct?.model === product.model) || (product.name && selectedProduct?.name === product.name) ? 'ring-1 ring-zinc-900 dark:ring-zinc-50' : ''}`} onClick={() => {
                     setSelectedProduct(product);
                     // Reset extras to default for this product type
                     if (product.type) {
@@ -2072,12 +2044,12 @@ const WonderlandsStudio = () => {
 
                   }}>
                           <div className="flex items-center gap-3">
-                            {product.image && <img loading="lazy" decoding="async" src={product.image} alt={product.model || product.name || 'Product'} className="w-12 h-12 object-cover rounded" />}
+                            {product.image && <img loading="lazy" decoding="async" src={product.image} alt={product.model || product.name || 'Product'} className="w-12 h-12 object-cover rounded-xl" />}
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-sm truncate">
                                 {product.model || product.name}
                               </h4>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-zinc-500">
                                 ${getProductPrice(product).toLocaleString()}
                               </p>
                               {getProductCategoryLabel(product, activeTab) && <Badge variant="secondary" className="text-xs mt-1">
@@ -2091,7 +2063,7 @@ const WonderlandsStudio = () => {
                                 handleAddProductToCart(product);
                               }}
                               aria-label={`Add ${product.model || product.name} to cart`}
-                              className="shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                              className="shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-zinc-900 text-white hover:bg-zinc-700 transition-colors dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
                             >
                               <Plus className="h-4 w-4" />
                             </button>
@@ -2104,8 +2076,26 @@ const WonderlandsStudio = () => {
               </Card>}
           </div>
 
-          {/* Main Content - Product Details & Configuration */}
-          <div className="flex-1 min-w-0 relative">
+          {/* Main Content - Product Details & Configuration.
+              Small screens: the stage replaces the browser once a product is
+              selected (or a full-screen tool is open) — one pane at a time. */}
+          <div className={`flex-1 min-w-0 relative ${selectedProduct || activeTab === 'build-a-pool' || sceneFromBuilder ? 'block' : 'hidden lg:block'}`}>
+            {/* Mobile back bar — returns to the product browser */}
+            {selectedProduct && (
+              <div className="lg:hidden mb-4 flex items-center gap-3 rounded-2xl border border-black/5 bg-white/75 px-3 py-2 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/75">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProduct(null)}
+                  className="flex shrink-0 items-center gap-0.5 rounded-full bg-zinc-100 py-1.5 pl-2 pr-3 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  {(STUDIO_CATEGORIES.find(c => c.value === activeTab) || STUDIO_CATEGORIES[0]).label}
+                </button>
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+                  {selectedProduct.model || selectedProduct.name}
+                </span>
+              </div>
+            )}
             {/* Pool Builder Mode - Full Screen */}
             {activeTab === 'build-a-pool' && !sceneFromBuilder ? (
               <div className="fixed inset-0 z-50 bg-background overflow-y-auto p-3 sm:p-6">
@@ -2132,7 +2122,7 @@ const WonderlandsStudio = () => {
                   }}
                 />
               </div>
-            ) : selectedProduct ? <div className="space-y-4 sm:space-y-6">
+            ) : selectedProduct ? <motion.div key={selectedProduct.model || selectedProduct.name || 'product'} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 30 }} className="space-y-4 sm:space-y-6">
                 {/* Large Product Media Gallery */}
                 <Card>
                   <CardContent className="p-3 sm:p-6">
@@ -3642,7 +3632,7 @@ const WonderlandsStudio = () => {
                     </div>
                    </CardContent>
                  </Card>
-              </div> : <StudioLandingCanvas
+              </motion.div> : <StudioLandingCanvas
                 products={getFilteredProducts()}
                 categories={STUDIO_CATEGORIES}
                 activeCategory={activeTab}
@@ -4015,6 +4005,28 @@ const WonderlandsStudio = () => {
         );
       })()}
     
+      {/* Order Desk — mounted once at page level. FlipCart positions its own
+          trigger (fixed bottom-right on md+); on small screens the wrapper
+          forces the trigger into a fixed bottom-right pill above the safe
+          area instead of the in-flow strip it used to render in the sidebar. */}
+      <div className="max-md:[&>button]:!fixed max-md:[&>button]:!bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:[&>button]:!right-4 max-md:[&>button]:!left-auto max-md:[&>button]:!mx-0 max-md:[&>button]:!mb-0 max-md:[&>button]:!mt-0 max-md:[&>button]:!z-[500]">
+        <StudioCartWidget
+          currentPrice={selectedProduct ? (activeTab === 'build-a-pool' && poolBuilderData ? (poolBuilderData.breakdown?.total || 0) : calculateTotalPrice()) : 0}
+          currentName={selectedProduct ? (selectedProduct.model || selectedProduct.name || 'Product') : undefined}
+          currentCategory={selectedProduct?.category}
+          currentExtras={selectedProduct ? buildCurrentExtras().map(e => ({
+            ...e,
+            quantity: e.key === 'jets' ? selectedExtras.jetQuantity : e.quantity,
+          })) : []}
+          onRemoveCurrentExtra={handleRemoveCurrentFeature}
+          onCurrentExtraQuantity={handleCurrentFeatureQuantity}
+          onCurrentExtraOption={handleCurrentFeatureOption}
+          onAddCurrent={selectedProduct ? handleAddToCart : undefined}
+          onQuote={handleQuoteRequest}
+          onListOpenChange={setShoppingListOpen}
+        />
+      </div>
+
     {/* Floating AI Search - Hidden for now */}
     </div>;
 };

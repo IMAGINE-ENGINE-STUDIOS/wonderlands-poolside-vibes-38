@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Copy, Trash2, GripVertical, ExternalLink, Plus, ArrowUp, ArrowDown, ChevronLeft, X } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Copy, Trash2, GripVertical, ExternalLink, Plus, ArrowUp, ArrowDown, ChevronLeft, ChevronDown, X, Ellipsis, LayoutGrid, Layers, SlidersHorizontal, Palette, Globe, Save } from 'lucide-react';
 import { variantsFor, type BlockVariant } from '@/lib/siteBuilder/blockVariants';
 import SiteRenderer from './SiteRenderer';
 import { AddressField, reverseGeocode } from './SiteMap';
@@ -348,7 +348,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const [pageId, setPageId] = useState('');
   const [sel, setSel] = useState<string | null>(null);
   const [panel, setPanel] = useState<'blocks' | 'layers' | 'content' | 'style' | 'theme'>('blocks');
-  const [device, setDevice] = useState<keyof typeof DEVICES>('desktop');
+  const [device, setDevice] = useState<keyof typeof DEVICES>(() => typeof window !== 'undefined' && window.innerWidth < 640 ? 'mobile' : typeof window !== 'undefined' && window.innerWidth < 1100 ? 'tablet' : 'desktop');
   const [drag, setDrag] = useState<{ kind: 'new'; type: BlockType } | { kind: 'move'; id: string } | null>(null);
   const [dropAt, setDropAt] = useState<number | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -362,6 +362,14 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const [catalog, setCatalog] = useState<any[] | null>(null);
   /** Text being edited on the canvas (double-click): section id, prop path like 'title' or 'items.2.name'. */
   const [textEdit, setTextEdit] = useState<{ sid: string; path: string; rect: DOMRect } | null>(null);
+  /** The canvas element currently made contenteditable for an inline text edit. */
+  const editRef = useRef<{ el: HTMLElement; sid: string; path: string } | null>(null);
+  /** Mobile top bar: the secondary control row is tucked behind a "More" button below lg. */
+  const [moreOpen, setMoreOpen] = useState(false);
+  /** Mobile inspector: the panels open as a bottom sheet from the floating dock (desktop shows the column always). */
+  const [sheetOpen, setSheetOpen] = useState(false);
+  /** Genius panel starts open on desktop, collapsed on phones so the canvas leads. */
+  const [geniusOpen, setGeniusOpen] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
   /** Blocks menu: which block's style gallery is open, and the slide-out phase. */
   const [variantFor, setVariantFor] = useState<BlockType | null>(null);
   const [picked, setPicked] = useState<BlockType | null>(null);
@@ -401,9 +409,52 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const undo = () => { if (!past.length) return; setFuture(f => [doc, ...f]); setDoc(past[past.length - 1]); setPast(p => p.slice(0, -1)); setDirty(true); };
   const redo = () => { if (!future.length) return; setPast(p => [...p, doc]); setDoc(future[0]); setFuture(f => f.slice(1)); setDirty(true); };
 
+  /** Finish an inline canvas text edit: commit the words typed in place (when
+   *  asked), drop the contenteditable flag and close the format bar. */
+  const endTextEdit = useCallback((commitText: boolean) => {
+    const cur = editRef.current;
+    if (cur) {
+      if (commitText) {
+        // Extract the raw text node-by-node: innerText applies CSS text-transform
+        // (an uppercase eyebrow would be stored as SHOUTING); text nodes keep the
+        // author's casing, and <br> becomes a newline.
+        const extract = (node: Node): string => { let out = ''; node.childNodes.forEach(n => { if (n.nodeType === 3) out += n.textContent ?? ''; else if (n.nodeName === 'BR') out += '\n'; else out += extract(n); }); return out; };
+        const text = extract(cur.el).replace(/\u00A0/g, ' ').replace(/[\r\n]+$/, '');
+        const s = page.sections.find(x => x.id === cur.sid);
+        if (s) {
+          const keys = cur.path.split('.');
+          const get = (o: any) => keys.reduce((a: any, k: string) => a?.[k], o);
+          if (String(get(s.props) ?? '') !== text) editSection(cur.sid, x => { let t: any = x.props; for (const k of keys.slice(0, -1)) t = t[k] ??= {}; t[keys[keys.length - 1]] = text; });
+        }
+      }
+      cur.el.removeAttribute('contenteditable');
+      cur.el.blur();
+      editRef.current = null;
+    }
+    setTextEdit(null);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // While a text edit is open, a click anywhere except the text itself or the
+  // format bar commits it — click away to finish, like a document editor.
+  useEffect(() => {
+    if (!textEdit) return;
+    const down = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (editRef.current?.el.contains(t)) return;
+      if (t.closest?.('#sb-formatbar')) return;
+      endTextEdit(true);
+    };
+    document.addEventListener('mousedown', down);
+    return () => document.removeEventListener('mousedown', down);
+  }, [textEdit, endTextEdit]);
+
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement; if (/INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+      const t = e.target as HTMLElement;
+      // During an inline text edit the keys belong to the text, never to the
+      // section shortcuts (Backspace must not delete the section mid-word).
+      if (textEdit) { if (e.key === 'Escape') endTextEdit(true); return; }
+      if (t.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
       if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { editPage(p => { p.sections = p.sections.filter(s => s.id !== sel); }); setSel(null); }
     };
@@ -508,16 +559,16 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     const i = page.sections.indexOf(s);
     return <div className={`relative group ${sel === s.id ? 'outline outline-2 outline-teal -outline-offset-2' : 'hover:outline hover:outline-1 hover:outline-teal/60 -outline-offset-1'}`}
       onClick={e => { e.preventDefault(); setSel(s.id); if (panel !== 'style') setPanel('content'); }}
-      draggable={!readOnly} onDragStart={e => { if ((e.target as HTMLElement).closest('[data-map-edit]')) { e.preventDefault(); return; } e.stopPropagation(); setDrag({ kind: 'move', id: s.id }); }} onDragEnd={() => { setDrag(null); setDropAt(null); }}
+      draggable={!readOnly && !textEdit} onDragStart={e => { if ((e.target as HTMLElement).closest('[data-map-edit]')) { e.preventDefault(); return; } e.stopPropagation(); setDrag({ kind: 'move', id: s.id }); }} onDragEnd={() => { setDrag(null); setDropAt(null); }}
       onDragOver={e => { if (!drag) return; e.preventDefault(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setDropAt(e.clientY < r.top + r.height / 2 ? i : i + 1); }}
       onDrop={e => { e.preventDefault(); if (dropAt !== null) insertAt(dropAt); }}
-      onDoubleClick={e => { if (readOnly) return; const el = (e.target as HTMLElement).closest('[data-edit]') as HTMLElement | null; if (!el) return; e.preventDefault(); setSel(s.id); setTextEdit({ sid: s.id, path: el.dataset.edit!, rect: el.getBoundingClientRect() }); }}>
+      onDoubleClick={e => { if (readOnly) return; const el = (e.target as HTMLElement).closest('[data-edit]') as HTMLElement | null; if (!el) return; e.preventDefault(); setSel(s.id); setTextEdit({ sid: s.id, path: el.dataset.edit!, rect: el.getBoundingClientRect() }); el.setAttribute('contenteditable', 'true'); editRef.current = { el, sid: s.id, path: el.dataset.edit! }; el.focus(); }}>
       {dropAt === i && drag && <div className="absolute -top-1 inset-x-0 h-1.5 bg-teal z-20 rounded" />}
       <span className="absolute top-2 left-2 z-20 hidden group-hover:block rounded bg-foreground px-2 py-0.5 text-[11px] text-background">{BLOCKS[s.type].label}</span>
       <div className="[&_iframe]:pointer-events-none [&_a]:cursor-default [&_[data-edit]]:cursor-text" onSubmitCapture={e => e.preventDefault()}>{node}</div>
       {dropAt === i + 1 && drag && i === page.sections.length - 1 && <div className="absolute -bottom-1 inset-x-0 h-1.5 bg-teal z-20 rounded" />}
     </div>;
-  }, [page, sel, drag, dropAt, panel, readOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, sel, drag, dropAt, panel, readOnly, textEdit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const flipField = useMemo(() => section?.type === 'tech' && section.props.tool === 'flip', [section]);
 
@@ -536,33 +587,56 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
     { key: 'font', label: 'Font for this section', kind: 'select', options: [{ value: '', label: 'Site font' }, ...FONTS.map(f => ({ value: f, label: f }))] },
   ];
 
+  /** Panel switcher buttons — one implementation for the floating phone dock
+      and the desktop tab row. Tapping a tab opens the mobile bottom sheet;
+      tapping the active tab again closes it. */
+  const dockButtons = (['blocks', 'layers', 'content', 'style', 'theme'] as const).map(k => { const I = { blocks: LayoutGrid, layers: Layers, content: SlidersHorizontal, style: Palette, theme: Globe }[k]; return <button key={k} onClick={() => { if (panel === k && sheetOpen) { setSheetOpen(false); return; } setPanel(k); setSheetOpen(true); }} className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 text-[9px] font-medium uppercase tracking-[0.08em] transition-all lg:flex-row lg:justify-center lg:gap-0 lg:rounded-none lg:py-1.5 lg:text-xs lg:normal-case lg:tracking-normal ${panel === k ? 'bg-zinc-900 text-white shadow lg:bg-muted lg:text-foreground lg:font-semibold lg:shadow-none' : 'text-zinc-500 lg:text-foreground'}`}><I className="h-[18px] w-[18px] lg:hidden" />{k === 'theme' ? 'Site' : k === 'content' ? 'Section' : k.charAt(0).toUpperCase() + k.slice(1)}</button>; });
+  const panelTitle = panel === 'theme' ? 'Site' : panel === 'content' ? (section ? BLOCKS[section.type].label : 'Section') : panel.charAt(0).toUpperCase() + panel.slice(1);
+
   return (
     <PagesCtx.Provider value={doc.pages}><MediaCtx.Provider value={media}>
-    <div className={!embedded && full ? "fixed inset-0 z-50 bg-card overflow-auto" : "rounded-2xl border border-border bg-card overflow-hidden"}>
-      {/* Top bar */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
-        <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={page.id} onChange={e => { setPageId(e.target.value); setSel(null); }}>{doc.pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+    <div className={!embedded && full ? "fixed inset-0 z-[70] bg-card overflow-auto" : "rounded-2xl border border-border bg-card overflow-hidden"}>
+      {/* Builder motion + the inline-edit affordance (text being typed in place). */}
+      <style>{`@keyframes sbDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } } .sb-down { animation: sbDown .28s cubic-bezier(.22,.8,.32,1) both; } @keyframes sbBarIn { from { opacity: 0; transform: scale(.96) translateY(4px); } to { opacity: 1; transform: none; } } .sb-bar-in { animation: sbBarIn .22s cubic-bezier(.22,.8,.32,1) both; } @keyframes sbExpand { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } } .sb-expand { animation: sbExpand .3s cubic-bezier(.22,.8,.32,1) both; } @keyframes sbSheetUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } } @media (max-width: 1023px) { .sb-sheet-up { animation: sbSheetUp .32s cubic-bezier(.22,.8,.32,1) both; } } [contenteditable="true"] { outline: 2px solid rgba(13,148,136,.6); outline-offset: 2px; caret-color: rgb(13 148 136); }`}</style>
+      {/* Top bar — primary row: page, templates, undo/redo, save & publish.
+          Everything else lives in the secondary row (always on lg, behind the
+          More button on phones) so a small screen stays one calm line. */}
+      <div className="flex flex-nowrap items-center gap-1 bg-card/85 px-2 py-2 backdrop-blur-xl sm:flex-wrap sm:gap-2 sm:px-3">
+        <select className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-1.5 text-[13px] sm:h-9 sm:flex-none sm:px-2 sm:text-sm" value={page.id} onChange={e => { setPageId(e.target.value); setSel(null); }}>{doc.pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+        {!readOnly && <select aria-label="Site templates" title="Apply a template — replaces every page, undo available" className="h-8 w-[5.5rem] shrink-0 rounded-md border border-input bg-background px-1.5 text-[13px] sm:h-9 sm:w-auto sm:max-w-56 sm:px-2 sm:text-sm" value="" onChange={e => e.target.value && applySiteTemplate(e.target.value)}><option value="">Templates…</option>{SITE_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select>}
+        <Button size="sm" variant="ghost" className="w-8 shrink-0 px-0 sm:w-auto sm:px-3" disabled={!past.length} onClick={undo} aria-label="Undo"><Undo2 className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" className="w-8 shrink-0 px-0 sm:w-auto sm:px-3" disabled={!future.length} onClick={redo} aria-label="Redo"><Redo2 className="h-4 w-4" /></Button>
+        <div className="ml-auto flex flex-nowrap items-center gap-1 text-sm sm:flex-wrap sm:gap-2">
+          <span className="hidden text-xs text-muted-foreground sm:inline">{site?.is_published ? 'Live' : 'Not published'}{dirty ? ' · unsaved changes' : lastSaved ? ` · saved ${lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+          {!readOnly && <><Button size="sm" variant="outline" className="w-8 shrink-0 px-0 sm:w-auto sm:px-3" disabled={busy} onClick={() => persist(false)}><Save className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Save draft</span></Button>
+            <Button size="sm" className="shrink-0 rounded-full px-2.5 sm:px-4" disabled={busy} onClick={() => persist(true)}>Publish</Button></>}
+          <Button size="sm" variant="ghost" className="w-8 shrink-0 px-0 sm:w-auto sm:px-3 lg:hidden" aria-label="More controls" aria-expanded={moreOpen} onClick={() => setMoreOpen(o => !o)}><Ellipsis className="h-5 w-5" /></Button>
+        </div>
+      </div>
+      {/* Top bar — secondary row */}
+      <div className={`${moreOpen ? 'flex sb-down' : 'hidden'} flex-wrap items-center gap-2 border-b border-border bg-card/85 px-3 py-2 backdrop-blur-xl lg:flex`}>
         {!readOnly && <Button size="sm" variant="ghost" onClick={() => { const n = prompt('Page name'); if (!n) return; const p: Page = { id: uid(), name: n, slug: slugify(n), sections: [newSection('text')] }; commit(d => { d.pages.push(p); return d; }); setPageId(p.id); }}><Plus className="h-4 w-4 mr-1" />Page</Button>}
         {!readOnly && <Button size="sm" variant="ghost" onClick={() => { const p: Page = { ...structuredClone(page), id: uid(), name: `${page.name} copy`, slug: slugify(`${page.name}-copy-${uid().slice(0, 3)}`) }; p.sections.forEach(x => { x.id = uid(); }); commit(d => { d.pages.splice(d.pages.findIndex(x => x.id === page.id) + 1, 0, p); return d; }); setPageId(p.id); }}><Copy className="h-4 w-4 mr-1" />Duplicate page</Button>}
-        {!readOnly && <select aria-label="Site templates" title="Apply a template — replaces every page, undo available" className="h-9 max-w-56 rounded-md border border-input bg-background px-2 text-sm" value="" onChange={e => e.target.value && applySiteTemplate(e.target.value)}><option value="">Templates…</option>{SITE_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select>}
         <select aria-label="Zoom" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={zoom} onChange={e => setZoom(Number(e.target.value))}>{[50, 75, 90, 100, 125, 150].map(z => <option key={z} value={z}>{z}%</option>)}</select>
         <div className="flex rounded-md border border-border">{(Object.keys(DEVICES) as (keyof typeof DEVICES)[]).map(k => { const I = DEVICES[k].icon; return <button key={k} aria-label={k} onClick={() => setDevice(k)} className={`px-2.5 py-1.5 ${device === k ? 'bg-muted' : ''}`}><I className="h-4 w-4" /></button>; })}</div>
         {!embedded && <Button size="sm" variant="outline" onClick={() => setPreview(true)}>Full screen</Button>}
-        <Button size="sm" variant="ghost" disabled={!past.length} onClick={undo} aria-label="Undo"><Undo2 className="h-4 w-4" /></Button>
-        <Button size="sm" variant="ghost" disabled={!future.length} onClick={redo} aria-label="Redo"><Redo2 className="h-4 w-4" /></Button>
         <div className="ml-auto flex flex-wrap items-center gap-2 text-sm">
           {site && <span className="text-muted-foreground">/sites/<input disabled={readOnly} defaultValue={site.slug} onBlur={e => changeSlug(e.target.value)} className="w-32 bg-transparent border-b border-border focus:outline-none" /></span>}
-          <span className="text-xs text-muted-foreground">{site?.is_published ? 'Live' : 'Not published'}{dirty ? ' · unsaved changes' : lastSaved ? ` · saved ${lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+          <span className="text-xs text-muted-foreground lg:hidden">{site?.is_published ? 'Live' : 'Not published'}{dirty ? ' · unsaved changes' : lastSaved ? ` · saved ${lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
           {site?.is_published && <Button size="sm" variant="outline" asChild><a href={`/sites/${site.slug}`} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4 mr-1" />View</a></Button>}
-          {!readOnly && <><Button size="sm" variant="outline" disabled={busy} onClick={() => persist(false)}>Save draft</Button>
-            <Button size="sm" disabled={busy} onClick={() => persist(true)}>Publish</Button>
-            {site?.is_published && <Button size="sm" variant="ghost" onClick={unpublish}>Unpublish</Button>}</>}
+          {!readOnly && site?.is_published && <Button size="sm" variant="ghost" onClick={unpublish}>Unpublish</Button>}
         </div>
       </div>
 
-      <div className={`grid lg:grid-cols-[340px_minmax(0,1fr)_340px] ${full ? "h-[calc(100vh-53px)]" : "min-h-[calc(100vh-220px)]"}`}>
-        {/* Genius — the whole left side */}
-        <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-hidden flex flex-col min-h-0">
+      <div className={`flex flex-col pb-24 lg:grid lg:grid-cols-[340px_minmax(0,1fr)_340px] lg:pb-0 ${full ? "h-[calc(100vh-53px)]" : "min-h-[calc(100vh-220px)]"}`}>
+        {/* Genius — the whole left side on desktop; a collapsible panel under
+            the canvas on phones so the page being built always leads. */}
+        <aside className="border-b lg:border-b-0 lg:border-r border-border overflow-hidden flex flex-col min-h-0 order-3 lg:order-none max-h-[64vh] lg:max-h-none">
+          <button type="button" onClick={() => setGeniusOpen(o => !o)} aria-expanded={geniusOpen} className="flex w-full items-center justify-between px-3 py-2.5 text-left lg:hidden">
+            <span className="text-sm font-semibold">✦ Genius — your designer + builder</span>
+            <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-300 ${geniusOpen ? 'rotate-180' : ''}`} />
+          </button>
+          <div className={geniusOpen ? 'flex min-h-0 flex-1 flex-col sb-expand' : 'hidden lg:flex lg:min-h-0 lg:flex-1 lg:flex-col'}>
           <SiteGenius disabled={readOnly} brand={theme.brand || companyName} page={page} doc={doc} theme={theme}
             onApplyDoc={d => commit(() => d)}
             onThemePatch={t => { setTheme(cur => ({ ...cur, ...t })); setDirty(true); }}
@@ -571,23 +645,40 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
             onOps={async ops => { let open = ""; const next = applyGeniusOps(structuredClone(doc), page.id, ops, fn => { setTheme(fn); setDirty(true); }, id => { open = id; });
               // Genius product sections get real Wonderlands catalogue cards (photo, name, price, description).
               const filled = await hydrateDocProducts(next, JSON.stringify(ops).slice(0, 400)); commit(() => filled); if (open) { setPageId(open); setSel(null); } }} />
+          </div>
         </aside>
 
         {/* Canvas */}
-        <div className="bg-muted/40 overflow-auto p-4" onClick={e => { if (e.target === e.currentTarget) setSel(null); }}>
+        <div className="bg-muted/40 overflow-auto p-4 order-1 lg:order-none" onClick={e => { if (e.target === e.currentTarget) setSel(null); }}>
           <div className="mx-auto bg-background shadow-sm transition-[max-width] duration-300" style={{ maxWidth: DEVICES[device].w, zoom: zoom / 100 } as React.CSSProperties}
             onDragOver={e => { if (drag && !page.sections.length) { e.preventDefault(); setDropAt(0); } }} onDrop={() => { if (!page.sections.length) insertAt(0); }}>
             {page.sections.length ? <SiteRenderer page={page} theme={theme} wrap={wrap} device={device} onMapPin={(sid, la, ln) => { editSection(sid, s => { s.props.lat = la; s.props.lng = ln; }); reverseGeocode(la, ln).then(a => { if (a) editSection(sid, s => { if (Math.abs((s.props.lat ?? 0) - la) < 1e-6 && Math.abs((s.props.lng ?? 0) - ln) < 1e-6) s.props.address = a; }); }); }} /> : <div className="p-16 text-center text-muted-foreground">Drag a block here to start this page.</div>}
           </div>
         </div>
 
-        {/* Inspector */}
-        <aside className="border-t lg:border-t-0 lg:border-l border-border p-3 overflow-y-auto">
-          <div className="flex rounded-md border border-border mb-4 text-xs">{(['blocks', 'layers', 'content', 'style', 'theme'] as const).map(k => <button key={k} onClick={() => setPanel(k)} className={`flex-1 py-1.5 capitalize ${panel === k ? 'bg-muted font-semibold' : ''}`}>{k === 'theme' ? 'Site' : k === 'content' ? 'Section' : k}</button>)}</div>
+        {/* Panel switcher: a floating glass dock on phones — the panels open
+            as a bottom sheet under it. The desktop tab row lives at the top
+            of the inspector column (inside its scroll area, as before). */}
+        <div className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-[60] flex rounded-full border border-black/5 bg-white/85 p-1 text-xs shadow-[0_16px_44px_-12px_rgba(0,0,0,0.4)] backdrop-blur-xl dark:bg-zinc-900/85 lg:hidden">{dockButtons}</div>
+        {sheetOpen && <button type="button" aria-label="Close panel" onClick={() => setSheetOpen(false)} className="fixed inset-0 z-[57] bg-black/30 lg:hidden" />}
+
+        {/* Inspector — a bottom sheet on phones (85dvh, drag handle + panel
+            name + close), the always-visible right-hand column on desktop. */}
+        <aside id="sb-inspector" className={`${sheetOpen ? 'flex sb-sheet-up' : 'hidden'} fixed inset-x-0 bottom-0 z-[58] max-h-[85dvh] min-h-0 flex-col overflow-hidden rounded-t-3xl border-t border-border bg-card shadow-[0_-18px_50px_-12px_rgba(0,0,0,0.45)] order-2 lg:static lg:z-auto lg:flex lg:max-h-none lg:rounded-none lg:border-t-0 lg:border-l lg:shadow-none lg:order-none`}>
+          {/* Sheet header (phones only). */}
+          <div className="shrink-0 px-4 pb-1 pt-2.5 lg:hidden">
+            <div className="mx-auto h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+            <div className="flex items-center justify-between">
+              <p className="text-base font-semibold">{panelTitle}</p>
+              <button type="button" aria-label="Close panel" onClick={() => setSheetOpen(false)} className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted"><X className="h-5 w-5" /></button>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 pb-24 lg:pb-3">
+          <div className="mb-4 hidden rounded-md border border-border text-xs lg:flex">{dockButtons}</div>
           {panel === 'blocks' ? <div className="space-y-5 overflow-x-hidden">
           <style>{`@keyframes sbFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } } .sb-variant { animation: sbFadeUp .5s cubic-bezier(.22,.8,.32,1) both; } .sb-block-btn { transition: transform .32s cubic-bezier(.5,0,.8,.4), opacity .32s ease, border-color .15s ease; } .sb-menu-out .sb-block-btn { transform: translateX(112%); opacity: 0; } .sb-menu-out .sb-block-btn[data-picked="1"] { transform: translateX(0); opacity: 1; border-color: rgb(13 148 136); } .sb-menu-out .sb-group-label, .sb-menu-out .sb-saved { transform: translateX(112%); opacity: 0; transition: transform .32s ease, opacity .32s ease; }`}</style>
           {variantFor ? <>
-            <button onClick={() => { setVariantFor(null); setPicked(null); }} className="flex w-full items-center gap-1.5 text-left">
+            <button onClick={() => { setVariantFor(null); setPicked(null); }} className="flex w-full items-center gap-1.5 py-1.5 text-left lg:py-0">
               <ChevronLeft className="h-4 w-4 shrink-0" />
               <span className="min-w-0"><span className="block truncate text-base font-semibold">{BLOCKS[variantFor].label}</span>
               <span className="block text-[11px] text-muted-foreground">{variantsFor(variantFor).length} styles — tap one to add it to the page</span></span>
@@ -601,24 +692,24 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
             </div>
           </> : <div className={menuOut ? 'sb-menu-out' : ''}>
           {saved.length > 0 && <div className="sb-saved mb-5"><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Saved sections</p>
-            <div className="grid gap-1.5">{saved.map((x, i) => <div key={i} className="flex items-center gap-1"><button disabled={readOnly} onClick={() => { const c = { ...structuredClone(x), id: uid() }; editPage(p => { p.sections.push(c); }); setSel(c.id); pendingScroll.current = c.id; }} className="flex-1 truncate rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal">{x.props.title || BLOCKS[x.type]?.label}</button>
-              <button aria-label="Forget" onClick={() => { const n = saved.filter((_, j) => j !== i); setSaved(n); localStorage.setItem(`sb.saved.${companyId}`, JSON.stringify(n)); }}><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div></div>}
+            <div className="grid gap-1.5">{saved.map((x, i) => <div key={i} className="flex items-center gap-1"><button disabled={readOnly} onClick={() => { const c = { ...structuredClone(x), id: uid() }; editPage(p => { p.sections.push(c); }); setSel(c.id); pendingScroll.current = c.id; }} className="flex-1 truncate rounded-lg border border-border px-3 py-3 text-left text-[15px] hover:border-teal lg:py-2 lg:text-sm">{x.props.title || BLOCKS[x.type]?.label}</button>
+              <button className="rounded-md p-2 lg:p-0" aria-label="Forget" onClick={() => { const n = saved.filter((_, j) => j !== i); setSaved(n); localStorage.setItem(`sb.saved.${companyId}`, JSON.stringify(n)); }}><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div></div>}
           <div className="space-y-5">{GROUPS.map(g => <div key={g}><p className="sb-group-label text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">{g}</p>
             <div className="grid grid-cols-2  gap-1.5">{(Object.keys(BLOCKS) as BlockType[]).filter(k => BLOCKS[k].group === g).map((k, bi) =>
               <button key={k} data-picked={menuOut && picked === k ? '1' : undefined} disabled={readOnly} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'new', type: k })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onClick={() => pickBlock(k)}
                 style={{ transitionDelay: menuOut ? `${bi * 24}ms` : '0ms' }}
-                className="sb-block-btn rounded-lg border border-border px-3 py-2 text-left text-sm hover:border-teal cursor-grab">{BLOCKS[k].label}</button>)}</div></div>)}</div>
+                className="sb-block-btn rounded-lg border border-border px-3 py-3 text-left text-[15px] hover:border-teal cursor-grab lg:py-2 lg:text-sm">{BLOCKS[k].label}</button>)}</div></div>)}</div>
           </div>}
           </div>
           : panel === 'layers' ? <div>
           <div><p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold mb-2">Layers</p>
             <ul className="space-y-1">{page.sections.map((s, i) => <li key={s.id} draggable={!readOnly} onDragStart={() => setDrag({ kind: 'move', id: s.id })} onDragEnd={() => { setDrag(null); setDropAt(null); }} onDragOver={e => e.preventDefault()} onDrop={() => { setDropAt(i); insertAt(i); }}
-              className={`flex items-center gap-1 rounded-md px-1.5 py-1 text-sm ${sel === s.id ? 'bg-muted' : 'hover:bg-muted/50'}`}>
+              className={`flex min-h-[44px] items-center gap-1 rounded-md px-2 py-1.5 text-[15px] lg:min-h-0 lg:px-1.5 lg:py-1 lg:text-sm ${sel === s.id ? 'bg-muted' : 'hover:bg-muted/50'}`}>
               <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <button className="flex-1 truncate text-left" onClick={() => { setSel(s.id); setPanel('content'); }}>{BLOCKS[s.type].label}</button>
-              {!readOnly && <><button aria-label="Hide" onClick={() => editSection(s.id, x => { x.style.hidden = !x.style.hidden; })}>{s.style.hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button>
-                <button aria-label="Duplicate" onClick={() => { const c = { ...structuredClone(s), id: uid() }; editPage(p => { p.sections.splice(i + 1, 0, c); }); setSel(c.id); pendingScroll.current = c.id; }}><Copy className="h-3.5 w-3.5" /></button>
-                <button aria-label="Delete" onClick={() => { editPage(p => { p.sections = p.sections.filter(x => x.id !== s.id); }); if (sel === s.id) setSel(null); }}><Trash2 className="h-3.5 w-3.5" /></button></>}
+              {!readOnly && <><button className="rounded-md p-2 lg:p-0" aria-label="Hide" onClick={() => editSection(s.id, x => { x.style.hidden = !x.style.hidden; })}>{s.style.hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button>
+                <button className="rounded-md p-2 lg:p-0" aria-label="Duplicate" onClick={() => { const c = { ...structuredClone(s), id: uid() }; editPage(p => { p.sections.splice(i + 1, 0, c); }); setSel(c.id); pendingScroll.current = c.id; }}><Copy className="h-3.5 w-3.5" /></button>
+                <button className="rounded-md p-2 lg:p-0" aria-label="Delete" onClick={() => { editPage(p => { p.sections = p.sections.filter(x => x.id !== s.id); }); if (sel === s.id) setSel(null); }}><Trash2 className="h-3.5 w-3.5" /></button></>}
             </li>)}</ul></div>
           </div>
           : panel === 'theme' ? <div className="space-y-3">
@@ -684,6 +775,7 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
             <div><span className="text-xs font-medium text-muted-foreground">Hide on</span><div className="mt-1 flex gap-3 text-sm">{(['mobile', 'tablet', 'desktop'] as const).map(k => <label key={k} className="flex items-center gap-1.5 capitalize"><input type="checkbox" disabled={readOnly} checked={!!st.hideOn?.[k]} onChange={e => editSection(section.id, s => { s.style.hideOn = { ...s.style.hideOn, [k]: e.target.checked }; })} />{k}</label>)}</div></div>
             {styleFields.map(f => <FieldEditor key={f.key} f={f} disabled={readOnly} value={(st as any)[f.key]} onChange={v => setStyle(f.key, v)} />)}
             {!readOnly && <Button size="sm" variant="ghost" onClick={() => editSection(section.id, s => { s.style = {}; })}>Reset style</Button>}</div>}
+          </div>
         </aside>
       </div>
     </div>
@@ -692,12 +784,9 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
       <SiteRenderer page={page} theme={theme} />
     </div>}
     {textEdit && (() => { const s = page.sections.find(x => x.id === textEdit.sid); if (!s) return null;
-      const keys = textEdit.path.split('.'); const get = (o: any) => keys.reduce((a, k) => a?.[k], o);
-      const put = (o: any, v: any) => { let t = o; for (const k of keys.slice(0, -1)) t = t[k] ??= {}; t[keys[keys.length - 1]] = v; };
-      return <SiteTextEditor rect={textEdit.rect} value={String(get(s.props) ?? '')} look={s.props.__text?.[textEdit.path] ?? {}}
-        onChange={v => editSection(s.id, x => put(x.props, v))}
+      return <SiteTextEditor rect={textEdit.rect} look={s.props.__text?.[textEdit.path] ?? {}}
         onLook={l => editSection(s.id, x => { x.props.__text = { ...x.props.__text, [textEdit.path]: l }; })}
-        onClose={() => setTextEdit(null)} />; })()}
+        onClose={() => endTextEdit(true)} />; })()}
     </MediaCtx.Provider></PagesCtx.Provider>
   );
 };

@@ -136,7 +136,7 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string; actAsAdmin?: boole
         </div>;
       case 'tools':
         return <div className="grid gap-4 sm:grid-cols-2">
-          {[['SOCIALITE', 'Email, SMS, calls and social posts to your own contacts.', '/socialite'], ['Flip Builder V3', 'Build catalogues and flip books.', '/flip'], ['Web Builder', 'Build and publish your own website with Wonderlands tools.', null], ['Design Studio', 'Design projects for your clients.', '/studio']].map(([t, d, h]) => (
+          {[['SOCIALITE', 'Email, SMS, calls and social posts to your own contacts.', '/socialite'], ['Flip Builder V3', 'Build catalogues and flip books.', '/flip'], ['Web Builder', 'Build and publish your own website with Wonderlands tools.', null], ['Wonderlands Studio', 'Design and configure products with your clients in the Wonderlands Studio.', '/wonderlands-studio']].map(([t, d, h]) => (
             <Panel key={t} title={t}><p className="text-sm text-muted-foreground mb-4">{d}</p>{h ? <Button asChild variant="outline"><Link to={h as string}>Open</Link></Button> : <Button variant="outline" onClick={() => setTab('website')}>Open</Button>}</Panel>))}
         </div>;
       case 'settings':
