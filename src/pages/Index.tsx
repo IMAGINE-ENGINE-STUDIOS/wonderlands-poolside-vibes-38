@@ -8,7 +8,6 @@ import Footer from "@/components/Footer";
 import SectionBanner from "@/components/SectionBanner";
 import StudioEditorial from "@/components/StudioEditorial";
 import SolarEditorial from "@/components/SolarEditorial";
-import DesignStudioEditorial from "@/components/DesignStudioEditorial";
 
 
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
@@ -108,7 +107,6 @@ const Index = () => {
       {/* The technology */}
       <StudioEditorial />
       <SolarEditorial />
-      <DesignStudioEditorial />
 
       <main>
         <PlacedFlipBook slot="home:middle" />
