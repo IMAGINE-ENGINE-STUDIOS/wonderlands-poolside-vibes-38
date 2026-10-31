@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollRestoration from "./components/ScrollRestoration";
+import { LiveBridgeMount } from "@/lib/live/liveBridge";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
@@ -99,6 +100,7 @@ const EnclosureSuite = lazy(() => import("./pages/suites/EnclosureSuite"));
 const CustomerAccount = lazy(() => import("./pages/CustomerAccount"));
 const LiveLobby = lazy(() => import("./pages/LiveLobby"));
 const LiveRoomPage = lazy(() => import("./pages/LiveRoomPage"));
+const LiveFlipBook = lazy(() => import("./pages/LiveFlipBook"));
 const CompanyWorkspace = lazy(() => import("./pages/CompanyWorkspace"));
 const AdminPreview = lazy(() => import("./pages/AdminPreview"));
 const DevStaging = import.meta.env.DEV ? lazy(() => import("./pages/DevStaging")) : null;
@@ -128,6 +130,7 @@ const App = () => {
     <AuthProvider>
       <ProjectTypeProvider>
         <ScrollRestoration />
+        <LiveBridgeMount />
         <RightNavigation />
         <AIAssistantChat />
         
@@ -243,6 +246,7 @@ const App = () => {
             <Route path="/consultation" element={<Consultation />} />
             <Route path="/live" element={<LiveLobby />} />
             <Route path="/live/:slug" element={<LiveRoomPage />} />
+            <Route path="/live-flip" element={<LiveFlipBook />} />
             <Route path="/solar-board" element={<SolarBoard />} />
             <Route path="/solar-genius" element={<SolarGenius />} />
             <Route path="/product-manual" element={<ProductManual />} />

@@ -120,10 +120,14 @@ export function LiveStage({
   stage,
   interactive,
   onProductSelect,
+  slug,
+  isHost,
 }: {
   stage: LiveStageState;
   interactive: boolean;
   onProductSelect: (productKey: string, variantIdx: number, optionIds: string[]) => void;
+  slug?: string;
+  isHost?: boolean;
 }) {
   if (stage.file) {
     return (
@@ -151,7 +155,12 @@ export function LiveStage({
         <>
           <iframe
             key={stage.route ?? widget.route}
-            src={appPath(stage.route ?? widget.route ?? "/")}
+            src={(() => {
+              const base = appPath(stage.route ?? widget.route ?? "/");
+              if (!slug) return base;
+              const sep = base.includes("?") ? "&" : "?";
+              return `${base}${sep}liveRoom=${encodeURIComponent(slug)}&liveRole=${isHost ? "host" : "guest"}`;
+            })()}
             title={widget.title}
             className={`h-full w-full border-0 bg-white ${interactive ? "" : "pointer-events-none"}`}
             allow="accelerometer; gyroscope; xr-spatial-tracking"

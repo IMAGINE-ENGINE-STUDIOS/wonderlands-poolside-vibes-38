@@ -2023,6 +2023,31 @@ const FlipMagazine: React.FC<{ variant?: "v4" | "v5" | "v6" | "v7" | "v8"; hideH
     setPage(n);
   }, [page, portrait]);
 
+  /* Live stage sync — inside a live room (liveRoom param) the host's page
+     turns are broadcast by the stage bridge and guests' books follow. */
+  const liveFlipMode = useMemo(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("liveRoom"),
+    [],
+  );
+  const liveFlipAppliedAt = useRef(0);
+  useEffect(() => {
+    if (!liveFlipMode) return;
+    if (Date.now() - liveFlipAppliedAt.current < 900) return;
+    window.dispatchEvent(new CustomEvent("wlive:flip-page", { detail: page }));
+  }, [page, liveFlipMode]);
+  useEffect(() => {
+    if (!liveFlipMode) return;
+    const h = (e: Event) => {
+      const n = (e as CustomEvent<number>).detail;
+      if (typeof n === "number" && n !== page) {
+        liveFlipAppliedAt.current = Date.now();
+        goTo(n);
+      }
+    };
+    window.addEventListener("wlive:flip-goto", h);
+    return () => window.removeEventListener("wlive:flip-goto", h);
+  }, [goTo, page, liveFlipMode]);
+
   useEffect(() => {
     (window as any).__bookRef = bookRef.current;
     setFlipControls({

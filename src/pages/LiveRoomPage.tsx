@@ -210,7 +210,7 @@ export default function LiveRoomPage() {
 
   const heroMode = stageActive || !!spotlightId;
   const heroNode = stageActive ? (
-    <LiveStage stage={room.stage} interactive={room.canInteract()} onProductSelect={room.updateProduct} />
+    <LiveStage stage={room.stage} interactive={room.canInteract()} onProductSelect={room.updateProduct} slug={slug} isHost={room.isHost} />
   ) : spotlightId ? (
     <VideoTile stream={spotlightStream} name={spotlightName} isLocal={spotlightId === room.clientId} />
   ) : null;

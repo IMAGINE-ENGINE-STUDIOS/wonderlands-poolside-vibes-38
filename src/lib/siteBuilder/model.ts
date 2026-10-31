@@ -50,6 +50,8 @@ export const TECH_TOOLS = [
   { value: 'calculator', label: 'Pool cost calculator', path: '/pool-calculator' },
   { value: 'showroom', label: 'Studio showroom', path: '/studio-showroom' },
   { value: 'flip', label: 'FLIP book (pick below)', path: '/flip/' },
+  { value: 'live', label: 'Live Video meetings', path: '/live' },
+  { value: 'socialite', label: 'Marketing (Socialite)', path: '/socialite' },
 ];
 
 const item = (kind: Field['kind'], key: string, label: string) => ({ key, label, kind }) as Field;

@@ -229,8 +229,8 @@ export function JournalPanel({ slug, title }: { slug: string; title: string }) {
 
 const PRODUCT_VIEWS: Array<{ id: LiveProductView; label: string; blurb: string; icon: React.ReactNode; route: string | null }> = [
   { id: "showcase", label: "Big showcase", blurb: "The product, big — finishes and priced options below.", icon: <LayoutDashboard className="h-4 w-4" />, route: null },
-  { id: "flip", label: "FLIP book", blurb: "The FLIP collection book version of this product.", icon: <BookOpen className="h-4 w-4" />, route: "/flip" },
-  { id: "studio", label: "Wonderlands Studio", blurb: "Open the product in the Design Studio.", icon: <MonitorPlay className="h-4 w-4" />, route: "/design-studio" },
+  { id: "flip", label: "FLIP book", blurb: "The main-page FLIP book — every collection and product.", icon: <BookOpen className="h-4 w-4" />, route: "/live-flip" },
+  { id: "studio", label: "Wonderlands Studio", blurb: "Open the product in Wonderlands Studio.", icon: <MonitorPlay className="h-4 w-4" />, route: "/wonderlands-studio" },
   { id: "configure", label: "Configure & quote", blurb: "The full configuration and quotation tool.", icon: <SlidersHorizontal className="h-4 w-4" />, route: "/quote" },
 ];
 

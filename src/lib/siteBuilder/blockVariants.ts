@@ -235,6 +235,8 @@ export const BLOCK_VARIANTS: Partial<Record<BlockType, BlockVariant[]>> = {
     { name: 'Pool Cost Calculator', hint: 'Pool cost calculator, embedded live', props: { tool: 'calculator', title: 'What Does a Pool Cost?', height: 700 }, style: { ...wide } },
     { name: 'Studio Showroom', hint: 'The studio showroom, embedded live', props: { tool: 'showroom', title: 'Studio Showroom', height: 760 }, style: { ...wide } },
     { name: 'FLIP Book', hint: 'A FLIP catalogue — pick the book in the Section tab', props: { tool: 'flip', title: 'Browse the Catalogue', height: 820 }, style: { ...wide } },
+    { name: 'Live Video', hint: 'Live video meetings, embedded live', props: { tool: 'live', title: 'Meet Us Live', height: 760 }, style: { ...wide } },
+    { name: 'Marketing (Socialite)', hint: 'The Socialite marketing suite, embedded live', props: { tool: 'socialite', title: 'Marketing', height: 820 }, style: { ...wide } },
     { name: '3D Studio on Dark', hint: 'The 3D studio framed by a dark section', props: { tool: 'studio', title: '3D Design Studio', height: 820 }, style: { ...dark, ...wide } },
   ],
   embed: [

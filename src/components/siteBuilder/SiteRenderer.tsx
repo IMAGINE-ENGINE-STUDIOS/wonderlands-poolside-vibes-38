@@ -9,6 +9,7 @@ import SiteConfigurator from './SiteConfigurator';
 import SiteMap from './SiteMap';
 import type { Page, Section, SiteTheme } from '@/lib/siteBuilder/model';
 import { TECH_TOOLS, loadFonts, resolveLink } from '@/lib/siteBuilder/model';
+import { appPath } from '@/lib/live/liveTypes';
 
 export interface LeadInput { name: string; email: string; phone: string; message: string }
 const hideCls = (h?: { mobile?: boolean; tablet?: boolean; desktop?: boolean }) => [h?.mobile && 'max-sm:hidden', h?.tablet && 'sm:max-lg:hidden', h?.desktop && 'lg:hidden'].filter(Boolean).join(' ') || undefined;
@@ -150,8 +151,8 @@ const SiteRenderer: React.FC<Props> = ({ page, theme, onLead, wrap, pageHref, de
         if (p.layout === 'card') return <div id={p.anchor || 'contact'}>{title(p.title)}<p {...T('body', { opacity: .8, marginBottom: 24 })}>{p.body}</p>
           <div style={{ background: '#fff', color: '#0a0a0a', borderRadius: theme.radius * 1.4, padding: '34px 30px', maxWidth: 660, margin: '0 auto', boxShadow: '0 30px 60px rgba(0,0,0,.18)', border: '1px solid rgba(0,0,0,.06)' }}><LeadForm p={p} theme={theme} onLead={onLead} /></div></div>;
         return <div id={p.anchor || 'contact'}>{title(p.title)}<p {...T('body', { opacity: .8, marginBottom: 24 })}>{p.body}</p><LeadForm p={p} theme={theme} onLead={onLead} /></div>; }
-      case 'tech': { const t = TECH_TOOLS.find(x => x.value === p.tool) ?? TECH_TOOLS[0]; const src = t.value === 'flip' ? (p.flipSlug ? `/flip/${p.flipSlug}` : '') : t.path;
-        return <>{title(p.title)}{src ? <iframe src={src} title={p.title || t.label} loading="lazy" style={{ width: '100%', height: p.height || 760, border: 0, borderRadius: theme.radius, background: '#fff' }} allow="fullscreen; clipboard-write" /> : <p style={{ opacity: .6 }}>Pick a FLIP book for this block.</p>}</>; }
+      case 'tech': { const t = TECH_TOOLS.find(x => x.value === p.tool) ?? TECH_TOOLS[0]; const raw = t.value === 'flip' ? (p.flipSlug ? `/flip/${p.flipSlug}` : '/live-flip') : t.path; const src = appPath(raw);
+        return <>{title(p.title)}<iframe src={src} title={p.title || t.label} loading="lazy" style={{ width: '100%', height: p.height || 760, border: 0, borderRadius: theme.radius, background: '#fff' }} allow="fullscreen; clipboard-write; camera; microphone" /></>; }
       case 'header': { const brand = <a href={L('page:')} style={{ display: 'inline-flex', alignItems: 'center', gap: 10, ...H, fontSize: 24 }}>{theme.logo && <img src={theme.logo} alt={theme.brand || 'Logo'} style={{ height: 40, width: 'auto' }} />}{theme.brand}</a>;
         const links = (p.links || []).map((l: any, i: number) => <a key={i} href={L(l.href)} {...ext(l.href)} style={{ fontSize: 15, fontWeight: 500 }}>{l.label}</a>);
         const ctaB = p.ctaLabel && <a href={L(p.ctaHref) || '#'} style={{ background: theme.primary, color: '#fff', borderRadius: theme.radius, padding: '10px 18px', fontWeight: 600, fontSize: 14 }}>{p.ctaLabel}</a>;

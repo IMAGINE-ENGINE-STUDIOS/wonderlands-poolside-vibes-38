@@ -19,7 +19,13 @@ export const LIVE_PRODUCTS: LiveProduct[] = Object.entries(poolProductLookup).ma
 export const LIVE_PRODUCT_GROUPS: Array<{ category: string; products: LiveProduct[] }> = (() => {
   const order = ["Pool", "Spa", "Tanning Ledge", "Sauna", "Cover", "Driveway Gate"];
   const byCat = new Map<string, LiveProduct[]>();
+  // The lookup carries alias keys for search matching ("moondance spillover
+  // spa" = "Moondance Spillover"); the picker shows each product once —
+  // first key per display name wins. LIVE_PRODUCTS itself is untouched.
+  const seenNames = new Set<string>();
   for (const p of LIVE_PRODUCTS) {
+    if (seenNames.has(p.name)) continue;
+    seenNames.add(p.name);
     const list = byCat.get(p.category) ?? [];
     list.push(p);
     byCat.set(p.category, list);
@@ -68,9 +74,9 @@ export const LIVE_WIDGETS: LiveWidget[] = [
   {
     id: "flip",
     title: "FLIP Collection Book",
-    blurb: "The Wonderlands collections book, page by page on every screen.",
+    blurb: "The main-page FLIP book — every collection and every product, turned page by page together.",
     kind: "route",
-    route: "/flip",
+    route: "/live-flip",
   },
   {
     id: "pool-calculator",
