@@ -105,7 +105,7 @@ export function LoginModalHost() {
         >
           <X className="h-4 w-4" />
         </button>
-        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-blue-600">Foss Theory account</div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-blue-600">Wonderlands account</div>
         <h2 className="mt-1.5 text-xl font-semibold text-zinc-900">{mode === "in" ? "Log in" : "Create your account"}</h2>
         <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
           {reason ?? "This feature needs an account. It takes a few seconds — you will stay right here."}

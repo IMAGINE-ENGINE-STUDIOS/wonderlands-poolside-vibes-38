@@ -1053,7 +1053,7 @@ const SurveyQuoteTool = ({
         title: "Invoice Generated!",
         description: `Invoice ${invoice.invoice_number} has been created. Redirecting...`,
       });
-
+      
       // In a live room, the finished invoice goes straight to the room's
       // chat and guests are asked if they want to download it (no-op elsewhere).
       await announceLiveDoc({
