@@ -8,7 +8,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import SiteConfigurator from './SiteConfigurator';
 import SiteMap from './SiteMap';
 import type { Page, Section, SiteTheme } from '@/lib/siteBuilder/model';
-import { TECH_TOOLS, loadFonts, resolveLink } from '@/lib/siteBuilder/model';
+import { TECH_TOOLS, gradientCss, loadFonts, resolveLink } from '@/lib/siteBuilder/model';
+import { ArrowRight, Award, Calendar, Camera, Check, Clock, DollarSign, Heart, Home, Leaf, Mail, MapPin, MessageCircle, Phone, Shield, Sparkles, Star, Sun, Waves, Zap } from 'lucide-react';
+
+/** Icon for builder content: a curated lucide name, or any other string (emoji) rendered as-is. */
+const SB_ICONS: Record<string, React.ComponentType<{ size?: number | string; color?: string }>> = {
+  phone: Phone, mail: Mail, star: Star, check: Check, arrow: ArrowRight, 'arrow-right': ArrowRight, sparkles: Sparkles,
+  sun: Sun, waves: Waves, home: Home, calendar: Calendar, shield: Shield, heart: Heart, pin: MapPin, 'map-pin': MapPin,
+  clock: Clock, zap: Zap, leaf: Leaf, dollar: DollarSign, 'dollar-sign': DollarSign, chat: MessageCircle, camera: Camera, award: Award,
+};
+export const SbIcon: React.FC<{ name?: string; size?: number }> = ({ name, size = 22 }) => {
+  const n = String(name || '').trim(); if (!n) return null;
+  const C = SB_ICONS[n.toLowerCase()];
+  return C ? <C size={size} /> : <span style={{ fontSize: size, lineHeight: 1 }}>{n}</span>;
+};
 import { appPath } from '@/lib/live/liveTypes';
 
 export interface LeadInput { name: string; email: string; phone: string; message: string }
@@ -246,16 +259,20 @@ const LeadForm: React.FC<{ p: any; theme: SiteTheme; onLead?: Props['onLead'] }>
   );
 };
 
-const SiteRenderer: React.FC<Props> = ({ page, theme, onLead, wrap, pageHref, device, onMapPin }) => {
-  loadFonts(theme); ensureMotionCss();
+const SiteRenderer: React.FC<Props> = ({ page, theme: themeBase, onLead, wrap, pageHref, device, onMapPin }) => {
+  loadFonts(themeBase); ensureMotionCss();
+  const theme = themeBase;
   const L = (h?: string) => resolveLink(h, pageHref ?? (() => '#')) || undefined;
   const ext = (h?: string) => h && /^https?:/.test(h) ? { target: '_blank', rel: 'noreferrer' } : {};
   const linked = (h: string | undefined, node: React.ReactNode) => h ? <a href={L(h)} {...ext(h)} style={{ display: 'block' }}>{node}</a> : node;
   const H: React.CSSProperties = { fontFamily: `'${theme.headingFont}', serif`, lineHeight: 1.05, letterSpacing: '-0.01em' };
-  const btn = (label: string, href: string, ghost = false) => label ? <a href={L(href) || '#'} {...ext(href)} style={{ background: ghost ? 'transparent' : theme.primary, color: ghost ? 'inherit' : '#fff', border: ghost ? '1px solid currentColor' : 0, borderRadius: theme.radius, padding: '14px 26px', fontWeight: 600, display: 'inline-block', margin: '4px 6px' }}>{label}</a> : null;
-  const img = (src: string, alt: string, style?: React.CSSProperties) => src ? <img src={src} alt={alt} loading="lazy" decoding="async" style={{ width: '100%', objectFit: 'cover', borderRadius: theme.radius, ...style }} /> : <div style={{ background: 'rgba(0,0,0,.06)', borderRadius: theme.radius, ...style }} />;
 
   const body = (s: Section) => {
+    // Per-section edge control: style.radius overrides the theme radius for everything inside this section.
+    const theme = s.style.radius != null && Number.isFinite(Number(s.style.radius)) ? { ...themeBase, radius: Number(s.style.radius) } : themeBase;
+    const btn = (label: string, href: string, ghost = false) => label ? <a href={L(href) || '#'} {...ext(href)} style={{ background: ghost ? 'transparent' : theme.primary, color: ghost ? 'inherit' : '#fff', border: ghost ? '1px solid currentColor' : 0, borderRadius: theme.radius, padding: '14px 26px', fontWeight: 600, display: 'inline-block', margin: '4px 6px' }}>{label}</a> : null;
+    const img = (src: string, alt: string, style?: React.CSSProperties) => src ? <img src={src} alt={alt} loading="lazy" decoding="async" style={{ width: '100%', objectFit: 'cover', borderRadius: theme.radius, ...style }} /> : <div style={{ background: 'rgba(0,0,0,.06)', borderRadius: theme.radius, ...style }} />;
+    const iconTile = (icon?: string) => icon ? <div style={{ width: 52, height: 52, borderRadius: theme.radius, background: 'rgba(127,127,127,.10)', display: 'grid', placeItems: 'center', color: theme.primary, marginBottom: 14 }}><SbIcon name={icon} size={26} /></div> : null;
     const p = s.props; const ts = s.style.titleSize;
     // T(path, base): tags editable text (double-click in the editor) and applies its own font/size/colour.
     const T = (path: string, base?: React.CSSProperties) => ({ 'data-edit': path, style: { ...base, ...textStyle(p.__text?.[path]) } });
@@ -289,14 +306,14 @@ const SiteRenderer: React.FC<Props> = ({ page, theme, onLead, wrap, pageHref, de
       case 'gallery': return <GalleryBlock p={p} theme={theme} T={T} titleNode={title(p.title)} img={img} linked={linked} lbOn={p.lightbox === 'yes' && !wrap} />;
       case 'video': return <>{title(p.title)}<VideoBlock p={p} theme={theme} /></>;
       case 'services': { const items = p.items || [];
-        if (p.layout === 'cards') return <>{title(p.title)}<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{items.map((c: any, i: number) => <div key={i} style={{ textAlign: 'left', background: 'rgba(127,127,127,.055)', border: '1px solid rgba(127,127,127,.16)', borderRadius: theme.radius, padding: 24 }}>{linked(c.link, <>{c.image && img(c.image, c.title, { aspectRatio: '4/3', marginBottom: 16 })}<h3 {...T(`items.${i}.title`, { ...H, fontSize: 25 })}>{c.title}</h3></>)}<p {...T(`items.${i}.body`, { opacity: .8, marginTop: 8, whiteSpace: 'pre-line' })}>{c.body}</p></div>)}</div></>;
+        if (p.layout === 'cards') return <>{title(p.title)}<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{items.map((c: any, i: number) => <div key={i} style={{ textAlign: 'left', background: 'rgba(127,127,127,.055)', border: '1px solid rgba(127,127,127,.16)', borderRadius: theme.radius, padding: 24 }}>{iconTile(c.icon)}{linked(c.link, <>{c.image && img(c.image, c.title, { aspectRatio: '4/3', marginBottom: 16 })}<h3 {...T(`items.${i}.title`, { ...H, fontSize: 25 })}>{c.title}</h3></>)}<p {...T(`items.${i}.body`, { opacity: .8, marginTop: 8, whiteSpace: 'pre-line' })}>{c.body}</p></div>)}</div></>;
         if (p.layout === 'rows') return <>{title(p.title)}<div className="grid gap-12">{items.map((c: any, i: number) => <div key={i} className={`flex flex-col gap-6 md:items-center ${i % 2 ? 'md:flex-row-reverse' : 'md:flex-row'}`} style={{ textAlign: 'left' }}>
           <div style={{ flex: '1 1 46%' }}>{c.image ? img(c.image, c.title, { aspectRatio: '4/3' }) : <div style={{ aspectRatio: '4/3', borderRadius: theme.radius, background: 'rgba(127,127,127,.12)' }} />}</div>
           <div style={{ flex: '1 1 54%' }}>{linked(c.link, <h3 {...T(`items.${i}.title`, { ...H, fontSize: 30 })}>{c.title}</h3>)}<p {...T(`items.${i}.body`, { opacity: .82, marginTop: 10, fontSize: 17, lineHeight: 1.65, whiteSpace: 'pre-line' })}>{c.body}</p></div></div>)}</div></>;
         if (p.layout === 'numbered') return <>{title(p.title)}<div>{items.map((c: any, i: number) => <div key={i} className="flex gap-6" style={{ textAlign: 'left', padding: '26px 0', borderTop: i ? '1px solid rgba(127,127,127,.2)' : undefined }}>
           <span style={{ ...H, fontSize: 44, color: theme.primary, lineHeight: 1, minWidth: 74 }}>{String(i + 1).padStart(2, '0')}</span>
           <div>{linked(c.link, <h3 {...T(`items.${i}.title`, { ...H, fontSize: 27 })}>{c.title}</h3>)}<p {...T(`items.${i}.body`, { opacity: .8, marginTop: 6, maxWidth: 640, whiteSpace: 'pre-line' })}>{c.body}</p></div></div>)}</div></>;
-        return <>{title(p.title)}<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{items.map((c: any, i: number) => <div key={i} style={{ textAlign: 'left' }}>{linked(c.link, <>{c.image && img(c.image, c.title, { aspectRatio: '4/3', marginBottom: 14 })}<h3 {...T(`items.${i}.title`, { ...H, fontSize: 26 })}>{c.title}</h3></>)}<p {...T(`items.${i}.body`, { opacity: .8, marginTop: 8, whiteSpace: 'pre-line' })}>{c.body}</p></div>)}</div></>; }
+        return <>{title(p.title)}<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{items.map((c: any, i: number) => <div key={i} style={{ textAlign: 'left' }}>{iconTile(c.icon)}{linked(c.link, <>{c.image && img(c.image, c.title, { aspectRatio: '4/3', marginBottom: 14 })}<h3 {...T(`items.${i}.title`, { ...H, fontSize: 26 })}>{c.title}</h3></>)}<p {...T(`items.${i}.body`, { opacity: .8, marginTop: 8, whiteSpace: 'pre-line' })}>{c.body}</p></div>)}</div></>; }
       case 'products': { const cols = Number(p.columns) || 3;
         if (p.layout === 'list') return <>{title(p.title)}<div className="grid gap-5">{(p.items || []).map((c: any, i: number) => <article key={i} className="flex flex-col sm:flex-row gap-5" style={{ border: '1px solid rgba(0,0,0,.1)', borderRadius: theme.radius, overflow: 'hidden', background: '#fff', color: '#0a0a0a', textAlign: 'left', position: 'relative' }}>
           {c.badge && <span style={{ position: 'absolute', top: 12, left: 12, background: theme.primary, color: '#fff', fontSize: 11, padding: '4px 10px', borderRadius: 999, zIndex: 1 }}>{c.badge}</span>}
@@ -348,7 +365,7 @@ const SiteRenderer: React.FC<Props> = ({ page, theme, onLead, wrap, pageHref, de
           <div style={{ marginTop: 16 }}>{copy}</div></div>;
         return <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 20, fontSize: 14 }}><div><p style={{ ...H, fontSize: 22 }}>{theme.brand}</p>{p.text && <p {...T('text', { opacity: .7, marginTop: 8, whiteSpace: 'pre-line', maxWidth: 420 })}>{p.text}</p>}<p style={{ opacity: .6, marginTop: 8 }}>{[theme.phone, theme.email].filter(Boolean).join(' · ')}</p></div>
           {linkRow}<p style={{ width: '100%', opacity: .5, fontSize: 12 }}>© {new Date().getFullYear()} {theme.brand}</p></div>; }
-      case 'columns': { const cols = Number(p.columns) || 3; const card = p.layout === 'cards'; return <>{title(p.title)}<style>{`@media(min-width:1024px){#s-${s.id} .cgrid{grid-template-columns:repeat(${cols},minmax(0,1fr))}}`}</style><div className="cgrid grid gap-6 sm:grid-cols-2">{(p.items || []).map((c: any, i: number) => <div key={i} style={card ? { textAlign: 'left', background: 'rgba(127,127,127,.055)', border: '1px solid rgba(127,127,127,.16)', borderRadius: theme.radius, padding: 24 } : { textAlign: 'left' }}>{c.image && img(c.image, c.title, { aspectRatio: '4/3', marginBottom: 12 })}<h3 {...T(`items.${i}.title`, { ...H, fontSize: 24 })}>{c.title}</h3><p {...T(`items.${i}.body`, { opacity: .8, marginTop: 8, whiteSpace: 'pre-line' })}>{c.body}</p></div>)}</div></>; }
+      case 'columns': { const cols = Number(p.columns) || 3; const card = p.layout === 'cards'; return <>{title(p.title)}<style>{`@media(min-width:1024px){#s-${s.id} .cgrid{grid-template-columns:repeat(${cols},minmax(0,1fr))}}`}</style><div className="cgrid grid gap-6 sm:grid-cols-2">{(p.items || []).map((c: any, i: number) => <div key={i} style={card ? { textAlign: 'left', background: 'rgba(127,127,127,.055)', border: '1px solid rgba(127,127,127,.16)', borderRadius: theme.radius, padding: 24 } : { textAlign: 'left' }}>{iconTile(c.icon)}{c.image && img(c.image, c.title, { aspectRatio: '4/3', marginBottom: 12 })}<h3 {...T(`items.${i}.title`, { ...H, fontSize: 24 })}>{c.title}</h3><p {...T(`items.${i}.body`, { opacity: .8, marginTop: 8, whiteSpace: 'pre-line' })}>{c.body}</p></div>)}</div></>; }
       case 'faq': { if (p.layout === 'motion') return <>{title(p.title)}<FaqMotion items={p.items || []} H={H} primary={theme.primary} /></>;
         if (p.layout === 'twocol' || p.layout === 'cards') return <>{title(p.title)}<div className="grid gap-6 md:grid-cols-2">{(p.items || []).map((c: any, i: number) => <div key={i} style={p.layout === 'cards' ? { textAlign: 'left', background: 'rgba(127,127,127,.055)', border: '1px solid rgba(127,127,127,.16)', borderRadius: theme.radius, padding: 24 } : { textAlign: 'left' }}><h3 {...T(`items.${i}.q`, { ...H, fontSize: 21, marginBottom: 8 })}>{c.q}</h3><p {...T(`items.${i}.a`, { opacity: .82, lineHeight: 1.6, whiteSpace: 'pre-line' })}>{c.a}</p></div>)}</div></>;
         return <>{title(p.title)}<Faq items={p.items || []} H={H} /></>; }
@@ -378,6 +395,12 @@ const SiteRenderer: React.FC<Props> = ({ page, theme, onLead, wrap, pageHref, de
         const ifr = <iframe title={p.title || 'Embedded page'} loading="lazy" src={p.url} sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style={{ width: '100%', height: p.height || 500, border: 0, borderRadius: p.frame && p.frame !== 'none' ? 0 : theme.radius, display: 'block' }} />;
         if (p.poster) return <>{title(p.title)}<EmbedFacade poster={p.poster} height={p.height || 500} radius={theme.radius} label={p.title || 'Embedded page'}>{framed(p.frame, p.title || p.url, theme.radius, ifr)}</EmbedFacade></>;
         return <>{title(p.title)}{framed(p.frame, p.title || p.url, theme.radius, ifr)}</>; }
+      case 'button': { const v = p.variant || 'solid'; const R = p.radius != null && p.radius !== '' && Number.isFinite(Number(p.radius)) ? Number(p.radius) : 999;
+        const look: React.CSSProperties = v === 'glass'
+          ? { background: 'rgba(255,255,255,.16)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', border: '1px solid rgba(255,255,255,.45)', color: 'inherit', boxShadow: '0 18px 36px rgba(0,0,0,.18)' }
+          : v === 'outline' ? { background: 'transparent', color: theme.primary, border: `1.5px solid ${theme.primary}` }
+          : { background: theme.primary, color: '#fff', border: '1px solid transparent' };
+        return <div style={{ textAlign: s.style.align || 'center' }}><a href={L(p.href) || '#'} {...ext(p.href)} style={{ ...look, borderRadius: R, padding: p.size === 'md' ? '12px 22px' : '16px 32px', fontWeight: 700, fontSize: p.size === 'md' ? 15 : 17, display: 'inline-flex', alignItems: 'center', gap: 10 }}><SbIcon name={p.icon} size={p.size === 'md' ? 18 : 20} /><span {...T('label')}>{p.label}</span></a></div>; }
       case 'spacer': return <div style={{ height: p.height || 64 }} />;
     }
   };
@@ -387,11 +410,13 @@ const SiteRenderer: React.FC<Props> = ({ page, theme, onLead, wrap, pageHref, de
       {page.sections.filter(s => (!s.style.hidden || wrap) && !(device && s.style.hideOn?.[device] && !wrap)).map(s => {
         const st = { ...s.style, bgImage: s.style.bgImage || (s.type === 'hero' && s.props.layout !== 'split' ? s.props.image : '') }; const full = st.width === 'full';
         const node = (
-          <section id={`s-${s.id}`} key={s.id} className={device ? undefined : hideCls(s.style.hideOn)} style={{ ...(s.type === 'header' && s.props.sticky !== 'no' && !wrap ? { position: 'sticky', top: 0, zIndex: 40 } : { position: 'relative' }), background: st.gradFrom && st.gradTo ? (st.gradType === 'radial' ? `radial-gradient(circle, ${st.gradFrom}, ${st.gradTo})` : `linear-gradient(${st.gradAngle ?? 135}deg, ${st.gradFrom}, ${st.gradTo})`) : st.bg || undefined, color: st.color || undefined, textAlign: st.align || 'left', padding: `${st.padY ?? (s.type === 'spacer' ? 0 : s.type === 'header' ? 16 : s.type === 'footer' ? 48 : 80)}px 24px`, ...(s.type === 'header' && !st.bg && !st.gradFrom ? { background: theme.background, borderBottom: '1px solid rgba(0,0,0,.08)' } : {}), overflow: 'hidden', fontFamily: st.font ? `'${st.font}'` : undefined, opacity: st.hidden || (device && st.hideOn?.[device]) ? .35 : 1 }}>
+          <section id={`s-${s.id}`} key={s.id} className={device ? undefined : hideCls(s.style.hideOn)} style={{ ...(s.type === 'header' && s.props.sticky !== 'no' && !wrap ? { position: 'sticky', top: 0, zIndex: 40 } : { position: 'relative' }), background: gradientCss(st) ?? st.bg ?? undefined, color: st.color || undefined, textAlign: st.align || 'left', padding: `${st.padY ?? (s.type === 'spacer' ? 0 : s.type === 'header' ? 16 : s.type === 'footer' ? 48 : 80)}px 24px`, ...(s.type === 'header' && !st.bg && !gradientCss(st) ? { background: theme.background, borderBottom: '1px solid rgba(0,0,0,.08)' } : {}), overflow: 'hidden', fontFamily: st.font ? `'${st.font}'` : undefined, opacity: st.hidden || (device && st.hideOn?.[device]) ? .35 : 1 }}>
             {st.bgImage && <img src={st.bgImage} alt="" aria-hidden loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
             {st.bgVideo && <video src={st.bgVideo} autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
             {(st.bgImage || st.bgVideo) && <div style={{ position: 'absolute', inset: 0, background: `rgba(0,0,0,${(st.overlay ?? 30) / 100})` }} />}
-            <div style={{ position: 'relative', maxWidth: full ? 1280 : W[st.width || 'normal'], margin: '0 auto' }}>{body(s)}</div>
+            <div style={{ position: 'relative', maxWidth: full ? 1280 : W[st.width || 'normal'], margin: '0 auto' }}>{st.glass
+              ? <div style={{ background: 'rgba(255,255,255,.14)', backdropFilter: 'blur(16px) saturate(1.5)', WebkitBackdropFilter: 'blur(16px) saturate(1.5)', border: '1px solid rgba(255,255,255,.35)', borderRadius: (st.radius ?? theme.radius) * 1.4, padding: '36px 32px', boxShadow: '0 30px 60px rgba(0,0,0,.18)' }}>{body(s)}</div>
+              : body(s)}</div>
           </section>);
         return wrap ? <React.Fragment key={s.id}>{wrap(s, node)}</React.Fragment> : node;
       })}

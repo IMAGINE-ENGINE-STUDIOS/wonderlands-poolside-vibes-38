@@ -18,8 +18,14 @@ export interface SectionStyle {
   font?: string; titleSize?: number; hidden?: boolean;
   /** V2: hide this section on one device size only. */
   hideOn?: { mobile?: boolean; tablet?: boolean; desktop?: boolean };
-  /** Gradient background (overrides bg when both colours are set). */
+  /** Gradient background (overrides bg when set). Legacy two-colour form: */
   gradFrom?: string; gradTo?: string; gradAngle?: number; gradType?: 'linear' | 'radial';
+  /** Unlimited colour stops (takes precedence over gradFrom/gradTo): [{c: hex, p: 0-100}]. */
+  gradStops?: { c: string; p: number }[];
+  /** Frosted-glass (glassmorphism) panel around the section content. */
+  glass?: boolean;
+  /** Corner roundness in px for this section's cards, buttons and images (blank = theme radius; 0 = sharp/linear). */
+  radius?: number;
 }
 export interface Section { id: string; type: BlockType; props: Record<string, any>; style: SectionStyle }
 /** V2: per-page search & sharing info (optional, V1 pages keep working). */
@@ -65,7 +71,12 @@ export const BLOCKS = {
     fields: [item('text', 'title', 'Title'), { key: 'lightbox', label: 'Tap a photo to enlarge it (lightbox)', kind: 'select', options: [{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }] }, { key: 'items', label: 'Photos', kind: 'items', blank: { src: '', caption: '', link: '' }, fields: [item('image', 'src', 'Photo'), item('text', 'caption', 'Caption'), item('url', 'link', 'Link when clicked')] }] },
   video: { label: 'Video', group: 'Media', props: { url: '', title: '', poster: '' }, fields: [item('text', 'title', 'Title'), item('url', 'url', 'YouTube, Vimeo or video file link'), item('image', 'poster', 'Poster photo (shown until play is tapped)')] },
   services: { label: 'Service cards', group: 'Content', props: { title: 'What we do', items: [{ title: 'Service', body: 'Describe it.', image: '' }] },
-    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Cards', kind: 'items', blank: { title: 'Service', body: '', image: '', link: '' }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('image', 'image', 'Photo'), item('url', 'link', 'Link when clicked')] }] },
+    fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Cards', kind: 'items', blank: { title: 'Service', body: '', image: '', link: '', icon: '' }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('image', 'image', 'Photo'), item('url', 'link', 'Link when clicked'), item('text', 'icon', 'Icon (emoji, or a name: phone, star, waves, sun, shield, check…)')] }] },
+  button: { label: 'Button', group: 'Content', props: { label: 'Get a quote', href: '#contact', icon: '', variant: 'solid', size: 'lg', radius: 999 },
+    fields: [item('text', 'label', 'Button text'), item('url', 'href', 'Button link'), item('text', 'icon', 'Icon (emoji, or a name: phone, mail, star, check, arrow, sparkles, sun, waves, home, calendar, shield, heart, pin, clock, zap)'),
+      { key: 'variant', label: 'Style', kind: 'select', options: [{ value: 'solid', label: 'Solid' }, { value: 'glass', label: 'Glass (glassmorphism)' }, { value: 'outline', label: 'Outline' }] },
+      { key: 'size', label: 'Size', kind: 'select', options: [{ value: 'lg', label: 'Large' }, { value: 'md', label: 'Medium' }] },
+      item('number', 'radius', 'Corner roundness px (0 = sharp/linear, 999 = pill)')] },
   products: { label: 'Product cards', group: 'Commerce', props: { title: 'Products', columns: 3, items: [] },
     fields: [item('text', 'title', 'Title'), { key: 'columns', label: 'Columns', kind: 'select', options: [2, 3, 4].map(n => ({ value: String(n), label: String(n) })) },
       { key: 'items', label: 'Products', kind: 'items', blank: { name: 'Product', price: '', description: '', image: '', badge: '', buttonLabel: 'Ask for a quote', buttonHref: '#contact', buyLabel: 'Buy now', buyLink: '' },
@@ -91,7 +102,7 @@ export const BLOCKS = {
     fields: [{ key: 'links', label: 'Menu links', kind: 'items', blank: { label: 'Link', href: '' }, fields: [item('text', 'label', 'Text'), item('url', 'href', 'Goes to')] }, item('text', 'ctaLabel', 'Button text'), item('url', 'ctaHref', 'Button link'), { key: 'sticky', label: 'Stay on top when scrolling', kind: 'select', options: [{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }] }] },
   footer: { label: 'Footer', group: 'Layout', props: { text: '', links: [] }, fields: [item('textarea', 'text', 'Footer text'), { key: 'links', label: 'Links', kind: 'items', blank: { label: 'Link', href: '' }, fields: [item('text', 'label', 'Text'), item('url', 'href', 'Goes to')] }] },
   columns: { label: 'Columns', group: 'Layout', props: { title: '', columns: 3, items: [{ title: 'Column', body: 'Text', image: '' }] },
-    fields: [item('text', 'title', 'Title'), { key: 'columns', label: 'Columns', kind: 'select', options: [2, 3, 4].map(n => ({ value: String(n), label: String(n) })) }, { key: 'items', label: 'Columns', kind: 'items', blank: { title: 'Column', body: '', image: '' }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('image', 'image', 'Photo')] }] },
+    fields: [item('text', 'title', 'Title'), { key: 'columns', label: 'Columns', kind: 'select', options: [2, 3, 4].map(n => ({ value: String(n), label: String(n) })) }, { key: 'items', label: 'Columns', kind: 'items', blank: { title: 'Column', body: '', image: '', icon: '' }, fields: [item('text', 'title', 'Title'), item('textarea', 'body', 'Text'), item('image', 'image', 'Photo'), item('text', 'icon', 'Icon (emoji, or a name: phone, star, waves, sun, shield, check…)')] }] },
   faq: { label: 'FAQ', group: 'Content', props: { title: 'Questions & answers', items: [{ q: 'How long does a project take?', a: 'Tell visitors your usual timeline.' }] },
     fields: [item('text', 'title', 'Title'), { key: 'items', label: 'Questions', kind: 'items', blank: { q: '', a: '' }, fields: [item('text', 'q', 'Question'), item('textarea', 'a', 'Answer')] }] },
   pricing: { label: 'Pricing table', group: 'Commerce', props: { title: 'Packages', items: [{ name: 'Package', price: '', period: '', priceYearly: '', periodYearly: '', features: 'What is included', ctaLabel: 'Get a quote', ctaHref: '#contact', featured: 'no' }] },
@@ -150,6 +161,17 @@ export const GRADIENTS = [
   { name: 'Obsidian', from: '#0a0a0a', to: '#1f2937' }, { name: 'Sand', from: '#faf7f2', to: '#e7dccb' },
   { name: 'Lagoon', from: '#ecfeff', to: '#a5f3fc' }, { name: 'Coral reef', from: '#0891b2', to: '#f97066' },
 ];
+
+/** CSS background for a section's gradient: unlimited gradStops win; the legacy
+ *  gradFrom/gradTo pair is honoured when no stops are set. Undefined = no gradient. */
+export const gradientCss = (st: SectionStyle): string | undefined => {
+  const raw = st.gradStops && st.gradStops.length >= 2
+    ? st.gradStops.filter(s => s && typeof s.c === 'string')
+    : st.gradFrom && st.gradTo ? [{ c: st.gradFrom, p: 0 }, { c: st.gradTo, p: 100 }] : [];
+  if (raw.length < 2) return undefined;
+  const stops = [...raw].sort((a, b) => (a.p || 0) - (b.p || 0)).map(s => `${s.c} ${Math.max(0, Math.min(100, Number(s.p) || 0))}%`).join(', ');
+  return st.gradType === 'radial' ? `radial-gradient(circle, ${stops})` : `linear-gradient(${st.gradAngle ?? 135}deg, ${stops})`;
+};
 
 /** Link values: 'page:<slug>' (site page, '' = home), '#anchor', 'tel:', 'mailto:', 'https://wa.me/…' or any URL. */
 export const resolveLink = (href: string | undefined, pageHref: (slug: string) => string) =>

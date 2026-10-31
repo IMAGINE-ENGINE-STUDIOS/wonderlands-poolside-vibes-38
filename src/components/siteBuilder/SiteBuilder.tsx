@@ -28,7 +28,7 @@ import SiteTextEditor from './SiteTextEditor';
 import SiteDomainCard from './SiteDomainCard';
 import { apexOf } from '@/lib/siteBuilder/dnsCheck';
 import { hydrateDocProducts, starterCard } from '@/lib/siteBuilder/catalogCards';
-import { BLOCKS, FONTS, GRADIENTS, DEFAULT_THEME, TECH_TOOLS, blankDoc, compressImage, newSection, uid, type BlockType, type Field, type Page, type Section, type SiteDoc, type SiteTheme, type SiteVersion } from '@/lib/siteBuilder/model';
+import { BLOCKS, FONTS, GRADIENTS, DEFAULT_THEME, TECH_TOOLS, blankDoc, compressImage, gradientCss, newSection, uid, type BlockType, type Field, type Page, type Section, type SectionStyle, type SiteDoc, type SiteTheme, type SiteVersion } from '@/lib/siteBuilder/model';
 
 const DEVICES = { desktop: { w: 1280, icon: Monitor }, tablet: { w: 820, icon: Tablet }, mobile: { w: 390, icon: Smartphone } } as const;
 const GROUPS = ['Layout', 'Content', 'Media', 'Commerce', 'Technology'];
@@ -129,7 +129,7 @@ function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; the
   const pr: any = { ...base.props, ...(v.props || {}) };
   const st: any = { ...base.style, ...(v.style || {}) };
   const items: any[] = Array.isArray(pr.items) && pr.items.length ? pr.items : (Array.isArray((base.props as any).items) ? (base.props as any).items : []);
-  const bg = st.gradFrom && st.gradTo ? `linear-gradient(${st.gradAngle ?? 135}deg, ${st.gradFrom}, ${st.gradTo})` : (typeof st.bg === 'string' && st.bg.includes('gradient') ? st.bg : st.bg || '#ffffff');
+  const bg = gradientCss(st) ?? (typeof st.bg === 'string' && st.bg.includes('gradient') ? st.bg : st.bg || '#ffffff');
   const ink = st.color || '#14181f';
   const acc = theme.primary;
   const photoBg = 'linear-gradient(135deg,#7dd3fc 0%,#38bdf8 45%,#1d4ed8 100%)';
@@ -256,6 +256,58 @@ function VariantSnap({ type, v, theme }: { type: BlockType; v: BlockVariant; the
   }
   return <div className="relative mb-1.5 h-[92px] overflow-hidden rounded-md border border-border/60" style={{ background: bg, color: ink, padding: 8 }}>{inner}</div>;
 }
+/** Gradient editor: UNLIMITED colour stops, each with its own position, plus a
+ *  direction controller (8 compass presets + a 0–360° dial). Writes gradStops
+ *  and keeps gradFrom/gradTo synced to the first/last stop for legacy readers. */
+const GradientEditor: React.FC<{ st: SectionStyle; disabled?: boolean; onPatch: (p: Partial<SectionStyle>) => void }> = ({ st, disabled, onPatch }) => {
+  const stops: { c: string; p: number }[] = st.gradStops && st.gradStops.length >= 2
+    ? st.gradStops.map(s => ({ c: s.c, p: Number(s.p) || 0 }))
+    : st.gradFrom && st.gradTo ? [{ c: st.gradFrom, p: 0 }, { c: st.gradTo, p: 100 }] : [];
+  const on = stops.length >= 2;
+  const angle = st.gradAngle ?? 135;
+  const write = (next: { c: string; p: number }[], extra: Partial<SectionStyle> = {}) => {
+    const sorted = [...next].sort((a, b) => a.p - b.p);
+    onPatch({ gradStops: sorted, gradFrom: sorted[0]?.c, gradTo: sorted[sorted.length - 1]?.c, ...extra });
+  };
+  // Compass glyphs for CSS gradient angles: 0° = up, 90° = right, 180° = down, 270° = left.
+  const dirs = [{ a: 0, g: '↑' }, { a: 45, g: '↗' }, { a: 90, g: '→' }, { a: 135, g: '↘' }, { a: 180, g: '↓' }, { a: 225, g: '↙' }, { a: 270, g: '←' }, { a: 315, g: '↖' }];
+  return <div className="space-y-2 rounded-md border border-border p-2.5">
+    <label className="flex items-center justify-between text-xs font-medium text-muted-foreground"><span>Gradient background</span>
+      <input type="checkbox" disabled={disabled} checked={on} onChange={e => e.target.checked
+        ? onPatch({ gradStops: [{ c: '#000000', p: 0 }, { c: '#2563eb', p: 50 }, { c: '#ec4899', p: 100 }], gradFrom: '#000000', gradTo: '#ec4899', gradAngle: st.gradAngle ?? 135 })
+        : onPatch({ gradStops: undefined, gradFrom: undefined, gradTo: undefined })} /></label>
+    {on && <>
+      <div className="h-9 rounded-md border border-border" style={{ background: gradientCss(st) }} />
+      <div>
+        <span className="text-xs font-medium text-muted-foreground">Direction</span>
+        <div className="mt-1 flex items-center gap-1">
+          {dirs.map(d => <button key={d.a} type="button" disabled={disabled} title={`${d.a}°`} onClick={() => onPatch({ gradAngle: d.a })}
+            className={`h-7 w-7 rounded-md border text-sm ${angle === d.a ? 'border-teal bg-teal/10' : 'border-border'}`}>{d.g}</button>)}
+        </div>
+        <div className="mt-1.5 flex items-center gap-2">
+          <input type="range" min={0} max={360} value={angle} disabled={disabled} className="flex-1" onChange={e => onPatch({ gradAngle: Number(e.target.value) })} />
+          <input type="number" min={0} max={360} value={angle} disabled={disabled} className="h-8 w-16 rounded-md border border-input bg-background px-1.5 text-sm" onChange={e => onPatch({ gradAngle: Math.max(0, Math.min(360, Number(e.target.value) || 0)) })} />
+          <span className="text-xs text-muted-foreground">°</span>
+        </div>
+        <select disabled={disabled} className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-2 text-sm" value={st.gradType || 'linear'} onChange={e => onPatch({ gradType: e.target.value as 'linear' | 'radial' })}>
+          <option value="linear">Linear</option><option value="radial">Radial</option>
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <span className="text-xs font-medium text-muted-foreground">Colour stops — no limit</span>
+        {stops.map((s, i) => <div key={i} className="flex items-center gap-1.5">
+          <input type="color" disabled={disabled} value={s.c} className="h-8 w-10 shrink-0 rounded border border-input bg-background p-0.5" onChange={e => write(stops.map((x, j) => j === i ? { ...x, c: e.target.value } : x))} />
+          <input type="range" min={0} max={100} value={s.p} disabled={disabled} className="flex-1" onChange={e => write(stops.map((x, j) => j === i ? { ...x, p: Number(e.target.value) } : x))} />
+          <input type="number" min={0} max={100} value={s.p} disabled={disabled} className="h-8 w-14 rounded-md border border-input bg-background px-1.5 text-sm" onChange={e => write(stops.map((x, j) => j === i ? { ...x, p: Math.max(0, Math.min(100, Number(e.target.value) || 0)) } : x))} />
+          <span className="text-xs text-muted-foreground">%</span>
+          <button type="button" disabled={disabled || stops.length <= 2} title="Remove stop" className="px-1 text-muted-foreground disabled:opacity-30" onClick={() => write(stops.filter((_, j) => j !== i))}>✕</button>
+        </div>)}
+        {!disabled && <Button size="sm" variant="outline" onClick={() => { const mid = stops.length ? Math.round(stops.reduce((a, s) => a + s.p, 0) / stops.length) : 50; const taken = new Set(stops.map(s => s.p)); let p = mid; while (taken.has(p) && p < 100) p++; write([...stops, { c: '#ffffff', p: Math.min(100, p) }]); }}>+ Add colour stop</Button>}
+      </div>
+    </>}
+  </div>;
+};
+
 const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?: boolean; embedded?: boolean }> = ({ companyId, companyName, readOnly, embedded = false }) => {
   const { toast } = useToast();
   const [site, setSite] = useState<SiteRow | null | undefined>(undefined);
@@ -448,10 +500,8 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
   const styleFields: Field[] = [
     { key: 'bg', label: 'Background colour', kind: 'color' }, { key: 'color', label: 'Text colour', kind: 'color' },
     { key: 'bgImage', label: 'Background photo', kind: 'image' }, { key: 'bgVideo', label: 'Background video link', kind: 'url' },
-    { key: 'gradFrom', label: 'Gradient start colour', kind: 'color' }, { key: 'gradTo', label: 'Gradient end colour', kind: 'color' },
-    { key: 'gradAngle', label: 'Gradient angle (0–360°)', kind: 'number' },
-    { key: 'gradType', label: 'Gradient shape', kind: 'select', options: [{ value: 'linear', label: 'Linear' }, { value: 'radial', label: 'Radial' }] },
     { key: 'overlay', label: 'Darken photo/video (0–90)', kind: 'number' }, { key: 'padY', label: 'Top & bottom space (px)', kind: 'number' },
+    { key: 'radius', label: 'Corner roundness (px — blank = site default, 0 = sharp)', kind: 'number' },
     { key: 'titleSize', label: 'Title size (px)', kind: 'number' },
     { key: 'align', label: 'Alignment', kind: 'select', options: ['left', 'center', 'right'].map(v => ({ value: v, label: v })) },
     { key: 'width', label: 'Width', kind: 'select', options: ['narrow', 'normal', 'wide', 'full'].map(v => ({ value: v, label: v })) },
@@ -601,7 +651,9 @@ const SiteBuilder: React.FC<{ companyId: string; companyName: string; readOnly?:
                   </div> : undefined} />)}
           </div>
           : <div className="space-y-3">
-            {!readOnly && <div><span className="text-xs font-medium text-muted-foreground">Colour presets</span><div className="mt-1 grid grid-cols-6 gap-1.5">{GRADIENTS.map(g => <button key={g.name} title={g.name} aria-label={g.name} onClick={() => editSection(section.id, s => { s.style.gradFrom = g.from; s.style.gradTo = g.to; s.style.gradAngle = s.style.gradAngle ?? 135; })} className="h-8 rounded-md border border-border" style={{ background: `linear-gradient(135deg, ${g.from}, ${g.to})` }} />)}</div></div>}
+            {!readOnly && <div><span className="text-xs font-medium text-muted-foreground">Colour presets</span><div className="mt-1 grid grid-cols-6 gap-1.5">{GRADIENTS.map(g => <button key={g.name} title={g.name} aria-label={g.name} onClick={() => editSection(section.id, s => { s.style.gradFrom = g.from; s.style.gradTo = g.to; s.style.gradStops = undefined; s.style.gradAngle = s.style.gradAngle ?? 135; })} className="h-8 rounded-md border border-border" style={{ background: `linear-gradient(135deg, ${g.from}, ${g.to})` }} />)}</div></div>}
+            <GradientEditor st={st} disabled={readOnly} onPatch={p => editSection(section.id, s => { Object.assign(s.style, p); })} />
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" disabled={readOnly} checked={!!st.glass} onChange={e => setStyle('glass', e.target.checked || undefined)} />Glassmorphism panel (frosted glass over the background)</label>
             <div><span className="text-xs font-medium text-muted-foreground">Hide on</span><div className="mt-1 flex gap-3 text-sm">{(['mobile', 'tablet', 'desktop'] as const).map(k => <label key={k} className="flex items-center gap-1.5 capitalize"><input type="checkbox" disabled={readOnly} checked={!!st.hideOn?.[k]} onChange={e => editSection(section.id, s => { s.style.hideOn = { ...s.style.hideOn, [k]: e.target.checked }; })} />{k}</label>)}</div></div>
             {styleFields.map(f => <FieldEditor key={f.key} f={f} disabled={readOnly} value={(st as any)[f.key]} onChange={v => setStyle(f.key, v)} />)}
             {!readOnly && <Button size="sm" variant="ghost" onClick={() => editSection(section.id, s => { s.style = {}; })}>Reset style</Button>}</div>}

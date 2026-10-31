@@ -8,6 +8,7 @@
 // The browser validates every block type/prop against its own block list, so
 // nothing unknown ever reaches a saved site.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { groqChat } from '../_shared/groqChat.ts';
 
 const BLOCK_HELP = `Block types and their props:
 hero{eyebrow,title,subtitle,ctaLabel,ctaHref,cta2Label,cta2Href}; text{title,body}; services{title,items:[{title,body}]};
@@ -17,9 +18,13 @@ cta{title,body,ctaLabel,ctaHref}; form{title,body,buttonLabel,anchor,thanks}; fa
 pricing{title,items:[{name,price,period,features,ctaLabel,ctaHref,featured}]} (features = one per line);
 team{title,items:[{name,role,bio}]}; stats{title,items:[{value,label}]}; logos{title,items:[{name}]};
 map{title,address}; booking{title,body,url}; columns{title,items:[{title,body}]}; header{links:[{label,href}],ctaLabel,ctaHref};
-footer{text,links:[{label,href}]}; posts{title,items:[{title,date,excerpt}]}; spacer{height}.
+footer{text,links:[{label,href}]}; posts{title,items:[{title,date,excerpt}]}; spacer{height};
+button{label,href,icon,variant(solid|glass|outline),size(lg|md),radius(0=sharp,999=pill)} = a standalone button; variant glass = glassmorphism.
+services and columns items also take an icon (an emoji, or a name: phone, mail, star, check, arrow, sparkles, sun, waves, home, calendar, shield, heart, pin, clock, zap, leaf, dollar, chat, camera, award).
 Links: "#contact" for the lead form, "page:<slug>" for another page ("page:" = home).
-Style keys (optional): bg, color (hex), align (left|center|right), width (narrow|normal|wide|full), padY (px).`;
+Style keys (optional): bg, color (hex), align (left|center|right), width (narrow|normal|wide|full), padY (px),
+gradStops (array of {c: hex, p: 0-100} — ANY number of colour stops) with gradAngle (0-360) and gradType (linear|radial),
+glass (true = frosted glassmorphism panel), radius (px corner roundness for the section's cards/buttons/images; 0 = sharp).`;
 
 const SYSTEMS: Record<string, string> = {
   build: `You build a complete small-business website for a residential contractor. Reply with ONE JSON object:
@@ -64,17 +69,6 @@ Other blocks: image{src,caption,link,height}; gallery{title,items:[{src,caption,
 Products: when adding or filling a "products" block you may leave items empty or give real product names (e.g. Glimmerglass pool models) — the builder fills every card with the real Wonderlands catalogue photo, name, price and description; never write placeholder names like "Product A". Text on the page can be edited by double-clicking it (font gallery, size, colour, bold, italic, alignment). Custom domain: Site tab → Web address (top) → type the domain, Save, add A @ and A www → 185.158.133.1 at the domain company; the card checks DNS live and the domain goes live by itself after Publish — no email needed. Rules: keep ids exactly as given; only change what was asked (but do the whole job when asked for site-wide work); never invent phone numbers, emails, addresses, prices, reviews, client names or awards — leave empty and tell the user to fill them; never say "AI". ${BLOCK_HELP} No markdown outside the reply string.`,
 };
 
-const PREFERRED = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'llama-4-maverick', 'llama-4-scout', 'qwen', 'llama'];
-let cachedModel: string | null = null;
-async function pickModel(key: string): Promise<string> {
-  if (cachedModel) return cachedModel;
-  const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { Authorization: `Bearer ${key}` } });
-  const ids: string[] = r.ok ? ((await r.json()).data || []).map((m: { id: string }) => m.id) : [];
-  const chat = ids.filter((id) => !/whisper|tts|guard|embed|playai|orpheus|distil/i.test(id));
-  for (const pref of PREFERRED) { const hit = chat.find((id) => id.toLowerCase().includes(pref)); if (hit) return (cachedModel = hit); }
-  return (cachedModel = chat[0] || 'llama-3.3-70b-versatile');
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -89,25 +83,25 @@ Deno.serve(async (req) => {
     if (!mode) return json({ error: 'Unknown request.' }, 400);
     if (prompt.length < 2) return json({ error: 'Tell Genius what you need.' }, 400);
     const key = Deno.env.get('GROQ_API_KEY');
-    if (!key) return json({ error: 'Genius is not configured yet.' }, 500);
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: await pickModel(key),
-        temperature: mode === 'build' ? 0.6 : 0.3,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: SYSTEMS[mode] },
-          ...history,
-          ...(context ? [{ role: 'user', content: `Site JSON: ${context}` }] : []),
-          { role: 'user', content: prompt },
-        ],
-      }),
+    const brainReady = !!(Deno.env.get('GENIUS_BRAIN_URL') && Deno.env.get('GENIUS_BRAIN_KEY'));
+    if (!key && !brainReady) return json({ error: 'Genius is not configured yet.' }, 500);
+    // Brain-first via the shared router: Llama 3.3 70B on Workers AI, Groq
+    // chain as fallback (2026-10-30). The old inline pickModel flow sent the
+    // heavy agent payloads (full builder brief + whole-site JSON, 4 passes)
+    // straight to Groq, whose quota rejected them — the builder surfaced
+    // that as "Genius is unavailable right now."
+    const res = await groqChat(key ?? '', {
+      temperature: mode === 'build' ? 0.6 : 0.3,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: SYSTEMS[mode] },
+        ...history,
+        ...(context ? [{ role: 'user', content: `Site JSON: ${context}` }] : []),
+        { role: 'user', content: prompt },
+      ],
     });
     if (!res.ok) {
-      if (res.status === 404) cachedModel = null;
-      console.error('groq error', res.status, (await res.text()).slice(0, 300));
+      console.error('chat error', res.status, (await res.text()).slice(0, 300));
       return json({ error: res.status === 429 ? 'Genius is busy. Try again in a minute.' : 'Genius could not do that. Try again.' }, res.status === 429 ? 429 : 502);
     }
     const data = await res.json();
