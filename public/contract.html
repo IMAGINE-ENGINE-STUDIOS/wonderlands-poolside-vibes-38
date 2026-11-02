@@ -47,10 +47,12 @@
   .check { display:flex; gap:8px; align-items:flex-start; font-size:13.5px; margin-top:12px; }
   body.editing .page { outline:3px solid #f4b740; }
   @media print {
-    body { background:#fff; }
+    @page { margin: 12mm; }
+    html, body { background:#fff !important; margin:0 !important; padding:0 !important; }
     .toolbar, .panel, .hint { display:none !important; }
-    .page { box-shadow:none; margin:0; max-width:none; padding:24px 10px; }
+    .page { box-shadow:none !important; margin:0 !important; max-width:none !important; width:auto !important; padding:24px 10px; }
     body.editing .page { outline:none; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   }
   @media (max-width:640px){ .page{ padding:30px 20px; } .siggrid{ grid-template-columns:1fr; } }
 </style>
@@ -58,7 +60,7 @@
 <body>
 <div class="toolbar">
   <span class="brand">Wonderlands World — Construction Services Agreement</span>
-  <span class="pill" id="statusPill">FINAL</span>
+  <span class="pill" id="statusPill">DRAFT</span>
   <button id="editBtn" aria-pressed="false">✎ Edit mode</button>
   <button id="signBtn" class="primary">Sign the contract</button>
   <button id="printBtn">Print / Save PDF</button>
@@ -85,7 +87,7 @@
   <hr class="rule">
   <h2>1. Services to Be Provided</h2>
   <p><strong>1.1 General Services.</strong> Wonderlands World Experience LLC (“Contractor”) shall act as the primary contracting entity and project manager for the Project. Contractor may perform services directly and/or subcontract certain portions of the work as necessary.</p>
-  <p><strong>1.2 Licensed Subcontractor.</strong> Client acknowledges and agrees that Tech Terra Corp, a duly registered and licensed contractor, Florida License No. <span class="blank short" data-field="licenseNo">CGC1537275</span> (the “Subcontractor”), may be engaged by Contractor to perform any portions of the Project that require a professional or trade license under applicable law. For all portions of the Project that require a license under Chapter 489, Florida Statutes, Subcontractor shall be the contractor of record. The selection, coordination, and supervision of the Subcontractor shall remain the sole responsibility of Contractor.</p>
+  <p><strong>1.2 Licensed Subcontractor.</strong> Client acknowledges and agrees that Tech Terra Corp, a duly registered and licensed contractor, Florida License No. <span class="blank short" data-field="licenseNo">____________</span> (the “Subcontractor”), may be engaged by Contractor to perform any portions of the Project that require a professional or trade license under applicable law. For all portions of the Project that require a license under Chapter 489, Florida Statutes, Subcontractor shall be the contractor of record. The selection, coordination, and supervision of the Subcontractor shall remain the sole responsibility of Contractor.</p>
   <p><strong>1.3 No Privity.</strong> Nothing in this Agreement shall be construed to create any contractual relationship, privity, or obligation between Client and any subcontractor. All communications, payments, claims, and obligations shall be directed solely to Contractor.</p>
   <p><strong>1.4 Design and Permits.</strong> Upon execution of this Agreement and receipt of the required deposit, Contractor shall coordinate preparation of plans and submit required permit applications to the applicable authorities. Permit approval timelines are estimates only and subject to governmental processes beyond Contractor’s control.</p>
   <p><strong>1.5 Construction Services.</strong> Contractor shall furnish or coordinate all labor, materials, tools, and equipment necessary to complete the Project in accordance with approved plans, applicable building codes, and industry standards.</p>
@@ -382,28 +384,53 @@
   }
   document.getElementById('applySig').addEventListener('click', applySignature);
   document.getElementById('signBtn').addEventListener('click', function(){ document.getElementById('signPanel').scrollIntoView({ behavior:'smooth' }); });
-  
-  function cleanCopy(){
-    var clone = document.getElementById('doc').cloneNode(true);
-    var kill = clone.querySelectorAll('.toolbar,.panel,.hint,button');
-    for(var i=0;i<kill.length;i++){ kill[i].parentNode.removeChild(kill[i]); }
-    clone.removeAttribute('contenteditable');
-    var cssEl = document.querySelector('style');
-    var css = cssEl ? cssEl.outerHTML : '';
-    return '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wonderlands World \u2014 Construction Services Agreement</title>' + css + '<style>@page{size:Letter;margin:.6in} body{background:#fff !important} .page{max-width:none !important;margin:0 !important;box-shadow:none !important;padding:0 !important;outline:none !important}</style></head><body>' + clone.outerHTML + '</body></html>';
+  // ---- Print / Save PDF ----
+  // Prints the document only (the @media print stylesheet hides the toolbar
+  // and the signing panel). When this page is embedded in an iframe or an
+  // in-app viewer — where window.print() prints the wrong frame or silently
+  // does nothing — it opens the current document as a standalone top-level
+  // page in a new tab and prints from there, which works in mobile Safari.
+  function printDocument(){
+    if(window.self !== window.top){
+      var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      var blob = new Blob([html], { type:'text/html' });
+      var w = window.open(URL.createObjectURL(blob), '_blank');
+      if(w){
+        var tries = 0;
+        var iv = setInterval(function(){
+          tries++;
+          try { if(w.document && w.document.readyState === 'complete'){ clearInterval(iv); w.focus(); w.print(); } } catch(e){}
+          if(tries > 20) clearInterval(iv);
+        }, 300);
+        return;
+      }
+      // Popup blocked: fall through to a direct print attempt.
+    }
+    window.focus();
+    window.print();
   }
-  document.getElementById('printBtn').addEventListener('click', function(){
-    var w = window.open('', '_blank');
-    if(w){ w.document.open(); w.document.write(cleanCopy()); w.document.close(); w.focus(); setTimeout(function(){ try{ w.print(); }catch(e){} }, 400); }
-    else { window.print(); }
-  });
+  document.getElementById('printBtn').addEventListener('click', printDocument);
+
+  // ---- Download copy ----
+  // Downloads a clean, self-contained copy of the contract exactly as it
+  // currently stands: the full document (including any edits, the applied
+  // signature image and the signed stamp) with its styles inlined and all
+  // scripts, toolbar and signing panel removed, so the saved file opens
+  // standalone anywhere. The object URL is revoked only after a delay —
+  // revoking it immediately cancels the download in some browsers.
   document.getElementById('dlBtn').addEventListener('click', function(){
-    var html = cleanCopy();
-    var blob = new Blob([html], { type:'text/html' });
+    var clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('script, .toolbar, .panel').forEach(function(el){ el.remove(); });
+    var html = '<!DOCTYPE html>\n' + clone.outerHTML;
+    var blob = new Blob([html], { type:'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = signed ? 'Wonderlands-Construction-Agreement-SIGNED.html' : 'Wonderlands-Construction-Agreement.html';
-    a.click(); URL.revokeObjectURL(a.href);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
   });
 
   // ---- Self-test hook: ?selftest=1 performs a full signing pass programmatically ----
