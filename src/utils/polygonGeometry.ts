@@ -95,11 +95,20 @@ export const pointInRegions = (point: Pt, regions: Region[]): boolean =>
  * to a convex hull and pave over the water).
  */
 // 36 segments: 6-sided caps unioned at every densified vertex produced saw-tooth deck edges.
-export function offsetPolygon(points: Pt[], dist: number, arcSegments = 36): Pt[][] {
+export function offsetPolygon(points: Pt[], dist: number, arcSegments?: number): Pt[][] {
   const base = dedupe(points);
   if (base.length < 3) return [];
   const d = Math.abs(dist);
   if (d < EPS) return [ccw(base)];
+  // Cap density is this union's segment multiplier (~2N pieces, each cap
+  // contributing arcSegments+1 segments to the exact-rational sweep). On
+  // engineering-trace-density rings (hundreds+ of vertices, already sub-inch
+  // apart) full 36-gon caps push a single call past 100k sweep segments —
+  // profiled at tens of seconds — while changing the result by less than the
+  // sagitta of a 6-gon cap at these radii (< 0.02 ft at a 0.4 ft tuck, and the
+  // caps only round convex corners the ring itself already samples densely).
+  // Sparse rings (every hand-authored Studio outline) keep the full 36.
+  const segments = arcSegments ?? (base.length > 96 ? 6 : 36);
 
   const src = ccw(base);
   const pieces: PCPoly[] = [[toPC(src)]];
@@ -123,8 +132,8 @@ export function offsetPolygon(points: Pt[], dist: number, arcSegments = 36): Pt[
 
     // Rounded cap at vertex b keeps convex corners closed.
     const cap: Pt[] = [];
-    for (let k = 0; k <= arcSegments; k++) {
-      const t = (k / arcSegments) * Math.PI * 2;
+    for (let k = 0; k <= segments; k++) {
+      const t = (k / segments) * Math.PI * 2;
       cap.push({ x: b.x + Math.cos(t) * d, z: b.z + Math.sin(t) * d });
     }
     pieces.push([toPC(ccw(cap))]);
@@ -164,6 +173,37 @@ export function unionRegions(polys: Pt[][]): Region[] {
   }
 }
 
+/** Orientation of point p relative to directed line a->b (sign only). */
+const orient = (a: Pt, b: Pt, p: Pt): number => {
+  const v = (b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x);
+  return v > 1e-12 ? 1 : v < -1e-12 ? -1 : 0;
+};
+
+/** True when segments ab and cd cross or touch (bbox pre-filtered). */
+function segmentsMeet(a: Pt, b: Pt, c: Pt, d: Pt): boolean {
+  if (
+    Math.max(a.x, b.x) < Math.min(c.x, d.x) || Math.max(c.x, d.x) < Math.min(a.x, b.x) ||
+    Math.max(a.z, b.z) < Math.min(c.z, d.z) || Math.max(c.z, d.z) < Math.min(a.z, b.z)
+  ) return false;
+  const o1 = orient(a, b, c);
+  const o2 = orient(a, b, d);
+  const o3 = orient(c, d, a);
+  const o4 = orient(c, d, b);
+  return o1 !== o2 && o3 !== o4;
+}
+
+/** True when no edge of ring A meets any edge of ring B. */
+function ringsDisjoint(a: Pt[], b: Pt[]): boolean {
+  for (let i = 0; i < a.length; i++) {
+    const a1 = a[i];
+    const a2 = a[(i + 1) % a.length];
+    for (let j = 0; j < b.length; j++) {
+      if (segmentsMeet(a1, a2, b[j], b[(j + 1) % b.length])) return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Exact `subject - holes`. Returns every resulting region with its own holes —
  * this is what produces a perfect triangular (or any n-gon) deck cutout.
@@ -173,6 +213,32 @@ export function subtractRegions(subject: Pt[], holes: Pt[][]): Region[] {
   if (subj.length < 3) return [];
   const cutters = holes.map(dedupe).filter((h) => h.length >= 3);
   if (!cutters.length) return [[ccw(subj)]];
+  // Exact fast path (no approximation): when every hole lies strictly inside
+  // the subject and the holes are pairwise disjoint, the boolean difference
+  // IS the subject region carrying those holes — the sweep would only
+  // re-derive it at exact-rational cost (profiled at seconds on trace-density
+  // deck rings). The configuration is proven, not assumed: every hole vertex
+  // inside the subject, no subject vertex inside a hole, no edge crossings
+  // anywhere, hole areas summing below the subject's. Any doubt falls through
+  // to the boolean below.
+  if (cutters.every((h) => polygonArea(h) < polygonArea(subj))) {
+    const holeArea = cutters.reduce((s, h) => s + polygonArea(h), 0);
+    let proven = holeArea < polygonArea(subj);
+    for (let i = 0; proven && i < cutters.length; i++) {
+      const h = cutters[i];
+      proven =
+        h.every((p) => pointInRing(p, subj)) &&
+        subj.every((p) => !pointInRing(p, h)) &&
+        ringsDisjoint(h, subj);
+      for (let j = i + 1; proven && j < cutters.length; j++) {
+        proven =
+          h.every((p) => !pointInRing(p, cutters[j])) &&
+          cutters[j].every((p) => !pointInRing(p, h)) &&
+          ringsDisjoint(h, cutters[j]);
+      }
+    }
+    if (proven) return [[ccw(subj), ...cutters.map((h) => cw(h))]];
+  }
   try {
     const result = polygonClipping.difference(
       [toPC(subj)] as never,

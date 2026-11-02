@@ -106,8 +106,29 @@ export function resolveDeckBoundaries(params: {
 
 
   if (!polygonContainsPolygon(inner, pool)) {
-    const grown = offsetPolygonSingle(pool, Math.max(copingOffset, 0.15) + 0.05);
-    inner = grown.length >= 3 ? grown : pool;
+    if (pool.length <= 64) {
+      // Sparse (hand-authored Studio) rings: the original exact fallback,
+      // unchanged — its boolean cost is trivial at this size.
+      const grown = offsetPolygonSingle(pool, Math.max(copingOffset, 0.15) + 0.05);
+      inner = grown.length >= 3 ? grown : pool;
+    } else {
+      // Trace-density rings: the mitred inner undershoots the pool by
+      // ~0.1 ft around tight traced arcs, and the exact rounded offset
+      // that used to repair it costs seconds here (its ~2N-piece union
+      // was profiled as the most expensive call in a scene commit — and
+      // can fail outright at this density, silently returning the pool).
+      // Repair by unioning the pool into the mitred inner instead: one
+      // two-ring union, and the largest region's outer ring contains the
+      // pool. If the union yields nothing usable, keep the mitred inner:
+      // every deck built from these boundaries also subtracts the pool
+      // itself (buildDeckRingGeometry's exclude), so no paver can enter
+      // the water either way, and the undershoot sits under the coping.
+      const merged = unionRegions([pool, inner]);
+      const best = merged.length
+        ? merged.reduce((a, b) => (polygonArea(b[0]) > polygonArea(a[0]) ? b : a))[0]
+        : null;
+      if (best && best.length >= 3) inner = best;
+    }
   }
 
 
@@ -166,6 +187,14 @@ export function smoothCurvedRing(ring: P3[], iterations = 3, cornerDeg = 50): P3
   if (pts.length < 4) return pts;
   const cosLimit = Math.cos((cornerDeg * Math.PI) / 180);
   for (let it = 0; it < iterations; it++) {
+    // Dense rings (engineering traces and already-sampled curves) gain
+    // nothing from further Chaikin subdivision — each pass mostly densifies
+    // a curve that has already converged (later passes move points by
+    // < 1/16 of the first pass's corner cut) — while every downstream
+    // boolean and triangulation pays per vertex. Stop subdividing once the
+    // ring is dense; sparse Studio rings sit far below this and smooth
+    // exactly as before.
+    if (pts.length > 768) break;
     const n = pts.length;
     const out: P3[] = [];
     for (let i = 0; i < n; i++) {
