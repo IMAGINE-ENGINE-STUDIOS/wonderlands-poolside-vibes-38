@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { OptimizedImage } from "./OptimizedImage";
@@ -14,10 +14,24 @@ interface ProductMediaGalleryProps {
   media: MediaItem[] | string; // Support both new format and backwards compatibility
   productName: string;
   className?: string;
+  // Wonderlands Studio chrome (founder 2026-11-01): opt-in only — swipe on
+  // the stage image, always-visible arrows (phone-first), and the per-image
+  // tabs rendered by the Studio beside its "Product Image" tag instead of
+  // the in-gallery dots/counter. Other surfaces keep the default chrome.
+  studioChrome?: boolean;
+  activeIndex?: number;
+  onActiveIndexChange?: (index: number) => void;
 }
 
-const ProductMediaGallery = ({ media, productName, className = "" }: ProductMediaGalleryProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+const ProductMediaGallery = ({ media, productName, className = "", studioChrome = false, activeIndex, onActiveIndexChange }: ProductMediaGalleryProps) => {
+  const [internalIndex, setInternalIndex] = useState(0);
+  const currentIndex = activeIndex ?? internalIndex;
+  const setCurrentIndex = (updater: number | ((prev: number) => number)) => {
+    const next = typeof updater === "function" ? (updater as (prev: number) => number)(currentIndex) : updater;
+    if (onActiveIndexChange) onActiveIndexChange(next);
+    else setInternalIndex(next);
+  };
+  const touchStartX = useRef<number | null>(null);
 
   // Handle backwards compatibility - convert single image string to media array
   const mediaItems: MediaItem[] = typeof media === 'string'
@@ -38,8 +52,24 @@ const ProductMediaGallery = ({ media, productName, className = "" }: ProductMedi
 
   if (!currentMedia) return null;
 
+  // Studio swipe: horizontal touch drag on the stage image itself.
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 40 || !hasMultipleItems) return;
+    if (dx < 0) goToNext();
+    else goToPrevious();
+  };
+
   return (
-    <div className={`relative group ${className}`}>
+    <div
+      className={`relative group ${className}`}
+      {...(studioChrome ? { onTouchStart: handleTouchStart, onTouchEnd: handleTouchEnd } : {})}
+    >
       {/* Media Display */}
       {currentMedia.type === 'video' ? (
         <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
@@ -71,7 +101,8 @@ const ProductMediaGallery = ({ media, productName, className = "" }: ProductMedi
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+            aria-label="Previous image"
+            className={`absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg transition-opacity duration-200 z-10 ${studioChrome ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-5 w-5" />
@@ -79,13 +110,19 @@ const ProductMediaGallery = ({ media, productName, className = "" }: ProductMedi
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+            aria-label="Next image"
+            className={`absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg transition-opacity duration-200 z-10 ${studioChrome ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
             onClick={goToNext}
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
+        </>
+      )}
 
-          {/* Indicator Dots */}
+      {/* Indicator Dots + Counter — default chrome only; in Studio the
+          per-image tabs live beside the "Product Image" tag instead. */}
+      {hasMultipleItems && !studioChrome && (
+        <>
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
             {mediaItems.map((_, index) => (
               <button

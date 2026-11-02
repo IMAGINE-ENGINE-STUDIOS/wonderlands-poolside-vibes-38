@@ -507,6 +507,13 @@ const WonderlandsStudio = () => {
   const [shoppingListOpen, setShoppingListOpen] = usePersistentState('studio_shoppingListOpen', false);
 
   const [viewMode, setViewMode] = useState<'product-image' | '2d-designer' | '3d-viewer'>('product-image');
+  // Studio stage image carousel (founder 2026-11-01): index of the image on
+  // show on the product stage; reset to 0 (the main image) per product.
+  const [studioImageIndex, setStudioImageIndex] = useState(0);
+  useEffect(() => {
+    setStudioImageIndex(0);
+  }, [selectedProduct?.model, selectedProduct?.name]);
+  const studioStageRef = React.useRef<HTMLDivElement | null>(null);
   const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
   const [showPricePanel, setShowPricePanel] = usePersistentState('studio_pricePanel', false);
   const [aiSearchDocked, setAiSearchDocked] = usePersistentState('studio_aiSearchDocked', false);
@@ -848,6 +855,25 @@ const WonderlandsStudio = () => {
     }]
   };
 
+  // Studio stage carousel images (founder 2026-11-01): the product's MAIN
+  // image always first, then every extra image from its existing media /
+  // gallery fields, de-duplicated. Single-image products return one item
+  // and render exactly as before (no arrows, no tabs).
+  const getStudioMediaItems = (product: Product): MediaItem[] => {
+    const items: MediaItem[] = [];
+    const seen = new Set<string>();
+    const push = (url?: string, type: 'image' | 'video' = 'image', thumbnail?: string) => {
+      if (url && !seen.has(url)) {
+        seen.add(url);
+        items.push({ type, url, thumbnail, alt: product.model || product.name || 'Product' });
+      }
+    };
+    push(product.image);
+    if (product.media) product.media.forEach(m => push(m.url, m.type, m.thumbnail));
+    if (product.gallery) product.gallery.forEach(u => push(u));
+    return items;
+  };
+
   // Product list for one Studio category tab (unfiltered)
   const buildProductsForTab = (tab: string) => {
     let products: Product[] = [];
@@ -1062,6 +1088,16 @@ const WonderlandsStudio = () => {
     // The catalog data behind buildProductsForTab is static module data
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Bring the stage into view when a finish is picked down the page —
+  // the finish change happens ON the product image; without this the
+  // only instant feedback was the side cards, which read as "it just
+  // changes the colour of the paper" (founder, 2026-11-01).
+  const scrollStageIntoView = () => {
+    setTimeout(() => {
+      studioStageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 60);
+  };
+
   // Pool Coping (founder, 2026-11-01): the Studio deck configuration
   // carries a coping section. DEFAULT = coping is the SAME as the deck
   // (linked — no separate menu, no separate charge). Unlinking lets a
@@ -2072,6 +2108,25 @@ const WonderlandsStudio = () => {
 
 
 
+  const selectedMediaItems: MediaItem[] = selectedProduct ? getStudioMediaItems(selectedProduct) : [];
+  const imageTabs = selectedMediaItems.length > 1 ? (
+    <div className="flex items-center gap-1" role="tablist" aria-label="Product images">
+      {selectedMediaItems.map((item, i) => (
+        <button
+          key={item.url}
+          type="button"
+          role="tab"
+          aria-selected={studioImageIndex === i}
+          aria-label={`Image ${i + 1}${i === 0 ? ' (main)' : ''}`}
+          onClick={() => setStudioImageIndex(i)}
+          className={`h-8 min-w-8 rounded-full px-2 text-xs font-medium tabular-nums transition-colors ${studioImageIndex === i ? 'bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900' : 'border border-black/10 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-white/15 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800'}`}
+        >
+          {i + 1}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
   return <div className="min-h-screen bg-[#f5f5f7] dark:bg-zinc-950">
       {/* Slim frosted header */}
       <div className="sticky top-0 z-[450] border-b border-black/5 bg-white/75 backdrop-blur-xl dark:bg-zinc-950/75">
@@ -2280,22 +2335,23 @@ const WonderlandsStudio = () => {
                           </Button>
                           {/* Design Studio access hidden */}
                         </div>
+                        {imageTabs}
                       </div>
                     )}
                     
-                    <div className="relative rounded-[1.75rem] bg-zinc-50 dark:bg-zinc-900 overflow-hidden w-full h-[38vh] sm:h-[46vh] max-h-[460px] flex items-center justify-center">
+                    {!(selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && imageTabs && (
+                      <div className="mb-3 flex justify-end">{imageTabs}</div>
+                    )}
+                    <div ref={studioStageRef} className="relative rounded-[1.75rem] bg-zinc-50 dark:bg-zinc-900 overflow-hidden w-full h-[38vh] sm:h-[46vh] max-h-[460px] flex items-center justify-center">
                       {(selectedProduct.media || selectedProduct.gallery || selectedProduct.image) ? (
                         <div className="w-full h-full flex items-center justify-center">
-                          <ProductMediaGallery 
-                            media={
-                              selectedProduct.media || 
-                              (selectedProduct.gallery 
-                                ? selectedProduct.gallery.map(url => ({ type: 'image' as const, url, alt: selectedProduct.model || selectedProduct.name || 'Product' }))
-                                : selectedProduct.image || ''
-                              )
-                            } 
+                          <ProductMediaGallery
+                            media={selectedMediaItems}
                             productName={selectedProduct.model || selectedProduct.name || 'Product'}
                             className="w-full h-full"
+                            studioChrome
+                            activeIndex={studioImageIndex}
+                            onActiveIndexChange={setStudioImageIndex}
                           />
                         </div>
 
@@ -2845,12 +2901,13 @@ const WonderlandsStudio = () => {
                                 >
                                   <div
                                     className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.finish === finish.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
-                                    onClick={() =>
+                                    onClick={() => {
                                       setSelectedExtras((prev: any) => ({
                                         ...prev,
                                         finish: finish.name,
-                                      }))
-                                    }
+                                      }));
+                                      scrollStageIntoView();
+                                    }}
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                       <img loading="lazy" decoding="async"
