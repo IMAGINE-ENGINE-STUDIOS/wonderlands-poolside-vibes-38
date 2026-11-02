@@ -47,12 +47,10 @@
   .check { display:flex; gap:8px; align-items:flex-start; font-size:13.5px; margin-top:12px; }
   body.editing .page { outline:3px solid #f4b740; }
   @media print {
-    @page { margin: 12mm; }
-    html, body { background:#fff !important; margin:0 !important; padding:0 !important; }
+    body { background:#fff; }
     .toolbar, .panel, .hint { display:none !important; }
-    .page { box-shadow:none !important; margin:0 !important; max-width:none !important; width:auto !important; padding:24px 10px; }
+    .page { box-shadow:none; margin:0; max-width:none; padding:24px 10px; }
     body.editing .page { outline:none; }
-    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   }
   @media (max-width:640px){ .page{ padding:30px 20px; } .siggrid{ grid-template-columns:1fr; } }
 </style>
@@ -60,7 +58,7 @@
 <body>
 <div class="toolbar">
   <span class="brand">Wonderlands World — Construction Services Agreement</span>
-  <span class="pill" id="statusPill">DRAFT</span>
+  <span class="pill" id="statusPill">FINAL</span>
   <button id="editBtn" aria-pressed="false">✎ Edit mode</button>
   <button id="signBtn" class="primary">Sign the contract</button>
   <button id="printBtn">Print / Save PDF</button>
@@ -87,7 +85,7 @@
   <hr class="rule">
   <h2>1. Services to Be Provided</h2>
   <p><strong>1.1 General Services.</strong> Wonderlands World Experience LLC (“Contractor”) shall act as the primary contracting entity and project manager for the Project. Contractor may perform services directly and/or subcontract certain portions of the work as necessary.</p>
-  <p><strong>1.2 Licensed Subcontractor.</strong> Client acknowledges and agrees that Tech Terra Corp, a duly registered and licensed contractor, Florida License No. <span class="blank short" data-field="licenseNo">____________</span> (the “Subcontractor”), may be engaged by Contractor to perform any portions of the Project that require a professional or trade license under applicable law. For all portions of the Project that require a license under Chapter 489, Florida Statutes, Subcontractor shall be the contractor of record. The selection, coordination, and supervision of the Subcontractor shall remain the sole responsibility of Contractor.</p>
+  <p><strong>1.2 Licensed Subcontractor.</strong> Client acknowledges and agrees that Tech Terra Corp, a duly registered and licensed contractor, Florida License No. <span class="blank short" data-field="licenseNo">CGC1537275</span> (the “Subcontractor”), may be engaged by Contractor to perform any portions of the Project that require a professional or trade license under applicable law. For all portions of the Project that require a license under Chapter 489, Florida Statutes, Subcontractor shall be the contractor of record. The selection, coordination, and supervision of the Subcontractor shall remain the sole responsibility of Contractor.</p>
   <p><strong>1.3 No Privity.</strong> Nothing in this Agreement shall be construed to create any contractual relationship, privity, or obligation between Client and any subcontractor. All communications, payments, claims, and obligations shall be directed solely to Contractor.</p>
   <p><strong>1.4 Design and Permits.</strong> Upon execution of this Agreement and receipt of the required deposit, Contractor shall coordinate preparation of plans and submit required permit applications to the applicable authorities. Permit approval timelines are estimates only and subject to governmental processes beyond Contractor’s control.</p>
   <p><strong>1.5 Construction Services.</strong> Contractor shall furnish or coordinate all labor, materials, tools, and equipment necessary to complete the Project in accordance with approved plans, applicable building codes, and industry standards.</p>
@@ -184,9 +182,9 @@
       <p><strong>Contractor: Wonderlands World Experience LLC</strong></p>
       <div class="sigline" id="contractorSigSlot"></div>
       <div class="lbl">Signature</div>
-      <p>Name: <span class="blank">______________________________</span></p>
+      <p>Name: <span id="contractorSigName">______________________________</span></p>
       <p>Title: <span class="blank">______________________________</span></p>
-      <p>Date: <span class="blank short">______________</span></p>
+      <p>Date: <span id="contractorSigDate">______________</span></p>
     </div>
     <div class="sigblock">
       <p><strong>Client</strong></p>
@@ -198,16 +196,16 @@
   </div>
   <div class="sigblock" style="margin-top:22px">
     <p><strong>Witness</strong></p>
-    <div class="sigline" style="max-width:380px"></div>
+    <div class="sigline" id="witnessSigSlot" style="max-width:380px"></div>
     <div class="lbl">Signature</div>
-    <p>Name: <span class="blank">______________________________</span>&nbsp;&nbsp;Date: <span class="blank short">______________</span></p>
+    <p>Name: <span id="witnessSigName">______________________________</span>&nbsp;&nbsp;Date: <span id="witnessSigDate">______________</span></p>
   </div>
 </div>
 
 <div class="panel" id="signPanel">
   <h2>Sign this agreement</h2>
-  <p style="margin:0;font-size:14px;color:#445">The client signs below. The signature, name, and date are placed on the document, and the document locks against further edits.</p>
-  <label for="signerName">Client full legal name</label>
+  <p style="margin:0;font-size:14px;color:#445">All three parties sign below: the Contractor, the Client, and a Witness. Choose who is signing, enter their name, and draw their signature. Each signature is placed in that party’s own section of the document. The document locks when all three have signed.</p>
+  <label for="signerRole">Signing as</label> <select id="signerRole"> <option value="client" selected>Client</option> <option value="contractor">Contractor</option> <option value="witness">Witness</option> </select> <label for="signerName">Full legal name of the person signing</label>
   <input type="text" id="signerName" autocomplete="name" placeholder="e.g. Jane A. Smith">
   <label>Draw your signature</label>
   <canvas id="pad" width="760" height="170"></canvas>
@@ -349,88 +347,94 @@
     } catch (e) { msg(warn); }
   }
 
+  var signedRoles = {};
+  var clientSigData = '';
+  var roleSlots = {
+    contractor: { slot:'contractorSigSlot', name:'contractorSigName', date:'contractorSigDate', label:'Contractor' },
+    client: { slot:'clientSigSlot', name:'clientSigName', date:'clientSigDate', label:'Client' },
+    witness: { slot:'witnessSigSlot', name:'witnessSigName', date:'witnessSigDate', label:'Witness' }
+  };
   function applySignature(){
     if(signed) return;
+    var roleEl = document.getElementById('signerRole');
+    var role = roleEl ? roleEl.value : 'client';
+    var R = roleSlots[role];
+    if(signedRoles[role]){ msg(R.label + ' has already signed.'); return; }
     var name = document.getElementById('signerName').value.trim();
-    if(!name){ msg('Enter the client\u2019s full legal name.'); return; }
+    if(!name){ msg('Enter the ' + R.label.toLowerCase() + '\u2019s full legal name.'); return; }
     if(!document.getElementById('consent').checked){ msg('The consent box must be checked before signing.'); return; }
     if(!useTyped && !hasInk){ msg('Draw a signature on the pad, or use the typed signature option.'); return; }
-    var slot = document.getElementById('clientSigSlot');
+    var slot = document.getElementById(R.slot);
     slot.innerHTML = '';
+    var thisSig = '';
     if(useTyped){
-      var s = document.createElement('span'); s.className = 'typed-sig'; s.textContent = name; slot.appendChild(s);
-      sigData = 'typed:' + name;
+      var sp = document.createElement('span'); sp.className = 'typed-sig'; sp.textContent = name; slot.appendChild(sp);
+      thisSig = 'typed:' + name;
     } else {
-      var img = document.createElement('img'); img.className = 'sigimg'; img.alt = 'Client signature'; img.src = pad.toDataURL('image/png'); slot.appendChild(img);
-      sigData = img.src;
+      var img = document.createElement('img'); img.className = 'sigimg'; img.alt = R.label + ' signature'; img.src = pad.toDataURL('image/png'); slot.appendChild(img);
+      thisSig = img.src;
     }
-    document.getElementById('clientSigName').textContent = name;
-    document.getElementById('clientSigDate').textContent = todayET();
-    var cn = doc.querySelector('[data-field="clientName"]');
-    if(cn && /_/.test(cn.textContent)) cn.textContent = name;
+    document.getElementById(R.name).textContent = name;
+    document.getElementById(R.date).textContent = todayET();
+    if(role === 'client'){
+      clientSigData = thisSig; sigData = thisSig;
+      var cn = doc.querySelector('[data-field="clientName"]');
+      if(cn && /_/.test(cn.textContent)) cn.textContent = name;
+    }
+    signedRoles[role] = name;
+    ctx.clearRect(0, 0, pad.width, pad.height); hasInk = false; useTyped = false;
+    document.getElementById('signerName').value = '';
+    document.getElementById('consent').checked = false;
+    if(roleEl){
+      var opt = roleEl.querySelector('option[value="' + role + '"]'); if(opt) opt.disabled = true;
+      var order = ['contractor','client','witness'];
+      for(var i=0;i<order.length;i++){ if(!signedRoles[order[i]]){ roleEl.value = order[i]; break; } }
+    }
+    var doneCount = Object.keys(signedRoles).length;
+    if(doneCount < 3){
+      pill.textContent = 'SIGNING \u2014 ' + doneCount + ' OF 3';
+      var left = ['contractor','client','witness'].filter(function(r){ return !signedRoles[r]; }).map(function(r){ return roleSlots[r].label; }).join(' and ');
+      msg(R.label + ' signed \u2713 \u2014 still to sign: ' + left + '.');
+      return;
+    }
     signed = true;
     if(editing) setEdit(false);
     doc.contentEditable = 'false';
     editBtn.disabled = true;
     pill.textContent = 'SIGNED'; pill.classList.add('signed');
     var stamp = document.getElementById('signedStamp');
-    stamp.textContent = '✓ Signed electronically by ' + name + ' on ' + todayET() + '. This document is locked against further edits.';
+    stamp.textContent = '\u2713 Signed electronically by Contractor (' + signedRoles.contractor + '), Client (' + signedRoles.client + ') and Witness (' + signedRoles.witness + ') on ' + todayET() + '. This document is locked against further edits.';
     stamp.classList.add('on');
     document.getElementById('applySig').disabled = true;
     document.getElementById('clearPad').disabled = true;
     document.getElementById('typedBtn').disabled = true;
-    saveSignedContract(name, sigData);
+    saveSignedContract(signedRoles.client, clientSigData);
     stamp.scrollIntoView({ behavior:'smooth', block:'center' });
   }
   document.getElementById('applySig').addEventListener('click', applySignature);
   document.getElementById('signBtn').addEventListener('click', function(){ document.getElementById('signPanel').scrollIntoView({ behavior:'smooth' }); });
-  // ---- Print / Save PDF ----
-  // Prints the document only (the @media print stylesheet hides the toolbar
-  // and the signing panel). When this page is embedded in an iframe or an
-  // in-app viewer — where window.print() prints the wrong frame or silently
-  // does nothing — it opens the current document as a standalone top-level
-  // page in a new tab and prints from there, which works in mobile Safari.
-  function printDocument(){
-    if(window.self !== window.top){
-      var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-      var blob = new Blob([html], { type:'text/html' });
-      var w = window.open(URL.createObjectURL(blob), '_blank');
-      if(w){
-        var tries = 0;
-        var iv = setInterval(function(){
-          tries++;
-          try { if(w.document && w.document.readyState === 'complete'){ clearInterval(iv); w.focus(); w.print(); } } catch(e){}
-          if(tries > 20) clearInterval(iv);
-        }, 300);
-        return;
-      }
-      // Popup blocked: fall through to a direct print attempt.
-    }
-    window.focus();
-    window.print();
+  
+  function cleanCopy(){
+    var clone = document.getElementById('doc').cloneNode(true);
+    var kill = clone.querySelectorAll('.toolbar,.panel,.hint,button');
+    for(var i=0;i<kill.length;i++){ kill[i].parentNode.removeChild(kill[i]); }
+    clone.removeAttribute('contenteditable');
+    var cssEl = document.querySelector('style');
+    var css = cssEl ? cssEl.outerHTML : '';
+    return '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wonderlands World \u2014 Construction Services Agreement</title>' + css + '<style>@page{size:Letter;margin:.6in} body{background:#fff !important} .page{max-width:none !important;margin:0 !important;box-shadow:none !important;padding:0 !important;outline:none !important}</style></head><body>' + clone.outerHTML + '</body></html>';
   }
-  document.getElementById('printBtn').addEventListener('click', printDocument);
-
-  // ---- Download copy ----
-  // Downloads a clean, self-contained copy of the contract exactly as it
-  // currently stands: the full document (including any edits, the applied
-  // signature image and the signed stamp) with its styles inlined and all
-  // scripts, toolbar and signing panel removed, so the saved file opens
-  // standalone anywhere. The object URL is revoked only after a delay —
-  // revoking it immediately cancels the download in some browsers.
+  document.getElementById('printBtn').addEventListener('click', function(){
+    var w = window.open('', '_blank');
+    if(w){ w.document.open(); w.document.write(cleanCopy()); w.document.close(); w.focus(); setTimeout(function(){ try{ w.print(); }catch(e){} }, 400); }
+    else { window.print(); }
+  });
   document.getElementById('dlBtn').addEventListener('click', function(){
-    var clone = document.documentElement.cloneNode(true);
-    clone.querySelectorAll('script, .toolbar, .panel').forEach(function(el){ el.remove(); });
-    var html = '<!DOCTYPE html>\n' + clone.outerHTML;
-    var blob = new Blob([html], { type:'text/html;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
+    var html = cleanCopy();
+    var blob = new Blob([html], { type:'text/html' });
     var a = document.createElement('a');
-    a.href = url;
+    a.href = URL.createObjectURL(blob);
     a.download = signed ? 'Wonderlands-Construction-Agreement-SIGNED.html' : 'Wonderlands-Construction-Agreement.html';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+    a.click(); URL.revokeObjectURL(a.href);
   });
 
   // ---- Self-test hook: ?selftest=1 performs a full signing pass programmatically ----
