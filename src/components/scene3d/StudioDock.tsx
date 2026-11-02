@@ -219,6 +219,25 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
     try {
       const s = snapshot.scene;
       const dims = s.pool.dimensions || { width: 16, length: 32, depth: 6 };
+      /* The site, as a designer would survey it: how wide the deck runs,
+       * what is already placed (never duplicate it), and the fence /
+       * screen / turf drawn on the 2D board. */
+      const bbOf = (pts?: { x: number; y: number }[]) => {
+        if (!pts?.length) return null;
+        const xs = pts.map((q) => q.x), ys = pts.map((q) => q.y);
+        return { w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+      };
+      const poolBB = bbOf(s.pool.points as any), deckBB = bbOf((s.deck as any)?.points);
+      const deckWidthFt = poolBB && deckBB ? Math.max(0, Math.round(((deckBB.w - poolBB.w) / 2 + (deckBB.h - poolBB.h) / 2) / 2)) : undefined;
+      let siteKinds: string[] = [];
+      try {
+        const els = JSON.parse(localStorage.getItem('design_studio_site_elements_v1') || '[]');
+        if (Array.isArray(els)) siteKinds = [...new Set(els.map((e: any) => String(e?.kind ?? '')).filter(Boolean))] as string[];
+      } catch { /* no site drawn */ }
+      const placedModels = (snapshot.terrainAssets || []).slice(0, 12).map((a: any) => {
+        const pos = Array.isArray(a.position) ? ` @ (${Math.round(a.position[0])}, ${Math.round(a.position[2] ?? 0)})` : '';
+        return `${String(a.name || a.type || 'model').split(' — ')[0]}${pos}`;
+      });
       const { data, error } = await invokeGenius('scene-genius', {
         body: {
           prompt,
@@ -228,6 +247,9 @@ function GeniusPanel({ snapshot, apply, textureLibrary, setNight }: Props) {
             finish: s.pool.finish?.name, coping: s.deck.coping?.name, waterline: s.deck.waterline?.name, paver: s.deck.paver?.name,
             copingWidth: s.deck.copingWidth, stairs: snapshot.poolStairs.length, seating: snapshot.poolChairs.length + snapshot.contourSeating.length,
             lights: snapshot.poolLights.length,
+            ...(deckWidthFt ? { deckWidth: deckWidthFt } : {}),
+            ...(siteKinds.length ? { site: siteKinds } : {}),
+            ...(placedModels.length ? { existingModels: placedModels } : {}),
           },
         },
       }, { onBusy: () => setNote('Busier than normal right now — your design is underway and will go through on its own. Hang tight…') });

@@ -125,7 +125,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   // Full catalog finishes (the previous slug filter matched no real image IDs,
   // so the gallery came back empty). Every finish in the Studio is offered.
   const getFilteredFinishes = () =>
-    dedupeTextures([...(textureLibrary.finishes || []), ...CATALOG_TEXTURES.finishes]);
+    dedupeTextures([...(textureLibrary.finishes || []), ...CATALOG_TEXTURES.finishes], "url-name");
 
   /** Waterline tiles: all liners (glass, porcelain, premium border, stone) + tiles. */
   const getWaterlineTextures = () =>
