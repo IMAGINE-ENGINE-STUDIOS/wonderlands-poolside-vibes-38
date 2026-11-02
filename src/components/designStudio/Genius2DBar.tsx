@@ -153,6 +153,11 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
   const [busy, setBusy] = React.useState(false);
   const [note, setNote] = React.useState<string | null>(null);
   const pendingBriefRef = React.useRef<DesignBrief | null>(null);
+  /* Multi-task runs: each clause's note is captured here and the combined
+   * report is assembled by runAll; doneRef records that at least one
+   * clause landed (so the input only clears when something did). */
+  const lastNoteRef = React.useRef<string | null>(null);
+  const doneRef = React.useRef(false);
   /* Latest site elements (fence / enclosure / turf…), for zones and moves. */
   const elementsRef = React.useRef<any[]>([]);
   React.useEffect(() => {
@@ -183,21 +188,24 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
     window.dispatchEvent(new CustomEvent('design-studio:move-element', { detail }));
   }), []);
 
-  const run = async () => {
-    if (prompt.trim().length < 3 || busy) return;
-    const q = prompt.toLowerCase();
+  const run = async (textArg?: string) => {
+    const promptText = (textArg ?? prompt).trim();
+    if (promptText.length < 3 || (busy && textArg === undefined)) return;
+    const q = promptText.toLowerCase();
+    const say = (t: string) => { lastNoteRef.current = t; setNote(t); };
+    const markDone = () => { doneRef.current = true; setPrompt(''); };
     const current = snapshotCurrent(getCurrent?.());
 
     /* ---- gates & doors (site layer) ---- */
     const gateKind = /\b(screen|cage|enclosure)\b/.test(q) ? 'enclosure' : /\bfence\b/.test(q) ? 'fence' : /\bgate\b/.test(q) ? 'fence' : null;
     if (/\b(door|doors|gate|gates)\b/.test(q) && !/\bmove\b/.test(q)) {
-      if (!gateKind) { setNote('Add the door to the screen or the fence? Say "door on the screen" or "gate on the fence".'); return; }
+      if (!gateKind) { say('Add the door to the screen or the fence? Say "door on the screen" or "gate on the fence".'); return; }
       const count = Number(q.match(/\b(\d)\b/)?.[1] ?? (/\btwo\b/.test(q) ? 2 : /\bthree\b/.test(q) ? 3 : 1));
       const done = new Promise<boolean>((res) => { const h = (e: Event) => { window.removeEventListener('design-studio:gate-result', h); res(!!(e as CustomEvent).detail?.ok); }; window.addEventListener('design-studio:gate-result', h); setTimeout(() => res(false), 800); });
       window.dispatchEvent(new CustomEvent('design-studio:add-gate', { detail: { kind: gateKind, count, double: /double/.test(q) } }));
       const ok = await done;
-      setNote(ok ? `Added ${count} ${gateKind === 'fence' ? 'gate' : 'door'}${count > 1 ? 's' : ''}. Nothing else changed.` : `Draw a ${gateKind === 'fence' ? 'fence' : 'screen'} first, then ask again.`);
-      if (ok) setPrompt('');
+      say(ok ? `Added ${count} ${gateKind === 'fence' ? 'gate' : 'door'}${count > 1 ? 's' : ''}. Nothing else changed.` : `Draw a ${gateKind === 'fence' ? 'fence' : 'screen'} first, then ask again.`);
+      if (ok) markDone();
       return;
     }
 
@@ -255,7 +263,7 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
               sendPoolUpdate({ additionalPools: bodies });
             }
           } else if (wantsSpa && !wantsPool) {
-            setNote('There is no spa drawn yet — add one first, then I can move it.');
+            say('There is no spa drawn yet — add one first, then I can move it.');
             return;
           }
         }
@@ -274,11 +282,11 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
           if (n) { sendPoolUpdate({ features: feats }); did.push(`${n} ${rockMove ? 'rock' : 'plant'}${n > 1 ? 's' : ''} ${feet ?? 3} ft ${dir.label}`); }
         }
         if (did.length) {
-          setNote(`Moved ${did.join(' and ')}. Nothing else changed.`);
-          setPrompt('');
+          say(`Moved ${did.join(' and ')}. Nothing else changed.`);
+          markDone();
           return;
         }
-        if (!dir && !beside) { setNote('Tell me how far and which way — for example "move the pool 4 feet left". Nothing was moved.'); return; }
+        if (!dir && !beside) { say('Tell me how far and which way — for example "move the pool 4 feet left". Nothing was moved.'); return; }
       }
     }
 
@@ -289,8 +297,8 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       const done = new Promise<boolean>((res) => { const h = (e: Event) => { window.removeEventListener('design-studio:element-result', h); res(!!(e as CustomEvent).detail?.ok); }; window.addEventListener('design-studio:element-result', h); setTimeout(() => res(false), 1200); });
       window.dispatchEvent(new CustomEvent('design-studio:add-element', { detail: { kind: drawKind, around } }));
       const ok = await done;
-      setNote(ok ? `Drew the ${drawKind === 'enclosure' ? 'screen enclosure' : drawKind} around the ${around}. Nothing else changed.` : 'Draw the pool and its deck first, then ask again.');
-      if (ok) setPrompt('');
+      say(ok ? `Drew the ${drawKind === 'enclosure' ? 'screen enclosure' : drawKind} around the ${around}. Nothing else changed.` : 'Draw the pool and its deck first, then ask again.');
+      if (ok) markDone();
       return;
     }
 
@@ -337,13 +345,13 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       else if (!lookId && !localEdit && brief.clarify && landscapeVerbs) {
         pendingBriefRef.current = brief;
         const opts = brief.clarify.options.map((o) => `${o.label} (${o.blurb})`).join(' · ');
-        setNote(`${brief.clarify.question} ${opts}. Or say "go ahead" and I'll design ${styleLabel(brief.clarify.defaultId) ?? 'Tropical Poolside'}.`);
-        setPrompt('');
+        say(`${brief.clarify.question} ${opts}. Or say "go ahead" and I'll design ${styleLabel(brief.clarify.defaultId) ?? 'Tropical Poolside'}.`);
+        markDone();
         return;
       }
     }
     if ((briefFlow || lookId || localEdit || (plantHits.length && landscapeVerbs)) && !/\bmove\b/.test(q)) {
-      if (!current) { setNote('Draw the pool first — the landscape is composed around it.'); return; }
+      if (!current) { say('Draw the pool first — the landscape is composed around it.'); return; }
       const side = /around the pool|by the pool|near the pool/.test(q) ? 'pool' as const
         : /\bback\b|\brear\b/.test(q) ? 'back' as const
         : /\bfront\b/.test(q) ? 'front' as const
@@ -375,10 +383,10 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
         res = await sendLandscape({ edits: [{ add: ops }] });
       }
       if (res?.ok) {
-        setNote(`Landscaped with real plants: ${res.plantCount} plants${res.bedSqFt ? ` in ${res.bedSqFt} sq ft of beds` : ''}${res.species?.length ? ` — ${res.species.join(', ')}` : ''}. Installed total ≈ $${Number(res.total || 0).toLocaleString()}. Nothing on the pool or deck.${briefFlow?.rationale?.length ? ` ${briefFlow.rationale.join(' ')}` : ''}${res.inspection ? ` Self-check ${res.inspection.score}/100${res.inspection.fixed ? ` — I fixed ${res.inspection.fixed} placement(s) that broke the rules before showing you` : ''}.` : ''}`);
-        setPrompt('');
+        say(`Landscaped with real plants: ${res.plantCount} plants${res.bedSqFt ? ` in ${res.bedSqFt} sq ft of beds` : ''}${res.species?.length ? ` — ${res.species.join(', ')}` : ''}. Installed total ≈ $${Number(res.total || 0).toLocaleString()}. Nothing on the pool or deck.${briefFlow?.rationale?.length ? ` ${briefFlow.rationale.join(' ')}` : ''}${res.inspection ? ` Self-check ${res.inspection.score}/100${res.inspection.fixed ? ` — I fixed ${res.inspection.fixed} placement(s) that broke the rules before showing you` : ''}.` : ''}`);
+        markDone();
       } else {
-        setNote('The landscape builder could not place that — try naming a plant or a look (tropical, formal, coastal, modern).');
+        say('The landscape builder could not place that — try naming a plant or a look (tropical, formal, coastal, modern).');
       }
       return;
     }
@@ -401,8 +409,8 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       }
       if (made) {
         sendPoolUpdate({ features: feats });
-        setNote(`Placed ${made} rock/fountain pieces around the pool — on the ground, never on the pool or deck.`);
-        setPrompt('');
+        say(`Placed ${made} rock/fountain pieces around the pool — on the ground, never on the pool or deck.`);
+        markDone();
         return;
       }
     }
@@ -413,22 +421,23 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
     const siteish = /\b(fence|screen|enclosure|cage|turf|grass|landscap|garden|palm|tree|rock|boulder)\b/.test(q);
     const editish = /\b(move|shift|slide|curve|curved|straighten|round|rounded|bigger|larger|smaller|wider|longer|deeper|shallower|reshape|remove|delete)\b/.test(q);
     if (!poolish && !finishish && !siteish && !editish) {
-      setNote('Genius here designs and edits the pool, deck, finishes, fences, screens and site — ask for any of those. Nothing was changed.');
+      say('Genius here designs and edits the pool, deck, finishes, fences, screens and site — ask for any of those. Nothing was changed.');
       return;
     }
-    setBusy(true); setNote('Designing…');
+    setBusy(true); say('Designing…');
     try {
+      const siteKinds = [...new Set(elementsRef.current.map((e: any) => String(e?.kind ?? '')).filter(Boolean))];
       const currentBody = current
-        ? { mode: '2d', pool: { length: Math.round(current.lengthFt), width: Math.round(current.widthFt), depthProfile: current.depthPoints.slice(0, 8), outlinePoints: current.points.length } }
-        : { mode: '2d' };
-      const { data, error } = await invokeGenius('scene-genius', { body: { prompt, current: currentBody } }, { onBusy: () => setNote('Busier than normal right now — your design is underway and will go through on its own. Hang tight…') });
-      if (error || !data?.plan) { setNote(data?.error || 'Genius could not design that. Try again.'); return; }
+        ? { mode: '2d', pool: { length: Math.round(current.lengthFt), width: Math.round(current.widthFt), depthProfile: current.depthPoints.slice(0, 8), outlinePoints: current.points.length }, ...(siteKinds.length ? { site: siteKinds } : {}) }
+        : { mode: '2d', ...(siteKinds.length ? { site: siteKinds } : {}) };
+      const { data, error } = await invokeGenius('scene-genius', { body: { prompt: promptText, current: currentBody } }, { onBusy: () => say('Busier than normal right now — your design is underway and will go through on its own. Hang tight…') });
+      if (error || !data?.plan) { say(data?.error || 'Genius could not design that. Try again.'); return; }
       const plan = data.plan as any;
 
       /* Summary-only plan = a site request the function routes. */
       if (!plan.pool && !plan.deck && !plan.finishHint && !plan.copingHint && !plan.waterlineHint && !plan.paverHint && !plan.stairs && !plan.seating && plan.lights === undefined && plan.night === undefined && !plan.models?.length) {
-        setNote(plan.summary || 'Understood — nothing on the pool changed.');
-        setPrompt('');
+        say(plan.summary || 'Understood — nothing on the pool changed.');
+        markDone();
         return;
       }
 
@@ -520,15 +529,52 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
         ...(Object.keys(materials).length ? { materials } : {}),
       });
       const circular = shape === 'oval' && W === L;
-      setNote(plan.summary || (current && !shapeChanged && !explicitNew
+      say(plan.summary || (current && !shapeChanged && !explicitNew
         ? `Edited in place: ${W}′ × ${L}′${cornerR > 0 ? ', corners rounded' : ''} — your outline, adjusted.`
         : `Drawn: ${circular ? `circular pool, ${W} ft across` : `${W}′ × ${L}′ ${shape} pool`}${modelsPlaced ? `, plus ${modelsPlaced} landscape pieces` : ''}.`));
-      setPrompt('');
+      markDone();
     } catch {
-      setNote('Something went wrong. Try again.');
+      say('Something went wrong. Try again.');
     } finally {
       setBusy(false);
     }
+  };
+
+  /* MULTI-TASK (founder, 2026-10-31): the cascade inside run() answers the
+   * FIRST pattern it sees, so a compound request ("a fence around the
+   * pool, palms by the pool, and the pool 2 feet longer") used to do one
+   * job and silently drop the rest. runAll splits the request into
+   * clauses — a fragment only stands alone when it carries its own action
+   * signal, so "10 and 12 feet" stays one clause — runs each through the
+   * cascade in order (later clauses see the updated board), and reports
+   * everything that landed in one combined note. */
+  const runAll = async () => {
+    const text = prompt.trim();
+    if (text.length < 3 || busy) return;
+    const ACTION = /\b(add|draw|put|place|plant|move|shift|slide|remove|delete|make|build|install|round|bigger|smaller|larger|longer|wider|deeper|shallower|fence|screen|enclosure|turf|gate|door|palm|tree|shrub|hedge|flower|rock|boulder|fountain|pool|spa|deck|finish|coping|tile|paver|lights?|stairs?|seat|bench|landscap\w*)\b/i;
+    const rawParts = text.split(/\s*,\s*|\s*;\s*|\s+then\s+/i).flatMap((part) => part.split(/\s+and\s+/i));
+    const clauses: string[] = [];
+    for (const part of rawParts) {
+      const c = part.trim();
+      if (!c) continue;
+      if (clauses.length && (c.length < 3 || !ACTION.test(c))) clauses[clauses.length - 1] += ' and ' + c;
+      else clauses.push(c);
+    }
+    if (clauses.length <= 1) { await run(text); return; }
+    setBusy(true);
+    doneRef.current = false;
+    const fragments: string[] = [];
+    try {
+      for (const clause of clauses) {
+        lastNoteRef.current = null;
+        await run(clause);
+        if (lastNoteRef.current) fragments.push(lastNoteRef.current);
+      }
+    } finally {
+      setBusy(false);
+    }
+    if (fragments.length) setNote(fragments.join(' · '));
+    if (!doneRef.current) setPrompt(text);
   };
 
   return (
@@ -537,13 +583,13 @@ export function Genius2DBar({ onScene, getCurrent }: { onScene: (scene: any) => 
       <input
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') run(); }}
+        onKeyDown={(e) => { if (e.key === 'Enter') void runAll(); }}
         aria-label="Describe your pool for Genius"
         placeholder="Ask Genius: draw a circular pool, round the corners, move the fence 3 ft right, plant palms around the pool…"
         className="h-9 min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/80 focus:outline-none"
       />
       {note && <span className="hidden max-w-[35%] truncate text-[11px] text-muted-foreground md:inline" title={note}>{note}</span>}
-      <Button size="sm" className="h-8 shrink-0 rounded-full px-4 text-xs" onClick={run} disabled={busy || prompt.trim().length < 3}>
+      <Button size="sm" className="h-8 shrink-0 rounded-full px-4 text-xs" onClick={() => void runAll()} disabled={busy || prompt.trim().length < 3}>
         {busy ? <Loader2 className="h-3 w-3 animate-spin sm:mr-1" /> : <Wand2 className="h-3 w-3 sm:mr-1" />}
         <span className="hidden sm:inline">Draw it</span>
       </Button>
