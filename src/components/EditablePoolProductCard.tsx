@@ -119,11 +119,12 @@ const EditablePoolProductCard = ({
   
   // Convert pool finishes data to finish options format
   const finishOptions = compatibleFinishes.map(finish => ({
-    name: finish.name,
+    name: finish.collection === 'Crystite Classic' ? `${finish.name} · Crystite Classic` : finish.name,
     color: '#4169E1',
     image: finish.image,
-    // Force Crystite Crystals finishes to $4,500 in product card
-    price: (finish.collection && /crystite/i.test(finish.collection)) || (finish.category && /crystite/i.test(finish.category))
+    // Force Crystite Crystal finishes to $4,500 in product card (Crystal only —
+    // Crystite Classic is the included standard gel coat and keeps its $0 price)
+    price: (finish.collection && /crystite crystal/i.test(finish.collection)) || (finish.category && /crystite crystal/i.test(finish.category))
       ? 4500
       : finish.price,
     collection: finish.collection,

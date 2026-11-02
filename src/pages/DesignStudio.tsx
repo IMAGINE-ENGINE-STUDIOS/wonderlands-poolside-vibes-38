@@ -62,7 +62,7 @@ interface Product {
 
 // Finish options with images - using consolidated data
 const finishOptions = poolFinishesData.map(finish => ({
-  name: finish.name,
+  name: finish.collection === 'Crystite Classic' ? `${finish.name} · Crystite Classic` : finish.name,
   price: finish.price,
   image: finish.image,
   collection: finish.collection || 'Standard',

@@ -26,7 +26,7 @@ async function poolOptions(model: string): Promise<ConfigOption[]> {
   const [{ getProductsByCompatiblePool }, { poolLiners }, { paverTypes }] = await Promise.all([
     import('@/data/consolidatedProducts'), import('@/data/poolData'), import('@/data/paverData')]);
   return [
-    ...getProductsByCompatiblePool('finish', model).slice(0, 8).map((f: any) => opt('Pool Finishes', f.name, f.price ?? '', f.collection ?? '', f.image)),
+    ...getProductsByCompatiblePool('finish', model).map((f: any) => opt('Pool Finishes', f.collection === 'Crystite Classic' ? `${f.name} · Crystite Classic` : f.name, f.price ?? '', f.collection ?? '', f.image)),
     ...poolLiners.slice(0, 6).map((l: any) => opt('Pool Liner', l.name, l.price, l.type, l.image, '/sqft')),
     ...paverTypes.slice(0, 6).map((p: any) => opt('Deck Pavers', p.name, p.basePrice, p.description, p.image, '/sqft')),
     ...COVERS.map(([n, p, i]) => opt('Automatic Cover', n, p, '', i)),

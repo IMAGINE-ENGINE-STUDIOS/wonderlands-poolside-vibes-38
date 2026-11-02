@@ -199,7 +199,7 @@ const getProductPrice = (product: Product) => {
 
 // Finish options with images - using consolidated data
 const finishOptions = poolFinishesData.map(finish => ({
-  name: finish.name,
+  name: finish.collection === 'Crystite Classic' ? `${finish.name} · Crystite Classic` : finish.name,
   price: finish.price,
   image: finish.image,
   collection: finish.collection || 'Standard',
@@ -2691,11 +2691,11 @@ const WonderlandsStudio = () => {
                                     // Wonderlands World concrete pools: Only Mini Pebbles collection
                                     return finish.collection === "Mini Pebbles";
                                   } else if (isLathamPool) {
-                                    // Latham fiberglass pools: Only Crystite Crystal collection
-                                    return finish.collection === "Crystite Crystal";
+                                    // Latham fiberglass pools: Crystite Crystal + Crystite Classic collections
+                                    return finish.collection === "Crystite Crystal" || finish.collection === "Crystite Classic";
                                   } else {
-                                    // GlimmerGlass and other pools: Show all except Crystite Crystal and Mini Pebbles
-                                    return finish.collection !== "Crystite Crystal" && finish.collection !== "Mini Pebbles";
+                                    // GlimmerGlass and other pools: Show all except the Crystite collections and Mini Pebbles
+                                    return finish.collection !== "Crystite Crystal" && finish.collection !== "Crystite Classic" && finish.collection !== "Mini Pebbles";
                                   }
                                 })
                                 .map((finish, idx) => (
@@ -3093,11 +3093,17 @@ const WonderlandsStudio = () => {
                                 { id: 'shale-gray', name: 'Shale Gray', price: 3500, image: '/media/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp' },
                                 { id: 'coastal-bronze', name: 'Coastal Bronze', price: 3500, image: '/media/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp' },
                                 { id: 'pearl-white', name: 'Pearl White', price: 3500, image: '/media/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp' },
+                                { id: 'sapphire-blue-classic', name: 'Sapphire Blue · Crystite Classic', price: 0, image: '/media/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp' },
+                                { id: 'ocean-blue-classic', name: 'Ocean Blue · Crystite Classic', price: 0, image: '/media/2103693f-cf54-423d-99c7-68d6f3951388.webp' },
+                                { id: 'night-sky-classic', name: 'Night Sky · Crystite Classic', price: 0, image: '/media/90fe0136-31f1-4fa3-b816-56a7a74484fa.webp' },
+                                { id: 'shale-gray-classic', name: 'Shale Gray · Crystite Classic', price: 0, image: '/media/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp' },
+                                { id: 'coastal-bronze-classic', name: 'Coastal Bronze · Crystite Classic', price: 0, image: '/media/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp' },
+                                { id: 'whisper-white-classic', name: 'Whisper White · Crystite Classic', price: 0, image: '/media/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp' },
                               ];
                               
                               return (
                                 <div className="space-y-2 mt-4">
-                                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Select Spa Finish (Crystite Crystal):</label>
+                                  <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Select Spa Finish (Crystite Crystal / Classic):</label>
                                   <Carousel 
                                     className="w-full"
                                     opts={{
