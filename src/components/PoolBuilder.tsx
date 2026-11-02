@@ -396,6 +396,11 @@ export function PoolBuilder({
   // Click-and-hold on empty background pans the board; a drag suppresses the click that follows.
   const bgPanRef = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
   const suppressClickRef = useRef(false);
+  // Touch navigation state: live pinch (two-finger) tracking, plus a flag that
+  // parks the finger still down after a pinch ends so it can't resume whatever
+  // single-finger interaction the pinch interrupted.
+  const pinchRef = useRef<{ dist: number } | null>(null);
+  const touchParkedRef = useRef(false);
   // Zoom constants (single source of truth)
   const WHEEL_STEP = 0.06;
   const PINCH_STEP = 0.025;
@@ -5071,42 +5076,130 @@ export function PoolBuilder({
     }
   };
 
-  // Touch event handlers for mobile/iPad support
-  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (e.touches.length !== 1) return; // Only handle single touch
-    e.preventDefault();
+  // Touch event handlers for mobile/iPad support.
+  // Board navigation mirrors the mouse exactly: one finger pressed on empty
+  // background pans (the same bgPanRef test as onMouseDown), and two fingers
+  // pinch-zoom anchored at the gesture centre (the same clamp + anchor math
+  // as the native wheel handler). Before this, touch had NO navigation at
+  // all — single touches went straight to the drawing handlers and two-finger
+  // touches were dropped — so the board looked locked on phones/tablets.
+  const touchPoint = (t: React.Touch) => ({
+    clientX: t.clientX,
+    clientY: t.clientY,
+    preventDefault: () => {},
+    stopPropagation: () => {}
+  } as React.MouseEvent<HTMLCanvasElement>);
+
+  // The exact test the mouse path runs before a press becomes a background
+  // pan: navigation tools only, no placement/drawing mode pending, and the
+  // press lands on empty board (not on a shape, a shape point, or a feature).
+  const canBackgroundPan = (clientX: number, clientY: number) => {
+    if (splineDrawing.isActive || pendingFeature || pendingLandscapePlacement || pendingPoolFeaturePlacement) return false;
+    if (!(activeTool == null || activeTool === 'select')) return false;
+    const canvas = canvasRef.current;
+    if (!canvas) return false;
+    const r = canvas.getBoundingClientRect();
+    const w = screenToWorld(clientX - r.left, clientY - r.top);
+    const inside = (poly?: { x: number; y: number }[]) => {
+      if (!poly || poly.length < 3) return false;
+      let c = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const a = poly[i], b = poly[j];
+        if ((a.y > w.y) !== (b.y > w.y) && w.x < (b.x - a.x) * (w.y - a.y) / (b.y - a.y) + a.x) c = !c;
+      }
+      return c;
+    };
+    const near = (poly?: { x: number; y: number }[]) => !!poly?.some(q => Math.hypot(q.x - w.x, q.y - w.y) < 14 / zoomLevel);
+    const shapes = [points, hardscapePoints, ...additionalPools.map(a => a.points), ...Object.values(additionalDeckPoints)];
+    const onFeature = features.some(f => Math.hypot(f.x - w.x, f.y - w.y) < 20 / zoomLevel);
+    return !onFeature && !shapes.some(sh => inside(sh) || near(sh));
+  };
+
+  // Pinch zoom step: same anchor-preserving math as the wheel handler —
+  // the world point under the gesture centre stays under it.
+  const pinchZoom = (cx: number, cy: number, ratio: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
-
-    // Create a synthetic mouse event
-    const mouseEvent = {
-      clientX: touch.clientX,
-      clientY: touch.clientY,
-      preventDefault: () => {},
-      stopPropagation: () => {}
-    } as React.MouseEvent<HTMLCanvasElement>;
-    handleCanvasMouseDown(mouseEvent);
+    const sx = (cx - rect.left) * (canvasSize.width / rect.width) - canvasSize.width / 2;
+    const sy = (cy - rect.top) * (canvasSize.height / rect.height) - canvasSize.height / 2;
+    const z = zoomRef.current;
+    const next = Math.min(6, Math.max(0.25, z * ratio));
+    if (next === z) return;
+    const k = next / z;
+    const pan = panRef.current;
+    zoomRef.current = next;
+    panRef.current = { x: sx - (sx - pan.x) * k, y: sy - (sy - pan.y) * k };
+    setZoomLevel(next);
+    setPanOffset(panRef.current);
   };
-  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 2) {
+      // Pinch begins: settle any single-finger interaction first.
+      e.preventDefault();
+      bgPanRef.current = null;
+      handleCanvasMouseUp();
+      const a = e.touches[0], b = e.touches[1];
+      pinchRef.current = { dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) };
+      touchParkedRef.current = false;
+      return;
+    }
     if (e.touches.length !== 1) return;
     e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (touchParkedRef.current) return;
     const touch = e.touches[0];
-
-    // Create a synthetic mouse event
-    const mouseEvent = {
-      clientX: touch.clientX,
-      clientY: touch.clientY,
-      preventDefault: () => {},
-      stopPropagation: () => {}
-    } as React.MouseEvent<HTMLCanvasElement>;
-    handleCanvasMouseMove(mouseEvent);
+    // Empty background: this press pans the board, like a mouse hold-drag.
+    if (canBackgroundPan(touch.clientX, touch.clientY)) {
+      bgPanRef.current = { x: touch.clientX, y: touch.clientY, panX: panOffset.x, panY: panOffset.y, moved: false };
+      return;
+    }
+    handleCanvasMouseDown(touchPoint(touch));
+  };
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (pinchRef.current && e.touches.length === 2) {
+      e.preventDefault();
+      const a = e.touches[0], b = e.touches[1];
+      const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      const prev = pinchRef.current.dist;
+      if (prev > 0 && dist > 0) {
+        pinchZoom((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2, dist / prev);
+        pinchRef.current.dist = dist;
+      }
+      return;
+    }
+    if (e.touches.length !== 1) return;
+    e.preventDefault();
+    if (touchParkedRef.current) return;
+    const bg = bgPanRef.current;
+    if (bg) {
+      const touch = e.touches[0];
+      const dx = touch.clientX - bg.x, dy = touch.clientY - bg.y;
+      if (!bg.moved && Math.hypot(dx, dy) > 3) bg.moved = true;
+      if (bg.moved) setPanOffset({ x: bg.panX + dx, y: bg.panY + dy });
+      return;
+    }
+    handleCanvasMouseMove(touchPoint(e.touches[0]));
   };
   const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    if (pinchRef.current) {
+      pinchRef.current = null;
+      suppressClickRef.current = true; // a pinch is never a board tap
+      // One finger still down: park it until it lifts, then go back to normal.
+      touchParkedRef.current = e.touches.length > 0;
+      return;
+    }
+    if (touchParkedRef.current) {
+      if (e.touches.length === 0) touchParkedRef.current = false;
+      return;
+    }
+    if (bgPanRef.current) {
+      const moved = bgPanRef.current.moved;
+      bgPanRef.current = null;
+      if (moved) suppressClickRef.current = true;
+      return;
+    }
     handleCanvasMouseUp();
   };
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -5883,26 +5976,10 @@ export function PoolBuilder({
                 return;
               }
               // Left-click + hold on empty green background drags the board around.
-              if (e.button === 0 && !splineDrawing.isActive && !pendingFeature && !pendingLandscapePlacement && !pendingPoolFeaturePlacement
-                && (activeTool == null || activeTool === 'select')) {
-                const r = e.currentTarget.getBoundingClientRect();
-                const w = screenToWorld(e.clientX - r.left, e.clientY - r.top);
-                const inside = (poly?: { x: number; y: number }[]) => {
-                  if (!poly || poly.length < 3) return false;
-                  let c = false;
-                  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-                    const a = poly[i], b = poly[j];
-                    if ((a.y > w.y) !== (b.y > w.y) && w.x < (b.x - a.x) * (w.y - a.y) / (b.y - a.y) + a.x) c = !c;
-                  }
-                  return c;
-                };
-                const near = (poly?: { x: number; y: number }[]) => !!poly?.some(q => Math.hypot(q.x - w.x, q.y - w.y) < 14 / zoomLevel);
-                const shapes = [points, hardscapePoints, ...additionalPools.map(a => a.points), ...Object.values(additionalDeckPoints)];
-                const onFeature = features.some(f => Math.hypot(f.x - w.x, f.y - w.y) < 20 / zoomLevel);
-                if (!onFeature && !shapes.some(sh => inside(sh) || near(sh))) {
-                  bgPanRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y, moved: false };
-                  return;
-                }
+              // (canBackgroundPan is the shared test — touch pans by the same rule.)
+              if (e.button === 0 && canBackgroundPan(e.clientX, e.clientY)) {
+                bgPanRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y, moved: false };
+                return;
               }
               handleCanvasMouseDown(e);
             }} onMouseMove={(e) => {
