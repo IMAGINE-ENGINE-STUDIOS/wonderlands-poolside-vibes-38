@@ -151,7 +151,7 @@ const ledgeHeaters: FeatureOption[] = [
 ];
 
 const finishOptions: FeatureOption[] = getProductsByCategory('finish').map(finish => ({
-  name: finish.name,
+  name: finish.collection === 'Crystite Classic' ? `${finish.name} · Crystite Classic` : finish.name,
   color: '#4169E1',
   image: finish.image,
   price: finish.price,

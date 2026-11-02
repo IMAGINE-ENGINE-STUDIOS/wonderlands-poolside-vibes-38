@@ -118,7 +118,7 @@ import { getProductsByCategory } from '@/data/consolidatedProducts';
 
 // Convert pool finishes data to finish options format
 const finishOptions = getProductsByCategory('finish').map(finish => ({
-  name: finish.name,
+  name: finish.collection === 'Crystite Classic' ? `${finish.name} · Crystite Classic` : finish.name,
   color: '#4169E1',
   // fallback color
   image: finish.image,

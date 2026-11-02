@@ -1620,11 +1620,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                             { id: 'shale-gray', name: 'Shale Gray', price: 3500, image: '/media/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp' },
                             { id: 'coastal-bronze', name: 'Coastal Bronze', price: 3500, image: '/media/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp' },
                             { id: 'pearl-white', name: 'Pearl White', price: 3500, image: '/media/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp' },
+                            { id: 'sapphire-blue-classic', name: 'Sapphire Blue · Crystite Classic', price: 0, image: '/media/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp' },
+                            { id: 'ocean-blue-classic', name: 'Ocean Blue · Crystite Classic', price: 0, image: '/media/2103693f-cf54-423d-99c7-68d6f3951388.webp' },
+                            { id: 'night-sky-classic', name: 'Night Sky · Crystite Classic', price: 0, image: '/media/90fe0136-31f1-4fa3-b816-56a7a74484fa.webp' },
+                            { id: 'shale-gray-classic', name: 'Shale Gray · Crystite Classic', price: 0, image: '/media/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp' },
+                            { id: 'coastal-bronze-classic', name: 'Coastal Bronze · Crystite Classic', price: 0, image: '/media/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp' },
+                            { id: 'whisper-white-classic', name: 'Whisper White · Crystite Classic', price: 0, image: '/media/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp' },
                           ];
                           
                           return (
                             <div className="space-y-2 mt-3">
-                              <label className="text-xs font-medium text-muted-foreground">Select Spa Finish (Crystite Crystal):</label>
+                              <label className="text-xs font-medium text-muted-foreground">Select Spa Finish (Crystite Crystal & Classic):</label>
                               <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
                                 <CarouselContent className="-ml-1">
                                   {crystiteFinishes.map((finish) => (

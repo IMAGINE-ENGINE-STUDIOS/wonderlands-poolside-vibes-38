@@ -145,6 +145,99 @@ export const poolFinishes: Product[] = [
     isActive: true
   },
 
+
+  // Crystite Classic Collection - LATHAM POOLS ONLY (Fiberglass, standard gel coat G2)
+  {
+    id: "sapphire-blue-classic",
+    name: "Sapphire Blue",
+    category: "finish",
+    subcategory: "Deep & Dramatic",
+    collection: "Crystite Classic",
+    poolType: "fiberglass",
+    compatiblePools: [...LATHAM_POOLS],
+    price: 0,
+    image: "/media/390cf824-aed3-4f60-9fc3-f3910c0ffe44.webp",
+    description: "A vivid sky-blue standard gel coat for a clear, classic finish",
+    features: ["Classic Gel Coat", "Sky Blue Color", "UV Resistant", "25-Year Warranty"],
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "ocean-blue-classic",
+    name: "Ocean Blue",
+    category: "finish",
+    subcategory: "Deep & Dramatic",
+    collection: "Crystite Classic",
+    poolType: "fiberglass",
+    compatiblePools: [...LATHAM_POOLS],
+    price: 0,
+    image: "/media/2103693f-cf54-423d-99c7-68d6f3951388.webp",
+    description: "Deep oceanic blue standard gel coat for a classic tropical look",
+    features: ["Classic Gel Coat", "Ocean Depth", "UV Protection", "25-Year Warranty"],
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "night-sky-classic",
+    name: "Night Sky",
+    category: "finish",
+    subcategory: "Deep & Dramatic",
+    collection: "Crystite Classic",
+    poolType: "fiberglass",
+    compatiblePools: [...LATHAM_POOLS],
+    price: 0,
+    image: "/media/90fe0136-31f1-4fa3-b816-56a7a74484fa.webp",
+    description: "Deep, dramatic dark blue standard gel coat reminiscent of a starry night",
+    features: ["Classic Gel Coat", "Dark Dramatic Look", "Smooth Finish", "25-Year Warranty"],
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "shale-gray-classic",
+    name: "Shale Gray",
+    category: "finish",
+    subcategory: "Light & Tranquil",
+    collection: "Crystite Classic",
+    poolType: "fiberglass",
+    compatiblePools: [...LATHAM_POOLS],
+    price: 0,
+    image: "/media/15032ed4-f745-4152-ae9b-c26fdb52f68c.webp",
+    description: "Silver and grey hues in a standard gel coat for a modern, refined appearance",
+    features: ["Classic Gel Coat", "Modern Gray", "Contemporary Look", "25-Year Warranty"],
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "coastal-bronze-classic",
+    name: "Coastal Bronze",
+    category: "finish",
+    subcategory: "Rich & Vibrant",
+    collection: "Crystite Classic",
+    poolType: "fiberglass",
+    compatiblePools: [...LATHAM_POOLS],
+    price: 0,
+    image: "/media/b1abd5c3-af2e-46fa-82be-5db27d20a388.webp",
+    description: "Warm copper and bronze tones in a standard gel coat with classic coastal appeal",
+    features: ["Classic Gel Coat", "Bronze Warmth", "Coastal Appeal", "25-Year Warranty"],
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "whisper-white-classic",
+    name: "Whisper White",
+    category: "finish",
+    subcategory: "Light & Tranquil",
+    collection: "Crystite Classic",
+    poolType: "fiberglass",
+    compatiblePools: [...LATHAM_POOLS],
+    price: 0,
+    image: "/media/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.webp",
+    description: "Soft white standard gel coat with hues pulled from where the ocean meets white Caribbean sand",
+    features: ["Classic Gel Coat", "Soft White", "Timeless Elegance", "25-Year Warranty"],
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+
   // Wonderlands World Collection - WONDERLANDS WORLD POOLS ONLY (Mini Pebbles - Concrete)
   {
     id: "tahoe-blue-wonderlands",

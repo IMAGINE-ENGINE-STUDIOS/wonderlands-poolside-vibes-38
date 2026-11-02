@@ -84,7 +84,7 @@ export const buildFinishTextures = (): CatalogTextureConfig[] =>
   poolFinishes.filter(isActive).filter(hasImage).map((finish) => ({
     id: finish.id,
     url: finish.image as string,
-    name: finish.name,
+    name: finish.collection === 'Crystite Classic' ? `${finish.name} · Crystite Classic` : finish.name,
     group: finish.subcategory || finish.collection || 'Finishes',
     price: finish.price,
     roughness: 0.2,
@@ -107,12 +107,16 @@ export const buildPaverTextures = (
       metalness: 0,
     }));
 
-/** Dedupe by URL — duplicate keys previously dropped swatches silently. */
-export const dedupeTextures = <T extends { url?: string }>(list: T[]): T[] => {
+/** Dedupe by URL — duplicate keys previously dropped swatches silently.
+ *  "url-name" mode keeps same-URL entries whose names differ (Crystite
+ *  Classic finishes share their Crystal twin's swatch image). */
+export const dedupeTextures = <T extends { url?: string; name?: string }>(list: T[], keyBy: "url" | "url-name" = "url"): T[] => {
   const seen = new Set<string>();
   return list.filter((t) => {
-    if (!t?.url || seen.has(t.url)) return false;
-    seen.add(t.url);
+    if (!t?.url) return false;
+    const key = keyBy === "url-name" ? `${t.url}|${t.name ?? ""}` : t.url;
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 };
@@ -140,7 +144,7 @@ export const groupTextures = (
 export const buildCatalogTextureLibrary = (
   custom?: Partial<CatalogTextureLibrary>
 ): CatalogTextureLibrary => ({
-  finishes: dedupeTextures([...(custom?.finishes || []), ...buildFinishTextures()]),
+  finishes: dedupeTextures([...(custom?.finishes || []), ...buildFinishTextures()], "url-name"),
   pavers: dedupeTextures([...(custom?.pavers || []), ...buildPaverTextures('paver')]),
   coping: dedupeTextures([...(custom?.coping || []), ...buildPaverTextures('coping')]),
   waterlines: dedupeTextures([...(custom?.waterlines || []), ...buildWaterlineTextures()]),

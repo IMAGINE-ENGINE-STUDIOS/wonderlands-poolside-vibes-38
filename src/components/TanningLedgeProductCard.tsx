@@ -105,7 +105,7 @@ import InstallationNote from "@/components/InstallationNote";
  * never the other brand's swatches.
  */
 const lathamFinishOptions = getProductsByCategory('finish').map(finish => ({
-  name: finish.name,
+  name: finish.collection === 'Crystite Classic' ? `${finish.name} · Crystite Classic` : finish.name,
   color: '#4169E1',
   image: finish.image as string | undefined,
   price: finish.price / 2,

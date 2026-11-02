@@ -95,8 +95,8 @@ const finishAllowed = (option: FeatureOption, ctx: StudioContext) => {
   if (isGlimmerGlass(ctx)) return false;
   if (SPA_CATALOG_MODELS.includes(model)) return true;
   if (LATHAM_LEDGE_MODELS.some((b) => model.startsWith(b))) return true;
-  if (LATHAM_MODELS.some((b) => model.startsWith(b))) return collection === "Crystite Crystal";
-  return collection !== "Crystite Crystal" && collection !== "Mini Pebbles";
+  if (LATHAM_MODELS.some((b) => model.startsWith(b))) return collection === "Crystite Crystal" || collection === "Crystite Classic";
+  return collection !== "Crystite Crystal" && collection !== "Crystite Classic" && collection !== "Mini Pebbles";
 };
 
 const GELCOAT: StudioOption[] = [

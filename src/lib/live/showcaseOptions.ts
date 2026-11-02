@@ -82,7 +82,7 @@ const GELCOAT_FINISHES: ShowcaseFinish[] = [
 
 const catalogFinishes = (priceScale = 1): ShowcaseFinish[] =>
   getProductsByCategory("finish").map((f) => ({
-    name: f.name,
+    name: f.collection === "Crystite Classic" ? `${f.name} · Crystite Classic` : f.name,
     price: Math.round(f.price * priceScale),
     image: f.image,
   }));
@@ -99,7 +99,7 @@ export function showcaseFinishesFor(product: ProductLike): ShowcaseFinish[] {
   if (product.category === "Pool") {
     if (isGlimmer(product)) return GELCOAT_FINISHES;
     return getProductsByCompatiblePool("finish", product.name).map((f) => ({
-      name: f.name,
+      name: f.collection === "Crystite Classic" ? `${f.name} · Crystite Classic` : f.name,
       price: f.price,
       image: f.image,
     }));
