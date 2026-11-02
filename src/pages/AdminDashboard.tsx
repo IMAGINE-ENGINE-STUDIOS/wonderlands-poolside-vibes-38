@@ -49,6 +49,7 @@ import AdminActionQueue from '@/components/admin/AdminActionQueue';
 import AdminTechnologyHub from '@/components/admin/AdminTechnologyHub';
 import AdminCompanies from '@/components/admin/AdminCompanies';
 import AdminDataRoom from '@/components/admin/AdminDataRoom';
+import AdminSignedContracts from '@/components/admin/AdminSignedContracts';
 import AdminCatalog from '@/components/admin/AdminCatalog';
 
 // Navigation Item Component — Noir & Gold
@@ -271,6 +272,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
                 <NavItem icon={Video} label="Meetings" active={activeSection === "meetings"} onClick={() => { setActiveSection("meetings"); setMobileNavOpen(false); }} />
                 <NavItem icon={Building2} label="Licensed companies" active={activeSection === "companies"} onClick={() => { setActiveSection("companies"); setMobileNavOpen(false); }} />
                 <NavItem icon={FolderOpen} label="Data Room" active={activeSection === "data-room"} onClick={() => { setActiveSection("data-room"); setMobileNavOpen(false); }} />
+                <NavItem icon={FileText} label="Sign Contracts" active={activeSection === "sign-contracts"} onClick={() => { setActiveSection("sign-contracts"); setMobileNavOpen(false); }} />
                 <NavItem icon={Briefcase} label="Company workspace (view as)" active={false} onClick={() => navigate('/admin/preview/workspace')} />
                 <NavItem icon={Users} label="Customer account (view as)" active={false} onClick={() => navigate('/admin/preview/account')} />
                 <NavItem icon={Users} label="Sales rep dashboard (view as)" active={false} onClick={() => navigate('/admin/preview/sales-rep')} />
@@ -439,6 +441,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
           {isMainAdmin && activeSection === 'companies' && <AdminCompanies />}
           {isMainAdmin && activeSection === 'meetings' && <AdminMeetingsView />}
           {isMainAdmin && activeSection === 'data-room' && <AdminDataRoom />}
+          {isMainAdmin && activeSection === 'sign-contracts' && <AdminSignedContracts />}
 
           {/* Products Tab - Only for main admins */}
           {isMainAdmin && activeSection === "unified-products" && <div className="space-y-6 animate-fade-in">
