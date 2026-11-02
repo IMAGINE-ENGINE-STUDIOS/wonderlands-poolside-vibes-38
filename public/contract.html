@@ -382,9 +382,23 @@
   }
   document.getElementById('applySig').addEventListener('click', applySignature);
   document.getElementById('signBtn').addEventListener('click', function(){ document.getElementById('signPanel').scrollIntoView({ behavior:'smooth' }); });
-  document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+  
+  function cleanCopy(){
+    var clone = document.getElementById('doc').cloneNode(true);
+    var kill = clone.querySelectorAll('.toolbar,.panel,.hint,button');
+    for(var i=0;i<kill.length;i++){ kill[i].parentNode.removeChild(kill[i]); }
+    clone.removeAttribute('contenteditable');
+    var cssEl = document.querySelector('style');
+    var css = cssEl ? cssEl.outerHTML : '';
+    return '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wonderlands World \u2014 Construction Services Agreement</title>' + css + '<style>@page{size:Letter;margin:.6in} body{background:#fff !important} .page{max-width:none !important;margin:0 !important;box-shadow:none !important;padding:0 !important;outline:none !important}</style></head><body>' + clone.outerHTML + '</body></html>';
+  }
+  document.getElementById('printBtn').addEventListener('click', function(){
+    var w = window.open('', '_blank');
+    if(w){ w.document.open(); w.document.write(cleanCopy()); w.document.close(); w.focus(); setTimeout(function(){ try{ w.print(); }catch(e){} }, 400); }
+    else { window.print(); }
+  });
   document.getElementById('dlBtn').addEventListener('click', function(){
-    var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    var html = cleanCopy();
     var blob = new Blob([html], { type:'text/html' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
