@@ -1,5 +1,6 @@
 import * as React from "react";
 const { useState, useEffect, useRef } = React;
+import { useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ import { spas, pools } from "@/components/PoolCatalog";
 import { gilmerPools } from "@/data/gilmerPools";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
-import { paverTypes } from "@/data/paverData";
+import { paverTypes, copingTypes } from "@/data/paverData";
 import { getPaverPricePerSqFt, calculatePaverCost, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { saunas } from "@/data/saunaData";
@@ -52,7 +53,7 @@ import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type Produ
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
-import AdvancedSearch from '@/components/AdvancedSearch';
+import StudioProductSearch, { type StudioSearchItem } from '@/components/studio/StudioProductSearch';
 import { motion } from 'framer-motion';
 import StudioLandingCanvas from '@/components/studio/StudioLandingCanvas';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
@@ -105,7 +106,10 @@ const STUDIO_CATEGORIES: StudioCategory[] = [
   { value: 'build-a-pool', label: 'Build a Pool', icon: Waves, activeClass: 'bg-zinc-900 text-white' },
 ];
 
-// Studio search uses the same AdvancedSearch component as the main page
+// Studio search is a Studio-local PLAIN product search (founder,
+// 2026-11-01 21:34 ET: no Genius in the Studio search engine at all).
+// It does NOT use AdvancedSearch — that component carries the Genius
+// answer layer for the surfaces that legitimately use it.
 
 
 interface Product {
@@ -144,6 +148,7 @@ interface ProductExtras {
   pavers: boolean;
   paverOption: string;
   copingPaverOption: string;
+  copingLinked?: boolean;
   screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: string;
@@ -464,6 +469,7 @@ const WonderlandsStudio = () => {
     pavers: false,
     paverOption: '',
     copingPaverOption: '',
+    copingLinked: true,
     screenEnclosure: false,
     screenEnclosureArea: 0,
     screenEnclosureQuality: '',
@@ -520,7 +526,12 @@ const WonderlandsStudio = () => {
     if (hydratedRef.current) return;
     hydratedRef.current = true;
     try {
-      const urlParams = new URLSearchParams(window.location.search);
+      const urlParams = new URLSearchParams(location.search);
+
+    // A fresh entry (Genius's "Open the Design Studio" link) starts on
+    // the studio home — the saved session must not resurrect a stale
+    // product the visitor did not ask for (founder, 2026-10-31).
+    if (urlParams.get('fresh') === '1') return;
       // A category deep-link from the studio landing page wins over the cache
       const requested = urlParams.get('category');
       if (requested && STUDIO_CATEGORIES.some(c => c.value === requested)) {
@@ -566,13 +577,28 @@ const WonderlandsStudio = () => {
     return () => clearTimeout(t);
   }, [activeTab, selectedProduct, selectedExtras, paverSurfaceArea, paverCategory, viewMode, customPoolShape]);
 
-  // Handle URL parameters for product search integration
+  // Handle URL parameters for product search integration.
+  // Re-runs when the query string CHANGES, not just on mount (founder
+  // bug, 2026-11-01): a search/Genius tap that navigates to
+  // /wonderlands-studio?model=… while the Studio is already open used to
+  // do nothing — the visitor stayed on whatever product was already on
+  // the stage ("Milan forever"). The params are the selection..
+  // Re-runs when the query string CHANGES, not just on mount (founder
+  // bug, 2026-11-01): a search/Genius tap that navigates to
+  // /wonderlands-studio?model=… while the Studio is already open used to
+  // do nothing — the visitor stayed on whatever product was already on
+  // the stage ("Milan forever"). The params are the selection.
   useEffect(() => {
 
     // Scroll to top when component mounts to show product image
     window.scrollTo({ top: 0, behavior: 'instant' });
     
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
+
+    // A fresh entry (Genius's "Open the Design Studio" link) starts on
+    // the studio home — the saved session must not resurrect a stale
+    // product the visitor did not ask for (founder, 2026-10-31).
+    if (urlParams.get('fresh') === '1') return;
     
     // Check for pool builder scene data
     const fromBuilder = urlParams.get('fromBuilder');
@@ -723,7 +749,7 @@ const WonderlandsStudio = () => {
       setSelectedProduct(foundProduct);
       setLeftSidebarCollapsed(false);
     }
-  }, []);
+  }, [location.search]);
 
   // Scene rooms from Belgard Studio
   const sceneRooms = [{
@@ -822,10 +848,10 @@ const WonderlandsStudio = () => {
     }]
   };
 
-  // Get filtered products based on active tab
-  const getFilteredProducts = () => {
+  // Product list for one Studio category tab (unfiltered)
+  const buildProductsForTab = (tab: string) => {
     let products: Product[] = [];
-    switch (activeTab) {
+    switch (tab) {
       case 'pools':
         products = [...pools.map(pool => ({
           ...pool,
@@ -970,11 +996,98 @@ const WonderlandsStudio = () => {
         products = [];
         break;
     }
-    if (searchQuery) {
-      products = products.filter(product => (product.model || product.name || '').toLowerCase().includes(searchQuery.toLowerCase()));
-    }
     return products;
   };
+
+  // Get filtered products based on active tab
+  const getFilteredProducts = () => {
+    const all = buildProductsForTab(activeTab);
+    if (searchQuery) {
+      return all.filter(product => (product.model || product.name || '').toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+    return all;
+  };
+
+  // Studio header search is PRODUCT SEARCH ONLY (founder, 2026-11-01):
+  // no Genius in it at all. A picked search result opens THAT product's
+  // stage directly from the Studio's own product data — previously the
+  // search navigated to ?model=… on the already-open Studio, nothing
+  // re-read the params, and the stage never changed.
+  const openProductFromSearch = (name: string) => {
+    for (const cat of STUDIO_CATEGORIES) {
+      const hit = buildProductsForTab(cat.value).find(
+        p => (p.model || p.name || '').toLowerCase() === name.toLowerCase(),
+      );
+      if (hit) {
+        setActiveTab(cat.value as typeof activeTab);
+        setSelectedProduct(hit);
+        if (hit.type) {
+          setSelectedExtras(getDefaultExtras(hit.type as ProductType));
+        }
+        setLeftSidebarCollapsed(false);
+        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+        return;
+      }
+    }
+    // Not a Studio product (e.g. a tile or heater from the search
+    // index): filter the product browser to the name instead.
+    setSearchQuery(name);
+    setSelectedProduct(null);
+  };
+
+  // The Studio search index — built from the Studio's OWN category
+  // product data (the same lists the product browser shows), so a
+  // suggestion is always a product the Studio can actually open.
+  // (The shared AdvancedSearch index is a separate, older list — it
+  // never contained e.g. the Latham spa models the Studio sells.)
+  const studioSearchIndex = React.useMemo<StudioSearchItem[]>(() => {
+    const seen = new Set<string>();
+    const out: StudioSearchItem[] = [];
+    for (const cat of STUDIO_CATEGORIES) {
+      for (const p of buildProductsForTab(cat.value)) {
+        const name = p.model || p.name;
+        if (!name) continue;
+        const key = `${p.type}:${name}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({
+          name,
+          category: getProductCategoryLabel(p, cat.value) || cat.label,
+          price: getProductPrice(p),
+          image: p.image,
+        });
+      }
+    }
+    return out;
+    // The catalog data behind buildProductsForTab is static module data
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Pool Coping (founder, 2026-11-01): the Studio deck configuration
+  // carries a coping section. DEFAULT = coping is the SAME as the deck
+  // (linked — no separate menu, no separate charge). Unlinking lets a
+  // different coping be chosen independently from the existing coping
+  // options (copingTypes in paverData — the same options and per-sq-ft
+  // prices as the Big Showcase coping group; nothing invented). An
+  // independent coping is priced on the pool's perimeter as a 1-ft
+  // band — the same estimate basis the showcase uses.
+  const copingLinked = selectedExtras.copingLinked !== false;
+  const selectedCopingType = copingTypes.find(c => c.name === selectedExtras.copingPaverOption);
+  const copingBandSqFt = (product: Product | null) => {
+    // Catalog dimensions use the Unicode prime (8′ × 14′) as often as
+    // the ASCII apostrophe — accept both or the band silently reads 0.
+    const m = (product?.dimensions || '').match(/(\d+\.?\d*)\s*(?:['′’″"]|ft|feet)?\s*[x×]\s*(\d+\.?\d*)/i);
+    if (!m) return 0;
+    const w = parseFloat(m[1]);
+    const l = parseFloat(m[2]);
+    if (!(w > 0 && l > 0)) return 0;
+    return Math.round(2 * (w + l));
+  };
+  const copingCost = () => {
+    if (copingLinked || !selectedCopingType || !selectedProduct) return 0;
+    const band = copingBandSqFt(selectedProduct);
+    return band > 0 ? Math.round(selectedCopingType.basePrice * band) : 0;
+  };
+
   const calculateTotalPrice = () => {
     if (!selectedProduct) return 0;
 
@@ -1034,6 +1147,10 @@ const WonderlandsStudio = () => {
       ) {
         total += calculatePaverCost(areaStr, selectedExtras.paverOption);
       }
+
+      // Independent coping (unlinked from the deck) — perimeter band
+      const independentCoping = copingCost();
+      if (independentCoping > 0) total += independentCoping;
 
       if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) {
         const quality = (selectedExtras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard';
@@ -1106,6 +1223,8 @@ const WonderlandsStudio = () => {
     // Pavers: must be checked AND have valid option AND have area > 0
     const paverArea = parseFloat(selectedExtras.paverSurfaceArea || paverSurfaceArea);
     if (selectedExtras.pavers && selectedExtras.paverOption && selectedExtras.paverOption !== 'Concrete Deck' && selectedExtras.paverOption !== 'None' && selectedExtras.paverOption !== '' && !isNaN(paverArea) && paverArea > 0) count++;
+    // Coping: only counts when unlinked from the deck with its own type
+    if (copingCost() > 0) count++;
     // Screen Enclosure: must have quality AND area > 0
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureQuality && selectedExtras.screenEnclosureArea > 0) count++;
     // Concrete Construction: simple boolean
@@ -1136,6 +1255,9 @@ const WonderlandsStudio = () => {
         break;
       case 'finish':
         newExtras.finish = 'None';
+        break;
+      case 'coping':
+        newExtras.copingPaverOption = '';
         break;
       case 'heater':
         newExtras.heater = false;
@@ -1335,6 +1457,15 @@ const WonderlandsStudio = () => {
         name: `${selectedExtras.paverOption} (${paverAreaStr} sq ft @ $${pricePerSqFt}/sqft)`,
         price: calculatePaverCost(paverAreaStr, selectedExtras.paverOption),
         image: selectedPaver?.image || '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp',
+      });
+    }
+
+    // Add independent coping (unlinked from the deck)
+    if (selectedCopingType && copingCost() > 0) {
+      extrasBreakdown.push({
+        name: `${selectedCopingType.name} (${copingBandSqFt(selectedProduct)} sq ft @ $${selectedCopingType.basePrice}/sqft)`,
+        price: copingCost(),
+        image: selectedCopingType.image || '/media/08c51883-4e87-4344-b773-ec0a6d575b54.webp',
       });
     }
 
@@ -1582,6 +1713,15 @@ const WonderlandsStudio = () => {
         name: `${selectedExtras.paverOption} (${paverAreaStr} sq ft)`,
         key: 'pavers',
         price: calculatePaverCost(paverAreaStr, selectedExtras.paverOption),
+      });
+    }
+
+    // Add independent coping (unlinked from the deck)
+    if (selectedCopingType && copingCost() > 0) {
+      extrasArray.push({
+        name: `${selectedCopingType.name} (${copingBandSqFt(selectedProduct)} sq ft)`,
+        key: 'coping',
+        price: copingCost(),
       });
     }
 
@@ -1954,7 +2094,7 @@ const WonderlandsStudio = () => {
 
             {/* AI Search — in-flow in the header */}
             <div className="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1 sm:max-w-xl sm:mx-auto">
-              <AdvancedSearch variant="slim" />
+              <StudioProductSearch products={studioSearchIndex} onSelect={(item) => openProductFromSearch(item.name)} />
             </div>
           </div>
         </div>
@@ -3438,6 +3578,81 @@ const WonderlandsStudio = () => {
                           </div>
                         </div>
 
+                        {/* Pool Coping — linked to the deck by default; unlink
+                            to choose an independent coping from the existing
+                            coping options (founder, 2026-11-01) */}
+                        <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                          <div className="flex items-center justify-between gap-3">
+                            <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Pool Coping</h4>
+                            <label className="flex shrink-0 cursor-pointer items-center gap-2">
+                              <Checkbox
+                                checked={copingLinked}
+                                onCheckedChange={(checked) =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    copingLinked: checked === true,
+                                  }))
+                                }
+                              />
+                              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Same as deck pavers</span>
+                            </label>
+                          </div>
+                          {copingLinked ? (
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                              Coping matches your deck selection{selectedExtras.paverOption ? <>: <span className="font-medium text-zinc-700 dark:text-zinc-200">{selectedExtras.paverOption}</span></> : ''} — included with the deck. Untick the link to choose a different coping.
+                            </p>
+                          ) : (
+                            <>
+                              <Carousel
+                                className="w-full"
+                                opts={{
+                                  align: "start",
+                                  loop: false,
+                                  duration: 25,
+                                }}
+                              >
+                                <CarouselContent className="-ml-1">
+                                  {copingTypes.map((coping) => (
+                                    <CarouselItem key={coping.id} className="pl-1 basis-1/2 md:basis-1/4">
+                                      <div
+                                        className={`p-3 border rounded-2xl cursor-pointer transition-all hover:shadow-md h-full flex flex-col bg-white dark:bg-zinc-900 ${selectedExtras.copingPaverOption === coping.name ? "ring-1 ring-zinc-900 bg-zinc-50 border-zinc-900 dark:ring-zinc-50 dark:bg-zinc-800" : "border-black/5 dark:border-white/10"}`}
+                                        onClick={() =>
+                                          setSelectedExtras((prev: any) => ({
+                                            ...prev,
+                                            copingPaverOption: coping.name,
+                                          }))
+                                        }
+                                      >
+                                        <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                          <img loading="lazy" decoding="async"
+                                            src={coping.image}
+                                            alt={coping.name}
+                                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                          />
+                                        </div>
+                                        <div className="flex flex-col gap-0.5">
+                                          <p className="text-xs font-medium text-center truncate">{coping.name}</p>
+                                          <p className="text-sm font-medium text-center text-zinc-500 tabular-nums dark:text-zinc-400">
+                                            ${coping.basePrice}/sq ft
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="left-0 animate-pulse" />
+                                <CarouselNext className="right-0 animate-pulse" />
+                              </Carousel>
+                              {selectedCopingType && copingBandSqFt(selectedProduct) > 0 && (
+                                <div className="text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
+                                  Calculated Cost: ${copingCost().toLocaleString()} (perimeter band ≈ {copingBandSqFt(selectedProduct)} sq ft × ${selectedCopingType.basePrice}/sq ft)
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+
                         {/* Screen Enclosure */}
                         <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                           <h4 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Screen Enclosure</h4>
@@ -3665,26 +3880,41 @@ const WonderlandsStudio = () => {
                     </>)}
 
 
-                    <Separator />
-
-                    {/* Action Buttons */}
-                    <InstallationNote className="mb-2" />
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                      <Button onClick={handleQuoteRequest} className="flex-1 instant-quote-btn text-xs sm:text-sm transition-all duration-300">
-                        <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                        <span className="truncate">Instant Quote</span>
-                      </Button>
-                      <Button onClick={handleAddToCart} variant="outline" size="icon" className="w-10 h-10">
-                        <ShoppingCart className="h-4 w-4" />
-                      </Button>
-                      <StripeCheckoutButton 
-                        productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 
-                        productName={selectedProduct.model || selectedProduct.name || 'Product'} 
-                        price={calculateTotalPrice()} 
-                        variant="default" 
-                        className="flex-1 text-xs sm:text-sm" 
-                      />
+                    {/* Bottom action section — Studio format system
+                        (founder, 2026-11-01): page font throughout (the
+                        old eyebrow/instant-quote-btn classes used a
+                        mismatched 10px wide-tracked uppercase), hairline
+                        section card, black pill buttons, clean mobile
+                        stacking. Presentation only — the quote, cart and
+                        checkout handlers and prices are unchanged, and
+                        SurveyQuoteTool is untouched. */}
+                    <div className="space-y-4 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        Price includes installation at your home address
+                      </p>
+                      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+                        <Button onClick={handleQuoteRequest} className="h-11 flex-1 rounded-full bg-zinc-900 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200">
+                          <Download className="mr-2 h-4 w-4" />
+                          Instant Quote
+                        </Button>
+                        <Button onClick={handleAddToCart} variant="outline" className="h-11 rounded-full px-5 text-sm font-medium">
+                          <ShoppingCart className="mr-2 h-4 w-4" />
+                          Add to Cart
+                        </Button>
+                        <div className="flex-1 [&>div]:w-full [&_button]:w-full">
+                          <StripeCheckoutButton
+                            productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`}
+                            productName={selectedProduct.model || selectedProduct.name || 'Product'}
+                            price={calculateTotalPrice()}
+                            variant="default"
+                            className="h-11 rounded-full text-sm font-medium"
+                          />
+                        </div>
+                      </div>
                     </div>
+                    {/* Clearance so the section never hides under the
+                        floating Order Desk pill on small screens */}
+                    <div className="h-14 lg:hidden" />
                    </CardContent>
                  </Card>
               </motion.div> : <StudioLandingCanvas
