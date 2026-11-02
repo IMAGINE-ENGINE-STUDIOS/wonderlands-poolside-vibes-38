@@ -165,12 +165,14 @@ export function productToScene(
     if (modelShape) {
       // Use predefined shape from library, scaled to actual dimensions
       // The shape library stores points in their natural dimensions
-      // We scale them to match the product's actual dimensions
+      // We scale them to match the product's actual dimensions.
+      // True-geometry entries (measured from the manufacturer's engineering
+      // sheet) are used exactly as stored — rescaling would un-true them.
       const shapeWidth = Math.max(...modelShape.points.map(p => p.x));
       const shapeLength = Math.max(...modelShape.points.map(p => p.y));
-      
-      const scaleX = width / shapeWidth;
-      const scaleY = length / shapeLength;
+
+      const scaleX = modelShape.trueGeometry ? 1 : width / shapeWidth;
+      const scaleY = modelShape.trueGeometry ? 1 : length / shapeLength;
       
       poolPoints = modelShape.points.map((pt, idx) => ({
         x: pt.x * scaleX,
@@ -197,6 +199,16 @@ export function productToScene(
     // Use depth profile from 2D designer
     depthPoints = selectedExtras.depthProfile;
   } else if (modelShape?.depthAnchors && modelShape.depthAnchors.length >= 2) {
+    if (modelShape.trueGeometry) {
+      // True-geometry entries carry the manufacturer's measured depths —
+      // use the anchors verbatim instead of rescaling them into the
+      // product's printed depth range.
+      depthPoints = modelShape.depthAnchors.map((anchor, idx) => ({
+        position: anchor.position,
+        depth: anchor.depth,
+        id: `d${idx + 1}`
+      }));
+    } else {
     // Use model-specific depth anchors scaled to product depth range
     const modelAnchors = modelShape.depthAnchors;
     const modelMinDepth = Math.min(...modelAnchors.map(a => a.depth));
@@ -206,14 +218,15 @@ export function productToScene(
     depthPoints = modelAnchors.map((anchor, idx) => {
       const normalizedDepth = (anchor.depth - modelMinDepth) / modelDepthRange;
       const scaledDepth = shallowEndDepth + normalizedDepth * (deepEndDepth - shallowEndDepth);
-      
+
       return {
         position: anchor.position,
         depth: scaledDepth,
         id: `d${idx + 1}`
       };
     });
-    
+    }
+
   } else {
     depthPoints = [
       { position: 0, depth: shallowEndDepth, id: 'd1' },
