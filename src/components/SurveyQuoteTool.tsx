@@ -23,7 +23,7 @@ import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
 import { quoteLineImage, CUSTOM_POOL_IMAGE } from "@/lib/design/sceneQuoteCatalog";
-import { unionContractLines, splitEquipFeat, openContractPage, stashQuoteLinesForInvoice } from "@/lib/contractLink";
+import { unionContractLines, splitEquipFeat, openContractPage, stashQuoteLinesForInvoice, contractLineKey } from "@/lib/contractLink";
 /** Pool-type products (case-insensitive: studios send "pool"). */
 const isPoolType = (t?: string) => ["pool", "spa", "tanning ledge"].includes(String(t || "").toLowerCase());
 import { DEFAULT_SOLAR_INPUTS, linesTotal, lineTotal, type SolarQuoteInputs, type SolarQuoteLine } from "@/lib/solar/solarQuote";
@@ -369,7 +369,13 @@ const SurveyQuoteTool = ({
       });
       customItems.forEach((ci: any) => add(ci.name || 'Custom Item', Number(ci.price) || 0, ci.image || null));
     }
-    return items;
+    // Never list the same finish/product twice: when an item appears both as
+    // a $0 standard/included line and as a priced selected extra (e.g. the
+    // standard finish pre-selected at $0 while the same finish is bought as a
+    // priced extra), keep only the priced line. Dropped lines are $0, so the
+    // quote total does not change.
+    const pricedKeys = new Set(items.filter((it) => (Number(it.total) || 0) > 0).map((it) => contractLineKey(it.description)));
+    return items.filter((it) => (Number(it.total) || 0) > 0 || !pricedKeys.has(contractLineKey(it.description)));
   };
 
   const handleDownloadPDF = async () => {
@@ -958,6 +964,7 @@ const SurveyQuoteTool = ({
       clientName: surveyData.name,
       clientEmail: surveyData.email,
       projectAddress: surveyData.address,
+      clientAddress: surveyData.address,
       proposalDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       contractPrice: `$${Math.round(Number(total) || 0).toLocaleString()}`,
       equip,
