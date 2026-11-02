@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, Send, Edit2, Save, X, Plus, Trash2, Lock } from "lucide-react";
+import { ArrowLeft, Printer, Send, Edit2, Save, X, Plus, Trash2, Lock, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { unionContractLines, splitEquipFeat, openContractPage, readStashedQuoteLines } from "@/lib/contractLink";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -149,6 +150,26 @@ const InvoiceDetailPage = () => {
       });
       window.print();
     }
+  };
+  // Additive only: opens the standalone contract page (public/contract.html)
+  // pre-filled from the UNION of both documents — the originating quote's
+  // lines (stashed under this invoice's id when it was generated) and this
+  // invoice's lines — deduplicated, invoice quantity winning on a shared
+  // item. Reads state; changes nothing.
+  const handleCreateContract = () => {
+    if (!invoice) return;
+    const { lines } = unionContractLines(readStashedQuoteLines(invoice.id), invoice.line_items || []);
+    const { equip, feat } = splitEquipFeat(lines);
+    openContractPage({
+      clientName: invoice.customer_name,
+      clientEmail: invoice.customer_email,
+      projectAddress: invoice.customer_address,
+      proposalNo: invoice.invoice_number,
+      proposalDate: new Date(invoice.invoice_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      contractPrice: `$${Math.round(Number(invoice.total_amount) || 0).toLocaleString()}`,
+      equip,
+      feat,
+    });
   };
   const handleSendEmail = async () => {
     if (!invoice) return;
@@ -340,6 +361,10 @@ const InvoiceDetailPage = () => {
               <Button onClick={handlePrint}>
                 <Printer className="h-4 w-4 mr-2" />
                 Print
+              </Button>
+              <Button onClick={handleCreateContract} variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                Create Contract
               </Button>
             </>
           )}

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wonderlands World — Construction Services Agreement</title>
+<style>
+  :root { --ink:#1c2430; --accent:#0e7a5f; --line:#c9ced6; --paper:#ffffff; --bg:#e9edf1; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+  .toolbar { position:sticky; top:0; z-index:50; background:#10231d; color:#fff; padding:10px 14px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-family: -apple-system, 'Segoe UI', Arial, sans-serif; }
+  .toolbar .brand { font-weight:700; letter-spacing:.02em; margin-right:auto; font-size:15px; }
+  .toolbar button { background:#ffffff; color:#10231d; border:0; border-radius:8px; padding:9px 14px; font-size:14px; font-weight:600; cursor:pointer; }
+  .toolbar button.primary { background:#19b586; color:#06251c; }
+  .toolbar button[aria-pressed="true"] { background:#f4b740; color:#3a2703; }
+  .toolbar button:disabled { opacity:.45; cursor:not-allowed; }
+  .pill { font-size:12px; font-weight:700; padding:5px 10px; border-radius:999px; background:#5b6b62; color:#fff; }
+  .pill.signed { background:#19b586; color:#06251c; }
+  .hint { width:100%; font-size:13px; color:#cfe6dc; display:none; }
+  .hint.on { display:block; }
+  .page { background:var(--paper); max-width:820px; margin:22px auto; padding:56px 60px; box-shadow:0 4px 24px rgba(0,0,0,.18); line-height:1.55; font-size:15.5px; }
+  .page h1 { font-size:21px; text-align:center; margin:0 0 4px; letter-spacing:.04em; }
+  .page h2 { font-size:16px; margin:26px 0 8px; }
+  .page p { margin:8px 0; }
+  .page ul { margin:6px 0 10px 20px; padding:0; }
+  .page li { margin:4px 0; }
+  .center { text-align:center; }
+  .statute { font-weight:bold; text-transform:uppercase; font-size:14.5px; line-height:1.6; }
+  .rule { border:0; border-top:2px solid var(--ink); margin:18px 0; }
+  .blank { display:inline-block; min-width:170px; border-bottom:1px solid var(--ink); padding:0 4px; }
+  .blank.short { min-width:80px; }
+  .siggrid { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:10px; }
+  .sigblock .sigline { border-bottom:1px solid var(--ink); min-height:44px; display:flex; align-items:flex-end; }
+  .sigblock img.sigimg { max-height:52px; max-width:100%; }
+  .sigblock .lbl { font-size:13px; color:#444; margin-top:4px; }
+  .typed-sig { font-family:'Segoe Script','Brush Script MT',cursive; font-size:26px; }
+  .stamp { display:none; border:2px solid var(--accent); color:var(--accent); border-radius:8px; padding:10px 14px; margin:18px 0; font-family:-apple-system,'Segoe UI',Arial,sans-serif; font-weight:700; font-size:14px; }
+  .stamp.on { display:block; }
+  .panel { background:var(--paper); max-width:820px; margin:0 auto 30px; padding:22px 26px; box-shadow:0 4px 24px rgba(0,0,0,.12); font-family:-apple-system,'Segoe UI',Arial,sans-serif; border-radius:10px; }
+  .panel h2 { margin:0 0 6px; font-size:18px; }
+  .panel label { display:block; font-size:13px; font-weight:600; margin:12px 0 5px; }
+  .panel input[type="text"] { width:100%; padding:10px; font-size:16px; border:1px solid var(--line); border-radius:8px; }
+  #pad { width:100%; height:170px; border:2px dashed #9db3aa; border-radius:10px; touch-action:none; background:#fbfdfc; cursor:crosshair; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .row button { padding:10px 16px; font-size:14px; font-weight:600; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  .row button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .check { display:flex; gap:8px; align-items:flex-start; font-size:13.5px; margin-top:12px; }
+  body.editing .page { outline:3px solid #f4b740; }
+  @media print {
+    body { background:#fff; }
+    .toolbar, .panel, .hint { display:none !important; }
+    .page { box-shadow:none; margin:0; max-width:none; padding:24px 10px; }
+    body.editing .page { outline:none; }
+  }
+  @media (max-width:640px){ .page{ padding:30px 20px; } .siggrid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span class="brand">Wonderlands World — Construction Services Agreement</span>
+  <span class="pill" id="statusPill">DRAFT</span>
+  <button id="editBtn" aria-pressed="false">✎ Edit mode</button>
+  <button id="signBtn" class="primary">Sign the contract</button>
+  <button id="printBtn">Print / Save PDF</button>
+  <button id="dlBtn">Download copy</button>
+  <span class="hint" id="editHint">Edit mode is ON — click any text in the document to change it. Turn Edit mode off before signing.</span>
+</div>
+
+<div class="page" id="doc">
+  <h1>STANDARD CONSTRUCTION SERVICES AGREEMENT</h1>
+  <p class="center">Wonderlands World Experience LLC</p>
+  <hr class="rule">
+  <p>This Construction Services Agreement (the “Agreement”) is entered into as of <span class="blank short" data-field="effectiveDate">__________</span> (the “Effective Date”), by and between:</p>
+  <p><strong>Wonderlands World Experience LLC</strong>, a Florida limited liability company (the “Contractor”), address: <span class="blank" data-field="contractorAddress">______________________________</span>, email: <span class="blank" data-field="contractorEmail">______________________________</span>, and</p>
+  <p><strong><span class="blank" data-field="clientName">______________________________</span></strong> (the “Client”), address: <span class="blank" data-field="clientAddress">______________________________</span>, email: <span class="blank" data-field="clientEmail">______________________________</span>.</p>
+  <p><strong>Project Address:</strong> <span class="blank" data-field="projectAddress">______________________________</span>, Florida (the “Project”).</p>
+  <hr class="rule">
+  <h2 class="center">REQUIRED DISCLOSURES</h2>
+  <p class="statute">ACCORDING TO FLORIDA’S CONSTRUCTION LIEN LAW (SECTIONS 713.001-713.37, FLORIDA STATUTES), THOSE WHO WORK ON YOUR PROPERTY OR PROVIDE MATERIALS AND SERVICES AND ARE NOT PAID IN FULL HAVE A RIGHT TO ENFORCE THEIR CLAIM FOR PAYMENT AGAINST YOUR PROPERTY. THIS CLAIM IS KNOWN AS A CONSTRUCTION LIEN. IF YOUR CONTRACTOR OR A SUBCONTRACTOR FAILS TO PAY SUBCONTRACTORS, SUB-SUBCONTRACTORS, OR MATERIAL SUPPLIERS, THOSE PEOPLE WHO ARE OWED MONEY MAY LOOK TO YOUR PROPERTY FOR PAYMENT, EVEN IF YOU HAVE ALREADY PAID YOUR CONTRACTOR IN FULL. IF YOU FAIL TO PAY YOUR CONTRACTOR, YOUR CONTRACTOR MAY ALSO HAVE A LIEN ON YOUR PROPERTY. THIS MEANS IF A LIEN IS FILED YOUR PROPERTY COULD BE SOLD AGAINST YOUR WILL TO PAY FOR LABOR, MATERIALS, OR OTHER SERVICES THAT YOUR CONTRACTOR OR A SUBCONTRACTOR MAY HAVE FAILED TO PAY. TO PROTECT YOURSELF, YOU SHOULD STIPULATE IN THIS CONTRACT THAT BEFORE ANY PAYMENT IS MADE, YOUR CONTRACTOR IS REQUIRED TO PROVIDE YOU WITH A WRITTEN RELEASE OF LIEN FROM ANY PERSON OR COMPANY THAT HAS PROVIDED TO YOU A “NOTICE TO OWNER.” FLORIDA’S CONSTRUCTION LIEN LAW IS COMPLEX, AND IT IS RECOMMENDED THAT YOU CONSULT AN ATTORNEY.</p>
+  <p>Owner acknowledges receipt of the notice above:</p>
+  <p>Owner signature: <span class="blank">______________________________</span> Date: <span class="blank short">______________</span></p>
+  <p class="statute">FLORIDA HOMEOWNERS’ CONSTRUCTION RECOVERY FUND</p>
+  <p class="statute">PAYMENT, UP TO A LIMITED AMOUNT, MAY BE AVAILABLE FROM THE FLORIDA HOMEOWNERS’ CONSTRUCTION RECOVERY FUND IF YOU LOSE MONEY ON A PROJECT PERFORMED UNDER CONTRACT, WHERE THE LOSS RESULTS FROM SPECIFIED VIOLATIONS OF FLORIDA LAW BY A LICENSED CONTRACTOR. FOR INFORMATION ABOUT THE RECOVERY FUND AND FILING A CLAIM, CONTACT THE FLORIDA CONSTRUCTION INDUSTRY LICENSING BOARD AT THE FOLLOWING TELEPHONE NUMBER AND ADDRESS:</p>
+  <p>Florida Construction Industry Licensing Board<br>2601 Blair Stone Road, Tallahassee, Florida 32399-1039<br>Telephone: (850) 487-1395</p>
+  <hr class="rule">
+  <h2>1. Services to Be Provided</h2>
+  <p><strong>1.1 General Services.</strong> Wonderlands World Experience LLC (“Contractor”) shall act as the primary contracting entity and project manager for the Project. Contractor may perform services directly and/or subcontract certain portions of the work as necessary.</p>
+  <p><strong>1.2 Licensed Subcontractor.</strong> Client acknowledges and agrees that Tech Terra Corp, a duly registered and licensed contractor, Florida License No. <span class="blank short" data-field="licenseNo">____________</span> (the “Subcontractor”), may be engaged by Contractor to perform any portions of the Project that require a professional or trade license under applicable law. For all portions of the Project that require a license under Chapter 489, Florida Statutes, Subcontractor shall be the contractor of record. The selection, coordination, and supervision of the Subcontractor shall remain the sole responsibility of Contractor.</p>
+  <p><strong>1.3 No Privity.</strong> Nothing in this Agreement shall be construed to create any contractual relationship, privity, or obligation between Client and any subcontractor. All communications, payments, claims, and obligations shall be directed solely to Contractor.</p>
+  <p><strong>1.4 Design and Permits.</strong> Upon execution of this Agreement and receipt of the required deposit, Contractor shall coordinate preparation of plans and submit required permit applications to the applicable authorities. Permit approval timelines are estimates only and subject to governmental processes beyond Contractor’s control.</p>
+  <p><strong>1.5 Construction Services.</strong> Contractor shall furnish or coordinate all labor, materials, tools, and equipment necessary to complete the Project in accordance with approved plans, applicable building codes, and industry standards.</p>
+  <p><strong>1.6 Site Conditions and Access.</strong> Client shall provide uninterrupted access to the property during normal working hours. Any abnormal or unforeseen site conditions — including but not limited to underground obstructions, utilities, water table issues, soil conditions, or environmental factors — shall be the financial responsibility of the Client and may require additional charges, handled as a change order under Section 2.2.</p>
+  <p><strong>1.7 Environmental and Weather Delays.</strong> Project timelines exclude delays caused by weather, unsafe conditions, acts of God, or other circumstances beyond Contractor’s reasonable control.</p>
+
+  <h2>2. Project Scope</h2>
+  <p><strong>2.1 Scope and Incorporated Proposal.</strong> The Project consists of the work described in Contractor’s Proposal No. <span class="blank short" data-field="proposalNo">__________</span> dated <span class="blank short" data-field="proposalDate">__________</span>, which is attached to and incorporated into this Agreement as <strong>Exhibit A</strong>, together with the following scope summary:</p>
+  <p><span class="blank" data-field="scopeSummary" style="min-width:90%">_______________________________________________________________________________________</span></p>
+  <p>Equipment:</p>
+  <ul data-field="equipmentList">
+    <li>_______________________________________</li>
+    <li>_______________________________________</li>
+    <li>_______________________________________</li>
+    <li>_______________________________________</li>
+  </ul>
+  <p>Features:</p>
+  <ul data-field="featuresList">
+    <li>_______________________________________</li>
+    <li>_______________________________________</li>
+    <li>_______________________________________</li>
+    <li>_______________________________________</li>
+  </ul>
+  <p>If there is any conflict between this Section 2.1 and Exhibit A, Exhibit A controls for scope and price.</p>
+  <p><strong>2.2 Changes to Scope.</strong> Any item, service, material, feature, upgrade, revision, or work not expressly included in the approved Project scope shall be considered outside the scope of this Agreement and shall be charged separately. All out-of-scope items require a written change order signed by Client before the work is performed. Each change order will state a fixed price for the additional work and any resulting time extension. Contractor shall have no obligation to perform out-of-scope work until the change order is signed and payment for such work is agreed upon and received, if required.</p>
+
+  <h2>3. Payment Terms</h2>
+  <p><strong>3.1 Contract Price.</strong> The total contract price shall be defined in the approved proposal or scope document. <span data-field="priceLine">Total contract price: <span class="blank short" data-field="contractPrice">__________</span>.</span></p>
+  <p><strong>3.2 Payment Schedule.</strong> Payments shall be made in the following fixed installments, unless otherwise agreed in writing:</p>
+  <ul>
+    <li>Initial Deposit: Thirty percent (30%) of the total contract price due upon execution of this Agreement.</li>
+    <li>Second Payment: Thirty percent (30%) due upon permit approval and prior to commencement of major construction activities.</li>
+    <li>Third Payment: Thirty percent (30%) due upon substantial progress of construction, as determined by Contractor.</li>
+    <li>Final Payment: Ten percent (10%) due immediately upon final inspection approval or substantial completion, whichever occurs first.</li>
+  </ul>
+  <p>All payments are due the same day invoiced and are a condition precedent to Contractor’s obligation to continue work.</p>
+
+  <h2>4. Termination</h2>
+  <p><strong>4.1 Termination for Nonpayment.</strong> If Client fails to make timely payment, Contractor may immediately suspend work. If payment is not received within ten (10) calendar days of written notice, this Agreement shall be automatically terminated. Upon termination for nonpayment:</p>
+  <ul>
+    <li>Contractor shall have no further obligation to perform services.</li>
+    <li>Contractor may retain amounts already paid only to the extent of (a) the value of work performed up to termination, (b) costs incurred up to termination, and (c) damages resulting from the termination as provided in Section 4.2. Any amount paid beyond (a), (b), and (c) shall be refunded to Client within thirty (30) days of termination.</li>
+    <li>Client remains responsible for any work completed and costs incurred up to termination, and for any balance of (a), (b), and (c) not covered by amounts already paid.</li>
+  </ul>
+  <p><strong>4.2 Termination by Client.</strong> Client may cancel this Agreement at any time by written notice. Upon cancellation, Client shall pay Contractor: (a) the value of all work performed through the cancellation date; (b) all costs incurred through the cancellation date, including materials ordered, permit and design costs, and subcontractor commitments that cannot reasonably be cancelled; and (c) Contractor’s damages resulting from the cancellation. No fixed cancellation fee or percentage applies. Amounts already paid will be credited against (a), (b), and (c); any excess paid beyond those amounts shall be refunded to Client within thirty (30) days of cancellation, and any shortfall shall be due within ten (10) days of Contractor’s final accounting.</p>
+  <p><strong>4.3 Effect of Termination.</strong> Termination does not waive Contractor’s right to collect outstanding balances, enforce lien rights, or pursue legal remedies.</p>
+
+  <h2>5. Client Responsibilities</h2>
+  <ul>
+    <li>Provide accurate property information, surveys, and approvals as required.</li>
+    <li>Ensure timely payments.</li>
+    <li>Obtain any required homeowners’ association or community approvals for the Project before construction begins.</li>
+    <li>Indemnify Contractor against claims arising from Client’s property, utilities, or third-party disputes.</li>
+  </ul>
+
+  <h2>6. Subcontractor Requirements</h2>
+  <p>Contractor shall require every subcontractor engaged on the Project, including the Subcontractor named in Section 1.2, to:</p>
+  <ul>
+    <li>(a) indemnify and hold harmless Contractor and Client from and against claims, damages, and expenses arising out of that subcontractor’s own work;</li>
+    <li>(b) carry commercial general liability insurance and workers’ compensation insurance as required by Florida law, in commercially reasonable limits;</li>
+    <li>(c) name Contractor as an additional insured on its general liability policy and deliver certificates of insurance to Contractor before beginning work; and</li>
+    <li>(d) comply with all terms of this Agreement applicable to its portion of the work.</li>
+  </ul>
+
+  <h2>7. Warranties</h2>
+  <ul>
+    <li><strong>Workmanship Warranty:</strong> Contractor warrants its workmanship for a period of one (1) year from final inspection approval, or such longer period as is stated in the project proposal. During the warranty period, Contractor shall repair or correct any defect in its workmanship at no charge to Client, upon written notice from Client.</li>
+    <li><strong>Manufacturer Warranties:</strong> Equipment and materials are subject to manufacturer warranties only, which Contractor shall pass through to Client to the extent assignable.</li>
+  </ul>
+
+  <h2>8. Limitation of Liability</h2>
+  <p>Contractor’s total liability shall not exceed the amount actually paid by Client. The contractor shall not be liable for indirect, incidental, or consequential damages.</p>
+
+  <h2>9. Miscellaneous</h2>
+  <ul>
+    <li><strong>Lien Rights:</strong> Contractor reserves all statutory lien rights in the event of nonpayment.</li>
+    <li><strong>Force Majeure:</strong> Contractor shall not be liable for delays caused by events beyond its control.</li>
+    <li><strong>Governing Law:</strong> Florida law governs this Agreement.</li>
+    <li><strong>Dispute Resolution:</strong> In the event of any dispute, claim, or controversy arising out of or relating to this Agreement, the parties agree to first attempt to resolve the matter through good-faith mediation conducted by a Florida Supreme Court certified circuit civil mediator located in the county where the Project is located. Mediation shall be a mandatory condition precedent to litigation. If mediation does not resolve the dispute, either party may file suit exclusively in the state courts of the county where the Project is located, and the parties consent to that venue and jurisdiction. The prevailing party in any litigation arising out of this Agreement shall be entitled to recover its reasonable attorneys’ fees and costs from the non-prevailing party.</li>
+    <li><strong>Notices:</strong> All notices under this Agreement must be in writing and are effective when delivered by hand, by nationally recognized courier, or by email with written confirmation of receipt, to the addresses stated at the beginning of this Agreement (or to a replacement address given under this clause).</li>
+    <li><strong>Severability:</strong> If any provision of this Agreement is held unenforceable, the remaining provisions continue in full force and effect.</li>
+    <li><strong>Assignment:</strong> Client may not assign this Agreement without Contractor’s written consent. Contractor may assign this Agreement to a successor of its business without consent, provided the assignee assumes Contractor’s obligations.</li>
+    <li><strong>Waiver:</strong> No waiver of any provision of this Agreement is effective unless in writing, and no waiver of one provision or instance waives any other.</li>
+    <li><strong>Electronic Signatures; Counterparts:</strong> This Agreement may be executed in counterparts, each of which is an original. Electronic and digital signatures are binding to the same extent as handwritten signatures, as permitted by the Florida Uniform Electronic Transaction Act (Section 668.50, Florida Statutes).</li>
+    <li><strong>Entire Agreement:</strong> This Agreement, including Exhibit A, constitutes the entire understanding between the parties and supersedes all prior agreements.</li>
+  </ul>
+  <p><strong>Home solicitation note:</strong> If this Agreement is signed at Client’s home and qualifies as a home solicitation sale under applicable law, Client may cancel this Agreement within three (3) business days after signing by giving written notice to Contractor.</p>
+
+  <div class="stamp" id="signedStamp"></div>
+
+  <h2>Signatures</h2>
+  <div class="siggrid">
+    <div class="sigblock">
+      <p><strong>Contractor: Wonderlands World Experience LLC</strong></p>
+      <div class="sigline" id="contractorSigSlot"></div>
+      <div class="lbl">Signature</div>
+      <p>Name: <span class="blank">______________________________</span></p>
+      <p>Title: <span class="blank">______________________________</span></p>
+      <p>Date: <span class="blank short">______________</span></p>
+    </div>
+    <div class="sigblock">
+      <p><strong>Client</strong></p>
+      <div class="sigline" id="clientSigSlot"></div>
+      <div class="lbl">Signature</div>
+      <p>Name: <span id="clientSigName">______________________________</span></p>
+      <p>Date: <span id="clientSigDate">______________</span></p>
+    </div>
+  </div>
+  <div class="sigblock" style="margin-top:22px">
+    <p><strong>Witness</strong></p>
+    <div class="sigline" style="max-width:380px"></div>
+    <div class="lbl">Signature</div>
+    <p>Name: <span class="blank">______________________________</span>&nbsp;&nbsp;Date: <span class="blank short">______________</span></p>
+  </div>
+</div>
+
+<div class="panel" id="signPanel">
+  <h2>Sign this agreement</h2>
+  <p style="margin:0;font-size:14px;color:#445">The client signs below. The signature, name, and date are placed on the document, and the document locks against further edits.</p>
+  <label for="signerName">Client full legal name</label>
+  <input type="text" id="signerName" autocomplete="name" placeholder="e.g. Jane A. Smith">
+  <label>Draw your signature</label>
+  <canvas id="pad" width="760" height="170"></canvas>
+  <div class="row">
+    <button id="clearPad" type="button">Clear signature</button>
+    <button id="typedBtn" type="button">Use typed signature instead</button>
+  </div>
+  <label class="check"><input type="checkbox" id="consent"> <span>I agree to sign this agreement electronically, and I understand my electronic signature is binding under the Florida Uniform Electronic Transaction Act.</span></label>
+  <div class="row">
+    <button id="applySig" class="primary" type="button">Apply signature &amp; sign</button>
+  </div>
+  <p id="signMsg" style="font-size:13.5px;color:#a33;margin:10px 0 0"></p>
+</div>
+
+<script>
+(function(){
+  var doc = document.getElementById('doc');
+  var editBtn = document.getElementById('editBtn');
+  var editHint = document.getElementById('editHint');
+  var pill = document.getElementById('statusPill');
+  var signed = false;
+  var sigData = '';
+
+  // ---- Prefill from URL parameters (used by the quote system's Create Contract button) ----
+  var params = new URLSearchParams(location.search);
+
+  // ---- Re-edit a stored signed contract as a FRESH, unsigned copy ----
+  // The admin Sign Contracts tab stashes the stored document here. The
+  // stored signed original in the backend is never modified: edits happen
+  // on this new copy, and signing it stores a new record.
+  if (params.get('reedit') === '1') {
+    try {
+      var stash = JSON.parse(localStorage.getItem('ww_contract_reedit') || 'null');
+      if (stash && stash.html) {
+        var parsed = new DOMParser().parseFromString(stash.html, 'text/html');
+        var storedDoc = parsed.getElementById('doc');
+        if (storedDoc) {
+          doc.innerHTML = storedDoc.innerHTML;
+          var st = doc.querySelector('#signedStamp');
+          if (st) { st.textContent = ''; st.classList.remove('on'); }
+          var slot0 = doc.querySelector('#clientSigSlot');
+          if (slot0) slot0.innerHTML = '';
+          var nm = doc.querySelector('#clientSigName');
+          if (nm) nm.textContent = '______________________________';
+          var dt = doc.querySelector('#clientSigDate');
+          if (dt) dt.textContent = '______________';
+        }
+      }
+      localStorage.removeItem('ww_contract_reedit');
+    } catch (e) { /* fall through with the blank agreement */ }
+  }
+
+  params.forEach(function(val, key){
+    if(!val) return;
+    var el = doc.querySelector('[data-field="'+key+'"]');
+    if(el){ el.textContent = val; el.style.borderBottom = 'none'; }
+  });
+  function fillList(field, raw){
+    var ul = doc.querySelector('[data-field="'+field+'"]');
+    if(!ul || !raw) return;
+    var items = raw.split(/\||\n/).map(function(s){return s.trim();}).filter(Boolean);
+    if(!items.length) return;
+    ul.innerHTML = '';
+    items.forEach(function(t){ var li=document.createElement('li'); li.textContent=t; ul.appendChild(li); });
+  }
+  fillList('equipmentList', params.get('equip') || '');
+  fillList('featuresList', params.get('feat') || '');
+
+  // ---- Edit mode: the whole document becomes fully editable ----
+  var editing = false;
+  function setEdit(on){
+    if(signed) return;
+    editing = on;
+    doc.contentEditable = on ? 'true' : 'false';
+    document.body.classList.toggle('editing', on);
+    editBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    editBtn.textContent = on ? '✎ Edit mode: ON' : '✎ Edit mode';
+    editHint.classList.toggle('on', on);
+    if(on) doc.focus();
+  }
+  editBtn.addEventListener('click', function(){ setEdit(!editing); });
+
+  // ---- Signature pad ----
+  var pad = document.getElementById('pad');
+  var ctx = pad.getContext('2d');
+  ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#12312a';
+  var drawing = false, hasInk = false, useTyped = false, last = null;
+  function pos(e){ var r = pad.getBoundingClientRect(); return { x:(e.clientX-r.left)*(pad.width/r.width), y:(e.clientY-r.top)*(pad.height/r.height) }; }
+  pad.addEventListener('pointerdown', function(e){ if(signed) return; drawing = true; last = pos(e); pad.setPointerCapture(e.pointerId); });
+  pad.addEventListener('pointermove', function(e){ if(!drawing) return; var p = pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last = p; hasInk = true; });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){ pad.addEventListener(ev, function(){ drawing = false; }); });
+  document.getElementById('clearPad').addEventListener('click', function(){ ctx.clearRect(0,0,pad.width,pad.height); hasInk = false; useTyped = false; });
+  document.getElementById('typedBtn').addEventListener('click', function(){
+    var n = document.getElementById('signerName').value.trim();
+    if(!n){ msg('Type the client name first, then choose the typed signature.'); return; }
+    useTyped = true; msg('Typed signature ready: “'+n+'”. Check the consent box and apply.');
+  });
+
+  function msg(t){ document.getElementById('signMsg').textContent = t; }
+
+  function todayET(){
+    return new Date().toLocaleDateString('en-US', { timeZone:'America/New_York', year:'numeric', month:'long', day:'numeric' });
+  }
+
+  // ---- Signed-contract storage (Wonderlands backend) ----
+  // On signing, the contract exactly as signed is saved to the
+  // signed_contracts table (the public page may insert only). Saving never
+  // blocks signing: if it fails, the signer is told to keep a PDF copy.
+  var SB_URL = 'https://bwngxlbnavnhbtahyzbf.supabase.co';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3bmd4bGJuYXZuaGJ0YWh5emJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5NzM0NjMsImV4cCI6MjA2ODU0OTQ2M30.MaEd-hUQAK9S1zaC5L1Caev2oEPCpnIzBJ1kPCv3uOU';
+  function fieldText(key){
+    var el = doc.querySelector('[data-field="'+key+'"]');
+    if(!el) return '';
+    var t = (el.textContent || '').trim();
+    return /^_+$/.test(t) ? '' : t;
+  }
+  function saveSignedContract(name, sig){
+    var warn = 'Warning: the signed copy could not be saved. Please use Print / Save PDF now to keep your copy.';
+    try {
+      var payload = {
+        client_name: fieldText('clientName') || name,
+        client_email: fieldText('clientEmail'),
+        project_address: fieldText('projectAddress'),
+        proposal_no: fieldText('proposalNo'),
+        proposal_date: fieldText('proposalDate'),
+        contract_price: fieldText('contractPrice'),
+        signer_name: name,
+        signed_at: new Date().toISOString(),
+        signature_data: sig || '',
+        document_html: '<!DOCTYPE html>\n' + document.documentElement.outerHTML
+      };
+      fetch(SB_URL + '/rest/v1/signed_contracts', {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify(payload)
+      }).then(function(r){
+        msg(r.ok ? 'Signed copy saved to the Sign Contracts tab.' : warn);
+      }).catch(function(){ msg(warn); });
+    } catch (e) { msg(warn); }
+  }
+
+  function applySignature(){
+    if(signed) return;
+    var name = document.getElementById('signerName').value.trim();
+    if(!name){ msg('Enter the client\u2019s full legal name.'); return; }
+    if(!document.getElementById('consent').checked){ msg('The consent box must be checked before signing.'); return; }
+    if(!useTyped && !hasInk){ msg('Draw a signature on the pad, or use the typed signature option.'); return; }
+    var slot = document.getElementById('clientSigSlot');
+    slot.innerHTML = '';
+    if(useTyped){
+      var s = document.createElement('span'); s.className = 'typed-sig'; s.textContent = name; slot.appendChild(s);
+      sigData = 'typed:' + name;
+    } else {
+      var img = document.createElement('img'); img.className = 'sigimg'; img.alt = 'Client signature'; img.src = pad.toDataURL('image/png'); slot.appendChild(img);
+      sigData = img.src;
+    }
+    document.getElementById('clientSigName').textContent = name;
+    document.getElementById('clientSigDate').textContent = todayET();
+    var cn = doc.querySelector('[data-field="clientName"]');
+    if(cn && /_/.test(cn.textContent)) cn.textContent = name;
+    signed = true;
+    if(editing) setEdit(false);
+    doc.contentEditable = 'false';
+    editBtn.disabled = true;
+    pill.textContent = 'SIGNED'; pill.classList.add('signed');
+    var stamp = document.getElementById('signedStamp');
+    stamp.textContent = '✓ Signed electronically by ' + name + ' on ' + todayET() + '. This document is locked against further edits.';
+    stamp.classList.add('on');
+    document.getElementById('applySig').disabled = true;
+    document.getElementById('clearPad').disabled = true;
+    document.getElementById('typedBtn').disabled = true;
+    saveSignedContract(name, sigData);
+    stamp.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+  document.getElementById('applySig').addEventListener('click', applySignature);
+  document.getElementById('signBtn').addEventListener('click', function(){ document.getElementById('signPanel').scrollIntoView({ behavior:'smooth' }); });
+  document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+  document.getElementById('dlBtn').addEventListener('click', function(){
+    var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    var blob = new Blob([html], { type:'text/html' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = signed ? 'Wonderlands-Construction-Agreement-SIGNED.html' : 'Wonderlands-Construction-Agreement.html';
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+
+  // ---- Self-test hook: ?selftest=1 performs a full signing pass programmatically ----
+  if(params.get('selftest') === '1'){
+    setTimeout(function(){
+      document.getElementById('signerName').value = 'Test Signer';
+      ctx.beginPath(); ctx.moveTo(60,120);
+      ctx.bezierCurveTo(160,30, 260,150, 360,70);
+      ctx.bezierCurveTo(430,20, 520,140, 640,80); ctx.stroke();
+      hasInk = true;
+      document.getElementById('consent').checked = true;
+      applySignature();
+      document.title += ' — SELFTEST SIGNED';
+    }, 350);
+  }
+})();
+</script>
+</body>
+</html>

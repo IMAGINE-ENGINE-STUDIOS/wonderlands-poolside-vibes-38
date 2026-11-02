@@ -19,11 +19,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
 import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSnapshot } from "@/components/quote/quoteGallery";
-import { announceLiveDoc } from "@/lib/live/liveDocs";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
 import { quoteLineImage, CUSTOM_POOL_IMAGE } from "@/lib/design/sceneQuoteCatalog";
+import { unionContractLines, splitEquipFeat, openContractPage, stashQuoteLinesForInvoice } from "@/lib/contractLink";
 /** Pool-type products (case-insensitive: studios send "pool"). */
 const isPoolType = (t?: string) => ["pool", "spa", "tanning ledge"].includes(String(t || "").toLowerCase());
 import { DEFAULT_SOLAR_INPUTS, linesTotal, lineTotal, type SolarQuoteInputs, type SolarQuoteLine } from "@/lib/solar/solarQuote";
@@ -886,17 +886,6 @@ const SurveyQuoteTool = ({
     const quoteAmount = calculateQuote();
     setEditableQuoteAmount(quoteAmount);
     setCurrentStep('quote');
-    // In a live room, the finished quote goes straight to the room's chat
-    // and guests are asked if they want to download it (no-op elsewhere).
-    void announceLiveDoc({
-      kind: 'quote',
-      title: pool?.model || customProduct?.name || 'Custom quote',
-      total: quoteAmount,
-      lines: buildQuoteLineItems().map((l: any) => ({
-        label: String(l.description ?? ''),
-        amount: `$${Math.round(Number(l.total) || 0).toLocaleString()}`,
-      })),
-    });
   };
   const handleGetQuote = async () => {
     if (!surveyData.name || !surveyData.email) {
@@ -924,17 +913,6 @@ const SurveyQuoteTool = ({
     const quoteAmount = calculateQuote();
     setEditableQuoteAmount(quoteAmount);
     setCurrentStep('quote');
-    // In a live room, the finished quote goes straight to the room's chat
-    // and guests are asked if they want to download it (no-op elsewhere).
-    void announceLiveDoc({
-      kind: 'quote',
-      title: pool?.model || customProduct?.name || 'Custom quote',
-      total: quoteAmount,
-      lines: buildQuoteLineItems().map((l: any) => ({
-        label: String(l.description ?? ''),
-        amount: `$${Math.round(Number(l.total) || 0).toLocaleString()}`,
-      })),
-    });
   };
   const handleScheduleInstallation = async () => {
     // Ensure the quotation is saved and user is authenticated
@@ -955,6 +933,38 @@ const SurveyQuoteTool = ({
     }, 1000);
   };
   
+  // Additive only: opens the standalone contract page (public/contract.html)
+  // pre-filled from the CURRENT quote. The item set is the quote's full line
+  // list — the same list an invoice is generated from — deduplicated.
+  const handleCreateContract = () => {
+    const total = isEditMode && editableQuoteAmount > 0 ? editableQuoteAmount : calculateQuote();
+    const quoteLines: { description: string; quantity: number }[] = [...buildQuoteLineItems()];
+    // Mirror of the invoice builder's add-on (see handleGenerateInvoice): the
+    // exclusive sauna belongs to this quote's configuration and is appended
+    // to the line list when the invoice is generated — include it here too,
+    // so the contract carries the full item set from either view.
+    if (saunaSelected) {
+      const eligibleModels = ["Astoria", "Genesis", "Claremont", "Extreme 38"];
+      const poolModel = pool?.model || "";
+      const isEligible = eligibleModels.includes(poolModel) && (pool?.price || 0) >= 70000;
+      if (isEligible) {
+        const isIncluded = poolModel === "Extreme 38" || poolModel === "Astoria";
+        quoteLines.push({ description: isIncluded ? "Barrel Sauna (INCLUDED)" : "Barrel Sauna (Exclusive Add-On)", quantity: 1 });
+      }
+    }
+    const { lines } = unionContractLines(quoteLines, []);
+    const { equip, feat } = splitEquipFeat(lines);
+    openContractPage({
+      clientName: surveyData.name,
+      clientEmail: surveyData.email,
+      projectAddress: surveyData.address,
+      proposalDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      contractPrice: `$${Math.round(Number(total) || 0).toLocaleString()}`,
+      equip,
+      feat,
+    });
+  };
+
   const handleGenerateInvoice = async () => {
     // Validate required fields - no login required
     if (!surveyData.name || !surveyData.email) {
@@ -1048,23 +1058,15 @@ const SurveyQuoteTool = ({
       
       if (error) throw error;
       const invoice = { id: invoiceId, invoice_number: invoiceNumber };
-      
+      // Additive bookkeeping for Create Contract: remember this quote's final
+      // line list under the new invoice's id, so the invoice view can fill
+      // the contract from the union of quote + invoice items. Changes nothing
+      // about the invoice itself.
+      stashQuoteLinesForInvoice(invoiceId, lineItems);
+
       toast({
         title: "Invoice Generated!",
         description: `Invoice ${invoice.invoice_number} has been created. Redirecting...`,
-      });
-      
-      // In a live room, the finished invoice goes straight to the room's
-      // chat and guests are asked if they want to download it (no-op elsewhere).
-      await announceLiveDoc({
-        kind: 'invoice',
-        title: pool?.model || customProduct?.name || 'Custom project',
-        total: totalAmount,
-        ref: invoiceNumber,
-        lines: lineItems.map((l: any) => ({
-          label: String(l.description ?? ''),
-          amount: `$${Math.round(Number(l.total) || 0).toLocaleString()}`,
-        })),
       });
       
       // Close the dialog and navigate to the invoice page
@@ -2832,6 +2834,14 @@ const SurveyQuoteTool = ({
                   >
                     <Clock className="h-4 w-4" />
                     <span className="text-[10px] font-medium">Schedule</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleCreateContract}
+                    className="col-span-3 sm:col-span-6 h-11 flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white border-0 shadow-sm"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span className="text-sm font-medium">Create Contract</span>
                   </Button>
                 </div>
                 
