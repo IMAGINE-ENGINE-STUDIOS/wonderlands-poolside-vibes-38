@@ -401,124 +401,31 @@ const SurveyQuoteTool = ({
   };
 
   const handleDownloadPDF = async () => {
-    const quoteElement = document.querySelector('[data-quote-content]') as HTMLElement;
+    // Print / PDF = the browser's own print of the quote exactly as it is
+    // shown on screen: same layout, same picture sizes, nothing re-drawn,
+    // re-scaled or sliced by a separate PDF engine. The quote is cloned
+    // into a print-only container in this same page (see print.css), so
+    // every style is the app's own and blocks never split across pages.
+    const quoteElement = document.querySelector('[data-quote-content]');
     if (!quoteElement) return;
-
-    try {
-      // Use the same HTML structure as print for consistent look.
-      // Lazy images inside an off-screen clone never load, which deformed
-      // pictures and broke capture — force eager loading in the clone.
-      const cloneHtml = quoteElement.outerHTML.replaceAll('loading="lazy"', 'loading="eager"');
-      const printHtml = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Pool Configuration Quote</title>
-            <script src="https://cdn.tailwindcss.com"><\/script>
-            <style>
-              body { 
-                margin: 0; 
-                padding: 20px;
-                font-family: system-ui, -apple-system, sans-serif;
-              }
-              * {
-                print-color-adjust: exact !important;
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-              .no-print, .print\\:hidden { display: none !important; }
-              /* PDF layout guards: card grids stay in two columns with full,
-                 natural photos — never one full-width 80px strip per item —
-                 and blocks/photos stay whole across page breaks. */
-              div[class*="lg:grid-cols-3"] { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 1rem !important; }
-              div[class*="lg:grid-cols-3"] > div { page-break-inside: avoid !important; break-inside: avoid !important; }
-              [data-quote-content] img[class*="h-auto"] { width: auto !important; max-width: 100% !important; height: auto !important; max-height: 240px !important; object-fit: contain !important; display: block !important; margin-left: auto !important; margin-right: auto !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-              [data-quote-content] .mb-3, [data-quote-content] .mb-4, [data-quote-content] .mb-6 { page-break-inside: avoid !important; break-inside: avoid !important; }
-            </style>
-          </head>
-          <body>
-            ${cloneHtml}
-          </body>
-        </html>
-      `;
-
-      // Create a hidden iframe to render the same HTML as print
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.left = '-9999px';
-      iframe.style.width = '816px'; // Letter width at 96dpi
-      iframe.style.height = '1056px';
-      document.body.appendChild(iframe);
-      
-      iframe.contentDocument?.open();
-      iframe.contentDocument?.write(printHtml);
-      iframe.contentDocument?.close();
-
-      // Wait until the Tailwind CDN inside the clone has actually generated its
-      // stylesheet before capturing — capturing on a blind timer races it and
-      // the PDF comes out with an unstyled, deformed layout.
-      await new Promise<void>((resolve) => {
-        const started = Date.now();
-        const tick = () => {
-          const doc = iframe.contentDocument;
-          const ready = !!doc && [...doc.querySelectorAll('style')].some(s => (s.textContent || '').includes('.grid'));
-          if ((ready && Date.now() - started > 1200) || Date.now() - started > 5000) resolve();
-          else setTimeout(tick, 200);
-        };
-        tick();
-      });
-
-      // Wait for the clone's images to finish loading, then hide any that
-      // failed so a broken source can never reach the PDF renderer.
-      await new Promise<void>((resolve) => {
-        const doc = iframe.contentDocument;
-        if (!doc) return resolve();
-        const imgs = [...doc.querySelectorAll('img')];
-        const pending = imgs.filter((im) => !im.complete);
-        if (!pending.length) return resolve();
-        let done = false;
-        const finish = () => { if (!done) { done = true; resolve(); } };
-        let left = pending.length;
-        pending.forEach((im) => {
-          const tick = () => { if (--left <= 0) finish(); };
-          im.addEventListener('load', tick, { once: true });
-          im.addEventListener('error', tick, { once: true });
-        });
-        setTimeout(finish, 4000);
-      });
-      iframe.contentDocument?.querySelectorAll('img').forEach((im) => {
-        if (!im.complete || im.naturalWidth === 0) im.style.display = 'none';
-      });
-
-      // @ts-ignore
-      const html2pdfModule = await import('html2pdf.js');
-      // @ts-ignore
-      const html2pdf = html2pdfModule.default;
-
-      const opt = {
-        margin: 0.5,
-        filename: `quote-${pool?.model || customProduct?.name || 'product'}-${Date.now()}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          logging: false,
-          allowTaint: true
-        },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const },
-        pagebreak: { mode: ['css', 'legacy'] }
-      };
-
-      await html2pdf().set(opt).from(iframe.contentDocument?.body).save();
-      iframe.remove();
-      
-      toast({
-        title: "Success!",
-        description: "Your quote has been downloaded as PDF."
-      });
-    } catch (error) {
-      console.error("PDF generation failed:", error);
-    }
+    const clone = quoteElement.cloneNode(true) as HTMLElement;
+    clone.classList.add('print-clone');
+    clone.querySelectorAll('img').forEach((img) => {
+      img.removeAttribute('loading');
+      img.setAttribute('loading', 'eager');
+    });
+    document.body.appendChild(clone);
+    const cleanup = () => {
+      clone.remove();
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    window.setTimeout(cleanup, 60000);
+    toast({
+      title: "Print / Save as PDF",
+      description: "In the print sheet, choose Save as PDF — the quote prints exactly as shown."
+    });
+    window.setTimeout(() => window.print(), 60);
   };
 
   const [emailAddress, setEmailAddress] = useState("");

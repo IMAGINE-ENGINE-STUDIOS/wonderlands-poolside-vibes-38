@@ -78,3 +78,20 @@
     color: #000 !important;
   }
 }
+
+/* Print/PDF shows ONLY the quote clone, in the app's own on-screen layout */
+.print-clone {
+  display: none;
+}
+
+@media print {
+  body > *:not(.print-clone) {
+    display: none !important;
+  }
+
+  .print-clone {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
