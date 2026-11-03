@@ -86,7 +86,13 @@ const InvoiceDetailPage = () => {
       // Shared invoice links load through a server check (company-isolated), not a public table read.
       const { data: rows, error } = await supabase.rpc("get_invoice_by_id" as any, { _id: invoiceId });
       if (error) throw error;
-      const data = (rows as any[])?.[0];
+      let data = (rows as any[])?.[0];
+      if (!data) {
+        try {
+          const stash = localStorage.getItem(`ww_invoice_${invoiceId}`);
+          if (stash) data = JSON.parse(stash);
+        } catch { /* fall through to not-found */ }
+      }
       if (!data) throw new Error("Invoice not found");
       const invoiceData = {
         ...data,
@@ -164,6 +170,7 @@ const InvoiceDetailPage = () => {
       clientName: invoice.customer_name,
       clientEmail: invoice.customer_email,
       projectAddress: invoice.customer_address,
+      clientAddress: invoice.customer_address,
       proposalNo: invoice.invoice_number,
       proposalDate: new Date(invoice.invoice_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       contractPrice: `$${Math.round(Number(invoice.total_amount) || 0).toLocaleString()}`,
@@ -332,7 +339,7 @@ const InvoiceDetailPage = () => {
         <Card>
           <CardContent className="text-center py-12">
             <p className="text-muted-foreground">Invoice not found</p>
-            <Button onClick={() => navigate("/admin")} className="mt-4">
+            <Button onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))} className="mt-4">
               Go Back
             </Button>
           </CardContent>
@@ -343,7 +350,7 @@ const InvoiceDetailPage = () => {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6 flex items-center justify-between no-print">
-        <Button onClick={() => navigate("/admin")} variant="outline">
+        <Button onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))} variant="outline">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>

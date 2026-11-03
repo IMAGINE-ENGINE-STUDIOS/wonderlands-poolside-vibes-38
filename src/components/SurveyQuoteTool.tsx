@@ -405,7 +405,10 @@ const SurveyQuoteTool = ({
     if (!quoteElement) return;
 
     try {
-      // Use the same HTML structure as print for consistent look
+      // Use the same HTML structure as print for consistent look.
+      // Lazy images inside an off-screen clone never load, which deformed
+      // pictures and broke capture — force eager loading in the clone.
+      const cloneHtml = quoteElement.outerHTML.replaceAll('loading="lazy"', 'loading="eager"');
       const printHtml = `
         <!DOCTYPE html>
         <html>
@@ -428,13 +431,14 @@ const SurveyQuoteTool = ({
                  natural photos — never one full-width 80px strip per item —
                  and blocks/photos stay whole across page breaks. */
               div[class*="lg:grid-cols-3"] { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 1rem !important; }
-              div[class*="lg:grid-cols-3"] img { height: 150px !important; object-fit: cover !important; }
-              [data-quote-content] img { page-break-inside: avoid !important; }
-              [data-quote-content] .mb-6 { page-break-inside: avoid !important; }
+              div[class*="lg:grid-cols-3"] > div { page-break-inside: avoid !important; }
+              [data-quote-content] img { max-width: 100% !important; height: auto !important; max-height: 380px !important; object-fit: contain !important; page-break-inside: avoid !important; }
+              div[class*="lg:grid-cols-3"] img { width: 100% !important; height: auto !important; max-height: 220px !important; object-fit: contain !important; }
+              [data-quote-content] .mb-3, [data-quote-content] .mb-4, [data-quote-content] .mb-6 { page-break-inside: avoid !important; }
             </style>
           </head>
           <body>
-            ${quoteElement.outerHTML}
+            ${cloneHtml}
           </body>
         </html>
       `;
@@ -463,6 +467,28 @@ const SurveyQuoteTool = ({
           else setTimeout(tick, 200);
         };
         tick();
+      });
+
+      // Wait for the clone's images to finish loading, then hide any that
+      // failed so a broken source can never reach the PDF renderer.
+      await new Promise<void>((resolve) => {
+        const doc = iframe.contentDocument;
+        if (!doc) return resolve();
+        const imgs = [...doc.querySelectorAll('img')];
+        const pending = imgs.filter((im) => !im.complete);
+        if (!pending.length) return resolve();
+        let done = false;
+        const finish = () => { if (!done) { done = true; resolve(); } };
+        let left = pending.length;
+        pending.forEach((im) => {
+          const tick = () => { if (--left <= 0) finish(); };
+          im.addEventListener('load', tick, { once: true });
+          im.addEventListener('error', tick, { once: true });
+        });
+        setTimeout(finish, 4000);
+      });
+      iframe.contentDocument?.querySelectorAll('img').forEach((im) => {
+        if (!im.complete || im.naturalWidth === 0) im.style.display = 'none';
       });
 
       // @ts-ignore
@@ -586,8 +612,9 @@ const SurveyQuoteTool = ({
     return "16+ weeks";
   };
 
-  const handleEnterEditMode = () => {
-    if (passcodeInput === "WONDERMAGIC") {
+  const handleEnterEditMode = (code?: string) => {
+    const entered = (typeof code === "string" ? code : passcodeInput).trim().toUpperCase();
+    if (entered === "WONDERMAGIC") {
       setIsEditMode(true);
       // Initialize editableQuoteAmount with current calculated value
       const currentQuote = calculateQuote();
@@ -1111,6 +1138,30 @@ const SurveyQuoteTool = ({
       // the contract from the union of quote + invoice items. Changes nothing
       // about the invoice itself.
       stashQuoteLinesForInvoice(invoiceId, lineItems);
+      try {
+        localStorage.setItem(`ww_invoice_${invoiceId}`, JSON.stringify({
+          id: invoiceId,
+          invoice_number: invoiceNumber,
+          customer_name: surveyData.name,
+          customer_email: surveyData.email,
+          customer_phone: surveyData.phone || '',
+          customer_address: surveyData.address,
+          invoice_date: invoiceDate,
+          due_date: dueDate,
+          line_items: lineItems,
+          subtotal: totalAmount,
+          tax_rate: 0,
+          tax_amount: 0,
+          discount_amount: 0,
+          total_amount: totalAmount,
+          payment_status: 'unpaid',
+          payment_terms: 'Net 30',
+          status: 'draft',
+          notes: surveyData.specialRequests || 'Thank you for choosing Wonderlands World Experience LLC!',
+          terms_conditions: 'Payment is due within 30 days of invoice date. A 50% deposit is required to begin work. Final payment is due upon completion and inspection.',
+          sent_at: null,
+        }));
+      } catch { /* storage full/blocked — server copy still exists */ }
 
       toast({
         title: "Invoice Generated!",
@@ -1988,8 +2039,8 @@ const SurveyQuoteTool = ({
                               <ImageCard 
                                 src={imageOverrides['main-product'] || pool?.image || customProduct?.image || (isPoolType(customProduct?.type) ? CUSTOM_POOL_IMAGE : discipline === 'fencing' ? fenceQuoteImage : (quoteLineImage(customProduct?.name || '') || fenceQuoteImage))} 
                                 alt={pool?.model || customProduct?.name || 'Product'}
-                                className="w-full h-48 rounded-lg border border-orange-200" 
-                                objectFit="cover" 
+                                className="w-full h-auto max-h-[420px] rounded-lg border border-orange-200" 
+                                objectFit="contain" 
                                 enableZoom={!isEditMode} 
                               />
                             </ImageUploadOverlay>
@@ -2750,20 +2801,29 @@ const SurveyQuoteTool = ({
                           type="password"
                           placeholder="Passcode"
                           value={passcodeInput}
-                          onChange={(e) => setPasscodeInput(e.target.value)}
+                          autoCapitalize="characters"
+                          autoCorrect="off"
+                          autoComplete="off"
+                          spellCheck={false}
+                          onChange={(e) => {
+                            setPasscodeInput(e.target.value);
+                            if (e.target.value.trim().toUpperCase() === "WONDERMAGIC") handleEnterEditMode(e.target.value);
+                          }}
                           className="h-9 text-base flex-1 border-gray-300 focus:border-orange-400 focus:ring-orange-400"
-                          onKeyDown={(e) => e.key === 'Enter' && handleEnterEditMode()}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); handleEnterEditMode(); } }}
                         />
                         <Button 
+                          type="button"
                           size="sm"
                           variant="ghost" 
-                          onClick={handleEnterEditMode}
+                          onClick={() => handleEnterEditMode()}
                           className="h-9 px-3 text-xs shrink-0 border border-orange-200 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                         >
                           Edit
                         </Button>
                       </div>
                       <Button 
+                        type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => setCurrentStep('options')}
@@ -2773,6 +2833,7 @@ const SurveyQuoteTool = ({
                         Options
                       </Button>
                       <Button
+                        type="button"
                         variant="outline"
                         size="sm"
                         onClick={handleOpenGallery}

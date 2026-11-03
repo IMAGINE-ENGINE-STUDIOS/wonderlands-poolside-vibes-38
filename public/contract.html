@@ -71,7 +71,7 @@
   <p class="center">Wonderlands World Experience LLC</p>
   <hr class="rule">
   <p>This Construction Services Agreement (the “Agreement”) is entered into as of <span class="blank short" data-field="effectiveDate">__________</span> (the “Effective Date”), by and between:</p>
-  <p><strong>Wonderlands World Experience LLC</strong>, a Florida limited liability company (the “Contractor”), address: <span class="blank" data-field="contractorAddress">______________________________</span>, email: <span class="blank" data-field="contractorEmail">______________________________</span>, and</p>
+  <p><strong>Wonderlands World Experience LLC</strong>, a Florida limited liability company (the “Contractor”), address: 6900 Tavistock Lakes Blvd, Suite 400, Orlando, FL 32827, email: sales@wonderlandsworld.com, and</p>
   <p><strong><span class="blank" data-field="clientName">______________________________</span></strong> (the “Client”), address: <span class="blank" data-field="clientAddress">______________________________</span>, email: <span class="blank" data-field="clientEmail">______________________________</span>.</p>
   <p><strong>Project Address:</strong> <span class="blank" data-field="projectAddress">______________________________</span>, Florida (the “Project”).</p>
   <hr class="rule">
@@ -119,9 +119,9 @@
   <p><strong>3.2 Payment Schedule.</strong> Payments shall be made in the following fixed installments, unless otherwise agreed in writing:</p>
   <ul>
     <li>Initial Deposit: Thirty percent (30%) of the total contract price due upon execution of this Agreement.</li>
-    <li>Second Payment: Forty percent (40%) due when permits are complete and excavation starts.</li>
-    <li>Third Payment: Twenty percent (20%) due before the build begins; for fiberglass pools, due before the pool shell arrives.</li>
-    <li>Final Payment: Ten percent (10%) due when the final inspection passes.</li>
+    <li>Second Payment: Thirty Five percent (35%) due upon permit approval and prior to commencement of construction activities.</li>
+    <li>Third Payment: Twenty Five percent (25%) due upon permits approval, documented by Contractor with a written progress update to Client.</li>
+    <li>Final Payment: Ten percent (10%) due upon final inspection approval or substantial completion, whichever occurs first.</li>
   </ul>
   <p>All payments are due on the date invoiced; Section 4.1 sets out the notice and cure process if a payment is missed.</p>
 
@@ -285,6 +285,10 @@
   }
   fillDefault('contractorEmail', 'sales@wonderlandsworld.com');
   fillDefault('contractorAddress', '6900 Tavistock Lakes Blvd, Suite 400, Orlando, FL 32827');
+  fillDefault('effectiveDate', params.get('proposalDate') || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
+  if (params.get('projectAddress')) fillDefault('clientAddress', params.get('projectAddress'));
+  var ss = doc.querySelector('[data-field="scopeSummary"]');
+  if (ss && /^_+$/.test((ss.textContent || '').trim()) && ss.parentElement) ss.parentElement.style.display = 'none';
   // Scope lists that carry no items are removed entirely — no empty lines.
   ['equipmentList', 'featuresList'].forEach(function(field){
     var ul = doc.querySelector('[data-field="'+field+'"]');
