@@ -86,6 +86,28 @@ interface SurveyData {
   budget: string;
   deckWidth: string;
 }
+// Price/number field that edits as plain text in a local buffer and commits the
+// parsed number on blur/Enter. Controlled <input type="number"> fields fought the
+// iOS keyboard on every keystroke (caret resets piled digits/zeros in front and
+// re-rendered the whole quote page, which read as a freeze). Typing here touches
+// only this field; totals update once, when the field loses focus.
+const PriceInput = ({ value, onCommit, className }: { value: number; onCommit: (n: number) => void; className?: string }) => {
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft !== null ? draft : (Number.isFinite(value) ? String(value) : '');
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={shown}
+      onFocus={(e) => { setDraft(Number.isFinite(value) ? String(value) : ''); const el = e.target; requestAnimationFrame(() => el.select()); }}
+      onChange={(e) => setDraft(e.target.value.replace(/[^0-9.]/g, ''))}
+      onBlur={() => { if (draft !== null) { onCommit(draft.trim() === '' ? 0 : (Number(draft) || 0)); setDraft(null); } }}
+      onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+      className={className}
+    />
+  );
+};
+
 const SurveyQuoteTool = ({
   pool: poolProp,
   isOpen,
@@ -656,7 +678,7 @@ const SurveyQuoteTool = ({
     if (!isOpen || currentStep !== 'quote') return;
     const t = setTimeout(() => {
       persistCurrentQuote(true);
-    }, 700);
+    }, 2000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, currentStep, editableQuoteAmount, selectedOptions, customItems, editablePrices, editableTexts, hiddenSections]);
@@ -1645,7 +1667,7 @@ const SurveyQuoteTool = ({
                                 <div className="flex justify-between py-1 border-b border-orange-200">
                                   <span className="text-sm">Price Per Sq Ft:</span>
                                   {isEditMode ? (
-                                    <span className="text-sm font-semibold">$<input type="number" value={editablePrices['lanai-sqft'] ?? extras.pricePerSqFt} onChange={(e) => setEditablePrices(prev => ({...prev, 'lanai-sqft': Number(e.target.value)}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                    <span className="text-sm font-semibold">$<PriceInput value={editablePrices['lanai-sqft'] ?? extras.pricePerSqFt} onCommit={(n) => setEditablePrices(prev => ({...prev, 'lanai-sqft': n}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block" /></span>
                                   ) : (
                                     <span className="text-sm font-semibold">${editablePrices['lanai-sqft'] ?? extras.pricePerSqFt}</span>
                                   )}
@@ -1696,7 +1718,7 @@ const SurveyQuoteTool = ({
                               <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
                                 <span className="font-medium">Total Price:</span>
                                 {isEditMode ? (
-                                  <span className="font-semibold text-lg">$<input type="number" value={editablePrices['lanai-total'] ?? (extras?.totalPrice || customProduct?.price || 0)} onChange={(e) => setEditablePrices(prev => ({...prev, 'lanai-total': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                  <span className="font-semibold text-lg">$<PriceInput value={editablePrices['lanai-total'] ?? (extras?.totalPrice || customProduct?.price || 0)} onCommit={(n) => setEditablePrices(prev => ({...prev, 'lanai-total': n}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
                                 ) : (
                                   <span className="font-semibold text-lg">${(editablePrices['lanai-total'] ?? extras?.totalPrice ?? customProduct?.price ?? 0).toLocaleString()}</span>
                                 )}
@@ -1721,10 +1743,9 @@ const SurveyQuoteTool = ({
                               <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
                                 <span>Base Price:</span>
                                 {isEditMode ? (
-                                  <input
-                                    type="number"
+                                  <PriceInput
                                     value={editablePrices['base-price'] ?? (pool?.price || customProduct?.price || 0)}
-                                    onChange={(e) => setEditablePrices(prev => ({...prev, 'base-price': Number(e.target.value)}))}
+                                    onCommit={(n) => setEditablePrices(prev => ({...prev, 'base-price': n}))}
                                     className="w-32 px-2 py-1 border rounded text-right font-semibold"
                                   />
                                 ) : (
@@ -1876,12 +1897,12 @@ const SurveyQuoteTool = ({
                                           <p className="font-semibold text-sm text-foreground">{selectedPaverName}</p>
                                           <p className="text-sm text-muted-foreground">
                                             <span className="font-medium">Area:</span> {isEditMode ? (
-                                              <input type="number" value={editablePrices['paver-area'] ?? paverArea} onChange={(e) => setEditablePrices(prev => ({...prev, 'paver-area': Number(e.target.value)}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block ml-1" />
+                                              <PriceInput value={editablePrices['paver-area'] ?? paverArea} onCommit={(n) => setEditablePrices(prev => ({...prev, 'paver-area': n}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block ml-1" />
                                             ) : (editablePrices['paver-area'] ?? paverArea).toLocaleString()} sq ft
                                           </p>
                                           <p className="text-base font-bold text-teal-700 dark:text-teal-400">
                                             Total Cost: {isEditMode ? (
-                                              <span>$<input type="number" value={editablePrices['paver-price'] ?? paverItem.price} onChange={(e) => setEditablePrices(prev => ({...prev, 'paver-price': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                              <span>$<PriceInput value={editablePrices['paver-price'] ?? paverItem.price} onCommit={(n) => setEditablePrices(prev => ({...prev, 'paver-price': n}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
                                             ) : `$${(editablePrices['paver-price'] ?? paverItem.price).toLocaleString()}`}
                                           </p>
                                         </div>
@@ -1922,12 +1943,12 @@ const SurveyQuoteTool = ({
                                           <p className="font-semibold text-sm text-foreground">{enclosureType}</p>
                                           <p className="text-sm text-muted-foreground">
                                             <span className="font-medium">Area:</span> {isEditMode ? (
-                                              <input type="number" value={editablePrices['enclosure-area'] ?? enclosureArea} onChange={(e) => setEditablePrices(prev => ({...prev, 'enclosure-area': Number(e.target.value)}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block ml-1" />
+                                              <PriceInput value={editablePrices['enclosure-area'] ?? enclosureArea} onCommit={(n) => setEditablePrices(prev => ({...prev, 'enclosure-area': n}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block ml-1" />
                                             ) : (editablePrices['enclosure-area'] ?? enclosureArea).toLocaleString()} sq ft
                                           </p>
                                           <p className="text-base font-bold text-orange-700 dark:text-orange-400">
                                             Total Cost: {isEditMode ? (
-                                              <span>$<input type="number" value={editablePrices['enclosure-price'] ?? enclosureItem.price} onChange={(e) => setEditablePrices(prev => ({...prev, 'enclosure-price': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                              <span>$<PriceInput value={editablePrices['enclosure-price'] ?? enclosureItem.price} onCommit={(n) => setEditablePrices(prev => ({...prev, 'enclosure-price': n}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
                                             ) : `$${(editablePrices['enclosure-price'] ?? enclosureItem.price).toLocaleString()}`}
                                           </p>
                                         </div>
@@ -2065,7 +2086,7 @@ const SurveyQuoteTool = ({
                             <div className="flex justify-between text-sm">
                               <span>Price:</span>
                               {isEditMode ? (
-                                <span className="font-semibold text-teal-600">+$<input type="number" value={editablePrices[`option-${index}`] ?? displayPrice} onChange={(e) => setEditablePrices(prev => ({...prev, [`option-${index}`]: Number(e.target.value)}))} className="w-24 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                <span className="font-semibold text-teal-600">+$<PriceInput value={editablePrices[`option-${index}`] ?? displayPrice} onCommit={(n) => setEditablePrices(prev => ({...prev, [`option-${index}`]: n}))} className="w-24 px-1 py-0.5 border rounded text-right inline-block" /></span>
                               ) : (
                                 <span className="font-semibold text-teal-600">+${(editablePrices[`option-${index}`] ?? displayPrice).toLocaleString()}</span>
                               )}
@@ -2232,7 +2253,7 @@ const SurveyQuoteTool = ({
                           <div className="flex justify-between text-sm mt-2">
                             <span>Price:</span>
                             {isEditMode ? (
-                              <span className="font-semibold text-coral-600">+$<input type="number" value={editablePrices[`extra-${index}`] ?? item.price} onChange={(e) => setEditablePrices(prev => ({...prev, [`extra-${index}`]: Number(e.target.value)}))} className="w-24 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                              <span className="font-semibold text-coral-600">+$<PriceInput value={editablePrices[`extra-${index}`] ?? item.price} onCommit={(n) => setEditablePrices(prev => ({...prev, [`extra-${index}`]: n}))} className="w-24 px-1 py-0.5 border rounded text-right inline-block" /></span>
                             ) : (
                               <span className="font-semibold text-coral-600">+${(editablePrices[`extra-${index}`] ?? item.price).toLocaleString()}</span>
                             )}
@@ -2302,11 +2323,9 @@ const SurveyQuoteTool = ({
                             <div className="flex justify-between text-sm mt-2">
                               <span>Price:</span>
                               <span className="font-semibold text-coral-600">+$
-                                <input
-                                  type="number"
-                                  min={0}
-                                  value={ci.price}
-                                  onChange={(e) => handleUpdateCustomItem(ci.id, { price: Number(e.target.value) || 0 })}
+                                <PriceInput
+                                  value={Number(ci.price) || 0}
+                                  onCommit={(n) => handleUpdateCustomItem(ci.id, { price: n })}
                                   className="w-24 px-1 py-0.5 border rounded text-right inline-block"
                                 />
                               </span>
@@ -2339,7 +2358,7 @@ const SurveyQuoteTool = ({
                         <div className="flex justify-between items-center">
                           <span className="font-semibold">Total Added Features:</span>
                           {isEditMode ? (
-                            <span className="font-bold text-coral-600 text-lg">+$<input type="number" value={editablePrices['extras-total'] ?? ((Number(extras?.extrasTotal) || 0) + customItems.reduce((s, i) => s + (Number(i.price) || 0), 0))} onChange={(e) => setEditablePrices(prev => ({...prev, 'extras-total': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                            <span className="font-bold text-coral-600 text-lg">+$<PriceInput value={editablePrices['extras-total'] ?? ((Number(extras?.extrasTotal) || 0) + customItems.reduce((s, i) => s + (Number(i.price) || 0), 0))} onCommit={(n) => setEditablePrices(prev => ({...prev, 'extras-total': n}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
                           ) : (
                             <span className="font-bold text-coral-600 text-lg">+${(editablePrices['extras-total'] ?? ((Number(extras?.extrasTotal) || 0) + customItems.reduce((s, i) => s + (Number(i.price) || 0), 0))).toLocaleString()}</span>
                           )}
@@ -2686,10 +2705,9 @@ const SurveyQuoteTool = ({
                      ) : (editableTexts['total-title'] || 'Total Investment')}
                    </h3>
                    {isEditMode ? (
-                     <input
-                       type="number"
+                     <PriceInput
                        value={editableQuoteAmount}
-                       onChange={(e) => setEditableQuoteAmount(Number(e.target.value))}
+                       onCommit={(n) => setEditableQuoteAmount(n)}
                        className="text-4xl font-bold bg-white text-gray-900 px-4 py-2 rounded w-full text-center"
                      />
                    ) : (
@@ -2714,7 +2732,7 @@ const SurveyQuoteTool = ({
                           placeholder="Passcode"
                           value={passcodeInput}
                           onChange={(e) => setPasscodeInput(e.target.value)}
-                          className="h-9 text-sm flex-1 border-gray-300 focus:border-orange-400 focus:ring-orange-400"
+                          className="h-9 text-base flex-1 border-gray-300 focus:border-orange-400 focus:ring-orange-400"
                           onKeyDown={(e) => e.key === 'Enter' && handleEnterEditMode()}
                         />
                         <Button 
