@@ -61,10 +61,86 @@ export function useSpillSelection(): [string | null, (id: string | null) => void
   return [sel, selectSpill];
 }
 type P = { x: number; y: number };
-/** The stretch of a spline segment a spill covers (control points; straight chord). */
-export function spillEnds(pts: P[], s: Spillover): [P, P] | null {
-  const a = pts[s.seg], b = pts[(s.seg + 1) % pts.length];
-  if (!a || !b) return null;
-  const at = (t: number) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
-  return [at(Math.min(s.t0, s.t1)), at(Math.max(s.t0, s.t1))];
+type PX = P & { curveType?: string; curveFlip?: boolean };
+
+import { curvedSegmentControls } from "../../utils/curveUtils";
+/**
+ * The point at parameter t along ONE pool-outline segment, evaluated EXACTLY
+ * as the pool outline itself is drawn/sampled (PoolBuilder's canvas segments
+ * and densifyPoolOutline in SceneConverter):
+ * - the segment's shape is the END point's curveType when points carry types
+ *   ('linear' stays straight; 'curve'/'arc' use curvedSegmentControls;
+ *   'freeform' uses the freeform Bézier);
+ * - a 'rectangle' pool with no per-point types is straight;
+ * - otherwise the legacy Catmull-Rom Bézier (p1 + (p2-p0)/6, p2 - (p3-p1)/6).
+ * The old code lerped the straight CHORD for the ends and sampled
+ * densifyPoolOutline(pts, "freeform") for the arc: on a rectangle / sharp
+ * corner the Catmull-Rom controls sit feet OUTSIDE the pool (e.g. left edge
+ * cp x = -4.5 ft on a 27×22 rectangle), so the spill bulged off the edge and
+ * past the corner over the deck, and the chord ends sat off the spline —
+ * in 2D and, via the hand-off, in 3D alike (founder, 2026-11-03).
+ */
+export function spillSegmentPoint(pts: P[], seg: number, t: number, shape?: string): P | null {
+  const n = pts.length;
+  if (n < 2) return null;
+  const px = pts as PX[];
+  const p1 = px[((seg % n) + n) % n], p2 = px[(((seg + 1) % n) + n) % n];
+  if (!p1 || !p2) return null;
+  const lerp = () => ({ x: p1.x + (p2.x - p1.x) * t, y: p1.y + (p2.y - p1.y) * t });
+  const hasTypes = px.some((p) => p.curveType);
+  let cp1: P, cp2: P;
+  if (hasTypes) {
+    const type = p2.curveType || "linear";
+    if (type === "linear") return lerp();
+    if (type === "curve" || type === "arc") {
+      ({ cp1, cp2 } = curvedSegmentControls(px as never, ((seg % n) + n) % n));
+    } else {
+      const dx = p2.x - p1.x, dy = p2.y - p1.y, qx = -dy * 0.15, qy = dx * 0.15;
+      cp1 = { x: p1.x + dx * 0.3 + qx * 0.5, y: p1.y + dy * 0.3 + qy * 0.5 };
+      cp2 = { x: p1.x + dx * 0.7 - qx * 0.3, y: p1.y + dy * 0.7 - qy * 0.3 };
+    }
+  } else if (shape === "rectangle") {
+    return lerp();
+  } else {
+    const p0 = px[((seg - 1) % n + n) % n], p3 = px[((seg + 2) % n + n) % n];
+    cp1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
+    cp2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
+  }
+  const u = 1 - t;
+  return {
+    x: u * u * u * p1.x + 3 * u * u * t * cp1.x + 3 * u * t * t * cp2.x + t * t * t * p2.x,
+    y: u * u * u * p1.y + 3 * u * u * t * cp1.y + 3 * u * t * t * cp2.y + t * t * t * p2.y,
+  };
+}
+const segIsLinear = (pts: P[], seg: number, shape?: string): boolean => {
+  const px = pts as PX[];
+  if (px.some((p) => p.curveType)) return (px[(seg + 1) % px.length]?.curveType || "linear") === "linear";
+  return shape === "rectangle";
+};
+
+/** The stretch of a spline segment a spill covers — ends ON the spline, not on the chord. */
+export function spillEnds(pts: P[], s: Spillover, shape?: string): [P, P] | null {
+  const a = spillSegmentPoint(pts, s.seg, Math.min(s.t0, s.t1), shape);
+  const b = spillSegmentPoint(pts, s.seg, Math.max(s.t0, s.t1), shape);
+  return a && b ? [a, b] : null;
+}
+
+/**
+ * The spill stretch as a polyline that FOLLOWS the pool spline exactly: the
+ * segment's own Bézier (same controls the outline is drawn with) evaluated
+ * from t0 to t1, so the first/last points are the true ends on the edge and
+ * nothing runs past a corner (founder, 2026-11-03 — spill overs must bend
+ * with the spline and end where their stretch ends).
+ */
+export function spillCurve(pts: P[], s: Spillover, shape?: string): P[] | null {
+  const ends = spillEnds(pts, s, shape);
+  if (!ends) return null;
+  if (pts.length < 3 || segIsLinear(pts, s.seg, shape)) return ends;
+  const t0 = Math.min(s.t0, s.t1), t1 = Math.max(s.t0, s.t1);
+  const N = 24, out: P[] = [];
+  for (let k = 0; k <= N; k++) {
+    const p = spillSegmentPoint(pts, s.seg, t0 + (t1 - t0) * (k / N), shape);
+    if (p) out.push(p);
+  }
+  return out.length >= 2 ? out : ends;
 }

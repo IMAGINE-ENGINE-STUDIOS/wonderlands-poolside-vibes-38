@@ -230,13 +230,35 @@ export function Spillovers3D({ data, mainElevation = 0, deckLevel = 0, mainPts, 
     let foamPos: [number, number, number] = [mx + nx * (LIP + 0.06), bottom + 0.03, mz + nz * (LIP + 0.06)];
     if (outline.length >= 3) {
       const offset = mitredOffsetRing(outline, copingW, { miterLimit: 2.5 }).offset;
-      const arc = offset.length === outline.length ? pairedArc(outline, offset, sp.a, sp.b) : null;
-      if (arc) {
-        const keep = resample(arc.A, 0.45);
-        const inner = keep.map((i) => arc.A[i]);
-        const outerRaw = keep.map((i) => arc.B[i]);
+      // Column source: the spill's own spline curve (Board3D spill.curve,
+      // sampled by spillCurve through the shared outline sampler) so the bed,
+      // wet wall and falling sheet bend with the pool's spline; each column's
+      // outer point is its projection on the coping offset ring. The paired
+      // ring arc remains the fallback when no curve was handed over.
+      const curvePts = (sp.curve ?? []).filter(okXZ);
+      let cols: { inner: XZ[]; outerRaw: XZ[] } | null = null;
+      if (curvePts.length >= 2 && offset.length >= 3) {
+        const keep = resample(curvePts, 0.45);
+        // Snap every column onto the source outline itself (the ring the pool
+        // wall is rendered from): a hand-off curve that sits even slightly off
+        // the outline — e.g. sampled from the wrong outline shape — floats
+        // the bed/sheet off the wall or buries it, worst at corners where the
+        // coping offset ring's nearest point jumps (founder, 2026-11-03).
+        const snapped = keep.map((i) => projectOnRing(outline, curvePts[i]).point);
+        const inner: XZ[] = [];
+        for (const p of snapped) if (!inner.length || Math.hypot(p.x - inner[inner.length - 1].x, p.z - inner[inner.length - 1].z) > 1e-4) inner.push(p);
+        if (inner.length >= 2) cols = { inner, outerRaw: inner.map((p) => projectOnRing(offset, p).point) };
+      } else if (offset.length === outline.length) {
+        const arc = pairedArc(outline, offset, sp.a, sp.b);
+        if (arc) {
+          const keep = resample(arc.A, 0.45);
+          cols = { inner: keep.map((i) => arc.A[i]), outerRaw: keep.map((i) => arc.B[i]) };
+        }
+      }
+      if (cols) {
+        const { inner, outerRaw } = cols;
         // Outward per-vertex direction (outline → coping ring) + the wall skin, 2 mm proud of the riser face.
-        const dir = inner.map((p, i) => { const dx = outerRaw[i].x - p.x, dz = outerRaw[i].z - p.z; const l = Math.hypot(dx, dz) || 1; return { x: dx / l, z: dz / l }; });
+        const dir = inner.map((p, i) => { const dx = outerRaw[i].x - p.x, dz = outerRaw[i].z - p.z; const l = Math.hypot(dx, dz); return l > 1e-6 ? { x: dx / l, z: dz / l } : n; });
         const outer = outerRaw.map((p, i) => ({ x: p.x + dir[i].x * 0.007, z: p.z + dir[i].z * 0.007 }));
         const bed = flatStrip(inner, outer); bed.translate(0, top, 0);
         const lip = bandStrip(outer, top, bottom);

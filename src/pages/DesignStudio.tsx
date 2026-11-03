@@ -502,7 +502,7 @@ const DesignStudio = ({ embedded = false, initialView = '2d', onClose }: { embed
     // The Design Studio owns the 3D hand-off: its fences/screens/turf replace any
     // leftover design-board data, so the 3D viewer never shows another project.
     try {
-      const sent = siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? [], (poolBuilderData as any)?.additionalDecks ?? {});
+      const sent = siteElementsTo3D(cacheRead<any[]>(SITE_ELEMENTS_KEY, []), customPoolShape ?? [], poolBuilderData?.scale || 10, poolBuilderData?.hardscapePoints ?? [], poolBuilderData?.additionalPools ?? [], (poolBuilderData as any)?.additionalDecks ?? {}, (poolBuilderData as any)?.poolShape);
       saveBoard3D(sent);
       externalUpdateRef.current = null; skipFirst3DRef.current = true;
       sentBoardRef.current = JSON.parse(JSON.stringify(sent));

@@ -122,7 +122,7 @@ export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], d
 export interface BoardView {
   width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number;
   /** Main pool + its deck (PoolBuilder state) — turf is cut around both. */
-  poolPts?: Pt[]; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean; poolDrawMode?: boolean; addPoolPointAt?: (clientX: number, clientY: number) => void;
+  poolPts?: Pt[]; poolShape?: string; deckPts?: Pt[]; deckMode?: boolean; addMode?: boolean; poolDrawMode?: boolean; addPoolPointAt?: (clientX: number, clientY: number) => void;
   setDeck?: (pts: Pt[]) => void; setPool?: (pts: Pt[]) => void; endDeckMode?: () => void; erasePool?: () => void;
   /** Extra pools/spas and their attached decks (PoolBuilder state). */
   extraPools?: { id: string; type?: string; points: Pt[]; shape?: string }[]; extraDecks?: Record<string, Pt[]>;
@@ -655,10 +655,12 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                 </g>
               );
             })}
-            {spills.map((sp) => { const pts = getPts(sp.poolId); const e = pts.length >= 3 ? spillEnds(pts, sp) : null; if (!e) return null; const z = view.zoom || 1; const on = spillSel === sp.id;
+            {spills.map((sp) => { const pts = getPts(sp.poolId); const shape = sp.poolId === "__pool" ? view?.poolShape : extras.find((p) => `__xp:${p.id}` === sp.poolId)?.shape; const path = pts.length >= 3 ? spillCurve(pts, sp, shape) : null; if (!path) return null; const line = path.map((p) => `${p.x},${p.y}`).join(" "); const z = view.zoom || 1; const on = spillSel === sp.id;
               return <g key={sp.id} style={{ pointerEvents: view.poolDrawMode || view.addMode ? "none" : "auto", cursor: "pointer" }} onClick={(ev) => { ev.stopPropagation(); setSpillSel(sp.id); }}>
-                <line x1={e[0].x} y1={e[0].y} x2={e[1].x} y2={e[1].y} stroke="hsl(var(--background))" strokeWidth={Math.max(6 / z, scale * 0.9)} strokeLinecap="round" />
-                <line x1={e[0].x} y1={e[0].y} x2={e[1].x} y2={e[1].y} stroke="hsl(var(--primary))" strokeWidth={Math.max(4 / z, scale * 0.6)} strokeDasharray={`${scale * 0.6} ${scale * 0.3}`} strokeLinecap="round" opacity={on ? 1 : 0.8} />
+                {/* Butt caps: a round cap extends half the stroke width PAST the
+                    spill's exact end, out over the deck at corners (founder, 2026-11-03). */}
+                <polyline points={line} fill="none" stroke="hsl(var(--background))" strokeWidth={Math.max(6 / z, scale * 0.9)} strokeLinecap="butt" strokeLinejoin="round" />
+                <polyline points={line} fill="none" stroke="hsl(var(--primary))" strokeWidth={Math.max(4 / z, scale * 0.6)} strokeDasharray={`${scale * 0.6} ${scale * 0.3}`} strokeLinecap="butt" strokeLinejoin="round" opacity={on ? 1 : 0.8} />
               </g>; })}
             {drawing && draft.length > 0 && (
               <>
@@ -862,7 +864,7 @@ import { netRegions, computeNetAreas } from "@/lib/design/boardNetArea";
 import { loadBoard3D, type Board3D } from "@/lib/design/board3D";
 import { mitredOffsetRing } from "@/utils/polygonGeometry";
 import { useSceneLayers, isObjectHidden, boardObjectId } from "@/lib/design/sceneLayers";
-import { useSpills, spillActions, spillEnds, loadSpills, useSpillSelection } from "@/lib/design/spillovers";
+import { useSpills, spillActions, spillEnds, spillCurve, loadSpills, useSpillSelection } from "@/lib/design/spillovers";
 
 /**
  * Builds the 3D Studio hand-off from the Design Studio: fences, screens and turf
@@ -870,9 +872,12 @@ import { useSpills, spillActions, spillEnds, loadSpills, useSpillSelection } fro
  * centres the pool the same way). Pools cut the turf. No extra waters are sent:
  * the Design Studio's extra pools/spas already travel inside its own scene.
  */
-export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string; materials?: StudioMaterials; details3D?: any; featureType?: string; isMerged?: boolean }> = [], extraDeckPts: Record<string, Pt[]> = {}): Board3D {
+export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string; materials?: StudioMaterials; details3D?: any; featureType?: string; isMerged?: boolean }> = [], extraDeckPts: Record<string, Pt[]> = {}, poolShape?: string): Board3D {
   const f = (p: Pt) => ({ x: p.x / scale, y: p.y / scale });
-  const pool = poolRing(poolPts).map(f);
+  // The spill outline ring must be sampled with the pool's OWN shape (a
+  // rectangle stays straight) — the same rule SceneConverter applies — or
+  // primaryPts bulges off the 3D pool at corners (founder, 2026-11-03).
+  const pool = (poolPts.length >= 3 ? densifyPoolOutline(poolPts as never, poolShape ?? "freeform") : poolPts).map(f);
   const c = pool.length >= 3 ? { x: (Math.min(...pool.map(p => p.x)) + Math.max(...pool.map(p => p.x))) / 2, y: (Math.min(...pool.map(p => p.y)) + Math.max(...pool.map(p => p.y))) / 2 } : { x: 0, y: 0 };
   const to = (p: Pt) => ({ x: p.x - c.x, z: p.y - c.y });
   const net = studioNetItems(items, poolPts, deckPts, scale, extraPools, extraDeckPts);
@@ -903,14 +908,19 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
     else if (e.kind === 'bench') primarySeating.push({ id: e.id, startPosition: 0, endPosition: 0, width: e.details3D?.benchWidth ?? 1.5, height: e.details3D?.benchDepth ?? 1, textureUrl: '/textures/finishes/sapphire-blue-g3.webp', pathPoints: pts, pathClosed: false });
     else out.surfaces.push({ itemId: e.id, kind: e.kind, color: e.kind === 'deck' ? '#ffffff' : e.color, image: e.textureUrl ?? (e.kind === 'deck' ? DECK_PAVERS.find(d => d.id === e.style)?.image : TURFS.find(g => g.color === e.color)?.texture), scale: e.textureScale, regions: regionsOf(e.id) });
   }
-  /* Spill-over edges in 3D feet (ends + pitch); the 3D Studio draws the falling water sheet. */
+  /* Spill-over edges in 3D feet (ends + pitch + the spline curve of the
+   * stretch, via spillCurve — the shared outline sampler — so the 3D Studio's
+   * falling water sheet bends with the pool shape, not the straight chord). */
   out.spills = loadSpills().map((sp) => {
-    const src = sp.poolId === "__pool" ? poolPts : extraPools.find((p) => `__xp:${p.id}` === sp.poolId)?.points ?? [];
-    const e = src.length >= 3 ? spillEnds(src, sp) : null;
+    const srcPool = sp.poolId === "__pool" ? null : extraPools.find((p) => `__xp:${p.id}` === sp.poolId);
+    const src = sp.poolId === "__pool" ? poolPts : srcPool?.points ?? [];
+    const srcShape = sp.poolId === "__pool" ? poolShape : srcPool?.shape;
+    const e = src.length >= 3 ? spillEnds(src, sp, srcShape) : null;
     if (!e) return null;
+    const curve = spillCurve(src, sp, srcShape);
     // Outward = away from the body's centre.
     const cx = src.reduce((s, p) => s + p.x, 0) / src.length, cy = src.reduce((s, p) => s + p.y, 0) / src.length;
-    return { id: sp.id, a: to(f(e[0])), b: to(f(e[1])), center: to(f({ x: cx, y: cy })), pitch: sp.pitch, wall: sp.wall, waterId: sp.poolId === "__pool" ? undefined : sp.poolId.slice(5) };
+    return { id: sp.id, a: to(f(e[0])), b: to(f(e[1])), center: to(f({ x: cx, y: cy })), pitch: sp.pitch, wall: sp.wall, waterId: sp.poolId === "__pool" ? undefined : sp.poolId.slice(5), ...(curve && curve.length >= 2 ? { curve: curve.map((p) => to(f(p))) } : {}) };
   }).filter(Boolean) as NonNullable<Board3D["spills"]>;
   if (primarySeating.length) out.primarySeating = primarySeating;
   return out;

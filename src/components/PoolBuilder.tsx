@@ -154,7 +154,7 @@ interface PoolBuilderProps {
     };
   }) => void;
   /** Extra board layer drawn over the canvas with the same pan/zoom (Design Studio site elements). */
-  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; poolDrawMode?: boolean; addPoolPointAt?: (clientX: number, clientY: number) => void; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void;
+  renderOverlay?: (view: { width: number; height: number; pan: { x: number; y: number }; zoom: number; scale: number; poolPts: { x: number; y: number }[]; poolShape?: string; deckPts: { x: number; y: number }[]; deckMode: boolean; addMode?: boolean; poolDrawMode?: boolean; addPoolPointAt?: (clientX: number, clientY: number) => void; setDeck: (pts: { x: number; y: number }[]) => void; setPool?: (pts: { x: number; y: number }[]) => void; endDeckMode: () => void; erasePool: () => void;
     extraPools?: { id: string; type?: string; points: { x: number; y: number }[] }[]; extraDecks?: Record<string, { x: number; y: number }[]>;
     setExtraPool?: (id: string, pts: { x: number; y: number }[]) => void; setExtraDeck?: (id: string, pts: { x: number; y: number }[]) => void; eraseExtraPool?: (id: string) => void }) => React.ReactNode;
 }
@@ -5952,7 +5952,7 @@ export function PoolBuilder({
       <div className="flex-1 overflow-hidden relative">
         {/* Site layer (fences/screens/turf) drawn with this canvas's own pan/zoom. */}
         {renderOverlay?.({ width: canvasSize.width, height: canvasSize.height, pan: panOffset, zoom: zoomLevel, scale,
-          poolPts: points, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck', addMode: activeTool === 'add', poolDrawMode: activeTool === 'draw-pool' || activeTool === 'draw-deck',
+          poolPts: points, poolShape, deckPts: hardscapePoints, deckMode: activeTool === 'draw-deck', addMode: activeTool === 'add', poolDrawMode: activeTool === 'draw-pool' || activeTool === 'draw-deck',
           addPoolPointAt: (clientX, clientY) => { suppressClickRef.current = false; handleCanvasClick({ clientX, clientY } as React.MouseEvent<HTMLCanvasElement>); },
           /* Hand-drawn deck boundary (overlay draws it, same board transform) — Imagine Engine Studios Corp. */
           setDeck: (pts) => setHardscapePoints(pts.map((p, i) => ({ x: p.x, y: p.y, id: (p as { id?: string }).id ?? `h${Date.now().toString(36)}${i}` }))),
