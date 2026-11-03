@@ -119,9 +119,9 @@
   <p><strong>3.2 Payment Schedule.</strong> Payments shall be made in the following fixed installments, unless otherwise agreed in writing:</p>
   <ul>
     <li>Initial Deposit: Thirty percent (30%) of the total contract price due upon execution of this Agreement.</li>
-    <li>Second Payment: Thirty percent (30%) due upon permit approval and prior to commencement of major construction activities.</li>
-    <li>Third Payment: Thirty percent (30%) due upon substantial progress of construction, documented by Contractor with a written progress update to Client.</li>
-    <li>Final Payment: Ten percent (10%) due upon final inspection approval or substantial completion, whichever occurs first.</li>
+    <li>Second Payment: Forty percent (40%) due when permits are complete and excavation starts.</li>
+    <li>Third Payment: Twenty percent (20%) due before the build begins; for fiberglass pools, due before the pool shell arrives.</li>
+    <li>Final Payment: Ten percent (10%) due when the final inspection passes.</li>
   </ul>
   <p>All payments are due on the date invoiced; Section 4.1 sets out the notice and cure process if a payment is missed.</p>
 
@@ -277,6 +277,26 @@
   }
   fillList('equipmentList', params.get('equip') || '');
   fillList('featuresList', params.get('feat') || '');
+
+  // The Contractor's own details are fixed — never leave them as blank lines.
+  function fillDefault(key, val){
+    var el = doc.querySelector('[data-field="'+key+'"]');
+    if(el && /^_+$/.test((el.textContent || '').trim())){ el.textContent = val; el.style.borderBottom = 'none'; }
+  }
+  fillDefault('contractorEmail', 'sales@wonderlandsworld.com');
+  fillDefault('contractorAddress', '6900 Tavistock Lakes Blvd, Suite 400, Orlando, FL 32827');
+  // Scope lists that carry no items are removed entirely — no empty lines.
+  ['equipmentList', 'featuresList'].forEach(function(field){
+    var ul = doc.querySelector('[data-field="'+field+'"]');
+    if(!ul) return;
+    var lis = ul.querySelectorAll('li');
+    var empty = lis.length > 0 && Array.prototype.every.call(lis, function(li){ return /^_*$/.test((li.textContent || '').trim()); });
+    if(empty){
+      var p = ul.previousElementSibling;
+      if(p && /^(Equipment|Features):$/.test((p.textContent || '').trim())) p.style.display = 'none';
+      ul.style.display = 'none';
+    }
+  });
 
   // ---- Edit mode: the whole document becomes fully editable ----
   var editing = false;

@@ -2085,7 +2085,7 @@ const SurveyQuoteTool = ({
                                   <OptimizedImage 
                                     src={imageOverrides[`option-img-${index}`] || "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp"} 
                                     alt={option.name} 
-                                    className="w-full h-20 rounded-md border border-orange-200 object-cover"
+                                    className="w-full h-auto rounded-md border border-orange-200"
                                     sizeConfig="quoteImage"
                                   />
                                 </ImageUploadOverlay>
@@ -2157,7 +2157,7 @@ const SurveyQuoteTool = ({
                     if (item.image) {
                       return <div className="mb-3">
                                  <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
-                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || item.image} alt={displayName} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || item.image} alt={displayName} className="w-full h-auto rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
                                  </ImageUploadOverlay>
                                </div>;
                     }
@@ -2261,7 +2261,7 @@ const SurveyQuoteTool = ({
                     }
                     return itemImage ? <div className="mb-3">
                                  <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
-                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || itemImage} alt={displayName} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || itemImage} alt={displayName} className="w-full h-auto rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
                                  </ImageUploadOverlay>
                                </div> : null;
                   })()}
@@ -2308,7 +2308,7 @@ const SurveyQuoteTool = ({
                                 onCropChange={handleCropChange}
                               >
                                 {ci.image ? (
-                                  <ImageCard src={ci.image} alt={ci.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                                  <ImageCard src={ci.image} alt={ci.name} className="w-full h-auto rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
                                 ) : (
                                   <div className="w-full h-20 rounded-md border border-dashed border-coral-300 flex items-center justify-center text-xs text-coral-600 bg-white/60 no-print print:hidden">
                                     Click to upload image (optional)
@@ -2319,7 +2319,7 @@ const SurveyQuoteTool = ({
                           ) : (
                             ci.image && (
                               <div className="mb-3">
-                                <ImageCard src={ci.image} alt={ci.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                                <ImageCard src={ci.image} alt={ci.name} className="w-full h-auto rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
                               </div>
                             )
                           )}
