@@ -424,6 +424,13 @@ const SurveyQuoteTool = ({
                 color-adjust: exact !important;
               }
               .no-print, .print\\:hidden { display: none !important; }
+              /* PDF layout guards: card grids stay in two columns with full,
+                 natural photos — never one full-width 80px strip per item —
+                 and blocks/photos stay whole across page breaks. */
+              div[class*="lg:grid-cols-3"] { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 1rem !important; }
+              div[class*="lg:grid-cols-3"] img { height: 150px !important; object-fit: cover !important; }
+              [data-quote-content] img { page-break-inside: avoid !important; }
+              [data-quote-content] .mb-6 { page-break-inside: avoid !important; }
             </style>
           </head>
           <body>
@@ -444,8 +451,19 @@ const SurveyQuoteTool = ({
       iframe.contentDocument?.write(printHtml);
       iframe.contentDocument?.close();
 
-      // Wait for content to render then capture with html2pdf
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Wait until the Tailwind CDN inside the clone has actually generated its
+      // stylesheet before capturing — capturing on a blind timer races it and
+      // the PDF comes out with an unstyled, deformed layout.
+      await new Promise<void>((resolve) => {
+        const started = Date.now();
+        const tick = () => {
+          const doc = iframe.contentDocument;
+          const ready = !!doc && [...doc.querySelectorAll('style')].some(s => (s.textContent || '').includes('.grid'));
+          if ((ready && Date.now() - started > 1200) || Date.now() - started > 5000) resolve();
+          else setTimeout(tick, 200);
+        };
+        tick();
+      });
 
       // @ts-ignore
       const html2pdfModule = await import('html2pdf.js');
@@ -462,7 +480,8 @@ const SurveyQuoteTool = ({
           logging: false,
           allowTaint: true
         },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const },
+        pagebreak: { mode: ['css', 'legacy'] }
       };
 
       await html2pdf().set(opt).from(iframe.contentDocument?.body).save();
