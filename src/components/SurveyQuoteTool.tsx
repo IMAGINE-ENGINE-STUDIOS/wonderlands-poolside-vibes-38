@@ -2034,7 +2034,7 @@ const SurveyQuoteTool = ({
                         
                         {/* Product Image - ALWAYS DISPLAY */}
                         <div>
-                          <div className="mb-4">
+                          <div className="mb-4 avoid-break">
                             <ImageUploadOverlay imageKey="main-product" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                               <ImageCard 
                                 src={imageOverrides['main-product'] || pool?.image || customProduct?.image || (isPoolType(customProduct?.type) ? CUSTOM_POOL_IMAGE : discipline === 'fencing' ? fenceQuoteImage : (quoteLineImage(customProduct?.name || '') || fenceQuoteImage))} 
@@ -2136,7 +2136,7 @@ const SurveyQuoteTool = ({
                                   <OptimizedImage 
                                     src={imageOverrides[`option-img-${index}`] || "/media/8bf11ea9-c402-4834-a163-0876545498bd.webp"} 
                                     alt={option.name} 
-                                    className="w-full h-auto rounded-md border border-orange-200"
+                                    className="w-full h-auto max-h-60 object-contain rounded-md border border-orange-200"
                                     sizeConfig="quoteImage"
                                   />
                                 </ImageUploadOverlay>
@@ -2199,7 +2199,7 @@ const SurveyQuoteTool = ({
                           displayName = displayName.replace(/premium screen enclosure/i, 'Premium Screen Enclosure - 2 Story');
                         }
                         
-                        return <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+                        return <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 avoid-break">
                           {/* Display item image - use actual image if available or fallback based on type */}
                           {(() => {
                     // Enclosure line items are technical scope rows — no product photo
@@ -2208,7 +2208,7 @@ const SurveyQuoteTool = ({
                     if (item.image) {
                       return <div className="mb-3">
                                  <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
-                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || item.image} alt={displayName} className="w-full h-auto rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
+                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || item.image} alt={displayName} className="w-full h-auto max-h-60 rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
                                  </ImageUploadOverlay>
                                </div>;
                     }
@@ -2312,7 +2312,7 @@ const SurveyQuoteTool = ({
                     }
                     return itemImage ? <div className="mb-3">
                                  <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
-                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || itemImage} alt={displayName} className="w-full h-auto rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
+                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || itemImage} alt={displayName} className="w-full h-auto max-h-60 rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
                                  </ImageUploadOverlay>
                                </div> : null;
                   })()}
@@ -2333,7 +2333,7 @@ const SurveyQuoteTool = ({
 
                       {/* Custom items added by admin in Edit Mode */}
                       {customItems.map((ci) => (
-                        <div key={ci.id} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 relative">
+                        <div key={ci.id} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 relative avoid-break">
                           {isEditMode && (
                             <button
                               onClick={() => handleRemoveCustomItem(ci.id)}
@@ -2359,7 +2359,7 @@ const SurveyQuoteTool = ({
                                 onCropChange={handleCropChange}
                               >
                                 {ci.image ? (
-                                  <ImageCard src={ci.image} alt={ci.name} className="w-full h-auto rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
+                                  <ImageCard src={ci.image} alt={ci.name} className="w-full h-auto max-h-60 rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
                                 ) : (
                                   <div className="w-full h-20 rounded-md border border-dashed border-coral-300 flex items-center justify-center text-xs text-coral-600 bg-white/60 no-print print:hidden">
                                     Click to upload image (optional)
@@ -2370,7 +2370,7 @@ const SurveyQuoteTool = ({
                           ) : (
                             ci.image && (
                               <div className="mb-3">
-                                <ImageCard src={ci.image} alt={ci.name} className="w-full h-auto rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
+                                <ImageCard src={ci.image} alt={ci.name} className="w-full h-auto max-h-60 rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
                               </div>
                             )
                           )}
@@ -2763,7 +2763,7 @@ const SurveyQuoteTool = ({
                 </div>
                 )}
 
-                 <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
+                 <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center avoid-break">
                    <h3 className="text-2xl font-bold mb-2">
                      {isEditMode ? (
                        <input
