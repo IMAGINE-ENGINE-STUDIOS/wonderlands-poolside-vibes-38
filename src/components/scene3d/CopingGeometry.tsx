@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import earcut from 'earcut';
 import { useMemo, useEffect, useState } from 'react';
 import { useThree } from '@react-three/fiber';
-import { mitredOffsetRing } from '@/utils/polygonGeometry';
+import { mitredOffsetRing, unionRegions } from '@/utils/polygonGeometry';
 import { textureCache } from '@/utils/textureCache';
 import { useTextureInvalidation } from '@/hooks/useTextureInvalidation';
 
@@ -103,6 +104,8 @@ export const CopingGeometry = ({
     );
 
     if (copingInnerBoundary.length < 3) return new THREE.BufferGeometry();
+    // Unpinned mitred outer ring, kept for the fold-flap fill below.
+    const unpinnedOuterBoundary = copingOuterBoundary.map((p) => ({ ...p }));
     // Tight inward curves make neighbouring offset points cross; pin folded
     // ones to the previous point so the band never overlaps itself.
     for (let pass = 0; pass < 2; pass++) {
@@ -172,7 +175,107 @@ export const CopingGeometry = ({
       indices.push(innerIdx, nextInnerIdx, outerIdx);
       indices.push(outerIdx, nextInnerIdx, nextOuterIdx);
     }
-    
+
+    // Fold-flap fill (Job N, 2026-11-02): the pinning above keeps the band
+    // from overlapping itself, but where it collapses a run of outer
+    // vertices onto one point — sharp concave corners on dense traced
+    // outlines (Latham spill notches, tight traced arcs) — the strip's top
+    // face leaves a triangular hole between the pinned chord and the true
+    // mitred corner. The deck hole and the terrain opening are both cut
+    // wider than the band, so the ground showed through that hole (the
+    // founder's green-triangle photo: Astoria 14 / Bermuda / the
+    // spillover spas on /app/latham-pools). Fill each pin run's flap —
+    // the polygon between the pinned position and the unpinned mitred
+    // chain — triangulated with earcut (the triangulator the deck and
+    // terrain already use) at top height with the top face's world UVs.
+    // Skipped when spill cuts are active, so a cut still removes its
+    // stones; outlines whose pinning moves nothing (hand-authored Studio
+    // rings) get byte-identical geometry.
+    if (!cuts || !cuts.length) {
+      const nB = copingOuterBoundary.length;
+      const moved = copingOuterBoundary.map((p, i) => {
+        const u = unpinnedOuterBoundary[i];
+        return Math.abs(p.x - u.x) > 1e-9 || Math.abs(p.z - u.z) > 1e-9;
+      });
+      const anchor = moved.findIndex((m) => !m);
+      if (anchor >= 0 && moved.some(Boolean)) {
+        let scanned = 0;
+        while (scanned < nB) {
+          const idx = (anchor + scanned) % nB;
+          if (!moved[idx]) { scanned++; continue; }
+          const a = copingOuterBoundary[(idx - 1 + nB) % nB];
+          const flap: Array<{ x: number; z: number }> = [{ x: a.x, z: a.z }];
+          let k = idx;
+          while (scanned < nB && moved[(anchor + scanned) % nB]) {
+            flap.push({ ...unpinnedOuterBoundary[(anchor + scanned) % nB] });
+            scanned++;
+            k = (anchor + scanned) % nB;
+          }
+          const zend = copingOuterBoundary[k];
+          flap.push({ x: zend.x, z: zend.z });
+          // Drop consecutive duplicates (pinned chains can repeat points).
+          const poly = flap.filter((p, i) => i === 0 || Math.abs(p.x - flap[i - 1].x) > 1e-9 || Math.abs(p.z - flap[i - 1].z) > 1e-9);
+          if (poly.length >= 3) {
+            let area2 = 0;
+            for (let i = 0; i < poly.length; i++) {
+              const p = poly[i], q = poly[(i + 1) % poly.length];
+              area2 += p.x * q.z - q.x * p.z;
+            }
+            if (Math.abs(area2) > 2e-6) {
+              // A fold can cross the pinned chord twice (an S-fold), making
+              // the flap polygon self-intersecting; earcut alone then
+              // underfills one lobe (a residual ~0.003 sq ft nick measured
+              // on Astoria 14). Decompose with the engine's own unionRegions
+              // — the same machinery resolveDeckBoundaries uses — and fill
+              // every resulting outer ring.
+              let rings: Array<Array<{ x: number; z: number }>> = [];
+              try {
+                rings = unionRegions([poly]).map((r) => r[0]).filter((r) => r && r.length >= 3);
+              } catch { rings = []; }
+              if (!rings.length) rings = [poly];
+              for (const ringPts of rings) {
+                const baseIdx = vertices.length / 3;
+                for (const p of ringPts) {
+                  vertices.push(p.x, topY, p.z);
+                  uvs.push(p.x, p.z);
+                }
+                const tris = earcut(ringPts.flatMap((p) => [p.x, p.z]));
+                for (let t = 0; t + 2 < tris.length; t += 3) {
+                  let i0 = tris[t], i1 = tris[t + 1], i2 = tris[t + 2];
+                  const A = ringPts[i0], B = ringPts[i1], C = ringPts[i2];
+                  // Enforce an upward (+Y) face normal in the XZ plane.
+                  if ((B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z) < 0) {
+                    const tmp = i1; i1 = i2; i2 = tmp;
+                  }
+                  indices.push(baseIdx + i0, baseIdx + i1, baseIdx + i2);
+                }
+              }
+              // Skirt the flap's outer chain (anchor -> unpinned chain ->
+              // next anchor) down to bottomY, in the outer wall's scheme:
+              // the band's own skirt follows the PINNED ring, so without
+              // this the seam between the inset skirt and the deck edge
+              // stayed open to a grazing view (a green dash at Regal
+              // Spillover's notch from the default camera).
+              const anchorIdx = (idx - 1 + nB) % nB;
+              let uAcc = distances[anchorIdx] ?? 0;
+              for (let e = 0; e + 1 < poly.length; e++) {
+                const p = poly[e], q = poly[e + 1];
+                const uP = uAcc;
+                uAcc += Math.hypot(q.x - p.x, q.z - p.z);
+                const wallBase = vertices.length / 3;
+                vertices.push(p.x, topY, p.z); vertices.push(p.x, bottomY, p.z);
+                vertices.push(q.x, topY, q.z); vertices.push(q.x, bottomY, q.z);
+                uvs.push(uP, copingHeight); uvs.push(uP, 0);
+                uvs.push(uAcc, copingHeight); uvs.push(uAcc, 0);
+                indices.push(wallBase, wallBase + 2, wallBase + 1);
+                indices.push(wallBase + 1, wallBase + 2, wallBase + 3);
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Bottom surface
     // Bottom surface
     const bottomBaseIdx = vertices.length / 3;
