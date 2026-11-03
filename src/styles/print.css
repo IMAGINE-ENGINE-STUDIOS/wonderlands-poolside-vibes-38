@@ -18,7 +18,14 @@
   }
 
   .avoid-break {
-    page-break-inside: avoid;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Quote: no image or block is ever cut between pages */
+  [data-quote-content] img {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Remove shadows and backgrounds for cleaner prints */
