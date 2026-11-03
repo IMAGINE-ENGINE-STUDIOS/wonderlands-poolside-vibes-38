@@ -2707,21 +2707,21 @@ const SurveyQuoteTool = ({
                 {/* Edit Mode Toggle */}
                 <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                   {!isEditMode ? (
-                    <div className="flex items-center gap-2 w-full">
-                      <div className="relative flex-1 max-w-[200px]">
+                    <div className="flex flex-wrap items-center gap-2 w-full">
+                      <div className="flex items-center gap-2 flex-1 min-w-[200px] max-w-[320px]">
                         <Input
                           type="password"
                           placeholder="Passcode"
                           value={passcodeInput}
                           onChange={(e) => setPasscodeInput(e.target.value)}
-                          className="h-9 text-sm pr-20 border-gray-300 focus:border-orange-400 focus:ring-orange-400"
+                          className="h-9 text-sm flex-1 border-gray-300 focus:border-orange-400 focus:ring-orange-400"
                           onKeyDown={(e) => e.key === 'Enter' && handleEnterEditMode()}
                         />
                         <Button 
                           size="sm"
                           variant="ghost" 
                           onClick={handleEnterEditMode}
-                          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                          className="h-9 px-3 text-xs shrink-0 border border-orange-200 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                         >
                           Edit
                         </Button>
@@ -2746,7 +2746,7 @@ const SurveyQuoteTool = ({
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 w-full">
+                    <div className="flex flex-wrap items-center gap-2 w-full">
                       <Button 
                         size="sm"
                         onClick={handleSaveEditedQuote}
