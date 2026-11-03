@@ -19,7 +19,7 @@ import earcut from 'earcut';
 import polygonClipping from 'polygon-clipping';
 import grassTexture from '@/assets/turf/grass-texture.avif';
 import { loadBoard3D, BOARD_3D_EVENT } from '@/lib/design/board3D';
-import { resolveDeckBoundaries, sanitizeBoundary, smoothCurvedRing } from '@/utils/deckSurface';
+import { resolveDeckBoundaries, sanitizeBoundary, poolOutlineRing, copingOuterRingFor } from '@/utils/deckSurface';
 import { mitredOffsetRing } from '@/utils/polygonGeometry';
 import { poolTerrainOpening } from '@/utils/poolTerrainOpening';
 
@@ -361,12 +361,12 @@ export const PoolMesh: React.FC<{
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    // Same corner-preserving smoothing as the deck/coping/waterline ring, so the
+    // Same outline ring as the deck/coping/waterline (poolOutlineRing), so the
     // wall faces share one outline and no flat facets show on curves.
-    const normalizedPoints = smoothCurvedRing(curvedPoints.map(p => ({
+    const normalizedPoints = poolOutlineRing(curvedPoints.map(p => ({
       x: p.x - centerX,
       z: p.y - centerY
-    })));
+    })), points.length);
 
     const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
     const getDepthAtPosition = (positionRatio: number): number => {
@@ -1117,16 +1117,16 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     window.addEventListener(BOARD_3D_EVENT, on);
     return () => window.removeEventListener(BOARD_3D_EVENT, on);
   }, []);
-  const boardDeckCutouts = useMemo(() => boardDeckWaters.filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(w.pts, w.copingWidth ?? 1).offset), [boardDeckWaters]);
+  const boardDeckCutouts = useMemo(() => boardDeckWaters.filter((w) => w.pts.length >= 3).map((w) => copingOuterRingFor(w.pts, w.copingWidth ?? 1)), [boardDeckWaters]);
 
   // Calculate normalized pool curve for deck/coping geometry
   const poolCurve3D = useMemo(() => {
     if (points.length < 3) return [];
     
-    // Same fallback and smoothing as PoolMesh; dense studio samples pass through unchanged.
-    return smoothCurvedRing(generateCurvedPoolPoints(points, 30, 0.3).map(p => ({
+    // Same fallback and outline ring as PoolMesh; dense studio samples pass through unchanged.
+    return poolOutlineRing(generateCurvedPoolPoints(points, 30, 0.3).map(p => ({
       x: p.x - poolFrameCenter.x, z: p.y - poolFrameCenter.y,
-    })));
+    })), points.length);
   }, [points, poolFrameCenter]);
   
   // Calculate normalized hardscape points for exact deck sync (same origin as the pool)
@@ -1239,7 +1239,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
    * so the wall sagged inside the true coping edge wherever the outline turns
    * (≈0.3 ft on a rectangle's straight runs), leaving a slot of lawn visible
    * between the wall and the deck. */
-  const copingOuterRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(mitredOffsetRing(poolCurve3D, localCopingWidth, { miterLimit: 2.5 }).offset) : []), [poolCurve3D, localCopingWidth]);
+  const copingOuterRing = useMemo(() => copingOuterRingFor(poolCurve3D, localCopingWidth), [poolCurve3D, localCopingWidth]);
   const siteStairs = useSiteStairs();
   const xrayRing = useMemo(() => (poolCurve3D.length >= 3 ? sanitizeBoundary(generateOffsetCurve(poolCurve3D, 0.5)) : []), [poolCurve3D]);
 

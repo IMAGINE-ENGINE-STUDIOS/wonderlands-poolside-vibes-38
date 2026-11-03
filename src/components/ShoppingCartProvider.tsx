@@ -73,16 +73,41 @@ export const ShoppingCartProvider = ({ children }: ShoppingCartProviderProps) =>
 
   useEffect(() => {
     const savedCart = localStorage.getItem('poolShoppingCart');
-    if (savedCart) {
+    if (!savedCart) return;
+    try {
+      const raw = JSON.parse(savedCart);
+      // Older builds stored this cart in more than one shape: a bare array
+      // (current) or an object wrapping the items. Accept both. Anything
+      // unreadable must never take the whole app down — this provider wraps
+      // every page, so a throw here is the error screen everywhere.
+      const list: any[] = Array.isArray(raw)
+        ? raw
+        : Array.isArray((raw as any)?.items)
+          ? (raw as any).items
+          : [];
+      const items = list.filter(
+        (item): item is CartItem =>
+          !!item &&
+          typeof item === 'object' &&
+          (item as any).id != null &&
+          typeof (item as any).name === 'string'
+      );
       // Re-label legacy items that stored pricing tiers ("premium") as a category
-      const parsed: CartItem[] = JSON.parse(savedCart);
       setCartItems(
-        parsed.map(item => ({
+        items.map(item => ({
           ...item,
           category:
             resolveCategoryLabel(item.category, (item as any).type, item.id, item.name) || 'Other',
         }))
       );
+    } catch {
+      // Keep the unreadable value for recovery, then open with an empty
+      // cart instead of crashing every page for this returning user.
+      try {
+        localStorage.setItem('poolShoppingCart:backup', savedCart);
+      } catch {
+        /* storage full/blocked — opening the app matters more */
+      }
     }
   }, []);
 

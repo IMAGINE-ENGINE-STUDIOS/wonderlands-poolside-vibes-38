@@ -68,6 +68,17 @@ export interface ContourSeatingConfig {
   height: number;           // Depth below water for top surface (default 1 ft)
   textureUrl: string;
   splinePoints?: SeatingSplinePoint[];  // Control points for variable width/depth
+  /**
+   * DRAWN GEOMETRY (Pool Geometry Fix Job 1, 2026-11-03): the seat's wall
+   * line as real points in the scene frame ({x, z} = plan feet). When
+   * present, the renderer sweeps along THESE points — the drawn spline IS
+   * the geometry — and startPosition/endPosition are ignored. Catalog
+   * benches/seats always carry this; only the Studio's own procedural
+   * contour presets (placed by hand in 3D) still use the fraction fields.
+   */
+  pathPoints?: Array<{ x: number; z: number }>;
+  /** The drawn path is a closed loop (full-perimeter seat). */
+  pathClosed?: boolean;
 }
 
 export type PoolAsset = PoolStairConfig | PoolChairConfig | PoolJetConfig | ContourSeatingConfig;

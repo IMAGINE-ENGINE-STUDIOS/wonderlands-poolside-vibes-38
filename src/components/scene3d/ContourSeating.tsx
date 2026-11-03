@@ -11,6 +11,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useThree, ThreeEvent } from '@react-three/fiber';
 import { useTiledTexture } from '@/hooks/useTiledTexture';
 import { ContourSeatingConfig } from './poolAssetTypes';
+import { samplesAlongPath } from '@/lib/design/featureSplines';
 
 interface ContourSeatingProps {
   seating: ContourSeatingConfig;
@@ -70,10 +71,23 @@ export function ContourSeating({ seating, poolPerimeter, isSelected, onSelect, g
   const texture = useTiledTexture(seating.textureUrl);
 
   const geometry = useMemo(() => {
-    const span = seating.endPosition - seating.startPosition;
-    const closed = span >= 0.995;
-    const end = span < 0 ? seating.endPosition + 1 : seating.endPosition; // seam wrap
-    const samples = samplePerimeter(seating.startPosition, end, poolPerimeter, closed);
+    // Drawn geometry first (Job 1, 2026-11-03): a seat that carries its own
+    // wall-line points sweeps along THOSE points — never perimeter
+    // fractions. Only the Studio's hand-placed procedural presets (no
+    // pathPoints) still sample the perimeter by fraction.
+    const hasPath = !!seating.pathPoints && seating.pathPoints.length >= 2;
+    const closed = hasPath ? !!seating.pathClosed : (seating.endPosition - seating.startPosition) >= 0.995;
+    let samples: Sample[];
+    if (hasPath) {
+      const c = poolPerimeter.length
+        ? { x: poolPerimeter.reduce((s, p) => s + p.x, 0) / poolPerimeter.length, z: poolPerimeter.reduce((s, p) => s + p.z, 0) / poolPerimeter.length }
+        : { x: 0, z: 0 };
+      samples = samplesAlongPath(seating.pathPoints!, closed, c);
+    } else {
+      const span = seating.endPosition - seating.startPosition;
+      const end = span < 0 ? seating.endPosition + 1 : seating.endPosition; // seam wrap
+      samples = samplePerimeter(seating.startPosition, end, poolPerimeter, closed);
+    }
     const geo = new THREE.BufferGeometry();
     if (samples.length < 2) return geo;
 
@@ -82,23 +96,77 @@ export function ContourSeating({ seating, poolPerimeter, isSelected, onSelect, g
     const r = Math.min(Math.max(0, seating.softEdge ?? 0.15), w * 0.45, 0.6);
     // Cross-section (inward offset, y) — floor depth substituted per sample.
     const ARC = r > 0.01 ? 6 : 0;
-    const profile = (floor: number): Array<[number, number]> => {
-      const pts: Array<[number, number]> = [[0, topY], [w - r, topY]];
-      for (let j = 1; j <= ARC; j++) { const a = (Math.PI / 2) * (j / ARC); pts.push([w - r + Math.sin(a) * r, topY - r + Math.cos(a) * r]); }
-      if (!ARC) pts.push([w, topY]);
+    const profile = (floor: number, we: number): Array<[number, number]> => {
+      const ri = Math.min(r, we * 0.45);
+      const pts: Array<[number, number]> = [[0, topY], [we - ri, topY]];
+      for (let j = 1; j <= ARC; j++) { const a = (Math.PI / 2) * (j / ARC); pts.push([we - ri + Math.sin(a) * ri, topY - ri + Math.cos(a) * ri]); }
+      if (!ARC) pts.push([we, topY]);
       const bottom = Math.min(topY - 0.1, -floor);
-      pts.push([w, bottom], [0, bottom]);
+      pts.push([we, bottom], [0, bottom]);
       return pts;
     };
 
+    // Effective width per sample (Job V, 2026-11-03): a swept band folds into
+    // a thin fin where the wall's turn radius is tighter than the bench width
+    // — its inner edge reverses on itself. Engineering-trace outlines carry
+    // true ~0.4 ft corners (Astoria seat: radius 0.43 ft vs width 1.56 ft, two
+    // measured folds); Studio-smoothed outlines turn gently (radius >> width),
+    // so this is a no-op there. Two stages, both measured fold-free on the
+    // traced catalogue: (1) clamp each sample's width to the local turn
+    // radius, min-filtered over a window of ~one bench width so the taper is
+    // gradual; (2) a pin pass — any sample whose inner segment still reverses
+    // against the wall segment has its width halved until it doesn't (the
+    // fold-pinning idea CopingGeometry uses, in width space).
+    const nS = samples.length;
+    const stepRadius = (k: number): number => {
+      const ia = closed ? ((k % nS) + nS) % nS : k;
+      const ib = closed ? (((k + 1) % nS) + nS) % nS : k + 1;
+      if (!closed && (ia < 0 || ib >= nS)) return Infinity;
+      const a = samples[ia], b = samples[ib];
+      const step = Math.hypot(b.x - a.x, b.z - a.z);
+      const dth = Math.acos(Math.max(-1, Math.min(1, a.nx * b.nx + a.nz * b.nz)));
+      return dth > 1e-4 && step > 1e-6 ? step / dth : Infinity;
+    };
+    let avgStep = 0.5;
+    if (nS > 1) {
+      let sum = 0;
+      for (let i = 1; i < nS; i++) sum += Math.hypot(samples[i].x - samples[i - 1].x, samples[i].z - samples[i - 1].z);
+      avgStep = sum / (nS - 1) || 0.5;
+    }
+    const win = Math.max(2, Math.round(w / Math.max(0.2, avgStep)));
+    const wEff = samples.map((_, i) => {
+      let rMin = Infinity;
+      for (let k = i - win; k <= i + win; k++) {
+        const kk = closed ? ((k % nS) + nS) % nS : k;
+        if (!closed && (kk < 0 || kk >= nS)) continue;
+        rMin = Math.min(rMin, stepRadius(kk), stepRadius(kk - 1));
+      }
+      return Math.min(w, Math.max(0.3, rMin * 0.9));
+    });
+    const pairs = closed ? nS : nS - 1;
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 0; i < pairs; i++) {
+        const j = closed ? (i + 1) % nS : i + 1;
+        const a = samples[i], b = samples[j];
+        const cx = a.x + a.nx * wEff[i], cz = a.z + a.nz * wEff[i];
+        let guard = 0;
+        while (guard++ < 8) {
+          const dx = b.x + b.nx * wEff[j], dz = b.z + b.nz * wEff[j];
+          if ((b.x - a.x) * (dx - cx) + (b.z - a.z) * (dz - cz) >= 0) break;
+          wEff[j] *= 0.5;
+          if (wEff[j] < 0.15) { wEff[j] = 0.15; break; }
+        }
+      }
+    }
+
     const verts: number[] = [], uvs: number[] = [], idx: number[] = [];
-    const ringLen = profile(1).length;
+    const ringLen = profile(1, w).length;
     let along = 0;
     samples.forEach((s, i) => {
       if (i > 0) along += Math.hypot(s.x - samples[i - 1].x, s.z - samples[i - 1].z);
-      const floor = getFloorDepthAt(s.x + s.nx * w * 0.5, s.z + s.nz * w * 0.5);
+      const floor = getFloorDepthAt(s.x + s.nx * wEff[i] * 0.5, s.z + s.nz * wEff[i] * 0.5);
       let v = 0; let prev: [number, number] | null = null;
-      for (const [o, y] of profile(floor)) {
+      for (const [o, y] of profile(floor, wEff[i])) {
         if (prev) v += Math.hypot(o - prev[0], y - prev[1]);
         verts.push(s.x + s.nx * o, y, s.z + s.nz * o); uvs.push(along, v); prev = [o, y];
       }

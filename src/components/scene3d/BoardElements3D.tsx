@@ -11,7 +11,7 @@ import { loadBoard3D, BOARD_3D_EVENT, type Board3D, type Fence3D, type Screen3D,
 import { mitredOffsetRing, buildSlabGeometry } from "@/utils/polygonGeometry";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { textureCache } from "@/utils/textureCache";
-import { smoothCurvedRing } from "@/utils/deckSurface";
+import { smoothCurvedRing, copingOuterRingFor } from "@/utils/deckSurface";
 import { generateCurvedPoolPoints } from "@/utils/curveUtils";
 import { PoolMesh } from "@/components/Pool3DScene";
 import { CopingGeometry, type SpillCut } from "./CopingGeometry";
@@ -19,6 +19,8 @@ import { InstancedBoxes, beamBox, type BoxInstance } from "./InstancedBoxes";
 import { buildScreenFrame, strut } from "@/utils/screenStructureGeometry";
 import { WaterlineMesh } from "@/components/WaterlineMesh";
 import { PoolAssetsRenderer } from "./PoolAssetsRenderer";
+import { LedgeShelf } from "./LedgeShelf";
+import { ContourSeating } from "./ContourSeating";
 import { useThree } from "@react-three/fiber";
 import { applyHoleCut } from "./holeCutShader";
 import { buildVinylFence } from "./vinylFenceGeometry";
@@ -270,7 +272,7 @@ function WaterBody({ w, i, scales, mainCoping, mainWaterline, cuts }: { w: Water
   const waterGeo = React.useMemo(() => { const g = new THREE.ShapeGeometry(new THREE.Shape(curve.map((p) => new THREE.Vector2(p.x, -p.z)))); g.rotateX(-Math.PI / 2); return g; }, [curve]);
   const copingH = w.copingHeight ?? 2 / 12;
   const elev = Math.max(0, w.elevation ?? 0);
-  const outerRing = React.useMemo(() => mitredOffsetRing(curve, w.copingWidth || 1).offset, [curve, w.copingWidth]);
+  const outerRing = React.useMemo(() => copingOuterRingFor(curve, w.copingWidth || 1), [curve, w.copingWidth]);
   const pick = (part: WaterPart) => (e: any) => { if (e.delta > 4) return; select({ type: "water", i, part })(e); };
   const setAssets = (patch: Partial<Water3D>) => updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((x, k) => (k === i ? { ...x, ...patch } : x)) }));
   return (
@@ -297,6 +299,46 @@ function WaterBody({ w, i, scales, mainCoping, mainWaterline, cuts }: { w: Water
     </group>
   );
 }
+
+/**
+ * A merged tanning-ledge water renders as an in-pool bench (Job V Phase 2):
+ * the LedgeShelf inside the main pool — no shell, coping, waterline or own
+ * water surface (the main pool's water covers the zone). Same bounds-centre
+ * frame as WaterBody; the main outline and sibling waters are passed in the
+ * same local frame so the shelf can tell wall edges from swim-area edges.
+ */
+function ShelfBody({ w, i, scales, mainRing, otherRings }: { w: Water3D; i: number; scales: SceneScales; mainRing?: { x: number; z: number }[]; otherRings?: { x: number; z: number }[][] }) {
+  const c = React.useMemo(() => waterCenter(w.pts), [w.pts]);
+  const curve = React.useMemo(() => denseRing(w.pts.map((p) => ({ x: p.x - c.x, y: p.z - c.z }))).map((p) => ({ x: p.x, z: p.y })), [w.pts, c]);
+  const local = React.useMemo(() => curve.map((p, k) => ({ x: p.x, y: p.z, id: `${w.itemId ?? i}-p${k}` })), [curve, w.itemId, i]);
+  const shift = React.useCallback((ring?: { x: number; z: number }[]) => ring?.map((p) => ({ x: p.x - c.x, z: p.z - c.z })), [c]);
+  const mainLocal = React.useMemo(() => shift(mainRing), [shift, mainRing]);
+  const othersLocal = React.useMemo(() => (otherRings ?? []).map((r) => shift(r)!).filter(Boolean), [shift, otherRings]);
+  const elev = Math.max(0, w.elevation ?? 0);
+  const pick = (e: any) => { if (e.delta > 4) return; select({ type: "water", i, part: "pool" })(e); };
+  const setAssets = (patch: Partial<Water3D>) => updateBoard3D((d) => ({ ...d, waters: (d.waters ?? []).map((x, k) => (k === i ? { ...x, ...patch } : x)) }));
+  const depthAt = React.useCallback(() => Math.max(0.05, w.depth), [w.depth]);
+  return (
+    <group name={`board-${w.kind}`} position={[c.x, elev, c.z]}>
+      <LedgeShelf
+        ring={curve}
+        depth={w.depth}
+        textureUrl={urlOr(w.finish, BASE_FINISH)!}
+        mainRing={mainLocal}
+        otherRings={othersLocal}
+        onPick={pick}
+      />
+      {((w.stairs ?? []).length > 0 || (w.seating ?? []).length > 0 || (w.chairs ?? []).length > 0) && (
+        <PoolAssetsRenderer poolPoints={local as any} poolDepth={w.depth} getFloorDepthAt={depthAt}
+          stairs={w.stairs ?? []} onStairsChange={(stairs) => setAssets({ stairs })}
+          chairs={w.chairs ?? []} onChairsChange={(chairs) => setAssets({ chairs })}
+          contourSeating={w.seating ?? []} onContourSeatingChange={(seating) => setAssets({ seating })}
+          selectedAssetId={null} onSelectAsset={() => {}} />
+      )}
+    </group>
+  );
+}
+const Shelf = React.memo(ShelfBody, (a, b) => a.i === b.i && a.scales === b.scales && a.w === b.w && a.mainRing === b.mainRing && a.otherRings === b.otherRings);
 
 /**
  * Turf / deck pieces from the board. Every pool and spa (main + extras, each
@@ -379,7 +421,7 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
   React.useEffect(() => { invalidate(); }, [data, invalidate]);
   // Key by content so a new-but-equal holes array never recomputes rings or recompiles shaders.
   const holesIn = React.useMemo(() => holes, [JSON.stringify(holes)]); // eslint-disable-line react-hooks/exhaustive-deps
-  const allHoles = React.useMemo(() => [...holesIn, ...(data?.waters ?? []).filter((w) => w.pts.length >= 3).map((w) => mitredOffsetRing(denseRing(w.pts.map((p) => ({ x: p.x, y: p.z }))).map((p) => ({ x: p.x, z: p.y })), Math.max(0.1, (w.copingWidth || 1) - 0.02)).offset)], [holesIn, data?.waters]);
+  const allHoles = React.useMemo(() => [...holesIn, ...(data?.waters ?? []).filter((w) => w.pts.length >= 3).map((w) => copingOuterRingFor(denseRing(w.pts.map((p) => ({ x: p.x, y: p.z }))).map((p) => ({ x: p.x, z: p.y })), Math.max(0.1, (w.copingWidth || 1) - 0.02)))], [holesIn, data?.waters]);
   const holesKey = React.useMemo(() => allHoles.map((h) => h.map((p) => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join("|")).join("#"), [allHoles]);
   React.useEffect(() => {
     const on = () => setData(loadBoard3D());
@@ -399,7 +441,14 @@ export function BoardElements3D({ holes = [], scales = DEFAULT_SCALES, mainCopin
       {data.fences.map((f, i) => off("fence", f.itemId, i, "fences") ? null : <Fence key={`f${i}`} f={f} i={i} />)}
       {data.screens.map((s, i) => off("screen", s.itemId, i, "fences") ? null : <Screen key={`c${i}`} s={s} i={i} />)}
       {(data.spills?.length ?? 0) > 0 && <Spillovers3D data={data} mainElevation={mainElevation} deckLevel={deckLevel} mainPts={data.primaryPts} tileUrl={mainWaterline} mainCopingWidth={mainCopingWidth} />}
-      {(data.waters ?? []).map((w, i) => !w || !Array.isArray(w.pts) || w.pts.length < 3 || off("water", w.itemId, i, "structure") ? null : (() => { const cuts = (data.spills ?? []).filter((sp) => sp.waterId === w.itemId); return <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} cuts={cuts} cutKey={cuts.map((k) => `${k.a.x},${k.a.z},${k.b.x},${k.b.z}`).join("|")} />; })())}
+      {/* Benches drawn on the 2D board: their stored spline (primarySeating)
+          swept against the primary outline in this same centred frame. */}
+      {(data.primarySeating ?? []).map((s) => (
+        <ContourSeating key={s.id} seating={s} poolPerimeter={data.primaryPts ?? []}
+          onPositionChange={() => {}} isSelected={false} onSelect={() => {}}
+          getFloorDepthAt={() => 4} />
+      ))}
+      {(data.waters ?? []).map((w, i) => !w || !Array.isArray(w.pts) || w.pts.length < 3 || off("water", w.itemId, i, "structure") ? null : (() => { if (w.featureType === "tanning-ledge" && w.isMerged) { const others = (data.waters ?? []).filter((x, k) => k !== i && x && Array.isArray(x.pts) && x.pts.length >= 3).map((x) => x.pts); return <Shelf key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainRing={data.primaryPts} otherRings={others} />; } const cuts = (data.spills ?? []).filter((sp) => sp.waterId === w.itemId); return <Water key={w.itemId ?? `w${i}`} w={w} i={i} scales={scales} mainCoping={mainCoping} mainWaterline={mainWaterline} cuts={cuts} cutKey={cuts.map((k) => `${k.a.x},${k.a.z},${k.b.x},${k.b.z}`).join("|")} />; })())}
     </group>
   );
 }

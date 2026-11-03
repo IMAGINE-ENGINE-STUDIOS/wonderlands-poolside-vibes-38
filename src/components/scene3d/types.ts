@@ -1,5 +1,6 @@
 // Types for the unified 3D scene system
 import type { CopingEdgeProfileId } from '@/data/copingEdgeProfiles';
+import type { ContourSeatingConfig } from './poolAssetTypes';
 
 export type PointType = 'linear' | 'curve' | 'smooth' | 'corner';
 
@@ -172,6 +173,14 @@ export interface Scene3D {
   };
   additionalPools?: AdditionalPool[]; // Additional water bodies (spas, tanning ledges, separate pools)
   poolLights?: PoolLightConfig[];
+  /**
+   * Additive optional (Job S): contour seating carried INTO the scene by a
+   * converter (e.g. a placed Latham model's sheet-traced benches/seats).
+   * UnifiedPoolVisualizer seeds its seating state from this field — the
+   * poolLights precedent. Absent = no seeded seating (every pre-existing
+   * scene is unchanged).
+   */
+  contourSeating?: ContourSeatingConfig[];
   features: PoolFeature[];
   stairs: PoolStair[];
   annotations: Annotation[];

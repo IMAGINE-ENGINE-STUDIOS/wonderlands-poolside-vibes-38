@@ -15,6 +15,23 @@ import {
 export type P3 = P3Base;
 
 /**
+ * THE coping outer ring (Pool Geometry Fix step 4, 2026-11-03): every
+ * surface that must meet the coping — the coping band itself, the deck
+ * cut, the elevated outer wall / riser, the access stairs — derives its
+ * outer edge from THIS function and nothing else: a mitred offset of the
+ * one outline ring (miter limit 2.5, bevel fallback on sharper tips),
+ * fold-sanitized by the shared boolean round-trip (a corner too tight for
+ * the offset is smoothed/pinned there instead of folding or pinching).
+ * Two parts built from two different rings is the root of every coping
+ * break on record (Oct 29 grass slot, Nov 2 pinch, Nov 3 slit + tab) —
+ * call this instead of offsetting a ring inline.
+ */
+export function copingOuterRingFor(ring: P3[], width: number): P3[] {
+  if (!ring || ring.length < 3) return [];
+  return sanitizeBoundary(mitredOffsetRing(ring, width, { miterLimit: 2.5 }).offset);
+}
+
+/**
  * Single source of truth for deck boundaries.
  *
  * The geometry is produced by exact polygon booleans (see polygonGeometry.ts):
@@ -174,6 +191,25 @@ export function resolveDeckBoundaries(params: {
   }
 
   return { inner, outer };
+}
+
+/**
+ * The pool outline ring every 3D part (shell, coping, deck, terrain, waterline)
+ * is built from. An outline that is already sampled — at or above the dense
+ * marker (DENSE_OUTLINE_MIN_POINTS in curveUtils, the same threshold
+ * generateCurvedPoolPoints and densifyPoolOutline honour) — IS the curve:
+ * re-curving it with Chaikin only manufactures micro-segments (~0.02 ft) whose
+ * direction jitter the mitred offsets amplify into fold-pins and torn coping /
+ * deck edges on trace-density outlines (Job V, 2026-11-03: Astoria 12 coping
+ * pins 0 on the raw ring vs 28 after Chaikin). The gate is the SOURCE point
+ * count, so a sparsely authored outline (a drawn pool's handful of control
+ * points, however densely the curve sampler later expands them) keeps the
+ * exact smoothing below, byte for byte.
+ */
+export function poolOutlineRing(ring: P3[], sourcePointCount: number): P3[] {
+  const clean = dedupe(ring);
+  if (sourcePointCount >= 64) return clean;
+  return smoothCurvedRing(clean);
 }
 
 /**

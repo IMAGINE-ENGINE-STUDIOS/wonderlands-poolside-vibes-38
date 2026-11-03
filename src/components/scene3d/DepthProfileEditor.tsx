@@ -21,6 +21,7 @@ import {
   getZeroEntry,
   applyZeroEntry,
   removeZeroEntry,
+  sampleDepthProfile,
 } from './depthUtils';
 
 interface DepthProfileEditorProps {
@@ -82,8 +83,11 @@ function SectionChart({
       depth: Math.round(((y - SC_T) / plotH) * MAX_FLOOR_DEPTH * 10) / 10,
     };
   };
-  const path = anchors.map((a, i) => `${i ? 'L' : 'M'} ${toX(a.position)},${toY(a.depth)}`).join(' ');
-  const fill = `M ${toX(0)},${SC_T} ${anchors.map((a) => `L ${toX(a.position)},${toY(a.depth)}`).join(' ')} L ${toX(1)},${SC_T} Z`;
+  // Drawn from THE shared depth sampler so this profile is the same curve
+  // the 3D floor is built from — not chords between anchors.
+  const curve = sampleDepthProfile(anchors, 72);
+  const path = curve.map((a, i) => `${i ? 'L' : 'M'} ${toX(a.position)},${toY(a.depth)}`).join(' ');
+  const fill = `M ${toX(0)},${SC_T} ${curve.map((a) => `L ${toX(a.position)},${toY(a.depth)}`).join(' ')} L ${toX(1)},${SC_T} Z`;
   const grid = Array.from({ length: Math.floor(MAX_FLOOR_DEPTH / 2) + 1 }, (_, i) => i * 2);
 
   return (

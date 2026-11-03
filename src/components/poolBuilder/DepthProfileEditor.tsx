@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Trash2, Plus } from "lucide-react";
+import { sampleDepthProfile } from "@/components/scene3d/depthUtils";
 
 export type DepthPoint = { id: string; position: number; depth: number };
 
@@ -105,11 +106,14 @@ export default function DepthProfileEditor({ depthPoints, setDepthPoints }: Prop
 
   const area = React.useMemo(() => {
     if (sorted.length === 0) return "";
-    let d = `M ${xOf(sorted[0].position)},${TOP}`;
-    sorted.forEach((dp) => {
-      d += ` L ${xOf(dp.position)},${yOf(dp.depth)}`;
+    // Drawn from THE shared depth sampler (scene3d/depthUtils) so the 2D
+    // profile is the same curve the 3D floor is built from — not chords.
+    const curve = sampleDepthProfile(sorted as never, 72);
+    let d = `M ${xOf(curve[0].position)},${TOP}`;
+    curve.forEach((p) => {
+      d += ` L ${xOf(p.position)},${yOf(p.depth)}`;
     });
-    d += ` L ${xOf(sorted[sorted.length - 1].position)},${TOP} Z`;
+    d += ` L ${xOf(curve[curve.length - 1].position)},${TOP} Z`;
     return d;
   }, [sorted]);
 

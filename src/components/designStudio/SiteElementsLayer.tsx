@@ -31,6 +31,7 @@ import { paverTypes } from "@/data/paverData";
 import type { StudioMaterials } from '@/lib/design/studioMaterials';
 import { buildFinishTextures } from '@/data/textureLibrary';
 import { densifyPoolOutline } from "@/utils/curveUtils";
+import { copingOuterRingFor } from "@/utils/deckSurface";
 import { PoolDesignerHeader, POOL_SHELL_PRICE_PER_SQFT } from "@/components/scene3d/PoolDesignerHeader";
 import { useLandscapeSnapshot } from "@/lib/landscape/landscapeStore";
 import { getDeckPricePerSqFt } from "@/utils/poolBuilderPricing";
@@ -56,7 +57,7 @@ const TURF_COLORS: Record<string, string> = { "light-green": "#7fb24a", "dark-gr
 export const TURFS = artificialGrassOptions.map((g) => ({ id: g.id, label: `${g.name} turf`, rate: getGrassPricePerSqFt(g.name), color: TURF_COLORS[g.id] ?? "#5b9a40", image: g.image, texture: grassTexture }));
 
 /* ---------- model ---------- */
-export type SiteKind = "fence" | "enclosure" | "turf" | "deck";
+export type SiteKind = "fence" | "enclosure" | "turf" | "deck" | "bench";
 type Pt = { x: number; y: number };
 export interface SiteElement {
   id: string; kind: SiteKind; pts: Pt[]; label: string; detail: string;
@@ -104,15 +105,15 @@ const fencePosts = (pts: Pt[], step: number): Pt[] => {
   }
   return out;
 };
-const KIND_LABEL: Record<SiteKind, string> = { fence: "Fence", enclosure: "Screen", turf: "Turf", deck: "Deck" };
+const KIND_LABEL: Record<SiteKind, string> = { fence: "Fence", enclosure: "Screen", turf: "Turf", deck: "Deck", bench: "Bench" };
 
 /** Shared surface ownership in world feet: existing decks/turf win; water and coping are protected. */
 export function studioNetItems(all: SiteElement[], poolPts: Pt[], deckPts: Pt[], scale: number, extras: Array<{ id: string; type?: string; points: Pt[]; shape?: string; materials?: StudioMaterials; details3D?: any }> = [], extraDecks: Record<string, Pt[]> = {}) {
   const f = (p: Pt) => ({ x: p.x / scale, y: p.y / scale });
   const waters = [ ...(poolPts.length >= 3 ? [{ id: '__pool', kind: 'pool', pts: poolRing(poolPts).map(f), width: 1 }] : []), ...extras.filter(p => p.points.length >= 3).map(p => ({ id: p.id, kind: p.type === 'spa' ? 'spa' : 'pool', pts: densifyPoolOutline(p.points as never, p.shape ?? 'freeform').map(f), width: p.details3D?.copingWidth ?? 1 })) ];
-  const coping = waters.map(w => ({ id: `coping:${w.id}`, kind: 'coping', pts: mitredOffsetRing(w.pts.map(p => ({ x: p.x, z: p.y })), w.width, { miterLimit: 2.5 }).offset.map(p => ({ x: p.x, y: p.z })) }));
+  const coping = waters.map(w => ({ id: `coping:${w.id}`, kind: 'coping', pts: copingOuterRingFor(w.pts.map(p => ({ x: p.x, z: p.y })), w.width).map(p => ({ x: p.x, y: p.z })) }));
   // Main attached deck, extra attached decks, then drawn surfaces in creation order.
-  return [...waters, ...coping, ...(deckPts.length >= 3 ? [{ id: '__deck', kind: 'deck', pts: deckPts.map(f) }] : []), ...extras.filter(p => (extraDecks[p.id]?.length ?? 0) >= 3).map(p => ({ id: `__deck_${p.id}`, kind: 'deck', pts: extraDecks[p.id].map(f) })), ...all.map(e => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) }))];
+  return [...waters, ...coping, ...(deckPts.length >= 3 ? [{ id: '__deck', kind: 'deck', pts: deckPts.map(f) }] : []), ...extras.filter(p => (extraDecks[p.id]?.length ?? 0) >= 3).map(p => ({ id: `__deck_${p.id}`, kind: 'deck', pts: extraDecks[p.id].map(f) })), ...all.filter(e => e.kind !== 'bench').map(e => ({ id: e.id, kind: e.kind, pts: e.pts.map(f) }))];
 }
 export function turfNetSqft(e: SiteElement, all: SiteElement[], poolPts: Pt[], deckPts: Pt[], scale: number, extras: Array<{ id: string; points: Pt[]; shape?: string }> = [], extraDecks: Record<string, Pt[]> = {}) {
   const net = studioNetItems(all, poolPts, deckPts, scale, extras, extraDecks);
@@ -188,6 +189,9 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
   const [fH, setFH] = React.useState<number | null>(null);
   const [sStyle, setSStyle] = React.useState<string | null>(null);
   const [sH, setSH] = React.useState<number | null>(null);
+  /* Drawn bench (Pool Geometry Fix Job 1): width into the pool + depth below the rim, set before drawing the spline. */
+  const [bW, setBW] = React.useState(1.5);
+  const [bD, setBD] = React.useState(1);
   const svgRef = React.useRef<SVGSVGElement>(null);
   const scale = view?.scale ?? 10;
   const drawing = !!choice;
@@ -204,7 +208,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
 
   const finish = React.useCallback((close = false) => {
     if (!choice) return;
-    const min = choice.kind === "fence" ? 2 : 3;
+    const min = choice.kind === "fence" || choice.kind === "bench" ? 2 : 3;
     if (choice.kind === "deck") view?.endDeckMode?.();
     if (draft.length >= min) {
       const id = `${choice.kind}-${Date.now().toString(36)}`;
@@ -631,6 +635,9 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                   {e.kind === "enclosure" && <polygon points={pts} fill="url(#screen-mesh)" stroke={e.color} strokeWidth={Math.max(3 / (view.zoom || 1), scale * 0.3)} strokeLinejoin="miter" />}
                   {e.kind === "enclosure" && <CageRoofPlan pts={e.pts} scale={scale} heightFt={e.height ?? 10} color={e.color} zoom={view.zoom || 1} />}
                   {e.kind === "fence" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={Math.max(2 / (view.zoom || 1), scale * 0.4)} strokeLinejoin="round" strokeLinecap="round" />}
+                  {/* Drawn bench: the band IS the bench footprint — stroke width = the bench's true width at board scale. */}
+                  {e.kind === "bench" && <polyline points={pts} fill="none" stroke={e.color} strokeOpacity={0.45} strokeWidth={(e.details3D?.benchWidth ?? 1.5) * scale} strokeLinejoin="round" strokeLinecap="round" />}
+                  {e.kind === "bench" && <polyline points={pts} fill="none" stroke={e.color} strokeWidth={Math.max(2 / (view.zoom || 1), scale * 0.12)} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={`${scale * 0.5} ${scale * 0.25}`} />}
                   {e.kind === "fence" && fencePosts(e.pts, scale * 6).map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={Math.max(2 / (view.zoom || 1), scale * 0.3)} fill={e.color} stroke="rgba(0,0,0,0.35)" strokeWidth={0.5 / (view.zoom || 1)} />)}
                   {(e.gates ?? []).map((g, gi) => {
                     const a = e.pts[g.seg], b = e.pts[(g.seg + 1) % e.pts.length]; const o = gateOption(e.kind, g.typeId);
@@ -644,7 +651,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
                       <path d={`M ${x1} ${y1} L ${x1 - uy * half * 2} ${y1 + ux * half * 2} A ${half * 2} ${half * 2} 0 0 0 ${x2} ${y2}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={1 / (view.zoom || 1)} strokeDasharray="3 3" />
                     </g>;
                   })}
-                  {sel && (e.kind === "fence" || e.kind === "enclosure") && <polyline points={e.kind === "fence" ? pts : `${pts} ${e.pts[0].x},${e.pts[0].y}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
+                  {sel && (e.kind === "fence" || e.kind === "enclosure" || e.kind === "bench") && <polyline points={e.kind === "fence" || e.kind === "bench" ? pts : `${pts} ${e.pts[0].x},${e.pts[0].y}`} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2 / (view.zoom || 1)} strokeDasharray="6 4" style={{ pointerEvents: "none" }} />}
                 </g>
               );
             })}
@@ -723,7 +730,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       {/* Drawing hint */}
       {drawing && (
         <div className="absolute left-1/2 top-3 z-[30] flex -translate-x-1/2 items-center gap-3 border border-border bg-background/95 px-4 py-2 text-xs shadow-sm backdrop-blur">
-          <span><b>{choice!.label}</b> · {choice!.kind === "fence" ? "click each post" : "click each corner, click the first point to close"} · Enter to finish</span>
+          <span><b>{choice!.label}</b> · {choice!.kind === "fence" ? "click each post" : choice!.kind === "bench" ? "click along the pool wall" : "click each corner, click the first point to close"} · Enter to finish</span>
           <button onClick={() => setDraft((d) => d.slice(0, -1))} title="Undo last point" className="hover:text-foreground text-muted-foreground"><Undo2 className="h-3.5 w-3.5" /></button>
           <button onClick={() => finish(false)} title="Finish" className="hover:text-foreground text-muted-foreground"><Check className="h-3.5 w-3.5" /></button>
           <button onClick={() => { setDraft([]); setChoice(null); }} title="Cancel" className="hover:text-foreground text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
@@ -735,7 +742,7 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
       <nav aria-label="Studio menu" className="absolute left-2 sm:left-3 top-14 sm:top-16 z-[31] flex max-h-[calc(100%-8rem)] overflow-y-auto [scrollbar-width:none] flex-col items-center gap-0.5 sm:gap-1 rounded-[28px] sm:rounded-full border border-border/50 bg-background/95 px-1.5 py-2 shadow-[0_16px_44px_-24px_rgba(8,12,24,0.5)] backdrop-blur-xl">
         <div id="studio-rail-slot" className="flex flex-col items-center gap-1" />
         <div id="studio-rail-slot-pools" className="flex flex-col items-center gap-1" />
-        {([["deck", "Decks", Layers], ["fence", "Fences", Fence], ["turf", "Turf", Grid2x2], ["enclosure", "Screens", Layers]] as const).map(([k, l, Icon]) => (
+        {([["deck", "Decks", Layers], ["fence", "Fences", Fence], ["turf", "Turf", Grid2x2], ["enclosure", "Screens", Layers], ["bench", "Bench", Layers]] as const).map(([k, l, Icon]) => (
           <button key={k} title={l} aria-pressed={tab === k} onClick={() => setTab(tab === k ? null : k)} className={cn("flex h-10 w-10 sm:h-14 sm:w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[7.5px] sm:text-[9px] font-semibold uppercase tracking-[0.04em] sm:tracking-[0.06em] transition-colors", tab === k ? "bg-foreground text-background" : "text-foreground hover:bg-foreground/10")}>
             <Icon className="h-4 w-4" />{l}
           </button>
@@ -772,6 +779,20 @@ export const SiteElementsLayer: React.FC<Props> = ({ view, poolTotals }) => {
             </Step>
             {sStyle && <Step n={2} label="Height">{SCREEN_STYLES.find((s) => s.id === sStyle)!.heights.map((h) => <Chip key={h} on={sH === h} onClick={() => setSH(h)}>{h}′</Chip>)}</Step>}
             {sStyle && sH && <Step n={3} label="Frame color — then draw">{SCREEN_COLORS.map((c) => <Chip key={c.id} onClick={() => startScreen(c.hex, c.id)}><span className="mr-1 inline-block h-2.5 w-2.5 align-middle" style={{ background: c.hex }} />{c.id}</Chip>)}</Step>}
+          </>
+        )}
+        {tab === "bench" && (
+          <>
+            <Step n={1} label="Bench width (into the pool)">
+              {[1, 1.5, 2, 2.5, 3].map((w) => <Chip key={w} on={bW === w} onClick={() => setBW(w)}>{w}′</Chip>)}
+            </Step>
+            <Step n={2} label="Depth below the rim">
+              {[0.5, 1, 1.5, 2].map((d) => <Chip key={d} on={bD === d} onClick={() => setBD(d)}>{d}′</Chip>)}
+            </Step>
+            <Step n={3} label="Draw the bench spline">
+              <button onClick={() => { setDraft([]); setChoice({ kind: "bench", label: "Bench", detail: "Drawn bench", color: "#38bdf8", rate: 0, unit: "lf", details3D: { benchWidth: bW, benchDepth: bD } }); }} className="w-full bg-foreground py-2.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-background hover:opacity-90">Draw bench</button>
+              <p className="mt-1.5 text-[11px] text-muted-foreground">Click along the pool wall — the line you draw is the bench, exactly. Enter to finish; right-click the bench later to edit its points.</p>
+            </Step>
           </>
         )}
         {tab === "turf" && (
@@ -849,7 +870,7 @@ import { useSpills, spillActions, spillEnds, loadSpills, useSpillSelection } fro
  * centres the pool the same way). Pools cut the turf. No extra waters are sent:
  * the Design Studio's extra pools/spas already travel inside its own scene.
  */
-export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string; materials?: StudioMaterials; details3D?: any }> = [], extraDeckPts: Record<string, Pt[]> = {}): Board3D {
+export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: number, deckPts: Pt[] = [], extraPools: Array<{ id: string; type?: string; points: Pt[]; shape?: string; materials?: StudioMaterials; details3D?: any; featureType?: string; isMerged?: boolean }> = [], extraDeckPts: Record<string, Pt[]> = {}): Board3D {
   const f = (p: Pt) => ({ x: p.x / scale, y: p.y / scale });
   const pool = poolRing(poolPts).map(f);
   const c = pool.length >= 3 ? { x: (Math.min(...pool.map(p => p.x)) + Math.max(...pool.map(p => p.x))) / 2, y: (Math.min(...pool.map(p => p.y)) + Math.max(...pool.map(p => p.y))) / 2 } : { x: 0, y: 0 };
@@ -859,20 +880,27 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
   // primaryPts = main pool outline (3D ft, centred) so spill-overs can land in it.
   const out: Board3D = { origin: c, primaryPts: pool.length >= 3 ? pool.map((p) => to(p)) : undefined, fences: [], screens: [], surfaces: [], waters: [] };
   const finishes = buildFinishTextures();
+  /* Drawn benches (kind 'bench') ride to 3D as primary-pool seating whose
+   * pathPoints are the drawn spline itself, in the same centred frame as
+   * primaryPts — never as surfaces, never as perimeter fractions. */
+  const primarySeating: NonNullable<Board3D['primarySeating']> = [];
   for (const p of extraPools.filter(p => p.points.length >= 3)) {
     const m = p.materials;
     const finish = m?.finishUrl ?? finishes.find(f => `cat-${f.id}` === m?.finishId)?.url;
     const coping = m?.copingUrl ?? paverTypes.find(f => f.id === m?.copingId)?.image;
     const image = m?.paverUrl ?? paverTypes.find(f => f.id === m?.paverId)?.image;
     const pts = densifyPoolOutline(p.points as never, p.shape ?? 'freeform').map(f).map(to);
-    out.waters?.push({ depth: p.type === 'spa' ? 3 : 5, finish: finish ?? '#5fb7d4', coping: coping ?? '#d8d2c8', waterline: m?.waterlineUrl ?? '#2f6f8f', copingWidth: 1, ...p.details3D, ...(finish ? { finish } : {}), ...(coping ? { coping } : {}), ...(m?.waterlineUrl ? { waterline: m.waterlineUrl } : {}), finishScale: m?.finishScale, copingScale: m?.copingScale, waterlineScale: m?.waterlineScale, itemId: p.id, kind: p.type === 'spa' ? 'spa' : 'pool', label: p.type === 'spa' ? 'Spa' : 'Pool', pts });
-    if ((extraDeckPts[p.id]?.length ?? 0) >= 3) out.surfaces.push({ itemId: `__deck_${p.id}`, kind: 'deck', color: '#ffffff', image, scale: m?.paverScale, regions: regionsOf(`__deck_${p.id}`) });
+    out.waters?.push({ depth: p.type === 'spa' ? 3 : 5, finish: finish ?? '#5fb7d4', coping: coping ?? '#d8d2c8', waterline: m?.waterlineUrl ?? '#2f6f8f', copingWidth: 1, ...p.details3D, ...(finish ? { finish } : {}), ...(coping ? { coping } : {}), ...(m?.waterlineUrl ? { waterline: m.waterlineUrl } : {}), finishScale: m?.finishScale, copingScale: m?.copingScale, waterlineScale: m?.waterlineScale, itemId: p.id, kind: p.type === 'spa' ? 'spa' : 'pool', label: p.type === 'spa' ? 'Spa' : 'Pool', pts, featureType: p.featureType, isMerged: p.isMerged });
+    // A merged tanning ledge is interior to the main shell — it is a bench in
+    // the pool (Job V), not a body with its own deck apron.
+    if ((extraDeckPts[p.id]?.length ?? 0) >= 3 && !(p.featureType === 'tanning-ledge' && p.isMerged)) out.surfaces.push({ itemId: `__deck_${p.id}`, kind: 'deck', color: '#ffffff', image, scale: m?.paverScale, regions: regionsOf(`__deck_${p.id}`) });
   }
   for (const e of items) {
     const pts = e.pts.map(f).map(to);
     const gates = (e.gates ?? []).map(g => ({ ...g, widthFt: gateOption(e.kind, g.typeId)?.widthFt ?? 3 }));
     if (e.kind === 'fence') out.fences.push({ ...e.details3D, itemId: e.id, pts, gates, style: e.style ?? 'alu', height: e.height ?? 4, color: e.color, postColor: e.details3D?.postColor ?? (e.style === 'vinyl' ? '#ffffff' : undefined) });
     else if (e.kind === 'enclosure') out.screens.push({ ...e.details3D, itemId: e.id, pts, gates, height: e.height ?? 10, color: e.color });
+    else if (e.kind === 'bench') primarySeating.push({ id: e.id, startPosition: 0, endPosition: 0, width: e.details3D?.benchWidth ?? 1.5, height: e.details3D?.benchDepth ?? 1, textureUrl: '/textures/finishes/sapphire-blue-g3.webp', pathPoints: pts, pathClosed: false });
     else out.surfaces.push({ itemId: e.id, kind: e.kind, color: e.kind === 'deck' ? '#ffffff' : e.color, image: e.textureUrl ?? (e.kind === 'deck' ? DECK_PAVERS.find(d => d.id === e.style)?.image : TURFS.find(g => g.color === e.color)?.texture), scale: e.textureScale, regions: regionsOf(e.id) });
   }
   /* Spill-over edges in 3D feet (ends + pitch); the 3D Studio draws the falling water sheet. */
@@ -884,6 +912,7 @@ export function siteElementsTo3D(items: SiteElement[], poolPts: Pt[], scale: num
     const cx = src.reduce((s, p) => s + p.x, 0) / src.length, cy = src.reduce((s, p) => s + p.y, 0) / src.length;
     return { id: sp.id, a: to(f(e[0])), b: to(f(e[1])), center: to(f({ x: cx, y: cy })), pitch: sp.pitch, wall: sp.wall, waterId: sp.poolId === "__pool" ? undefined : sp.poolId.slice(5) };
   }).filter(Boolean) as NonNullable<Board3D["spills"]>;
+  if (primarySeating.length) out.primarySeating = primarySeating;
   return out;
 }
 /** Auto deck width around each extra pool/spa (ft), same default as the main pool. */

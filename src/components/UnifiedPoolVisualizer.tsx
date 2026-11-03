@@ -180,7 +180,11 @@ export function UnifiedPoolVisualizer({
     terrainAssets: [],
     poolStairs: [],
     poolChairs: [],
-    contourSeating: [],
+    // Seed seating carried in on the scene (Job S — the poolLights
+    // precedent below): a converter-attached scene.contourSeating (e.g. a
+    // placed Latham model's traced benches) renders through the Studio's
+    // own ContourSeating; absent field = empty, exactly as before.
+    contourSeating: validatedScene.contourSeating ?? [],
     poolLights: validatedScene.poolLights || createDefaultPoolLights(false),
     assets3D: [],
   }), []);
@@ -749,7 +753,7 @@ export function UnifiedPoolVisualizer({
       terrainAssets: [],
       poolStairs: [],
       poolChairs: [],
-      contourSeating: [],
+      contourSeating: merged.contourSeating ?? [],
       poolLights: merged.poolLights || createDefaultPoolLights(false),
       assets3D: [],
     });

@@ -51,11 +51,37 @@ const ShoppingCart = ({ isOpen, onClose }: ShoppingCartProps) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const { toast } = useToast();
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage on mount. Older builds stored this cart as
+  // an object wrapping the items instead of a bare array, and this drawer
+  // renders on every page — an unguarded parse/set here made the whole app
+  // show the error screen for returning users. Accept both shapes, drop
+  // unreadable entries, and never throw.
   useEffect(() => {
     const savedCart = localStorage.getItem('poolShoppingCart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+    if (!savedCart) return;
+    try {
+      const raw = JSON.parse(savedCart);
+      const list: any[] = Array.isArray(raw)
+        ? raw
+        : Array.isArray((raw as any)?.items)
+          ? (raw as any).items
+          : [];
+      setCartItems(
+        list.filter(
+          (item: any) =>
+            !!item &&
+            typeof item === 'object' &&
+            item.id != null &&
+            typeof item.name === 'string'
+        )
+      );
+    } catch {
+      try {
+        localStorage.setItem('poolShoppingCart:backup', savedCart);
+      } catch {
+        /* opening the app matters more */
+      }
+      setCartItems([]);
     }
   }, [isOpen]);
 

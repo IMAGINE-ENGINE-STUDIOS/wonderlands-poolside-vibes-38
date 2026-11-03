@@ -45,8 +45,19 @@ export function seatingLines(bodyName: string, seats: ContourSeatingConfig[] | u
   const per = length(outline, true);
   const up = shellRate * (LEDGE_FACTOR - 1);
   return seats.map((s) => {
-    const span = Math.min(1, Math.abs(s.endPosition - s.startPosition));
-    const sq = span * per * s.width;
+    // Drawn geometry first (Pool Geometry Fix Job 1, 2026-11-03): a seat
+    // carrying its wall-line path is measured by the path's true length;
+    // only the Studio's procedural fraction seats use span × perimeter.
+    let sq: number;
+    if (s.pathPoints && s.pathPoints.length >= 2) {
+      let len = 0;
+      for (let i = 1; i < s.pathPoints.length; i++) len += Math.hypot(s.pathPoints[i].x - s.pathPoints[i - 1].x, s.pathPoints[i].z - s.pathPoints[i - 1].z);
+      if (s.pathClosed) { const a = s.pathPoints[0], b = s.pathPoints[s.pathPoints.length - 1]; len += Math.hypot(a.x - b.x, a.z - b.z); }
+      sq = len * s.width;
+    } else {
+      const span = Math.min(1, Math.abs(s.endPosition - s.startPosition));
+      sq = span * per * s.width;
+    }
     return { name: `${bodyName} ${SEAT_LABEL[s.kind ?? "contour"]} — ${Math.round(sq)} sq ft at ledge rate ($${Math.round(shellRate * LEDGE_FACTOR)}/sq ft)`, price: sq * up };
   }).filter((l) => l.price > 0);
 }

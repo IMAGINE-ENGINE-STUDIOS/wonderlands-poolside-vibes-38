@@ -22,6 +22,30 @@ if (typeof window !== "undefined") {
   }, true);
 }
 
+// Deploy-skew guard (founder hit this 2026-10-31, and again 2026-11-03):
+// when a new deploy lands while a visitor is mid-session, their page can
+// request a lazy chunk the new build replaced — the import fails and the
+// app shows its error page. Vite reports that as `vite:preloadError`;
+// the cure is one automatic reload onto the fresh build. The handler
+// MUST preventDefault(): Vite rethrows the error when the event is not
+// prevented, which is what put the error page on screen in the first
+// place. The loop guard is time-boxed, not once-per-session: with
+// several deploys in a day, a once-ever flag left later deploys
+// unprotected (the 2026-11-03 catalog outage — every lazy route errored
+// for the rest of the founder's tab session). A genuine reload loop
+// re-errors within seconds; separate deploys are minutes apart.
+if (typeof window !== "undefined") {
+  window.addEventListener("vite:preloadError", (event) => {
+    event.preventDefault();
+    try {
+      const last = Number(sessionStorage.getItem("wl_preload_reloaded_at") || 0);
+      if (Date.now() - last < 20000) return; // just reloaded — a loop, let it surface
+      sessionStorage.setItem("wl_preload_reloaded_at", String(Date.now()));
+      window.location.reload();
+    } catch { /* storage unavailable — the error is prevented; a manual refresh cures */ }
+  });
+}
+
 // Defensive DOM patch: browser page-translation (Chrome/Google Translate) and
 // some extensions rewrite text nodes inside React-managed DOM. React then
 // crashes with "Failed to execute 'removeChild' on 'Node'" because the node

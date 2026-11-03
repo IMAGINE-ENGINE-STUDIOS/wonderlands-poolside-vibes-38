@@ -5,8 +5,14 @@ export const MIN_FLOOR_DEPTH = 0;
 export const MAX_FLOOR_DEPTH = 12;
 
 /**
- * Interpolates depth at a given position (0-1) along the depth axis
- * from linear depth anchors
+ * THE depth sampler (Pool Geometry Fix step 5, 2026-11-03): one monotone
+ * smooth interpolation of the anchor profile, shared by the 2D profile
+ * editors and the 3D floor so both always agree. Fritsch–Carlson monotone
+ * cubic (PCHIP): passes exactly through every anchor, never overshoots
+ * the bracketing anchors' depths (no invented humps or cliffs between
+ * clustered stations — raw linear interpolation turned Astoria's packed
+ * mid-pool anchors into a near-vertical sheet), and its slope is bounded
+ * by the anchors' own secant slopes, i.e. capped to the sheet's.
  */
 export function interpolateDepthFromAnchors(
   position: number,
@@ -15,22 +21,60 @@ export function interpolateDepthFromAnchors(
   if (anchors.length === 0) return 6; // Default depth
   if (anchors.length === 1) return anchors[0].depth;
 
+  // Sort + collapse duplicate positions (the later anchor wins, as before).
   const sorted = [...anchors].sort((a, b) => a.position - b.position);
-  const clampedPos = Math.max(0, Math.min(1, position));
-
-  // Find surrounding anchors
-  for (let i = 0; i < sorted.length - 1; i++) {
-    if (clampedPos >= sorted[i].position && clampedPos <= sorted[i + 1].position) {
-      const span = sorted[i + 1].position - sorted[i].position;
-      if (span <= 0) return sorted[i + 1].depth;
-      const t = (clampedPos - sorted[i].position) / span;
-      return sorted[i].depth + t * (sorted[i + 1].depth - sorted[i].depth);
-    }
+  const xs: number[] = [];
+  const ys: number[] = [];
+  for (const a of sorted) {
+    if (xs.length && Math.abs(a.position - xs[xs.length - 1]) < 1e-9) ys[ys.length - 1] = a.depth;
+    else { xs.push(a.position); ys.push(a.depth); }
   }
+  const n = xs.length;
+  if (n === 1) return ys[0];
+  const clampedPos = Math.max(0, Math.min(1, position));
+  if (clampedPos <= xs[0]) return ys[0];
+  if (clampedPos >= xs[n - 1]) return ys[n - 1];
 
-  // Edge cases: before first or after last anchor
-  if (clampedPos < sorted[0].position) return sorted[0].depth;
-  return sorted[sorted.length - 1].depth;
+  // Secant slopes, then Fritsch–Carlson tangents.
+  const h: number[] = [], d: number[] = [];
+  for (let i = 0; i < n - 1; i++) { h.push(xs[i + 1] - xs[i]); d.push((ys[i + 1] - ys[i]) / h[i]); }
+  const m: number[] = new Array(n).fill(0);
+  m[0] = d[0]; m[n - 1] = d[n - 2];
+  for (let i = 1; i < n - 1; i++) {
+    if (d[i - 1] * d[i] <= 0) { m[i] = 0; continue; }
+    const w1 = 2 * h[i] + h[i - 1], w2 = h[i] + 2 * h[i - 1];
+    m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]);
+  }
+  // Endpoint tangent limiting (keeps the ends monotone too).
+  const limitEnd = (mm: number, dd: number) => {
+    if (mm * dd <= 0) return 0;
+    return Math.abs(mm) > 3 * Math.abs(dd) ? 3 * dd : mm;
+  };
+  m[0] = limitEnd(m[0], d[0]); m[n - 1] = limitEnd(m[n - 1], d[n - 2]);
+
+  let i = 0;
+  while (i < n - 2 && clampedPos > xs[i + 1]) i++;
+  const hh = h[i];
+  const t = (clampedPos - xs[i]) / hh;
+  const t2 = t * t, t3 = t2 * t;
+  return (2 * t3 - 3 * t2 + 1) * ys[i]
+    + (t3 - 2 * t2 + t) * hh * m[i]
+    + (-2 * t3 + 3 * t2) * ys[i + 1]
+    + (t3 - t2) * hh * m[i + 1];
+}
+
+/** Sampled profile curve for drawing (2D editors) — same sampler as the floor. */
+export function sampleDepthProfile(
+  anchors: LinearDepthAnchor[],
+  samples = 72
+): Array<{ position: number; depth: number }> {
+  if (!anchors.length) return [];
+  const out: Array<{ position: number; depth: number }> = [];
+  for (let k = 0; k <= samples; k++) {
+    const position = k / samples;
+    out.push({ position, depth: interpolateDepthFromAnchors(position, anchors) });
+  }
+  return out;
 }
 
 /** Plan-space bounds of the pool outline (pool-point coordinates). */

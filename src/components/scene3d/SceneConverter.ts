@@ -413,7 +413,7 @@ export function productToScene(
       featureType: pool.featureType,
       isMerged: pool.isMerged ?? (pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge'),
       spilloverEdges: pool.spilloverEdges || [],
-      depth: pool.featureType === 'tanning-ledge' ? 1 : (pool.featureType === 'spillover-spa' ? 3.5 : deepEndDepth),
+      depth: pool.details3D?.depth ?? pool.depth ?? (pool.featureType === 'tanning-ledge' ? 1 : (pool.featureType === 'spillover-spa' ? 3.5 : deepEndDepth)),
       finish: {
         url: linerTextureUrl,
         name: selectedExtras.finish || 'Default',

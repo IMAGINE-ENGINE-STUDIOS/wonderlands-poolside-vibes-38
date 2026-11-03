@@ -46,13 +46,26 @@ export interface Water3D {
   finishScale?: number; copingScale?: number; waterlineScale?: number;
   /** Height of this body's rim above ground (ft); 0 = in-ground. */
   elevation?: number;
+  /** Source zone semantics (Job V): a merged 'tanning-ledge' renders as an
+   * in-pool shelf (LedgeShelf), not a separate water body. */
+  featureType?: string;
+  isMerged?: boolean;
+  /** Merged ledge whose model carries no traced stair configs: its open
+   * edges step down; absent/false = plain skirt (traced stairs do the work). */
+  ledgeNoStairs?: boolean;
 }
 export interface Board3D {
   pool?: { w: number; l: number };
   /** First pool/spa = the studio's main pool: its board id, outline (centred on origin) and finish photo. */
   primaryId?: string; primaryPts?: XZ[]; primaryFinish?: string; origin?: { x: number; y: number }; fences: Fence3D[]; screens: Screen3D[]; surfaces: Surface3D[]; waters?: Water3D[];
-  /** Spill-over edges (lib/design/spillovers): ends in 3D feet, body centre, pitch in degrees, source water id (none = main pool), chosen elevated-wall finish when the user overrode it. */
-  spills?: Array<{ id: string; a: XZ; b: XZ; center: XZ; pitch: number; waterId?: string; wall?: { kind: "waterline" | "paver"; url: string; name?: string } }> }
+  /** Spill-over edges (lib/design/spillovers): ends in 3D feet, body centre, pitch in degrees, source water id (none = main pool), chosen elevated-wall finish when the user overrode it. `curve` = the spill stretch as a spline-following polyline in 3D feet (spillCurve, shared outline sampler) so the 3D water sheet bends with the pool shape instead of spanning the a→b chord. */
+  spills?: Array<{ id: string; a: XZ; b: XZ; center: XZ; pitch: number; curve?: XZ[]; waterId?: string; wall?: { kind: "waterline" | "paver"; url: string; name?: string } }>;
+  /** Benches drawn on the 2D board with the spline tool (Pool Geometry Fix
+   * Job 1, 2026-11-03): ContourSeating configs carrying their drawn wall
+   * line as pathPoints in the primary pool's centred frame — the drawn
+   * spline IS the geometry; rendered by BoardElements3D against primaryPts. */
+  primarySeating?: ContourSeatingConfig[];
+}
 
 /** 3D-side edits from the element widgets. Keeps the same storage + event. */
 export function updateBoard3D(fn: (d: Board3D) => Board3D) {
@@ -152,7 +165,7 @@ export function sanitizeBoard3D(d: Board3D | null | undefined): Board3D | null {
     screens: lines(d.screens),
     surfaces: (d.surfaces ?? []).filter(Boolean).map((s) => ({ ...s, regions: (s.regions ?? []).map((poly) => (poly ?? []).map((r) => ring(r, 3)).filter(Boolean) as XZ[][]).filter((poly) => poly.length > 0) })),
     waters: (d.waters ?? []).flatMap((w) => { const pts = w && ring(w.pts, 3); return pts ? [{ ...w, pts }] : []; }),
-    spills: (d.spills ?? []).filter((s) => s && okXZ(s.a) && okXZ(s.b) && okXZ(s.center)),
+    spills: (d.spills ?? []).filter((s) => s && okXZ(s.a) && okXZ(s.b) && okXZ(s.center)).map((s) => ({ ...s, curve: ring(s.curve, 2) ?? undefined })),
   };
 }
 
