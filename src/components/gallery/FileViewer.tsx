@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { GalleryFile } from '@/hooks/useGallery';
 import { downloadFile, printFile, forwardFile, formatSize, getFileIcon } from './galleryUtils';
+import { galleryThumbUrl } from './useThumbnail';
 import PdfViewer from './PdfViewer';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -260,7 +261,7 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged }:
                   }`}
                 >
                   {f.file_type?.startsWith('image/') ? (
-                    <img src={f.file_url} alt={f.file_name} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={galleryThumbUrl(f.file_url)} alt={f.file_name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
                       {getFileIcon(f.file_type, "h-5 w-5")}
