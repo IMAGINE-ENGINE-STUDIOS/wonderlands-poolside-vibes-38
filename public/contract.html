@@ -726,9 +726,15 @@
   function shareLink(){
     return location.origin + '/contract.html?c=' + draftId;
   }
+  var draftPromise = null;
   function ensureDraft(){
     if(draftId) return Promise.resolve(draftId);
-    return rpc('create_contract_draft', {
+    // Share, Send Email and the send action can overlap while the create
+    // call is in flight (a quick second tap, or Share then Send). Share one
+    // in-flight create so a contract never spawns duplicate draft records
+    // with competing links.
+    if(draftPromise) return draftPromise;
+    draftPromise = rpc('create_contract_draft', {
       p_document_html: doc.innerHTML,
       p_signed_roles: signedRoles,
       p_client_sig_data: clientSigData,
@@ -749,8 +755,13 @@
         u.searchParams.set('c', draftId);
         history.replaceState(null, '', u.toString());
       } catch (e) { /* the URL keeps its parameters; the panel link is complete */ }
+      draftPromise = null;
       return draftId;
+    }).catch(function(err){
+      draftPromise = null;
+      throw err;
     });
+    return draftPromise;
   }
   function applyDraft(row){
     draftIsFinal = !!row.is_final;
