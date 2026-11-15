@@ -27,6 +27,13 @@
   .sharepanel-row button.primary { background:#19b586; color:#06251c; }
   .share-status { width:100%; font-size:13px; color:#cfe6dc; margin:10px 0 0; min-height:16px; }
   .share-status a { color:#19b586; }
+  .unlockbar { background:#10231d; color:#fff; padding:4px 14px 14px; font-family:-apple-system,'Segoe UI',Arial,sans-serif; }
+  .unlockbar[hidden] { display:none; }
+  .unlockbar-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+  .unlockbar-row label { font-size:13px; font-weight:600; min-width:132px; }
+  .unlockbar-row input { flex:1; min-width:220px; padding:9px 10px; font-size:14px; border:1px solid #33524a; border-radius:8px; background:#fff; color:#10231d; }
+  .unlockbar-row button { background:#19b586; color:#06251c; border:0; border-radius:8px; padding:9px 14px; font-size:14px; font-weight:600; cursor:pointer; }
+  .unlock-msg { font-size:13.5px; color:#f4b740; margin:10px 0 0; min-height:16px; }
   .page { background:var(--paper); max-width:820px; margin:22px auto; padding:56px 60px; box-shadow:0 4px 24px rgba(0,0,0,.18); line-height:1.55; font-size:15.5px; }
   .page h1 { font-size:21px; text-align:center; margin:0 0 4px; letter-spacing:.04em; }
   .page h2 { font-size:16px; margin:26px 0 8px; }
@@ -57,7 +64,7 @@
   body.editing .page { outline:3px solid #f4b740; }
   @media print {
     body { background:#fff; }
-    .toolbar, .panel, .hint, .sharepanel { display:none !important; }
+    .toolbar, .panel, .hint, .sharepanel, .unlockbar { display:none !important; }
     .page { box-shadow:none; margin:0; max-width:none; padding:24px 10px; }
     body.editing .page { outline:none; }
   }
@@ -90,6 +97,15 @@
     <button id="sendEmailBtn" type="button" class="primary">Send</button>
   </div>
   <p class="share-status" id="shareStatus"></p>
+</div>
+
+<div class="unlockbar" id="unlockBar" hidden>
+  <div class="unlockbar-row">
+    <label for="passcodeInput">Admin passcode</label>
+    <input type="password" id="passcodeInput" placeholder="Admin passcode" autocomplete="off">
+    <button id="unlockBtn" type="button">Unlock</button>
+  </div>
+  <p class="unlock-msg" id="unlockMsg"></p>
 </div>
 
 <div class="page" id="doc">
@@ -328,6 +344,15 @@
     }
   });
 
+  // ---- Admin passcode gate state (Job 3) ----
+  // On a shared contract (opened from a ?c= link) the document content
+  // may only be modified after the admin passcode is confirmed by the
+  // server. The gate hook is installed in the shared-contract section
+  // below; these are declared here because the Edit button listener
+  // sits above that section. Signing is never gated.
+  var adminUnlocked = false;
+  var editGateHook = null;
+
   // ---- Edit mode: the whole document becomes fully editable ----
   var editing = false;
   function setEdit(on){
@@ -340,7 +365,12 @@
     editHint.classList.toggle('on', on);
     if(on) doc.focus();
   }
-  editBtn.addEventListener('click', function(){ setEdit(!editing); });
+  editBtn.addEventListener('click', function(){
+    // Turning edit mode ON on a locked shared contract goes through
+    // the passcode gate first; turning it OFF never does.
+    if(!editing && editGateHook && editGateHook()) return;
+    setEdit(!editing);
+  });
 
   // ---- Signature pad ----
   var pad = document.getElementById('pad');
@@ -578,10 +608,11 @@
   // ---- Saving changes back to the shared record ----
   // Signatures and finalization save to the draft on the server, so
   // reopening the shared link anywhere shows them. Content edits made
-  // in Edit mode are offered to the server too; until the admin
-  // passcode unlock lands (Job 3) the server accepts only signature
-  // progression, and the status line says so. adminPasscode is declared
-  // here and plumbed into every save; Job 3 sets it.
+  // in Edit mode are offered to the server too; the server accepts
+  // them only once the admin passcode has been confirmed (the Job 3
+  // gate below), and otherwise allows signature progression only.
+  // adminPasscode is declared here and plumbed into every save; the
+  // unlock flow below sets it.
   var adminPasscode = '';
   var saveStatusEl = document.getElementById('saveStatus');
   var saveTimer = null;
@@ -616,6 +647,56 @@
   doc.addEventListener('input', function(){
     if(editing && draftId && !draftIsFinal) scheduleSave();
   });
+
+  // ---- Admin passcode gate (Job 3) ----
+  // Anyone with the shared link can open and view the contract, and
+  // the parties can sign it, but MODIFYING the document content
+  // requires the admin passcode. The typed passcode is checked by the
+  // server (contract_passcode_ok compares hashes; the passcode itself
+  // never appears in this page). Once confirmed it is kept for this
+  // tab session only, so saves keep working across reloads in the
+  // same tab. Non-shared contracts are not gated.
+  var unlockBar = document.getElementById('unlockBar');
+  var passcodeInput = document.getElementById('passcodeInput');
+  var unlockMsg = document.getElementById('unlockMsg');
+  if(draftId){
+    try {
+      var savedPc = sessionStorage.getItem('ww_contract_unlocked_' + draftId);
+      if(savedPc){ adminPasscode = savedPc; adminUnlocked = true; }
+    } catch (e) { /* session storage unavailable: the gate simply asks again */ }
+    editGateHook = function(){
+      if(draftIsFinal || adminUnlocked) return false;
+      unlockBar.hidden = false;
+      unlockMsg.textContent = 'Enter the admin passcode to modify this contract.';
+      passcodeInput.focus();
+      return true;
+    };
+  }
+  function tryUnlock(){
+    var value = passcodeInput.value;
+    if(!value){ unlockMsg.textContent = 'Enter the admin passcode to modify this contract.'; passcodeInput.focus(); return; }
+    unlockMsg.textContent = 'Checking...';
+    rpc('contract_passcode_ok', { p_passcode: value }).then(function(res){
+      if(res === true){
+        adminPasscode = value;
+        adminUnlocked = true;
+        try { sessionStorage.setItem('ww_contract_unlocked_' + draftId, value); } catch (e) {}
+        unlockBar.hidden = true;
+        passcodeInput.value = '';
+        setSaveStatus('Unlocked. Your changes will save to the shared record.');
+        setEdit(true);
+      } else {
+        unlockMsg.textContent = 'Incorrect passcode. This contract stays locked for changes.';
+      }
+    }).catch(function(){
+      unlockMsg.textContent = 'The passcode could not be checked. Check your connection and try again.';
+    });
+  }
+  document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
+  passcodeInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); tryUnlock(); }
+  });
+
   function shareLink(){
     return location.origin + '/contract.html?c=' + draftId;
   }
