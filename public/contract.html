@@ -18,8 +18,11 @@
   .pill.signed { background:#19b586; color:#06251c; }
   .hint { width:100%; font-size:13px; color:#cfe6dc; display:none; }
   .hint.on { display:block; }
-  .sharepanel { background:#10231d; color:#fff; padding:4px 14px 14px; font-family:-apple-system,'Segoe UI',Arial,sans-serif; }
+  .sharepanel { position:fixed; top:64px; left:12px; right:12px; max-width:820px; margin:0 auto; z-index:200; background:#10231d; color:#fff; padding:6px 16px 16px; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.45); font-family:-apple-system,'Segoe UI',Arial,sans-serif; }
   .sharepanel[hidden] { display:none; }
+  .sharepanel-close-row { display:flex; justify-content:flex-end; margin-top:2px; }
+  .sharepanel-close-row button { background:transparent; color:#cfe6dc; border:1px solid #33524a; border-radius:8px; padding:5px 12px; font-size:13px; font-weight:600; cursor:pointer; }
+  #copyLinkBtn { padding:12px 22px; font-size:15px; }
   .sharepanel-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
   .sharepanel-row label { font-size:13px; font-weight:600; min-width:132px; }
   .sharepanel-row input { flex:1; min-width:220px; padding:9px 10px; font-size:14px; border:1px solid #33524a; border-radius:8px; background:#fff; color:#10231d; }
@@ -95,10 +98,13 @@
 </div>
 
 <div class="sharepanel" id="sharePanel" hidden>
+  <div class="sharepanel-close-row">
+    <button id="shareCloseBtn" type="button" aria-label="Close share panel">✕ Close</button>
+  </div>
   <div class="sharepanel-row">
     <label for="shareLink">Contract link</label>
     <input type="text" id="shareLink" readonly placeholder="Your shareable contract link will appear here">
-    <button id="copyLinkBtn" type="button">Copy link</button>
+    <button id="copyLinkBtn" type="button" class="primary">Copy link</button>
   </div>
   <div class="sharepanel-row">
     <label for="shareEmail">Email the contract</label>
@@ -606,6 +612,17 @@
   var shareEmailInput = document.getElementById('shareEmail');
   var shareStatus = document.getElementById('shareStatus');
   function shareMsg(t){ shareStatus.textContent = t; }
+  // The panel is a fixed overlay pinned just under the sticky toolbar, so
+  // Share / Send Email feedback appears in the viewport at ANY scroll
+  // position (previously it opened in-flow at the document top, thousands
+  // of pixels off-screen for anyone reading or signing the contract).
+  function showSharePanel(){
+    sharePanel.hidden = false;
+    var tb = document.querySelector('.toolbar');
+    sharePanel.style.top = ((tb ? tb.offsetHeight : 56) + 8) + 'px';
+  }
+  document.getElementById('shareCloseBtn').addEventListener('click', function(){ sharePanel.hidden = true; });
+  window.addEventListener('resize', function(){ if(!sharePanel.hidden) showSharePanel(); });
   function rpc(name, body){
     return fetch(SB_URL + '/rest/v1/rpc/' + name, {
       method: 'POST',
@@ -722,6 +739,10 @@
       p_proposal_date: fieldText('proposalDate'),
       p_contract_price: fieldText('contractPrice')
     }).then(function(id){
+      // rpc() returns any parsed JSON — a backend error body is an object,
+      // not an id. Never let it become the draft id (it would produce a
+      // garbage "?c=[object Object]" link); fail honestly instead.
+      if(typeof id !== 'string' || !id) throw new Error('create_contract_draft returned no draft id');
       draftId = id;
       try {
         var u = new URL(location.href);
@@ -776,20 +797,37 @@
   function copyShareLink(){
     var link = shareLinkInput.value;
     if(!link) return;
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(link).then(function(){
-        shareMsg('Link copied. Anyone with this link can open the contract.');
-      }, function(){
+    function done(){ shareMsg('Link copied. Anyone with this link can open the contract.'); }
+    function fallback(){
+      // Clipboard API rejected or missing (e.g. iOS Safari, where the write
+      // is attempted after an awaited network call and the tap's user
+      // activation has expired): fall back to selecting the link and using
+      // the legacy copy command inside this fresh gesture; if even that is
+      // unavailable, leave the link selected with a hold-to-copy hint.
+      try {
+        shareLinkInput.focus();
         shareLinkInput.select();
-        shareMsg('Copy the link above.');
-      });
+        shareLinkInput.setSelectionRange(0, link.length);
+        if(document.execCommand && document.execCommand('copy')){ done(); return; }
+      } catch (e) { /* fall through to the hold instruction */ }
+      shareMsg('Press and hold the link, then tap Copy.');
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(link).then(done, fallback);
     } else {
-      shareLinkInput.select();
-      shareMsg('Copy the link above.');
+      fallback();
     }
   }
   document.getElementById('shareBtn').addEventListener('click', function(){
-    sharePanel.hidden = false;
+    showSharePanel();
+    if(draftId){
+      // The link is already known: fill it in and attempt the copy NOW,
+      // inside this tap, before any await can expire the user activation
+      // mobile browsers require for clipboard access.
+      shareLinkInput.value = shareLink();
+      copyShareLink();
+      return;
+    }
     shareMsg('Preparing your link...');
     ensureDraft().then(function(){
       shareLinkInput.value = shareLink();
@@ -798,7 +836,7 @@
   });
   document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
   document.getElementById('emailBtn').addEventListener('click', function(){
-    sharePanel.hidden = false;
+    showSharePanel();
     ensureDraft().then(function(){
       shareLinkInput.value = shareLink();
       if(!shareEmailInput.value) shareEmailInput.value = fieldText('clientEmail');
