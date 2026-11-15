@@ -774,37 +774,71 @@ const SurveyQuoteTool = ({
       // recomputed total, so the admin dashboard never matched the quote:
       // its Selected Features section expects an array (and stayed empty),
       // the studio's added features (extras breakdown) were not saved at
-      // all, edited prices/names and area-priced enclosures were lost, and
-      // an edited grand total was replaced by a fresh calculation. Build
-      // the record from the same produced line items and total the quote
-      // itself uses — the identical construction the invoice save below
-      // already applies (buildQuoteLineItems + sauna line + reconciliation).
-      const producedLines: any[] = buildQuoteLineItems();
+      // all, and edited prices/names were lost. The lines below mirror
+      // the quote view's own rendering field for field: every selected
+      // option as displayed (screen-enclosure options at their displayed
+      // area pricing, edited prices applied, $0 lines kept), then the
+      // Added Features lines (extras breakdown with edited names/prices,
+      // then custom items), then the sauna line. The base product is NOT
+      // a feature line — the record carries it in pool_price, exactly as
+      // the quote shows it in Product Details. The total is the one the
+      // quote shows: the edited amount in edit mode, otherwise the live
+      // calculation (the continue/generate handlers snapshot
+      // editableQuoteAmount FROM calculateQuote() right after saving, so
+      // the pre-save value can be a stale earlier snapshot — never use
+      // it outside edit mode). Any residue between the displayed lines
+      // and the total (e.g. a pre-calculated studio total) is kept as
+      // one reconciliation line, the same device the invoice save uses.
+      const ep = editablePrices as Record<string, number>;
+      const et = editableTexts as Record<string, string>;
+      const featureLines: { name: string; description: string; price: number; quantity: number; unit_price: number }[] = [];
+      const pushLine = (name: string, description: string, price: number) => {
+        const p = Number(price) || 0;
+        featureLines.push({ name, description, price: p, quantity: 1, unit_price: p });
+      };
+      if (!hiddenSections.has('selected-features')) {
+        selectedOptions.forEach((option: any, i: number) => {
+          let displayPrice = option.price;
+          if (option.category === 'screen-enclosure') {
+            const enclosureArea = getEnclosureArea();
+            if (option.id?.includes('standard-1-story')) displayPrice = enclosureArea * 22;
+            else if (option.id?.includes('standard-2-story')) displayPrice = enclosureArea * 24;
+            else if (option.id?.includes('premium-1-story')) displayPrice = enclosureArea * 24;
+            else if (option.id?.includes('premium-2-story')) displayPrice = enclosureArea * 26;
+          }
+          pushLine(option.name, option.description || '', ep[`option-${i}`] ?? displayPrice);
+        });
+      }
+      if (!hiddenSections.has('added-features')) {
+        (extras?.extrasBreakdown || []).forEach((x: any, i: number) => {
+          let price = ep[`extra-${i}`] ?? x.price;
+          if (String(x.name).includes('Screen Enclosure') && ep['enclosure-price'] != null) price = ep['enclosure-price'];
+          else if (String(x.name).includes('sq ft') && ep['paver-price'] != null) price = ep['paver-price'];
+          let displayName = et[`extra-name-${i}`] ?? x.name;
+          if (!et[`extra-name-${i}`] && String(displayName).toLowerCase().includes('premium screen enclosure') && !String(displayName).includes('2 Story')) {
+            displayName = String(displayName).replace(/premium screen enclosure/i, 'Premium Screen Enclosure - 2 Story');
+          }
+          pushLine(displayName, '', price);
+        });
+        customItems.forEach((ci: any) => pushLine(ci.name || 'Custom Item', '', Number(ci.price) || 0));
+      }
       if (saunaSelected) {
         const eligibleModels = ["Astoria", "Genesis", "Claremont", "Extreme 38"];
         const saunaModel = pool?.model || "";
         const saunaPoolPrice = pool?.price || 0;
-        const saunaEligible = eligibleModels.includes(saunaModel) && saunaPoolPrice >= 70000;
-        if (saunaEligible) {
+        if (eligibleModels.includes(saunaModel) && saunaPoolPrice >= 70000) {
           const saunaIncluded = saunaModel === "Extreme 38" || saunaModel === "Astoria";
-          producedLines.push({
-            description: saunaIncluded ? "Barrel Sauna (INCLUDED)" : "Barrel Sauna (Exclusive Add-On)",
-            quantity: 1,
-            unit_price: saunaIncluded ? 0 : 15000,
-            total: saunaIncluded ? 0 : 15000,
-          });
+          pushLine(saunaIncluded ? "Barrel Sauna (INCLUDED)" : "Barrel Sauna (Exclusive Add-On)", '', saunaIncluded ? 0 : 15000);
         }
       }
-      const quoteAmount = editableQuoteAmount || calculateQuote();
-      const producedSum = producedLines.reduce((s, l) => s + (Number(l.total) || 0), 0);
+      const quoteAmount = isEditMode && editableQuoteAmount > 0 ? editableQuoteAmount : calculateQuote();
+      const producedBase = (isSolar && solarLines.length > 0)
+        ? linesTotal(solarLines)
+        : (ep['base-price'] ?? ep['lanai-total'] ?? pool?.price ?? customProduct?.price ?? 0);
+      const producedSum = producedBase + featureLines.reduce((s, l) => s + l.price, 0);
       const producedDiff = Math.round((quoteAmount - producedSum) * 100) / 100;
       if (Math.abs(producedDiff) >= 0.01) {
-        producedLines.push({
-          description: producedDiff < 0 ? 'Special pricing adjustment' : 'Additional scope adjustment',
-          quantity: 1,
-          unit_price: producedDiff,
-          total: producedDiff,
-        });
+        pushLine(producedDiff < 0 ? 'Special pricing adjustment' : 'Additional scope adjustment', '', producedDiff);
       }
       const recommendations = getIncludedItems();
       const quotationData = {
@@ -821,16 +855,9 @@ const SurveyQuoteTool = ({
         timeline: surveyData.timeline || null,
         budget: surveyData.budget || null,
         pool_model: pool?.model || customProduct?.name || null,
-        pool_price: (isSolar && solarLines.length > 0)
-          ? linesTotal(solarLines)
-          : ((editablePrices as Record<string, number>)['base-price'] ?? (editablePrices as Record<string, number>)['lanai-total'] ?? pool?.price ?? customProduct?.price ?? null),
+        pool_price: producedBase,
         pool_category: pool?.category || customProduct?.type || null,
-        selected_options: producedLines.map((l) => ({
-          name: l.description,
-          price: Number(l.total) || 0,
-          quantity: l.quantity ?? 1,
-          unit_price: Number(l.unit_price) || 0,
-        })),
+        selected_options: featureLines,
         total_quote_amount: quoteAmount,
         recommendations: recommendations,
         // Never store URL.createObjectURL() output: a blob: URL dies with
