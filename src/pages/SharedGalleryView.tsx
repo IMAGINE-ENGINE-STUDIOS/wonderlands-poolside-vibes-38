@@ -9,11 +9,15 @@ import {
 } from '@/components/ui/context-menu';
 import {
   ExternalLink, File, FileText, Film, Image, Lock, Folder,
-  ChevronRight, Download, Printer, Send,
+  ChevronRight, Download, Printer, Send, BookOpen, Copy, Check, Loader2,
 } from 'lucide-react';
 import { GalleryFile } from '@/hooks/useGallery';
 import { downloadFile, printFile, forwardFile } from '@/components/gallery/galleryUtils';
 import FileViewer from '@/components/gallery/FileViewer';
+import GalleryFlipBook from '@/components/gallery/GalleryFlipBook';
+import { resolveFolderContractLink } from '@/components/gallery/folderContract';
+import { galleryThumbUrl } from '@/components/gallery/useThumbnail';
+import { useToast } from '@/hooks/use-toast';
 
 interface SharedFolder {
   id: string;
@@ -64,6 +68,48 @@ const SharedGalleryView = () => {
   // FileViewer state
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+
+  // Flip book + contract link for this customer's folder
+  const { toast } = useToast();
+  const [flipOpen, setFlipOpen] = useState(false);
+  const [flipStartFileId, setFlipStartFileId] = useState<string | undefined>(undefined);
+  const [contractBusy, setContractBusy] = useState(false);
+  const [contractCopied, setContractCopied] = useState(false);
+
+  const openContract = async () => {
+    if (!rootFolder) return;
+    const tab = window.open('', '_blank');
+    setContractBusy(true);
+    try {
+      const link = await resolveFolderContractLink(rootFolder.id, rootFolder.name);
+      if (tab) tab.location.href = link;
+      else {
+        await navigator.clipboard.writeText(link).catch(() => {});
+        toast({ title: 'Contract link copied', description: 'Pop-ups were blocked, so the link was copied instead.' });
+      }
+    } catch {
+      if (tab) tab.close();
+      toast({ title: 'Contract unavailable', description: 'Please try again in a moment.', variant: 'destructive' });
+    } finally {
+      setContractBusy(false);
+    }
+  };
+
+  const copyContractLink = async () => {
+    if (!rootFolder) return;
+    setContractBusy(true);
+    try {
+      const link = await resolveFolderContractLink(rootFolder.id, rootFolder.name);
+      await navigator.clipboard.writeText(link);
+      setContractCopied(true);
+      toast({ title: 'Contract link copied!' });
+      setTimeout(() => setContractCopied(false), 2000);
+    } catch {
+      toast({ title: 'Contract unavailable', description: 'Please try again in a moment.', variant: 'destructive' });
+    } finally {
+      setContractBusy(false);
+    }
+  };
 
   // Load root folder from token
   useEffect(() => {
@@ -166,6 +212,22 @@ const SharedGalleryView = () => {
             {files.length > 0 && `${files.length} file${files.length !== 1 ? 's' : ''}`}
             {totalItems === 0 && 'Empty'}
           </p>
+
+          <div className="flex items-center gap-2 mt-4 flex-wrap">
+            <div className="flex items-center">
+              <Button variant="outline" size="sm" className="rounded-none border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white uppercase tracking-[0.18em] text-[11px] h-10 px-4" onClick={openContract} disabled={contractBusy}>
+                {contractBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />} Contract
+              </Button>
+              <Button variant="outline" size="sm" className="rounded-none border-l-0 border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white h-10 w-10 px-0" onClick={copyContractLink} disabled={contractBusy} title="Copy your contract link" aria-label="Copy your contract link">
+                {contractCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            {files.some(f => f.file_type?.startsWith('image/')) && (
+              <Button variant="outline" size="sm" className="rounded-none border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white uppercase tracking-[0.18em] text-[11px] h-10 px-4" onClick={() => { setFlipStartFileId(undefined); setFlipOpen(true); }}>
+                <BookOpen className="h-4 w-4 mr-1" /> Flip Book
+              </Button>
+            )}
+          </div>
         </div>
 
         {loading ? (
@@ -203,9 +265,9 @@ const SharedGalleryView = () => {
                   >
                     <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
                       {file.file_type?.startsWith('image/') ? (
-                        <img src={file.file_url} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
+                        <img src={galleryThumbUrl(file.file_url) ?? file.file_url} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                       ) : file.file_type?.startsWith('video/') ? (
-                        <video src={file.file_url} className="w-full h-full object-cover" />
+                        <video src={file.file_url} className="w-full h-full object-cover" preload="none" />
                       ) : (
                         getFileIcon(file.file_type)
                       )}
@@ -263,6 +325,16 @@ const SharedGalleryView = () => {
         initialIndex={viewerIndex}
         open={viewerOpen}
         onOpenChange={setViewerOpen}
+        onFlipBook={(fileId) => { setFlipStartFileId(fileId); setViewerOpen(false); setFlipOpen(true); }}
+      />
+
+      {/* Flip Book V3 view of this folder's images */}
+      <GalleryFlipBook
+        open={flipOpen}
+        onOpenChange={setFlipOpen}
+        folderName={currentName}
+        files={galleryFiles}
+        startFileId={flipStartFileId}
       />
     </div>
   );
