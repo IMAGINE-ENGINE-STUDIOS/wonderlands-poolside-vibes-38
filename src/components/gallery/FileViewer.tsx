@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { GalleryFile } from '@/hooks/useGallery';
 import { downloadFile, printFile, forwardFile, formatSize, getFileIcon } from './galleryUtils';
-import { galleryThumbUrl } from './useThumbnail';
+import { galleryRenderUrl, galleryThumbUrl } from './useThumbnail';
 import PdfViewer from './PdfViewer';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -26,8 +26,25 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged, o
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Id of the image whose full original has finished preloading (see below).
+  const [fullReadyId, setFullReadyId] = useState<string | null>(null);
 
   const file = files[currentIndex];
+
+  // Progressive viewer image: the viewer first shows a screen-size render
+  // (~1920px, a few hundred KB) so an opened image appears at once, while
+  // the full original (7-33 MB) preloads in the background and swaps in —
+  // same final quality, no long wait staring at a blank viewer. Only the
+  // opened image's original is ever fetched, never the whole folder's.
+  useEffect(() => {
+    if (!open || !file || !file.file_type?.startsWith('image/')) return;
+    if (!galleryRenderUrl(file.file_url)) return; // not transformable — shown directly
+    let live = true;
+    const im = new Image();
+    im.onload = () => { if (live) setFullReadyId(file.id); };
+    im.src = file.file_url;
+    return () => { live = false; };
+  }, [open, file?.id]);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -90,6 +107,12 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged, o
   const isVideo = file.file_type?.startsWith('video/');
   const isPdf = file.file_type === 'application/pdf';
 
+  // Screen-size render shown instantly; the preloaded original swaps in.
+  const viewerRender = isImage
+    ? galleryRenderUrl(file.file_url, { width: 1920, height: 1920, resize: 'contain', quality: 82 })
+    : null;
+  const displaySrc = !viewerRender || fullReadyId === file.id ? file.file_url : viewerRender;
+
   const renderContent = () => {
     if (isImage) {
       return (
@@ -98,7 +121,7 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged, o
           onWheel={handleWheel}
         >
           <img loading="lazy" decoding="async"
-            src={file.file_url}
+            src={displaySrc}
             alt={file.file_name}
             className="max-w-full max-h-full object-contain transition-transform duration-200 select-none"
             style={{
@@ -276,7 +299,7 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged, o
                   }`}
                 >
                   {f.file_type?.startsWith('image/') ? (
-                    <img src={galleryThumbUrl(f.file_url)} alt={f.file_name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                    <img src={galleryRenderUrl(f.file_url, { width: 160, height: 160, resize: 'cover', quality: 70 }) ?? galleryThumbUrl(f.file_url)} alt={f.file_name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
                       {getFileIcon(f.file_type, "h-5 w-5")}
