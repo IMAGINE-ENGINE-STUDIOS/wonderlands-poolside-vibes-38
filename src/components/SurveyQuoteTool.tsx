@@ -769,7 +769,43 @@ const SurveyQuoteTool = ({
 
     setIsSaving(true);
     try {
-      const quoteAmount = calculateQuote();
+      // Save the quote EXACTLY as produced. The record used to store the
+      // raw selection state ({ options, customItems }) and a separately
+      // recomputed total, so the admin dashboard never matched the quote:
+      // its Selected Features section expects an array (and stayed empty),
+      // the studio's added features (extras breakdown) were not saved at
+      // all, edited prices/names and area-priced enclosures were lost, and
+      // an edited grand total was replaced by a fresh calculation. Build
+      // the record from the same produced line items and total the quote
+      // itself uses — the identical construction the invoice save below
+      // already applies (buildQuoteLineItems + sauna line + reconciliation).
+      const producedLines: any[] = buildQuoteLineItems();
+      if (saunaSelected) {
+        const eligibleModels = ["Astoria", "Genesis", "Claremont", "Extreme 38"];
+        const saunaModel = pool?.model || "";
+        const saunaPoolPrice = pool?.price || 0;
+        const saunaEligible = eligibleModels.includes(saunaModel) && saunaPoolPrice >= 70000;
+        if (saunaEligible) {
+          const saunaIncluded = saunaModel === "Extreme 38" || saunaModel === "Astoria";
+          producedLines.push({
+            description: saunaIncluded ? "Barrel Sauna (INCLUDED)" : "Barrel Sauna (Exclusive Add-On)",
+            quantity: 1,
+            unit_price: saunaIncluded ? 0 : 15000,
+            total: saunaIncluded ? 0 : 15000,
+          });
+        }
+      }
+      const quoteAmount = editableQuoteAmount || calculateQuote();
+      const producedSum = producedLines.reduce((s, l) => s + (Number(l.total) || 0), 0);
+      const producedDiff = Math.round((quoteAmount - producedSum) * 100) / 100;
+      if (Math.abs(producedDiff) >= 0.01) {
+        producedLines.push({
+          description: producedDiff < 0 ? 'Special pricing adjustment' : 'Additional scope adjustment',
+          quantity: 1,
+          unit_price: producedDiff,
+          total: producedDiff,
+        });
+      }
       const recommendations = getIncludedItems();
       const quotationData = {
         user_id: user?.id || null,
@@ -785,12 +821,21 @@ const SurveyQuoteTool = ({
         timeline: surveyData.timeline || null,
         budget: surveyData.budget || null,
         pool_model: pool?.model || customProduct?.name || null,
-        pool_price: pool?.price || customProduct?.price || null,
+        pool_price: (isSolar && solarLines.length > 0)
+          ? linesTotal(solarLines)
+          : ((editablePrices as Record<string, number>)['base-price'] ?? (editablePrices as Record<string, number>)['lanai-total'] ?? pool?.price ?? customProduct?.price ?? null),
         pool_category: pool?.category || customProduct?.type || null,
-        selected_options: JSON.parse(JSON.stringify({ options: selectedOptions, customItems })),
+        selected_options: producedLines.map((l) => ({
+          name: l.description,
+          price: Number(l.total) || 0,
+          quantity: l.quantity ?? 1,
+          unit_price: Number(l.unit_price) || 0,
+        })),
         total_quote_amount: quoteAmount,
         recommendations: recommendations,
-        uploaded_image_url: uploadedImage ? URL.createObjectURL(uploadedImage) : null,
+        // Never store URL.createObjectURL() output: a blob: URL dies with
+        // the visitor's tab, so the saved record pointed at nothing.
+        uploaded_image_url: null,
         processed_image_url: processedImage || null,
         gala_user_id: null,
         status: 'pending'
