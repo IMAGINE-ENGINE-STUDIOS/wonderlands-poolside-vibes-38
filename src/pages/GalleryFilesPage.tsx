@@ -16,9 +16,10 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import {
   FolderPlus, ArrowLeft, Upload, Folder, Search,
-  Link2, ExternalLink, Download, Trash2, Printer, CheckSquare, XSquare,
+  Link2, ExternalLink, Download, Trash2, Printer, CheckSquare, XSquare, BookOpen,
 } from 'lucide-react';
 import FileCard from '@/components/gallery/FileCard';
+import GalleryFlipBook from '@/components/gallery/GalleryFlipBook';
 import FolderCard from '@/components/gallery/FolderCard';
 import { downloadFile, downloadFilesAsZip } from '@/components/gallery/galleryUtils';
 import FileViewer from '@/components/gallery/FileViewer';
@@ -44,6 +45,14 @@ const GalleryFilesPage = () => {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [flipOpen, setFlipOpen] = useState(false);
+  const [flipStartFileId, setFlipStartFileId] = useState<string | undefined>(undefined);
+
+  const openFlipBook = (fileId?: string) => {
+    setFlipStartFileId(fileId);
+    setViewerOpen(false);
+    setFlipOpen(true);
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
@@ -316,6 +325,11 @@ const GalleryFilesPage = () => {
           <div className="flex items-center gap-2">
             {selectedFolder && selectedFolderData && (
               <>
+                {files.some(f => f.file_type?.startsWith('image/')) && (
+                  <Button variant="outline" size="sm" className="rounded-none border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white uppercase tracking-[0.18em] text-[11px] h-10 px-4" onClick={() => openFlipBook()}>
+                    <BookOpen className="h-4 w-4 mr-1" /> Flip Book
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" className="rounded-none border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white uppercase tracking-[0.18em] text-[11px] h-10 px-4" onClick={() => copyShareLink(selectedFolderData.share_token)}>
                   <Link2 className="h-4 w-4 mr-1" /> Copy Link
                 </Button>
@@ -542,7 +556,19 @@ const GalleryFilesPage = () => {
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         onFilesChanged={refetchFiles}
+        onFlipBook={(fileId) => openFlipBook(fileId)}
       />
+
+      {/* Flip Book V3 view of the open folder's images */}
+      {selectedFolder && (
+        <GalleryFlipBook
+          open={flipOpen}
+          onOpenChange={setFlipOpen}
+          folderName={selectedFolderData?.name ?? 'Gallery'}
+          files={filteredFiles}
+          startFileId={flipStartFileId}
+        />
+      )}
 
       {/* Upload Queue */}
       <UploadQueue

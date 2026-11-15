@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   ChevronLeft, ChevronRight, X, Download, Printer, Send,
-  ZoomIn, ZoomOut, RotateCw, Maximize2, Minimize2,
+  ZoomIn, ZoomOut, RotateCw, Maximize2, Minimize2, BookOpen,
 } from 'lucide-react';
 import { GalleryFile } from '@/hooks/useGallery';
 import { downloadFile, printFile, forwardFile, formatSize, getFileIcon } from './galleryUtils';
@@ -17,9 +17,11 @@ interface FileViewerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onFilesChanged?: () => void;
+  /** Open the folder's images as a FLIP Book V3, starting from this file. */
+  onFlipBook?: (fileId: string) => void;
 }
 
-const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged }: FileViewerProps) => {
+const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged, onFlipBook }: FileViewerProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -190,6 +192,19 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged }:
           </div>
 
           <div className="flex items-center gap-1">
+            {onFlipBook && imageFiles.length > 0 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2.5 rounded-none text-[11px] uppercase tracking-[0.15em] text-zinc-700 hover:text-zinc-950"
+                  onClick={() => onFlipBook(file.id)}
+                >
+                  <BookOpen className="h-4 w-4 mr-1.5" /> Flip Book
+                </Button>
+                <div className="h-4 w-px bg-border mx-1" />
+              </>
+            )}
             {isImage && (
               <>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(z => Math.min(z + 0.25, 5))}>
