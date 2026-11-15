@@ -173,6 +173,101 @@ const ModelCard = ({ model }: { model: PoolModelLicense }) => (
   </Card>
 );
 
+const BERMUDA_PROHIBITED = [
+  "Publishing this image on any website, social network, advertisement or listing.",
+  "Using this image to sell pools of another company as if the image were your own work.",
+  "Cropping, altering or removing any Wonderlands mark or logo from the image (17 U.S.C. § 1202).",
+  "Presenting the image or the projects shown in it as your own work.",
+];
+
+const BermudaImageCard = () => (
+  <Card className="flex h-full flex-col overflow-hidden">
+    <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
+      <img
+        src="/media/bermuda-pool.webp"
+        alt="Bermuda — proprietary Wonderlands image"
+        className="h-full w-full object-cover"
+        loading="lazy"
+      />
+      <Badge className="absolute left-3 top-3 bg-background/90 text-foreground hover:bg-background/90">
+        Proprietary Image License
+      </Badge>
+    </div>
+    <CardHeader className="pb-2">
+      <CardTitle className="font-serif text-2xl tracking-tight">Bermuda</CardTitle>
+      <p className="text-sm text-muted-foreground">
+        Manufacturer shell by Latham — Wonderlands proprietary image &amp; catalog presentation
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Bermuda 12 · 12' x 24' — the same Wonderlands image is used in the Wonderlands catalog for
+        Bermuda 12, Bermuda 12 Deluxe, Bermuda 14 and Bermuda 14 Deluxe
+      </p>
+    </CardHeader>
+    <CardContent className="flex flex-1 flex-col gap-4">
+      <div className="border-y border-border py-3">
+        <div className="flex items-baseline justify-between">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+            Catalog price — Bermuda 12
+          </span>
+          <span className="font-serif text-xl">$56,525</span>
+        </div>
+        <div className="mt-2 flex items-baseline justify-between">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+            Catalog price — Bermuda 12 Deluxe
+          </span>
+          <span className="font-serif text-xl">$70,000</span>
+        </div>
+      </div>
+
+      <div className="bg-muted/40 p-4">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Usage License</p>
+        <p className="mt-2 font-serif text-2xl leading-snug">
+          $10,000 <span className="text-base text-muted-foreground">/ year for this image</span>
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          + 5% royalty on each pool sold using this image
+        </p>
+      </div>
+
+      <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <p>
+          <strong className="text-foreground">Ownership.</strong> "Bermuda" is a model name of the
+          manufacturer Latham; Wonderlands does not claim that name. What is the exclusive property
+          of Wonderlands World Experience LLC is the{" "}
+          <strong className="text-foreground">image</strong> — the proprietary photograph/render
+          published at wonderlandsworld.com/media/bermuda-pool.webp — together with its catalog
+          presentation. {PROPRIETARY_SINCE} License document issued November 15, 2026. No use
+          transfers any ownership.
+        </p>
+        <p>
+          <strong className="text-foreground">How a license is obtained.</strong> Only with a
+          license document <strong className="text-foreground">signed by Wonderlands World
+          Experience LLC</strong> and payment completed before use. Without that document there is
+          no license, verbal or implied. The annual fee is paid in advance; the royalty is reported
+          and paid quarterly, with the detail of each sale.
+        </p>
+        <div>
+          <p className="flex items-center gap-2 font-medium text-foreground">
+            <Ban className="h-4 w-4" /> Prohibited without a license
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {BERMUDA_PROHIBITED.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+        <p>
+          <strong className="text-foreground">Unauthorized use.</strong> Any use without a signed
+          license is an infringement. The infringer is liable for the license fee for the entire
+          period of use, plus the 5% royalty on sales made with the image, plus the damages and
+          remedies provided by U.S. copyright law (17 U.S.C. §§ 502–505), and must remove the
+          material immediately when Wonderlands demands it.
+        </p>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const SOFTWARE_TIERS = [
   { name: "Starter Studio", price: "$5,000 / year" },
   { name: "Pro Business", price: "$15,000 / year" },
@@ -243,6 +338,26 @@ const Licenses = () => {
             {POOL_MODELS.map((model) => (
               <ModelCard key={model.name} model={model} />
             ))}
+          </div>
+
+          <div className="mt-20">
+            <Eyebrow>Proprietary Image License</Eyebrow>
+            <h3 className="mt-4 font-serif text-2xl tracking-tight md:text-3xl">
+              Bermuda — the Wonderlands image
+            </h3>
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
+              Bermuda is not a Wonderlands-designed model — the shell is a Latham manufacturer
+              model. Wonderlands licenses here only what it owns: the proprietary image of the
+              model and its presentation in the Wonderlands catalog, for{" "}
+              <strong className="text-foreground">
+                $10,000 per year, plus a 5% royalty
+              </strong>{" "}
+              on the sale price of each pool sold using that image.
+            </p>
+
+            <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <BermudaImageCard />
+            </div>
           </div>
         </section>
 
