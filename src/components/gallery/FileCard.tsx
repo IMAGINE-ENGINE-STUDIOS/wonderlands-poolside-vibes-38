@@ -29,7 +29,9 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(file.file_name);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { thumbUrl: thumbSrc, isLoading: thumbLoading } = useThumbnail(file.file_url, file.file_type, file.folder_id);
+  const { thumbUrl } = useThumbnail(file.file_url, file.file_type, file.folder_id);
+  const [thumbFailed, setThumbFailed] = useState(false);
+  const thumbSrc = thumbFailed ? file.file_url : thumbUrl;
 
   const handleRenameSubmit = () => {
     if (newName.trim() && newName !== file.file_name) {
@@ -63,13 +65,16 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
         >
           <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
             {file.file_type?.startsWith('image/') ? (
-              thumbLoading || !thumbSrc ? (
-                <div className="w-full h-full animate-pulse bg-muted-foreground/10" />
-              ) : (
-                <img src={thumbSrc} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
-              )
+              <img
+                src={thumbSrc}
+                alt={file.file_name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+                onError={() => { if (!thumbFailed) setThumbFailed(true); }}
+              />
             ) : file.file_type?.startsWith('video/') ? (
-              <video src={file.file_url} className="w-full h-full object-cover" />
+              <video src={file.file_url} className="w-full h-full object-cover" preload="none" />
             ) : (
               getFileIcon(file.file_type, "h-12 w-12")
             )}
