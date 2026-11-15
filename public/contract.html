@@ -74,6 +74,7 @@
   <button id="dlBtn">Download copy</button>
   <button id="shareBtn">Share</button>
   <button id="emailBtn">Send Email</button>
+  <span id="saveStatus" style="font-size:12.5px;color:#cfe6dc"></span>
   <span class="hint" id="editHint">Edit mode is ON — click any text in the document to change it. Turn Edit mode off before signing.</span>
 </div>
 
@@ -499,6 +500,7 @@
     if(finishBtn) finishBtn.disabled = true;
     clearProgress();
     saveSignedContract(signedRoles.client, clientSigData);
+    saveDraft(true, false).then(function(ok){ if(ok) draftIsFinal = true; });
     stamp.scrollIntoView({ behavior:'smooth', block:'center' });
   }
 
@@ -545,6 +547,7 @@
       msg(R.label + ' signed \u2713 \u2014 still to sign: ' + left + '.' + (signedRoles.client ? ' If they are not present, use \u201cFinish & save now\u201d to finalize as is.' : ''));
       persistProgress();
       refreshFinish();
+      saveDraft(false, false);
       return;
     }
     finalize();
@@ -571,6 +574,48 @@
       body: JSON.stringify(body)
     }).then(function(r){ return r.json(); });
   }
+
+  // ---- Saving changes back to the shared record ----
+  // Signatures and finalization save to the draft on the server, so
+  // reopening the shared link anywhere shows them. Content edits made
+  // in Edit mode are offered to the server too; until the admin
+  // passcode unlock lands (Job 3) the server accepts only signature
+  // progression, and the status line says so. adminPasscode is declared
+  // here and plumbed into every save; Job 3 sets it.
+  var adminPasscode = '';
+  var saveStatusEl = document.getElementById('saveStatus');
+  var saveTimer = null;
+  function setSaveStatus(t){ if(saveStatusEl) saveStatusEl.textContent = t; }
+  function saveDraft(finalFlag, editTriggered){
+    if(!draftId || draftIsFinal) return Promise.resolve(false);
+    setSaveStatus('Saving…');
+    return rpc('update_contract_draft', {
+      p_id: draftId,
+      p_document_html: doc.innerHTML,
+      p_signed_roles: signedRoles,
+      p_client_sig_data: clientSigData,
+      p_is_final: !!finalFlag,
+      p_passcode: adminPasscode || null
+    }).then(function(res){
+      var ok = res === true;
+      if(ok) setSaveStatus('Saved ✓');
+      else if(editTriggered) setSaveStatus('Content changes need the admin passcode to save.');
+      else setSaveStatus('Could not save to the shared record.');
+      return ok;
+    }).catch(function(){
+      if(editTriggered) setSaveStatus('Content changes need the admin passcode to save.');
+      else setSaveStatus('Could not save to the shared record.');
+      return false;
+    });
+  }
+  function scheduleSave(){
+    if(!draftId || draftIsFinal) return;
+    if(saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){ saveDraft(false, true); }, 900);
+  }
+  doc.addEventListener('input', function(){
+    if(editing && draftId && !draftIsFinal) scheduleSave();
+  });
   function shareLink(){
     return location.origin + '/contract.html?c=' + draftId;
   }
