@@ -233,7 +233,7 @@ const App = () => {
             <Route 
               path="/files" 
               element={
-                <ProtectedRoute requireAuth={true}>
+                <ProtectedRoute requireAuth={true} requiredRoles={['main_admin', 'sales_rep']}>
                   <GalleryFilesPage />
                 </ProtectedRoute>
               } 
