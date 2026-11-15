@@ -1,6 +1,15 @@
 /* Critical CSS - Above the fold content only */
 @tailwind base;
 
+/* Image download guard (founder order 2026-11-15): no long-press save callout
+   or drag ghost on site photos; pairs with the contextmenu/dragstart guard in
+   main.tsx. */
+img {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;

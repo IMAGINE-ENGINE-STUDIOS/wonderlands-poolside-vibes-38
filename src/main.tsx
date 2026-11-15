@@ -22,6 +22,17 @@ if (typeof window !== "undefined") {
   }, true);
 }
 
+// Image download guard (founder order 2026-11-15): site photos carry a baked-in
+// watermark; this adds the friction layer on top — no right-click "Save image",
+// no drag-out, no long-press save on images. It cannot stop screenshots (no
+// website can), it stops the casual one-click copy.
+if (typeof window !== "undefined") {
+  const isImageTarget = (t: EventTarget | null) =>
+    t instanceof Element && (t.tagName === "IMG" || t.closest("img, picture") !== null);
+  document.addEventListener("contextmenu", (e) => { if (isImageTarget(e.target)) e.preventDefault(); });
+  document.addEventListener("dragstart", (e) => { if (isImageTarget(e.target)) e.preventDefault(); });
+}
+
 // Deploy-skew guard (founder hit this 2026-10-31, and again 2026-11-03):
 // when a new deploy lands while a visitor is mid-session, their page can
 // request a lazy chunk the new build replaced — the import fails and the
