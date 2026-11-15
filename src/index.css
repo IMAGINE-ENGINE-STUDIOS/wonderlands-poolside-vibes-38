@@ -311,7 +311,7 @@
 
 /* Gallery folder card branded accent */
 .gallery-folder-accent {
-  border-left: 3px solid hsl(var(--teal));
+  border-left: 3px solid #09090b;
 }
 
 /* Force light mode inside quote document - neutralize all dark: overrides */

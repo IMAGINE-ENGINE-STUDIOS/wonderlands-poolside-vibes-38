@@ -284,27 +284,30 @@ const GalleryFilesPage = () => {
 
   return (
     <div
-      className="min-h-screen bg-background"
+      className="min-h-screen bg-white"
       onDrop={handlePageDrop}
       onDragOver={(e) => e.preventDefault()}
     >
-      {/* Branded header bar */}
-      <div className="bg-gradient-to-r from-[hsl(var(--teal))] to-[hsl(185,70%,45%)] px-4 py-5">
+      {/* Header — main-page editorial style: white, serif display title, hairline rule */}
+      <div className="bg-white border-b border-zinc-200 px-4 py-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {selectedFolder && (
-              <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10" onClick={() => { setSelectedFolder(null); setSelectedFolderData(null); setSelectedFiles(new Set()); }}>
+              <Button variant="ghost" size="icon" className="text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100" onClick={() => { setSelectedFolder(null); setSelectedFolderData(null); setSelectedFiles(new Set()); }}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {/* Logo moved to /public/logo to keep brand assets separate from general imagery. */}
-              <img loading="lazy" decoding="async" src="/logo/wonderlands-logo.webp" alt="Wonderlands" className="h-9 w-9 rounded-lg shadow-md" />
+              <img loading="lazy" decoding="async" src="/logo/wonderlands-logo.webp" alt="Wonderlands" className="h-11 w-11" />
               <div>
-                <h1 className="text-2xl font-bold text-white tracking-tight">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">
+                  {selectedFolder ? 'Gallery' : 'Wonderlands — Client Files'}
+                </p>
+                <h1 className="font-serif text-4xl font-light tracking-tight text-zinc-950 mt-1">
                   {selectedFolder ? selectedFolderData?.name : 'File Gallery'}
                 </h1>
-                <p className="text-white/70 text-xs mt-0.5">
+                <p className="text-zinc-500 text-sm mt-1">
                   {selectedFolder ? 'Manage files in this gallery' : 'Renders, manuals & documents repository'}
                 </p>
               </div>
@@ -313,10 +316,10 @@ const GalleryFilesPage = () => {
           <div className="flex items-center gap-2">
             {selectedFolder && selectedFolderData && (
               <>
-                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => copyShareLink(selectedFolderData.share_token)}>
+                <Button variant="outline" size="sm" className="rounded-none border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white uppercase tracking-[0.18em] text-[11px] h-10 px-4" onClick={() => copyShareLink(selectedFolderData.share_token)}>
                   <Link2 className="h-4 w-4 mr-1" /> Copy Link
                 </Button>
-                <Button size="sm" className="bg-[hsl(var(--coral))] hover:bg-[hsl(12,76%,55%)] text-white border-0" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                <Button size="sm" className="rounded-none bg-zinc-950 text-white hover:bg-zinc-800 border border-zinc-950 uppercase tracking-[0.18em] text-[11px] h-10 px-4" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                   <Upload className="h-4 w-4 mr-1" /> {uploading ? 'Uploading...' : 'Upload Files'}
                 </Button>
                 <input
@@ -332,7 +335,7 @@ const GalleryFilesPage = () => {
             {!selectedFolder && (
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-[hsl(var(--coral))] hover:bg-[hsl(12,76%,55%)] text-white border-0">
+                  <Button size="sm" className="rounded-none bg-zinc-950 text-white hover:bg-zinc-800 border border-zinc-950 uppercase tracking-[0.18em] text-[11px] h-10 px-4">
                     <FolderPlus className="h-4 w-4 mr-1" /> New Gallery
                   </Button>
                 </DialogTrigger>
@@ -349,7 +352,7 @@ const GalleryFilesPage = () => {
                       <Label>Description (optional)</Label>
                       <Textarea value={newFolderDesc} onChange={e => setNewFolderDesc(e.target.value)} placeholder="What's in this gallery?" />
                     </div>
-                    <Button onClick={() => handleCreateFolder()} className="w-full bg-[hsl(var(--teal))] hover:bg-[hsl(173,58%,34%)] text-white" disabled={!newFolderName.trim()}>
+                    <Button onClick={() => handleCreateFolder()} className="w-full rounded-none bg-zinc-950 hover:bg-zinc-800 text-white uppercase tracking-[0.18em] text-[11px] h-10" disabled={!newFolderName.trim()}>
                       Create Gallery
                     </Button>
                   </div>
@@ -360,38 +363,38 @@ const GalleryFilesPage = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-10">
         {/* Bulk actions bar */}
         {hasSelection && (
-          <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-lg border border-border">
-            <span className="text-sm font-medium text-foreground mr-2">{selectedFiles.size} selected</span>
-            <Button variant="outline" size="sm" onClick={selectAll}>
+          <div className="flex items-center gap-2 mb-6 p-3 bg-white border border-zinc-300">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-zinc-700 mr-2">{selectedFiles.size} selected</span>
+            <Button variant="outline" size="sm" className="rounded-none uppercase tracking-[0.15em] text-[11px]" onClick={selectAll}>
               <CheckSquare className="h-4 w-4 mr-1" /> Select All
             </Button>
-            <Button variant="outline" size="sm" onClick={clearSelection}>
+            <Button variant="outline" size="sm" className="rounded-none uppercase tracking-[0.15em] text-[11px]" onClick={clearSelection}>
               <XSquare className="h-4 w-4 mr-1" /> Clear
             </Button>
-            <div className="h-4 w-px bg-border mx-1" />
-            <Button variant="outline" size="sm" onClick={handleBulkDownload}>
+            <div className="h-4 w-px bg-zinc-300 mx-1" />
+            <Button variant="outline" size="sm" className="rounded-none uppercase tracking-[0.15em] text-[11px]" onClick={handleBulkDownload}>
               <Download className="h-4 w-4 mr-1" /> Download
             </Button>
-            <Button variant="outline" size="sm" onClick={handleBulkPrint}>
+            <Button variant="outline" size="sm" className="rounded-none uppercase tracking-[0.15em] text-[11px]" onClick={handleBulkPrint}>
               <Printer className="h-4 w-4 mr-1" /> Print
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+            <Button variant="destructive" size="sm" className="rounded-none uppercase tracking-[0.15em] text-[11px]" onClick={handleBulkDelete}>
               <Trash2 className="h-4 w-4 mr-1" /> Delete
             </Button>
           </div>
         )}
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Search — hairline underline bar, like the main page's collection search */}
+        <div className="relative mb-10 max-w-md">
+          <Search className="absolute left-1 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
           <Input
             placeholder={selectedFolder ? 'Search files...' : 'Search galleries...'}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="pl-10 max-w-md"
+            className="pl-8 rounded-none border-0 border-b border-zinc-300 shadow-none focus-visible:ring-0 focus-visible:border-zinc-950 placeholder:uppercase placeholder:tracking-[0.2em] placeholder:text-[11px]"
           />
         </div>
 
@@ -406,12 +409,12 @@ const GalleryFilesPage = () => {
                 </div>
               ) : filteredFolders.length === 0 ? (
                 <div className="text-center py-20">
-                  <Folder className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-1">No galleries yet</h3>
-                  <p className="text-muted-foreground text-sm">Create your first gallery or right-click to create one</p>
+                  <Folder className="h-16 w-16 text-zinc-300 mx-auto mb-4" />
+                  <h3 className="font-serif text-2xl font-light text-zinc-950 mb-1">No galleries yet</h3>
+                  <p className="text-zinc-500 text-sm">Create your first gallery or right-click to create one</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {filteredFolders.map(folder => (
                     <FolderCard
                       key={folder.id}
@@ -439,9 +442,9 @@ const GalleryFilesPage = () => {
                 <>
                   {/* Sub-folders */}
                   {filteredFolders.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Sub-folders</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="mb-8">
+                      <h3 className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 mb-4">Sub-folders</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         {filteredFolders.map(folder => (
                           <FolderCard
                             key={folder.id}
@@ -462,12 +465,12 @@ const GalleryFilesPage = () => {
                   {/* Files */}
                   {filteredFiles.length === 0 && filteredFolders.length === 0 ? (
                     <div className="text-center py-20">
-                      <Upload className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-foreground mb-1">No files yet</h3>
-                      <p className="text-muted-foreground text-sm">Upload files or drag & drop them here</p>
+                      <Upload className="h-16 w-16 text-zinc-300 mx-auto mb-4" />
+                      <h3 className="font-serif text-2xl font-light text-zinc-950 mb-1">No files yet</h3>
+                      <p className="text-zinc-500 text-sm">Upload files or drag & drop them here</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                       {filteredFiles.map((file, index) => (
                         <FileCard
                           key={file.id}

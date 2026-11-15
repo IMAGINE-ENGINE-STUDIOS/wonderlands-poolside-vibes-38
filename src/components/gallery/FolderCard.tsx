@@ -42,7 +42,7 @@ const FolderCard = ({ folder, onOpen, onDelete, onRename, onCopyLink, onDragStar
     <ContextMenu>
       <ContextMenuTrigger>
         <Card
-          className="group cursor-pointer hover:shadow-md transition-shadow border-border gallery-folder-accent"
+          className="group cursor-pointer rounded-none shadow-none hover:border-zinc-950 transition-colors border-zinc-200 gallery-folder-accent"
           draggable
           onDragStart={(e) => onDragStart(e, folder.id)}
           onDrop={(e) => onDrop(e, folder.id)}
@@ -52,7 +52,7 @@ const FolderCard = ({ folder, onOpen, onDelete, onRename, onCopyLink, onDragStar
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <Folder className="h-10 w-10 text-[hsl(var(--teal))] shrink-0" />
+                <Folder className="h-10 w-10 text-zinc-950 shrink-0" strokeWidth={1.25} />
                 <div className="min-w-0">
                   {isRenaming ? (
                     <div className="flex items-center gap-1">
@@ -73,8 +73,8 @@ const FolderCard = ({ folder, onOpen, onDelete, onRename, onCopyLink, onDragStar
                     </div>
                   ) : (
                     <>
-                      <h3 className="font-semibold text-foreground truncate">{folder.name}</h3>
-                      <p className="text-xs text-muted-foreground">{folder.file_count} file{folder.file_count !== 1 ? 's' : ''}</p>
+                      <h3 className="font-serif text-lg font-light text-zinc-950 truncate">{folder.name}</h3>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 mt-0.5">{folder.file_count} file{folder.file_count !== 1 ? 's' : ''}</p>
                     </>
                   )}
                 </div>
@@ -89,7 +89,7 @@ const FolderCard = ({ folder, onOpen, onDelete, onRename, onCopyLink, onDragStar
               </div>
             </div>
             {folder.description && (
-              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{folder.description}</p>
+              <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{folder.description}</p>
             )}
           </CardContent>
         </Card>

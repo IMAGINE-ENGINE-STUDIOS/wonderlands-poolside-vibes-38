@@ -50,8 +50,8 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
     <ContextMenu>
       <ContextMenuTrigger>
         <Card
-          className={`group overflow-hidden border-border cursor-pointer transition-all ${
-            isSelected ? 'ring-2 ring-primary border-primary' : 'hover:shadow-md'
+          className={`group overflow-hidden rounded-none border-zinc-200 shadow-none cursor-pointer transition-colors ${
+            isSelected ? 'ring-1 ring-zinc-950 border-zinc-950' : 'hover:border-zinc-950'
           }`}
           draggable
           onDragStart={(e) => onDragStart(e, file.id)}
@@ -63,7 +63,7 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
             }
           }}
         >
-          <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
+          <div className="aspect-square bg-zinc-100 flex items-center justify-center relative overflow-hidden">
             {file.file_type?.startsWith('image/') ? (
               <img
                 src={thumbSrc}
@@ -122,8 +122,8 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
               </div>
             ) : (
               <>
-                <p className="text-xs font-medium text-foreground truncate">{file.file_name}</p>
-                <p className="text-[10px] text-muted-foreground">{formatSize(file.file_size)}</p>
+                <p className="font-serif text-sm text-zinc-950 truncate">{file.file_name}</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500 mt-0.5">{formatSize(file.file_size)}</p>
               </>
             )}
           </CardContent>
