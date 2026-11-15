@@ -34,6 +34,11 @@
   .unlockbar-row input { flex:1; min-width:220px; padding:9px 10px; font-size:14px; border:1px solid #33524a; border-radius:8px; background:#fff; color:#10231d; }
   .unlockbar-row button { background:#19b586; color:#06251c; border:0; border-radius:8px; padding:9px 14px; font-size:14px; font-weight:600; cursor:pointer; }
   .unlock-msg { font-size:13.5px; color:#f4b740; margin:10px 0 0; min-height:16px; }
+  .accessbanner { background:#0e7a5f; color:#fff; padding:20px 16px 22px; text-align:center; font-family:-apple-system,'Segoe UI',Arial,sans-serif; }
+  .accessbanner[hidden] { display:none; }
+  .accessbanner-text { margin:0 auto 14px; max-width:640px; font-size:17px; font-weight:600; line-height:1.4; }
+  #accessBtn { background:#ffffff; color:#0b5c47; border:0; border-radius:12px; padding:16px 34px; min-height:58px; font-size:20px; font-weight:800; letter-spacing:.01em; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,.25); }
+  #accessBtn:active { transform:translateY(1px); }
   .page { background:var(--paper); max-width:820px; margin:22px auto; padding:56px 60px; box-shadow:0 4px 24px rgba(0,0,0,.18); line-height:1.55; font-size:15.5px; }
   .page h1 { font-size:21px; text-align:center; margin:0 0 4px; letter-spacing:.04em; }
   .page h2 { font-size:16px; margin:26px 0 8px; }
@@ -64,14 +69,18 @@
   body.editing .page { outline:3px solid #f4b740; }
   @media print {
     body { background:#fff; }
-    .toolbar, .panel, .hint, .sharepanel, .unlockbar { display:none !important; }
+    .toolbar, .panel, .hint, .sharepanel, .unlockbar, .accessbanner { display:none !important; }
     .page { box-shadow:none; margin:0; max-width:none; padding:24px 10px; }
     body.editing .page { outline:none; }
   }
-  @media (max-width:640px){ .page{ padding:30px 20px; } .siggrid{ grid-template-columns:1fr; } }
+  @media (max-width:640px){ .page{ padding:30px 20px; } .siggrid{ grid-template-columns:1fr; } #accessBtn{ width:100%; min-height:64px; font-size:21px; padding:18px 20px; } .accessbanner-text{ font-size:16px; } }
 </style>
 </head>
 <body>
+<div class="accessbanner" id="accessBanner" hidden>
+  <p class="accessbanner-text" id="accessText">Wonderlands World has sent you a construction services agreement to review and sign.</p>
+  <button id="accessBtn" type="button">Access the contract</button>
+</div>
 <div class="toolbar">
   <span class="brand">Wonderlands World — Construction Services Agreement</span>
   <span class="pill" id="statusPill">FINAL</span>
@@ -751,6 +760,12 @@
       msg('Signing in progress — ' + doneCount + ' of 3 parties already signed.');
       refreshFinish();
     }
+    if(draftIsFinal || doneCount >= 3){
+      var aBtn = document.getElementById('accessBtn');
+      var aText = document.getElementById('accessText');
+      if(aBtn) aBtn.textContent = 'View the signed contract';
+      if(aText) aText.textContent = 'This agreement has been signed.';
+    }
   }
   function loadDraft(){
     rpc('get_contract_draft', { p_id: draftId }).then(function(rows){
@@ -840,6 +855,22 @@
       });
     }).catch(function(){ shareMsg('The email could not be sent. You can copy the link above and send it yourself.'); });
   });
+
+  // ---- Access banner: shared links only, shown immediately ----
+  var accessBanner = document.getElementById('accessBanner');
+  var accessBtn = document.getElementById('accessBtn');
+  if(accessBanner && params.get('c')){
+    accessBanner.hidden = false;
+    if(accessBtn){
+      accessBtn.addEventListener('click', function(){
+        accessBanner.hidden = true;
+        var tb = document.querySelector('.toolbar');
+        var offset = tb ? tb.offsetHeight : 0;
+        var y = doc.getBoundingClientRect().top + window.pageYOffset - offset - 8;
+        window.scrollTo({ top: Math.max(y, 0), behavior:'smooth' });
+      });
+    }
+  }
 
   if(draftId){ loadDraft(); } else { restoreProgress(); }
   document.getElementById('signBtn').addEventListener('click', function(){ document.getElementById('signPanel').scrollIntoView({ behavior:'smooth' }); });
