@@ -19,6 +19,7 @@ import CompanyCRM, { type CrmView } from '@/components/crm/CompanyCRM';
 import SiteBuilder from '@/components/siteBuilder/SiteBuilder';
 import ContractorWorkspace, { type Section } from '@/components/contractor/ContractorWorkspace';
 import { MeetingsPanel } from '@/components/live/MeetingsPanel';
+import SubcontractorPaywall, { isSubcontractorActive, type SubcontractorMembership } from '@/components/subcontractor/SubcontractorPaywall';
 
 const CHAPTERS = [
   { key: 'today', label: 'Today', group: 'Overview' },
@@ -50,7 +51,11 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string; actAsAdmin?: boole
   const [rows, setRows] = useState<{ clients: any[]; quotes: any[]; invoices: any[]; members: any[] } | null>(null);
   const [hasTrade, setHasTrade] = useState<boolean | null>(null);
   const [form, setForm] = useState<Partial<Company>>({});
+  const [membership, setMembership] = useState<SubcontractorMembership | null>(null);
+  const [membershipChecked, setMembershipChecked] = useState(false);
   const readOnly = !!previewCompanyId && !actAsAdmin;
+  const subcontractorExempt = !!previewCompanyId || profile?.role === 'main_admin';
+  const subcontractorActive = subcontractorExempt || isSubcontractorActive(membership);
 
   useEffect(() => {
     if (!user && !previewCompanyId) return;
@@ -89,6 +94,38 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string; actAsAdmin?: boole
     return () => { alive = false; };
   }, [user, previewCompanyId, readOnly]);
 
+  useEffect(() => {
+    if (previewCompanyId) { setMembershipChecked(true); return; }
+    if (!user) return;
+    let alive = true;
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const outcome = params.get('subcontractor');
+      const sessionId = params.get('session_id');
+      if (outcome) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('subcontractor'); url.searchParams.delete('session_id');
+        window.history.replaceState({}, '', url.toString());
+      }
+      if (outcome === 'done' && sessionId) {
+        const { data } = await supabase.functions.invoke('subcontractor-billing', { body: { action: 'verify', session_id: sessionId } });
+        if (!alive) return;
+        if (data?.ok) {
+          toast({ title: 'Welcome to the Subcontractor Network', description: 'Your payment went through. Personalize your trade profile here to start bidding on jobs.' });
+          setTab('procurement');
+        } else {
+          toast({ title: 'Payment not confirmed yet', description: 'Your payment is still being confirmed. Please check again in a moment.' });
+        }
+      } else if (outcome === 'cancel') {
+        toast({ title: 'Checkout canceled', description: 'No payment was taken. You can join the Subcontractor Network whenever you are ready.' });
+      }
+      const { data } = await supabase.functions.invoke('subcontractor-billing', { body: { action: 'status' } });
+      if (alive) { setMembership((data?.membership as SubcontractorMembership) ?? null); setMembershipChecked(true); }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, previewCompanyId]);
+
   const createTradeProfile = async () => {
     if (!user || !company) return;
     const { error } = await supabase.from('contractors').insert({
@@ -116,6 +153,8 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string; actAsAdmin?: boole
   const date = (d: string) => new Date(d).toLocaleDateString();
   const body = () => {
     if (CONTRACTOR_SECTIONS.includes(tab)) {
+      if (!subcontractorExempt && !membershipChecked) return <div className="grid gap-4 sm:grid-cols-4"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>;
+      if (!subcontractorActive) return <SubcontractorPaywall membership={membership} />;
       if (hasTrade === false) return <Panel kicker="Projects" title="Set up your trade profile"><p className="text-sm text-muted-foreground mb-4">One click links {company.name} to the project marketplace so you can bid and track work.</p><Button onClick={createTradeProfile}>Create trade profile</Button></Panel>;
       return <div className="[&>div]:m-0 [&>div]:min-h-0 [&>div]:rounded-2xl"><ContractorWorkspace section={tab as Section} /></div>;
     }
@@ -161,6 +200,11 @@ const CompanyWorkspace: React.FC<{ previewCompanyId?: string; actAsAdmin?: boole
           </div>
           <Panel kicker="Account" title={company.name}>
             <p className="text-sm text-muted-foreground">Status: <span className="capitalize text-foreground">{company.status}</span>{company.trades?.length ? ` · ${company.trades.join(', ').replace(/_/g, ' ')}` : ''}</p>
+          </Panel>
+          <Panel kicker="Projects" title="Subcontractor Network">
+            <p className="text-sm text-muted-foreground mb-4">Status: <span className="text-foreground">{subcontractorExempt || subcontractorActive ? 'Active' : membershipChecked ? 'Not joined' : 'Checking…'}</span></p>
+            {!subcontractorActive && membershipChecked && <Button onClick={() => setTab('procurement')}>Join the Subcontractor Network</Button>}
+            {subcontractorActive && <Button variant="outline" onClick={() => setTab('procurement')}>Open opportunities and bids</Button>}
           </Panel>
         </div>;
     }
